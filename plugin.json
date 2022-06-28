@@ -12,5 +12,15 @@
   "sourceUrl": "https://github.com/cosinekitty/sapphire",
   "donateUrl": "",
   "changelogUrl": "",
-  "modules": []
+  "modules": [
+    {
+      "slug": "Moots",
+      "name": "Moots",
+      "description": "Plugs/unplugs polyphonic cables.",
+      "tags": [
+        "Controller",
+        "Switch"
+      ]
+    }
+  ]
 }
