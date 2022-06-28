@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="1.6801556"
-     inkscape:cx="6.844604"
-     inkscape:cy="242.83465"
+     inkscape:zoom="1.1880494"
+     inkscape:cx="-294.17968"
+     inkscape:cy="226.42156"
      inkscape:window-width="1920"
      inkscape:window-height="1029"
      inkscape:window-x="0"
@@ -45,32 +45,44 @@
      inkscape:label="components"
      style="display:inline">
     <circle
-       style="fill:#ff0000;stroke-width:0.253578;image-rendering:auto"
-       id="path59"
-       cx="24.5"
-       cy="24.5"
-       inkscape:label="ToggleButton1"
-       r="4.5" />
+       id="76d79dec-8118-43fb-b5dd-6b40972a996f"
+       data-name=""
+       cx="25.459454"
+       cy="25.289894"
+       r="2"
+       style="fill:#ff0000"
+       inkscape:label="ToggleButton1" />
     <circle
-       style="display:inline;fill:#ff0000;stroke-width:0.253578;image-rendering:auto"
-       id="path59-6"
-       cx="24.5"
-       cy="44.5"
-       inkscape:label="ToggleButton2"
-       r="4.5" />
+       id="b829e6ae-bc7d-4b17-8e68-3eb798046fd5"
+       data-name=""
+       cx="25.459454"
+       cy="44.715195"
+       r="2"
+       style="fill:#ff0000"
+       inkscape:label="ToggleButton2" />
     <circle
-       style="display:inline;fill:#ff0000;stroke-width:0.253578;image-rendering:auto"
-       id="path59-6-7"
-       cx="24.5"
-       cy="64.5"
-       inkscape:label="ToggleButton3"
-       r="4.5" />
+       id="e1bd1169-22cf-4455-9fe7-7e199554d02e"
+       data-name=""
+       cx="25.459454"
+       cy="64.140495"
+       r="2"
+       style="fill:#ff0000"
+       inkscape:label="ToggleButton3" />
     <circle
-       style="display:inline;fill:#ff0000;stroke-width:0.253578;image-rendering:auto"
-       id="path59-6-5"
-       cx="24.5"
-       cy="84.5"
-       inkscape:label="ToggleButton4"
-       r="4.5" />
+       id="183b45e2-03d8-4515-a732-d0c7704843e1"
+       data-name=""
+       cx="25.459454"
+       cy="83.565804"
+       r="2"
+       style="fill:#ff0000"
+       inkscape:label="ToggleButton4" />
+    <circle
+       id="eb59edf3-7604-464a-8c1f-0a10c4cbf922"
+       data-name=""
+       cx="25.459454"
+       cy="102.99117"
+       r="2"
+       style="fill:#ff0000"
+       inkscape:label="ToggleButton5" />
   </g>
 </svg>
