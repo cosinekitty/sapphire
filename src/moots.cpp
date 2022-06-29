@@ -32,6 +32,11 @@ struct Moots : Module {
 		OUTPUTS_LEN
 	};
 	enum LightId {
+		MOOTLIGHT1,
+		MOOTLIGHT2,
+		MOOTLIGHT3,
+		MOOTLIGHT4,
+		MOOTLIGHT5,
 		LIGHTS_LEN
 	};
 
@@ -74,11 +79,11 @@ struct MootsWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.051, 17.252)), module, Moots::TOGGLEBUTTON1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.051, 38.863)), module, Moots::TOGGLEBUTTON2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.051, 60.298)), module, Moots::TOGGLEBUTTON3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.051, 81.869)), module, Moots::TOGGLEBUTTON4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.051, 103.251)), module, Moots::TOGGLEBUTTON5_PARAM));
+		addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.051, 17.252)),  module, Moots::TOGGLEBUTTON1_PARAM, Moots::MOOTLIGHT1));
+		addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.051, 38.863)),  module, Moots::TOGGLEBUTTON2_PARAM, Moots::MOOTLIGHT2));
+		addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.051, 60.298)),  module, Moots::TOGGLEBUTTON3_PARAM, Moots::MOOTLIGHT3));
+		addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.051, 81.869)),  module, Moots::TOGGLEBUTTON4_PARAM, Moots::MOOTLIGHT4));
+		addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.051, 103.251)), module, Moots::TOGGLEBUTTON5_PARAM, Moots::MOOTLIGHT5));
 
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.554, 17.347)), module, Moots::INAUDIO1_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.051, 25.026)), module, Moots::INGATE1_INPUT));
