@@ -2,7 +2,8 @@
 
 
 struct Moots : Module {
-	enum ParamId {
+	enum ParamId
+	{
 		TOGGLEBUTTON1_PARAM,
 		TOGGLEBUTTON2_PARAM,
 		TOGGLEBUTTON3_PARAM,
@@ -10,7 +11,9 @@ struct Moots : Module {
 		TOGGLEBUTTON5_PARAM,
 		PARAMS_LEN
 	};
-	enum InputId {
+
+	enum InputId
+	{
 		INAUDIO1_INPUT,
 		INAUDIO2_INPUT,
 		INAUDIO3_INPUT,
@@ -23,7 +26,9 @@ struct Moots : Module {
 		INGATE5_INPUT,
 		INPUTS_LEN
 	};
-	enum OutputId {
+
+	enum OutputId
+	{
 		OUTAUDIO1_OUTPUT,
 		OUTAUDIO2_OUTPUT,
 		OUTAUDIO3_OUTPUT,
@@ -31,7 +36,9 @@ struct Moots : Module {
 		OUTAUDIO5_OUTPUT,
 		OUTPUTS_LEN
 	};
-	enum LightId {
+
+	enum LightId
+	{
 		MOOTLIGHT1,
 		MOOTLIGHT2,
 		MOOTLIGHT3,
@@ -40,7 +47,8 @@ struct Moots : Module {
 		LIGHTS_LEN
 	};
 
-	Moots() {
+	Moots()
+	{
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configButton(TOGGLEBUTTON1_PARAM, "Moot 1");
 		configButton(TOGGLEBUTTON2_PARAM, "Moot 2");
@@ -64,13 +72,22 @@ struct Moots : Module {
 		configOutput(OUTAUDIO5_OUTPUT, "");
 	}
 
-	void process(const ProcessArgs& args) override {
+	void process(const ProcessArgs& args) override
+	{
+		for (int i = 0; i < PARAMS_LEN; ++i)
+		{
+			bool active = params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f;
+
+			lights[MOOTLIGHT1 + i].setBrightness(active ? 1.0f : 0.0f);
+		}
 	}
 };
 
 
-struct MootsWidget : ModuleWidget {
-	MootsWidget(Moots* module) {
+struct MootsWidget : ModuleWidget
+{
+	MootsWidget(Moots* module)
+	{
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
