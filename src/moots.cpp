@@ -74,11 +74,27 @@ struct Moots : Module {
 
 	void process(const ProcessArgs& args) override
 	{
+		float volts[16] = {};
+
 		for (int i = 0; i < PARAMS_LEN; ++i)
 		{
 			bool active = params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f;
 
 			lights[MOOTLIGHT1 + i].setBrightness(active ? 1.0f : 0.0f);
+
+			auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
+
+			if (active)
+			{
+				auto & inp = inputs[INAUDIO1_INPUT + i];
+				inp.readVoltages(volts);
+				outp.channels = inp.getChannels();
+				outp.writeVoltages(volts);
+			}
+			else
+			{
+				outp.channels = 0;	// force zero-channel output : shows "ghost" cable(s)
+			}
 		}
 	}
 };
