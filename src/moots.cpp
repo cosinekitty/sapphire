@@ -1,7 +1,8 @@
 #include "plugin.hpp"
 
 
-struct Moots : Module {
+struct Moots : Module
+{
     enum ParamId
     {
         TOGGLEBUTTON1_PARAM,
@@ -55,26 +56,26 @@ struct Moots : Module {
         configButton(TOGGLEBUTTON3_PARAM, "Moot 3");
         configButton(TOGGLEBUTTON4_PARAM, "Moot 4");
         configButton(TOGGLEBUTTON5_PARAM, "Moot 5");
-        configInput(INAUDIO1_INPUT, "");
-        configInput(INAUDIO2_INPUT, "");
-        configInput(INAUDIO3_INPUT, "");
-        configInput(INAUDIO4_INPUT, "");
-        configInput(INAUDIO5_INPUT, "");
-        configInput(INGATE1_INPUT, "");
-        configInput(INGATE2_INPUT, "");
-        configInput(INGATE3_INPUT, "");
-        configInput(INGATE4_INPUT, "");
-        configInput(INGATE5_INPUT, "");
-        configOutput(OUTAUDIO1_OUTPUT, "");
-        configOutput(OUTAUDIO2_OUTPUT, "");
-        configOutput(OUTAUDIO3_OUTPUT, "");
-        configOutput(OUTAUDIO4_OUTPUT, "");
-        configOutput(OUTAUDIO5_OUTPUT, "");
+        configInput(INAUDIO1_INPUT, "Signal 1");
+        configInput(INAUDIO2_INPUT, "Signal 2");
+        configInput(INAUDIO3_INPUT, "Signal 3");
+        configInput(INAUDIO4_INPUT, "Signal 4");
+        configInput(INAUDIO5_INPUT, "Signal 5");
+        configInput(INGATE1_INPUT, "Gate 1");
+        configInput(INGATE2_INPUT, "Gate 2");
+        configInput(INGATE3_INPUT, "Gate 3");
+        configInput(INGATE4_INPUT, "Gate 4");
+        configInput(INGATE5_INPUT, "Gate 5");
+        configOutput(OUTAUDIO1_OUTPUT, "Signal 1");
+        configOutput(OUTAUDIO2_OUTPUT, "Signal 2");
+        configOutput(OUTAUDIO3_OUTPUT, "Signal 3");
+        configOutput(OUTAUDIO4_OUTPUT, "Signal 4");
+        configOutput(OUTAUDIO5_OUTPUT, "Signal 5");
     }
 
     void process(const ProcessArgs& args) override
     {
-        float volts[16] = {};
+        float volts[16];
 
         for (int i = 0; i < PARAMS_LEN; ++i)
         {
