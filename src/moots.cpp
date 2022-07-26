@@ -75,7 +75,7 @@ struct Moots : Module
 
     void process(const ProcessArgs& args) override
     {
-        float volts[16];
+        float volts[PORT_MAX_CHANNELS];
 
         for (int i = 0; i < PARAMS_LEN; ++i)
         {
