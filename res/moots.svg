@@ -52,6 +52,31 @@
        x="0.0"
        y="0.0"
        inkscape:label="rect13067" />
+    <path
+       style="fill:#3b90f4;stroke:#000000;stroke-width:0.288099;stroke-linecap:square"
+       d="m 2.9703079,17.601494 6.716649,-5.892869 H 40.514128 l 6.732585,5.439439 -21.879309,15.129411 z"
+       id="path1383-3-3"
+       inkscape:label="boundary1" />
+    <path
+       style="fill:#3b90f4;stroke:#000000;stroke-width:0.288099;stroke-linecap:square"
+       d="M 2.9577335,39.371112 9.6743819,33.478243 H 40.501553 l 6.732585,5.439439 -21.879309,15.129411 z"
+       id="path1383-3"
+       inkscape:label="boundary2" />
+    <path
+       style="fill:#3b90f4;stroke:#000000;stroke-width:0.288099;stroke-linecap:square"
+       d="M 2.8988642,60.943397 9.6155093,55.050528 H 40.44268 l 6.732585,5.439439 -21.879309,15.129411 z"
+       id="path1383-3-5"
+       inkscape:label="boundary3" />
+    <path
+       style="fill:#3b90f4;stroke:#000000;stroke-width:0.288099;stroke-linecap:square"
+       d="M 2.9135651,82.353513 9.6302123,76.460644 H 40.457383 l 6.732585,5.439439 -21.879309,15.129411 z"
+       id="path1383-3-6"
+       inkscape:label="boundary4" />
+    <path
+       style="fill:#3b90f4;stroke:#000000;stroke-width:0.288099;stroke-linecap:square"
+       d="M 2.9726673,103.97346 9.6893159,98.080573 H 40.51649 l 6.732585,5.439457 -21.879309,15.1295 z"
+       id="path1383-3-2"
+       inkscape:label="boundary5" />
   </g>
   <g
      inkscape:groupmode="layer"
