@@ -23,34 +23,22 @@
       x1="1062" y1="-4092" x2="1084" y2="-4092"
       gradientTransform="matrix(0 1 -1 0 -4078 -1061)"
    >
-      <stop offset="0" style="stop-color:#FFFFFF" id="stop216" />
-      <stop offset="1" style="stop-color:#7A7A7A" id="stop218" />
+      <stop offset="0" style="stop-color:#ffffff" id="stop11" />
+      <stop offset="1" style="stop-color:#004040" id="stop12" />
    </linearGradient>
 
    <linearGradient
       id="grad2"
       gradientUnits="userSpaceOnUse"
-      x1="-1885" y1="21.5" x2="-1885" y2="6"
-      gradientTransform="matrix(-1 0 0 -1 -1873 25.8)"
-   >
-      <stop offset="0" style="stop-color:#FFFEFE" id="stop243" />
-      <stop offset="1" style="stop-color:#545454" id="stop245" />
-   </linearGradient>
-
-   <linearGradient
-      id="grad3"
-      gradientUnits="userSpaceOnUse"
       x1="-1885" y1="8.33" x2="-1885" y2="19.4"
       gradientTransform="matrix(-1 0 0 -1 -1873 25.8)"
    >
-      <stop offset="0" style="stop-color:#FFFEFE" id="stop260" />
-      <stop offset="1" style="stop-color:#706C6C" id="stop262" />
+      <stop offset="0" style="stop-color:#ffffff" id="stop21" />
+      <stop offset="1" style="stop-color:#004040" id="stop22" />
    </linearGradient>
 
-   <circle fill="url(#grad1)" cx="11.85" cy="11.95" r="11.1" id="circle6" />
-   <circle fill="#E0E0E0" cx="11.85" cy="11.95" r="10.4" id="circle5" />
-   <circle fill="url(#grad2)" cx="11.85" cy="11.95" r="7.6" id="circle4" />
-   <circle fill="#E0E0E0" cx="11.85" cy="11.95" r="6.8" id="circle3" />
-   <circle fill="url(#grad3)" cx="11.85" cy="11.95" r="5.5" id="circle2" />
-   <circle fill="#000000" cx="11.85" cy="11.95" r="4.9" id="circle1" />
+   <circle fill="url(#grad1)" cx="11.85" cy="11.95" r="11.1" id="circle1" />
+   <circle fill="#8880ff" cx="11.85" cy="11.95" r="10" id="circle2" />
+   <circle fill="url(#grad2)" cx="11.85" cy="11.95" r="6.5" id="circle3" />
+   <circle fill="#000000" cx="11.85" cy="11.95" r="5.0" id="circle4" />
 </svg>
