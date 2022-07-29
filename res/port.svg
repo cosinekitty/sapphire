@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   version="1.0"
+   id="sapphire_port"
+   x="0px"
+   y="0px"
+   width="23.7px"
+   height="23.7px"
+   viewBox="0 0 23.7 23.7"
+   enable-background="new 0 0 23.7 23.7"
+   xml:space="preserve"
+   sodipodi:docname="port.svg"
+   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+
+   <linearGradient
+      id="grad1"
+      gradientUnits="userSpaceOnUse"
+      x1="1062" y1="-4092" x2="1084" y2="-4092"
+      gradientTransform="matrix(0 1 -1 0 -4078 -1061)"
+   >
+      <stop offset="0" style="stop-color:#FFFFFF" id="stop216" />
+      <stop offset="1" style="stop-color:#7A7A7A" id="stop218" />
+   </linearGradient>
+
+   <linearGradient
+      id="grad2"
+      gradientUnits="userSpaceOnUse"
+      x1="-1885" y1="21.5" x2="-1885" y2="6"
+      gradientTransform="matrix(-1 0 0 -1 -1873 25.8)"
+   >
+      <stop offset="0" style="stop-color:#FFFEFE" id="stop243" />
+      <stop offset="1" style="stop-color:#545454" id="stop245" />
+   </linearGradient>
+
+   <linearGradient
+      id="grad3"
+      gradientUnits="userSpaceOnUse"
+      x1="-1885" y1="8.33" x2="-1885" y2="19.4"
+      gradientTransform="matrix(-1 0 0 -1 -1873 25.8)"
+   >
+      <stop offset="0" style="stop-color:#FFFEFE" id="stop260" />
+      <stop offset="1" style="stop-color:#706C6C" id="stop262" />
+   </linearGradient>
+
+   <circle fill="url(#grad1)" cx="11.85" cy="11.95" r="11.1" id="circle6" />
+   <circle fill="#E0E0E0" cx="11.85" cy="11.95" r="10.4" id="circle5" />
+   <circle fill="url(#grad2)" cx="11.85" cy="11.95" r="7.6" id="circle4" />
+   <circle fill="#E0E0E0" cx="11.85" cy="11.95" r="6.8" id="circle3" />
+   <circle fill="url(#grad3)" cx="11.85" cy="11.95" r="5.5" id="circle2" />
+   <circle fill="#000000" cx="11.85" cy="11.95" r="4.9" id="circle1" />
+</svg>

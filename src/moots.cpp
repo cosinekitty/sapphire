@@ -121,36 +121,29 @@ struct MootsWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
-#if 0   // I don't care if everyone else does it... I think the screws are ugly!
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-#endif
-
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  17.25)), module, Moots::TOGGLEBUTTON1_PARAM, Moots::MOOTLIGHT1));
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  38.75)), module, Moots::TOGGLEBUTTON2_PARAM, Moots::MOOTLIGHT2));
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  60.25)), module, Moots::TOGGLEBUTTON3_PARAM, Moots::MOOTLIGHT3));
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  81.75)), module, Moots::TOGGLEBUTTON4_PARAM, Moots::MOOTLIGHT4));
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05, 103.25)), module, Moots::TOGGLEBUTTON5_PARAM, Moots::MOOTLIGHT5));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.50,  17.25)), module, Moots::INAUDIO1_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.50,  38.75)), module, Moots::INAUDIO2_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.50,  60.25)), module, Moots::INAUDIO3_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.50,  81.75)), module, Moots::INAUDIO4_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.50, 103.25)), module, Moots::INAUDIO5_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  17.25)), module, Moots::INAUDIO1_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  38.75)), module, Moots::INAUDIO2_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  60.25)), module, Moots::INAUDIO3_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  81.75)), module, Moots::INAUDIO4_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50, 103.25)), module, Moots::INAUDIO5_INPUT));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.05,  25.25)), module, Moots::INGATE1_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.05,  46.75)), module, Moots::INGATE2_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.05,  68.25)), module, Moots::INGATE3_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.05,  89.75)), module, Moots::INGATE4_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.05, 111.25)), module, Moots::INGATE5_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  25.25)), module, Moots::INGATE1_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  46.75)), module, Moots::INGATE2_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  68.25)), module, Moots::INGATE3_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  89.75)), module, Moots::INGATE4_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05, 111.25)), module, Moots::INGATE5_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.60,  17.25)), module, Moots::OUTAUDIO1_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.60,  38.75)), module, Moots::OUTAUDIO2_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.60,  60.25)), module, Moots::OUTAUDIO3_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.60,  81.75)), module, Moots::OUTAUDIO4_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.60, 103.25)), module, Moots::OUTAUDIO5_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  17.25)), module, Moots::OUTAUDIO1_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  38.75)), module, Moots::OUTAUDIO2_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  60.25)), module, Moots::OUTAUDIO3_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  81.75)), module, Moots::OUTAUDIO4_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, Moots::OUTAUDIO5_OUTPUT));
     }
 };
 
