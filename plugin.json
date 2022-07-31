@@ -19,7 +19,8 @@
       "description": "Plugs/unplugs polyphonic cables.",
       "tags": [
         "Controller",
-        "Switch"
+        "Switch",
+        "Polyphonic"
       ]
     }
   ]
