@@ -1,0 +1,41 @@
+#!/bin/bash
+Fail()
+{
+    echo "FATAL($0): $1"
+    exit 1
+}
+
+RACKTOOL=../rack-plugin-toolchain
+
+[[ -d ${RACKTOOL} ]] || Fail "
+
+    The directory ${RACKTOOL} is missing.
+    This is necessary for building the Sapphire plugin
+    for all three target platforms: Linux, Mac, and Windows.
+    For more info about cross-compiling VCV Rack plugins, see:
+    https://github.com/VCVRack/rack-plugin-toolchain
+
+    It is much simpler to build Sapphire for your own OS only.
+    Read the following to set up your local development
+    environment with the VCV Rack SDK:
+    https://vcvrack.com/manual/PluginDevelopmentTutorial
+
+    After completing those steps, run the following to
+    build Sapphire and install it in VCV Rack on your system:
+
+        make install
+"
+
+SAPPHIRE=${PWD}
+cd ${RACKTOOL} || Fail "Cannot change directory to ${RACKTOOL}"
+rm -rf plugin-build
+make plugin-build PLUGIN_DIR=${SAPPHIRE} || Fail "Error in `make plugin-build`"
+echo "
+Sapphire builds are available in:
+"
+realpath plugin-build
+ls -l plugin-build
+cd ${SAPPHIRE} || Fail "Cannot change directory back to ${SAPPHIRE}"
+echo "
+SUCCESS"
+exit 0
