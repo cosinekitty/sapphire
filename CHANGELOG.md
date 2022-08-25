@@ -14,7 +14,7 @@
 <td align="left">
 Made the following fixes/improvements to Sapphire Moots:
 <ul>
-    <li></li>
+    <li><a href="https://github.com/cosinekitty/sapphire/issues/3">Issue #3</a>: Debounce gate voltages using hysteresis. Turn a controller on when its gate reaches 1.0V or higher. Turn it back off when the gate descends to 0.1V or lower.</li>
 </ul>
 </td>
 </tr>
