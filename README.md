@@ -6,8 +6,8 @@ The Sapphire family of modules requires VCV Rack 2.
 ---
 
 ## Installation
-The latest stable release of the Sapphire modules (version 2.0.0) is available in
-the [VCV Rack Library](https://library.vcvrack.com/?query=&brand=Sapphire&tag=&license=).
+The latest release of the Sapphire plugin is available in the
+[VCV Rack Library](https://library.vcvrack.com/?brand=Sapphire).
 
 ---
 
