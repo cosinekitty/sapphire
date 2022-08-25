@@ -14,7 +14,18 @@
 <td align="left">
 Made the following fixes/improvements to Sapphire Moots:
 <ul>
-    <li><a href="https://github.com/cosinekitty/sapphire/issues/3">Issue #3</a>: Debounce gate voltages using hysteresis. Turn a controller on when its gate reaches 1.0V or higher. Turn it back off when the gate descends to 0.1V or lower.</li>
+    <li>
+        <a href="https://github.com/cosinekitty/sapphire/issues/1">Issue #1</a>:
+        When a controller is turned off, no longer make the push-button
+        completely dark. Instead, give it a very dim glow, so that it can still
+        be seen when the room brightness is very dark.
+    </li>
+    <li>
+        <a href="https://github.com/cosinekitty/sapphire/issues/3">Issue #3</a>:
+        Debounce gate voltages using hysteresis.
+        Turn a controller on when its gate reaches 1.0V or higher.
+        Turn it back off when the gate descends to 0.1V or lower.
+    </li>
 </ul>
 </td>
 </tr>

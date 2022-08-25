@@ -49,10 +49,10 @@ struct Moots : Module
     };
 
     static const int NUM_CONTROLLERS = 5;
-    static_assert(NUM_CONTROLLERS == PARAMS_LEN);
-    static_assert(NUM_CONTROLLERS == OUTPUTS_LEN);
-    static_assert(NUM_CONTROLLERS == LIGHTS_LEN);
-    static_assert(2*NUM_CONTROLLERS == INPUTS_LEN);
+    static_assert(NUM_CONTROLLERS == PARAMS_LEN,   "Incorrect number of entries in `enum ParamId`");
+    static_assert(2*NUM_CONTROLLERS == INPUTS_LEN, "Incorrect number of entries in `enum InputId`");
+    static_assert(NUM_CONTROLLERS == OUTPUTS_LEN,  "Incorrect number of entries in `enum OutputId`");
+    static_assert(NUM_CONTROLLERS == LIGHTS_LEN,   "Incorrect number of entries in `enum LightId`");
 
     bool isGateActive[NUM_CONTROLLERS];
 
@@ -126,7 +126,12 @@ struct Moots : Module
                 active = params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f;
             }
 
-            lights[MOOTLIGHT1 + i].setBrightness(active ? 1.0f : 0.0f);
+            // When a controller is turned on, make the push-button light bright,
+            // whether it's active because of the push-button or a gate voltage.
+            // When a controller is turned off, use a very dim light, but not
+            // complete darkness. Some users like turning room brightness
+            // down very low, yet they still want to see where all 5 buttons are.
+            lights[MOOTLIGHT1 + i].setBrightness(active ? 1.0f : 0.03f);
 
             auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
 
