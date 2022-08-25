@@ -48,8 +48,19 @@ struct Moots : Module
         LIGHTS_LEN
     };
 
+    static const int NUM_CONTROLLERS = 5;
+    static_assert(NUM_CONTROLLERS == PARAMS_LEN);
+    static_assert(NUM_CONTROLLERS == OUTPUTS_LEN);
+    static_assert(NUM_CONTROLLERS == LIGHTS_LEN);
+    static_assert(2*NUM_CONTROLLERS == INPUTS_LEN);
+
+    bool isGateActive[NUM_CONTROLLERS];
+
     Moots()
     {
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            isGateActive[i] = false;
+
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configButton(TOGGLEBUTTON1_PARAM, "Moot 1");
         configButton(TOGGLEBUTTON2_PARAM, "Moot 2");
@@ -73,11 +84,19 @@ struct Moots : Module
         configOutput(OUTAUDIO5_OUTPUT, "Signal 5");
     }
 
+    void onReset(const ResetEvent& e) override
+    {
+        Module::onReset(e);
+
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            isGateActive[i] = false;
+    }
+
     void process(const ProcessArgs& args) override
     {
         float volts[PORT_MAX_CHANNELS];
 
-        for (int i = 0; i < PARAMS_LEN; ++i)
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
         {
             auto & gate = inputs[INGATE1_INPUT + i];
 
@@ -86,7 +105,20 @@ struct Moots : Module
             {
                 // If the gate input is connected, use the voltage of its first channel
                 // to control whether the output is enabled or disabled.
-                active = gate.getVoltage(0) >= 4.0f;
+                // Debounce the signal using hysteresis like a Schmitt trigger would.
+                // See: https://vcvrack.com/manual/VoltageStandards#Triggers-and-Gates
+                const float gv = gate.getVoltage(0);
+                if (isGateActive[i])
+                {
+                    if (gv <= 0.1f)
+                        isGateActive[i] = false;
+                }
+                else
+                {
+                    if (gv >= 1.0f)
+                        isGateActive[i] = true;
+                }
+                active = isGateActive[i];
             }
             else
             {
