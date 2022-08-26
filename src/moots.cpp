@@ -289,6 +289,40 @@ struct Moots : Module
             }
         }
     }
+
+    json_t* dataToJson() override
+    {
+        // Persist the audio slewing checkbox states.
+        json_t* root = json_object();
+        json_t* flagList = json_array();
+
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            json_array_append_new(flagList, json_boolean(slewer[i].isEnabled()));
+
+        json_object_set_new(root, "slew", flagList);
+        return root;
+    }
+
+    void dataFromJson(json_t* root) override
+    {
+        // Load the checkbox states for the audio slewers.
+        json_t* flagList = json_object_get(root, "slew");
+        if (json_is_array(flagList) && json_array_size(flagList) == NUM_CONTROLLERS)
+        {
+            for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            {
+                json_t *flag = json_array_get(flagList, i);
+                if (json_is_boolean(flag))
+                {
+                    bool enable = json_boolean_value(flag);
+                    if (enable)
+                        slewer[i].enable(false);
+                    else
+                        slewer[i].reset();
+                }
+            }
+        }
+    }
 };
 
 
@@ -334,7 +368,7 @@ struct MootsWidget : ModuleWidget
         for (int i = 0; i < Moots::NUM_CONTROLLERS; ++i)
         {
             ui::MenuItem *item = createBoolMenuItem(
-                "Prevent clicks on #" + std::to_string(i+1),
+                "Anti-click ramping on #" + std::to_string(i+1),
                 "",
                 [=]()
                 {

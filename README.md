@@ -72,3 +72,22 @@ Any other module's input jack that receives one of these thin-looking
 "unplugged" cables will act as if it is not connected to anything,
 because VCV Rack does not distinguish between an unplugged jack
 and a jack connected to a zero-channel cable.
+
+### Moots Configuration
+
+The right-click context menu for Moots looks like this:
+
+![Moots menu options](images/moots_menu.png)
+
+The menu contains "Anti-click ramping" options for all five controls.
+Anti-click ramping, when enabled, causes the corresponding control to
+fade the polyphonic voltages down to zero before disconnecting a cable,
+and to fade the voltages up from zero after reconnecting a cable.
+The fading is a linear ramp that lasts for 1/400 of a second (2.5 ms).
+When a Moots control is used to plug/unplug an audio signal, enabling
+anti-click ramping can be useful to prevent clicking or popping sounds.
+
+By default, anti-click is disabled, which is usually a better choice
+when using a Moots control for plugging/unplugging control voltage (CV)
+signals. When anti-click is disabled, the cable is connected or
+disconnected instantly without any fading.
