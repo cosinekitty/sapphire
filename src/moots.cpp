@@ -334,7 +334,7 @@ struct MootsWidget : ModuleWidget
         for (int i = 0; i < Moots::NUM_CONTROLLERS; ++i)
         {
             ui::MenuItem *item = createBoolMenuItem(
-                "Slew #" + std::to_string(i+1),
+                "Prevent clicks on #" + std::to_string(i+1),
                 "",
                 [=]()
                 {
