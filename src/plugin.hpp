@@ -1,6 +1,8 @@
 #pragma once
 #include <rack.hpp>
 
+// Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
 
 using namespace rack;
 

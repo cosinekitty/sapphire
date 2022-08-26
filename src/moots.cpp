@@ -1,5 +1,7 @@
 #include "plugin.hpp"
 
+// Sapphire Moots for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
 
 class MootSlewer
 {
@@ -9,7 +11,7 @@ private:
         Disabled,       // there is no audio slewing: treat inputs as control voltages
         Off,            // audio slewing is enabled, but currently the output is disconnected
         Ramping,        // either a rising or falling linear ramp transitioning between connect/disconnect
-        On,             // pass through audio without change
+        On,             // audio slewing is enabled, and currently the output is connected
     };
 
     SlewState state;
@@ -25,7 +27,7 @@ public:
 
     void setRampLength(int newRampLength)
     {
-        rampLength = newRampLength;
+        rampLength = std::max(1, newRampLength);
     }
 
     void reset()
@@ -112,12 +114,7 @@ public:
         // Therefore we need to make sure the ratio count/rampLength
         // is bounded to the range [0, 1].
 
-        if (count < 0)
-            count = 0;
-        else if (count > rampLength)
-            count = rampLength;
-
-        float gain = static_cast<float>(count) / static_cast<float>(rampLength);
+        float gain = clamp(static_cast<float>(count) / static_cast<float>(rampLength));
 
         for (int c = 0; c < channels; ++c)
             volts[c] *= gain;
@@ -227,8 +224,6 @@ struct Moots : Module
         // We slew using a linear ramp over a time span of 1/400 of a second.
         // Round to the nearest integer number of samples for the current sample rate.
         int newRampLength = static_cast<int>(round(e.sampleRate / 400.0f));
-        if (newRampLength < 1)
-            newRampLength = 1;
 
         for (int i = 0; i < NUM_CONTROLLERS; ++i)
             slewer[i].setRampLength(newRampLength);
@@ -364,6 +359,8 @@ struct MootsWidget : ModuleWidget
     void appendContextMenu(Menu* menu) override
     {
         menu->addChild(new MenuSeparator);
+
+        // Add the 5 menu items for anti-clicking ramping.
 
         for (int i = 0; i < Moots::NUM_CONTROLLERS; ++i)
         {
