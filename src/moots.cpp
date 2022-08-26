@@ -1,6 +1,130 @@
 #include "plugin.hpp"
 
 
+class MootSlewer
+{
+private:
+    enum SlewState
+    {
+        Disabled,       // there is no audio slewing: treat inputs as control voltages
+        Off,            // audio slewing is enabled, but currently the output is disconnected
+        Ramping,        // either a rising or falling linear ramp transitioning between connect/disconnect
+        On,             // pass through audio without change
+    };
+
+    SlewState state;
+    int rampLength;
+    int count;          // IMPORTANT: valid only when state == Ramping; must ignore otherwise
+
+public:
+    MootSlewer()
+        : state(Disabled)
+        , rampLength(1)
+        , count(0)
+        {}
+
+    void setRampLength(int newRampLength)
+    {
+        rampLength = newRampLength;
+    }
+
+    void reset()
+    {
+        // Leave the rampLength alone. It should only be changed by changes in the sample rate.
+        state = Disabled;
+    }
+
+    void enable(bool active)
+    {
+        state = active ? On : Off;
+    }
+
+    bool isEnabled() const
+    {
+        return state != Disabled;
+    }
+
+    bool update(bool active)
+    {
+        switch (state)
+        {
+        case Disabled:
+            return active;
+
+        case Off:
+            if (active)
+            {
+                // Start an upward ramp.
+                state = Ramping;
+                count = 0;
+            }
+            break;
+
+        case On:
+            if (!active)
+            {
+                // Start a downward ramp.
+                state = Ramping;
+                count = rampLength - 1;
+            }
+            break;
+
+        case Ramping:
+            // Allow zig-zagging of the linear ramp if `active` keeps changing.
+            if (active)
+            {
+                // Ramp upward.
+                if (count < rampLength)
+                    ++count;
+                else
+                    state = On;
+            }
+            else
+            {
+                // Ramp downward.
+                if (count > 0)
+                    --count;
+                else
+                    state = Off;
+            }
+            break;
+
+        default:
+            assert(false);      // invalid state -- should never happen
+            break;
+        }
+
+        return state != Off;
+    }
+
+    void process(float volts[PORT_MAX_CHANNELS], int channels)
+    {
+        assert(channels >= 0 && channels <= PORT_MAX_CHANNELS);
+
+        if (state != Ramping)
+            return;     // not ramping, so we must ignore `count`
+
+        if (channels < 1)
+            return;     // another short-cut to save processing time
+
+        // The sample rate could change at any moment,
+        // including while we are ramping.
+        // Therefore we need to make sure the ratio count/rampLength
+        // is bounded to the range [0, 1].
+
+        if (count < 0)
+            count = 0;
+        else if (count > rampLength)
+            count = rampLength;
+
+        float gain = static_cast<float>(count) / static_cast<float>(rampLength);
+
+        for (int c = 0; c < channels; ++c)
+            volts[c] *= gain;
+    }
+};
+
+
 struct Moots : Module
 {
     enum ParamId
@@ -55,12 +179,11 @@ struct Moots : Module
     static_assert(NUM_CONTROLLERS == LIGHTS_LEN,   "Incorrect number of entries in `enum LightId`");
 
     bool isGateActive[NUM_CONTROLLERS];
+    MootSlewer slewer[NUM_CONTROLLERS];
 
     Moots()
     {
-        for (int i = 0; i < NUM_CONTROLLERS; ++i)
-            isGateActive[i] = false;
-
+        resetState();
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configButton(TOGGLEBUTTON1_PARAM, "Moot 1");
         configButton(TOGGLEBUTTON2_PARAM, "Moot 2");
@@ -84,12 +207,31 @@ struct Moots : Module
         configOutput(OUTAUDIO5_OUTPUT, "Signal 5");
     }
 
+    void resetState()
+    {
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+        {
+            isGateActive[i] = false;
+            slewer[i].reset();
+        }
+    }
+
     void onReset(const ResetEvent& e) override
     {
         Module::onReset(e);
+        resetState();
+    }
+
+    void onSampleRateChange(const SampleRateChangeEvent& e) override
+    {
+        // We slew using a linear ramp over a time span of 1/400 of a second.
+        // Round to the nearest integer number of samples for the current sample rate.
+        int newRampLength = static_cast<int>(round(e.sampleRate / 400.0f));
+        if (newRampLength < 1)
+            newRampLength = 1;
 
         for (int i = 0; i < NUM_CONTROLLERS; ++i)
-            isGateActive[i] = false;
+            slewer[i].setRampLength(newRampLength);
     }
 
     void process(const ProcessArgs& args) override
@@ -124,6 +266,9 @@ struct Moots : Module
             {
                 // When no gate input is connected, allow the manual pushbutton take control.
                 active = params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f;
+
+                // Forget any transient state from when the gate might have been connected in the past.
+                isGateActive[i] = false;
             }
 
             // When a controller is turned on, make the push-button light bright,
@@ -135,11 +280,12 @@ struct Moots : Module
 
             auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
 
-            if (active)
+            if (slewer[i].update(active))
             {
                 auto & inp = inputs[INAUDIO1_INPUT + i];
                 inp.readVoltages(volts);
                 outp.channels = inp.getChannels();
+                slewer[i].process(volts, outp.channels);
                 outp.writeVoltages(volts);
             }
             else
@@ -153,8 +299,11 @@ struct Moots : Module
 
 struct MootsWidget : ModuleWidget
 {
+    Moots* mootsModule;
+
     MootsWidget(Moots* module)
     {
+        mootsModule = module;
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
@@ -181,6 +330,33 @@ struct MootsWidget : ModuleWidget
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  60.25)), module, Moots::OUTAUDIO3_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  81.75)), module, Moots::OUTAUDIO4_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, Moots::OUTAUDIO5_OUTPUT));
+    }
+
+    void appendContextMenu(Menu* menu) override
+    {
+        menu->addChild(new MenuSeparator);
+
+        for (int i = 0; i < Moots::NUM_CONTROLLERS; ++i)
+        {
+            ui::MenuItem *item = createBoolMenuItem(
+                "Slew #" + std::to_string(i+1),
+                "",
+                [=]()
+                {
+                    return mootsModule->slewer[i].isEnabled();
+                },
+                [=](bool state)
+                {
+                    MootSlewer& s = mootsModule->slewer[i];
+                    if (state)
+                        s.enable(mootsModule->isGateActive[i]);
+                    else
+                        s.reset();
+                }
+            );
+
+            menu->addChild(item);
+        }
     }
 };
 
