@@ -242,7 +242,6 @@ struct Moots : Module
         {
             auto & gate = inputs[INGATE1_INPUT + i];
 
-            bool active;
             if (gate.isConnected())
             {
                 // If the gate input is connected, use the voltage of its first channel
@@ -260,15 +259,11 @@ struct Moots : Module
                     if (gv >= 1.0f)
                         isGateActive[i] = true;
                 }
-                active = isGateActive[i];
             }
             else
             {
                 // When no gate input is connected, allow the manual pushbutton take control.
-                active = params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f;
-
-                // Forget any transient state from when the gate might have been connected in the past.
-                isGateActive[i] = false;
+                isGateActive[i] = (params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f);
             }
 
             // When a controller is turned on, make the push-button light bright,
@@ -276,11 +271,11 @@ struct Moots : Module
             // When a controller is turned off, use a very dim light, but not
             // complete darkness. Some users like turning room brightness
             // down very low, yet they still want to see where all 5 buttons are.
-            lights[MOOTLIGHT1 + i].setBrightness(active ? 1.0f : 0.03f);
+            lights[MOOTLIGHT1 + i].setBrightness(isGateActive[i] ? 1.0f : 0.03f);
 
             auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
 
-            if (slewer[i].update(active))
+            if (slewer[i].update(isGateActive[i]))
             {
                 auto & inp = inputs[INAUDIO1_INPUT + i];
                 inp.readVoltages(volts);
