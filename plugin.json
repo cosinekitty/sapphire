@@ -11,7 +11,7 @@
   "manualUrl": "https://github.com/cosinekitty/sapphire",
   "sourceUrl": "https://github.com/cosinekitty/sapphire",
   "donateUrl": "",
-  "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/master/CHANGELOG.md",
+  "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/main/CHANGELOG.md",
   "modules": [
     {
       "slug": "Moots",

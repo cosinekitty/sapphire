@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">26 Aug 2022</td>
+<td align="center">30 Aug 2022</td>
 <td align="center">2.0.1</td>
 <td align="left">
 Made the following fixes/improvements to Sapphire Moots:
