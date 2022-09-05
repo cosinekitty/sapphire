@@ -1,6 +1,9 @@
 #include <math.h>
 #include "mesh.hpp"
 
+// Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
+
 namespace Sapphire
 {
     double PhysicsVector::Magnitude() const

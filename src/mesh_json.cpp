@@ -1,5 +1,8 @@
 #include "mesh.hpp"
 
+// Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
+
 namespace Sapphire
 {
     static PhysicsVector VectorFromJson(json_t *parent, const char *key)

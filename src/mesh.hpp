@@ -1,5 +1,9 @@
 #pragma once
 
+// Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
+
+
 #include <exception>
 #include <string>
 #include <vector>
