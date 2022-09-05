@@ -22,6 +22,17 @@
         "Switch",
         "Polyphonic"
       ]
+    },
+    {
+      "slug": "Elastika",
+      "name": "Elastika",
+      "description": "Filters audio through a simulated network of balls and springs.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Filter",
+        "Reverb"
+      ]
     }
   ]
 }
