@@ -46,6 +46,24 @@ struct Elastika : Module
     Elastika()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+        configParam(FRICTION_SLIDER_PARAM, 0.0, 1.0, 0.5, "Friction");
+        configParam(STIFFNESS_SLIDER_PARAM, 0.0, 1.0, 0.5, "Stiffness");
+        configParam(SPAN_SLIDER_PARAM, 0.0, 1.0, 0.5, "Spring span");
+        configParam(TONE_SLIDER_PARAM, 0.0, 1.0, 0.5, "Tone control");
+
+        configParam(FRICTION_ATTEN_PARAM, 0.0, 1.0, 0.5, "Friction CV");
+        configParam(STIFFNESS_ATTEN_PARAM, 0.0, 1.0, 0.5, "Stiffness CV");
+        configParam(SPAN_ATTEN_PARAM, 0.0, 1.0, 0.5, "Spring span CV");
+        configParam(TONE_ATTEN_PARAM, 0.0, 1.0, 0.5, "Tone control CV");
+
+        configParam(LEVEL_KNOB_PARAM, 0.0, 1.0, 0.5, "Output level");
+
+        configInput(FRICTION_CV_INPUT, "Friction");
+        configInput(STIFFNESS_CV_INPUT, "Stiffness");
+        configInput(SPAN_CV_INPUT, "Spring span");
+        configInput(TONE_CV_INPUT, "Tone control");
+
         configInput(AUDIO_LEFT_INPUT, "Left Audio");
         configInput(AUDIO_RIGHT_INPUT, "Right Audio");
         configOutput(AUDIO_LEFT_OUTPUT, "Left Audio");
