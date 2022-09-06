@@ -29,15 +29,16 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="2.3760988"
-     inkscape:cx="-15.361314"
-     inkscape:cy="159.50515"
+     inkscape:zoom="1.6801556"
+     inkscape:cx="-33.627838"
+     inkscape:cy="239.85874"
      inkscape:window-width="1920"
      inkscape:window-height="1029"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="PanelLayer" />
+     inkscape:current-layer="layer2"
+     inkscape:lockguides="false" />
   <defs
      id="defs2">
     <rect
@@ -67,10 +68,11 @@
        style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.401661;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
        id="rect13067"
        width="60.5"
-       height="128.1"
+       height="128.10001"
        x="0.2"
        y="0.2"
-       inkscape:label="border_rect" />
+       inkscape:label="border_rect"
+       sodipodi:insensitive="true" />
     <g
        aria-label="sapphire"
        id="brand_text"
@@ -159,13 +161,168 @@
          d="m 43.849875,3.5111785 q 0.100894,0 0.162983,0.06985 0.06985,0.06985 0.06985,0.1707444 v 3.4924994 q 0,0.1008945 -0.06985,0.1707444 -0.06209,0.062089 -0.162983,0.062089 -0.100895,0 -0.170745,-0.062089 -0.06209,-0.06985 -0.06209,-0.1707444 V 6.724278 q -0.194027,0.3492499 -0.582083,0.5898443 -0.388055,0.2405944 -0.845961,0.2405944 -0.519994,0 -0.939094,-0.2716388 Q 40.838564,7.011439 40.59797,6.5380113 40.365136,6.0645836 40.365136,5.4747393 q 0,-0.5898444 0.240595,-1.055511 0.240594,-0.4734277 0.651933,-0.7373054 0.4191,-0.2638777 0.923572,-0.2638777 0.465667,0 0.853722,0.2250722 0.388056,0.2250721 0.582083,0.5898443 V 3.7517729 q 0,-0.1008944 0.06209,-0.1707444 0.06985,-0.06985 0.170745,-0.06985 z m -1.614311,3.6089161 q 0.403577,0 0.721783,-0.20955 0.325967,-0.2173111 0.504472,-0.5898443 0.186267,-0.3802944 0.186267,-0.845961 0,-0.4501444 -0.186267,-0.8226777 -0.178505,-0.3725332 -0.504472,-0.5820832 -0.318206,-0.2173111 -0.721783,-0.2173111 -0.403578,0 -0.729545,0.20955 -0.318205,0.20955 -0.504472,0.5820832 -0.178505,0.3647722 -0.178505,0.8304388 0,0.4656666 0.178505,0.845961 0.178506,0.3725332 0.496711,0.5898443 0.325967,0.20955 0.737306,0.20955 z"
          id="path888" />
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333px;font-family:'Quicksand Light';-inkscape-font-specification:'Quicksand Light, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linecap:round;stroke-linejoin:round"
+       x="6.0611982"
+       y="17.510344"
+       id="text5885"
+       inkscape:label="mesh_model_text"><tspan
+         sodipodi:role="line"
+         id="tspan5941"
+         x="6.0611982"
+         y="17.510344">model:</tspan></text>
+    <rect
+       style="display:inline;fill:#26b0e6;fill-opacity:1;stroke:#000000;stroke-width:0.237658;stroke-linecap:round;stroke-linejoin:round"
+       id="rect5995"
+       width="32.653057"
+       height="7.4503818"
+       x="21.625443"
+       y="12.590074"
+       inkscape:label="mesh_model_box" />
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="components"
-     style="display:inline"
-     sodipodi:insensitive="true" />
+     style="display:inline">
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7"
+       data-name=""
+       cx="42.744877"
+       cy="108.94379"
+       style="display:inline;fill:#0000ff;fill-opacity:1"
+       inkscape:label="OutAudioL"
+       r="2" />
+    <circle
+       id="5d0a9719-8c44-4a3a-bfe2-b12a223329cf"
+       data-name=""
+       cx="52.155369"
+       cy="108.94379"
+       style="display:inline;fill:#0000ff;fill-opacity:1"
+       inkscape:label="OutAudioR"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5"
+       data-name=""
+       cx="30.473045"
+       cy="110.9249"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="LevelKnob"
+       r="2" />
+    <circle
+       id="5d0a9719-8c44-4a3a-bfe2-b12a223329cf-6"
+       data-name=""
+       cx="18.533201"
+       cy="108.94379"
+       style="display:inline;fill:#00ff00;fill-opacity:1"
+       inkscape:label="InAudioR"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3"
+       data-name=""
+       cx="9.1227093"
+       cy="108.94379"
+       style="display:inline;fill:#00ff00;fill-opacity:1"
+       inkscape:label="InAudioL"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4-8-5"
+       data-name=""
+       cx="49.60326"
+       cy="86.504547"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="ToneCV"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9-1-9"
+       data-name=""
+       cx="36.822956"
+       cy="86.504547"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="SpanCV"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3-4-7"
+       data-name=""
+       cx="23.513475"
+       cy="86.504547"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="StiffnessCV"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6-7-5"
+       data-name=""
+       cx="10.733175"
+       cy="86.504547"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="FrictionCV"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4"
+       data-name=""
+       cx="49.817467"
+       cy="45.935772"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="ToneSlider"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4-8"
+       data-name=""
+       cx="49.817467"
+       cy="75.681755"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="ToneAtten"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9-1"
+       data-name=""
+       cx="37.037163"
+       cy="75.681755"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="SpanAtten"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3-4"
+       data-name=""
+       cx="23.727688"
+       cy="75.681755"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="StiffnessAtten"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6-7"
+       data-name=""
+       cx="10.947387"
+       cy="75.681755"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="FrictionAtten"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9"
+       data-name=""
+       cx="37.037163"
+       cy="45.935772"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="SpanSlider"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3"
+       data-name=""
+       cx="23.727688"
+       cy="45.935772"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="StiffnessSlider"
+       r="2" />
+    <circle
+       id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6"
+       data-name=""
+       cx="10.947387"
+       cy="45.935772"
+       style="display:inline;fill:#ff0000;fill-opacity:1"
+       inkscape:label="FrictionSlider"
+       r="2" />
+  </g>
   <metadata
      id="metadata3609">
     <rdf:RDF>
