@@ -189,136 +189,136 @@
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7"
        data-name=""
-       cx="42.744877"
-       cy="108.94379"
+       cx="42.74"
+       cy="108.94"
        style="display:inline;fill:#0000ff;fill-opacity:1"
        inkscape:label="OutAudioL"
        r="2" />
     <circle
        id="5d0a9719-8c44-4a3a-bfe2-b12a223329cf"
        data-name=""
-       cx="52.155369"
-       cy="108.94379"
+       cx="52.15"
+       cy="108.94"
        style="display:inline;fill:#0000ff;fill-opacity:1"
        inkscape:label="OutAudioR"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5"
        data-name=""
-       cx="30.473045"
-       cy="110.9249"
+       cx="30.47"
+       cy="110.92"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="LevelKnob"
        r="2" />
     <circle
        id="5d0a9719-8c44-4a3a-bfe2-b12a223329cf-6"
        data-name=""
-       cx="18.533201"
-       cy="108.94379"
+       cx="18.53"
+       cy="108.94"
        style="display:inline;fill:#00ff00;fill-opacity:1"
        inkscape:label="InAudioR"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3"
        data-name=""
-       cx="9.1227093"
-       cy="108.94379"
+       cx="9.12"
+       cy="108.94"
        style="display:inline;fill:#00ff00;fill-opacity:1"
        inkscape:label="InAudioL"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4-8-5"
        data-name=""
-       cx="49.60326"
-       cy="86.504547"
+       cx="49.60"
+       cy="86.50"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="ToneCV"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9-1-9"
        data-name=""
-       cx="36.822956"
-       cy="86.504547"
+       cx="36.82"
+       cy="86.50"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="SpanCV"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3-4-7"
        data-name=""
-       cx="23.513475"
-       cy="86.504547"
+       cx="23.51"
+       cy="86.50"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="StiffnessCV"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6-7-5"
        data-name=""
-       cx="10.733175"
-       cy="86.504547"
+       cx="10.73"
+       cy="86.50"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="FrictionCV"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4"
        data-name=""
-       cx="49.817467"
-       cy="45.935772"
+       cx="49.82"
+       cy="45.94"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="ToneSlider"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-4-8"
        data-name=""
-       cx="49.817467"
-       cy="75.681755"
+       cx="49.82"
+       cy="75.68"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="ToneAtten"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9-1"
        data-name=""
-       cx="37.037163"
-       cy="75.681755"
+       cx="37.04"
+       cy="75.68"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="SpanAtten"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3-4"
        data-name=""
-       cx="23.727688"
-       cy="75.681755"
+       cx="23.73"
+       cy="75.68"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="StiffnessAtten"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6-7"
        data-name=""
-       cx="10.947387"
-       cy="75.681755"
+       cx="10.95"
+       cy="75.68"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="FrictionAtten"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-9"
        data-name=""
-       cx="37.037163"
-       cy="45.935772"
+       cx="37.04"
+       cy="45.94"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="SpanSlider"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-3"
        data-name=""
-       cx="23.727688"
-       cy="45.935772"
+       cx="23.73"
+       cy="45.94"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="StiffnessSlider"
        r="2" />
     <circle
        id="99054daa-0e7d-486b-b363-b2fd948089f7-3-5-6"
        data-name=""
-       cx="10.947387"
-       cy="45.935772"
+       cx="10.95"
+       cy="45.94"
        style="display:inline;fill:#ff0000;fill-opacity:1"
        inkscape:label="FrictionSlider"
        r="2" />
