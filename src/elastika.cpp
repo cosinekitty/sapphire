@@ -79,7 +79,7 @@ struct ElastikaWidget : ModuleWidget
         addParam(createParamCentered<Trimpot>(mm2px(Vec(49.82, 75.68)), module, Elastika::TONE_ATTEN_PARAM));
 
         // Level knob
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.47, 110.92)), module, Elastika::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.47, 108.94)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.73, 86.50)), module, Elastika::FRICTION_CV_INPUT));
