@@ -77,12 +77,33 @@ struct Elastika : Module
 };
 
 
+struct ModelNameDisplay : LedDisplay
+{
+    LedDisplayTextField* textField;
+
+    void setModule(Elastika* module)
+    {
+        textField = createWidget<LedDisplayTextField>(Vec(0, -4));
+        textField->box.size = box.size;
+        textField->multiline = false;
+        textField->text = "drum";       // !!!! HACK TEST !!!!
+        addChild(textField);
+    }
+};
+
+
 struct ElastikaWidget : ModuleWidget
 {
     ElastikaWidget(Elastika* module)
     {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
+
+        // Text edit box for displaying/editing the physics model name.
+        ModelNameDisplay* textDisplay = createWidget<ModelNameDisplay>(mm2px(Vec(21.625443, 12.590074)));
+        textDisplay->box.size = mm2px(Vec(32.653057, 7.4503818));
+        textDisplay->setModule(module);
+        addChild(textDisplay);
 
         // Sliders
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(10.95, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
