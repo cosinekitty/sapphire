@@ -5,7 +5,7 @@
 
 namespace Sapphire
 {
-    static PhysicsVector VectorFromJson(json_t *parent, const char *key)
+    PhysicsVector VectorFromJson(json_t *parent, const char *key)
     {
         PhysicsVector vec;
         json_t *array = json_object_get(parent, key);
@@ -18,7 +18,7 @@ namespace Sapphire
         return vec;
     }
 
-    static json_t *JsonFromVector(PhysicsVector vec)
+    json_t *JsonFromVector(PhysicsVector vec)
     {
         json_t *array = json_array();
         json_array_append(array, json_real(vec.x));

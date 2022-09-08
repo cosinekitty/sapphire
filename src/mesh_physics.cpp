@@ -20,9 +20,9 @@ namespace Sapphire
         nextBallList.clear();
         forceList.clear();
         gravity = PhysicsVector();
-        stiffness = DEFAULT_STIFFNESS;
-        restLength = DEFAULT_REST_LENGTH;
-        speedLimit = DEFAULT_SPEED_LIMIT;
+        stiffness  = MESH_DEFAULT_STIFFNESS;
+        restLength = MESH_DEFAULT_REST_LENGTH;
+        speedLimit = MESH_DEFAULT_SPEED_LIMIT;
     }
 
 

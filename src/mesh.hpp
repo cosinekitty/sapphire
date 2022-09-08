@@ -134,23 +134,22 @@ namespace Sapphire
     typedef std::vector<PhysicsVector> PhysicsVectorList;
     typedef std::vector<double> PhysicsScalarList;
 
+    const double MESH_DEFAULT_STIFFNESS = 10.0;
+    const double MESH_DEFAULT_REST_LENGTH = 1.0e-3;
+    const double MESH_DEFAULT_SPEED_LIMIT = 100.0;
 
     class PhysicsMesh
     {
     private:
-        const double DEFAULT_STIFFNESS = 10.0;
-        const double DEFAULT_REST_LENGTH = 1.0e-3;
-        const double DEFAULT_SPEED_LIMIT = 100.0;
-
         SpringList springList;
         BallList currBallList;
         BallList midBallList;
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
         PhysicsVector gravity;
-        double stiffness = DEFAULT_STIFFNESS;       // the linear spring constant [N/m]
-        double restLength = DEFAULT_REST_LENGTH;    // spring length [m] that results in zero force
-        double speedLimit = DEFAULT_SPEED_LIMIT;
+        double stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
+        double restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
+        double speedLimit = MESH_DEFAULT_SPEED_LIMIT;
 
     public:
         void Reset();
@@ -205,6 +204,12 @@ namespace Sapphire
         double Update(double x, double sampleRateHz);
     };
 
+    PhysicsVector VectorFromJson(json_t *parent, const char *key);
+    json_t *JsonFromVector(PhysicsVector vec);
+
     void MeshFromJson(PhysicsMesh &mesh, json_t* root);
     json_t *JsonFromMesh(const PhysicsMesh &mesh);
+
+    // Factory functions that make meshes:
+    void CreateRoundDrum(Sapphire::PhysicsMesh& mesh, int radius);
 }
