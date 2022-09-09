@@ -332,6 +332,11 @@ struct Elastika : Module
     {
         // Update the mesh parameters from sliders and control voltages.
         double halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
+        double restLength = spanMap.Evaluate(params[SPAN_SLIDER_PARAM].getValue());
+        double stiffness = stiffnessMap.Evaluate(params[STIFFNESS_SLIDER_PARAM].getValue());
+
+        mesh.SetRestLength(restLength);
+        mesh.SetStiffness(stiffness);
 
         // Feed audio stimulus into the mesh.
         injectAudioChannel(inputs[AUDIO_LEFT_INPUT], leftInput);
