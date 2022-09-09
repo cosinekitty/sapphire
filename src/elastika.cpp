@@ -331,9 +331,35 @@ struct Elastika : Module
     void process(const ProcessArgs& args) override
     {
         // Update the mesh parameters from sliders and control voltages.
+        double halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
 
-        //auto& leftInput = inputs[AUDIO_LEFT_INPUT];
-        //auto& rightInput = inputs[AUDIO_RIGHT_INPUT];
+        // Feed audio stimulus into the mesh.
+        injectAudioChannel(inputs[AUDIO_LEFT_INPUT], leftInput);
+        injectAudioChannel(inputs[AUDIO_RIGHT_INPUT], rightInput);
+
+        mesh.Update(args.sampleTime, halfLife);
+
+        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT], leftOutput);
+        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput);
+    }
+
+    void injectAudioChannel(rack::engine::Input& inp, MeshInput& connect)
+    {
+        if (inp.isConnected())
+            connect.Inject(mesh, inp.getVoltage());
+    }
+
+    void extractAudioChannel(rack::engine::Output& outp, MeshOutput& connect)
+    {
+        if (outp.isConnected())
+        {
+            double rsample, vsample;
+            connect.Extract(mesh, rsample, vsample);
+            outp.setChannels(1);
+
+            double mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
+            outp.setVoltage((1.0 - mix)*rsample + mix*vsample);
+        }
     }
 
     json_t* dataToJson() override
@@ -405,11 +431,16 @@ struct ElastikaWidget : ModuleWidget
 
         // Text edit box for displaying/editing the physics model name.
         ModelNameDisplay* textDisplay = createWidget<ModelNameDisplay>(mm2px(Vec(21.625443, 12.590074)));
+
         textDisplay->box.size = mm2px(Vec(32.653057, 7.4503818));
         textDisplay->init();
         addChild(textDisplay);
-        module->modelNameDisplay = textDisplay;
-        textDisplay->textField->text = module->physicsModelName;    // FIXFIXFIX: keep up-to-date
+
+        if (module != nullptr)      // module can be null when previewing in the picker
+        {
+            module->modelNameDisplay = textDisplay;
+            textDisplay->textField->text = module->physicsModelName;    // FIXFIXFIX: keep up-to-date
+        }
 
         // Sliders
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(10.95, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
