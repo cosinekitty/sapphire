@@ -344,8 +344,9 @@ struct Elastika : Module
 
         mesh.Update(args.sampleTime, halfLife);
 
-        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT], leftOutput);
-        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput);
+        float gain = params[LEVEL_KNOB_PARAM].getValue();
+        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT], leftOutput, gain);
+        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, gain);
     }
 
     void injectAudioChannel(rack::engine::Input& inp, MeshInput& connect)
@@ -354,7 +355,7 @@ struct Elastika : Module
             connect.Inject(mesh, inp.getVoltage());
     }
 
-    void extractAudioChannel(rack::engine::Output& outp, MeshOutput& connect)
+    void extractAudioChannel(rack::engine::Output& outp, MeshOutput& connect, float gain)
     {
         if (outp.isConnected())
         {
@@ -363,7 +364,8 @@ struct Elastika : Module
             outp.setChannels(1);
 
             double mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
-            outp.setVoltage((1.0 - mix)*rsample + mix*vsample);
+            double raw = (1.0 - mix)*rsample + mix*vsample;
+            outp.setVoltage(gain * raw);
         }
     }
 
