@@ -62,7 +62,7 @@ namespace Sapphire
     MeshAudioParameters CreateRoundDrum(Sapphire::PhysicsMesh& mesh)
     {
         using namespace Sapphire;
-        const int radius = 4;
+        const int radius = 3;
         const double mass = 1.0e-6;
         const double spacing = MESH_DEFAULT_REST_LENGTH;
 
@@ -113,10 +113,10 @@ namespace Sapphire
             }
         }
 
-        int leftInputBallIndex   = map.Get(-3, -1);
-        int rightInputBallIndex  = map.Get(-3, +1);
-        int leftOutputBallIndex  = map.Get(+1, -1);
-        int rightOutputBallIndex = map.Get(+1, +1);
+        int leftInputBallIndex   = map.Get(-2, -1);
+        int rightInputBallIndex  = map.Get(-2, +1);
+        int leftOutputBallIndex  = map.Get(+1, -2);
+        int rightOutputBallIndex = map.Get(+1, +2);
 
         return MeshAudioParameters(
             leftInputBallIndex,

@@ -316,8 +316,11 @@ struct Elastika : Module
         toneMap = SliderMapping(SliderScale::Linear, {0.0, 1.0});
 
         // Create default mesh configuration
-        MeshAudioParameters mp = CreateRoundDrum(mesh);
-        physicsModelName = "drum";
+        //MeshAudioParameters mp = CreateRoundDrum(mesh);
+        //physicsModelName = "drum";
+        MeshAudioParameters mp = CreateString(mesh);
+        physicsModelName = "string";
+        INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
         PhysicsVector stimulus = 0.03 * PhysicsVector(1, 1, 5);

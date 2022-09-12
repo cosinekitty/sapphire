@@ -232,4 +232,5 @@ namespace Sapphire
 
     // Factory functions that make meshes:
     MeshAudioParameters CreateRoundDrum(Sapphire::PhysicsMesh& mesh);
+    MeshAudioParameters CreateString(Sapphire::PhysicsMesh& mesh);
 }
