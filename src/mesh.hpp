@@ -210,6 +210,26 @@ namespace Sapphire
     void MeshFromJson(PhysicsMesh &mesh, json_t* root);
     json_t *JsonFromMesh(const PhysicsMesh &mesh);
 
+    struct MeshAudioParameters
+    {
+        int leftInputBallIndex;
+        int rightInputBallIndex;
+        int leftOutputBallIndex;
+        int rightOutputBallIndex;
+
+        MeshAudioParameters(
+            int _leftInputBallIndex,
+            int _rightInputBallIndex,
+            int _leftOutputBallIndex,
+            int _rightOutputBallIndex
+        )
+            : leftInputBallIndex(_leftInputBallIndex)
+            , rightInputBallIndex(_rightInputBallIndex)
+            , leftOutputBallIndex(_leftOutputBallIndex)
+            , rightOutputBallIndex(_rightOutputBallIndex)
+            {}
+    };
+
     // Factory functions that make meshes:
-    void CreateRoundDrum(Sapphire::PhysicsMesh& mesh, int radius);
+    MeshAudioParameters CreateRoundDrum(Sapphire::PhysicsMesh& mesh);
 }

@@ -4,6 +4,8 @@
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
+const double OUTPUT_CUTOFF_FREQUENCY = 30.0;
+
 enum class SliderScale
 {
     Linear,         // evaluate the polynomial and return the resulting value `y`
@@ -211,6 +213,8 @@ struct Elastika : Module
     MeshInput rightInput;
     MeshOutput leftOutput;
     MeshOutput rightOutput;
+    Sapphire::HighPassFilter leftFilter;
+    Sapphire::HighPassFilter rightFilter;
 
     enum ParamId
     {
@@ -254,6 +258,8 @@ struct Elastika : Module
     };
 
     Elastika()
+        : leftFilter(OUTPUT_CUTOFF_FREQUENCY)
+        , rightFilter(OUTPUT_CUTOFF_FREQUENCY)
     {
         resetState();
 
@@ -310,16 +316,22 @@ struct Elastika : Module
         toneMap = SliderMapping(SliderScale::Linear, {0.0, 1.0});
 
         // Create default mesh configuration
-        CreateRoundDrum(mesh, 8);
+        MeshAudioParameters mp = CreateRoundDrum(mesh);
         physicsModelName = "drum";
 
         // Define how stereo inputs go into the mesh.
-        leftInput  = MeshInput(64, PhysicsVector(0.01, 0.01, 0.05));
-        rightInput = MeshInput(70, PhysicsVector(0.01, 0.01, 0.05));
+        PhysicsVector stimulus = 0.03 * PhysicsVector(1, 1, 5);
+        leftInput  = MeshInput(mp.leftInputBallIndex,  stimulus);
+        rightInput = MeshInput(mp.rightInputBallIndex, stimulus);
 
         // Define how to extract stereo outputs from the mesh.
-        leftOutput  = MeshOutput(113, PhysicsVector(5, 5, 5), 12.0*PhysicsVector(5, 5, 5));
-        rightOutput = MeshOutput(115, PhysicsVector(5, 5, 5), 12.0*PhysicsVector(5, 5, 5));
+        PhysicsVector pos_response = 5.0e+2 * PhysicsVector(1, 1, 1);
+        PhysicsVector vel_response = 1.0e-1 * PhysicsVector(1, 1, 1);
+        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_response, vel_response);
+        rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_response, vel_response);
+
+        leftFilter.Reset();
+        rightFilter.Reset();
     }
 
     void onReset(const ResetEvent& e) override
@@ -331,6 +343,7 @@ struct Elastika : Module
     void process(const ProcessArgs& args) override
     {
         // Update the mesh parameters from sliders and control voltages.
+        // FIXFIXFIX: include attenuverter/CV modifications.
         double halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
         double restLength = spanMap.Evaluate(params[SPAN_SLIDER_PARAM].getValue());
         double stiffness = stiffnessMap.Evaluate(params[STIFFNESS_SLIDER_PARAM].getValue());
@@ -344,9 +357,10 @@ struct Elastika : Module
 
         mesh.Update(args.sampleTime, halfLife);
 
+        double mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
         float gain = params[LEVEL_KNOB_PARAM].getValue();
-        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT], leftOutput, gain);
-        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, gain);
+        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftFilter,  args.sampleRate, mix, gain);
+        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightFilter, args.sampleRate, mix, gain);
     }
 
     void injectAudioChannel(rack::engine::Input& inp, MeshInput& connect)
@@ -355,17 +369,20 @@ struct Elastika : Module
             connect.Inject(mesh, inp.getVoltage());
     }
 
-    void extractAudioChannel(rack::engine::Output& outp, MeshOutput& connect, float gain)
+    void extractAudioChannel(
+        rack::engine::Output& outp,
+        MeshOutput& connect,
+        Sapphire::HighPassFilter& filter,
+        double sampleRate,
+        double mix,
+        float gain)
     {
         if (outp.isConnected())
         {
             double rsample, vsample;
             connect.Extract(mesh, rsample, vsample);
-            outp.setChannels(1);
-
-            double mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
             double raw = (1.0 - mix)*rsample + mix*vsample;
-            outp.setVoltage(gain * raw);
+            outp.setVoltage(gain * filter.Update(raw, sampleRate));
         }
     }
 
