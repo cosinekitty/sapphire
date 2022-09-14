@@ -45,12 +45,12 @@ namespace Sapphire
     private:
         GridMap<HexGridElement> map;
         PhysicsMesh& mesh;
-        const double spacing;
-        const double mass;
+        const float spacing;
+        const float mass;
         int u1, u2, v1, v2;     // the bounding box that contains all mobile balls
 
     public:
-        HexBuilder(PhysicsMesh& _mesh, int _dimension, double _spacing, double _mass)
+        HexBuilder(PhysicsMesh& _mesh, int _dimension, float _spacing, float _mass)
             : map(-_dimension, +_dimension, -_dimension, +_dimension, HexGridElement())
             , mesh(_mesh)
             , spacing(_spacing)
@@ -158,7 +158,8 @@ namespace Sapphire
             return PhysicsVector(
                 spacing * (u + v/2.0),
                 spacing * (sqrt(0.75)*v),
-                0.0
+                0.0f,
+                0.0f
             );
         }
 
@@ -216,10 +217,10 @@ namespace Sapphire
     // hexFar  is the number of hexagons whose centers lie along the direction [u = +1, v = +1].
     MeshAudioParameters CreateHex(PhysicsMesh& mesh)
     {
-        const double mass = 1.0e-6;
+        const float mass = 1.0e-6;
         const int hexWide = 3;
         const int hexFar = 4;
-        const double spacing = MESH_DEFAULT_REST_LENGTH;
+        const float spacing = MESH_DEFAULT_REST_LENGTH;
 
         mesh.Reset();
 

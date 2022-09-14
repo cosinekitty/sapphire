@@ -4,7 +4,7 @@
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-const double OUTPUT_CUTOFF_FREQUENCY = 30.0;
+const float OUTPUT_CUTOFF_FREQUENCY = 30.0;
 
 enum class SliderScale
 {
@@ -31,12 +31,12 @@ class SliderMapping     // maps a slider value 0..1 onto an arbitrary polynomial
 {
 private:
     SliderScale scale = SliderScale::Linear;
-    std::vector<double> polynomial;     // polynomial coefficients, where index = exponent
+    std::vector<float> polynomial;     // polynomial coefficients, where index = exponent
 
 public:
     SliderMapping() {}
 
-    SliderMapping(SliderScale _scale, std::vector<double> _polynomial)
+    SliderMapping(SliderScale _scale, std::vector<float> _polynomial)
         : scale(_scale)
         , polynomial(_polynomial)
         {}
@@ -59,18 +59,18 @@ public:
         json_object_set_new(root, "scale", JsonFromSliderScale(scale));
 
         json_t *plist = json_array();
-        for (double coeff : polynomial)
+        for (float coeff : polynomial)
             json_array_append(plist, json_real(coeff));
         json_object_set_new(root, "polynomial", plist);
 
         return root;
     }
 
-    double Evaluate(double x) const
+    float Evaluate(float x) const
     {
-        double y = 0.0;
-        double xpower = 1.0;
-        for (double coeff : polynomial)
+        float y = 0.0;
+        float xpower = 1.0;
+        for (float coeff : polynomial)
         {
             y += coeff * xpower;
             xpower *= x;
@@ -119,7 +119,7 @@ public:
     }
 
     // Inject audio into the mesh
-    void Inject(Sapphire::PhysicsMesh& mesh, double sample) const
+    void Inject(Sapphire::PhysicsMesh& mesh, float sample) const
     {
         using namespace Sapphire;
 
@@ -167,7 +167,7 @@ public:
     }
 
     // Extract audio from the mesh
-    void Extract(Sapphire::PhysicsMesh& mesh, double& rsample, double &vsample) const
+    void Extract(Sapphire::PhysicsMesh& mesh, float& rsample, float &vsample) const
     {
         using namespace Sapphire;
 
@@ -299,21 +299,21 @@ struct Elastika : Module
 
         // friction=0 -> halfLife=100; friction=1 -> halfLife=0.01
         // So we want halfLife = 10^(2 - 4*friction)
-        frictionMap = SliderMapping(SliderScale::Exponential, {2.0, -4.0});
+        frictionMap = SliderMapping(SliderScale::Exponential, {2.0f, -4.0f});
 
         // Allow the stiffness to range over 1..1000.
         // So stiffness = 10^(3*slider)
-        stiffnessMap = SliderMapping(SliderScale::Exponential, {0.0, 3.0});
+        stiffnessMap = SliderMapping(SliderScale::Exponential, {0.0f, 3.0f});
 
         // We want the default span = 0.5 to map to the default rest length.
         // 0.0 -> DEFAULT_REST_LENGTH * 0.1 = 1.0e-4
         // 0.5 -> DEFAULT_REST_LENGTH       = 1.0e-3
         // 1.0 -> DEFAULT_REST_LENGTH * 10  = 1.0e-2
-        double spanMiddle = log10(MESH_DEFAULT_REST_LENGTH);
-        spanMap = SliderMapping(SliderScale::Exponential, {spanMiddle-1.0, 2.0});
+        float spanMiddle = log10(MESH_DEFAULT_REST_LENGTH);
+        spanMap = SliderMapping(SliderScale::Exponential, {spanMiddle-1.0f, 2.0f});
 
         // Tone map is a simple linear fade-mix between 0..1
-        toneMap = SliderMapping(SliderScale::Linear, {0.0, 1.0});
+        toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
         // Create default mesh configuration
         //MeshAudioParameters mp = CreateRoundDrum(mesh);
@@ -325,13 +325,13 @@ struct Elastika : Module
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
-        PhysicsVector stimulus = 0.03 * PhysicsVector(1, 1, 5);
+        PhysicsVector stimulus = 0.03 * PhysicsVector(1, 1, 5, 0);
         leftInput  = MeshInput(mp.leftInputBallIndex,  stimulus);
         rightInput = MeshInput(mp.rightInputBallIndex, stimulus);
 
         // Define how to extract stereo outputs from the mesh.
-        PhysicsVector pos_response = 5.0e+2 * PhysicsVector(1, 1, 1);
-        PhysicsVector vel_response = 1.0e-1 * PhysicsVector(1, 1, 1);
+        PhysicsVector pos_response = 5.0e+2 * PhysicsVector(1, 1, 1, 0);
+        PhysicsVector vel_response = 1.0e-1 * PhysicsVector(1, 1, 1, 0);
         leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_response, vel_response);
         rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_response, vel_response);
 
@@ -347,11 +347,13 @@ struct Elastika : Module
 
     void process(const ProcessArgs& args) override
     {
+        using namespace Sapphire;
+
         // Update the mesh parameters from sliders and control voltages.
         // FIXFIXFIX: include attenuverter/CV modifications.
-        double halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
-        double restLength = spanMap.Evaluate(params[SPAN_SLIDER_PARAM].getValue());
-        double stiffness = stiffnessMap.Evaluate(params[STIFFNESS_SLIDER_PARAM].getValue());
+        float halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
+        float restLength = spanMap.Evaluate(params[SPAN_SLIDER_PARAM].getValue());
+        float stiffness = stiffnessMap.Evaluate(params[STIFFNESS_SLIDER_PARAM].getValue());
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
@@ -362,7 +364,7 @@ struct Elastika : Module
 
         mesh.Update(args.sampleTime, halfLife);
 
-        double mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
+        float mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
         float gain = params[LEVEL_KNOB_PARAM].getValue();
         extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftFilter,  args.sampleRate, mix, gain);
         extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightFilter, args.sampleRate, mix, gain);
@@ -378,15 +380,17 @@ struct Elastika : Module
         rack::engine::Output& outp,
         MeshOutput& connect,
         Sapphire::HighPassFilter& filter,
-        double sampleRate,
-        double mix,
+        float sampleRate,
+        float mix,
         float gain)
     {
+        using namespace Sapphire;
+
         if (outp.isConnected())
         {
-            double rsample, vsample;
+            float rsample, vsample;
             connect.Extract(mesh, rsample, vsample);
-            double raw = (1.0 - mix)*rsample + mix*vsample;
+            float raw = (1.0 - mix)*rsample + mix*vsample;
             outp.setVoltage(gain * filter.Update(raw, sampleRate));
         }
     }

@@ -11,9 +11,9 @@ namespace Sapphire
         json_t *array = json_object_get(parent, key);
         if (json_array_size(array) == 3)
         {
-            vec.x = json_number_value(json_array_get(array, 0));
-            vec.y = json_number_value(json_array_get(array, 1));
-            vec.z = json_number_value(json_array_get(array, 2));
+            vec.s[0] = json_number_value(json_array_get(array, 0));
+            vec.s[1] = json_number_value(json_array_get(array, 1));
+            vec.s[2] = json_number_value(json_array_get(array, 2));
         }
         return vec;
     }
@@ -21,9 +21,9 @@ namespace Sapphire
     json_t *JsonFromVector(PhysicsVector vec)
     {
         json_t *array = json_array();
-        json_array_append(array, json_real(vec.x));
-        json_array_append(array, json_real(vec.y));
-        json_array_append(array, json_real(vec.z));
+        json_array_append(array, json_real(vec.s[0]));
+        json_array_append(array, json_real(vec.s[1]));
+        json_array_append(array, json_real(vec.s[2]));
         return array;
     }
 

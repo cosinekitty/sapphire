@@ -9,87 +9,21 @@
 #include <string>
 #include <vector>
 #include <jansson.h>
+#include <rack.hpp>
 
 namespace Sapphire
 {
-    struct PhysicsVector
+    using PhysicsVector = rack::simd::float_4;
+
+    inline float Dot(const PhysicsVector &a, const PhysicsVector &b)
     {
-        double x;
-        double y;
-        double z;
-
-        PhysicsVector()
-            : x(0.0)
-            , y(0.0)
-            , z(0.0)
-            {}
-
-        PhysicsVector(double _x, double _y, double _z)
-            : x(_x)
-            , y(_y)
-            , z(_z)
-            {}
-
-        PhysicsVector operator - ()
-        {
-            return PhysicsVector(-x, -y, -z);
-        }
-
-        PhysicsVector& operator += (const PhysicsVector& other)
-        {
-            x += other.x;
-            y += other.y;
-            z += other.z;
-            return *this;
-        }
-
-        PhysicsVector& operator -= (const PhysicsVector& other)
-        {
-            x -= other.x;
-            y -= other.y;
-            z -= other.z;
-            return *this;
-        }
-
-        PhysicsVector& operator *= (const double scalar)
-        {
-            x *= scalar;
-            y *= scalar;
-            z *= scalar;
-            return *this;
-        }
-
-        double MagnitudeSquared() const
-        {
-            return x*x + y*y + z*z;
-        }
-
-        double Magnitude() const;
-    };
-
-    inline PhysicsVector operator + (const PhysicsVector &a, const PhysicsVector &b)
-    {
-        return PhysicsVector(a.x+b.x, a.y+b.y, a.z+b.z);
+        PhysicsVector c = a * b;
+        return c.s[0] + c.s[1] + c.s[2];
     }
 
-    inline PhysicsVector operator - (const PhysicsVector &a, const PhysicsVector &b)
+    inline float Magnitude(const PhysicsVector &a)
     {
-        return PhysicsVector(a.x-b.x, a.y-b.y, a.z-b.z);
-    }
-
-    inline PhysicsVector operator / (const PhysicsVector &v, double d)
-    {
-        return PhysicsVector(v.x/d, v.y/d, v.z/d);
-    }
-
-    inline PhysicsVector operator * (double s, const PhysicsVector &v)
-    {
-        return PhysicsVector(s*v.x, s*v.y, s*v.z);
-    }
-
-    inline double Dot(const PhysicsVector &a, const PhysicsVector &b)
-    {
-        return a.x*b.x + a.y*b.y + a.z*b.z;
+        return sqrt(Dot(a, a));
     }
 
     struct Spring
@@ -107,28 +41,28 @@ namespace Sapphire
     {
         PhysicsVector pos;      // the ball's position [m]
         PhysicsVector vel;      // the ball's velocity [m/s]
-        double mass;            // the ball's [kg]
+        float mass;            // the ball's [kg]
 
-        Ball(double _mass, double _x, double _y, double _z)
-            : pos(_x, _y, _z)
+        Ball(float _mass, float _x, float _y, float _z)
+            : pos(_x, _y, _z, 0.0f)
             , vel()
             , mass(_mass)
             {}
 
-        Ball(double _mass, PhysicsVector _pos, PhysicsVector _vel)
+        Ball(float _mass, PhysicsVector _pos, PhysicsVector _vel)
             : pos(_pos)
             , vel(_vel)
             , mass(_mass)
             {}
 
-        static Ball Anchor(double _x, double _y, double _z)
+        static Ball Anchor(float _x, float _y, float _z)
         {
             return Ball(-1.0, _x, _y, _z);
         }
 
         static Ball Anchor(PhysicsVector pos)
         {
-            return Ball(-1.0, pos.x, pos.y, pos.z);
+            return Ball(-1.0, pos.s[0], pos.s[1], pos.s[2]);
         }
 
         bool IsAnchor() const { return mass <= 0.0; }
@@ -138,11 +72,11 @@ namespace Sapphire
     typedef std::vector<Spring> SpringList;
     typedef std::vector<Ball> BallList;
     typedef std::vector<PhysicsVector> PhysicsVectorList;
-    typedef std::vector<double> PhysicsScalarList;
+    typedef std::vector<float> PhysicsScalarList;
 
-    const double MESH_DEFAULT_STIFFNESS = 10.0;
-    const double MESH_DEFAULT_REST_LENGTH = 1.0e-3;
-    const double MESH_DEFAULT_SPEED_LIMIT = 100.0;
+    const float MESH_DEFAULT_STIFFNESS = 10.0;
+    const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
+    const float MESH_DEFAULT_SPEED_LIMIT = 100.0;
 
     class PhysicsMesh
     {
@@ -153,25 +87,25 @@ namespace Sapphire
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
         PhysicsVector gravity;
-        double stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
-        double restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
-        double speedLimit = MESH_DEFAULT_SPEED_LIMIT;
+        float stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
+        float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
+        float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
 
     public:
         void Reset();
-        double GetStiffness() const { return stiffness; }
-        void SetStiffness(double _stiffness);
-        double GetRestLength() const { return restLength; }
-        void SetRestLength(double _restLength);
-        double GetSpeedLimit() const { return speedLimit; }
-        void SetSpeedLimit(double _speedLimit) { speedLimit = _speedLimit; }
+        float GetStiffness() const { return stiffness; }
+        void SetStiffness(float _stiffness);
+        float GetRestLength() const { return restLength; }
+        void SetRestLength(float _restLength);
+        float GetSpeedLimit() const { return speedLimit; }
+        void SetSpeedLimit(float _speedLimit) { speedLimit = _speedLimit; }
         PhysicsVector GetGravity() const { return gravity; }
         void SetGravity(PhysicsVector _gravity) { gravity = _gravity; }
         int Add(Ball);      // returns ball index, for linking with springs
         bool Add(Spring);   // returns false if either ball index is bad, true if spring added
         const SpringList& GetSprings() const { return springList; }
         const BallList& GetBalls() const { return currBallList; }
-        void Update(double dt, double halflife);
+        void Update(float dt, float halflife);
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         int NumSprings() const { return static_cast<int>(springList.size()); }
         Ball& GetBallAt(int index) { return currBallList.at(index); }
@@ -182,12 +116,12 @@ namespace Sapphire
             BallList& blist,
             PhysicsVectorList& forceList);
 
-        static void Dampen(BallList& blist, double dt, double halflife);
+        static void Dampen(BallList& blist, float dt, float halflife);
         static void Copy(const BallList& source, BallList& target);
 
         static void Extrapolate(
-            double dt,
-            double speedLimit,
+            float dt,
+            float speedLimit,
             const PhysicsVectorList& forceList,
             const BallList& sourceList,
             BallList& targetList
@@ -199,15 +133,15 @@ namespace Sapphire
     {
     private:
         bool first;
-        double xprev;
-        double yprev;
-        double fc;
+        float xprev;
+        float yprev;
+        float fc;
 
     public:
-        HighPassFilter(double cutoffFrequencyHz);
+        HighPassFilter(float cutoffFrequencyHz);
         void Reset() { first = true; }
-        void SetCutoffFrequency(double cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
-        double Update(double x, double sampleRateHz);
+        void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
+        float Update(float x, float sampleRateHz);
     };
 
     PhysicsVector VectorFromJson(json_t *parent, const char *key);

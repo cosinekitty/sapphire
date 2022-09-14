@@ -6,12 +6,6 @@
 
 namespace Sapphire
 {
-    double PhysicsVector::Magnitude() const
-    {
-        return sqrt(MagnitudeSquared());
-    }
-
-
     void PhysicsMesh::Reset()
     {
         springList.clear();
@@ -26,15 +20,15 @@ namespace Sapphire
     }
 
 
-    void PhysicsMesh::SetStiffness(double _stiffness)
+    void PhysicsMesh::SetStiffness(float _stiffness)
     {
-        stiffness = std::max(0.0, _stiffness);      // negative values would cause impossible & unstable physics
+        stiffness = std::max(0.0f, _stiffness);      // negative values would cause impossible & unstable physics
     }
 
 
-    void PhysicsMesh::SetRestLength(double _restLength)
+    void PhysicsMesh::SetRestLength(float _restLength)
     {
-        restLength = std::max(0.0, _restLength);
+        restLength = std::max(0.0f, _restLength);
     }
 
 
@@ -90,8 +84,8 @@ namespace Sapphire
             const Ball& b1 = blist[spring.ballIndex1];
             const Ball& b2 = blist[spring.ballIndex2];
             PhysicsVector dr = b2.pos - b1.pos;
-            double dist = dr.Magnitude();   // length of the spring
-            double attractiveForce = stiffness * (dist - restLength);
+            float dist = Magnitude(dr);   // length of the spring
+            float attractiveForce = stiffness * (dist - restLength);
             if (dist < 1.0e-9)
             {
                 // Think of this like two bullets hitting each other in a gunfight:
@@ -99,7 +93,7 @@ namespace Sapphire
                 // The balls are so close together, it's hard to tell which direction the force should go.
                 // We also risk dividing by zero.
                 // It's a little weird/chaotic, but pick an arbitrary tension direction.
-                force = PhysicsVector(0.0, 0.0, -attractiveForce);
+                force = PhysicsVector(0.f, 0.f, -attractiveForce, 0.f);
             }
             else
             {
@@ -115,12 +109,12 @@ namespace Sapphire
     }
 
 
-    void PhysicsMesh::Dampen(BallList& blist, double dt, double halflife)
+    void PhysicsMesh::Dampen(BallList& blist, float dt, float halflife)
     {
         if (halflife > 0.0)
         {
             // damp^(frictionHalfLife/dt) = 0.5
-            const double damp = pow(0.5, dt/halflife);
+            const float damp = pow(0.5, dt/halflife);
             for (Ball& b : blist)
                 b.vel *= damp;
         }
@@ -128,13 +122,13 @@ namespace Sapphire
 
 
     void PhysicsMesh::Extrapolate(
-        double dt,
-        double speedLimit,
+        float dt,
+        float speedLimit,
         const PhysicsVectorList& forceList,
         const BallList& sourceList,
         BallList& targetList)
     {
-        const double speedLimitSquared = speedLimit * speedLimit;
+        const float speedLimitSquared = speedLimit * speedLimit;
         const int nballs = static_cast<int>(sourceList.size());
         for (int i = 0; i < nballs; ++i)
         {
@@ -156,7 +150,7 @@ namespace Sapphire
 
                 if (speedLimit > 0.0)
                 {
-                    double speedSquared = next.vel.MagnitudeSquared();
+                    float speedSquared = Dot(next.vel, next.vel);
                     if (speedSquared > speedLimitSquared)
                         next.vel *= speedLimit / sqrt(speedSquared);
                 }
@@ -168,7 +162,7 @@ namespace Sapphire
     }
 
 
-    void PhysicsMesh::Update(double dt, double halflife)
+    void PhysicsMesh::Update(float dt, float halflife)
     {
         Dampen(currBallList, dt, halflife);
         CalcForces(currBallList, forceList);
@@ -187,14 +181,14 @@ namespace Sapphire
     }
 
 
-    HighPassFilter::HighPassFilter(double cutoffFrequencyHz)
+    HighPassFilter::HighPassFilter(float cutoffFrequencyHz)
         : first(true)
         , xprev(0.0)
         , yprev(0.0)
         , fc(cutoffFrequencyHz)
         {}
 
-    double HighPassFilter::Update(double x, double sampleRateHz)
+    float HighPassFilter::Update(float x, float sampleRateHz)
     {
         if (first)
         {
@@ -203,8 +197,8 @@ namespace Sapphire
             yprev = x;
             return 0.0;
         }
-        double c = sampleRateHz / (M_PI * fc);
-        double y = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
+        float c = sampleRateHz / (M_PI * fc);
+        float y = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
         xprev = x;
         yprev = y;
         return x - y;
