@@ -217,15 +217,11 @@ namespace Sapphire
     MeshAudioParameters CreateHex(PhysicsMesh& mesh)
     {
         const double mass = 1.0e-6;
-        const int hexWide = 4;
-        const int hexFar = 8;
+        const int hexWide = 3;
+        const int hexFar = 4;
         const double spacing = MESH_DEFAULT_REST_LENGTH;
 
         mesh.Reset();
-        mesh.SetStiffness(65.0);
-        mesh.SetRestLength(0.9 * spacing);
-        mesh.SetSpeedLimit(100.0);
-        mesh.SetGravity(PhysicsVector(0.0, 0.0, -9.8));
 
         HexBuilder builder(mesh, 200, spacing, mass);
 
@@ -235,10 +231,10 @@ namespace Sapphire
 
         builder.Finalize();
 
-        int leftInputBallIndex   = builder.BallIndex(1, 1, 1, 0);
-        int rightInputBallIndex  = builder.BallIndex(hexWide-2, 1, 1, 0);
-        int leftOutputBallIndex  = builder.BallIndex(1, hexFar-2, -1, 0);
-        int rightOutputBallIndex = builder.BallIndex(hexWide-2, hexFar-2, -1, 0);
+        int leftInputBallIndex   = builder.BallIndex(0, 0, 1, 0);
+        int rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 1, 0);
+        int leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, -1, 0);
+        int rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, -1, 0);
 
         return MeshAudioParameters(leftInputBallIndex, rightInputBallIndex, leftOutputBallIndex, rightOutputBallIndex);
     }
