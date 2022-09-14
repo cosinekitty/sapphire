@@ -318,8 +318,10 @@ struct Elastika : Module
         // Create default mesh configuration
         //MeshAudioParameters mp = CreateRoundDrum(mesh);
         //physicsModelName = "drum";
-        MeshAudioParameters mp = CreateString(mesh);
-        physicsModelName = "string";
+        //MeshAudioParameters mp = CreateString(mesh);
+        //physicsModelName = "string";
+        MeshAudioParameters mp = CreateHex(mesh);
+        physicsModelName = "hex";
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.

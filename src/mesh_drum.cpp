@@ -1,4 +1,3 @@
-#include <vector>
 #include <assert.h>
 #include "mesh.hpp"
 
