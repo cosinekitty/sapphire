@@ -296,23 +296,11 @@ struct Elastika : Module
         using namespace Sapphire;
 
         // Set the defaults for how to interpret the slider values.
+        // Determined experimentally to produce useful ranges.
 
-        // friction=0 -> halfLife=100; friction=1 -> halfLife=0.01
-        // So we want halfLife = 10^(2 - 4*friction)
-        frictionMap = SliderMapping(SliderScale::Exponential, {2.0f, -4.0f});
-
-        // Allow the stiffness to range over 1..1000.
-        // So stiffness = 10^(3*slider)
-        stiffnessMap = SliderMapping(SliderScale::Exponential, {0.0f, 3.0f});
-
-        // We want the default span = 0.5 to map to the default rest length.
-        // 0.0 -> DEFAULT_REST_LENGTH * 0.1 = 1.0e-4
-        // 0.5 -> DEFAULT_REST_LENGTH       = 1.0e-3
-        // 1.0 -> DEFAULT_REST_LENGTH * 10  = 1.0e-2
-        float spanMiddle = log10(MESH_DEFAULT_REST_LENGTH);
-        spanMap = SliderMapping(SliderScale::Exponential, {spanMiddle-1.0f, 2.0f});
-
-        // Tone map is a simple linear fade-mix between 0..1
+        frictionMap = SliderMapping(SliderScale::Exponential, {1.7f, -5.0f});
+        stiffnessMap = SliderMapping(SliderScale::Exponential, {0.0f, 2.5f});
+        spanMap = SliderMapping(SliderScale::Exponential, {-4.14f, 1.6f});
         toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
         // Create default mesh configuration
