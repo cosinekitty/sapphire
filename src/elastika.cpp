@@ -303,11 +303,6 @@ struct Elastika : Module
         spanMap = SliderMapping(SliderScale::Exponential, {-4.14f, 1.6f});
         toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
-        // Create default mesh configuration
-        //MeshAudioParameters mp = CreateRoundDrum(mesh);
-        //physicsModelName = "drum";
-        //MeshAudioParameters mp = CreateString(mesh);
-        //physicsModelName = "string";
         MeshAudioParameters mp = CreateHex(mesh);
         physicsModelName = "hex";
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
