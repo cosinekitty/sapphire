@@ -13,20 +13,6 @@ enum class SliderScale
 };
 
 
-static json_t *JsonFromSliderScale(SliderScale scale)
-{
-    switch (scale)
-    {
-    case SliderScale::Exponential:
-        return json_string("exponential");
-
-    case SliderScale::Linear:
-    default:
-        return json_string("linear");
-    }
-}
-
-
 class SliderMapping     // maps a slider value 0..1 onto an arbitrary polynomial expression
 {
 private:
@@ -40,31 +26,6 @@ public:
         : scale(_scale)
         , polynomial(_polynomial)
         {}
-
-    SliderMapping(json_t *root)
-    {
-        const char *text = json_string_value(json_object_get(root, "scale"));
-        if (text != nullptr && !strcmp(text, "exponential"))
-            scale = SliderScale::Exponential;
-
-        json_t *plist = json_object_get(root, "polynomial");
-        size_t n = json_array_size(plist);
-        for (size_t i = 0; i < n; ++i)
-            polynomial.push_back(json_number_value(json_array_get(plist, i)));
-    }
-
-    json_t *ToJson() const
-    {
-        json_t *root = json_object();
-        json_object_set_new(root, "scale", JsonFromSliderScale(scale));
-
-        json_t *plist = json_array();
-        for (float coeff : polynomial)
-            json_array_append(plist, json_real(coeff));
-        json_object_set_new(root, "polynomial", plist);
-
-        return root;
-    }
 
     float Evaluate(float x) const
     {
@@ -104,20 +65,6 @@ public:
         , direction(_direction)
         {}
 
-    MeshInput(json_t *root)
-    {
-        ballIndex = json_integer_value(json_object_get(root, "ball"));
-        direction = Sapphire::VectorFromJson(root, "dir");
-    }
-
-    json_t *ToJson() const
-    {
-        json_t *root = json_object();
-        json_object_set_new(root, "ball", json_integer(ballIndex));
-        json_object_set_new(root, "dir", Sapphire::JsonFromVector(direction));
-        return root;
-    }
-
     // Inject audio into the mesh
     void Inject(Sapphire::PhysicsMesh& mesh, float sample) const
     {
@@ -149,22 +96,6 @@ public:
         , rdir(_rdir)
         , vdir(_vdir)
         {}
-
-    MeshOutput(json_t *root)
-    {
-        ballIndex = json_integer_value(json_object_get(root, "ball"));
-        rdir = Sapphire::VectorFromJson(root, "rdir");
-        vdir = Sapphire::VectorFromJson(root, "vdir");
-    }
-
-    json_t *ToJson() const
-    {
-        json_t *root = json_object();
-        json_object_set_new(root, "ball", json_integer(ballIndex));
-        json_object_set_new(root, "rdir", Sapphire::JsonFromVector(rdir));
-        json_object_set_new(root, "vdir", Sapphire::JsonFromVector(vdir));
-        return root;
-    }
 
     // Extract audio from the mesh
     void Extract(Sapphire::PhysicsMesh& mesh, float& rsample, float &vsample) const
@@ -375,64 +306,6 @@ struct Elastika : Module
             connect.Extract(mesh, rsample, vsample);
             float raw = (1.0 - mix)*rsample + mix*vsample;
             outp.setVoltage(gain * filter.Update(raw, sampleRate));
-        }
-    }
-
-    json_t* dataToJson() override
-    {
-        json_t* root = json_object();
-
-        json_t* map = json_object();
-        json_object_set_new(map, "friction", frictionMap.ToJson());
-        json_object_set_new(map, "stiffness", stiffnessMap.ToJson());
-        json_object_set_new(map, "span", spanMap.ToJson());
-        json_object_set_new(map, "tone", toneMap.ToJson());
-        json_object_set_new(root, "sliders", map);
-
-        json_t *inputArray = json_array();
-        json_array_append(inputArray, leftInput.ToJson());
-        json_array_append(inputArray, rightInput.ToJson());
-        json_object_set_new(root, "inputs", inputArray);
-
-        json_t *outputArray = json_array();
-        json_array_append(outputArray, leftOutput.ToJson());
-        json_array_append(outputArray, rightOutput.ToJson());
-        json_object_set_new(root, "outputs", outputArray);
-
-        json_object_set_new(root, "mesh", JsonFromMesh(mesh));
-
-        return root;
-    }
-
-    void dataFromJson(json_t* root) override
-    {
-        Sapphire::MeshFromJson(mesh, json_object_get(root, "mesh"));
-
-        json_t* sliders = json_object_get(root, "sliders");
-        if (json_is_object(sliders))
-        {
-            frictionMap = SliderMapping(json_object_get(sliders, "friction"));
-            stiffnessMap = SliderMapping(json_object_get(sliders, "stiffness"));
-            spanMap = SliderMapping(json_object_get(sliders, "span"));
-            toneMap = SliderMapping(json_object_get(sliders, "tone"));
-        }
-
-        leftInput = MeshInput();
-        rightInput = MeshInput();
-        json_t *inputArray = json_object_get(root, "inputs");
-        if (json_array_size(inputArray) == 2)
-        {
-            leftInput = MeshInput(json_array_get(inputArray, 0));
-            rightInput = MeshInput(json_array_get(inputArray, 1));
-        }
-
-        leftOutput = MeshOutput();
-        rightOutput = MeshOutput();
-        json_t *outputArray = json_object_get(root, "outputs");
-        if (json_array_size(outputArray) == 2)
-        {
-            leftOutput = MeshOutput(json_array_get(outputArray, 0));
-            rightOutput = MeshOutput(json_array_get(outputArray, 1));
         }
     }
 };

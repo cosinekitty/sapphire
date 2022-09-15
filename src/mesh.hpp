@@ -144,12 +144,6 @@ namespace Sapphire
         float Update(float x, float sampleRateHz);
     };
 
-    PhysicsVector VectorFromJson(json_t *parent, const char *key);
-    json_t *JsonFromVector(PhysicsVector vec);
-
-    void MeshFromJson(PhysicsMesh &mesh, json_t* root);
-    json_t *JsonFromMesh(const PhysicsMesh &mesh);
-
     struct MeshAudioParameters
     {
         int leftInputBallIndex;
