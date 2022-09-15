@@ -117,20 +117,6 @@ public:
 };
 
 
-struct ModelNameDisplay : LedDisplay
-{
-    LedDisplayTextField* textField;
-
-    void init()
-    {
-        textField = createWidget<LedDisplayTextField>(Vec(0, -4));
-        textField->box.size = box.size;
-        textField->multiline = false;
-        addChild(textField);
-    }
-};
-
-
 struct Elastika : Module
 {
     Sapphire::PhysicsMesh mesh;
@@ -138,8 +124,6 @@ struct Elastika : Module
     SliderMapping stiffnessMap;
     SliderMapping spanMap;
     SliderMapping toneMap;
-    std::string physicsModelName;       // e.g. "drum", "string", ...
-    ModelNameDisplay *modelNameDisplay;
     MeshInput leftInput;
     MeshInput rightInput;
     MeshOutput leftOutput;
@@ -235,7 +219,6 @@ struct Elastika : Module
         toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
         MeshAudioParameters mp = CreateHex(mesh);
-        physicsModelName = "hex";
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
@@ -318,19 +301,6 @@ struct ElastikaWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
-        // Text edit box for displaying/editing the physics model name.
-        ModelNameDisplay* textDisplay = createWidget<ModelNameDisplay>(mm2px(Vec(21.625443, 12.590074)));
-
-        textDisplay->box.size = mm2px(Vec(32.653057, 7.4503818));
-        textDisplay->init();
-        addChild(textDisplay);
-
-        if (module != nullptr)      // module can be null when previewing in the picker
-        {
-            module->modelNameDisplay = textDisplay;
-            textDisplay->textField->text = module->physicsModelName;    // FIXFIXFIX: keep up-to-date
-        }
-
         // Sliders
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(10.95, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(23.73, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
@@ -364,4 +334,3 @@ struct ElastikaWidget : ModuleWidget
 
 
 Model* modelElastika = createModel<Elastika, ElastikaWidget>("Elastika");
-
