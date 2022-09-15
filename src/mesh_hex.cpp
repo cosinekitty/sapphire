@@ -224,7 +224,7 @@ namespace Sapphire
 
         mesh.Reset();
 
-        HexBuilder builder(mesh, 200, spacing, mass);
+        HexBuilder builder(mesh, 10, spacing, mass);
 
         for (int w = 0; w < hexWide; ++w)
             for (int f = 0; f < hexFar; ++f)
@@ -232,11 +232,24 @@ namespace Sapphire
 
         builder.Finalize();
 
-        int leftInputBallIndex   = builder.BallIndex(0, 0, 1, 0);
-        int rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 1, 0);
-        int leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, -1, 0);
-        int rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, -1, 0);
+        int leftInputBallIndex   = builder.BallIndex(0, 0, 0, 1);
+        int rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 0, 1);
+        int leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, 0, -1);
+        int rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, 0, -1);
+        PhysicsVector leftStimulus(1, 1, 1, 0);
+        PhysicsVector rightStimulus(1, 1, 1, 0);
+        PhysicsVector leftResponse(1, 1, 5, 0);
+        PhysicsVector rightResponse(1, 1, 5, 0);
 
-        return MeshAudioParameters(leftInputBallIndex, rightInputBallIndex, leftOutputBallIndex, rightOutputBallIndex);
+        return MeshAudioParameters(
+            leftInputBallIndex,
+            rightInputBallIndex,
+            leftOutputBallIndex,
+            rightOutputBallIndex,
+            leftStimulus,
+            rightStimulus,
+            leftResponse,
+            rightResponse
+        );
     }
 }

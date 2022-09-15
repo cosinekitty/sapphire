@@ -73,7 +73,7 @@ public:
         if (ballIndex >= 0 && ballIndex < mesh.NumBalls())
         {
             Ball& ball = mesh.GetBallAt(ballIndex);
-            ball.vel += sample * direction;
+            ball.vel = sample * direction;
         }
     }
 };
@@ -222,15 +222,14 @@ struct Elastika : Module
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
-        PhysicsVector stimulus = 0.03 * PhysicsVector(1, 1, 5, 0);
-        leftInput  = MeshInput(mp.leftInputBallIndex,  stimulus);
-        rightInput = MeshInput(mp.rightInputBallIndex, stimulus);
+        leftInput  = MeshInput(mp.leftInputBallIndex,  mp.leftStimulus);
+        rightInput = MeshInput(mp.rightInputBallIndex, mp.rightStimulus);
 
         // Define how to extract stereo outputs from the mesh.
-        PhysicsVector pos_response = 5.0e+2 * PhysicsVector(1, 1, 1, 0);
-        PhysicsVector vel_response = 1.0e-1 * PhysicsVector(1, 1, 1, 0);
-        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_response, vel_response);
-        rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_response, vel_response);
+        float pos_factor = 5.0e+2;
+        float vel_factor = 1.0e-1;
+        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_factor * mp.leftResponse, vel_factor * mp.leftResponse);
+        rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_factor * mp.rightResponse, vel_factor * mp.rightResponse);
 
         leftFilter.Reset();
         rightFilter.Reset();
