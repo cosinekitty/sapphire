@@ -218,8 +218,8 @@ namespace Sapphire
     MeshAudioParameters CreateHex(PhysicsMesh& mesh)
     {
         const float mass = 1.0e-6;
-        const int hexWide = 3;
-        const int hexFar = 4;
+        const int hexWide = 2;
+        const int hexFar = 3;
         const float spacing = MESH_DEFAULT_REST_LENGTH;
 
         mesh.Reset();
