@@ -241,15 +241,30 @@ struct Elastika : Module
         resetState();
     }
 
+    float getControlValue(const SliderMapping& map, ParamId sliderId, ParamId attenuId, InputId cvInputId)
+    {
+        float slider = params[sliderId].getValue();
+        if (inputs[cvInputId].isConnected())
+        {
+            float attenu = params[attenuId].getValue();
+            float cv = inputs[cvInputId].getVoltage();
+            slider += attenu * (cv / 10.0f);
+        }
+        float value = map.Evaluate(clamp(slider));
+        return value;
+    }
+
     void process(const ProcessArgs& args) override
     {
         using namespace Sapphire;
 
         // Update the mesh parameters from sliders and control voltages.
-        // FIXFIXFIX: include attenuverter/CV modifications.
-        float halfLife = frictionMap.Evaluate(params[FRICTION_SLIDER_PARAM].getValue());
-        float restLength = spanMap.Evaluate(params[SPAN_SLIDER_PARAM].getValue());
-        float stiffness = stiffnessMap.Evaluate(params[STIFFNESS_SLIDER_PARAM].getValue());
+
+        float halfLife = getControlValue(frictionMap, FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
+        float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
+        float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
+        float mix = getControlValue(toneMap, TONE_SLIDER_PARAM, TONE_ATTEN_PARAM, TONE_CV_INPUT);
+        float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
@@ -260,8 +275,6 @@ struct Elastika : Module
 
         mesh.Update(args.sampleTime, halfLife);
 
-        float mix = clamp(toneMap.Evaluate(params[TONE_SLIDER_PARAM].getValue()));
-        float gain = params[LEVEL_KNOB_PARAM].getValue();
         extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftFilter,  args.sampleRate, mix, gain);
         extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightFilter, args.sampleRate, mix, gain);
     }
