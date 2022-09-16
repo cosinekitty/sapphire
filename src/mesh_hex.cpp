@@ -171,7 +171,7 @@ namespace Sapphire
                 assert(h.springsNeededMask == 0);
                 assert(h.springsAddedMask == 0);
                 PhysicsVector pos = Location(u, v);
-                h.ballIndex = mesh.Add(Ball(mass, pos, PhysicsVector()));
+                h.ballIndex = mesh.Add(Ball(mass, pos, PhysicsVector::zero()));
                 h.springsNeededMask = springsNeededMask;
                 h.springsAddedMask = 0;
                 UpdateBoundingBox(u, v);

@@ -12,7 +12,7 @@ namespace Sapphire
         currBallList.clear();
         nextBallList.clear();
         forceList.clear();
-        gravity = PhysicsVector();
+        gravity = PhysicsVector::zero();
         stiffness  = MESH_DEFAULT_STIFFNESS;
         restLength = MESH_DEFAULT_REST_LENGTH;
         speedLimit = MESH_DEFAULT_SPEED_LIMIT;
@@ -42,7 +42,7 @@ namespace Sapphire
         nextBallList.push_back(ball);
 
         // Reserve a slot for calculating forces.
-        forceList.push_back(PhysicsVector());
+        forceList.push_back(PhysicsVector::zero());
 
         return index;
     }
