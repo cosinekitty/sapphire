@@ -10,7 +10,6 @@ namespace Sapphire
     {
         springList.clear();
         currBallList.clear();
-        midBallList.clear();
         nextBallList.clear();
         forceList.clear();
         gravity = PhysicsVector();
@@ -39,8 +38,7 @@ namespace Sapphire
         // Save this ball in `ballList`.
         currBallList.push_back(ball);
 
-        // Reserve a slot in the auxiliary arrays `midBallList` and `nextBallList`.
-        midBallList.push_back(ball);
+        // Reserve a slot in the auxiliary array `nextBallList`.
         nextBallList.push_back(ball);
 
         // Reserve a slot for calculating forces.
@@ -166,8 +164,8 @@ namespace Sapphire
     {
         Dampen(currBallList, dt, halflife);
         CalcForces(currBallList, forceList);
-        Extrapolate(dt / 2.0, speedLimit, forceList, currBallList, midBallList);
-        CalcForces(midBallList, forceList);
+        Extrapolate(dt / 2.0, speedLimit, forceList, currBallList, nextBallList);
+        CalcForces(nextBallList, forceList);
         Extrapolate(dt, speedLimit, forceList, currBallList, nextBallList);
         Copy(nextBallList, currBallList);
     }

@@ -18,7 +18,7 @@ namespace Sapphire
     inline float Dot(const PhysicsVector &a, const PhysicsVector &b)
     {
         PhysicsVector c = a * b;
-        return c.s[0] + c.s[1] + c.s[2];
+        return c.s[0] + c.s[1] + c.s[2] + c.s[3];
     }
 
     inline float Magnitude(const PhysicsVector &a)
@@ -83,7 +83,6 @@ namespace Sapphire
     private:
         SpringList springList;
         BallList currBallList;
-        BallList midBallList;
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
         PhysicsVector gravity;
