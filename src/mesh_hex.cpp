@@ -221,6 +221,7 @@ namespace Sapphire
         const int hexWide = 2;
         const int hexFar = 3;
         const float spacing = MESH_DEFAULT_REST_LENGTH;
+        const float peakVoltage = 10.0f;
 
         mesh.Reset();
 
@@ -235,12 +236,12 @@ namespace Sapphire
         MeshAudioParameters mp;
         memset(&mp, 0, sizeof(mp));
 
-        mp.leftInputBallIndex   = builder.BallIndex(0, 0, 0, 1);
-        mp.rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 0, 1);
-        mp.leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, 0, -1);
-        mp.rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, 0, -1);
-        mp.leftStimulus  = PhysicsVector(1, 1, 1, 0);
-        mp.rightStimulus = PhysicsVector(1, 1, 1, 0);
+        mp.leftInputBallIndex   = builder.BallIndex(0, 0, -1,  0);
+        mp.rightInputBallIndex  = builder.BallIndex(1, 0, +1, -1);
+        mp.leftOutputBallIndex  = builder.BallIndex(0, 2, -1, +1);
+        mp.rightOutputBallIndex = builder.BallIndex(1, 2, +1,  0);
+        mp.leftStimulus  = (spacing / peakVoltage) * PhysicsVector(0, 0, 1, 0);
+        mp.rightStimulus = (spacing / peakVoltage) * PhysicsVector(0, 0, 1, 0);
         mp.leftResponse  = PhysicsVector(1, 1, 5, 0);
         mp.rightResponse = PhysicsVector(1, 1, 5, 0);
 

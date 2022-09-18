@@ -53,28 +53,35 @@ public:
 class MeshInput
 {
 private:
+    bool firstTime = true;
     int ballIndex = -1;
+    Sapphire::PhysicsVector origin;
     Sapphire::PhysicsVector direction;
 
 public:
     MeshInput()
+        : origin(0.0f)
+        , direction(0.0f)
         {}
 
     MeshInput(int _ballIndex, Sapphire::PhysicsVector _direction)
         : ballIndex(_ballIndex)
+        , origin(0.0f)
         , direction(_direction)
         {}
 
     // Inject audio into the mesh
-    void Inject(Sapphire::PhysicsMesh& mesh, float sample) const
+    void Inject(Sapphire::PhysicsMesh& mesh, float sample)
     {
         using namespace Sapphire;
 
-        if (ballIndex >= 0 && ballIndex < mesh.NumBalls())
+        Ball& ball = mesh.GetBallAt(ballIndex);
+        if (firstTime)
         {
-            Ball& ball = mesh.GetBallAt(ballIndex);
-            ball.vel = sample * direction;
+            firstTime = false;
+            origin = ball.pos;
         }
+        ball.pos = origin + (sample * direction);
     }
 };
 
@@ -226,9 +233,9 @@ struct Elastika : Module
         rightInput = MeshInput(mp.rightInputBallIndex, mp.rightStimulus);
 
         // Define how to extract stereo outputs from the mesh.
-        float pos_factor = 5.0e+2;
-        float vel_factor = 1.0e-1;
-        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_factor * mp.leftResponse, vel_factor * mp.leftResponse);
+        float pos_factor = 5.0e+3;
+        float vel_factor = 1.0e+0;
+        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_factor * mp.leftResponse,  vel_factor * mp.leftResponse);
         rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_factor * mp.rightResponse, vel_factor * mp.rightResponse);
 
         leftFilter.Reset();
@@ -270,19 +277,13 @@ struct Elastika : Module
         mesh.SetStiffness(stiffness);
 
         // Feed audio stimulus into the mesh.
-        injectAudioChannel(inputs[AUDIO_LEFT_INPUT], leftInput);
-        injectAudioChannel(inputs[AUDIO_RIGHT_INPUT], rightInput);
+        leftInput.Inject(mesh, inputs[AUDIO_LEFT_INPUT].getVoltage());
+        rightInput.Inject(mesh, inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
         mesh.Update(args.sampleTime, halfLife);
 
         extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftFilter,  args.sampleRate, mix, gain);
         extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightFilter, args.sampleRate, mix, gain);
-    }
-
-    void injectAudioChannel(rack::engine::Input& inp, MeshInput& connect)
-    {
-        if (inp.isConnected())
-            connect.Inject(mesh, inp.getVoltage());
     }
 
     void extractAudioChannel(
