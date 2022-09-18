@@ -153,26 +153,6 @@ namespace Sapphire
         PhysicsVector rightStimulus;
         PhysicsVector leftResponse;
         PhysicsVector rightResponse;
-
-        MeshAudioParameters(
-            int _leftInputBallIndex,
-            int _rightInputBallIndex,
-            int _leftOutputBallIndex,
-            int _rightOutputBallIndex,
-            PhysicsVector _leftStimulus,
-            PhysicsVector _rightStimulus,
-            PhysicsVector _leftResponse,
-            PhysicsVector _rightResponse
-        )
-            : leftInputBallIndex(_leftInputBallIndex)
-            , rightInputBallIndex(_rightInputBallIndex)
-            , leftOutputBallIndex(_leftOutputBallIndex)
-            , rightOutputBallIndex(_rightOutputBallIndex)
-            , leftStimulus(_leftStimulus)
-            , rightStimulus(_rightStimulus)
-            , leftResponse(_leftResponse)
-            , rightResponse(_rightResponse)
-            {}
     };
 
     // GridMap is a read-write 2D array whose indices can be positive or negative.

@@ -232,24 +232,18 @@ namespace Sapphire
 
         builder.Finalize();
 
-        int leftInputBallIndex   = builder.BallIndex(0, 0, 0, 1);
-        int rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 0, 1);
-        int leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, 0, -1);
-        int rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, 0, -1);
-        PhysicsVector leftStimulus(1, 1, 1, 0);
-        PhysicsVector rightStimulus(1, 1, 1, 0);
-        PhysicsVector leftResponse(1, 1, 5, 0);
-        PhysicsVector rightResponse(1, 1, 5, 0);
+        MeshAudioParameters mp;
+        memset(&mp, 0, sizeof(mp));
 
-        return MeshAudioParameters(
-            leftInputBallIndex,
-            rightInputBallIndex,
-            leftOutputBallIndex,
-            rightOutputBallIndex,
-            leftStimulus,
-            rightStimulus,
-            leftResponse,
-            rightResponse
-        );
+        mp.leftInputBallIndex   = builder.BallIndex(0, 0, 0, 1);
+        mp.rightInputBallIndex  = builder.BallIndex(hexWide-1, 0, 0, 1);
+        mp.leftOutputBallIndex  = builder.BallIndex(0, hexFar-1, 0, -1);
+        mp.rightOutputBallIndex = builder.BallIndex(hexWide-1, hexFar-1, 0, -1);
+        mp.leftStimulus  = PhysicsVector(1, 1, 1, 0);
+        mp.rightStimulus = PhysicsVector(1, 1, 1, 0);
+        mp.leftResponse  = PhysicsVector(1, 1, 5, 0);
+        mp.rightResponse = PhysicsVector(1, 1, 5, 0);
+
+        return mp;
     }
 }
