@@ -236,14 +236,19 @@ namespace Sapphire
         MeshAudioParameters mp;
         memset(&mp, 0, sizeof(mp));
 
-        mp.leftInputBallIndex   = builder.BallIndex(0, 0, -1,  0);
-        mp.rightInputBallIndex  = builder.BallIndex(1, 0, +1, -1);
-        mp.leftOutputBallIndex  = builder.BallIndex(0, 2, -1, +1);
-        mp.rightOutputBallIndex = builder.BallIndex(1, 2, +1,  0);
-        mp.leftStimulus  = (spacing / peakVoltage) * PhysicsVector(0, 0, 1, 0);
-        mp.rightStimulus = (spacing / peakVoltage) * PhysicsVector(0, 0, 1, 0);
-        mp.leftResponse  = PhysicsVector(1, 1, 5, 0);
-        mp.rightResponse = PhysicsVector(1, 1, 5, 0);
+        mp.leftInputBallIndex   = builder.BallIndex(-1,  0, -1,  0);
+        mp.rightInputBallIndex  = builder.BallIndex(+2, +2, +1,  0);
+        mp.leftOutputBallIndex  = builder.BallIndex( 0, +2, -1, +1);
+        mp.rightOutputBallIndex = builder.BallIndex(+1,  0, +1, -1);
+        mp.leftStimulus  = (spacing / peakVoltage) * PhysicsVector(+0.1f, -0.1f, 0.99f, 0);
+        mp.rightStimulus = (spacing / peakVoltage) * PhysicsVector(-0.1f, +0.1f, 0.99f, 0);
+        mp.leftResponse  = PhysicsVector(0, -0.1f, 5, 0);
+        mp.rightResponse = PhysicsVector(0, +0.1f, 5, 0);
+
+        assert(mesh.GetBallAt(mp.leftInputBallIndex).IsAnchor());
+        assert(mesh.GetBallAt(mp.rightInputBallIndex).IsAnchor());
+        assert(mesh.GetBallAt(mp.leftOutputBallIndex).IsMobile());
+        assert(mesh.GetBallAt(mp.rightOutputBallIndex).IsMobile());
 
         return mp;
     }

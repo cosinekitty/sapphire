@@ -109,17 +109,9 @@ public:
     {
         using namespace Sapphire;
 
-        if (ballIndex >= 0 && ballIndex < mesh.NumBalls())
-        {
-            Ball& ball = mesh.GetBallAt(ballIndex);
-            rsample = Dot(ball.pos, rdir);
-            vsample = Dot(ball.vel, vdir);
-        }
-        else
-        {
-            rsample = 0.0;
-            vsample = 0.0;
-        }
+        Ball& ball = mesh.GetBallAt(ballIndex);
+        rsample = Dot(ball.pos, rdir);
+        vsample = Dot(ball.vel, vdir);
     }
 };
 
