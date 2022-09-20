@@ -109,13 +109,12 @@ namespace Sapphire
 
     void PhysicsMesh::Dampen(BallList& blist, float dt, float halflife)
     {
-        if (halflife > 0.0)
-        {
-            // damp^(frictionHalfLife/dt) = 0.5
-            const float damp = pow(0.5, dt/halflife);
-            for (Ball& b : blist)
-                b.vel *= damp;
-        }
+        // damp^(frictionHalfLife/dt) = 0.5.
+        // But we want to compensate for less-than-ideal behavior at higher frequencies,
+        // so adjust the damping coefficient so that it can go slightly higher than unity gain.
+        const float damp = pow(0.5, dt/halflife);
+        for (Ball& b : blist)
+            b.vel *= damp;
     }
 
 
