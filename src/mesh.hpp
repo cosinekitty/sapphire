@@ -76,7 +76,7 @@ namespace Sapphire
 
     const float MESH_DEFAULT_STIFFNESS = 10.0;
     const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
-    const float MESH_DEFAULT_SPEED_LIMIT = 100.0;
+    const float MESH_DEFAULT_SPEED_LIMIT = 50.0;
 
     class PhysicsMesh
     {

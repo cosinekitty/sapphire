@@ -213,7 +213,7 @@ struct Elastika : Module
         // Determined experimentally to produce useful ranges.
 
         frictionMap = SliderMapping(SliderScale::Exponential, {1.7f, -5.0f});
-        stiffnessMap = SliderMapping(SliderScale::Exponential, {0.0f, 2.5f});
+        stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
         spanMap = SliderMapping(SliderScale::Exponential, {-4.14f, 1.3f});
         toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
