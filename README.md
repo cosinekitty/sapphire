@@ -121,6 +121,17 @@ There are three kinds of components in the Elastika physics model:
   The force is applied equally to both balls, in opposite directions, in accordance
   with Newton's Third Law.
 
+On each audio sample, audio voltages are fed into the network by adjusting
+the positions of the left and right anchors. Then the force vectors on each
+ball are calculated based on the orientation and length of the three springs
+connected to it. The net force vector causes an acceleration on the ball using
+Newton's Second Law: F=ma.
+
+Every ball's acceleration is then used to update its velocity and position vectors
+for that time step. The simulation proceeds time step by time step.
+An adjustable amount of friction is also applied to gradually dampen
+the kinetic energy of the system.
+
 ![Elastika model](./images/elastika_model.svg)
 
 This diagram shows the structure of the Elastika physical model.
