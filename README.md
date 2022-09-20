@@ -126,7 +126,8 @@ There are three kinds of components in the Elastika physics model:
 This diagram shows the structure of the Elastika physical model.
 The magenta spheres around the perimeter are anchors.
 The teal spheres on the interior are mobile balls.
-The lines show the way anchors and balls are connected.
+The lines that connect anchors to balls, and balls to each other, are springs.
+
 The two anchors that are used for left and right inputs are indicated by surrounding squares.
 The input anchors are forced to move up and down, perpendicular to the plane
 of the diagram, in response to applied input voltages.
