@@ -127,10 +127,10 @@ This diagram shows the structure of the Elastika physical model.
 The magenta spheres around the perimeter are anchors.
 The teal spheres on the interior are mobile balls.
 The lines show the way anchors and balls are connected.
-There are squares around the two anchors that are used for left and right inputs.
+The two anchors that are used for left and right inputs are indicated by surrounding squares.
 The input anchors are forced to move up and down, perpendicular to the plane
 of the diagram, in response to applied input voltages.
-Similarly, there are circles around the two balls that are used as audio outputs.
+Similarly, circles indicate the two balls that are used as audio outputs.
 
 ### Controls
 
