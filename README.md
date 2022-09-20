@@ -1,4 +1,4 @@
-# Sapphire - a collection of free modules for VCV Rack 2
+# Sapphire: modules for VCV Rack 2
 
 ## Requirements
 The Sapphire family of modules requires VCV Rack 2.
@@ -91,3 +91,64 @@ By default, anti-click is disabled, which is usually a better choice
 when using a Moots control for plugging/unplugging control voltage (CV)
 signals. When anti-click is disabled, the cable is connected or
 disconnected instantly without any fading.
+
+---
+
+## Elastika
+
+Elastika is a stereo synthesis filter based on a physics simulation.
+There is a pair of left/right audio input jacks, and a pair of left/right
+audio output jacks.
+
+The model includes a network of balls and springs connected in a hexagonal
+grid pattern.
+
+### Physics model
+
+There are three kinds of components in the Elastika physics model:
+
+* Anchor: A point in space that stays locked in one location.
+  However, two of the anchors are used for injecting input audio into the model.
+  These anchors are moved back and forth in response to input voltages.
+* Ball: A mobile point mass. A ball has a positive finite mass,
+  a 3D position vector, and a 3D velocity vector. A special pair of
+  balls determines audio output. The stereo output is based on the physical
+  movement of these two output balls.
+* Spring: An elastic rod that connects one ball with another, or one anchor with one ball.
+  The springs have two parameters that control their behavior: stiffness and span.
+  The stiffness parameter adjusts how much force it takes per unit change in the length of
+  the spring. Span is the rest length at which the spring exerts zero net force.
+  The force is applied equally to both balls, in opposite directions, in accordance
+  with Newton's Third Law.
+
+![Elastika model](./images/elastika_model.svg)
+
+This diagram shows the structure of the Elastika physical model.
+The magenta spheres around the perimeter are anchors.
+The teal spheres on the interior are mobile balls.
+The lines show the way anchors and balls are connected.
+There are squares around the two anchors that are used for left and right inputs.
+The input anchors are forced to move up and down, perpendicular to the plane
+of the diagram, in response to applied input voltages.
+Similarly, there are circles around the two balls that are used as audio outputs.
+
+### Controls
+
+The following controls have sliders for manual control, along with
+attenuverters and control voltage (CV) inputs for automation.
+
+* FRIC: the friction force that slows down vibration in the simulation.
+  Low friction is similar to increased reverb.
+* STIF: adjusts the stiffness of the springs, which is the amount of
+  force per unit length of the spring when stretched or compressed away
+  from its rest length. Higher stiffness generally creates higher pitched sounds.
+* SPAN: adjusts the rest length of all the springs. It is possible for the span
+  to be shorter than the initial distance between the connected balls, which
+  results in a bell-like quality. Also, span can be made longer than the
+  initial ball distance, in which case the network tends to "explode"
+  and vibrate in a more chaotic manner as the surface becomes
+  loose and convex.
+* TONE: a mixture of how much the output audio is based on position
+  of the output balls, and how much is based on velocity.
+  Because velocity is the time derivative of position, the tone
+  control affects the bass/treble mix of the resulting stereo output.
