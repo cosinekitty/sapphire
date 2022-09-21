@@ -140,6 +140,7 @@ struct Elastika : Module
         STIFFNESS_ATTEN_PARAM,
         SPAN_ATTEN_PARAM,
         TONE_ATTEN_PARAM,
+        DRIVE_KNOB_PARAM,
         LEVEL_KNOB_PARAM,
         PARAMS_LEN
     };
@@ -189,6 +190,7 @@ struct Elastika : Module
         configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span CV", "%", 0, 100);
         configParam(TONE_ATTEN_PARAM, -1, 1, 0, "Tone control CV", "%", 0, 100);
 
+        configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20);
 
         configInput(FRICTION_CV_INPUT, "Friction");
@@ -263,14 +265,15 @@ struct Elastika : Module
         float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
         float mix = getControlValue(toneMap, TONE_SLIDER_PARAM, TONE_ATTEN_PARAM, TONE_CV_INPUT);
+        float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
 
         // Feed audio stimulus into the mesh.
-        leftInput.Inject(mesh, inputs[AUDIO_LEFT_INPUT].getVoltage());
-        rightInput.Inject(mesh, inputs[AUDIO_RIGHT_INPUT].getVoltage());
+        leftInput.Inject(mesh, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
+        rightInput.Inject(mesh, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
         mesh.Update(args.sampleTime, halfLife);
 
@@ -313,27 +316,28 @@ struct ElastikaWidget : ModuleWidget
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(49.82, 45.94)), module, Elastika::TONE_SLIDER_PARAM, Elastika::TONE_LIGHT));
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(10.95, 75.68)), module, Elastika::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(23.73, 75.68)), module, Elastika::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(37.04, 75.68)), module, Elastika::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(49.82, 75.68)), module, Elastika::TONE_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(10.95, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(23.73, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(37.04, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(49.82, 71.98)), module, Elastika::TONE_ATTEN_PARAM));
 
-        // Level knob
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.47, 108.94)), module, Elastika::LEVEL_KNOB_PARAM));
+        // Drive and Level knobs
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(13.98, 102.08)), module, Elastika::DRIVE_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.08)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // CV input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.73, 86.50)), module, Elastika::FRICTION_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(23.51, 86.50)), module, Elastika::STIFFNESS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(36.82, 86.50)), module, Elastika::SPAN_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(49.60, 86.50)), module, Elastika::TONE_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.73, 81.74)), module, Elastika::FRICTION_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(23.51, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(36.82, 81.74)), module, Elastika::SPAN_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(49.60, 81.74)), module, Elastika::TONE_CV_INPUT));
 
         // Audio input Jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.12, 108.94)), module, Elastika::AUDIO_LEFT_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(18.53, 108.94)), module, Elastika::AUDIO_RIGHT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.12, 113.17)), module, Elastika::AUDIO_LEFT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(18.53, 113.17)), module, Elastika::AUDIO_RIGHT_INPUT));
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(42.74, 108.94)), module, Elastika::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(52.15, 108.94)), module, Elastika::AUDIO_RIGHT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(42.74, 113.17)), module, Elastika::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(52.15, 113.17)), module, Elastika::AUDIO_RIGHT_OUTPUT));
     }
 };
 
