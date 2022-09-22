@@ -123,6 +123,7 @@ struct Elastika : Module
     SliderMapping stiffnessMap;
     SliderMapping spanMap;
     SliderMapping toneMap;
+    SliderMapping warpMap;
     MeshInput leftInput;
     MeshInput rightInput;
     MeshOutput leftOutput;
@@ -136,10 +137,12 @@ struct Elastika : Module
         STIFFNESS_SLIDER_PARAM,
         SPAN_SLIDER_PARAM,
         TONE_SLIDER_PARAM,
+        WARP_SLIDER_PARAM,
         FRICTION_ATTEN_PARAM,
         STIFFNESS_ATTEN_PARAM,
         SPAN_ATTEN_PARAM,
         TONE_ATTEN_PARAM,
+        WARP_ATTEN_PARAM,
         DRIVE_KNOB_PARAM,
         LEVEL_KNOB_PARAM,
         PARAMS_LEN
@@ -151,6 +154,7 @@ struct Elastika : Module
         STIFFNESS_CV_INPUT,
         SPAN_CV_INPUT,
         TONE_CV_INPUT,
+        WARP_CV_INPUT,
         AUDIO_LEFT_INPUT,
         AUDIO_RIGHT_INPUT,
         INPUTS_LEN
@@ -184,11 +188,13 @@ struct Elastika : Module
         configParam(STIFFNESS_SLIDER_PARAM, 0, 1, 0.5, "Stiffness");
         configParam(SPAN_SLIDER_PARAM, 0, 1, 0.5, "Spring span");
         configParam(TONE_SLIDER_PARAM, 0, 1, 0.5, "Tone control");
+        configParam(WARP_SLIDER_PARAM, 0, 1, 0.5, "Warp control");
 
         configParam(FRICTION_ATTEN_PARAM, -1, 1, 0, "Friction CV", "%", 0, 100);
         configParam(STIFFNESS_ATTEN_PARAM, -1, 1, 0, "Stiffness CV", "%", 0, 100);
         configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span CV", "%", 0, 100);
         configParam(TONE_ATTEN_PARAM, -1, 1, 0, "Tone control CV", "%", 0, 100);
+        configParam(WARP_ATTEN_PARAM, -1, 1, 0, "Warp control CV", "%", 0, 100);
 
         configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20);
@@ -197,6 +203,7 @@ struct Elastika : Module
         configInput(STIFFNESS_CV_INPUT, "Stiffness");
         configInput(SPAN_CV_INPUT, "Spring span");
         configInput(TONE_CV_INPUT, "Tone control");
+        configInput(WARP_CV_INPUT, "Warp control");
 
         configInput(AUDIO_LEFT_INPUT, "Left audio");
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
@@ -218,6 +225,7 @@ struct Elastika : Module
         stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
         spanMap = SliderMapping(SliderScale::Exponential, {-4.14f, 1.3f});
         toneMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
+        warpMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
         MeshAudioParameters mp = CreateHex(mesh);
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
@@ -310,26 +318,29 @@ struct ElastikaWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
         // Sliders
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(10.95, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(23.73, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(37.04, 45.94)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(49.82, 45.94)), module, Elastika::TONE_SLIDER_PARAM, Elastika::TONE_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.25, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(18.37, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(29.57, 45.94)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(40.99, 45.94)), module, Elastika::TONE_SLIDER_PARAM, Elastika::TONE_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.85, 45.94)), module, Elastika::WARP_SLIDER_PARAM, Elastika::TONE_LIGHT));
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(10.95, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(23.73, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(37.04, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(49.82, 71.98)), module, Elastika::TONE_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.25, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(18.37, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(29.57, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(40.99, 71.98)), module, Elastika::TONE_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.85, 71.98)), module, Elastika::WARP_ATTEN_PARAM));
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(13.98, 102.08)), module, Elastika::DRIVE_KNOB_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.08)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // CV input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.73, 81.74)), module, Elastika::FRICTION_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(23.51, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(36.82, 81.74)), module, Elastika::SPAN_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(49.60, 81.74)), module, Elastika::TONE_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.25, 81.74)), module, Elastika::FRICTION_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(18.37, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(29.57, 81.74)), module, Elastika::SPAN_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(40.99, 81.74)), module, Elastika::TONE_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.85, 81.74)), module, Elastika::WARP_CV_INPUT));
 
         // Audio input Jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.12, 113.17)), module, Elastika::AUDIO_LEFT_INPUT));
