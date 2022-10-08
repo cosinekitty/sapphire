@@ -161,10 +161,14 @@ namespace Sapphire
         int rightInputBallIndex;
         int leftOutputBallIndex;
         int rightOutputBallIndex;
-        PhysicsVector leftStimulus;
-        PhysicsVector rightStimulus;
-        PhysicsVector leftResponse;
-        PhysicsVector rightResponse;
+        PhysicsVector leftStimulus1;
+        PhysicsVector leftStimulus2;
+        PhysicsVector rightStimulus1;
+        PhysicsVector rightStimulus2;
+        PhysicsVector leftResponse1;
+        PhysicsVector leftResponse2;
+        PhysicsVector rightResponse1;
+        PhysicsVector rightResponse2;
     };
 
     // GridMap is a read-write 2D array whose indices can be positive or negative.

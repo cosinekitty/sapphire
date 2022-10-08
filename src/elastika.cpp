@@ -56,22 +56,19 @@ private:
     bool firstTime = true;
     int ballIndex = -1;
     Sapphire::PhysicsVector origin;
-    Sapphire::PhysicsVector direction;
 
 public:
     MeshInput()
         : origin(0.0f)
-        , direction(0.0f)
         {}
 
-    MeshInput(int _ballIndex, Sapphire::PhysicsVector _direction)
+    MeshInput(int _ballIndex)
         : ballIndex(_ballIndex)
         , origin(0.0f)
-        , direction(_direction)
         {}
 
     // Inject audio into the mesh
-    void Inject(Sapphire::PhysicsMesh& mesh, float sample)
+    void Inject(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction, float sample)
     {
         using namespace Sapphire;
 
@@ -89,29 +86,33 @@ public:
 class MeshOutput
 {
 private:
+    bool firstTime = true;
     int ballIndex;
-    Sapphire::PhysicsVector rdir;   // direction and scale for position component
-    Sapphire::PhysicsVector vdir;   // direction and scale for velocity component
+    Sapphire::PhysicsVector origin;
 
 public:
     MeshOutput()
         : ballIndex(-1)
+        , origin(0.0f)
         {}
 
-    MeshOutput(int _ballIndex, Sapphire::PhysicsVector _rdir, Sapphire::PhysicsVector _vdir)
+    MeshOutput(int _ballIndex)
         : ballIndex(_ballIndex)
-        , rdir(_rdir)
-        , vdir(_vdir)
+        , origin(0.0f)
         {}
 
     // Extract audio from the mesh
-    void Extract(Sapphire::PhysicsMesh& mesh, float& rsample, float &vsample) const
+    float Extract(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
     {
         using namespace Sapphire;
 
         Ball& ball = mesh.GetBallAt(ballIndex);
-        rsample = Dot(ball.pos, rdir);
-        vsample = Dot(ball.vel, vdir);
+        if (firstTime)
+        {
+            firstTime = false;
+            origin = ball.pos;
+        }
+        return Dot(ball.pos - origin, direction);
     }
 };
 
@@ -130,6 +131,14 @@ struct Elastika : Module
     MeshOutput rightOutput;
     Sapphire::HighPassFilter leftFilter;
     Sapphire::HighPassFilter rightFilter;
+    Sapphire::PhysicsVector leftInputDir1;
+    Sapphire::PhysicsVector leftInputDir2;
+    Sapphire::PhysicsVector rightInputDir1;
+    Sapphire::PhysicsVector rightInputDir2;
+    Sapphire::PhysicsVector leftOutputDir1;
+    Sapphire::PhysicsVector leftOutputDir2;
+    Sapphire::PhysicsVector rightOutputDir1;
+    Sapphire::PhysicsVector rightOutputDir2;
 
     enum ParamId
     {
@@ -231,14 +240,20 @@ struct Elastika : Module
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
-        leftInput  = MeshInput(mp.leftInputBallIndex,  mp.leftStimulus);
-        rightInput = MeshInput(mp.rightInputBallIndex, mp.rightStimulus);
+        leftInput  = MeshInput(mp.leftInputBallIndex);
+        rightInput = MeshInput(mp.rightInputBallIndex);
+        leftInputDir1 = mp.leftStimulus1;
+        leftInputDir2 = mp.leftStimulus2;
+        rightInputDir1 = mp.rightStimulus1;
+        rightInputDir2 = mp.rightStimulus2;
 
         // Define how to extract stereo outputs from the mesh.
-        float pos_factor = 5.0e+3;
-        float vel_factor = 1.0e+0;
-        leftOutput  = MeshOutput(mp.leftOutputBallIndex,  pos_factor * mp.leftResponse,  vel_factor * mp.leftResponse);
-        rightOutput = MeshOutput(mp.rightOutputBallIndex, pos_factor * mp.rightResponse, vel_factor * mp.rightResponse);
+        leftOutput  = MeshOutput(mp.leftOutputBallIndex);
+        rightOutput = MeshOutput(mp.rightOutputBallIndex);
+        leftOutputDir1 = mp.leftResponse1;
+        leftOutputDir2 = mp.leftResponse2;
+        rightOutputDir1 = mp.rightResponse1;
+        rightOutputDir2 = mp.rightResponse2;
 
         leftFilter.Reset();
         rightFilter.Reset();
@@ -272,7 +287,7 @@ struct Elastika : Module
         float halfLife = getControlValue(frictionMap, FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
         float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
-        float mix = getControlValue(toneMap, TONE_SLIDER_PARAM, TONE_ATTEN_PARAM, TONE_CV_INPUT);
+        float dir = getControlValue(toneMap, TONE_SLIDER_PARAM, TONE_ATTEN_PARAM, TONE_CV_INPUT);
         float warp = getControlValue(warpMap, WARP_SLIDER_PARAM, WARP_ATTEN_PARAM, WARP_CV_INPUT);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
@@ -286,31 +301,33 @@ struct Elastika : Module
             mesh.SetMagneticField((0.5 - warp) * PhysicsVector(0, 0, 0.01, 0));
 
         // Feed audio stimulus into the mesh.
-        leftInput.Inject(mesh, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
-        rightInput.Inject(mesh, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
+        PhysicsVector leftInputDir  = (1.0-dir)*leftInputDir1 + dir*leftInputDir2;
+        PhysicsVector rightInputDir = (1.0-dir)*rightInputDir1 + dir*rightInputDir2;
+        leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
+        rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
         mesh.Update(args.sampleTime, halfLife);
 
-        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftFilter,  args.sampleRate, mix, gain);
-        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightFilter, args.sampleRate, mix, gain);
+        PhysicsVector leftOutputDir  = (1.0-dir)*leftOutputDir1 + dir*leftOutputDir2;
+        PhysicsVector rightOutputDir = (1.0-dir)*rightOutputDir1 + dir*rightOutputDir2;
+        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftOutputDir, leftFilter,  args.sampleRate, gain);
+        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightOutputDir, rightFilter, args.sampleRate, gain);
     }
 
     void extractAudioChannel(
         rack::engine::Output& outp,
         MeshOutput& connect,
+        const Sapphire::PhysicsVector& direction,
         Sapphire::HighPassFilter& filter,
         float sampleRate,
-        float mix,
         float gain)
     {
         using namespace Sapphire;
 
         if (outp.isConnected())
         {
-            float rsample, vsample;
-            connect.Extract(mesh, rsample, vsample);
-            float raw = (1.0 - mix)*rsample + mix*vsample;
-            outp.setVoltage(gain * filter.Update(raw, sampleRate));
+            float sample = connect.Extract(mesh, direction);
+            outp.setVoltage(gain * filter.Update(sample, sampleRate));
         }
     }
 };
