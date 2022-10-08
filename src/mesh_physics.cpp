@@ -13,6 +13,7 @@ namespace Sapphire
         nextBallList.clear();
         forceList.clear();
         gravity = PhysicsVector::zero();
+        magnet = PhysicsVector::zero();
         stiffness  = MESH_DEFAULT_STIFFNESS;
         restLength = MESH_DEFAULT_REST_LENGTH;
         speedLimit = MESH_DEFAULT_SPEED_LIMIT;
@@ -99,10 +100,16 @@ namespace Sapphire
             }
 
             if (b1.IsMobile())
+            {
                 forceList[spring.ballIndex1] += force;
+                forceList[spring.ballIndex1] += Cross(b1.vel, magnet);
+            }
 
             if (b2.IsMobile())
+            {
                 forceList[spring.ballIndex2] -= force;
+                forceList[spring.ballIndex2] += Cross(b2.vel, magnet);
+            }
         }
     }
 

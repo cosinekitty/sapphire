@@ -21,6 +21,16 @@ namespace Sapphire
         return c.s[0] + c.s[1] + c.s[2] + c.s[3];
     }
 
+    inline PhysicsVector Cross(const PhysicsVector &a, const PhysicsVector &b)
+    {
+        return PhysicsVector(
+            a[1]*b[2] - a[2]*b[1],
+            a[2]*b[0] - a[0]*b[2],
+            a[0]*b[1] - a[1]*b[0],
+            0.0f
+        );
+    }
+
     inline float Magnitude(const PhysicsVector &a)
     {
         return sqrt(Dot(a, a));
@@ -76,7 +86,7 @@ namespace Sapphire
 
     const float MESH_DEFAULT_STIFFNESS = 10.0;
     const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
-    const float MESH_DEFAULT_SPEED_LIMIT = 50.0;
+    const float MESH_DEFAULT_SPEED_LIMIT = 10.0;
 
     class PhysicsMesh
     {
@@ -86,6 +96,7 @@ namespace Sapphire
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
         PhysicsVector gravity;
+        PhysicsVector magnet;
         float stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
@@ -98,12 +109,13 @@ namespace Sapphire
         void SetRestLength(float _restLength);
         float GetSpeedLimit() const { return speedLimit; }
         void SetSpeedLimit(float _speedLimit) { speedLimit = _speedLimit; }
+        void SetMagneticField(PhysicsVector _magnet) { magnet = _magnet; }
         PhysicsVector GetGravity() const { return gravity; }
         void SetGravity(PhysicsVector _gravity) { gravity = _gravity; }
         int Add(Ball);      // returns ball index, for linking with springs
         bool Add(Spring);   // returns false if either ball index is bad, true if spring added
         const SpringList& GetSprings() const { return springList; }
-        const BallList& GetBalls() const { return currBallList; }
+        BallList& GetBalls() { return currBallList; }
         void Update(float dt, float halflife);
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         int NumSprings() const { return static_cast<int>(springList.size()); }

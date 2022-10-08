@@ -273,11 +273,17 @@ struct Elastika : Module
         float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
         float mix = getControlValue(toneMap, TONE_SLIDER_PARAM, TONE_ATTEN_PARAM, TONE_CV_INPUT);
+        float warp = getControlValue(warpMap, WARP_SLIDER_PARAM, WARP_ATTEN_PARAM, WARP_CV_INPUT);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
+
+        if (warp >= 0.5)
+            mesh.SetMagneticField((warp - 0.5) * PhysicsVector(0.01, 0, 0, 0));
+        else
+            mesh.SetMagneticField((0.5 - warp) * PhysicsVector(0, 0, 0.01, 0));
 
         // Feed audio stimulus into the mesh.
         leftInput.Inject(mesh, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
