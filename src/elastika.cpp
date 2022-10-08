@@ -278,6 +278,19 @@ struct Elastika : Module
         return value;
     }
 
+    static Sapphire::PhysicsVector Interpolate(
+        float slider,
+        const Sapphire::PhysicsVector &a,
+        const Sapphire::PhysicsVector &b)
+    {
+        using namespace Sapphire;
+
+        PhysicsVector c = (1.0-slider)*a + slider*b;
+
+        // Normalize the length to the match the first vector `a`.
+        return sqrt(Dot(a,a) / Dot(c,c)) * c;
+    }
+
     void process(const ProcessArgs& args) override
     {
         using namespace Sapphire;
@@ -301,34 +314,23 @@ struct Elastika : Module
             mesh.SetMagneticField((0.5 - warp) * PhysicsVector(0, 0, 0.01, 0));
 
         // Feed audio stimulus into the mesh.
-        PhysicsVector leftInputDir  = (1.0-dir)*leftInputDir1 + dir*leftInputDir2;
-        PhysicsVector rightInputDir = (1.0-dir)*rightInputDir1 + dir*rightInputDir2;
+        PhysicsVector leftInputDir  = Interpolate(dir, leftInputDir1, leftInputDir2);
+        PhysicsVector rightInputDir = Interpolate(dir, rightInputDir1, rightInputDir2);
         leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
         rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
+        // Update the simulation state by one sample's worth of time.
         mesh.Update(args.sampleTime, halfLife);
 
-        PhysicsVector leftOutputDir  = (1.0-dir)*leftOutputDir1 + dir*leftOutputDir2;
-        PhysicsVector rightOutputDir = (1.0-dir)*rightOutputDir1 + dir*rightOutputDir2;
-        extractAudioChannel(outputs[AUDIO_LEFT_OUTPUT],  leftOutput,  leftOutputDir, leftFilter,  args.sampleRate, gain);
-        extractAudioChannel(outputs[AUDIO_RIGHT_OUTPUT], rightOutput, rightOutputDir, rightFilter, args.sampleRate, gain);
-    }
+        // Extract output for the left channel.
+        PhysicsVector leftOutputDir  = Interpolate(dir, leftOutputDir1, leftOutputDir2);
+        float lsample = leftOutput.Extract(mesh, leftOutputDir);
+        outputs[AUDIO_LEFT_OUTPUT].setVoltage(gain * leftFilter.Update(lsample, args.sampleRate));
 
-    void extractAudioChannel(
-        rack::engine::Output& outp,
-        MeshOutput& connect,
-        const Sapphire::PhysicsVector& direction,
-        Sapphire::HighPassFilter& filter,
-        float sampleRate,
-        float gain)
-    {
-        using namespace Sapphire;
-
-        if (outp.isConnected())
-        {
-            float sample = connect.Extract(mesh, direction);
-            outp.setVoltage(gain * filter.Update(sample, sampleRate));
-        }
+        // Extract output for the right channel.
+        PhysicsVector rightOutputDir  = Interpolate(dir, rightOutputDir1, rightOutputDir2);
+        float rsample = rightOutput.Extract(mesh, rightOutputDir);
+        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(gain * rightFilter.Update(rsample, args.sampleRate));
     }
 };
 
