@@ -246,10 +246,10 @@ namespace Sapphire
         mp.rightStimulus2 = (spacing / peakVoltage) * PhysicsVector(-0.7f, +0.7f, 0.0f, 0);
 
         const float pos_factor = 5.0e+3;
-        mp.leftResponse1  = pos_factor * PhysicsVector(0,  0.0f, 5.0f, 0);
-        mp.leftResponse2  = pos_factor * PhysicsVector(0, -5.0f, 0.0f, 0);
-        mp.rightResponse1 = pos_factor * PhysicsVector(0,  0.0f, 5.0f, 0);
-        mp.rightResponse2 = pos_factor * PhysicsVector(0, +5.0f, 0.0f, 0);
+        mp.leftResponse1  = pos_factor * PhysicsVector(0,  0, +5,  0);
+        mp.leftResponse2  = pos_factor * PhysicsVector(0, -5,  0,  0);
+        mp.rightResponse1 = pos_factor * PhysicsVector(0,  0, +5,  0);
+        mp.rightResponse2 = pos_factor * PhysicsVector(0, +5,  0,  0);
 
         assert(mesh.GetBallAt(mp.leftInputBallIndex).IsAnchor());
         assert(mesh.GetBallAt(mp.rightInputBallIndex).IsAnchor());
