@@ -154,6 +154,7 @@ struct Elastika : Module
         TILT_ATTEN_PARAM,
         DRIVE_KNOB_PARAM,
         LEVEL_KNOB_PARAM,
+        LIMIT_KNOB_PARAM,
         PARAMS_LEN
     };
 
@@ -208,6 +209,7 @@ struct Elastika : Module
 
         configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20);
+        configParam(LIMIT_KNOB_PARAM, 0, 1, 0.5f, "Speed limit", "", 0, 1);
 
         configInput(FRICTION_CV_INPUT, "Friction CV");
         configInput(STIFFNESS_CV_INPUT, "Stiffness CV");
@@ -305,9 +307,11 @@ struct Elastika : Module
         float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
+        float limit = params[LIMIT_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
+        mesh.SetSpeedLimit(limit * MESH_DEFAULT_SPEED_LIMIT);
 
         if (curl >= 0.5)
             mesh.SetMagneticField((curl - 0.5) * PhysicsVector(0.01, 0, 0, 0));
@@ -360,6 +364,7 @@ struct ElastikaWidget : ModuleWidget
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(13.98, 102.08)), module, Elastika::DRIVE_KNOB_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.08)), module, Elastika::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.48, 20.00)), module, Elastika::LIMIT_KNOB_PARAM));
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
