@@ -198,7 +198,7 @@ struct Elastika : Module
         configParam(FRICTION_SLIDER_PARAM, 0, 1, 0.5, "Friction");
         configParam(STIFFNESS_SLIDER_PARAM, 0, 1, 0.5, "Stiffness");
         configParam(SPAN_SLIDER_PARAM, 0, 1, 0.5, "Spring span");
-        configParam(CURL_SLIDER_PARAM, 0, 1, 0.5, "Magnetic field");
+        configParam(CURL_SLIDER_PARAM, -1, +1, 0, "Magnetic field");
         configParam(TILT_SLIDER_PARAM, 0, 1, 0.5, "Tilt angle");
 
         configParam(FRICTION_ATTEN_PARAM, -1, 1, 0, "Friction", "%", 0, 100);
@@ -268,7 +268,13 @@ struct Elastika : Module
         resetState();
     }
 
-    float getControlValue(const SliderMapping& map, ParamId sliderId, ParamId attenuId, InputId cvInputId)
+    float getControlValue(
+        const SliderMapping& map,
+        ParamId sliderId,
+        ParamId attenuId,
+        InputId cvInputId,
+        float minValue = 0.0f,
+        float maxValue = 1.0f)
     {
         float slider = params[sliderId].getValue();
         if (inputs[cvInputId].isConnected())
@@ -277,7 +283,7 @@ struct Elastika : Module
             float cv = inputs[cvInputId].getVoltage();
             slider += attenu * (cv / 10.0f);
         }
-        float value = map.Evaluate(clamp(slider));
+        float value = map.Evaluate(clamp(slider, minValue, maxValue));
         return value;
     }
 
@@ -303,7 +309,7 @@ struct Elastika : Module
         float halfLife = getControlValue(frictionMap, FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
         float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
-        float curl = getControlValue(curlMap, CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT);
+        float curl = getControlValue(curlMap, CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
         float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
@@ -313,10 +319,10 @@ struct Elastika : Module
         mesh.SetStiffness(stiffness);
         mesh.SetSpeedLimit(limit * MESH_DEFAULT_SPEED_LIMIT);
 
-        if (curl >= 0.5)
-            mesh.SetMagneticField((curl - 0.5) * PhysicsVector(0.01, 0, 0, 0));
+        if (curl >= 0.0f)
+            mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
         else
-            mesh.SetMagneticField((0.5 - curl) * PhysicsVector(0, 0, 0.01, 0));
+            mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
 
         // Feed audio stimulus into the mesh.
         PhysicsVector leftInputDir  = Interpolate(tilt, leftInputDir1, leftInputDir2);
@@ -348,22 +354,22 @@ struct ElastikaWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
         // Sliders
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 45.94)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 45.94)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 45.94)), module, Elastika::TILT_SLIDER_PARAM, Elastika::TILT_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 46.00)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 46.00)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 46.00)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 46.00)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, Elastika::TILT_SLIDER_PARAM, Elastika::TILT_LIGHT));
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 71.98)), module, Elastika::CURL_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 71.98)), module, Elastika::TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, Elastika::FRICTION_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 72.00)), module, Elastika::STIFFNESS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, Elastika::SPAN_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, Elastika::CURL_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, Elastika::TILT_ATTEN_PARAM));
 
         // Drive and Level knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(13.98, 102.08)), module, Elastika::DRIVE_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.08)), module, Elastika::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, Elastika::DRIVE_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.48, 20.00)), module, Elastika::LIMIT_KNOB_PARAM));
 
         // CV input jacks
