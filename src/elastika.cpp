@@ -344,29 +344,29 @@ struct ElastikaWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
         // Sliders
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.25, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(18.37, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(29.57, 45.94)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(40.99, 45.94)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.85, 45.94)), module, Elastika::TILT_SLIDER_PARAM, Elastika::TILT_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 45.94)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 45.94)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 45.94)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 45.94)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 45.94)), module, Elastika::TILT_SLIDER_PARAM, Elastika::TILT_LIGHT));
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.25, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(18.37, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(29.57, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(40.99, 71.98)), module, Elastika::CURL_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.85, 71.98)), module, Elastika::TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 71.98)), module, Elastika::FRICTION_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 71.98)), module, Elastika::STIFFNESS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 71.98)), module, Elastika::SPAN_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 71.98)), module, Elastika::CURL_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 71.98)), module, Elastika::TILT_ATTEN_PARAM));
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(13.98, 102.08)), module, Elastika::DRIVE_KNOB_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.08)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // CV input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.25, 81.74)), module, Elastika::FRICTION_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(18.37, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(29.57, 81.74)), module, Elastika::SPAN_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(40.99, 81.74)), module, Elastika::CURL_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.85, 81.74)), module, Elastika::TILT_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(19.24, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, Elastika::SPAN_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, Elastika::CURL_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::TILT_CV_INPUT));
 
         // Audio input Jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.12, 113.17)), module, Elastika::AUDIO_LEFT_INPUT));
