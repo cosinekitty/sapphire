@@ -7,17 +7,23 @@
 #
 import sys
 
-
-def Extract(text:str, frontText:str, backText:str) -> str:
-    frontIndex = text.find(frontText)
+def Locate(text:str, frontText:str, backText:str, searchIndex:int = 0) -> str:
+    frontIndex = text.find(frontText, searchIndex)
     if frontIndex < 0:
         return None
     frontIndex += len(frontText)
     backIndex = text.find(backText, frontIndex)
     if backIndex < 0:
         return None
-    return text[frontIndex:backIndex]
+    return (frontIndex, backIndex)
 
+
+def Extract(text:str, frontText:str, backText:str) -> str:
+    loc = Locate(text, frontText, backText)
+    if loc is None:
+        return None
+    frontIndex, backIndex = loc
+    return text[frontIndex:backIndex]
 
 class Shape:
     def __init__(self, frontIndex: int, backIndex: int, text: str):
@@ -29,6 +35,7 @@ class Shape:
     def __repr__(self):
         return 'Shape({}, {}, "{}")'.format(self.frontIndex, self.backIndex, self.name)
 
+
 def GetShapeList(svg):
     # Find all <path ... /> elements.
     # We don't need a general XML parser, just hack to work with this particular SVG file.
@@ -36,16 +43,12 @@ def GetShapeList(svg):
     backText = '/>'
     searchIndex = 0
     shapeList = []
-    backIndex = 0
-    while (frontIndex := svg.find(frontText, searchIndex)) >= 0:
-        if (backIndex := svg.find(backText, searchIndex+len(frontText))) < 0:
-            searchIndex = frontIndex + len(frontText)
-        else:
-            backIndex += len(backText)
-            shape = Shape(frontIndex, backIndex, svg[frontIndex:backIndex])
-            if shape.name:
-                shapeList.append(shape)
-            searchIndex = backIndex + len(backText)
+    while (loc := Locate(svg, frontText, backText, searchIndex)) is not None:
+        frontIndex, backIndex = loc
+        searchIndex = backIndex + len(backText)
+        shape = Shape(frontIndex, backIndex, svg[frontIndex:searchIndex])
+        if shape.name:
+            shapeList.append(shape)
     return shapeList
 
 
