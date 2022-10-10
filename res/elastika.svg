@@ -29,13 +29,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="3.3603112"
-     inkscape:cx="113.67995"
-     inkscape:cy="399.07018"
-     inkscape:window-width="1447"
-     inkscape:window-height="1053"
-     inkscape:window-x="275"
-     inkscape:window-y="27"
+     inkscape:zoom="1.6801556"
+     inkscape:cx="107.72812"
+     inkscape:cy="237.7756"
+     inkscape:window-width="1300"
+     inkscape:window-height="984"
+     inkscape:window-x="575"
+     inkscape:window-y="41"
      inkscape:window-maximized="0"
      inkscape:current-layer="PanelLayer"
      inkscape:lockguides="false" />
@@ -73,6 +73,36 @@
        y="0.2"
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
+    <path
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       d="M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+       id="boundary_fric"
+       inkscape:label="boundary_fric"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       d="M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+       id="boundary_stif"
+       inkscape:label="boundary_stif"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       d="M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+       id="boundary_span"
+       inkscape:label="boundary_span"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       d="M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+       id="boundary_curl"
+       inkscape:label="boundary_curl"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       d="M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+       id="boundary_tilt"
+       inkscape:label="boundary_tilt"
+       sodipodi:nodetypes="ccccccccc" />
     <g
        aria-label="sapphire"
        id="brand_text"
