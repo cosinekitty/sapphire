@@ -395,12 +395,12 @@ struct ElastikaWidget : ModuleWidget
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::TILT_CV_INPUT));
 
         // Audio input Jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.12, 113.17)), module, Elastika::AUDIO_LEFT_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(18.53, 113.17)), module, Elastika::AUDIO_RIGHT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, Elastika::AUDIO_LEFT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(20.50, 115.00)), module, Elastika::AUDIO_RIGHT_INPUT));
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(42.74, 113.17)), module, Elastika::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(52.15, 113.17)), module, Elastika::AUDIO_RIGHT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(41.50, 115.00)), module, Elastika::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(54.50, 115.00)), module, Elastika::AUDIO_RIGHT_OUTPUT));
     }
 };
 
