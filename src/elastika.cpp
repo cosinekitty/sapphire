@@ -207,9 +207,8 @@ struct Elastika : Module
         configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field", "%", 0, 100);
         configParam(TILT_ATTEN_PARAM, -1, 1, 0, "Tilt angle", "%", 0, 100);
 
-        const float initLevel = pow(10.0, (-12.0 / 20.0));        // -12 dB is approximately 0.25
-        configParam(DRIVE_KNOB_PARAM, 0, 2, initLevel, "Input drive", " dB", -10, 20);
-        configParam(LEVEL_KNOB_PARAM, 0, 2, initLevel, "Output level", " dB", -10, 20);
+        configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20);
+        configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20);
         configParam(LIMIT_KNOB_PARAM, 0, 1, 0.5f, "Speed limit", "", 0, 1);
 
         configInput(FRICTION_CV_INPUT, "Friction CV");
