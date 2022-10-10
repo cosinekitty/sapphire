@@ -13,10 +13,19 @@ class Shape:
         self.frontIndex = frontIndex
         self.backIndex = backIndex
         self.text = text
+        frontText = 'id="boundary_'
+        backText = '"'
+        if (frontIndex := self.text.find(frontText)) < 0:
+            self.name = None
+        else:
+            frontIndex += len(frontText)
+            if (backIndex := self.text.find(backText, frontIndex)) < 0:
+                self.name = None
+            else:
+                self.name = self.text[frontIndex:backIndex]
 
     def __repr__(self):
-        return 'Shape({}, {})'.format(self.frontIndex, self.backIndex)
-
+        return 'Shape({}, {}, "{}")'.format(self.frontIndex, self.backIndex, self.name)
 
 def GetShapeList(svg):
     # Find all <path ... /> elements.
@@ -31,9 +40,9 @@ def GetShapeList(svg):
             searchIndex = frontIndex + len(frontText)
         else:
             backIndex += len(backText)
-            elem = svg[frontIndex:backIndex]
-            if 'id="boundary_' in elem:
-                shapeList.append(Shape(frontIndex, backIndex, elem))
+            shape = Shape(frontIndex, backIndex, svg[frontIndex:backIndex])
+            if shape.name:
+                shapeList.append(shape)
             searchIndex = backIndex + len(backText)
     return shapeList
 
