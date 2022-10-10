@@ -245,7 +245,7 @@ namespace Sapphire
         mp.rightStimulus1 = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
         mp.rightStimulus2 = (spacing / peakVoltage) * PhysicsVector(-0.7f, +0.7f, 0.0f, 0);
 
-        const float pos_factor = 1.0e+5;
+        const float pos_factor = 4.0e+4;
         mp.leftResponse1  = pos_factor * PhysicsVector(0,  0, +1,  0);
         mp.leftResponse2  = pos_factor * PhysicsVector(0, -1,  0,  0);
         mp.rightResponse1 = pos_factor * PhysicsVector(0,  0, +1,  0);

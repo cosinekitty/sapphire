@@ -233,9 +233,9 @@ struct Elastika : Module
         // Set the defaults for how to interpret the slider values.
         // Determined experimentally to produce useful ranges.
 
-        frictionMap = SliderMapping(SliderScale::Exponential, {1.7f, -5.0f});
+        frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
         stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
-        spanMap = SliderMapping(SliderScale::Exponential, {-4.14f, 1.3f});
+        spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
         curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
         tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
