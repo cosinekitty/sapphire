@@ -183,26 +183,25 @@ namespace Sapphire
     }
 
 
-    HighPassFilter::HighPassFilter(float cutoffFrequencyHz)
+    LoHiPassFilter::LoHiPassFilter(float cutoffFrequencyHz)
         : first(true)
         , xprev(0.0)
         , yprev(0.0)
         , fc(cutoffFrequencyHz)
         {}
 
-    float HighPassFilter::Update(float x, float sampleRateHz)
+    void LoHiPassFilter::Update(float x, float sampleRateHz)
     {
         if (first)
         {
             first = false;
-            xprev = x;
             yprev = x;
-            return 0.0;
         }
-        float c = sampleRateHz / (M_PI * fc);
-        float y = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
+        else
+        {
+            float c = sampleRateHz / (M_PI * fc);
+            yprev = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
+        }
         xprev = x;
-        yprev = y;
-        return x - y;
     }
 }

@@ -140,7 +140,7 @@ namespace Sapphire
     };
 
 
-    class HighPassFilter
+    class LoHiPassFilter
     {
     private:
         bool first;
@@ -148,11 +148,14 @@ namespace Sapphire
         float yprev;
         float fc;
 
+
     public:
-        HighPassFilter(float cutoffFrequencyHz);
+        LoHiPassFilter(float cutoffFrequencyHz);
         void Reset() { first = true; }
         void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
-        float Update(float x, float sampleRateHz);
+        void Update(float x, float sampleRateHz);
+        float HiPass() const { return xprev - yprev; }
+        float LoPass() const { return yprev; };
     };
 
     struct MeshAudioParameters
