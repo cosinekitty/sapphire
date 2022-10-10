@@ -182,14 +182,6 @@ namespace Sapphire
             target[i] = source[i];
     }
 
-
-    LoHiPassFilter::LoHiPassFilter(float cutoffFrequencyHz)
-        : first(true)
-        , xprev(0.0)
-        , yprev(0.0)
-        , fc(cutoffFrequencyHz)
-        {}
-
     void LoHiPassFilter::Update(float x, float sampleRateHz)
     {
         if (first)
