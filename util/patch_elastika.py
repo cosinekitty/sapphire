@@ -8,21 +8,23 @@
 import sys
 
 
+def Extract(text:str, frontText:str, backText:str) -> str:
+    frontIndex = text.find(frontText)
+    if frontIndex < 0:
+        return None
+    frontIndex += len(frontText)
+    backIndex = text.find(backText, frontIndex)
+    if backIndex < 0:
+        return None
+    return text[frontIndex:backIndex]
+
+
 class Shape:
     def __init__(self, frontIndex: int, backIndex: int, text: str):
         self.frontIndex = frontIndex
         self.backIndex = backIndex
         self.text = text
-        frontText = 'id="boundary_'
-        backText = '"'
-        if (frontIndex := self.text.find(frontText)) < 0:
-            self.name = None
-        else:
-            frontIndex += len(frontText)
-            if (backIndex := self.text.find(backText, frontIndex)) < 0:
-                self.name = None
-            else:
-                self.name = self.text[frontIndex:backIndex]
+        self.name = Extract(text, 'id="boundary_', '"')
 
     def __repr__(self):
         return 'Shape({}, {}, "{}")'.format(self.frontIndex, self.backIndex, self.name)
