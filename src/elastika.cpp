@@ -207,8 +207,8 @@ struct Elastika : Module
         configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field", "%", 0, 100);
         configParam(TILT_ATTEN_PARAM, -1, 1, 0, "Tilt angle", "%", 0, 100);
 
-        configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20);
-        configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20);
+        configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
+        configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
         configParam(LIMIT_KNOB_PARAM, 0, 1, 0.5f, "Speed limit", "", 0, 1);
 
         configInput(FRICTION_CV_INPUT, "Friction CV");
@@ -311,8 +311,8 @@ struct Elastika : Module
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
         float curl = getControlValue(curlMap, CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
         float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
-        float drive = params[DRIVE_KNOB_PARAM].getValue();
-        float gain = params[LEVEL_KNOB_PARAM].getValue();
+        float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
+        float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
         float limit = params[LIMIT_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
