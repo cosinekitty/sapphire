@@ -30,13 +30,13 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.6801556"
-     inkscape:cx="-35.115795"
-     inkscape:cy="134.51135"
-     inkscape:window-width="1920"
-     inkscape:window-height="1029"
-     inkscape:window-x="0"
+     inkscape:cx="140.46318"
+     inkscape:cy="278.84322"
+     inkscape:window-width="1216"
+     inkscape:window-height="1040"
+     inkscape:window-x="699"
      inkscape:window-y="27"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:current-layer="PanelLayer"
      inkscape:lockguides="false" />
   <defs
@@ -153,13 +153,13 @@
        y2="90.0"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#29aab4;stop-opacity:1;"
+         style="stop-color:#b9818b;stop-opacity:1;"
          offset="0"
-         id="stop25" />
+         id="stop23" />
       <stop
          style="stop-color:#4f8df2;stop-opacity:0;"
          offset="1"
-         id="stop27" />
+         id="stop26" />
     </linearGradient>
   </defs>
   <g
