@@ -62,9 +62,77 @@
     <linearGradient
        inkscape:collect="always"
        id="gradient_fric"
-       x1="2.7"
+       x1="0"
        y1="32.0"
-       x2="2.7"
+       x2="0"
+       y2="89.5"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#637cdb;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_stif"
+       x1="0"
+       y1="89.5"
+       x2="0"
+       y2="32.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#0060f9;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_span"
+       x1="0"
+       y1="32.0"
+       x2="0"
+       y2="89.5"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#976de4;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_curl"
+       x1="0"
+       y1="89.5"
+       x2="0"
+       y2="32.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#0081d7;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_tilt"
+       x1="0"
+       y1="32.0"
+       x2="0"
        y2="89.5"
        gradientUnits="userSpaceOnUse">
       <stop
@@ -91,31 +159,31 @@
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
     <path
-       style="fill:url(#gradient_fric);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
+       style="fill:url(#gradient_fric);fill-opacity:1;stroke:#000000;stroke-width:0.05;stroke-linecap:square"
        d="M 2.40,32.00 8.01,28.50 13.62,32.00 13.62,86.00 8.01,89.50 2.40,86.00 z"
        id="boundary_fric"
        inkscape:label="boundary_fric"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
+       style="fill:url(#gradient_stif);fill-opacity:1;stroke:#000000;stroke-width:0.05;stroke-linecap:square"
        d="M 13.62,32.00 19.23,28.50 24.84,32.00 24.84,86.00 19.23,89.50 13.62,86.00 z"
        id="boundary_stif"
        inkscape:label="boundary_stif"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
+       style="fill:url(#gradient_span);fill-opacity:1;stroke:#000000;stroke-width:0.05;stroke-linecap:square"
        d="M 24.84,32.00 30.45,28.50 36.06,32.00 36.06,86.00 30.45,89.50 24.84,86.00 z"
        id="boundary_span"
        inkscape:label="boundary_span"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
+       style="fill:url(#gradient_curl);fill-opacity:1;stroke:#000000;stroke-width:0.05;stroke-linecap:square"
        d="M 36.06,32.00 41.67,28.50 47.28,32.00 47.28,86.00 41.67,89.50 36.06,86.00 z"
        id="boundary_curl"
        inkscape:label="boundary_curl"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
+       style="fill:url(#gradient_tilt);fill-opacity:1;stroke:#000000;stroke-width:0.05;stroke-linecap:square"
        d="M 47.28,32.00 52.89,28.50 58.50,32.00 58.50,86.00 52.89,89.50 47.28,86.00 z"
        id="boundary_tilt"
        inkscape:label="boundary_tilt"
