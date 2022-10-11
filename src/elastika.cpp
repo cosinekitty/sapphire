@@ -387,7 +387,7 @@ struct ElastikaWidget : ModuleWidget
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, Elastika::DRIVE_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(47.46, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // Cutoff filter knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(20.32, 20.00)), module, Elastika::LO_CUT_KNOB_PARAM));
@@ -405,8 +405,8 @@ struct ElastikaWidget : ModuleWidget
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(20.50, 115.00)), module, Elastika::AUDIO_RIGHT_INPUT));
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(41.50, 115.00)), module, Elastika::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(54.50, 115.00)), module, Elastika::AUDIO_RIGHT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, Elastika::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, Elastika::AUDIO_RIGHT_OUTPUT));
 
         // Power enable/disable
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, Elastika::POWER_TOGGLE_PARAM, Elastika::POWER_LIGHT));
