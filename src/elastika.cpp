@@ -157,6 +157,7 @@ struct Elastika : Module
         LEVEL_KNOB_PARAM,
         LO_CUT_KNOB_PARAM,
         HI_CUT_KNOB_PARAM,
+        POWER_TOGGLE_PARAM,
         PARAMS_LEN
     };
 
@@ -169,6 +170,7 @@ struct Elastika : Module
         TILT_CV_INPUT,
         AUDIO_LEFT_INPUT,
         AUDIO_RIGHT_INPUT,
+        POWER_GATE_INPUT,
         INPUTS_LEN
     };
 
@@ -186,12 +188,13 @@ struct Elastika : Module
         SPAN_LIGHT,
         CURL_LIGHT,
         TILT_LIGHT,
+        POWER_LIGHT,
         LIGHTS_LEN
     };
 
     Elastika()
     {
-        resetState();
+        initialize();
 
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -223,11 +226,14 @@ struct Elastika : Module
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
+        configButton(POWER_TOGGLE_PARAM, "Power");
+        configInput(POWER_GATE_INPUT, "Power gate");
+
         for (auto& x : lights)
             x.setBrightness(0.3);
     }
 
-    void resetState()
+    void initialize()
     {
         using namespace Sapphire;
 
@@ -268,7 +274,7 @@ struct Elastika : Module
     void onReset(const ResetEvent& e) override
     {
         Module::onReset(e);
-        resetState();
+        initialize();
     }
 
     float getControlValue(
@@ -401,6 +407,10 @@ struct ElastikaWidget : ModuleWidget
         // Audio output jacks
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(41.50, 115.00)), module, Elastika::AUDIO_LEFT_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(54.50, 115.00)), module, Elastika::AUDIO_RIGHT_OUTPUT));
+
+        // Power enable/disable
+        addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, Elastika::POWER_TOGGLE_PARAM, Elastika::POWER_LIGHT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, Elastika::POWER_GATE_INPUT));
     }
 };
 

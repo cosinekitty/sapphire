@@ -180,7 +180,7 @@ struct Moots : Module
 
     Moots()
     {
-        resetState();
+        initialize();
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configButton(TOGGLEBUTTON1_PARAM, "Moot 1");
         configButton(TOGGLEBUTTON2_PARAM, "Moot 2");
@@ -204,7 +204,7 @@ struct Moots : Module
         configOutput(OUTAUDIO5_OUTPUT, "Signal 5");
     }
 
-    void resetState()
+    void initialize()
     {
         for (int i = 0; i < NUM_CONTROLLERS; ++i)
         {
@@ -216,7 +216,7 @@ struct Moots : Module
     void onReset(const ResetEvent& e) override
     {
         Module::onReset(e);
-        resetState();
+        initialize();
     }
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override

@@ -144,6 +144,23 @@
          offset="1"
          id="stop27" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_power"
+       x1="0"
+       y1="112.5"
+       x2="0"
+       y2="90.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#29aab4;stop-opacity:1;"
+         offset="0"
+         id="stop25" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop27" />
+    </linearGradient>
   </defs>
   <g
      inkscape:label="panel"
@@ -187,6 +204,12 @@
        d="M 47.28,32.00 52.89,28.50 58.50,32.00 58.50,86.00 52.89,89.50 47.28,86.00 z"
        id="boundary_tilt"
        inkscape:label="boundary_tilt"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:url(#gradient_power);fill-opacity:1;stroke:#000000;stroke-width:0.0;stroke-linecap:square"
+       d="M 24.84,90.00 30.45,86.50 36.06,90.00 36.06,109.00 30.45,112.50 24.84,109.00 z"
+       id="boundary_power"
+       inkscape:label="boundary_power"
        sodipodi:nodetypes="ccccccccc" />
     <g
        aria-label="sapphire"

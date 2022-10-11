@@ -70,21 +70,27 @@ def PathForShape(n:int) -> str:
     # "M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
     # Start with "M" for absolute path.
     p = 'M'
-    # Follow with 6 coordinate pairs "x,y".
     w = 11.22
-    x0 = w*n + 2.4
-    y0 = 32.0
+    if n == -1:
+        # The POWER hexagon is special: much smaller than the others.
+        x0 = 2*w + 2.4
+        y0 = 90.0
+        h = 19.0
+    else:
+        # Follow with 6 coordinate pairs "x,y".
+        x0 = n*w + 2.4
+        y0 = 32.0
+        h = 54.0
     p += Coord(x0, y0)
     (dx, dy) = (w/2.0, 28.5-32.0)
     (x1, y1) = (x0 + dx, y0 + dy)
     p += Coord(x1, y1)
     (x2, y2) = (x1 + dx, y0)
     p += Coord(x2, y2)
-    # Terminate with "z" to close the path.
-    h = 86.0 - 32.0
     p += Coord(x2, y2 + h)
     p += Coord(x1, y2 + h - dy)
     p += Coord(x0, y2 + h)
+    # Terminate with "z" to close the path.
     p += ' z'
     return p
 
@@ -100,7 +106,8 @@ if __name__ == '__main__':
         'stif': 1,
         'span': 2,
         'curl': 3,
-        'tilt': 4
+        'tilt': 4,
+        'power': -1,
     }
 
     text = ''
@@ -109,8 +116,8 @@ if __name__ == '__main__':
         text += svg[offset:shape.frontIndex]
         n = controlNumber.get(shape.name)
         if n is not None:
-            print(shape, n)
             p = PathForShape(n)
+            print(shape, n, p)
             text += shape.ReplacePath(p)
         else:
             text += shape.text
