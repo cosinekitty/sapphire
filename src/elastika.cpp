@@ -118,6 +118,8 @@ public:
 
 struct Elastika : Module
 {
+    Slewer slewer;
+    bool isPowerGateActive;
     Sapphire::PhysicsMesh mesh;
     SliderMapping frictionMap;
     SliderMapping stiffnessMap;
@@ -194,8 +196,6 @@ struct Elastika : Module
 
     Elastika()
     {
-        initialize();
-
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
         configParam(FRICTION_SLIDER_PARAM, 0, 1, 0.5, "Friction");
@@ -231,11 +231,17 @@ struct Elastika : Module
 
         for (auto& x : lights)
             x.setBrightness(0.3);
+
+        initialize();
     }
 
     void initialize()
     {
         using namespace Sapphire;
+
+        isPowerGateActive = true;
+        slewer.enable(true);
+        params[POWER_TOGGLE_PARAM].setValue(1.0f);
 
         // Set the defaults for how to interpret the slider values.
         // Determined experimentally to produce useful ranges.
@@ -277,6 +283,14 @@ struct Elastika : Module
         initialize();
     }
 
+    void onSampleRateChange(const SampleRateChangeEvent& e) override
+    {
+        // We slew using a linear ramp over a time span of 1/400 of a second.
+        // Round to the nearest integer number of samples for the current sample rate.
+        int newRampLength = static_cast<int>(round(e.sampleRate / 400.0f));
+        slewer.setRampLength(newRampLength);
+    }
+
     float getControlValue(
         const SliderMapping& map,
         ParamId sliderId,
@@ -312,6 +326,46 @@ struct Elastika : Module
     void process(const ProcessArgs& args) override
     {
         using namespace Sapphire;
+
+        // The user is allowed to turn off Elastika to reduce CPU usage.
+        // Check the gate input voltage first, and debounce it.
+        // If the gate is not connected, fall back to the pushbutton state.
+        auto& gate = inputs[POWER_GATE_INPUT];
+        if (gate.isConnected())
+        {
+            // If the gate input is connected, use the voltage of its first channel
+            // to control whether POWER is enabled or disabled.
+            // Debounce the signal using hysteresis like a Schmitt trigger would.
+            // See: https://vcvrack.com/manual/VoltageStandards#Triggers-and-Gates
+            const float gv = gate.getVoltage();
+            if (isPowerGateActive)
+            {
+                if (gv <= 0.1f)
+                    isPowerGateActive = false;
+            }
+            else
+            {
+                if (gv >= 1.0f)
+                    isPowerGateActive = true;
+            }
+        }
+        else
+        {
+            // When no gate input is connected, allow the manual pushbutton take control.
+            isPowerGateActive = (params[POWER_TOGGLE_PARAM].getValue() > 0.0f);
+        }
+
+        // Set the pushbutton illumination to track the power state,
+        // whether the power state was set by the button itself or the power gate.
+        lights[POWER_LIGHT].setBrightness(isPowerGateActive ? 1.0f : 0.03f);
+
+        if (!slewer.update(isPowerGateActive))
+        {
+            // Output silent stereo signal without using any more CPU.
+            outputs[AUDIO_LEFT_OUTPUT].setVoltage(0.0f);
+            outputs[AUDIO_RIGHT_OUTPUT].setVoltage(0.0f);
+            return;
+        }
 
         // Update the mesh parameters from sliders and control voltages.
 
