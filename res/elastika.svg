@@ -11,6 +11,7 @@
    sodipodi:docname="elastika.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -30,8 +31,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.6801556"
-     inkscape:cx="107.72812"
-     inkscape:cy="237.7756"
+     inkscape:cx="35.710978"
+     inkscape:cy="238.37078"
      inkscape:window-width="1300"
      inkscape:window-height="984"
      inkscape:window-x="575"
@@ -59,6 +60,25 @@
        width="48.676804"
        height="19.599862"
        id="rect316" />
+
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_fric"
+       x1="2.7"
+       y1="32.0"
+       x2="2.7"
+       y2="89.5"
+       gradientUnits="userSpaceOnUse">
+
+      <stop
+         style="stop-color:#29aab4;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+     </linearGradient>
   </defs>
   <g
      inkscape:label="panel"
@@ -74,31 +94,31 @@
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       style="fill:url(#gradient_fric);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
        d="M 2.70,32.00 8.15,28.50 13.60,32.00 13.60,86.00 8.15,89.50 2.70,86.00 z"
        id="boundary_fric"
        inkscape:label="boundary_fric"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
        d="M 13.90,32.00 19.35,28.50 24.80,32.00 24.80,86.00 19.35,89.50 13.90,86.00 z"
        id="boundary_stif"
        inkscape:label="boundary_stif"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
        d="M 25.10,32.00 30.55,28.50 36.00,32.00 36.00,86.00 30.55,89.50 25.10,86.00 z"
        id="boundary_span"
        inkscape:label="boundary_span"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
        d="M 36.30,32.00 41.75,28.50 47.20,32.00 47.20,86.00 41.75,89.50 36.30,86.00 z"
        id="boundary_curl"
        inkscape:label="boundary_curl"
        sodipodi:nodetypes="ccccccccc" />
     <path
-       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
+       style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:square"
        d="M 47.50,32.00 52.95,28.50 58.40,32.00 58.40,86.00 52.95,89.50 47.50,86.00 z"
        id="boundary_tilt"
        inkscape:label="boundary_tilt"
