@@ -25,15 +25,24 @@ def Extract(text:str, frontText:str, backText:str) -> str:
     frontIndex, backIndex = loc
     return text[frontIndex:backIndex]
 
+
 class Shape:
     def __init__(self, frontIndex: int, backIndex: int, text: str):
         self.frontIndex = frontIndex
         self.backIndex = backIndex
         self.text = text
         self.name = Extract(text, 'id="boundary_', '"')
+        self.pathLoc = Locate(text, ' d="', '"')
 
     def __repr__(self):
         return 'Shape({}, {}, "{}")'.format(self.frontIndex, self.backIndex, self.name)
+
+    def IsValid(self):
+        return (self.name is not None) and (self.pathLoc is not None)
+
+    def ReplacePath(self, path):
+        frontIndex, backIndex = self.pathLoc
+        return self.text[:frontIndex] + path + self.text[backIndex:]
 
 
 def GetShapeList(svg):
@@ -46,10 +55,14 @@ def GetShapeList(svg):
     while (loc := Locate(svg, frontText, backText, searchIndex)) is not None:
         frontIndex, backIndex = loc
         searchIndex = backIndex + len(backText)
-        shape = Shape(frontIndex, backIndex, svg[frontIndex:searchIndex])
-        if shape.name:
+        shape = Shape(frontIndex, searchIndex, svg[frontIndex:searchIndex])
+        if shape.IsValid():
             shapeList.append(shape)
     return shapeList
+
+
+def PathForShape(n:int) -> str:
+    return ''
 
 
 if __name__ == '__main__':
@@ -58,5 +71,27 @@ if __name__ == '__main__':
     with open(svgFileName, 'rt') as infile:
         svg = infile.read()
     shapeList = GetShapeList(svg)
-    print(shapeList)
+    controlNumber = {
+        'fric': 0,
+        'stif': 1,
+        'span': 2,
+        'curl': 3,
+        'tilt': 4
+    }
+
+    text = ''
+    offset = 0
+    for shape in shapeList:
+        text += svg[offset:shape.frontIndex]
+        n = controlNumber.get(shape.name)
+        if n is not None:
+            print(shape, n)
+            p = PathForShape(n)
+            text += shape.ReplacePath(p)
+        else:
+            text += shape.text
+        offset = shape.backIndex
+    text += svg[offset:]
+    with open('t.svg', 'wt') as outfile:
+        outfile.write(text)
     sys.exit(0)
