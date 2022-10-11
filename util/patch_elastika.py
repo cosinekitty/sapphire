@@ -71,10 +71,11 @@ def PathForShape(n:int) -> str:
     # Start with "M" for absolute path.
     p = 'M'
     # Follow with 6 coordinate pairs "x,y".
-    x0 = 11.2*n + 2.7
+    w = 11.1
+    x0 = w*n + 2.7
     y0 = 32.0
     p += Coord(x0, y0)
-    (dx, dy) = (8.15-2.7, 28.5-32.0)
+    (dx, dy) = (w/2.0, 28.5-32.0)
     (x1, y1) = (x0 + dx, y0 + dy)
     p += Coord(x1, y1)
     (x2, y2) = (x1 + dx, y0)
