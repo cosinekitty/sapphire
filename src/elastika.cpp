@@ -401,19 +401,26 @@ struct Elastika : Module
         // Update the simulation state by one sample's worth of time.
         mesh.Update(args.sampleTime, halfLife);
 
+        float sample[2];
+
         // Extract output for the left channel.
         PhysicsVector leftOutputDir = Interpolate(tilt, leftOutputDir1, leftOutputDir2);
-        float lsample = leftOutput.Extract(mesh, leftOutputDir);
-        lsample = leftLoCut.UpdateHiPass(lsample, args.sampleRate);
-        lsample = leftHiCut.UpdateLoPass(lsample, args.sampleRate);
-        outputs[AUDIO_LEFT_OUTPUT].setVoltage(gain * lsample);
+        sample[0] = leftOutput.Extract(mesh, leftOutputDir);
+        sample[0] = leftLoCut.UpdateHiPass(sample[0], args.sampleRate);
+        sample[0] = leftHiCut.UpdateLoPass(sample[0], args.sampleRate);
+        sample[0] *= gain;
 
         // Extract output for the right channel.
         PhysicsVector rightOutputDir = Interpolate(tilt, rightOutputDir1, rightOutputDir2);
-        float rsample = rightOutput.Extract(mesh, rightOutputDir);
-        rsample = rightLoCut.UpdateHiPass(rsample, args.sampleRate);
-        rsample = rightHiCut.UpdateLoPass(rsample, args.sampleRate);
-        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(gain * rsample);
+        sample[1] = rightOutput.Extract(mesh, rightOutputDir);
+        sample[1] = rightLoCut.UpdateHiPass(sample[1], args.sampleRate);
+        sample[1] = rightHiCut.UpdateLoPass(sample[1], args.sampleRate);
+        sample[1] *= gain;
+
+        // Filter the audio through the slewer to prevent clicks during power transitions.
+        slewer.process(sample, 2);
+        outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
+        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
     }
 };
 

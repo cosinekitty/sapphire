@@ -120,7 +120,7 @@ public:
         return state != Off;
     }
 
-    void process(float volts[PORT_MAX_CHANNELS], int channels)
+    void process(float volts[], int channels)
     {
         assert(channels >= 0 && channels <= PORT_MAX_CHANNELS);
 
