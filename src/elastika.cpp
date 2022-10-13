@@ -451,8 +451,8 @@ struct ElastikaWidget : ModuleWidget
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // Cutoff filter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(20.32, 20.00)), module, Elastika::LO_CUT_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(40.64, 20.00)), module, Elastika::HI_CUT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 20.00)), module, Elastika::LO_CUT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 20.00)), module, Elastika::HI_CUT_KNOB_PARAM));
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
