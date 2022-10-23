@@ -234,22 +234,23 @@ namespace Sapphire
         builder.Finalize();
 
         MeshAudioParameters mp;
-        memset(&mp, 0, sizeof(mp));
 
-        mp.leftInputBallIndex   = builder.BallIndex(-1,  0, -1,  0);
-        mp.rightInputBallIndex  = builder.BallIndex(+2, +2, +1,  0);
-        mp.leftOutputBallIndex  = builder.BallIndex( 0, +2, -1, +1);
-        mp.rightOutputBallIndex = builder.BallIndex(+1,  0, +1, -1);
-        mp.leftStimulus1  = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
-        mp.leftStimulus2  = (spacing / peakVoltage) * PhysicsVector(+0.7f, -0.7f, 0.0f, 0);
-        mp.rightStimulus1 = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
-        mp.rightStimulus2 = (spacing / peakVoltage) * PhysicsVector(-0.7f, +0.7f, 0.0f, 0);
+        mp.leftInputBallIndex    = builder.BallIndex(-1,  0, -1,  0);
+        mp.rightInputBallIndex   = builder.BallIndex(+2, +2, +1,  0);
+        mp.leftOutputBallIndex   = builder.BallIndex( 0, +2, -1, +1);
+        mp.rightOutputBallIndex  = builder.BallIndex(+1,  0, +1, -1);
+        mp.leftVarMassBallIndex  = builder.BallIndex( 0, +2, -1,  0);
+        mp.rightVarMassBallIndex = builder.BallIndex(+1,  0, +1,  0);
+        mp.leftInputDir1  = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
+        mp.leftInputDir2  = (spacing / peakVoltage) * PhysicsVector(+0.7f, -0.7f, 0.0f, 0);
+        mp.rightInputDir1 = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
+        mp.rightInputDir2 = (spacing / peakVoltage) * PhysicsVector(-0.7f, +0.7f, 0.0f, 0);
 
         const float pos_factor = 4.0e+4;
-        mp.leftResponse1  = pos_factor * PhysicsVector(0,  0, +1,  0);
-        mp.leftResponse2  = pos_factor * PhysicsVector(0, -1,  0,  0);
-        mp.rightResponse1 = pos_factor * PhysicsVector(0,  0, +1,  0);
-        mp.rightResponse2 = pos_factor * PhysicsVector(0, +1,  0,  0);
+        mp.leftOutputDir1  = pos_factor * PhysicsVector(0,  0, +1,  0);
+        mp.leftOutputDir2  = pos_factor * PhysicsVector(0, -1,  0,  0);
+        mp.rightOutputDir1 = pos_factor * PhysicsVector(0,  0, +1,  0);
+        mp.rightOutputDir2 = pos_factor * PhysicsVector(0, +1,  0,  0);
 
         assert(mesh.GetBallAt(mp.leftInputBallIndex).IsAnchor());
         assert(mesh.GetBallAt(mp.rightInputBallIndex).IsAnchor());

@@ -209,18 +209,20 @@ namespace Sapphire
 
     struct MeshAudioParameters
     {
-        int leftInputBallIndex;
-        int rightInputBallIndex;
-        int leftOutputBallIndex;
-        int rightOutputBallIndex;
-        PhysicsVector leftStimulus1;
-        PhysicsVector leftStimulus2;
-        PhysicsVector rightStimulus1;
-        PhysicsVector rightStimulus2;
-        PhysicsVector leftResponse1;
-        PhysicsVector leftResponse2;
-        PhysicsVector rightResponse1;
-        PhysicsVector rightResponse2;
+        int leftInputBallIndex        = -1;
+        int rightInputBallIndex       = -1;
+        int leftOutputBallIndex       = -1;
+        int rightOutputBallIndex      = -1;
+        int leftVarMassBallIndex      = -1;
+        int rightVarMassBallIndex     = -1;
+        PhysicsVector leftInputDir1   {0.0f};
+        PhysicsVector leftInputDir2   {0.0f};
+        PhysicsVector rightInputDir1  {0.0f};
+        PhysicsVector rightInputDir2  {0.0f};
+        PhysicsVector leftOutputDir1  {0.0f};
+        PhysicsVector leftOutputDir2  {0.0f};
+        PhysicsVector rightOutputDir1 {0.0f};
+        PhysicsVector rightOutputDir2 {0.0f};
     };
 
     // GridMap is a read-write 2D array whose indices can be positive or negative.

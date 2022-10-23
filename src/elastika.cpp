@@ -121,6 +121,7 @@ struct Elastika : Module
     Slewer slewer;
     bool isPowerGateActive;
     Sapphire::PhysicsMesh mesh;
+    Sapphire::MeshAudioParameters mp;
     SliderMapping frictionMap;
     SliderMapping stiffnessMap;
     SliderMapping spanMap;
@@ -132,14 +133,6 @@ struct Elastika : Module
     MeshOutput rightOutput;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
-    Sapphire::PhysicsVector leftInputDir1;
-    Sapphire::PhysicsVector leftInputDir2;
-    Sapphire::PhysicsVector rightInputDir1;
-    Sapphire::PhysicsVector rightInputDir2;
-    Sapphire::PhysicsVector leftOutputDir1;
-    Sapphire::PhysicsVector leftOutputDir2;
-    Sapphire::PhysicsVector rightOutputDir1;
-    Sapphire::PhysicsVector rightOutputDir2;
 
     enum ParamId
     {
@@ -155,8 +148,8 @@ struct Elastika : Module
         TILT_ATTEN_PARAM,
         DRIVE_KNOB_PARAM,
         LEVEL_KNOB_PARAM,
-        LO_CUT_KNOB_PARAM,
-        HI_CUT_KNOB_PARAM,
+        MASS_KNOB_PARAM,
+        GRAVITY_KNOB_PARAM,
         POWER_TOGGLE_PARAM,
         PARAMS_LEN
     };
@@ -210,8 +203,8 @@ struct Elastika : Module
 
         configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
-        configParam(LO_CUT_KNOB_PARAM, 1, 4, 1, "Low cutoff", " Hz", +10, 1, 0);
-        configParam(HI_CUT_KNOB_PARAM, 1, 4, 4, "High cutoff", " Hz", +10, 1, 0);
+        configParam(MASS_KNOB_PARAM, 0.1, 1.9, 1, "Control mass", "");
+        configParam(GRAVITY_KNOB_PARAM, 0, +100000, 0, "Gravity", "");
 
         configInput(FRICTION_CV_INPUT, "Friction CV");
         configInput(STIFFNESS_CV_INPUT, "Stiffness CV");
@@ -250,24 +243,16 @@ struct Elastika : Module
         curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
         tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
-        MeshAudioParameters mp = CreateHex(mesh);
+        mp = CreateHex(mesh);
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
 
         // Define how stereo inputs go into the mesh.
         leftInput  = MeshInput(mp.leftInputBallIndex);
         rightInput = MeshInput(mp.rightInputBallIndex);
-        leftInputDir1 = mp.leftStimulus1;
-        leftInputDir2 = mp.leftStimulus2;
-        rightInputDir1 = mp.rightStimulus1;
-        rightInputDir2 = mp.rightStimulus2;
 
         // Define how to extract stereo outputs from the mesh.
         leftOutput  = MeshOutput(mp.leftOutputBallIndex);
         rightOutput = MeshOutput(mp.rightOutputBallIndex);
-        leftOutputDir1 = mp.leftResponse1;
-        leftOutputDir2 = mp.leftResponse2;
-        rightOutputDir1 = mp.rightResponse1;
-        rightOutputDir2 = mp.rightResponse2;
 
         leftLoCut.Reset();
         leftLoCut.SetCutoffFrequency(20);
@@ -374,10 +359,13 @@ struct Elastika : Module
         float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
         float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
         float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
-        //float loCutHz = std::pow(10.0f, params[LO_CUT_KNOB_PARAM].getValue());
+        float mass = params[MASS_KNOB_PARAM].getValue();
+        float grav = params[GRAVITY_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
+        mesh.SetGravity(PhysicsVector(0, 0, grav, 0));
         mesh.SetStiffness(stiffness);
+        mesh.GetBallAt(mp.leftVarMassBallIndex).mass = mesh.GetBallAt(mp.rightVarMassBallIndex).mass = 1.0e-6 * (0.2 + 0.8*(2*mass));
 
         if (curl >= 0.0f)
             mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
@@ -385,8 +373,8 @@ struct Elastika : Module
             mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
 
         // Feed audio stimulus into the mesh.
-        PhysicsVector leftInputDir = Interpolate(tilt, leftInputDir1, leftInputDir2);
-        PhysicsVector rightInputDir = Interpolate(tilt, rightInputDir1, rightInputDir2);
+        PhysicsVector leftInputDir = Interpolate(tilt, mp.leftInputDir1, mp.leftInputDir2);
+        PhysicsVector rightInputDir = Interpolate(tilt, mp.rightInputDir1, mp.rightInputDir2);
         leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
         rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
@@ -396,13 +384,13 @@ struct Elastika : Module
         float sample[2];
 
         // Extract output for the left channel.
-        PhysicsVector leftOutputDir = Interpolate(tilt, leftOutputDir1, leftOutputDir2);
+        PhysicsVector leftOutputDir = Interpolate(tilt, mp.leftOutputDir1, mp.leftOutputDir2);
         sample[0] = leftOutput.Extract(mesh, leftOutputDir);
         sample[0] = leftLoCut.UpdateHiPass(sample[0], args.sampleRate);
         sample[0] *= gain;
 
         // Extract output for the right channel.
-        PhysicsVector rightOutputDir = Interpolate(tilt, rightOutputDir1, rightOutputDir2);
+        PhysicsVector rightOutputDir = Interpolate(tilt, mp.rightOutputDir1, mp.rightOutputDir2);
         sample[1] = rightOutput.Extract(mesh, rightOutputDir);
         sample[1] = rightLoCut.UpdateHiPass(sample[1], args.sampleRate);
         sample[1] *= gain;
@@ -441,8 +429,8 @@ struct ElastikaWidget : ModuleWidget
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
 
         // Cutoff filter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 20.00)), module, Elastika::LO_CUT_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 20.00)), module, Elastika::HI_CUT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 20.00)), module, Elastika::MASS_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 20.00)), module, Elastika::GRAVITY_KNOB_PARAM));
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
