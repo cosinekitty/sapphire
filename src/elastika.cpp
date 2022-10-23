@@ -126,7 +126,7 @@ struct Elastika : Module
     SliderMapping stiffnessMap;
     SliderMapping spanMap;
     SliderMapping curlMap;
-    SliderMapping tiltMap;
+    SliderMapping massMap;
     MeshInput leftInput;
     MeshInput rightInput;
     MeshOutput leftOutput;
@@ -140,16 +140,16 @@ struct Elastika : Module
         STIFFNESS_SLIDER_PARAM,
         SPAN_SLIDER_PARAM,
         CURL_SLIDER_PARAM,
-        TILT_SLIDER_PARAM,
+        MASS_SLIDER_PARAM,
         FRICTION_ATTEN_PARAM,
         STIFFNESS_ATTEN_PARAM,
         SPAN_ATTEN_PARAM,
         CURL_ATTEN_PARAM,
-        TILT_ATTEN_PARAM,
+        MASS_ATTEN_PARAM,
         DRIVE_KNOB_PARAM,
         LEVEL_KNOB_PARAM,
-        MASS_KNOB_PARAM,
-        GRAVITY_KNOB_PARAM,
+        INPUT_TILT_KNOB_PARAM,
+        OUTPUT_TILT_KNOB_PARAM,
         POWER_TOGGLE_PARAM,
         PARAMS_LEN
     };
@@ -160,7 +160,7 @@ struct Elastika : Module
         STIFFNESS_CV_INPUT,
         SPAN_CV_INPUT,
         CURL_CV_INPUT,
-        TILT_CV_INPUT,
+        MASS_CV_INPUT,
         AUDIO_LEFT_INPUT,
         AUDIO_RIGHT_INPUT,
         POWER_GATE_INPUT,
@@ -180,7 +180,7 @@ struct Elastika : Module
         STIFFNESS_LIGHT,
         SPAN_LIGHT,
         CURL_LIGHT,
-        TILT_LIGHT,
+        MASS_LIGHT,
         POWER_LIGHT,
         LIGHTS_LEN
     };
@@ -193,24 +193,24 @@ struct Elastika : Module
         configParam(STIFFNESS_SLIDER_PARAM, 0, 1, 0.5, "Stiffness");
         configParam(SPAN_SLIDER_PARAM, 0, 1, 0.5, "Spring span");
         configParam(CURL_SLIDER_PARAM, -1, +1, 0, "Magnetic field");
-        configParam(TILT_SLIDER_PARAM, 0, 1, 0.5, "Tilt angle");
+        configParam(MASS_SLIDER_PARAM, -1, +1, 0, "Impurity mass", "", 10, 1);
 
         configParam(FRICTION_ATTEN_PARAM, -1, 1, 0, "Friction", "%", 0, 100);
         configParam(STIFFNESS_ATTEN_PARAM, -1, 1, 0, "Stiffness", "%", 0, 100);
         configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span", "%", 0, 100);
         configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field", "%", 0, 100);
-        configParam(TILT_ATTEN_PARAM, -1, 1, 0, "Tilt angle", "%", 0, 100);
+        configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass", "%", 0, 100);
 
         configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
-        configParam(MASS_KNOB_PARAM, 0.1, 1.9, 1, "Control mass", "");
-        configParam(GRAVITY_KNOB_PARAM, 0, +100000, 0, "Gravity", "");
+        configParam(INPUT_TILT_KNOB_PARAM,  0, 1, 0.5, "Input tilt angle", "°", 0, 90);
+        configParam(OUTPUT_TILT_KNOB_PARAM, 0, 1, 0.5, "Output tilt angle", "°", 0, 90);
 
         configInput(FRICTION_CV_INPUT, "Friction CV");
         configInput(STIFFNESS_CV_INPUT, "Stiffness CV");
         configInput(SPAN_CV_INPUT, "Spring span CV");
         configInput(CURL_CV_INPUT, "Magnetic field CV");
-        configInput(TILT_CV_INPUT, "Tilt angle CV");
+        configInput(MASS_CV_INPUT, "Impurity mass CV");
 
         configInput(AUDIO_LEFT_INPUT, "Left audio");
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
@@ -241,7 +241,7 @@ struct Elastika : Module
         stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
         spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
         curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
-        tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
+        massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
 
         mp = CreateHex(mesh);
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
@@ -356,16 +356,15 @@ struct Elastika : Module
         float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
         float curl = getControlValue(curlMap, CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
-        float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
+        float mass = getControlValue(massMap, MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
         float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
         float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
-        float mass = params[MASS_KNOB_PARAM].getValue();
-        float grav = params[GRAVITY_KNOB_PARAM].getValue();
+        float inTilt = params[INPUT_TILT_KNOB_PARAM].getValue();
+        float outTilt = params[OUTPUT_TILT_KNOB_PARAM].getValue();
 
         mesh.SetRestLength(restLength);
-        mesh.SetGravity(PhysicsVector(0, 0, grav, 0));
         mesh.SetStiffness(stiffness);
-        mesh.GetBallAt(mp.leftVarMassBallIndex).mass = mesh.GetBallAt(mp.rightVarMassBallIndex).mass = 1.0e-6 * (0.2 + 0.8*(2*mass));
+        mesh.GetBallAt(mp.leftVarMassBallIndex).mass = mesh.GetBallAt(mp.rightVarMassBallIndex).mass = 1.0e-6 * mass;
 
         if (curl >= 0.0f)
             mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
@@ -373,8 +372,8 @@ struct Elastika : Module
             mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
 
         // Feed audio stimulus into the mesh.
-        PhysicsVector leftInputDir = Interpolate(tilt, mp.leftInputDir1, mp.leftInputDir2);
-        PhysicsVector rightInputDir = Interpolate(tilt, mp.rightInputDir1, mp.rightInputDir2);
+        PhysicsVector leftInputDir = Interpolate(inTilt, mp.leftInputDir1, mp.leftInputDir2);
+        PhysicsVector rightInputDir = Interpolate(inTilt, mp.rightInputDir1, mp.rightInputDir2);
         leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
         rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
 
@@ -384,13 +383,13 @@ struct Elastika : Module
         float sample[2];
 
         // Extract output for the left channel.
-        PhysicsVector leftOutputDir = Interpolate(tilt, mp.leftOutputDir1, mp.leftOutputDir2);
+        PhysicsVector leftOutputDir = Interpolate(outTilt, mp.leftOutputDir1, mp.leftOutputDir2);
         sample[0] = leftOutput.Extract(mesh, leftOutputDir);
         sample[0] = leftLoCut.UpdateHiPass(sample[0], args.sampleRate);
         sample[0] *= gain;
 
         // Extract output for the right channel.
-        PhysicsVector rightOutputDir = Interpolate(tilt, mp.rightOutputDir1, mp.rightOutputDir2);
+        PhysicsVector rightOutputDir = Interpolate(outTilt, mp.rightOutputDir1, mp.rightOutputDir2);
         sample[1] = rightOutput.Extract(mesh, rightOutputDir);
         sample[1] = rightLoCut.UpdateHiPass(sample[1], args.sampleRate);
         sample[1] *= gain;
@@ -415,29 +414,29 @@ struct ElastikaWidget : ModuleWidget
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 46.00)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 46.00)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
         addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 46.00)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, Elastika::TILT_SLIDER_PARAM, Elastika::TILT_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, Elastika::MASS_SLIDER_PARAM, Elastika::MASS_LIGHT));
 
         // Attenuverters
         addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, Elastika::FRICTION_ATTEN_PARAM));
         addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 72.00)), module, Elastika::STIFFNESS_ATTEN_PARAM));
         addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, Elastika::SPAN_ATTEN_PARAM));
         addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, Elastika::CURL_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, Elastika::TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, Elastika::MASS_ATTEN_PARAM));
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, Elastika::DRIVE_KNOB_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
 
-        // Cutoff filter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 20.00)), module, Elastika::MASS_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 20.00)), module, Elastika::GRAVITY_KNOB_PARAM));
+        // Tilt angle knobs
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, Elastika::INPUT_TILT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 17.50)), module, Elastika::OUTPUT_TILT_KNOB_PARAM));
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(19.24, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, Elastika::SPAN_CV_INPUT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, Elastika::CURL_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::TILT_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::MASS_CV_INPUT));
 
         // Audio input Jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, Elastika::AUDIO_LEFT_INPUT));
