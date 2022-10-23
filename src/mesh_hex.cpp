@@ -239,8 +239,8 @@ namespace Sapphire
         mp.rightInputBallIndex   = builder.BallIndex(+2, +2, +1,  0);
         mp.leftOutputBallIndex   = builder.BallIndex( 0, +2, -1, +1);
         mp.rightOutputBallIndex  = builder.BallIndex(+1,  0, +1, -1);
-        mp.leftVarMassBallIndex  = builder.BallIndex( 0, +2, -1,  0);
-        mp.rightVarMassBallIndex = builder.BallIndex(+1,  0, +1,  0);
+        mp.leftVarMassBallIndex  = builder.BallIndex( 0, +2,  0, -1);
+        mp.rightVarMassBallIndex = builder.BallIndex(+1,  0,  0, +1);
         mp.leftInputDir1  = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
         mp.leftInputDir2  = (spacing / peakVoltage) * PhysicsVector(+0.7f, -0.7f, 0.0f, 0);
         mp.rightInputDir1 = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
