@@ -131,9 +131,7 @@ struct Elastika : Module
     MeshOutput leftOutput;
     MeshOutput rightOutput;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
-    Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> leftHiCut;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
-    Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> rightHiCut;
     Sapphire::PhysicsVector leftInputDir1;
     Sapphire::PhysicsVector leftInputDir2;
     Sapphire::PhysicsVector rightInputDir1;
@@ -272,9 +270,9 @@ struct Elastika : Module
         rightOutputDir2 = mp.rightResponse2;
 
         leftLoCut.Reset();
-        leftHiCut.Reset();
+        leftLoCut.SetCutoffFrequency(20);
         rightLoCut.Reset();
-        rightHiCut.Reset();
+        rightLoCut.SetCutoffFrequency(20);
     }
 
     void onReset(const ResetEvent& e) override
@@ -376,13 +374,7 @@ struct Elastika : Module
         float tilt = getControlValue(tiltMap, TILT_SLIDER_PARAM, TILT_ATTEN_PARAM, TILT_CV_INPUT);
         float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
         float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
-        float loCutHz = std::pow(10.0f, params[LO_CUT_KNOB_PARAM].getValue());
-        float hiCutHz = std::pow(10.0f, params[HI_CUT_KNOB_PARAM].getValue());
-
-        leftLoCut.SetCutoffFrequency(loCutHz);
-        rightLoCut.SetCutoffFrequency(loCutHz);
-        leftHiCut.SetCutoffFrequency(hiCutHz);
-        rightHiCut.SetCutoffFrequency(hiCutHz);
+        //float loCutHz = std::pow(10.0f, params[LO_CUT_KNOB_PARAM].getValue());
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
@@ -407,14 +399,12 @@ struct Elastika : Module
         PhysicsVector leftOutputDir = Interpolate(tilt, leftOutputDir1, leftOutputDir2);
         sample[0] = leftOutput.Extract(mesh, leftOutputDir);
         sample[0] = leftLoCut.UpdateHiPass(sample[0], args.sampleRate);
-        sample[0] = leftHiCut.UpdateLoPass(sample[0], args.sampleRate);
         sample[0] *= gain;
 
         // Extract output for the right channel.
         PhysicsVector rightOutputDir = Interpolate(tilt, rightOutputDir1, rightOutputDir2);
         sample[1] = rightOutput.Extract(mesh, rightOutputDir);
         sample[1] = rightLoCut.UpdateHiPass(sample[1], args.sampleRate);
-        sample[1] = rightHiCut.UpdateLoPass(sample[1], args.sampleRate);
         sample[1] *= gain;
 
         // Filter the audio through the slewer to prevent clicks during power transitions.
