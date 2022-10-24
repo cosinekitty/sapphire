@@ -53,32 +53,22 @@ public:
 class MeshInput
 {
 private:
-    bool firstTime = true;
-    int ballIndex = -1;
-    Sapphire::PhysicsVector origin;
+    int ballIndex;
 
 public:
     MeshInput()
-        : origin(0.0f)
+        : ballIndex(-1)
         {}
 
     MeshInput(int _ballIndex)
         : ballIndex(_ballIndex)
-        , origin(0.0f)
         {}
 
     // Inject audio into the mesh
     void Inject(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction, float sample)
     {
-        using namespace Sapphire;
-
-        Ball& ball = mesh.GetBallAt(ballIndex);
-        if (firstTime)
-        {
-            firstTime = false;
-            origin = ball.pos;
-        }
-        ball.pos = origin + (sample * direction);
+        Sapphire::Ball& ball = mesh.GetBallAt(ballIndex);
+        ball.pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
     }
 };
 
@@ -86,19 +76,15 @@ public:
 class MeshOutput
 {
 private:
-    bool firstTime = true;
     int ballIndex;
-    Sapphire::PhysicsVector origin;
 
 public:
     MeshOutput()
         : ballIndex(-1)
-        , origin(0.0f)
         {}
 
     MeshOutput(int _ballIndex)
         : ballIndex(_ballIndex)
-        , origin(0.0f)
         {}
 
     // Extract audio from the mesh
@@ -106,13 +92,8 @@ public:
     {
         using namespace Sapphire;
 
-        Ball& ball = mesh.GetBallAt(ballIndex);
-        if (firstTime)
-        {
-            firstTime = false;
-            origin = ball.pos;
-        }
-        return Dot(ball.pos - origin, direction);
+        PhysicsVector movement = mesh.GetBallDisplacement(ballIndex);
+        return Dot(movement, direction);
     }
 };
 

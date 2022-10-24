@@ -122,6 +122,8 @@ namespace Sapphire
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         int NumSprings() const { return static_cast<int>(springList.size()); }
         Ball& GetBallAt(int index) { return currBallList.at(index); }
+        PhysicsVector GetBallOrigin(int index) const { return originalPositions.at(index); }
+        PhysicsVector GetBallDisplacement(int index) const { return currBallList.at(index).pos - originalPositions.at(index); }
         Spring& GetSpringAt(int index) { return springList.at(index); }
 
     private:
