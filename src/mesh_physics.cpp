@@ -6,17 +6,30 @@
 
 namespace Sapphire
 {
-    void PhysicsMesh::Reset()
+    void PhysicsMesh::Clear()
     {
         springList.clear();
         currBallList.clear();
         nextBallList.clear();
+        originalPositions.clear();
         forceList.clear();
         gravity = PhysicsVector::zero();
         magnet = PhysicsVector::zero();
         stiffness  = MESH_DEFAULT_STIFFNESS;
         restLength = MESH_DEFAULT_REST_LENGTH;
         speedLimit = MESH_DEFAULT_SPEED_LIMIT;
+    }
+
+
+    void PhysicsMesh::Quiet()
+    {
+        size_t nballs = currBallList.size();
+        assert(nballs == originalPositions.size());
+        for (size_t i = 0; i < nballs; ++i)
+        {
+            currBallList[i].pos = originalPositions.at(i);
+            currBallList[i].vel = PhysicsVector::zero();
+        }
     }
 
 
@@ -44,6 +57,9 @@ namespace Sapphire
 
         // Reserve a slot for calculating forces.
         forceList.push_back(PhysicsVector::zero());
+
+        // Remember where each ball started, so we can put it back.
+        originalPositions.push_back(ball.pos);
 
         return index;
     }

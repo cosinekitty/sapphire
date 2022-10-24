@@ -223,7 +223,7 @@ namespace Sapphire
         const float spacing = MESH_DEFAULT_REST_LENGTH;
         const float peakVoltage = 10.0f;
 
-        mesh.Reset();
+        mesh.Clear();
 
         HexBuilder builder(mesh, 10, spacing, mass);
 

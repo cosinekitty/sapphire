@@ -120,6 +120,7 @@ struct Elastika : Module
 {
     Slewer slewer;
     bool isPowerGateActive;
+    bool isQuiet;
     Sapphire::PhysicsMesh mesh;
     Sapphire::MeshAudioParameters mp;
     SliderMapping frictionMap;
@@ -231,6 +232,7 @@ struct Elastika : Module
         using namespace Sapphire;
 
         isPowerGateActive = true;
+        isQuiet = false;
         slewer.enable(true);
         params[POWER_TOGGLE_PARAM].setValue(1.0f);
 
@@ -347,8 +349,19 @@ struct Elastika : Module
             // Output silent stereo signal without using any more CPU.
             outputs[AUDIO_LEFT_OUTPUT].setVoltage(0.0f);
             outputs[AUDIO_RIGHT_OUTPUT].setVoltage(0.0f);
+
+            // If this is the first sample since Elastika was turned off,
+            // force the mesh to go back to its starting state:
+            // all balls back where they were, and cease all movement.
+            if (!isQuiet)
+            {
+                isQuiet = true;
+                mesh.Quiet();
+            }
             return;
         }
+
+        isQuiet = false;
 
         // Update the mesh parameters from sliders and control voltages.
 

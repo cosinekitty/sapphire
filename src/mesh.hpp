@@ -92,6 +92,7 @@ namespace Sapphire
     {
     private:
         SpringList springList;
+        std::vector<PhysicsVector> originalPositions;
         BallList currBallList;
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
@@ -102,7 +103,8 @@ namespace Sapphire
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
 
     public:
-        void Reset();
+        void Clear();   // empty out the mesh and start over
+        void Quiet();    // put all balls back to their original locations and zero their velocities
         float GetStiffness() const { return stiffness; }
         void SetStiffness(float _stiffness);
         float GetRestLength() const { return restLength; }
