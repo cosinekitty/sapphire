@@ -133,15 +133,21 @@ the kinetic energy of the system.
 ![Elastika model](./images/elastika_model.svg)
 
 This diagram shows the structure of the Elastika physical model.
-The magenta spheres around the perimeter are anchors.
-The teal spheres on the interior are mobile balls.
-The lines that connect anchors to balls, and balls to each other, are springs.
+* The magenta spheres around the perimeter are anchors.
+* The teal spheres on the interior are mobile balls.
+* The lines that connect anchors to balls, and balls to each other, are springs.
 
 The two anchors that are used for left and right inputs are indicated by surrounding squares.
 The input anchors are forced to move in response to applied input voltages.
-Similarly, circles indicate the two balls that are used as audio outputs.
 
-### Controls
+Circles indicate the two balls that are used as audio outputs.
+The movement of the output balls is used to determine the
+voltages for the stereo audio output channels.
+
+The balls marked Lm and Rm are *mass impurity* balls
+whose masses are varied by the MASS slider as described below.
+
+### Slider Controls
 
 The following controls have sliders for manual control, along with
 attenuverters and control voltage (CV) inputs for automation.
@@ -171,24 +177,36 @@ attenuverters and control voltage (CV) inputs for automation.
   away from zero in either direction, the magnetic field gets progressively
   stronger. Extreme values of CURL tend to destabilize the mesh and create
   a harsh sound. With careful tuning, interesting effects can occur.
-* TILT: This control adjusts the angle at which sounds are injected into
-  the mesh and at which the output is detected. When the TILT slider is all
-  the way down, vibrations are injected and extracted perpendicular to the
-  hexagonal mesh &mdash; that is, in the *z*-direction. This tends to introduce
-  deeper bass components to the sound because the resonant frequency of the
-  mesh in that direction is lower. As the TILT slider is moved upward, the
-  injection/extraction direction is gradually morphed to be parallel with
-  the mesh. This tends to emphasize higher frequencies, as it resonates more
-  closely with individual ball-to-ball spring vibrations.
+* MASS: There are 22 mobile balls in the simulation. Of these, 20 mobile balls
+  have a common fixed mass. The two remaining balls have an adjustable
+  "impurity" mass. The MASS slider controls the mass of these two balls in tandem.
+  The MASS slider ranges exponentially from 0.1 to 10.0. The center and default
+  mass value is 1.0, which makes the mass impurity balls have the same mass
+  as all the other mobile balls.
+  Tuning the impurity mass can allow for some interesting chaotic and/or
+  multi-resonant modes, especially when combined with the CURL adjustment.
 
-### Band-reject filters (LO and HI)
+### Tilt knobs
 
-At the top of the panel, there is a pair of knobs marked LO and HI. These knobs adjust
-rejection of low frequencies and rejection of high frequencies. Increasing the LO
-knob causes more bass frequencies to be diminished from the output.
-Likewise, the HI knob cuts out more of the treble frequencies as it is increased.
-These knobs can be useful for certain vibration modes where lower frequency
-sounds can be too muddy, or higher frequency sounds can be too harsh.
+At the top of the panel are two knobs that control tilt angles.
+There is one tilt angle for the input and one for the output.
+
+The **input tilt angle** knob controls the direction in 3D space by which
+the left and right input balls are vibrated in accordance with
+the input audio. When set to 0&deg;, the vibration direction is
+perpendicular to the plane of the hexagonal grid. When set to 90&deg;,
+the direction is parallel to that plane. The default angle is 45&deg;.
+
+Similarly, the **output tilt angle** knob controls the direction in which
+output audio is derived from the movement of the output balls.
+Like the input tilt angle, the output tilt angle range 0&deg; to 90&deg;
+makes the output sensitive to movement angles going from perpendicular
+to the hexagonal mesh to parallel to it. The default angle is 45&deg;.
+
+Lower tilt angles tend to introduce deeper bass components to the sound
+because the resonant frequency of the mesh in that direction is lower.
+As tilt angles increase toward 90&deg;, response tends to emphasize higher
+frequencies, as it resonates more closely with individual ball-to-ball spring vibrations.
 
 ### Input drive (IN) and output level (OUT)
 
@@ -224,7 +242,17 @@ a power pushbutton. When activated, the button lights up and Elastika is
 operating and using CPU time. Clicking on the power button toggles between
 on and off. When the power is off, the button goes dark and Elastika stops
 producing sound. In this off state, Elastika uses almost zero CPU time.
+Entering the off state also causes all the balls to return to their starting
+positions and to have their velocities set to zero. Thus when Elastika
+is powered back on, it restarts from an initially quiet state.
 
 Beneath the button is a power gate input. When connected, the gate input
 takes precedence over the power button. The power gate input thus allows
 you to automate turning Elastika on and off.
+
+Whether you use the power button or the input gate for controlling power,
+there is an anti-click linear ramp of 1/400 of a second. In other words,
+when you turn Elastika off, the output volume fades out over 1/400 of a second
+before turning off. When you turn Elastika back on, the output level is
+faded back in over 1/400 of a second. Thus the maximum speed at which you
+can cycle Elastika completely on and off is 200 Hz.

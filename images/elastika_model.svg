@@ -26,8 +26,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.75722503"
-     inkscape:cx="521.6415"
-     inkscape:cy="530.88578"
+     inkscape:cx="528.24456"
+     inkscape:cy="516.35905"
      inkscape:window-width="1920"
      inkscape:window-height="1029"
      inkscape:window-x="0"
@@ -848,10 +848,46 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       x="109.53374"
+       y="185.48019"
+       id="text34224-5-8-3-0"><tspan
+         sodipodi:role="line"
+         id="tspan34964-3"
+         x="109.53374"
+         y="185.48019">Rm</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       x="199.36237"
+       y="111.40124"
+       id="text34224-5-8-3-0-6"><tspan
+         sodipodi:role="line"
+         id="tspan34964-3-1"
+         x="199.36237"
+         y="111.40124">Lm</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        x="66.11013"
        y="76.385765"
        id="text34224-5-8-8"><tspan
          sodipodi:role="line"
          id="tspan34968">L/in</tspan></text>
+    <rect
+       style="fill:#141789;fill-opacity:0.20296586;stroke:#000000;stroke-width:0.0500062;stroke-linecap:round;stroke-linejoin:bevel"
+       id="rect710"
+       width="9.3170147"
+       height="9.3170147"
+       x="208.27792"
+       y="32.571541"
+       transform="rotate(45)" />
+    <rect
+       style="fill:#141789;fill-opacity:0.202966;stroke:#000000;stroke-width:0.0500062;stroke-linecap:round;stroke-linejoin:bevel"
+       id="rect710-5"
+       width="9.3170147"
+       height="9.3170147"
+       x="214.83452"
+       y="-58.751038"
+       transform="rotate(45)" />
   </g>
 </svg>
