@@ -6,22 +6,25 @@ Elastika is a stereo synthesis filter based on a physics simulation.
 There is a pair of left/right audio input jacks, and a pair of left/right
 audio output jacks.
 
-The model includes a network of balls and springs connected in a hexagonal
-grid pattern.
-
 ### Physics model
+
+Understanding the inner workings of the simulation is
+helpful for intuitively tuning Elastika's many control inputs.
+
+The physics model includes a network of balls and springs connected in a hexagonal
+grid pattern.
 
 There are three kinds of components in the Elastika physics model:
 
-* Anchor: A point in space that stays locked in one location.
-  Anchors do not respond to any simuluated forces acting on them.
+* **Anchor**: A point in space that stays locked in one location.
+  Anchors do not respond to any forces acting on them.
   However, two of the anchors are used for injecting input audio into the model.
   These anchors are moved back and forth in response to input voltages.
-* Ball: A mobile point mass. A ball has a positive finite mass, an electric charge,
+* **Ball**: A mobile point mass. A ball has a positive finite mass, an electric charge,
   a 3D position vector, and a 3D velocity vector. A designated pair of
   balls determines audio output. The stereo output is based on the physical
   movement of these two output balls.
-* Spring: An elastic rod that connects one ball with another, or one anchor with one ball.
+* **Spring**: An elastic rod that connects one ball with another, or one anchor with one ball.
   The springs have two parameters that control their behavior: stiffness and span.
   The stiffness parameter adjusts how much force it takes per unit change in the length of
   the spring. Span is the rest length at which the spring exerts zero net force.
@@ -46,12 +49,11 @@ This diagram shows the structure of the Elastika physical model.
 * The teal spheres on the interior are mobile balls.
 * The lines that connect anchors to balls, and balls to each other, are springs.
 
-The two anchors that are used for left and right inputs are indicated by surrounding squares.
+The anchors that are used for left and right inputs are labeled L/in and R/in.
 The input anchors are forced to move in response to applied input voltages.
 
-Circles indicate the two balls that are used as audio outputs.
-The movement of the output balls is used to determine the
-voltages for the stereo audio output channels.
+The balls labeled L/out and R/out are the stereo audio outputs.
+The movement of these balls is determines the voltages for the stereo audio output channels.
 
 The balls marked Lm and Rm are *mass impurity* balls
 whose masses are varied by the MASS slider as described below.
@@ -59,21 +61,21 @@ whose masses are varied by the MASS slider as described below.
 ### Slider Controls
 
 The following controls have sliders for manual control, along with
-attenuverters and control voltage (CV) inputs for automation.
+attenuverters and control voltage (CV) inputs for enabling automation.
 
-* FRIC: the friction force that slows down vibration in the simulation.
+* **FRIC**: the friction force that slows down vibration in the simulation.
   Low friction is similar to increased reverb. The higher the FRIC
   setting, the shorter the vibration lasts before coming to a halt.
-* STIF: adjusts the stiffness of the springs, which is the amount of
+* **STIF**: adjusts the stiffness of the springs, which is the amount of
   force per unit length of the spring when stretched or compressed away
   from its rest length. Higher stiffness generally creates higher pitched sounds.
-* SPAN: adjusts the rest length of all the springs. It is possible for the span
+* **SPAN**: adjusts the rest length of all the springs. It is possible for the span
   to be shorter than the initial distance between the connected balls, which
   results in a bell-like quality. Also, span can be made longer than the
   initial ball distance, in which case the network tends to "explode"
   and vibrate in a more chaotic manner as the surface becomes
   loose and convex.
-* CURL: In addition to the springs pushing/pulling on the balls,
+* **CURL**: In addition to the springs pushing/pulling on the balls,
   there is an adjustable magnetic field. The balls have an
   electric charge, and as they move through the magnetic field, it causes
   a force perpendicular to both the ball's velocity and the orientation
@@ -86,7 +88,7 @@ attenuverters and control voltage (CV) inputs for automation.
   away from zero in either direction, the magnetic field gets progressively
   stronger. Extreme values of CURL tend to destabilize the mesh and create
   a harsh sound. With careful tuning, interesting effects can occur.
-* MASS: There are 22 mobile balls in the simulation. Of these, 20 mobile balls
+* **MASS**: There are 22 mobile balls in the simulation. Of these, 20 mobile balls
   have a common fixed mass. The two remaining balls have an adjustable
   "impurity" mass. The MASS slider controls the mass of these two balls in tandem.
   The MASS slider ranges exponentially from 0.1 to 10.0. The center and default
@@ -123,7 +125,7 @@ frequencies, as it resonates more closely with individual ball-to-ball spring vi
 ### Input drive (IN) and output level (OUT)
 
 The knob at the bottom left marked IN adjusts how strongly the input stereo
-signal moves the input balls.
+signal drives the input balls.
 
 The knob at the bottom right marked OUT adjusts the volume level of the
 stereo output signal.
@@ -135,8 +137,8 @@ wide variety of behaviors. It is hard to tell in advance how loud
 a sound it will produce, so there needs to be a way to reduce its
 output when too loud, or to amplify it when too quiet.
 
-The IN knob also affects the output level, but it has other effects
-on how much the shape of the mesh is distored by the input.
+The IN knob also has some effect on the output level, but it mainly
+controls how much the shape of the mesh is distored by the input.
 Rather than simply getting louder or quieter, adjusting IN can
 also affect the quality of the sound.
 
