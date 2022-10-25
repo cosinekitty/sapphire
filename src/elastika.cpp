@@ -109,6 +109,7 @@ struct Elastika : Module
     SliderMapping spanMap;
     SliderMapping curlMap;
     SliderMapping massMap;
+    SliderMapping tiltMap;
     MeshInput leftInput;
     MeshInput rightInput;
     MeshOutput leftOutput;
@@ -133,6 +134,8 @@ struct Elastika : Module
         INPUT_TILT_KNOB_PARAM,
         OUTPUT_TILT_KNOB_PARAM,
         POWER_TOGGLE_PARAM,
+        INPUT_TILT_ATTEN_PARAM,
+        OUTPUT_TILT_ATTEN_PARAM,
         PARAMS_LEN
     };
 
@@ -146,6 +149,8 @@ struct Elastika : Module
         AUDIO_LEFT_INPUT,
         AUDIO_RIGHT_INPUT,
         POWER_GATE_INPUT,
+        INPUT_TILT_CV_INPUT,
+        OUTPUT_TILT_CV_INPUT,
         INPUTS_LEN
     };
 
@@ -182,6 +187,8 @@ struct Elastika : Module
         configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span", "%", 0, 100);
         configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field", "%", 0, 100);
         configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass", "%", 0, 100);
+        configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle", "%", 0, 100);
+        configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle", "%", 0, 100);
 
         configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -193,6 +200,8 @@ struct Elastika : Module
         configInput(SPAN_CV_INPUT, "Spring span CV");
         configInput(CURL_CV_INPUT, "Magnetic field CV");
         configInput(MASS_CV_INPUT, "Impurity mass CV");
+        configInput(INPUT_TILT_CV_INPUT, "Input tilt CV");
+        configInput(OUTPUT_TILT_CV_INPUT, "Output tilt CV");
 
         configInput(AUDIO_LEFT_INPUT, "Left audio");
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
@@ -225,6 +234,7 @@ struct Elastika : Module
         spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
         curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
         massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
+        tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
         mp = CreateHex(mesh);
         INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
@@ -353,12 +363,15 @@ struct Elastika : Module
         float mass = getControlValue(massMap, MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
         float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
         float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
-        float inTilt = params[INPUT_TILT_KNOB_PARAM].getValue();
-        float outTilt = params[OUTPUT_TILT_KNOB_PARAM].getValue();
+        float inTilt = getControlValue(tiltMap, INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
+        float outTilt = getControlValue(tiltMap, OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 
         mesh.SetRestLength(restLength);
         mesh.SetStiffness(stiffness);
-        mesh.GetBallAt(mp.leftVarMassBallIndex).mass = mesh.GetBallAt(mp.rightVarMassBallIndex).mass = 1.0e-6 * mass;
+
+        Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
+        Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
+        lmBall.mass = rmBall.mass = 1.0e-6 * mass;
 
         if (curl >= 0.0f)
             mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
@@ -416,6 +429,8 @@ struct ElastikaWidget : ModuleWidget
         addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, Elastika::SPAN_ATTEN_PARAM));
         addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, Elastika::CURL_ATTEN_PARAM));
         addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, Elastika::MASS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 12.50)), module, Elastika::INPUT_TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(53.00, 12.50)), module, Elastika::OUTPUT_TILT_ATTEN_PARAM));
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, Elastika::DRIVE_KNOB_PARAM));
@@ -431,6 +446,8 @@ struct ElastikaWidget : ModuleWidget
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, Elastika::SPAN_CV_INPUT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, Elastika::CURL_CV_INPUT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::MASS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 22.50)), module, Elastika::INPUT_TILT_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(53.00, 22.50)), module, Elastika::OUTPUT_TILT_CV_INPUT));
 
         // Audio input Jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, Elastika::AUDIO_LEFT_INPUT));

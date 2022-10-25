@@ -1,4 +1,4 @@
-# Sapphire: modules for VCV Rack 2
+# Sapphire modules for VCV Rack 2
 
 ## Installation
 The latest release of the Sapphire plugin is available in the

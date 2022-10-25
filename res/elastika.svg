@@ -481,8 +481,12 @@
     </g>
     <path
        style="fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-       d="m 19.396755,17.833165 c 29.761703,0 29.901146,0 0,0 z"
-       id="path2054" />
+       d="M 19.24,17.50 h 22.48 z L 8,22.5 z L 8,12.5 z M 41.72,17.50 L 53,22.5 z L 53,12.5 z"
+       id="tilt_connectors_path" />
+    <path
+       style="fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+       d="M 14,102 L 7.5,115 z L 20.5,115 z M 46.96,102 L 40.46,115 z L 53.46,115 z"
+       id="drive_connectors_path" />
     <g
        aria-label="TILT"
        id="text3716"
