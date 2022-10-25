@@ -3,12 +3,6 @@
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-
-#include <exception>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <jansson.h>
 #include <rack.hpp>
 
 namespace Sapphire

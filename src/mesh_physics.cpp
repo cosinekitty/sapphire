@@ -23,7 +23,7 @@ namespace Sapphire
 
     void PhysicsMesh::Quiet()
     {
-        size_t nballs = currBallList.size();
+        const size_t nballs = currBallList.size();
         assert(nballs == originalPositions.size());
         for (size_t i = 0; i < nballs; ++i)
         {
@@ -59,6 +59,7 @@ namespace Sapphire
         forceList.push_back(PhysicsVector::zero());
 
         // Remember where each ball started, so we can put it back.
+        // This also provides a way to calculate the offset of a ball from its original position.
         originalPositions.push_back(ball.pos);
 
         return index;
@@ -193,10 +194,12 @@ namespace Sapphire
 
     void PhysicsMesh::Copy(const BallList& source, BallList& target)
     {
-        const int nballs = static_cast<int>(source.size());
-        for (int i = 0; i < nballs; ++i)
+        const size_t nballs = source.size();
+        assert(nballs == target.size());
+        for (size_t i = 0; i < nballs; ++i)
             target[i] = source[i];
     }
+
 
     void LoHiPassFilter::Update(float x, float sampleRateHz)
     {

@@ -13,7 +13,7 @@ enum class SliderScale
 };
 
 
-class SliderMapping     // maps a slider value 0..1 onto an arbitrary polynomial expression
+class SliderMapping     // maps a slider value onto an arbitrary polynomial expression
 {
 private:
     SliderScale scale = SliderScale::Linear;
@@ -50,7 +50,7 @@ public:
 };
 
 
-class MeshInput
+class MeshInput     // facilitates injecting audio into the mesh
 {
 private:
     int ballIndex;
@@ -60,7 +60,7 @@ public:
         : ballIndex(-1)
         {}
 
-    MeshInput(int _ballIndex)
+    explicit MeshInput(int _ballIndex)
         : ballIndex(_ballIndex)
         {}
 
@@ -73,7 +73,7 @@ public:
 };
 
 
-class MeshOutput
+class MeshOutput    // facilitates extracting audio from the mesh
 {
 private:
     int ballIndex;
@@ -83,7 +83,7 @@ public:
         : ballIndex(-1)
         {}
 
-    MeshOutput(int _ballIndex)
+    explicit MeshOutput(int _ballIndex)
         : ballIndex(_ballIndex)
         {}
 
@@ -96,6 +96,7 @@ public:
         return Dot(movement, direction);
     }
 };
+
 
 struct Elastika : Module
 {

@@ -40,7 +40,7 @@ namespace Sapphire
     };
 
 
-    class HexBuilder
+    class HexBuilder    // calculates the hexagonal grid arrangement and mesh topology
     {
     private:
         GridMap<HexGridElement> map;
@@ -211,6 +211,7 @@ namespace Sapphire
             }
         }
     };
+
 
     // Create a mesh of hexagons. This reduces the spring overhead to 3 springs per ball.
     // hexWide is the number of hexagons whose centers lie along the direction [u = +1, v = -2].
