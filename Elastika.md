@@ -95,9 +95,9 @@ attenuverters and control voltage (CV) inputs for automation.
   Tuning the impurity mass can allow for some interesting chaotic and/or
   multi-resonant modes, especially when combined with the CURL adjustment.
 
-### Tilt knobs
+### Tilt angle controls
 
-At the top of the panel are two knobs that control tilt angles.
+At the top of the panel are two larger knobs that control tilt angles.
 There is one tilt angle for the input and one for the output.
 
 The **input tilt angle** knob controls the direction in 3D space by which
@@ -111,6 +111,9 @@ output audio is derived from the movement of the output balls.
 Like the input tilt angle, the output tilt angle range 0&deg; to 90&deg;
 makes the output sensitive to movement angles going from perpendicular
 to the hexagonal mesh to parallel to it. The default angle is 45&deg;.
+
+Just like the slider controls, the tilt knobs come with associated
+attenuverters and CV inputs, for helping automate tilt angle control.
 
 Lower tilt angles tend to introduce deeper bass components to the sound
 because the resonant frequency of the mesh in that direction is lower.
