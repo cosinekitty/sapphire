@@ -280,7 +280,12 @@ struct Elastika : Module
         {
             float attenu = params[attenuId].getValue();
             float cv = inputs[cvInputId].getVoltage();
-            slider += attenu * (cv / 10.0f);
+            // When the attenuverter is set to 100%, and the cv is +5V, we want
+            // to swing a slider that is all the way down (minSlider)
+            // to act like it is all the way up (maxSlider).
+            // Thus we allow the complete range of control for any CV whose
+            // range is [-5, +5] volts.
+            slider += attenu * (cv / 5.0) * (maxSlider - minSlider);
         }
         float value = map.Evaluate(clamp(slider, minSlider, maxSlider));
         return value;
