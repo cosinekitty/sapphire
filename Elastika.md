@@ -6,6 +6,23 @@ Elastika is a stereo synthesis filter based on a physics simulation.
 There is a pair of left/right audio input jacks, and a pair of left/right
 audio output jacks.
 
+### Demo videos
+
+Here are some videos that offer a peek at Elastika. Headphones are recommended to best experience the stereo field.
+
+Feeding in a simple square wave to produce a gong-like sound:
+[![Elastika square wave](https://img.youtube.com/vi/GOViwGLgRfU/0.jpg)](https://www.youtube.com/watch?v=GOViwGLgRfU)
+
+In the next video, Seaside Modular's [Proteus](https://library.vcvrack.com/SeasideModular/Proteus) generates a melody that is fed through Elastika, producing a texture that starts out like a steel drum and ends up more like electric guitar distortion:
+[![Elastika steel drum](https://img.youtube.com/vi/XG1K7Z6qK_Q/0.jpg)](https://www.youtube.com/watch?v=XG1K7Z6qK_Q)
+
+This video shows Elastika producing sounds on its own without any audio input. It is possible to tune it into self-oscillating modes that sound a little like a flute or recorder, then more like a trumpet. Parts of this recording are reminiscent of tuning a shortwave radio. Starting around 3:30 are some more chaotic and drone-like sounds.
+[![Elastika flute/trumpet](https://img.youtube.com/vi/PUflyPmi26o/0.jpg)](https://www.youtube.com/watch?v=PUflyPmi26o)
+
+Here is another example of a generated sound texture. Using Instruo ochd to slighly permute the settings, Elastika exhibits indefinite reverberation while subtly changing texture throughout.
+[![Elastika: Gong of Eternity](https://img.youtube.com/vi/2eVCLu9jH-4/0.jpg)](https://www.youtube.com/watch?v=2eVCLu9jH-4)
+
+
 ### Physics model
 
 Understanding the inner workings of the simulation is
