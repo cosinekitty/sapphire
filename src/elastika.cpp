@@ -212,6 +212,9 @@ struct Elastika : Module
         configButton(POWER_TOGGLE_PARAM, "Power");
         configInput(POWER_GATE_INPUT, "Power gate");
 
+        configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
+        configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
+
         for (auto& x : lights)
             x.setBrightness(0.3);
 
