@@ -203,6 +203,20 @@ struct Moots : Module
             }
         }
     }
+
+    void onBypass(const BypassEvent& e) override
+    {
+        // When the user bypasses Moots, we need to adjust each
+        // output jack to have the same number of channels as the
+        // corresponding input jack.
+        // Otherwise, if we have turned off the given controller,
+        // VCV Rack sees the output channel count is zero and thinks
+        // there is no cable connected. That would prevent the input
+        // from bypassing to the output correctly.
+
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            outputs[OUTAUDIO1_OUTPUT + i].channels = inputs[INAUDIO1_INPUT + i].getChannels();
+    }
 };
 
 
