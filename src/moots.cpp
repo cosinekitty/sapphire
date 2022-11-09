@@ -84,6 +84,9 @@ struct Moots : Module
         configOutput(OUTAUDIO3_OUTPUT, "Signal 3");
         configOutput(OUTAUDIO4_OUTPUT, "Signal 4");
         configOutput(OUTAUDIO5_OUTPUT, "Signal 5");
+
+        for (int i = 0; i < NUM_CONTROLLERS; ++i)
+            configBypass(INAUDIO1_INPUT + i, OUTAUDIO1_OUTPUT + i);
     }
 
     void initialize()
@@ -121,11 +124,11 @@ struct Moots : Module
 
             if (gate.isConnected())
             {
-                // If the gate input is connected, use the voltage of its first channel
+                // If the gate input is connected, use its polyphonic voltage sum
                 // to control whether the output is enabled or disabled.
                 // Debounce the signal using hysteresis like a Schmitt trigger would.
                 // See: https://vcvrack.com/manual/VoltageStandards#Triggers-and-Gates
-                const float gv = gate.getVoltage(0);
+                const float gv = gate.getVoltageSum();
                 if (isGateActive[i])
                 {
                     if (gv <= 0.1f)
