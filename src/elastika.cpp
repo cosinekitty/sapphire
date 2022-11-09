@@ -283,7 +283,7 @@ struct Elastika : Module
         if (inputs[cvInputId].isConnected())
         {
             float attenu = params[attenuId].getValue();
-            float cv = inputs[cvInputId].getVoltage();
+            float cv = inputs[cvInputId].getVoltageSum();
             // When the attenuverter is set to 100%, and the cv is +5V, we want
             // to swing a slider that is all the way down (minSlider)
             // to act like it is all the way up (maxSlider).
@@ -318,11 +318,11 @@ struct Elastika : Module
         auto& gate = inputs[POWER_GATE_INPUT];
         if (gate.isConnected())
         {
-            // If the gate input is connected, use the voltage of its first channel
+            // If the gate input is connected, use the polyphonic sum
             // to control whether POWER is enabled or disabled.
             // Debounce the signal using hysteresis like a Schmitt trigger would.
             // See: https://vcvrack.com/manual/VoltageStandards#Triggers-and-Gates
-            const float gv = gate.getVoltage();
+            const float gv = gate.getVoltageSum();
             if (isPowerGateActive)
             {
                 if (gv <= 0.1f)
@@ -390,8 +390,8 @@ struct Elastika : Module
         // Feed audio stimulus into the mesh.
         PhysicsVector leftInputDir = Interpolate(inTilt, mp.leftInputDir1, mp.leftInputDir2);
         PhysicsVector rightInputDir = Interpolate(inTilt, mp.rightInputDir1, mp.rightInputDir2);
-        leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltage());
-        rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltage());
+        leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltageSum());
+        rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltageSum());
 
         // Update the simulation state by one sample's worth of time.
         mesh.Update(args.sampleTime, halfLife);
