@@ -103,6 +103,7 @@ struct Elastika : Module
     Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
+    int outputVerifyCounter;
     Sapphire::PhysicsMesh mesh;
     Sapphire::MeshAudioParameters mp;
     SliderMapping frictionMap;
@@ -227,6 +228,7 @@ struct Elastika : Module
 
         isPowerGateActive = true;
         isQuiet = false;
+        outputVerifyCounter = 0;
         slewer.enable(true);
         params[POWER_TOGGLE_PARAM].setValue(1.0f);
 
@@ -308,6 +310,13 @@ struct Elastika : Module
         return sqrt(Dot(a,a) / Dot(c,c)) * c;
     }
 
+    void quiet()
+    {
+        mesh.Quiet();
+        leftLoCut.Reset();
+        rightLoCut.Reset();
+    }
+
     void process(const ProcessArgs& args) override
     {
         using namespace Sapphire;
@@ -356,7 +365,7 @@ struct Elastika : Module
             if (!isQuiet)
             {
                 isQuiet = true;
-                mesh.Quiet();
+                quiet();
             }
             return;
         }
@@ -412,6 +421,24 @@ struct Elastika : Module
 
         // Filter the audio through the slewer to prevent clicks during power transitions.
         slewer.process(sample, 2);
+
+        // Final line of defense against NAN/infinite output:
+        // Check for invalid output. If found, clear the mesh.
+        // Do this about every quarter of a second, to avoid CPU burden.
+        // The intention is for the user to notice something sounds wrong,
+        // the output is briefly NAN, but then it clears up as soon as the
+        // internal or external problem is resolved.
+        // The main point is to avoid leaving Elastika stuck in a NAN state forever.
+        if (++outputVerifyCounter >= 11000)
+        {
+            outputVerifyCounter = 0;
+            if (!std::isfinite(sample[0]) || !std::isfinite(sample[1]))
+            {
+                quiet();
+                sample[0] = sample[1] = 0.0f;
+            }
+        }
+
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
     }
