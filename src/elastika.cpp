@@ -118,6 +118,7 @@ struct Elastika : Module
     MeshOutput rightOutput;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
     Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
+    DcRejectQuantity *dcRejectQuantity = nullptr;
 
     enum ParamId
     {
@@ -138,6 +139,7 @@ struct Elastika : Module
         POWER_TOGGLE_PARAM,
         INPUT_TILT_ATTEN_PARAM,
         OUTPUT_TILT_ATTEN_PARAM,
+        DC_REJECT_PARAM,
         PARAMS_LEN
     };
 
@@ -191,6 +193,8 @@ struct Elastika : Module
         configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass", "%", 0, 100);
         configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle", "%", 0, 100);
         configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle", "%", 0, 100);
+        configParam<DcRejectQuantity>(DC_REJECT_PARAM, 20, 400, 20, "DC reject cutoff", " Hz");
+        dcRejectQuantity = dynamic_cast<DcRejectQuantity *>(paramQuantities[DC_REJECT_PARAM]);
 
         auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -257,9 +261,10 @@ struct Elastika : Module
         rightOutput = MeshOutput(mp.rightOutputBallIndex);
 
         leftLoCut.Reset();
-        leftLoCut.SetCutoffFrequency(20);
+        leftLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
         rightLoCut.Reset();
-        rightLoCut.SetCutoffFrequency(20);
+        rightLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
+        dcRejectQuantity->changed = false;
     }
 
     void onReset(const ResetEvent& e) override
@@ -375,6 +380,15 @@ struct Elastika : Module
 
         isQuiet = false;
 
+        // If the user has changed the DC cutoff via the right-click menu,
+        // update the output filter corner frequencies.
+        if (dcRejectQuantity->changed)
+        {
+            dcRejectQuantity->changed = false;
+            leftLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
+            rightLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
+        }
+
         // Update the mesh parameters from sliders and control voltages.
 
         float halfLife = getControlValue(frictionMap, FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
@@ -450,8 +464,11 @@ struct Elastika : Module
 
 struct ElastikaWidget : ModuleWidget
 {
+    Elastika *elastikaModule;
+
     ElastikaWidget(Elastika* module)
     {
+        elastikaModule = module;
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
@@ -499,6 +516,17 @@ struct ElastikaWidget : ModuleWidget
         // Power enable/disable
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, Elastika::POWER_TOGGLE_PARAM, Elastika::POWER_LIGHT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, Elastika::POWER_GATE_INPUT));
+    }
+
+    void appendContextMenu(Menu* menu) override
+    {
+        if (elastikaModule && elastikaModule->dcRejectQuantity)
+        {
+            menu->addChild(new MenuSeparator);
+            DcRejectSlider *dcRejectSlider = new DcRejectSlider(elastikaModule->dcRejectQuantity);
+            dcRejectSlider->box.size.x = 200.0f;
+            menu->addChild(dcRejectSlider);
+        }
     }
 };
 

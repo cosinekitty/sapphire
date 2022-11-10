@@ -141,3 +141,42 @@ public:
             volts[c] *= gain;
     }
 };
+
+struct DcRejectQuantity : ParamQuantity
+{
+    float frequency = 20.0f;
+    bool changed = true;
+
+    DcRejectQuantity()
+    {
+        randomizeEnabled = false;
+    }
+
+    void setValue(float value) override
+    {
+        float newFrequency = math::clamp(value, getMinValue(), getMaxValue());
+        if (newFrequency != frequency)
+        {
+            changed = true;
+            frequency = newFrequency;
+        }
+    }
+
+    float getValue() override { return frequency; }
+
+    std::string getDisplayValueString() override
+    {
+        return string::f("%i", (int)(math::normalizeZero(frequency) + 0.5f));
+    }
+
+    void setDisplayValue(float displayValue) override { setValue(displayValue); }
+};
+
+
+struct DcRejectSlider : ui::Slider
+{
+    DcRejectSlider(DcRejectQuantity *_quantity)
+    {
+        quantity = _quantity;
+    }
+};
