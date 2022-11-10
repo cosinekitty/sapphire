@@ -26,6 +26,9 @@ Here is another example of a generated sound texture. Using Instruo ochd to slig
 
 [![Elastika: Gong of Eternity](https://img.youtube.com/vi/2eVCLu9jH-4/0.jpg)](https://www.youtube.com/watch?v=2eVCLu9jH-4)
 
+Ambient musician [Virtual Modular](https://www.youtube.com/c/VirtualModular) created the following video where he combines Elastika with Infrasonic Audio's [Warp Core](https://library.vcvrack.com/InfrasonicAudio/WarpCore) oscillator to produce some really nice sound textures.
+
+[![Elastika vs Warp Core](https://img.youtube.com/vi/KDHd_YLSgso/0.jpg)](https://www.youtube.com/watch?v=KDHd_YLSgso)
 
 ### Physics model
 
