@@ -9,6 +9,29 @@
 </tr>
 
 <tr valign="top">
+<td align="center">13 Nov 2022</td>
+<td align="center">2.1.2</td>
+<td align="left">
+Improvements based on community feedback.
+<ul>
+    <li>Added bypass support for Elastika and Moots.</li>
+    <li>Sum polyphonic inputs (audio and CV) in Elastika and Moots.</li>
+    <li>Elastika checks for NAN outputs every quarter of a second and auto-recovers if found. (One user reported NAN output, but was not able to reproduce it, and I haven't see it happen yet.)</li>
+    <li>Added right-click menu slider in Elastika to adjust output DC reject corner frequency. Default is 20 Hz, but can go up to 400 Hz.</li>
+    <li>Prevent randomization of Elastika's input and output level knobs.</li>
+</ul>
+</td>
+</tr>
+
+<tr valign="top">
+<td align="center">8 Nov 2022</td>
+<td align="center">2.1.1</td>
+<td align="left">
+Initial release of Sapphire Elastika.
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">30 Aug 2022</td>
 <td align="center">2.0.1</td>
 <td align="left">
