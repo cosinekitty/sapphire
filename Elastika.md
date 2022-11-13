@@ -173,6 +173,21 @@ also affect the quality of the sound.
 Sometimes it is interesting to increase IN and decrease OUT, or vice versa,
 to explore different nuances of sound.
 
+### Adjustment of DC rejection cutoff frequency
+
+Elastika includes an internal DC rejection filter on both audio outputs.
+This filter prevents contaminating the output with DC bias.
+Some people find adjusting the DC cutoff frequency useful as a simple
+equalization tool. When Elastika is tuned to output deep bass audio,
+increasing the DC rejection frequency can help reduce a "muddy" tone.
+
+To adjust the cutoff frequency, right-click on Elastika to
+open its context menu. At the bottom of the menu is a "DC reject cutoff"
+slider that you can move left or right to set the cutoff frequency
+anywhere from 20 Hz to 400 Hz, as shown here:
+
+![Elastika model](./images/elastika_adjust_filter.png)
+
 ### Power button and gate
 
 Elastika uses more CPU than the typical module in VCV Rack.
@@ -191,13 +206,38 @@ is powered back on, it restarts from an initially quiet state.
 Beneath the button is a power gate input. When connected, the gate input
 takes precedence over the power button. The power gate input thus allows
 you to automate turning Elastika on and off.
+When the power gate voltage goes above +1V, Elastika will turn on.
+When the voltage falls below +0.1V, Elastika will turn off.
+Between +0.1V and +1V, Elastika will remain in the same on/off state.
+This is known as *Schmitt trigger* behavior, and is intended to prevent
+unwanted toggling that could easily happen if a single voltage threshold
+were used.
 
 Whether you use the power button or the input gate for controlling power,
 there is an anti-click linear ramp of 1/400 of a second. In other words,
 when you turn Elastika off, the output volume fades out over 1/400 of a second
-before turning off. When you turn Elastika back on, the output level is
-faded back in over 1/400 of a second. Thus the maximum speed at which you
+before turning off. When you turn Elastika back on, the output level fades
+back in over 1/400 of a second. Thus the maximum speed at which you
 can cycle Elastika completely on and off is 200 Hz.
+
+### Treatment of polyphonic inputs
+
+The left and right audio outputs of Elastika are each monophonic,
+although taken together, they create a stereo signal.
+
+Elastika is not polyphonic, but all of its inputs &mdash; audio and CV &mdash;
+add up the voltages from the channels to produce a single input voltage.
+For example, you can connect a polyphonic audio signal to the left audio input,
+and the sum of voltages will be used as the left channel input.
+
+Likewise, you can use a polyphonic cable to CV-modulate one of the parameters
+(TILT, FRIC, STIF, and so on). This provides an implicit unity gain mixer,
+which in some cases could help simplify your patch.
+
+Even the power gate input adds voltages this way, and thus can be used as a simple
+boolean logic gate. For example, two unipolar gates (each 0V or +10V) can be combined
+in a polyphonic cable to act as an OR gate. Either gate turning on will turn on Elastika.
+Or you can use bipolar gates (each -5V or +5V) to serve as an AND gate.
 
 ---
 
