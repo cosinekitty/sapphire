@@ -30,6 +30,10 @@ Ambient musician [Virtual Modular](https://www.youtube.com/c/VirtualModular) cre
 
 [![Elastika vs Warp Core](https://img.youtube.com/vi/KDHd_YLSgso/0.jpg)](https://www.youtube.com/watch?v=KDHd_YLSgso)
 
+[Albert Yeh](https://www.youtube.com/user/papertigers4) created some fun polyrhythms fed through multiple instances of Elastika, used for percussion:
+
+[![Elastika Hammers](https://img.youtube.com/vi/k6_P2YhAliY/0.jpg)](https://www.youtube.com/watch?v=k6_P2YhAliY)
+
 ### Physics model
 
 Understanding the inner workings of the simulation is
