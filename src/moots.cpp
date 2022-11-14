@@ -1,4 +1,5 @@
 #include "plugin.hpp"
+#include "sapphire_engine.hpp"
 
 // Sapphire Moots for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire

@@ -1,6 +1,5 @@
 #pragma once
 #include <rack.hpp>
-#include "sapphire_engine.hpp"
 
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
