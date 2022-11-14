@@ -58,7 +58,7 @@ struct Moots : Module
     static_assert(NUM_CONTROLLERS == LIGHTS_LEN,   "Incorrect number of entries in `enum LightId`");
 
     bool isGateActive[NUM_CONTROLLERS];
-    Slewer slewer[NUM_CONTROLLERS];
+    Sapphire::Slewer slewer[NUM_CONTROLLERS];
 
     Moots()
     {
@@ -272,7 +272,7 @@ struct MootsWidget : ModuleWidget
                 },
                 [=](bool state)
                 {
-                    Slewer& s = mootsModule->slewer[i];
+                    Sapphire::Slewer& s = mootsModule->slewer[i];
                     if (state)
                         s.enable(mootsModule->isGateActive[i]);
                     else

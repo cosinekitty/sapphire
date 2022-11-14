@@ -100,7 +100,7 @@ public:
 
 struct Elastika : Module
 {
-    Slewer slewer;
+    Sapphire::Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
     int outputVerifyCounter;
