@@ -1,4 +1,5 @@
 #include <math.h>
+#include "sapphire_engine.hpp"
 #include "elastika_engine.hpp"
 
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>

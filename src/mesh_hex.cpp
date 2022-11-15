@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <math.h>
+#include "sapphire_engine.hpp"
 #include "elastika_engine.hpp"
 
 namespace Sapphire

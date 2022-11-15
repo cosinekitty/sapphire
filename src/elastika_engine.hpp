@@ -4,32 +4,10 @@
 // https://github.com/cosinekitty/sapphire
 
 #include <rack.hpp>
+#include "elastika_engine.hpp"
 
 namespace Sapphire
 {
-    using PhysicsVector = rack::simd::float_4;
-
-    inline float Dot(const PhysicsVector &a, const PhysicsVector &b)
-    {
-        PhysicsVector c = a * b;
-        return c.s[0] + c.s[1] + c.s[2] + c.s[3];
-    }
-
-    inline PhysicsVector Cross(const PhysicsVector &a, const PhysicsVector &b)
-    {
-        return PhysicsVector(
-            a[1]*b[2] - a[2]*b[1],
-            a[2]*b[0] - a[0]*b[2],
-            a[0]*b[1] - a[1]*b[0],
-            0.0f
-        );
-    }
-
-    inline float Magnitude(const PhysicsVector &a)
-    {
-        return sqrt(Dot(a, a));
-    }
-
     struct Spring
     {
         int ballIndex1;         // 0-based index into Mesh::ballList
