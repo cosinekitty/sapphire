@@ -35,11 +35,11 @@ Sapphire builds are available in:
 "
 realpath plugin-build
 ls -l plugin-build
+echo ""
 cd ${SAPPHIRE} || Fail "Cannot change directory back to ${SAPPHIRE}"
 
 cd cmdline || Fail "Cannot change directory to cmdline"
-./build || Fail "Error in cmdline build script"
-ls -l elastika
+./runtest || exit 1
 cd ..
 
 echo "

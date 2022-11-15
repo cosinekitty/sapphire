@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Elastika standalone test: running ..."
 rm -f elastika.wav
 ./build || exit 1
 ./elastika || exit 1
