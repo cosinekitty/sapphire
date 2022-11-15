@@ -1,0 +1,9 @@
+name: Sapphire Tests
+on: [push]
+jobs:
+  SapphireTest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Elastika standalone
+      run: cd cmdline && ./runtest
