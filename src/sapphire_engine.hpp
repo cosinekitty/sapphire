@@ -294,6 +294,50 @@ namespace Sapphire
             return y;
         }
     };
+
+
+    enum class SliderScale
+    {
+        Linear,         // evaluate the polynomial and return the resulting value `y`
+        Exponential,    // evaluate the polynomial as `y` and then return 10^y
+    };
+
+
+    class SliderMapping     // maps a slider value onto an arbitrary polynomial expression
+    {
+    private:
+        SliderScale scale = SliderScale::Linear;
+        std::vector<float> polynomial;     // polynomial coefficients, where index = exponent
+
+    public:
+        SliderMapping() {}
+
+        SliderMapping(SliderScale _scale, std::vector<float> _polynomial)
+            : scale(_scale)
+            , polynomial(_polynomial)
+            {}
+
+        float Evaluate(float x) const
+        {
+            float y = 0.0;
+            float xpower = 1.0;
+            for (float coeff : polynomial)
+            {
+                y += coeff * xpower;
+                xpower *= x;
+            }
+
+            switch (scale)
+            {
+            case SliderScale::Exponential:
+                return pow(10.0, y);
+
+            case SliderScale::Linear:
+            default:
+                return y;
+            }
+        }
+    };
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP

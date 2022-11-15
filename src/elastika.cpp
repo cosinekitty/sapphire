@@ -5,51 +5,6 @@
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-const int ELASTIKA_FILTER_LAYERS = 3;
-
-enum class SliderScale
-{
-    Linear,         // evaluate the polynomial and return the resulting value `y`
-    Exponential,    // evaluate the polynomial as `y` and then return 10^y
-};
-
-
-class SliderMapping     // maps a slider value onto an arbitrary polynomial expression
-{
-private:
-    SliderScale scale = SliderScale::Linear;
-    std::vector<float> polynomial;     // polynomial coefficients, where index = exponent
-
-public:
-    SliderMapping() {}
-
-    SliderMapping(SliderScale _scale, std::vector<float> _polynomial)
-        : scale(_scale)
-        , polynomial(_polynomial)
-        {}
-
-    float Evaluate(float x) const
-    {
-        float y = 0.0;
-        float xpower = 1.0;
-        for (float coeff : polynomial)
-        {
-            y += coeff * xpower;
-            xpower *= x;
-        }
-
-        switch (scale)
-        {
-        case SliderScale::Exponential:
-            return pow(10.0, y);
-
-        case SliderScale::Linear:
-        default:
-            return y;
-        }
-    }
-};
-
 
 class MeshInput     // facilitates injecting audio into the mesh
 {
@@ -99,7 +54,7 @@ public:
 };
 
 
-struct Elastika : Module
+struct ElastikaModule : Module
 {
     Sapphire::Slewer slewer;
     bool isPowerGateActive;
@@ -107,18 +62,18 @@ struct Elastika : Module
     int outputVerifyCounter;
     Sapphire::PhysicsMesh mesh;
     Sapphire::MeshAudioParameters mp;
-    SliderMapping frictionMap;
-    SliderMapping stiffnessMap;
-    SliderMapping spanMap;
-    SliderMapping curlMap;
-    SliderMapping massMap;
-    SliderMapping tiltMap;
+    Sapphire::SliderMapping frictionMap;
+    Sapphire::SliderMapping stiffnessMap;
+    Sapphire::SliderMapping spanMap;
+    Sapphire::SliderMapping curlMap;
+    Sapphire::SliderMapping massMap;
+    Sapphire::SliderMapping tiltMap;
     MeshInput leftInput;
     MeshInput rightInput;
     MeshOutput leftOutput;
     MeshOutput rightOutput;
-    Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
-    Sapphire::StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
+    Sapphire::StagedFilter<Sapphire::ELASTIKA_FILTER_LAYERS> leftLoCut;
+    Sapphire::StagedFilter<Sapphire::ELASTIKA_FILTER_LAYERS> rightLoCut;
     DcRejectQuantity *dcRejectQuantity = nullptr;
 
     enum ParamId
@@ -177,7 +132,7 @@ struct Elastika : Module
         LIGHTS_LEN
     };
 
-    Elastika()
+    ElastikaModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -283,7 +238,7 @@ struct Elastika : Module
     }
 
     float getControlValue(
-        const SliderMapping& map,
+        const Sapphire::SliderMapping& map,
         ParamId sliderId,
         ParamId attenuId,
         InputId cvInputId,
@@ -452,58 +407,58 @@ struct Elastika : Module
 
 struct ElastikaWidget : ModuleWidget
 {
-    Elastika *elastikaModule;
+    ElastikaModule *elastikaModule;
 
-    ElastikaWidget(Elastika* module)
+    ElastikaWidget(ElastikaModule* module)
     {
         elastikaModule = module;
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
         // Sliders
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 46.00)), module, Elastika::FRICTION_SLIDER_PARAM, Elastika::FRICTION_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 46.00)), module, Elastika::STIFFNESS_SLIDER_PARAM, Elastika::STIFFNESS_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 46.00)), module, Elastika::SPAN_SLIDER_PARAM, Elastika::SPAN_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 46.00)), module, Elastika::CURL_SLIDER_PARAM, Elastika::CURL_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, Elastika::MASS_SLIDER_PARAM, Elastika::MASS_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 46.00)), module, ElastikaModule::FRICTION_SLIDER_PARAM, ElastikaModule::FRICTION_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 46.00)), module, ElastikaModule::STIFFNESS_SLIDER_PARAM, ElastikaModule::STIFFNESS_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 46.00)), module, ElastikaModule::SPAN_SLIDER_PARAM, ElastikaModule::SPAN_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 46.00)), module, ElastikaModule::CURL_SLIDER_PARAM, ElastikaModule::CURL_LIGHT));
+        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, ElastikaModule::MASS_SLIDER_PARAM, ElastikaModule::MASS_LIGHT));
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, Elastika::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 72.00)), module, Elastika::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, Elastika::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, Elastika::CURL_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, Elastika::MASS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 12.50)), module, Elastika::INPUT_TILT_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(53.00, 12.50)), module, Elastika::OUTPUT_TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, ElastikaModule::FRICTION_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 72.00)), module, ElastikaModule::STIFFNESS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, ElastikaModule::SPAN_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, ElastikaModule::CURL_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, ElastikaModule::MASS_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 12.50)), module, ElastikaModule::INPUT_TILT_ATTEN_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(53.00, 12.50)), module, ElastikaModule::OUTPUT_TILT_ATTEN_PARAM));
 
         // Drive and Level knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, Elastika::DRIVE_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, Elastika::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, ElastikaModule::DRIVE_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM));
 
         // Tilt angle knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, Elastika::INPUT_TILT_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 17.50)), module, Elastika::OUTPUT_TILT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, ElastikaModule::INPUT_TILT_KNOB_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 17.50)), module, ElastikaModule::OUTPUT_TILT_KNOB_PARAM));
 
         // CV input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, Elastika::FRICTION_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(19.24, 81.74)), module, Elastika::STIFFNESS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, Elastika::SPAN_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, Elastika::CURL_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, Elastika::MASS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 22.50)), module, Elastika::INPUT_TILT_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(53.00, 22.50)), module, Elastika::OUTPUT_TILT_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, ElastikaModule::FRICTION_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(19.24, 81.74)), module, ElastikaModule::STIFFNESS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, ElastikaModule::SPAN_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, ElastikaModule::CURL_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, ElastikaModule::MASS_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 22.50)), module, ElastikaModule::INPUT_TILT_CV_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(53.00, 22.50)), module, ElastikaModule::OUTPUT_TILT_CV_INPUT));
 
         // Audio input Jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, Elastika::AUDIO_LEFT_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(20.50, 115.00)), module, Elastika::AUDIO_RIGHT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, ElastikaModule::AUDIO_LEFT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(20.50, 115.00)), module, ElastikaModule::AUDIO_RIGHT_INPUT));
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, Elastika::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, Elastika::AUDIO_RIGHT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, ElastikaModule::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, ElastikaModule::AUDIO_RIGHT_OUTPUT));
 
         // Power enable/disable
-        addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, Elastika::POWER_TOGGLE_PARAM, Elastika::POWER_LIGHT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, Elastika::POWER_GATE_INPUT));
+        addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, ElastikaModule::POWER_GATE_INPUT));
     }
 
     void appendContextMenu(Menu* menu) override
@@ -519,4 +474,4 @@ struct ElastikaWidget : ModuleWidget
 };
 
 
-Model* modelElastika = createModel<Elastika, ElastikaWidget>("Elastika");
+Model* modelElastika = createModel<ElastikaModule, ElastikaWidget>("Elastika");

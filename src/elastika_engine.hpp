@@ -164,10 +164,16 @@ namespace Sapphire
         }
     };
 
-    // Factory functions that make meshes:
-    MeshAudioParameters CreateRoundDrum(PhysicsMesh& mesh);
-    MeshAudioParameters CreateString(PhysicsMesh& mesh);
     MeshAudioParameters CreateHex(PhysicsMesh& mesh);
+
+    const int ELASTIKA_FILTER_LAYERS = 3;
+
+    class ElastikaEngine
+    {
+    private:
+
+    public:
+    };
 }
 
 #endif // __COSINEKITTY_ELASTIKA_ENGINE_HPP
