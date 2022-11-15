@@ -11,7 +11,10 @@
 
 inline int16_t ConvertSample(float x)
 {
-    return static_cast<int16_t>(32000.0 * Sapphire::Clamp(x, -1.0f, +1.0f));
+    if (x < -1.0f || x > +1.0f)
+        throw std::range_error("Elastika audio output went out of range.");
+
+    return static_cast<int16_t>(32700.0 * x);
 }
 
 int main()
@@ -60,7 +63,7 @@ int main()
 
         data[buf++] = ConvertSample(sample[0]);
         data[buf++] = ConvertSample(sample[1]);
-        if ((buf == BUFFER_DATA) || (buf > 0 && s == DURATION_SAMPLES-1))
+        if ((buf == BUFFER_DATA) || (s == DURATION_SAMPLES-1))
         {
             size_t wrote = fwrite(data.data(), sizeof(int16_t), buf, outfile);
             if (wrote < buf)
