@@ -1,0 +1,8 @@
+#!/bin/bash
+rm -f elastika.wav
+./build || exit 1
+./elastika || exit 1
+ls -l elastika.wav
+diff elastika.wav correct.wav || exit 1
+echo "Elastika standalone test: PASS"
+exit 0
