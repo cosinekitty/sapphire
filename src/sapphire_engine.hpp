@@ -124,6 +124,9 @@ namespace Sapphire
             if (channels < 1)
                 return;     // another short-cut to save processing time
 
+            if (rampLength <= 0)
+                return;     // prevent division by zero or other weird behavior
+
             // The sample rate could change at any moment,
             // including while we are ramping.
             // Therefore we need to make sure the ratio count/rampLength

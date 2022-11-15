@@ -6,75 +6,13 @@
 // https://github.com/cosinekitty/sapphire
 
 
-class MeshInput     // facilitates injecting audio into the mesh
-{
-private:
-    int ballIndex;
-
-public:
-    MeshInput()
-        : ballIndex(-1)
-        {}
-
-    explicit MeshInput(int _ballIndex)
-        : ballIndex(_ballIndex)
-        {}
-
-    // Inject audio into the mesh
-    void Inject(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction, float sample)
-    {
-        Sapphire::Ball& ball = mesh.GetBallAt(ballIndex);
-        ball.pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
-    }
-};
-
-
-class MeshOutput    // facilitates extracting audio from the mesh
-{
-private:
-    int ballIndex;
-
-public:
-    MeshOutput()
-        : ballIndex(-1)
-        {}
-
-    explicit MeshOutput(int _ballIndex)
-        : ballIndex(_ballIndex)
-        {}
-
-    // Extract audio from the mesh
-    float Extract(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
-    {
-        using namespace Sapphire;
-
-        PhysicsVector movement = mesh.GetBallDisplacement(ballIndex);
-        return Dot(movement, direction);
-    }
-};
-
-
 struct ElastikaModule : Module
 {
+    Sapphire::ElastikaEngine engine;
+    DcRejectQuantity *dcRejectQuantity = nullptr;
     Sapphire::Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
-    int outputVerifyCounter;
-    Sapphire::PhysicsMesh mesh;
-    Sapphire::MeshAudioParameters mp;
-    Sapphire::SliderMapping frictionMap;
-    Sapphire::SliderMapping stiffnessMap;
-    Sapphire::SliderMapping spanMap;
-    Sapphire::SliderMapping curlMap;
-    Sapphire::SliderMapping massMap;
-    Sapphire::SliderMapping tiltMap;
-    MeshInput leftInput;
-    MeshInput rightInput;
-    MeshOutput leftOutput;
-    MeshOutput rightOutput;
-    Sapphire::StagedFilter<Sapphire::ELASTIKA_FILTER_LAYERS> leftLoCut;
-    Sapphire::StagedFilter<Sapphire::ELASTIKA_FILTER_LAYERS> rightLoCut;
-    DcRejectQuantity *dcRejectQuantity = nullptr;
 
     enum ParamId
     {
@@ -187,40 +125,13 @@ struct ElastikaModule : Module
 
     void initialize()
     {
-        using namespace Sapphire;
-
+        engine.initialize();
+        engine.setDcRejectFrequency(dcRejectQuantity->frequency);
+        dcRejectQuantity->changed = false;
         isPowerGateActive = true;
         isQuiet = false;
-        outputVerifyCounter = 0;
         slewer.enable(true);
         params[POWER_TOGGLE_PARAM].setValue(1.0f);
-
-        // Set the defaults for how to interpret the slider values.
-        // Determined experimentally to produce useful ranges.
-
-        frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
-        stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
-        spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
-        curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
-        massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
-        tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
-
-        mp = CreateHex(mesh);
-        INFO("Mesh has %d balls, %d springs.", mesh.NumBalls(), mesh.NumSprings());
-
-        // Define how stereo inputs go into the mesh.
-        leftInput  = MeshInput(mp.leftInputBallIndex);
-        rightInput = MeshInput(mp.rightInputBallIndex);
-
-        // Define how to extract stereo outputs from the mesh.
-        leftOutput  = MeshOutput(mp.leftOutputBallIndex);
-        rightOutput = MeshOutput(mp.rightOutputBallIndex);
-
-        leftLoCut.Reset();
-        leftLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
-        rightLoCut.Reset();
-        rightLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
-        dcRejectQuantity->changed = false;
     }
 
     void onReset(const ResetEvent& e) override
@@ -238,7 +149,6 @@ struct ElastikaModule : Module
     }
 
     float getControlValue(
-        const Sapphire::SliderMapping& map,
         ParamId sliderId,
         ParamId attenuId,
         InputId cvInputId,
@@ -257,15 +167,7 @@ struct ElastikaModule : Module
             // range is [-5, +5] volts.
             slider += attenu * (cv / 5.0) * (maxSlider - minSlider);
         }
-        float value = map.Evaluate(clamp(slider, minSlider, maxSlider));
-        return value;
-    }
-
-    void quiet()
-    {
-        mesh.Quiet();
-        leftLoCut.Reset();
-        rightLoCut.Reset();
+        return slider;
     }
 
     void process(const ProcessArgs& args) override
@@ -316,7 +218,7 @@ struct ElastikaModule : Module
             if (!isQuiet)
             {
                 isQuiet = true;
-                quiet();
+                engine.quiet();
             }
             return;
         }
@@ -327,77 +229,39 @@ struct ElastikaModule : Module
         // update the output filter corner frequencies.
         if (dcRejectQuantity->changed)
         {
+            engine.setDcRejectFrequency(dcRejectQuantity->frequency);
             dcRejectQuantity->changed = false;
-            leftLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
-            rightLoCut.SetCutoffFrequency(dcRejectQuantity->frequency);
         }
 
         // Update the mesh parameters from sliders and control voltages.
 
-        float halfLife = getControlValue(frictionMap, FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
-        float restLength = getControlValue(spanMap, SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
-        float stiffness = getControlValue(stiffnessMap, STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
-        float curl = getControlValue(curlMap, CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
-        float mass = getControlValue(massMap, MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
-        float drive = std::pow(params[DRIVE_KNOB_PARAM].getValue(), 4.0f);
+        float fric = getControlValue(FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
+        float span = getControlValue(SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
+        float stif = getControlValue(STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
+        float curl = getControlValue(CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
+        float mass = getControlValue(MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
+        float drive = params[DRIVE_KNOB_PARAM].getValue();
         float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
-        float inTilt = getControlValue(tiltMap, INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
-        float outTilt = getControlValue(tiltMap, OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
+        float inTilt = getControlValue(INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
+        float outTilt = getControlValue(OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 
-        mesh.SetRestLength(restLength);
-        mesh.SetStiffness(stiffness);
+        engine.setFriction(fric);
+        engine.setSpan(span);
+        engine.setStiffness(stif);
+        engine.setCurl(curl);
+        engine.setMass(mass);
+        engine.setDrive(drive);
+        engine.setGain(gain);
+        engine.setInputTilt(inTilt);
+        engine.setOutputTilt(outTilt);
 
-        Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
-        Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
-        lmBall.mass = rmBall.mass = 1.0e-6 * mass;
-
-        if (curl >= 0.0f)
-            mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
-        else
-            mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
-
-        // Feed audio stimulus into the mesh.
-        PhysicsVector leftInputDir = Interpolate(inTilt, mp.leftInputDir1, mp.leftInputDir2);
-        PhysicsVector rightInputDir = Interpolate(inTilt, mp.rightInputDir1, mp.rightInputDir2);
-        leftInput.Inject(mesh, leftInputDir, drive * inputs[AUDIO_LEFT_INPUT].getVoltageSum());
-        rightInput.Inject(mesh, rightInputDir, drive * inputs[AUDIO_RIGHT_INPUT].getVoltageSum());
-
-        // Update the simulation state by one sample's worth of time.
-        mesh.Update(args.sampleTime, halfLife);
-
+        float leftIn = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
+        float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
         float sample[2];
-
-        // Extract output for the left channel.
-        PhysicsVector leftOutputDir = Interpolate(outTilt, mp.leftOutputDir1, mp.leftOutputDir2);
-        sample[0] = leftOutput.Extract(mesh, leftOutputDir);
-        sample[0] = leftLoCut.UpdateHiPass(sample[0], args.sampleRate);
-        sample[0] *= gain;
-
-        // Extract output for the right channel.
-        PhysicsVector rightOutputDir = Interpolate(outTilt, mp.rightOutputDir1, mp.rightOutputDir2);
-        sample[1] = rightOutput.Extract(mesh, rightOutputDir);
-        sample[1] = rightLoCut.UpdateHiPass(sample[1], args.sampleRate);
-        sample[1] *= gain;
+        engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
 
         // Filter the audio through the slewer to prevent clicks during power transitions.
         slewer.process(sample, 2);
-
-        // Final line of defense against NAN/infinite output:
-        // Check for invalid output. If found, clear the mesh.
-        // Do this about every quarter of a second, to avoid CPU burden.
-        // The intention is for the user to notice something sounds wrong,
-        // the output is briefly NAN, but then it clears up as soon as the
-        // internal or external problem is resolved.
-        // The main point is to avoid leaving Elastika stuck in a NAN state forever.
-        if (++outputVerifyCounter >= 11000)
-        {
-            outputVerifyCounter = 0;
-            if (!std::isfinite(sample[0]) || !std::isfinite(sample[1]))
-            {
-                quiet();
-                sample[0] = sample[1] = 0.0f;
-            }
-        }
 
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);

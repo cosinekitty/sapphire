@@ -168,11 +168,243 @@ namespace Sapphire
 
     const int ELASTIKA_FILTER_LAYERS = 3;
 
+#if 0       //  not sure yet there is any need for generic parameters
+    enum class ElastikaParamId
+    {
+        Friction,
+        Stiffness,
+        Span,
+        Curl,
+        Mass,
+        InputTilt,
+        OutputTilt,
+        Drive,
+        Level,
+        DcRejectFreq,
+
+        COUNT
+    };
+
+    const int ELASTIKA_NUM_PARAMS = static_cast<int>(ElastikaParamId::COUNT);
+#endif
+
+    class MeshInput     // facilitates injecting audio into the mesh
+    {
+    private:
+        int ballIndex;
+
+    public:
+        MeshInput()
+            : ballIndex(-1)
+            {}
+
+        explicit MeshInput(int _ballIndex)
+            : ballIndex(_ballIndex)
+            {}
+
+        // Inject audio into the mesh
+        void Inject(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction, float sample)
+        {
+            Sapphire::Ball& ball = mesh.GetBallAt(ballIndex);
+            ball.pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
+        }
+    };
+
+
+    class MeshOutput    // facilitates extracting audio from the mesh
+    {
+    private:
+        int ballIndex;
+
+    public:
+        MeshOutput()
+            : ballIndex(-1)
+            {}
+
+        explicit MeshOutput(int _ballIndex)
+            : ballIndex(_ballIndex)
+            {}
+
+        // Extract audio from the mesh
+        float Extract(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
+        {
+            using namespace Sapphire;
+
+            PhysicsVector movement = mesh.GetBallDisplacement(ballIndex);
+            return Dot(movement, direction);
+        }
+    };
+
+
     class ElastikaEngine
     {
     private:
+        int outputVerifyCounter;
+        PhysicsMesh mesh;
+        MeshAudioParameters mp;
+        SliderMapping frictionMap;
+        SliderMapping stiffnessMap;
+        SliderMapping spanMap;
+        SliderMapping curlMap;
+        SliderMapping massMap;
+        SliderMapping tiltMap;
+        MeshInput leftInput;
+        MeshInput rightInput;
+        MeshOutput leftOutput;
+        MeshOutput rightOutput;
+        StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
+        StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
+        float halfLife;
+        float drive;
+        float gain;
+        float inTilt;
+        float outTilt;
 
     public:
+        ElastikaEngine() { initialize(); };
+
+        void initialize()
+        {
+            outputVerifyCounter = 0;
+
+            frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
+            stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
+            spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
+            curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
+            massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
+            tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
+
+            mp = CreateHex(mesh);
+
+            // Define how stereo inputs go into the mesh.
+            leftInput  = MeshInput(mp.leftInputBallIndex);
+            rightInput = MeshInput(mp.rightInputBallIndex);
+
+            // Define how to extract stereo outputs from the mesh.
+            leftOutput  = MeshOutput(mp.leftOutputBallIndex);
+            rightOutput = MeshOutput(mp.rightOutputBallIndex);
+
+            leftLoCut.Reset();
+            rightLoCut.Reset();
+            setDcRejectFrequency(20.0f);
+
+            setFriction();
+            setSpan();
+            setStiffness();
+            setCurl();
+            setMass();
+            setDrive();
+            setGain();
+            setInputTilt();
+            setOutputTilt();
+        }
+
+        void setDcRejectFrequency(float frequency)
+        {
+            leftLoCut.SetCutoffFrequency(frequency);
+            rightLoCut.SetCutoffFrequency(frequency);
+        }
+
+        void quiet()
+        {
+            mesh.Quiet();
+            leftLoCut.Reset();
+            rightLoCut.Reset();
+        }
+
+        void setFriction(float slider = 0.5f)
+        {
+            halfLife = frictionMap.Evaluate(Clamp(slider));
+        }
+
+        void setSpan(float slider = 0.5f)
+        {
+            float restLength = spanMap.Evaluate(Clamp(slider));
+            mesh.SetRestLength(restLength);
+        }
+
+        void setStiffness(float slider = 0.5f)
+        {
+            float stiffness = stiffnessMap.Evaluate(Clamp(slider));
+            mesh.SetStiffness(stiffness);
+        }
+
+        void setCurl(float slider = 0.0f)
+        {
+            float curl = curlMap.Evaluate(Clamp(slider, -1.0f, +1.0f));
+            if (curl >= 0.0f)
+                mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
+            else
+                mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
+        }
+
+        void setMass(float slider = 0.0f)
+        {
+            Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
+            Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
+            lmBall.mass = rmBall.mass = 1.0e-6 * massMap.Evaluate(Clamp(slider, -1.0f, +1.0f));
+        }
+
+        void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+        {
+            drive = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f);
+        }
+
+        void setGain(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+        {
+            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f);
+        }
+
+        void setInputTilt(float slider = 0.5f)
+        {
+            inTilt = Clamp(slider);
+        }
+
+        void setOutputTilt(float slider = 0.5f)
+        {
+            outTilt = Clamp(slider);
+        }
+
+        void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
+        {
+            // Feed audio stimulus into the mesh.
+            PhysicsVector leftInputDir = Interpolate(inTilt, mp.leftInputDir1, mp.leftInputDir2);
+            PhysicsVector rightInputDir = Interpolate(inTilt, mp.rightInputDir1, mp.rightInputDir2);
+            leftInput.Inject(mesh, leftInputDir, drive * leftIn);
+            rightInput.Inject(mesh, rightInputDir, drive * rightIn);
+
+            // Update the simulation state by one sample's worth of time.
+            mesh.Update(1.0/sampleRate, halfLife);
+
+            // Extract output for the left channel.
+            PhysicsVector leftOutputDir = Interpolate(outTilt, mp.leftOutputDir1, mp.leftOutputDir2);
+            leftOut = leftOutput.Extract(mesh, leftOutputDir);
+            leftOut = leftLoCut.UpdateHiPass(leftOut, sampleRate);
+            leftOut *= gain;
+
+            // Extract output for the right channel.
+            PhysicsVector rightOutputDir = Interpolate(outTilt, mp.rightOutputDir1, mp.rightOutputDir2);
+            rightOut = rightOutput.Extract(mesh, rightOutputDir);
+            rightOut = rightLoCut.UpdateHiPass(rightOut, sampleRate);
+            rightOut *= gain;
+
+            // Final line of defense against NAN/infinite output:
+            // Check for invalid output. If found, clear the mesh.
+            // Do this about every quarter of a second, to avoid CPU burden.
+            // The intention is for the user to notice something sounds wrong,
+            // the output is briefly NAN, but then it clears up as soon as the
+            // internal or external problem is resolved.
+            // The main point is to avoid leaving Elastika stuck in a NAN state forever.
+            if (++outputVerifyCounter >= 11000)
+            {
+                outputVerifyCounter = 0;
+                if (!std::isfinite(leftOut) || !std::isfinite(rightOut))
+                {
+                    quiet();
+                    leftOut = rightOut = 0.0f;
+                }
+            }
+        }
     };
 }
 
