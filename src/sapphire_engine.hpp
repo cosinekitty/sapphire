@@ -1,9 +1,10 @@
-#ifndef __COSINEKITTY_SAPPHIRE_HPP
-#define __COSINEKITTY_SAPPHIRE_HPP
+#ifndef __COSINEKITTY_SAPPHIRE_ENGINE_HPP
+#define __COSINEKITTY_SAPPHIRE_ENGINE_HPP
 
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <vector>
 #include <pmmintrin.h>
 
 namespace Sapphire
@@ -214,6 +215,85 @@ namespace Sapphire
     {
         return std::sqrt(Dot(a, a));
     }
+
+    inline PhysicsVector Interpolate(
+        float slider,
+        const PhysicsVector &a,
+        const PhysicsVector &b)
+    {
+        PhysicsVector c = (1.0-slider)*a + slider*b;
+
+        // Normalize the length to the match the first vector `a`.
+        return sqrt(Dot(a,a) / Dot(c,c)) * c;
+    }
+
+    using PhysicsVectorList = std::vector<PhysicsVector>;
+
+    class LoHiPassFilter
+    {
+    private:
+        bool  first;
+        float xprev;
+        float yprev;
+        float fc;
+
+    public:
+        LoHiPassFilter()
+            : first(true)
+            , xprev(0.0)
+            , yprev(0.0)
+            , fc(20.0)
+            {}
+
+        void Reset() { first = true; }
+        void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
+        void Update(float x, float sampleRateHz);
+        float HiPass() const { return xprev - yprev; }
+        float LoPass() const { return yprev; };
+    };
+
+
+    template <int LAYERS>
+    class StagedFilter
+    {
+    private:
+        LoHiPassFilter stage[LAYERS];
+
+    public:
+        void Reset()
+        {
+            for (int i = 0; i < LAYERS; ++i)
+                stage[i].Reset();
+        }
+
+        void SetCutoffFrequency(float cutoffFrequencyHz)
+        {
+            for (int i = 0; i < LAYERS; ++i)
+                stage[i].SetCutoffFrequency(cutoffFrequencyHz);
+        }
+
+        float UpdateLoPass(float x, float sampleRateHz)
+        {
+            float y = x;
+            for (int i=0; i < LAYERS; ++i)
+            {
+                stage[i].Update(y, sampleRateHz);
+                y = stage[i].LoPass();
+            }
+            return y;
+        }
+
+        float UpdateHiPass(float x, float sampleRateHz)
+        {
+            float y = x;
+            for (int i=0; i < LAYERS; ++i)
+            {
+                stage[i].Update(y, sampleRateHz);
+                y = stage[i].HiPass();
+            }
+            return y;
+        }
+    };
 }
 
-#endif
+#endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP

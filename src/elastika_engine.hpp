@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __COSINEKITTY_ELASTIKA_ENGINE_HPP
+#define __COSINEKITTY_ELASTIKA_ENGINE_HPP
 
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-#include <rack.hpp>
+#include <stdexcept>
 #include "elastika_engine.hpp"
 
 namespace Sapphire
@@ -51,10 +52,8 @@ namespace Sapphire
         bool IsMobile() const { return mass > 0.0; }
     };
 
-    typedef std::vector<Spring> SpringList;
-    typedef std::vector<Ball> BallList;
-    typedef std::vector<PhysicsVector> PhysicsVectorList;
-    typedef std::vector<float> PhysicsScalarList;
+    using SpringList = std::vector<Spring>;
+    using BallList = std::vector<Ball>;
 
     const float MESH_DEFAULT_STIFFNESS = 10.0;
     const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
@@ -115,74 +114,6 @@ namespace Sapphire
         );
     };
 
-
-    class LoHiPassFilter
-    {
-    private:
-        bool  first;
-        float xprev;
-        float yprev;
-        float fc;
-
-    public:
-        LoHiPassFilter()
-            : first(true)
-            , xprev(0.0)
-            , yprev(0.0)
-            , fc(20.0)
-            {}
-
-        void Reset() { first = true; }
-        void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
-        void Update(float x, float sampleRateHz);
-        float HiPass() const { return xprev - yprev; }
-        float LoPass() const { return yprev; };
-    };
-
-
-    template <int LAYERS>
-    class StagedFilter
-    {
-    private:
-        LoHiPassFilter stage[LAYERS];
-
-    public:
-        void Reset()
-        {
-            for (int i = 0; i < LAYERS; ++i)
-                stage[i].Reset();
-        }
-
-        void SetCutoffFrequency(float cutoffFrequencyHz)
-        {
-            for (int i = 0; i < LAYERS; ++i)
-                stage[i].SetCutoffFrequency(cutoffFrequencyHz);
-        }
-
-        float UpdateLoPass(float x, float sampleRateHz)
-        {
-            float y = x;
-            for (int i=0; i < LAYERS; ++i)
-            {
-                stage[i].Update(y, sampleRateHz);
-                y = stage[i].LoPass();
-            }
-            return y;
-        }
-
-        float UpdateHiPass(float x, float sampleRateHz)
-        {
-            float y = x;
-            for (int i=0; i < LAYERS; ++i)
-            {
-                stage[i].Update(y, sampleRateHz);
-                y = stage[i].HiPass();
-            }
-            return y;
-        }
-    };
-
-
     struct MeshAudioParameters
     {
         int leftInputBallIndex        = -1;
@@ -238,3 +169,5 @@ namespace Sapphire
     MeshAudioParameters CreateString(PhysicsMesh& mesh);
     MeshAudioParameters CreateHex(PhysicsMesh& mesh);
 }
+
+#endif // __COSINEKITTY_ELASTIKA_ENGINE_HPP

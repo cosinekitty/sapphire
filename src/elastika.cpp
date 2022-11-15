@@ -306,19 +306,6 @@ struct Elastika : Module
         return value;
     }
 
-    static Sapphire::PhysicsVector Interpolate(
-        float slider,
-        const Sapphire::PhysicsVector &a,
-        const Sapphire::PhysicsVector &b)
-    {
-        using namespace Sapphire;
-
-        PhysicsVector c = (1.0-slider)*a + slider*b;
-
-        // Normalize the length to the match the first vector `a`.
-        return sqrt(Dot(a,a) / Dot(c,c)) * c;
-    }
-
     void quiet()
     {
         mesh.Quiet();
