@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include "sapphire_engine.hpp"
 #include "elastika_engine.hpp"
 
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>

@@ -1,0 +1,7 @@
+#!/bin/bash
+ELASTIKA_SRC=../src
+g++ -O3 -I${ELASTIKA_SRC} -o \
+    elastika elastika_standalone.cpp \
+    ${ELASTIKA_SRC}/mesh_hex.cpp \
+    ${ELASTIKA_SRC}/mesh_physics.cpp
+
