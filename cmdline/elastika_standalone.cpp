@@ -25,6 +25,8 @@ int main()
     const int CHANNELS = 2;
     const int DURATION_SECONDS = 10;
     const int DURATION_SAMPLES = SAMPLE_RATE * DURATION_SECONDS;
+    const int FADE_SECONDS = 7;
+    const int FADE_SAMPLES = SAMPLE_RATE * FADE_SECONDS;
 
     ElastikaEngine engine;
     engine.setDcRejectFrequency(80.0);
@@ -55,6 +57,7 @@ int main()
     for (int s = 0; s < DURATION_SAMPLES; ++s)
     {
         engine.process(SAMPLE_RATE, 0.0f, 0.0f, sample[0], sample[1]);
+
         data[buf++] = ConvertSample(sample[0]);
         data[buf++] = ConvertSample(sample[1]);
         if ((buf == BUFFER_DATA) || (buf > 0 && s == DURATION_SAMPLES-1))
@@ -66,6 +69,12 @@ int main()
                 goto fail;
             }
             buf = 0;
+        }
+
+        if (s == FADE_SAMPLES)
+        {
+            engine.setFriction(0.46f);
+            engine.setCurl(0.0f);
         }
     }
 
