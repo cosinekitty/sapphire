@@ -235,8 +235,8 @@ struct ElastikaModule : Module
         // Update the mesh parameters from sliders and control voltages.
 
         float fric = getControlValue(FRICTION_SLIDER_PARAM, FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT);
-        float span = getControlValue(SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float stif = getControlValue(STIFFNESS_SLIDER_PARAM, STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT);
+        float span = getControlValue(SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
         float curl = getControlValue(CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
         float mass = getControlValue(MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
@@ -245,8 +245,8 @@ struct ElastikaModule : Module
         float outTilt = getControlValue(OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 
         engine.setFriction(fric);
-        engine.setSpan(span);
         engine.setStiffness(stif);
+        engine.setSpan(span);
         engine.setCurl(curl);
         engine.setMass(mass);
         engine.setDrive(drive);
@@ -258,6 +258,10 @@ struct ElastikaModule : Module
         float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
         float sample[2];
         engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+
+        // Scale ElastikaEngine's dimensionless amplitude to a +5.0V amplitude.
+        sample[0] *= 5.0;
+        sample[1] *= 5.0;
 
         // Filter the audio through the slewer to prevent clicks during power transitions.
         slewer.process(sample, 2);

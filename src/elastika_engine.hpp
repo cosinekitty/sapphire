@@ -168,26 +168,6 @@ namespace Sapphire
 
     const int ELASTIKA_FILTER_LAYERS = 3;
 
-#if 0       //  not sure yet there is any need for generic parameters
-    enum class ElastikaParamId
-    {
-        Friction,
-        Stiffness,
-        Span,
-        Curl,
-        Mass,
-        InputTilt,
-        OutputTilt,
-        Drive,
-        Level,
-        DcRejectFreq,
-
-        COUNT
-    };
-
-    const int ELASTIKA_NUM_PARAMS = static_cast<int>(ElastikaParamId::COUNT);
-#endif
-
     class MeshInput     // facilitates injecting audio into the mesh
     {
     private:
