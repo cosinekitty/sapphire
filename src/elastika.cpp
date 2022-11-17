@@ -269,6 +269,19 @@ struct ElastikaModule : Module
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
     }
+
+    json_t* dataToJson() override
+    {
+        json_t* root = json_object();
+        json_object_set_new(root, "agc", json_boolean(engine.getAgcEnabled()));
+        return root;
+    }
+
+    void dataFromJson(json_t* root) override
+    {
+        json_t* agcJson = json_object_get(root, "agc");
+        engine.setAgcEnabled(json_boolean_value(agcJson));
+    }
 };
 
 
@@ -333,9 +346,25 @@ struct ElastikaWidget : ModuleWidget
         if (elastikaModule && elastikaModule->dcRejectQuantity)
         {
             menu->addChild(new MenuSeparator);
+
+            // Add slider that adjusts the DC-reject filter's corner frequency.
             DcRejectSlider *dcRejectSlider = new DcRejectSlider(elastikaModule->dcRejectQuantity);
             dcRejectSlider->box.size.x = 200.0f;
             menu->addChild(dcRejectSlider);
+
+            // Add checkbox to enable/disable automatic gain control.
+            menu->addChild(createBoolMenuItem(
+                "Automatic gain control",
+                "",
+                [=]()
+                {
+                    return elastikaModule->engine.getAgcEnabled();
+                },
+                [=](bool state)
+                {
+                    elastikaModule->engine.setAgcEnabled(state);
+                }
+            ));
         }
     }
 };

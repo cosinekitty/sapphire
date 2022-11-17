@@ -347,8 +347,18 @@ namespace Sapphire
             outTilt = Clamp(slider);
         }
 
-        void setAgcEnabled(bool enable)  { enableAgc = enable; }
         bool getAgcEnabled() const { return enableAgc; }
+
+        void setAgcEnabled(bool enable)
+        {
+            if (enable && !enableAgc)
+            {
+                // If the AGC isn't enabled, and caller wants to enable it,
+                // re-initialize the AGC so it forgets any previous level it had settled on.
+                agc.initialize();
+            }
+            enableAgc = enable;
+        }
 
         void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
         {

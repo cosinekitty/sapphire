@@ -9,6 +9,19 @@
 </tr>
 
 <tr valign="top">
+<td align="center">17 Nov 2022</td>
+<td align="center">2.1.3</td>
+<td align="left">
+Elastika now comes with a built-in limiter based on automatic gain control (AGC).
+Before this was added, output levels could get VERY hot.
+The AGC generally keeps the output amplitude from exceeding 5V, although
+there can be brief transients as it adjusts to sudden changes of output level.
+The AGC is enabled by default, but can be disabled in the right-click menu.
+Disabling AGC could make sense for patches where Elastika's output is attenuated externally.
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">13 Nov 2022</td>
 <td align="center">2.1.2</td>
 <td align="left">
