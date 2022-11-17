@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+#   Sapphire pre-flight checklist.
+#   Make sure everything builds and unit tests pass
+#   before pushing to the GitHub repo.
+#
+./verify_clean || exit 1
+./buildall || exit 1
+./runtests || exit 1
+./verify_clean || exit 1
+git push || exit 1
+exit 0

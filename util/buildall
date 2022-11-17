@@ -5,7 +5,7 @@ Fail()
     exit 1
 }
 
-RACKTOOL=../rack-plugin-toolchain
+RACKTOOL=../../rack-plugin-toolchain
 
 [[ -d ${RACKTOOL} ]] || Fail "
 
@@ -26,7 +26,7 @@ RACKTOOL=../rack-plugin-toolchain
         make install
 "
 
-SAPPHIRE=${PWD}
+SAPPHIRE=$(realpath ..)
 cd ${RACKTOOL} || Fail "Cannot change directory to ${RACKTOOL}"
 rm -rf plugin-build
 make plugin-build PLUGIN_DIR=${SAPPHIRE} || Fail "Error in `make plugin-build`"
