@@ -24,34 +24,38 @@ struct SapphirePort : app::SvgPort
 };
 
 
-struct DcRejectQuantity : ParamQuantity
+struct SapphireQuantity : ParamQuantity
 {
-    float frequency = 20.0f;
+    float value;
     bool changed = true;
 
-    DcRejectQuantity()
+    SapphireQuantity()
     {
         randomizeEnabled = false;
     }
 
-    void setValue(float value) override
+    void setValue(float newValue) override
     {
-        float newFrequency = math::clamp(value, getMinValue(), getMaxValue());
-        if (newFrequency != frequency)
+        float clamped = math::clamp(newValue, getMinValue(), getMaxValue());
+        if (clamped != value)
         {
             changed = true;
-            frequency = newFrequency;
+            value = clamped;
         }
     }
 
-    float getValue() override { return frequency; }
-
-    std::string getDisplayValueString() override
-    {
-        return string::f("%i", (int)(math::normalizeZero(frequency) + 0.5f));
-    }
+    float getValue() override { return value; }
 
     void setDisplayValue(float displayValue) override { setValue(displayValue); }
+};
+
+
+struct DcRejectQuantity : SapphireQuantity
+{
+    std::string getDisplayValueString() override
+    {
+        return string::f("%i", (int)(math::normalizeZero(value) + 0.5f));
+    }
 };
 
 
@@ -60,5 +64,25 @@ struct DcRejectSlider : ui::Slider
     DcRejectSlider(DcRejectQuantity *_quantity)
     {
         quantity = _quantity;
+        box.size.x = 200.0f;
+    }
+};
+
+
+struct VoltageQuantity : SapphireQuantity
+{
+    std::string getDisplayValueString() override
+    {
+        return string::f("%0.3f", value);
+    }
+};
+
+
+struct VoltageSlider : ui::Slider
+{
+    VoltageSlider(VoltageQuantity *_quantity)
+    {
+        quantity = _quantity;
+        box.size.x = 200.0f;
     }
 };

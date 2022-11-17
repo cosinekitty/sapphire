@@ -397,14 +397,20 @@ namespace Sapphire
 
     public:
         AutomaticGainLimiter(double _ceiling, double _attackHalfLife, double _decayHalfLife)
-            : ceiling(VerifyPositive(_ceiling / FUDGE_FACTOR))
-            , attackHalfLife(VerifyPositive(_attackHalfLife))
+            : attackHalfLife(VerifyPositive(_attackHalfLife))
             , decayHalfLife(VerifyPositive(_decayHalfLife))
-            {}
+        {
+            setCeiling(_ceiling);
+        }
 
         void initialize()
         {
             follower = 1.0;
+        }
+
+        void setCeiling(float _ceiling)
+        {
+            ceiling = VerifyPositive(_ceiling / FUDGE_FACTOR);
         }
 
         void process(double sampleRate, float& left, float& right)

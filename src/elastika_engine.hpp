@@ -360,6 +360,13 @@ namespace Sapphire
             enableAgc = enable;
         }
 
+        void setAgcLevel(float level)
+        {
+            // Convert VCV voltages to unit dimensionless quantities.
+            float ceiling = level / 5.0f;
+            agc.setCeiling(ceiling);
+        }
+
         void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
         {
             // Feed audio stimulus into the mesh.

@@ -9,6 +9,7 @@ struct ElastikaModule : Module
 {
     Sapphire::ElastikaEngine engine;
     DcRejectQuantity *dcRejectQuantity = nullptr;
+    VoltageQuantity *agcLevelQuantity = nullptr;
     Sapphire::Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
@@ -33,6 +34,7 @@ struct ElastikaModule : Module
         INPUT_TILT_ATTEN_PARAM,
         OUTPUT_TILT_ATTEN_PARAM,
         DC_REJECT_PARAM,
+        AGC_LEVEL_PARAM,
         PARAMS_LEN
     };
 
@@ -86,8 +88,14 @@ struct ElastikaModule : Module
         configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass", "%", 0, 100);
         configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle", "%", 0, 100);
         configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle", "%", 0, 100);
+
         configParam<DcRejectQuantity>(DC_REJECT_PARAM, 20, 400, 20, "DC reject cutoff", " Hz");
         dcRejectQuantity = dynamic_cast<DcRejectQuantity *>(paramQuantities[DC_REJECT_PARAM]);
+        dcRejectQuantity->value = 20.0f;
+
+        configParam<VoltageQuantity>(AGC_LEVEL_PARAM, 5, 10, 5, "AGC level", " V");
+        agcLevelQuantity = dynamic_cast<VoltageQuantity *>(paramQuantities[AGC_LEVEL_PARAM]);
+        agcLevelQuantity->value = 5.0f;
 
         auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -125,8 +133,10 @@ struct ElastikaModule : Module
     void initialize()
     {
         engine.initialize();
-        engine.setDcRejectFrequency(dcRejectQuantity->frequency);
+        engine.setDcRejectFrequency(dcRejectQuantity->value);
         dcRejectQuantity->changed = false;
+        engine.setAgcLevel(agcLevelQuantity->value);
+        agcLevelQuantity->changed = false;
         isPowerGateActive = true;
         isQuiet = false;
         slewer.enable(true);
@@ -228,8 +238,15 @@ struct ElastikaModule : Module
         // update the output filter corner frequencies.
         if (dcRejectQuantity->changed)
         {
-            engine.setDcRejectFrequency(dcRejectQuantity->frequency);
+            engine.setDcRejectFrequency(dcRejectQuantity->value);
             dcRejectQuantity->changed = false;
+        }
+
+        // Check for changes to the automatic gain control level.
+        if (agcLevelQuantity->changed)
+        {
+            engine.setAgcLevel(agcLevelQuantity->value);
+            agcLevelQuantity->changed = false;
         }
 
         // Update the mesh parameters from sliders and control voltages.
@@ -343,14 +360,12 @@ struct ElastikaWidget : ModuleWidget
 
     void appendContextMenu(Menu* menu) override
     {
-        if (elastikaModule && elastikaModule->dcRejectQuantity)
+        if (elastikaModule && elastikaModule->dcRejectQuantity && elastikaModule->agcLevelQuantity)
         {
             menu->addChild(new MenuSeparator);
 
             // Add slider that adjusts the DC-reject filter's corner frequency.
-            DcRejectSlider *dcRejectSlider = new DcRejectSlider(elastikaModule->dcRejectQuantity);
-            dcRejectSlider->box.size.x = 200.0f;
-            menu->addChild(dcRejectSlider);
+            menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
 
             // Add checkbox to enable/disable automatic gain control.
             menu->addChild(createBoolMenuItem(
@@ -365,6 +380,9 @@ struct ElastikaWidget : ModuleWidget
                     elastikaModule->engine.setAgcEnabled(state);
                 }
             ));
+
+            // Add slider to adjust the AGC's level setting (5V .. 10V).
+            menu->addChild(new VoltageSlider(elastikaModule->agcLevelQuantity));
         }
     }
 };
