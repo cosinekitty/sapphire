@@ -9,7 +9,7 @@ struct ElastikaModule : Module
 {
     Sapphire::ElastikaEngine engine;
     DcRejectQuantity *dcRejectQuantity = nullptr;
-    VoltageQuantity *agcLevelQuantity = nullptr;
+    AgcLevelQuantity *agcLevelQuantity = nullptr;
     Sapphire::Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
@@ -93,9 +93,9 @@ struct ElastikaModule : Module
         dcRejectQuantity = dynamic_cast<DcRejectQuantity *>(paramQuantities[DC_REJECT_PARAM]);
         dcRejectQuantity->value = 20.0f;
 
-        configParam<VoltageQuantity>(AGC_LEVEL_PARAM, 5, 10, 5, "AGC level", " V");
-        agcLevelQuantity = dynamic_cast<VoltageQuantity *>(paramQuantities[AGC_LEVEL_PARAM]);
-        agcLevelQuantity->value = 5.0f;
+        configParam<AgcLevelQuantity>(AGC_LEVEL_PARAM, AGC_LEVEL_MIN, AGC_DISABLE_MAX, AGC_LEVEL_DEFAULT, "Output limiter");
+        agcLevelQuantity = dynamic_cast<AgcLevelQuantity *>(paramQuantities[AGC_LEVEL_PARAM]);
+        agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
 
         auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
         auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -135,8 +135,7 @@ struct ElastikaModule : Module
         engine.initialize();
         engine.setDcRejectFrequency(dcRejectQuantity->value);
         dcRejectQuantity->changed = false;
-        engine.setAgcLevel(agcLevelQuantity->value);
-        agcLevelQuantity->changed = false;
+        reflectAgcSlider();
         isPowerGateActive = true;
         isQuiet = false;
         slewer.enable(true);
@@ -177,6 +176,19 @@ struct ElastikaModule : Module
             slider += attenu * (cv / 5.0) * (maxSlider - minSlider);
         }
         return slider;
+    }
+
+    void reflectAgcSlider()
+    {
+        // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+        if (agcLevelQuantity && agcLevelQuantity->changed)
+        {
+            bool enabled = agcLevelQuantity->isAgcEnabled();
+            if (enabled)
+                engine.setAgcLevel(agcLevelQuantity->clampedAgc());
+            engine.setAgcEnabled(enabled);
+            agcLevelQuantity->changed = false;
+        }
     }
 
     void process(const ProcessArgs& args) override
@@ -242,12 +254,7 @@ struct ElastikaModule : Module
             dcRejectQuantity->changed = false;
         }
 
-        // Check for changes to the automatic gain control level.
-        if (agcLevelQuantity->changed)
-        {
-            engine.setAgcLevel(agcLevelQuantity->value);
-            agcLevelQuantity->changed = false;
-        }
+        reflectAgcSlider();
 
         // Update the mesh parameters from sliders and control voltages.
 
@@ -285,19 +292,6 @@ struct ElastikaModule : Module
 
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
-    }
-
-    json_t* dataToJson() override
-    {
-        json_t* root = json_object();
-        json_object_set_new(root, "agc", json_boolean(engine.getAgcEnabled()));
-        return root;
-    }
-
-    void dataFromJson(json_t* root) override
-    {
-        json_t* agcJson = json_object_get(root, "agc");
-        engine.setAgcEnabled(json_boolean_value(agcJson));
     }
 };
 
@@ -367,22 +361,8 @@ struct ElastikaWidget : ModuleWidget
             // Add slider that adjusts the DC-reject filter's corner frequency.
             menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
 
-            // Add checkbox to enable/disable automatic gain control.
-            menu->addChild(createBoolMenuItem(
-                "Automatic gain control",
-                "",
-                [=]()
-                {
-                    return elastikaModule->engine.getAgcEnabled();
-                },
-                [=](bool state)
-                {
-                    elastikaModule->engine.setAgcEnabled(state);
-                }
-            ));
-
-            // Add slider to adjust the AGC's level setting (5V .. 10V).
-            menu->addChild(new VoltageSlider(elastikaModule->agcLevelQuantity));
+            // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
+            menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
         }
     }
 };

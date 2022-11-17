@@ -64,23 +64,33 @@ struct DcRejectSlider : ui::Slider
     DcRejectSlider(DcRejectQuantity *_quantity)
     {
         quantity = _quantity;
-        box.size.x = 200.0f;
+        box.size.x = 200.0f;        // without this, the menu display gets messed up
     }
 };
 
 
-struct VoltageQuantity : SapphireQuantity
+const float AGC_LEVEL_MIN = 5.0f;
+const float AGC_LEVEL_DEFAULT = 5.0f;
+const float AGC_LEVEL_MAX = 10.0f;
+const float AGC_DISABLE_MIN = 10.1f;
+const float AGC_DISABLE_MAX = 10.2f;
+
+
+struct AgcLevelQuantity : SapphireQuantity
 {
+    bool isAgcEnabled() const { return value < AGC_DISABLE_MIN; }
+    float clampedAgc() const { return clamp(value, AGC_LEVEL_MIN, AGC_LEVEL_MAX); }
+
     std::string getDisplayValueString() override
     {
-        return string::f("%0.3f", value);
+        return isAgcEnabled() ? string::f("%0.2f V", clampedAgc()) : "OFF";
     }
 };
 
 
-struct VoltageSlider : ui::Slider
+struct AgcLevelSlider : ui::Slider
 {
-    VoltageSlider(VoltageQuantity *_quantity)
+    AgcLevelSlider(AgcLevelQuantity *_quantity)
     {
         quantity = _quantity;
         box.size.x = 200.0f;
