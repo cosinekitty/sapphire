@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ "$1" == "debug" ]]; then
+    OPTS="-ggdb3 -g3 -O0"
+else
+    OPTS="-O3"
+fi
+
+g++ -Wall -Werror -o unittest ${OPTS} -I../src \
+    unittest.cpp \
+    || exit 1
+
+exit 0

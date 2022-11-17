@@ -4,7 +4,6 @@
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-#include <stdexcept>
 #include "sapphire_engine.hpp"
 
 namespace Sapphire
@@ -239,6 +238,7 @@ namespace Sapphire
         float gain;
         float inTilt;
         float outTilt;
+        AutomaticGainLimiter agc { 1.0f, 0.01f, 1.0f };
 
     public:
         ElastikaEngine() { initialize(); };
@@ -264,10 +264,7 @@ namespace Sapphire
             leftOutput  = MeshOutput(mp.leftOutputBallIndex);
             rightOutput = MeshOutput(mp.rightOutputBallIndex);
 
-            leftLoCut.Reset();
-            rightLoCut.Reset();
             setDcRejectFrequency(20.0f);
-
             setFriction();
             setSpan();
             setStiffness();
@@ -277,6 +274,8 @@ namespace Sapphire
             setGain();
             setInputTilt();
             setOutputTilt();
+
+            quiet();
         }
 
         void setDcRejectFrequency(float frequency)
@@ -290,6 +289,7 @@ namespace Sapphire
             mesh.Quiet();
             leftLoCut.Reset();
             rightLoCut.Reset();
+            agc.initialize();
         }
 
         void setFriction(float slider = 0.5f)
@@ -367,6 +367,9 @@ namespace Sapphire
             rightOut = rightOutput.Extract(mesh, rightOutputDir);
             rightOut = rightLoCut.UpdateHiPass(rightOut, sampleRate);
             rightOut *= gain;
+
+            // Automatic gain control to limit excessive output voltages.
+            agc.process(sampleRate, leftOut, rightOut);
 
             // Final line of defense against NAN/infinite output:
             // Check for invalid output. If found, clear the mesh.

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <algorithm>
 #include <vector>
+#include <stdexcept>
 #include <pmmintrin.h>
 
 namespace Sapphire
@@ -339,6 +340,69 @@ namespace Sapphire
             default:
                 return y;
             }
+        }
+    };
+
+
+    class AutomaticGainLimiter      // dynamically adjusts gain to keep a signal from getting too hot
+    {
+    private:
+        float ceiling;
+        float attackHalfLife;
+        float decayHalfLife;
+        float attackFactor = 0.0f;
+        float decayFactor = 0.0f;
+        float follower = 1.0f;
+        float cachedSampleRate = 0.0f;
+
+        void update(float sampleRate, float input)
+        {
+            using namespace std;
+
+            if (sampleRate != cachedSampleRate)
+            {
+                cachedSampleRate = sampleRate;
+                attackFactor = pow(0.5, 1.0 / (sampleRate * attackHalfLife));
+                decayFactor  = pow(0.5, 1.0 / (sampleRate * decayHalfLife));
+            }
+
+            float ratio = input / ceiling;
+            float factor = (ratio >= follower) ? attackFactor : decayFactor;
+            follower = max(1.0f, follower*factor + ratio*(1-factor));
+        }
+
+        static float VerifyPositive(float x)
+        {
+            if (x <= 0.0f)
+                throw std::range_error("AGC coefficient must be positive.");
+            return x;
+        }
+
+    public:
+        AutomaticGainLimiter(float _ceiling, float _attackHalfLife, float _decayHalfLife)
+            : ceiling(VerifyPositive(_ceiling))
+            , attackHalfLife(VerifyPositive(_attackHalfLife))
+            , decayHalfLife(VerifyPositive(_decayHalfLife))
+            {}
+
+        void initialize()
+        {
+            follower = 1.0f;
+        }
+
+        void process(float sampleRate, float& left, float& right)
+        {
+            using namespace std;
+
+            float input = max(abs(left), abs(right));
+            update(sampleRate, input);
+            left  /= follower;
+            right /= follower;
+        }
+
+        float gain() const
+        {
+            return 1.0f / follower;
         }
     };
 }
