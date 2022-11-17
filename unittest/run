@@ -1,6 +1,9 @@
 #!/bin/bash
 
+echo "Building unit tests..."
 ./build || exit 1
+
+echo "Running unit tests..."
 ./unittest all || exit 1
 
 echo "Unit tests: PASS"

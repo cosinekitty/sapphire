@@ -251,7 +251,22 @@ namespace Sapphire
 
         void Reset() { first = true; }
         void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
-        void Update(float x, float sampleRateHz);
+
+        void Update(float x, float sampleRateHz)
+        {
+            if (first)
+            {
+                first = false;
+                yprev = x;
+            }
+            else
+            {
+                float c = sampleRateHz / (M_PI * fc);
+                yprev = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
+            }
+            xprev = x;
+        }
+
         float HiPass() const { return xprev - yprev; }
         float LoPass() const { return yprev; };
     };
@@ -347,15 +362,17 @@ namespace Sapphire
     class AutomaticGainLimiter      // dynamically adjusts gain to keep a signal from getting too hot
     {
     private:
-        float ceiling;
-        float attackHalfLife;
-        float decayHalfLife;
-        float attackFactor = 0.0f;
-        float decayFactor = 0.0f;
-        float follower = 1.0f;
-        float cachedSampleRate = 0.0f;
+        const double FUDGE_FACTOR = 2.45;    // experimentally derived
 
-        void update(float sampleRate, float input)
+        double ceiling;
+        double attackHalfLife;
+        double decayHalfLife;
+        double attackFactor = 0.0f;
+        double decayFactor = 0.0f;
+        double follower = 1.0f;
+        double cachedSampleRate = 0.0f;
+
+        void update(double sampleRate, float input)
         {
             using namespace std;
 
@@ -366,31 +383,31 @@ namespace Sapphire
                 decayFactor  = pow(0.5, 1.0 / (sampleRate * decayHalfLife));
             }
 
-            float ratio = input / ceiling;
-            float factor = (ratio >= follower) ? attackFactor : decayFactor;
-            follower = max(1.0f, follower*factor + ratio*(1-factor));
+            double ratio = input / ceiling;
+            double factor = (ratio >= follower) ? attackFactor : decayFactor;
+            follower = max(1.0, follower*factor + ratio*(1-factor));
         }
 
-        static float VerifyPositive(float x)
+        static double VerifyPositive(double x)
         {
-            if (x <= 0.0f)
+            if (x <= 0.0)
                 throw std::range_error("AGC coefficient must be positive.");
             return x;
         }
 
     public:
-        AutomaticGainLimiter(float _ceiling, float _attackHalfLife, float _decayHalfLife)
-            : ceiling(VerifyPositive(_ceiling))
+        AutomaticGainLimiter(double _ceiling, double _attackHalfLife, double _decayHalfLife)
+            : ceiling(VerifyPositive(_ceiling / FUDGE_FACTOR))
             , attackHalfLife(VerifyPositive(_attackHalfLife))
             , decayHalfLife(VerifyPositive(_decayHalfLife))
             {}
 
         void initialize()
         {
-            follower = 1.0f;
+            follower = 1.0;
         }
 
-        void process(float sampleRate, float& left, float& right)
+        void process(double sampleRate, float& left, float& right)
         {
             using namespace std;
 
@@ -400,9 +417,9 @@ namespace Sapphire
             right /= follower;
         }
 
-        float gain() const
+        double getFollower() const
         {
-            return 1.0f / follower;
+            return follower;
         }
     };
 }

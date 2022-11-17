@@ -6,8 +6,8 @@ else
     OPTS="-O3"
 fi
 
-g++ -Wall -Werror -o unittest ${OPTS} -I../src \
-    unittest.cpp \
+g++ -Wall -Werror -o unittest ${OPTS} -I../src -I../cmdline \
+    unittest.cpp    \
     || exit 1
 
 exit 0

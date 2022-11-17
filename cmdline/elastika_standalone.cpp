@@ -22,6 +22,7 @@ int main()
     const int FADE_SAMPLES = SAMPLE_RATE * FADE_SECONDS;
 
     ElastikaEngine engine;
+    engine.setAgcEnabled(false);
     engine.setDcRejectFrequency(80.0);
     engine.setFriction(0.25379982590675354);
     engine.setStiffness(0.64640343189239502);

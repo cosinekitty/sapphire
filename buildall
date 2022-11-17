@@ -38,10 +38,6 @@ ls -l plugin-build
 echo ""
 cd ${SAPPHIRE} || Fail "Cannot change directory back to ${SAPPHIRE}"
 
-cd cmdline || Fail "Cannot change directory to cmdline"
-./runtest || exit 1
-cd ..
-
 echo "
 SUCCESS"
 exit 0

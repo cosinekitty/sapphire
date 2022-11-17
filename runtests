@@ -1,0 +1,14 @@
+#!/bin/bash
+Fail()
+{
+    echo "FAIL(runtests): $1"
+    exit 1
+}
+
+cd cmdline || Fail "cannot change to cmdline directory"
+./run || exit 1
+cd ../unittest || Fail "cannot change directory to ../unittest"
+./run || exit 1
+cd ..
+echo "runtests: All tests passed."
+exit 0

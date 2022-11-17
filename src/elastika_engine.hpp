@@ -238,7 +238,8 @@ namespace Sapphire
         float gain;
         float inTilt;
         float outTilt;
-        AutomaticGainLimiter agc { 1.0f, 0.01f, 1.0f };
+        AutomaticGainLimiter agc { 1.0, 0.005, 0.05 };
+        bool enableAgc;
 
     public:
         ElastikaEngine() { initialize(); };
@@ -274,6 +275,7 @@ namespace Sapphire
             setGain();
             setInputTilt();
             setOutputTilt();
+            setAgcEnabled(true);
 
             quiet();
         }
@@ -345,6 +347,9 @@ namespace Sapphire
             outTilt = Clamp(slider);
         }
 
+        void setAgcEnabled(bool enable)  { enableAgc = enable; }
+        bool getAgcEnabled() const { return enableAgc; }
+
         void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
         {
             // Feed audio stimulus into the mesh.
@@ -368,8 +373,11 @@ namespace Sapphire
             rightOut = rightLoCut.UpdateHiPass(rightOut, sampleRate);
             rightOut *= gain;
 
-            // Automatic gain control to limit excessive output voltages.
-            agc.process(sampleRate, leftOut, rightOut);
+            if (enableAgc)
+            {
+                // Automatic gain control to limit excessive output voltages.
+                agc.process(sampleRate, leftOut, rightOut);
+            }
 
             // Final line of defense against NAN/infinite output:
             // Check for invalid output. If found, clear the mesh.

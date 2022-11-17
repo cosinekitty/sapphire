@@ -200,20 +200,4 @@ namespace Sapphire
         for (size_t i = 0; i < nballs; ++i)
             target[i] = source[i];
     }
-
-
-    void LoHiPassFilter::Update(float x, float sampleRateHz)
-    {
-        if (first)
-        {
-            first = false;
-            yprev = x;
-        }
-        else
-        {
-            float c = sampleRateHz / (M_PI * fc);
-            yprev = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
-        }
-        xprev = x;
-    }
 }
