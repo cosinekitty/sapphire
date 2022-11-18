@@ -83,26 +83,6 @@ public:
 };
 
 
-class TestSignal_Random: public TestSignal
-{
-private:
-    FilteredRandom lrandom;
-    FilteredRandom rrandom;
-
-public:
-    TestSignal_Random(double amplitude, int sampleRate)
-        : lrandom { 0x539a0c27, amplitude, static_cast<double>(sampleRate) }
-        , rrandom { 0x7ac5b398, amplitude, static_cast<double>(sampleRate) }
-        {}
-
-    void getSample(float& left, float& right) override
-    {
-        left  = lrandom.getSample();
-        right = rrandom.getSample();
-    }
-};
-
-
 static int AgcTestCase(
     const char *name,
     TestSignal& signal,
@@ -189,13 +169,76 @@ static int AgcTestCase(
 }
 
 
+class TestSignal_Random: public TestSignal
+{
+private:
+    FilteredRandom lrandom;
+    FilteredRandom rrandom;
+
+public:
+    TestSignal_Random(double amplitude, int sampleRate)
+        : lrandom { 0x539a0c27, amplitude, static_cast<double>(sampleRate) }
+        , rrandom { 0x7ac5b398, amplitude, static_cast<double>(sampleRate) }
+        {}
+
+    void getSample(float& left, float& right) override
+    {
+        left  = lrandom.getSample();
+        right = rrandom.getSample();
+    }
+};
+
+
+class TestSignal_Pulses: public TestSignal
+{
+private:
+    double amplitude;
+    int sampleRate;
+    int pulseFreqHz;
+    int countdown;
+
+public:
+    TestSignal_Pulses(double _amplitude, int _sampleRate, int _pulseFreqHz)
+        : amplitude(_amplitude)
+        , sampleRate(_sampleRate)
+        , pulseFreqHz(_pulseFreqHz)
+        , countdown(_sampleRate / _pulseFreqHz)
+        {}
+
+    void getSample(float& left, float& right) override
+    {
+        if (countdown == 0)
+        {
+            countdown = sampleRate / pulseFreqHz;
+            left = right = amplitude;
+        }
+        else
+        {
+            --countdown;
+            left = right = 0.0f;
+        }
+    }
+};
+
+
 static int AutoGainControl()
 {
     const int sampleRate = 44100;
     const int durationSeconds = 5;
     const double amplitude = 10.0;
 
-    TestSignal_Random randomSignal { amplitude, sampleRate };
-    if (AgcTestCase("random", randomSignal, sampleRate, durationSeconds)) return 1;
+    {
+        TestSignal_Random signal { amplitude, sampleRate };
+        if (AgcTestCase("random", signal, sampleRate, durationSeconds))
+            return 1;
+    }
+
+    {
+        TestSignal_Pulses signal { amplitude, sampleRate, 40 };
+        if (AgcTestCase("pulses", signal, sampleRate, durationSeconds))
+            return 1;
+    }
+
     return 0;
 }
+
