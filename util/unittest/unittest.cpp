@@ -78,7 +78,7 @@ public:
         float s = (rand() - rmid) / rspan;
         s = lo.UpdateLoPass(s, sampleRate);
         s = hi.UpdateHiPass(s, sampleRate);
-        return s * amplitude * 2.53;        // experimental fudge factor: compensates for filter losses
+        return s * amplitude * 2.53474809;        // experimental fudge factor: compensates for filter losses
     }
 };
 
@@ -109,12 +109,14 @@ static int AgcTestCase(
     int sampleRate,
     int durationSeconds)
 {
+    using namespace std;
+
     const double ceiling = 1.0;
     const double amplitude = 10.0;
     Sapphire::AutomaticGainLimiter agc { ceiling, 0.005, 0.05 };
 
-    std::string harshFileName = std::string("agc_input_")  + name + ".wav";
-    std::string mildFileName  = std::string("agc_output_") + name + ".wav";
+    string harshFileName = string("agc_input_")  + name + ".wav";
+    string mildFileName  = string("agc_output_") + name + ".wav";
 
     WaveFile harsh;
     if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))
@@ -135,7 +137,6 @@ static int AgcTestCase(
     for (int i = 0; i < 10000; ++i)
         signal.getSample(left, right);
 
-    float minHarsh = 0.0f;
     float maxHarsh = 0.0f;
     float maxMild = 0.0f;
     float sample[2];
@@ -144,8 +145,7 @@ static int AgcTestCase(
     {
         signal.getSample(left, right);
 
-        minHarsh = std::min(minHarsh, std::min(left, right));
-        maxHarsh = std::max(maxHarsh, std::max(left, right));
+        maxHarsh = max(maxHarsh, max(abs(left), abs(right)));
 
         sample[0] = left / amplitude;
         sample[1] = right / amplitude;
@@ -154,15 +154,14 @@ static int AgcTestCase(
         agc.process(sampleRate, left, right);
 
         if (i > durationSamples / 4)
-            maxMild = std::max(maxMild, std::max(std::abs(left), std::abs(right)));
+            maxMild = max(maxMild, max(abs(left), abs(right)));
 
         sample[0] = left / amplitude;
         sample[1] = right / amplitude;
         mild.WriteSamples(sample, 2);
     }
 
-    printf("AgcTestCase(%s): minHarsh = %0.6f, maxHarsh = %0.6f\n", name, minHarsh, maxHarsh);
-    printf("AgcTestCase(%s): maxMild = %0.6f\n", name, maxMild);
+    printf("AgcTestCase(%s): maxHarsh = %0.6f, maxMild = %0.6f\n", name, maxHarsh, maxMild);
 
     const double ideal = amplitude / ceiling;
     const double overshoot = ideal / agc.getFollower();
@@ -171,13 +170,13 @@ static int AgcTestCase(
 
     int error = 0;
 
-    if (maxHarsh < 9.981 || maxHarsh > 9.982)
+    if (maxHarsh < 9.99 || maxHarsh > 10.01)
     {
         printf("AgcTestCase(%s) FAIL: maxHarsh was out of bounds.\n", name);
         error = 1;
     }
 
-    if (overshoot < 0.999 || overshoot > 1.000)
+    if (overshoot < 0.99 || overshoot > 1.01)
     {
         printf("AgcTestCase(%s) FAIL: overshoot was out of bounds.\n", name);
         error = 1;
