@@ -45,6 +45,13 @@ int main(int argc, const char *argv[])
 
 class TestSignal
 {
+public:
+    virtual void getSample(float& left, float& right) = 0;
+};
+
+
+class FilteredRandom
+{
 private:
     std::mt19937 rand;
     double rspan;
@@ -55,7 +62,7 @@ private:
     double sampleRate;
 
 public:
-    TestSignal(unsigned _seed, double _amplitude, double _sampleRate)
+    FilteredRandom(unsigned _seed, double _amplitude, double _sampleRate)
         : rand(_seed)
         , rspan((std::mt19937::max() - std::mt19937::min()) / 2.0)
         , rmid((std::mt19937::max() + std::mt19937::min()) / 2.0)
@@ -76,50 +83,66 @@ public:
 };
 
 
-static int AutoGainControl()
+class TestSignal_Random: public TestSignal
+{
+private:
+    FilteredRandom lrandom;
+    FilteredRandom rrandom;
+
+public:
+    TestSignal_Random(double amplitude, int sampleRate)
+        : lrandom { 0x539a0c27, amplitude, static_cast<double>(sampleRate) }
+        , rrandom { 0x7ac5b398, amplitude, static_cast<double>(sampleRate) }
+        {}
+
+    void getSample(float& left, float& right) override
+    {
+        left  = lrandom.getSample();
+        right = rrandom.getSample();
+    }
+};
+
+
+static int AgcTestCase(
+    const char *name,
+    TestSignal& signal,
+    int sampleRate,
+    int durationSeconds)
 {
     const double ceiling = 1.0;
     const double amplitude = 10.0;
     Sapphire::AutomaticGainLimiter agc { ceiling, 0.005, 0.05 };
 
-    const int sampleRate = 44100;
-    const int durationSeconds = 5;
-    const int durationSamples = sampleRate * durationSeconds;
-
-    TestSignal leftSignal  {0x539a0c27, amplitude, sampleRate};
-    TestSignal rightSignal {0x7ac5b398, amplitude, sampleRate};
+    std::string harshFileName = std::string("agc_input_")  + name + ".wav";
+    std::string mildFileName  = std::string("agc_output_") + name + ".wav";
 
     WaveFile harsh;
-    const char *harshFileName = "agc_input.wav";
-    if (!harsh.Open(harshFileName, sampleRate, 2))
+    if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))
     {
-        fprintf(stderr, "AutoGainControl: Cannot open output wave file: %s\n", harshFileName);
+        printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, harshFileName.c_str());
         return 1;
     }
 
     WaveFile mild;
-    const char *mildFileName = "agc_output.wav";
-    if (!mild.Open(mildFileName, sampleRate, 2))
+    if (!mild.Open(mildFileName.c_str(), sampleRate, 2))
     {
-        fprintf(stderr, "AutoGainControl: Cannot open output wave file: %s\n", mildFileName);
+        printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, mildFileName.c_str());
         return 1;
     }
 
     // Burn a few samples to get the filters to settle down.
+    float left, right;
     for (int i = 0; i < 10000; ++i)
-    {
-        leftSignal.getSample();
-        rightSignal.getSample();
-    }
+        signal.getSample(left, right);
 
     float minHarsh = 0.0f;
     float maxHarsh = 0.0f;
     float maxMild = 0.0f;
     float sample[2];
+    const int durationSamples = sampleRate * durationSeconds;
     for (int i = 0; i < durationSamples; ++i)
     {
-        float left  = leftSignal.getSample();
-        float right = rightSignal.getSample();
+        signal.getSample(left, right);
 
         minHarsh = std::min(minHarsh, std::min(left, right));
         maxHarsh = std::max(maxHarsh, std::max(left, right));
@@ -138,29 +161,42 @@ static int AutoGainControl()
         mild.WriteSamples(sample, 2);
     }
 
-    printf("AutoGainControl: minHarsh = %0.6f, maxHarsh = %0.6f\n", minHarsh, maxHarsh);
-    printf("AutoGainControl: maxMild = %0.6f\n", maxMild);
+    printf("AgcTestCase(%s): minHarsh = %0.6f, maxHarsh = %0.6f\n", name, minHarsh, maxHarsh);
+    printf("AgcTestCase(%s): maxMild = %0.6f\n", name, maxMild);
 
     const double ideal = amplitude / ceiling;
     const double overshoot = ideal / agc.getFollower();
-    printf("AutoGainControl: ideal follower = %0.6lf, actual follower = %0.6lf, overshoot = %0.6lf\n", ideal, agc.getFollower(), overshoot);
+    printf("AgcTestCase(%s): ideal follower = %0.6lf, actual follower = %0.6lf, overshoot = %0.6lf\n",
+        name, ideal, agc.getFollower(), overshoot);
 
     int error = 0;
 
     if (maxHarsh < 9.981 || maxHarsh > 9.982)
     {
-        printf("AutoGainControl FAIL: maxHarsh was out of bounds.\n");
+        printf("AgcTestCase(%s) FAIL: maxHarsh was out of bounds.\n", name);
         error = 1;
     }
 
     if (overshoot < 0.999 || overshoot > 1.000)
     {
-        printf("AutoGainControl FAIL: overshoot was out of bounds.\n");
+        printf("AgcTestCase(%s) FAIL: overshoot was out of bounds.\n", name);
         error = 1;
     }
 
     if (error == 0)
-        printf("AutoGainControl: PASS\n");
+        printf("AgcTestCase(%s): PASS\n", name);
 
     return error;
+}
+
+
+static int AutoGainControl()
+{
+    const int sampleRate = 44100;
+    const int durationSeconds = 5;
+    const double amplitude = 10.0;
+
+    TestSignal_Random randomSignal { amplitude, sampleRate };
+    if (AgcTestCase("random", randomSignal, sampleRate, durationSeconds)) return 1;
+    return 0;
 }
