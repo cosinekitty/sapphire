@@ -87,13 +87,15 @@ static int AgcTestCase(
     const char *name,
     TestSignal& signal,
     int sampleRate,
-    int durationSeconds)
+    int durationSeconds,
+    double overshootTolerance)
 {
     using namespace std;
 
     const double ceiling = 1.0;
     const double amplitude = 10.0;
-    Sapphire::AutomaticGainLimiter agc { ceiling, 0.005, 0.05 };
+    Sapphire::AutomaticGainLimiter agc;
+    agc.setCeiling(ceiling);
 
     string harshFileName = string("agc_input_")  + name + ".wav";
     string mildFileName  = string("agc_output_") + name + ".wav";
@@ -156,7 +158,7 @@ static int AgcTestCase(
         error = 1;
     }
 
-    if (overshoot < 0.99 || overshoot > 1.01)
+    if (overshoot < 1.0 || overshoot > overshootTolerance)
     {
         printf("AgcTestCase(%s) FAIL: overshoot was out of bounds.\n", name);
         error = 1;
@@ -229,13 +231,13 @@ static int AutoGainControl()
 
     {
         TestSignal_Random signal { amplitude, sampleRate };
-        if (AgcTestCase("random", signal, sampleRate, durationSeconds))
+        if (AgcTestCase("random", signal, sampleRate, durationSeconds, 1.084))
             return 1;
     }
 
     {
         TestSignal_Pulses signal { amplitude, sampleRate, 40 };
-        if (AgcTestCase("pulses", signal, sampleRate, durationSeconds))
+        if (AgcTestCase("pulses", signal, sampleRate, durationSeconds, 1.001))
             return 1;
     }
 

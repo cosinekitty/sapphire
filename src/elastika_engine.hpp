@@ -238,7 +238,7 @@ namespace Sapphire
         float gain;
         float inTilt;
         float outTilt;
-        AutomaticGainLimiter agc { 1.0, 0.005, 0.05 };
+        AutomaticGainLimiter agc;
         bool enableAgc;
 
     public:

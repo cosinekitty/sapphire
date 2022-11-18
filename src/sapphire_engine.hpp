@@ -362,15 +362,17 @@ namespace Sapphire
     class AutomaticGainLimiter      // dynamically adjusts gain to keep a signal from getting too hot
     {
     private:
-        const double FUDGE_FACTOR = 2.45;    // experimentally derived
-
-        double ceiling;
-        double attackHalfLife;
-        double decayHalfLife;
-        double attackFactor = 0.0f;
-        double decayFactor = 0.0f;
-        double follower = 1.0f;
-        double cachedSampleRate = 0.0f;
+        double ceiling = 1.0;
+        double attackHalfLife = 0.005;
+        double decayHalfLife = 0.05;
+        double attackFactor = 0.0;
+        double decayFactor = 0.0;
+        double follower = 1.0;
+        double cachedSampleRate = 0.0;
+        const int PERIODS_PER_SECOND = 10;
+        int countdown = 0;
+        float prevmax = 0.0f;
+        float currmax = 0.0f;
 
         void update(double sampleRate, float input)
         {
@@ -383,7 +385,19 @@ namespace Sapphire
                 decayFactor  = pow(0.5, 1.0 / (sampleRate * decayHalfLife));
             }
 
-            double ratio = input / ceiling;
+            if (countdown <= 0)
+            {
+                countdown = static_cast<int>(round(sampleRate / PERIODS_PER_SECOND));
+                prevmax = currmax;
+                currmax = input;
+            }
+            else
+            {
+                --countdown;
+                currmax = max(currmax, input);
+            }
+
+            double ratio = max(prevmax, currmax) / ceiling;
             double factor = (ratio >= follower) ? attackFactor : decayFactor;
             follower = max(1.0, follower*factor + ratio*(1-factor));
         }
@@ -396,13 +410,6 @@ namespace Sapphire
         }
 
     public:
-        AutomaticGainLimiter(double _ceiling, double _attackHalfLife, double _decayHalfLife)
-            : attackHalfLife(VerifyPositive(_attackHalfLife))
-            , decayHalfLife(VerifyPositive(_decayHalfLife))
-        {
-            setCeiling(_ceiling);
-        }
-
         void initialize()
         {
             follower = 1.0;
@@ -410,7 +417,7 @@ namespace Sapphire
 
         void setCeiling(float _ceiling)
         {
-            ceiling = VerifyPositive(_ceiling / FUDGE_FACTOR);
+            ceiling = VerifyPositive(_ceiling);
         }
 
         void process(double sampleRate, float& left, float& right)
