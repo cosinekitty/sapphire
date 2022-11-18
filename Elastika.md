@@ -173,7 +173,17 @@ also affect the quality of the sound.
 Sometimes it is interesting to increase IN and decrease OUT, or vice versa,
 to explore different nuances of sound.
 
-### Adjustment of DC rejection cutoff frequency
+### Context menu
+
+Elastika's context menu looks like this:
+
+![Elastika context menu](./images/elastika_menu.png)
+
+This menu includes two sliders that allow you to adjust
+output audio tone and voltage levels. The next two
+sections explain these settings in detail.
+
+### DC rejection cutoff frequency
 
 Elastika includes an internal DC rejection filter on both audio outputs.
 This filter prevents contaminating the output with DC bias.
@@ -184,9 +194,37 @@ increasing the DC rejection frequency can help reduce a "muddy" tone.
 To adjust the cutoff frequency, right-click on Elastika to
 open its context menu. At the bottom of the menu is a "DC reject cutoff"
 slider that you can move left or right to set the cutoff frequency
-anywhere from 20 Hz to 400 Hz, as shown here:
+anywhere from 20 Hz to 400 Hz.
 
-![Elastika model](./images/elastika_adjust_filter.png)
+### Output limiter
+
+Elastika's physical model can produce a surprisingly wide range
+of output voltage levels. The amplitude can be hard to predict, so as a safeguard,
+Elastika includes an output limiter that uses automatic gain control
+to keep the output voltages within a reasonable range.
+
+The limiter can be enabled or disabled. When enabled,
+it can be set to any threshold level between 5V and 10V.
+When the limiter is enabled, it will adapt automatically
+to output voltages higher than its threshold by quickly
+reducing output gain. If the volume gets quieter than
+the level setting, the limiter allows the gain to slowly
+increase back to a maximum of unity gain (0 dB).
+This means the limiter never makes the output louder
+than it would be if the limiter were disabled.
+
+By default, the limiter is enabled and is configured
+for a 5V threshold.
+Using Elastika's right-click context menu, you can slide
+the limiter threshold left or right anywhere from 5V to 10V.
+
+If you move the slider all the way to the right, it will
+turn the limiter OFF.
+Disabling the limiter like this can result in extreme output voltages in
+some cases, but it could make sense for patches where Elastika's output
+is controlled by some external module, such as a mixer with a very low setting.
+Most of the time, it's a good idea to leave the limiter enabled,
+to avoid extremely loud sounds and clipping distortion.
 
 ### Power button and gate
 
