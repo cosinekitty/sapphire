@@ -367,6 +367,13 @@ namespace Sapphire
             agc.setCeiling(ceiling);
         }
 
+        bool isAudioDistorted() const   // for warning the user that the audio sound may be compromised
+        {
+            // Only report distortion if the AGC is enabled and is currently attenuating.
+            // If the AGC is disabled, the user is taking responsibility for managing the output levels.
+            return enableAgc && agc.getFollower() > 1.0;
+        }
+
         void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
         {
             // Feed audio stimulus into the mesh.

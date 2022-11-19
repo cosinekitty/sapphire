@@ -296,6 +296,33 @@ struct ElastikaModule : Module
 };
 
 
+struct SapphireWarningKnob : RoundLargeBlackKnob        // A large knob, but with a controllable warning light around it.
+{
+    void draw(const DrawArgs& args) override
+    {
+        ElastikaModule *elastikaModule = dynamic_cast<ElastikaModule*>(module);
+        if (elastikaModule && elastikaModule->engine.isAudioDistorted())
+        {
+            // Draw a halo-like emanation around the output level knob.
+            // This is a visual warning to the user that the output audio
+            // is being distorted by the AGC limiter.
+            rack::math::Vec center = box.size.div(2);
+            float radius1 = 18.0f;
+            float radius2 = 22.0f;
+            NVGcolor icol = nvgRGBA(0xff, 0x20, 0x00, 0xff);
+            NVGcolor ocol = nvgRGBA(0, 0, 0, 0);
+
+            nvgBeginPath(args.vg);
+            nvgRect(args.vg, center.x - radius2, center.y - radius2, 2 * radius2, 2 * radius2);
+            NVGpaint paint = nvgRadialGradient(args.vg, center.x, center.y, radius1, radius2, icol, ocol);
+            nvgFillPaint(args.vg, paint);
+            nvgFill(args.vg);
+        }
+        RoundLargeBlackKnob::draw(args);
+    }
+};
+
+
 struct ElastikaWidget : ModuleWidget
 {
     ElastikaModule *elastikaModule;
@@ -324,7 +351,7 @@ struct ElastikaWidget : ModuleWidget
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, ElastikaModule::DRIVE_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM));
+        addParam(createParamCentered<SapphireWarningKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM));
 
         // Tilt angle knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, ElastikaModule::INPUT_TILT_KNOB_PARAM));
