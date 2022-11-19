@@ -364,12 +364,12 @@ namespace Sapphire
     private:
         double ceiling = 1.0;
         double attackHalfLife = 0.005;
-        double decayHalfLife = 0.05;
+        double decayHalfLife = 0.1;
         double attackFactor = 0.0;
         double decayFactor = 0.0;
         double follower = 1.0;
         double cachedSampleRate = 0.0;
-        const int PERIODS_PER_SECOND = 10;
+        const int PERIODS_PER_SECOND = 4;
         int countdown = 0;
         float prevmax = 0.0f;
         float currmax = 0.0f;
@@ -413,6 +413,7 @@ namespace Sapphire
         void initialize()
         {
             follower = 1.0;
+            prevmax = currmax = 0.0f;
         }
 
         void setCeiling(float _ceiling)
