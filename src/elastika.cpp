@@ -307,10 +307,34 @@ struct ElastikaModule : Module
 };
 
 
-struct ElastikaWarningLightWidget : LightWidget
+class ElastikaWarningLightWidget : public LightWidget
 {
+private:
     ElastikaModule *elastikaModule;
+    bool enableWarning = true;
 
+    static int colorComponent(double scale, int lo, int hi)
+    {
+        return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+    }
+
+    NVGcolor warningColor(double distortion)
+    {
+        if (!enableWarning || distortion <= 0.0)
+            return nvgRGBA(0, 0, 0, 0);     // no warning light
+
+        double decibels = 20.0 * std::log10(1.0 + distortion);
+        double scale = clamp(decibels / 24.0);
+
+        int red   = colorComponent(scale, 0x90, 0xff);
+        int green = colorComponent(scale, 0x20, 0x50);
+        int blue  = 0x00;
+        int alpha = 0x70;
+
+        return nvgRGBA(red, green, blue, alpha);
+    }
+
+public:
     ElastikaWarningLightWidget(ElastikaModule *module)
         : elastikaModule(module)
     {
@@ -324,11 +348,8 @@ struct ElastikaWarningLightWidget : LightWidget
         {
             // Update the warning light state dynamically.
             // Turn on the warning when the AGC is limiting the output.
-
-            if (elastikaModule && elastikaModule->engine.isAudioDistorted())
-                color = nvgRGBA(0xff, 0x20, 0x00, 0x60);
-            else
-                color = nvgRGBA(0x00, 0x00, 0x00, 0x00);
+            double distortion = elastikaModule ? elastikaModule->engine.getAgcDistortion() : 0.0;
+            color = warningColor(distortion);
         }
         LightWidget::drawLayer(args, layer);
     }
@@ -338,6 +359,7 @@ struct ElastikaWarningLightWidget : LightWidget
 struct ElastikaWidget : ModuleWidget
 {
     ElastikaModule *elastikaModule;
+    ElastikaWarningLightWidget *warningLight;
 
     ElastikaWidget(ElastikaModule* module)
     {
@@ -368,7 +390,7 @@ struct ElastikaWidget : ModuleWidget
 
         // Superimpose a warning light on the output level knob.
         // We turn the warning light on when the limiter is distoring the output.
-        auto warningLight = new ElastikaWarningLightWidget(module);
+        warningLight = new ElastikaWarningLightWidget(module);
         warningLight->box.pos  = Vec(0.0f, 0.0f);
         warningLight->box.size = levelKnob->box.size;
         levelKnob->addChild(warningLight);
