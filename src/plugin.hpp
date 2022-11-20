@@ -50,6 +50,11 @@ struct SapphireQuantity : ParamQuantity
 };
 
 
+const float DC_REJECT_MIN_FREQ = 20.0f;
+const float DC_REJECT_MAX_FREQ = 400.0f;
+const float DC_REJECT_DEFAULT_FREQ = 20.0f;
+
+
 struct DcRejectQuantity : SapphireQuantity
 {
     std::string getDisplayValueString() override

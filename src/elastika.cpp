@@ -89,12 +89,23 @@ struct ElastikaModule : Module
         configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle", "%", 0, 100);
         configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle", "%", 0, 100);
 
-        configParam<DcRejectQuantity>(DC_REJECT_PARAM, 20, 400, 20, "DC reject cutoff", " Hz");
-        dcRejectQuantity = dynamic_cast<DcRejectQuantity *>(paramQuantities[DC_REJECT_PARAM]);
-        dcRejectQuantity->value = 20.0f;
+        dcRejectQuantity = configParam<DcRejectQuantity>(
+            DC_REJECT_PARAM,
+            DC_REJECT_MIN_FREQ,
+            DC_REJECT_MAX_FREQ,
+            DC_REJECT_DEFAULT_FREQ,
+            "DC reject cutoff",
+            " Hz"
+        );
+        dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
 
-        configParam<AgcLevelQuantity>(AGC_LEVEL_PARAM, AGC_LEVEL_MIN, AGC_DISABLE_MAX, AGC_LEVEL_DEFAULT, "Output limiter");
-        agcLevelQuantity = dynamic_cast<AgcLevelQuantity *>(paramQuantities[AGC_LEVEL_PARAM]);
+        agcLevelQuantity = configParam<AgcLevelQuantity>(
+            AGC_LEVEL_PARAM,
+            AGC_LEVEL_MIN,
+            AGC_DISABLE_MAX,
+            AGC_LEVEL_DEFAULT,
+            "Output limiter"
+        );
         agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
 
         auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
@@ -296,29 +307,30 @@ struct ElastikaModule : Module
 };
 
 
-struct SapphireWarningKnob : RoundLargeBlackKnob        // A large knob, but with a controllable warning light around it.
+struct ElastikaWarningLightWidget : LightWidget
 {
-    void draw(const DrawArgs& args) override
-    {
-        ElastikaModule *elastikaModule = dynamic_cast<ElastikaModule*>(module);
-        if (elastikaModule && elastikaModule->engine.isAudioDistorted())
-        {
-            // Draw a halo-like emanation around the output level knob.
-            // This is a visual warning to the user that the output audio
-            // is being distorted by the AGC limiter.
-            rack::math::Vec center = box.size.div(2);
-            float radius1 = 18.0f;
-            float radius2 = 22.0f;
-            NVGcolor icol = nvgRGBA(0xff, 0x20, 0x00, 0xff);
-            NVGcolor ocol = nvgRGBA(0, 0, 0, 0);
+    ElastikaModule *elastikaModule;
 
-            nvgBeginPath(args.vg);
-            nvgRect(args.vg, center.x - radius2, center.y - radius2, 2 * radius2, 2 * radius2);
-            NVGpaint paint = nvgRadialGradient(args.vg, center.x, center.y, radius1, radius2, icol, ocol);
-            nvgFillPaint(args.vg, paint);
-            nvgFill(args.vg);
+    ElastikaWarningLightWidget(ElastikaModule *module)
+        : elastikaModule(module)
+    {
+        borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
+        bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+    }
+
+    void drawLayer(const DrawArgs& args, int layer) override
+    {
+        if (layer == 1)
+        {
+            // Update the warning light state dynamically.
+            // Turn on the warning when the AGC is limiting the output.
+
+            if (elastikaModule && elastikaModule->engine.isAudioDistorted())
+                color = nvgRGBA(0xff, 0x20, 0x00, 0x60);
+            else
+                color = nvgRGBA(0x00, 0x00, 0x00, 0x00);
         }
-        RoundLargeBlackKnob::draw(args);
+        LightWidget::drawLayer(args, layer);
     }
 };
 
@@ -351,7 +363,15 @@ struct ElastikaWidget : ModuleWidget
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, ElastikaModule::DRIVE_KNOB_PARAM));
-        addParam(createParamCentered<SapphireWarningKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM));
+        RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM);
+        addParam(levelKnob);
+
+        // Superimpose a warning light on the output level knob.
+        // We turn the warning light on when the limiter is distoring the output.
+        auto warningLight = new ElastikaWarningLightWidget(module);
+        warningLight->box.pos  = Vec(0.0f, 0.0f);
+        warningLight->box.size = levelKnob->box.size;
+        levelKnob->addChild(warningLight);
 
         // Tilt angle knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, ElastikaModule::INPUT_TILT_KNOB_PARAM));
