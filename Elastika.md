@@ -208,13 +208,13 @@ it can be set to any threshold level between 5V and 10V.
 When the limiter is enabled, it will adapt automatically
 to output voltages higher than its threshold by quickly
 reducing output gain. If the volume gets quieter than
-the level setting, the limiter allows the gain to slowly
-increase back to a maximum of unity gain (0 dB).
+the level setting, the limiter allows the gain to settle
+back to a maximum of unity gain (0 dB).
 This means the limiter never makes the output louder
 than it would be if the limiter were disabled.
 
 By default, the limiter is enabled and is configured
-for a 5V threshold.
+for an 8.5V threshold.
 Using Elastika's right-click context menu, you can slide
 the limiter threshold left or right anywhere from 5V to 10V.
 
@@ -225,6 +225,27 @@ some cases, but it could make sense for patches where Elastika's output
 is controlled by some external module, such as a mixer with a very low setting.
 Most of the time, it's a good idea to leave the limiter enabled,
 to avoid extremely loud sounds and clipping distortion.
+
+### Limiter distortion warning light
+
+When Elastika's limiter is enabled, and the output
+level is so high that the limiter is actively working
+to keep it under control, the sound quality will not
+be ideal. Therefore, Elastika signals a warning by
+making the output level knob glow red, like this:
+
+![Elastika level warning](./images/elastika_level_warning.png)
+
+This is a hint that you might want to turn down the
+output knob a little bit, or do something else to
+make Elastika quieter, in order to eliminate any
+distortion introduced by the limiter.
+Of course, you are the judge of sound quality, and you
+may decide to ignore the limiter warning if you are
+getting good results in your patch.
+
+If you disable the limiter, this is interpreted as a
+manual override, and the warning light will not turn on.
 
 ### Power button and gate
 
