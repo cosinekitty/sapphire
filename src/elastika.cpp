@@ -275,7 +275,7 @@ struct ElastikaModule : Module
         float curl = getControlValue(CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
         float mass = getControlValue(MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
         float drive = params[DRIVE_KNOB_PARAM].getValue();
-        float gain = std::pow(params[LEVEL_KNOB_PARAM].getValue(), 4.0f);
+        float gain  = params[LEVEL_KNOB_PARAM].getValue();
         float inTilt = getControlValue(INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
         float outTilt = getControlValue(OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 

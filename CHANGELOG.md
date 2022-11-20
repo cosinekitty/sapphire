@@ -12,17 +12,26 @@
 <td align="center">18 Nov 2022</td>
 <td align="center">2.1.3</td>
 <td align="left">
-Elastika now includes an adjustable output limiter.
-Before this was added, output levels could get VERY hot.
-The limiter mostly prevents the output amplitude from exceeding an adjustable level,
-although there can be brief transients after sudden changes.
-By default, the limiter is enabled for a 5V threshold.
-Using Elastika's right-click context menu, you can adjust the limiter
-threshold anywhere from 5V to 10V. If you slide the limiter all the way
-to the right, it turns the limiter completely off.
-Disabling the limiter like this can result in extreme output voltages in
-some cases, but it could make sense for patches where Elastika's output
-is attenuated externally.
+<ul>
+    <li>
+        Fixed a bug in the output level knob.
+        It was incorrectly scaling the output level far too sensitively.
+        Now the decibel value displayed by the knob exactly matches its actual amplification.
+    </li>
+    <li>
+        Elastika now includes an adjustable output limiter.
+        Before this was added, output levels could get VERY hot.
+        The limiter mostly prevents the output amplitude from exceeding an adjustable level,
+        although there can be brief transients after sudden changes.
+        By default, the limiter is enabled and set to a threshold of 8.5V.
+        Using Elastika's right-click context menu, you can adjust the limiter
+        threshold anywhere from 5V to 10V. If you slide the limiter all the way
+        to the right, it turns the limiter completely off.
+        Disabling the limiter like this can result in extreme output voltages in
+        some cases, but it could make sense for patches where Elastika's output
+        is attenuated externally.
+    </li>
+</ul>
 </td>
 </tr>
 
