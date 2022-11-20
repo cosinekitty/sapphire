@@ -247,6 +247,14 @@ getting good results in your patch.
 If you disable the limiter, this is interpreted as a
 manual override, and the warning light will not turn on.
 
+If you don't want the warning light to come on, but you
+want to keep the limiter enabled, there is an option
+for this in the right-click context menu labeled
+*Limiter warning light*. Clicking on this option
+will toggle whether the warning light turns on
+when the limiter is active. The warning light option
+defaults to being enabled.
+
 ### Power button and gate
 
 Elastika uses more CPU than the typical module in VCV Rack.

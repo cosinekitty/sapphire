@@ -13,6 +13,7 @@ struct ElastikaModule : Module
     Sapphire::Slewer slewer;
     bool isPowerGateActive;
     bool isQuiet;
+    bool enableLimiterWarning;
 
     enum ParamId
     {
@@ -151,12 +152,26 @@ struct ElastikaModule : Module
         isQuiet = false;
         slewer.enable(true);
         params[POWER_TOGGLE_PARAM].setValue(1.0f);
+        enableLimiterWarning = true;
     }
 
     void onReset(const ResetEvent& e) override
     {
         Module::onReset(e);
         initialize();
+    }
+
+    json_t* dataToJson() override
+    {
+        json_t* root = json_object();
+        json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+        return root;
+    }
+
+    void dataFromJson(json_t* root) override
+    {
+        json_t *warningFlag = json_object_get(root, "limiterWarningLight");
+        enableLimiterWarning = !json_is_boolean(warningFlag) || json_boolean_value(warningFlag);
     }
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -311,7 +326,6 @@ class ElastikaWarningLightWidget : public LightWidget
 {
 private:
     ElastikaModule *elastikaModule;
-    bool enableWarning = true;
 
     static int colorComponent(double scale, int lo, int hi)
     {
@@ -320,6 +334,8 @@ private:
 
     NVGcolor warningColor(double distortion)
     {
+        bool enableWarning = elastikaModule && elastikaModule->enableLimiterWarning;
+
         if (!enableWarning || distortion <= 0.0)
             return nvgRGBA(0, 0, 0, 0);     // no warning light
 
@@ -423,15 +439,24 @@ struct ElastikaWidget : ModuleWidget
 
     void appendContextMenu(Menu* menu) override
     {
-        if (elastikaModule && elastikaModule->dcRejectQuantity && elastikaModule->agcLevelQuantity)
+        if (elastikaModule != nullptr)
         {
             menu->addChild(new MenuSeparator);
 
-            // Add slider that adjusts the DC-reject filter's corner frequency.
-            menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
+            if (elastikaModule->dcRejectQuantity)
+            {
+                // Add slider that adjusts the DC-reject filter's corner frequency.
+                menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
+            }
 
-            // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-            menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
+            if (elastikaModule->agcLevelQuantity)
+            {
+                // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
+                menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
+
+                // Add an option to enable/disable the warning slider.
+                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &elastikaModule->enableLimiterWarning));
+            }
         }
     }
 };
