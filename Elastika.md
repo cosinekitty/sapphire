@@ -10,7 +10,11 @@ audio output jacks.
 
 Here are some videos that offer a peek at Elastika. Headphones are recommended to best experience the stereo field.
 
-Feeding in a simple square wave to produce a gong-like sound:
+Omri Cohen made this "Quick Tip" video about using Elastika for metallic percussion sounds:
+
+[![Omri Cohen - Metallic Percussion Made Easy](https://img.youtube.com/vi/DEoMeNHOVgE/0.jpg)](https://www.youtube.com/watch?v=DEoMeNHOVgE)
+
+Here I demo feeding a simple square wave into Elastika to produce a gong-like sound:
 
 [![Elastika square wave](https://img.youtube.com/vi/GOViwGLgRfU/0.jpg)](https://www.youtube.com/watch?v=GOViwGLgRfU)
 
