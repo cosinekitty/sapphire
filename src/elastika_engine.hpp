@@ -239,10 +239,10 @@ namespace Sapphire
         float inTilt;
         float outTilt;
         AutomaticGainLimiter agc;
-        bool enableAgc;
+        bool enableAgc = false;
 
     public:
-        ElastikaEngine() { initialize(); };
+        ElastikaEngine() { initialize(); }
 
         void initialize()
         {
