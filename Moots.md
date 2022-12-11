@@ -17,12 +17,23 @@ but differs in the following ways:
 
 * Each Moots control has a push-button like VCV Mutes does,
   but it also has a gate input that allows replacing the button with
-  a control voltage. When a signal is connected to a control's gate,
-  the control connects the input to the output when the
-  gate voltage is +4 volts or higher. When the gate voltage
-  drops below +4 volts, the output cable acts like it is
-  unplugged. When there is no gate input connected,
-  the manual push-button takes control.
+  a control voltage.
+
+When there is no cable connected to a gate input,
+the manual push-button takes control.
+But when there is a cable connected to a control's gate,
+the control connects the input to the output when the
+gate voltage is +1.0 volts or higher. When the gate voltage
+drops below +0.1 volts, the output cable acts like it is
+unplugged.
+
+To help filter signal jitter, the state stays the same
+when the gate voltage is between +0.1V and +1.0V.
+In other words, Schmitt trigger logic is applied.
+
+A polyphonic cable connected to a gate has all
+of its channel voltages added together, and the +0.1V/+1.0V rules
+above are applied to that sum.
 
 I created this module after I discovered one day that the
 [Audible Instruments Resonator](https://library.vcvrack.com/AudibleInstruments/Rings)
@@ -51,11 +62,11 @@ Moots supports the full range of polyphonic channels allowed
 by VCV Rack, namely 1 to 16.
 
 When in the quasi-unplugged state, all cables coming out of the
-output jack will appear slightly thinner than a normal cable.
-When in the enabled state, all such cables will appear the
-correct thickness for their polyphony.
+output jack will appear more transparent than a normal cable.
+When in the enabled state, all such cables will appear
+with normal opacity and the correct thickness for their polyphony.
 
-Any other module's input jack that receives one of these thin-looking
+Any other module's input jack that receives one of these faint-looking
 "unplugged" cables will act as if it is not connected to anything,
 because VCV Rack does not distinguish between an unplugged jack
 and a jack connected to a zero-channel cable.
