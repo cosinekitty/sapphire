@@ -256,10 +256,23 @@ static int AutoGainControl()
 static int ReadWave()
 {
     const char *inFileName = "input/genesis.wav";
+    const char *outFileName = "output/genesis.wav";
 
     WaveFileReader inwave;
     if (!inwave.Open(inFileName))
         return Fail("ReadWave", std::string("Could not open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+    if (sampleRate != 44100 || channels != 2)
+    {
+        fprintf(stderr, "ReadWave: FAIL - Expected 44100 Hz stereo, but found %d Hz, %d channels.\n", sampleRate, channels);
+        return 1;
+    }
+
+    WaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("ReadWave", std::string("Could not open output file: ") + outFileName);
 
     printf("ReadWave: PASS\n");
     return 0;

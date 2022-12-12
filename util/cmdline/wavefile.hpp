@@ -143,6 +143,24 @@ class WaveFileReader
 {
 private:
     FILE *infile = nullptr;
+    int sampleRate = 0;
+    int channels = 0;
+
+    int Decode16(const uint8_t *header, int offset)
+    {
+        return
+            static_cast<int>(header[offset+0]) |
+            static_cast<int>(header[offset+1] << 8);
+    }
+
+    int Decode32(const uint8_t *header, int offset)
+    {
+        return
+            static_cast<int>(header[offset+0]) |
+            static_cast<int>(header[offset+1] <<  8) |
+            static_cast<int>(header[offset+2] << 16) |
+            static_cast<int>(header[offset+3] << 24);
+    }
 
 public:
     ~WaveFileReader()
@@ -157,16 +175,47 @@ public:
             fclose(infile);
             infile = nullptr;
         }
+        sampleRate = 0;
+        channels = 0;
     }
 
     bool Open(const char *filename)
     {
+        Close();
+
         infile = fopen(filename, "rb");
         if (!infile)
             return false;
 
+        uint8_t header[44];
+        size_t nread = fread(header, sizeof(header), 1, infile);
+        if (nread != 1)
+        {
+            // Too small to be a valid wave file.
+            Close();
+            return false;
+        }
+
+        // 00000000  52 49 46 46 ba 53 1f 00  57 41 56 45 66 6d 74 20  |RIFF.S..WAVEfmt |
+        // 00000010  10 00 00 00 01 00 02 00  44 ac 00 00 10 b1 02 00  |........D.......|
+        // 00000020  04 00 10 00 64 61 74 61  f4 52 1f 00 00 00 00 00  |....data.R......|
+        // 00000030  01 00 01 00 ff ff fe ff  01 00 01 00 ff ff 00 00  |................|
+        // 00000040  01 00 fe ff ff ff 03 00  02 00 fc ff ff ff 03 00  |................|
+
+        if (memcmp(header, "RIFF", 4) || memcmp(&header[8], "WAVEfmt ", 8))
+        {
+            // Incorrect signature
+            Close();
+            return false;
+        }
+
+        channels = Decode16(header, 22);
+        sampleRate = Decode32(header, 24);
         return true;
     }
+
+    int SampleRate() const { return sampleRate; }
+    int Channels() const { return channels; }
 };
 
 
