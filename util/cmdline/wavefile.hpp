@@ -12,6 +12,28 @@
 #include <vector>
 #include <stdexcept>
 
+
+const int IntSampleScale = 32700;
+
+
+inline int16_t IntSampleFromFloat(float x)
+{
+    if (x < -1.0f || x > +1.0f)
+        throw std::range_error(std::string("Floating-point audio output went out of range: " + std::to_string(x)));
+
+    return static_cast<int16_t>(IntSampleScale * x);
+}
+
+
+inline float FloatFromIntSample(int16_t s)
+{
+    if (s < -IntSampleScale || s > +IntSampleScale)
+        throw std::range_error("Integer audio output went out of range.");
+
+    return static_cast<float>(s) / IntSampleScale;
+}
+
+
 class WaveFileWriter
 {
 private:
@@ -20,14 +42,6 @@ private:
     int nchannels = 0;
     int sampleRateHz = 0;
     int byteLength = 0;
-
-    int16_t ConvertSample(float x)
-    {
-        if (x < -1.0f || x > +1.0f)
-            throw std::range_error("Audio output went out of range.");
-
-        return static_cast<int16_t>(32700.0 * x);
-    }
 
     void Encode16(uint8_t *header, int offset, int value)
     {
@@ -130,7 +144,7 @@ public:
             throw std::logic_error("WaveFile is not open.");
 
         for (int i = 0; i < ndata; ++i)
-            buffer.push_back(ConvertSample(data[i]));
+            buffer.push_back(IntSampleFromFloat(data[i]));
 
         byteLength += (2 * ndata);
 
@@ -162,6 +176,7 @@ private:
     int channels = 0;
     size_t totalSamples = 0;     // total number of 16-bit integer data points
     size_t samplesRead = 0;
+    std::vector<int16_t> conversionBuffer;  // for assisting reads into floating point buffer
 
     int Decode16(const uint8_t *header, int offset)
     {
@@ -245,6 +260,23 @@ public:
         size_t attempt = std::min(requestedSamples, remaining);
         size_t received = fread(data, sizeof(int16_t), attempt, infile);
         samplesRead += received;
+        return received;
+    }
+
+    size_t Read(float *data, size_t requestedSamples)
+    {
+        size_t remaining = totalSamples - samplesRead;
+        size_t attempt = std::min(requestedSamples, remaining);
+
+        if (conversionBuffer.size() < attempt)
+            conversionBuffer.resize(attempt);
+
+        size_t received = fread(conversionBuffer.data(), sizeof(int16_t), attempt, infile);
+        samplesRead += received;
+
+        for (size_t i = 0; i < received; ++i)
+            data[i] = FloatFromIntSample(conversionBuffer[i]);
+
         return received;
     }
 };

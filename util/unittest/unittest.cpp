@@ -1,13 +1,19 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
-#include "sapphire_engine.hpp"
+#include "resonator_engine.hpp"
 #include "wavefile.hpp"
 
-static int Fail(std::string name, std::string message)
+static int Fail(const std::string name, const std::string message)
 {
     fprintf(stderr, "%s: FAIL - %s\n", name.c_str(), message.c_str());
     return 1;
+}
+
+static int Pass(const std::string name)
+{
+    printf("%s: PASS\n", name.c_str());
+    return 0;
 }
 
 using UnitTestFunction = int (*) ();
@@ -20,11 +26,13 @@ struct UnitTest
 
 static int AutoGainControl();
 static int ReadWave();
+static int Resonator();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
     { "readwave",   ReadWave },
+    { "resonator",  Resonator },
     { nullptr,  nullptr }
 };
 
@@ -286,6 +294,46 @@ static int ReadWave()
             break;
     }
 
-    printf("ReadWave: PASS\n");
-    return 0;
+    return Pass("ReadWave");
+}
+
+
+static int Resonator()
+{
+    const char *inFileName = "input/genesis.wav";
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("Resonator", std::string("Cannot open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+    if (sampleRate != 44100 || channels != 2)
+    {
+        fprintf(stderr, "Resonator: FAIL - Expected 44100 Hz stereo, but found %d Hz, %d channels.\n", sampleRate, channels);
+        return 1;
+    }
+
+    const char *outFileName = "output/resonate1.wav";
+    WaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("Resonator", std::string("Cannot open output file: ") + outFileName);
+
+    const size_t bufsize = 0x10000;
+    std::vector<float> buffer;
+    buffer.resize(bufsize);
+
+    Sapphire::ResonatorEngine resonator;
+    for(;;)
+    {
+        size_t received = inwave.Read(buffer.data(), bufsize);
+        for (size_t i = 0; i < received; i += 2)
+        {
+            resonator.process(sampleRate, buffer[i], buffer[i+1], buffer[i], buffer[i+1]);
+        }
+        outwave.WriteSamples(buffer.data(), received);
+        if (received < bufsize)
+            break;
+    }
+
+    return Pass("Resonator");
 }
