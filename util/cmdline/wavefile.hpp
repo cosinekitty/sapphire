@@ -7,6 +7,7 @@
 #define __COSINEKITTY_WAVEFILE_HPP
 
 #include <cinttypes>
+#include <cstring>
 #include <cstdio>
 #include <vector>
 #include <stdexcept>
@@ -136,6 +137,20 @@ public:
         if (buffer.size() >= 10000)
             Flush();
     }
+
+    void WriteSamples(const int16_t *data, int ndata)
+    {
+        if (outfile == nullptr)
+            throw std::logic_error("WaveFile is not open.");
+
+        for (int i = 0; i < ndata; ++i)
+            buffer.push_back(data[i]);
+
+        byteLength += (2 * ndata);
+
+        if (buffer.size() >= 10000)
+            Flush();
+    }
 };
 
 
@@ -145,6 +160,8 @@ private:
     FILE *infile = nullptr;
     int sampleRate = 0;
     int channels = 0;
+    size_t totalSamples = 0;     // total number of 16-bit integer data points
+    size_t samplesRead = 0;
 
     int Decode16(const uint8_t *header, int offset)
     {
@@ -177,6 +194,8 @@ public:
         }
         sampleRate = 0;
         channels = 0;
+        totalSamples = 0;
+        samplesRead = 0;
     }
 
     bool Open(const char *filename)
@@ -211,11 +230,23 @@ public:
 
         channels = Decode16(header, 22);
         sampleRate = Decode32(header, 24);
+        unsigned nbytes = static_cast<unsigned>(Decode32(header, 40));
+        totalSamples = nbytes / sizeof(int16_t);    // FIXFIXFIX: should validate sample format is 16-bit
         return true;
     }
 
     int SampleRate() const { return sampleRate; }
     int Channels() const { return channels; }
+    size_t TotalSamples() const { return totalSamples; }
+
+    size_t Read(int16_t *data, size_t requestedSamples)
+    {
+        size_t remaining = totalSamples - samplesRead;
+        size_t attempt = std::min(requestedSamples, remaining);
+        size_t received = fread(data, sizeof(int16_t), attempt, infile);
+        samplesRead += received;
+        return received;
+    }
 };
 
 

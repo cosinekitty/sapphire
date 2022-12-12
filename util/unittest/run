@@ -8,5 +8,8 @@ echo "Building unit tests..."
 echo "Running unit tests..."
 ./unittest all || exit 1
 
+echo "Verifying output audio..."
+sha256sum -c audio_hash.txt || exit 1
+
 echo "Unit tests: PASS"
 exit 0

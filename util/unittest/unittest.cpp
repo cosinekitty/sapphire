@@ -274,6 +274,18 @@ static int ReadWave()
     if (!outwave.Open(outFileName, sampleRate, channels))
         return Fail("ReadWave", std::string("Could not open output file: ") + outFileName);
 
+    const size_t bufsize = 1024;
+    std::vector<int16_t> buffer;
+    buffer.resize(bufsize);
+
+    for(;;)
+    {
+        size_t received = inwave.Read(buffer.data(), bufsize);
+        outwave.WriteSamples(buffer.data(), received);
+        if (received < bufsize)
+            break;
+    }
+
     printf("ReadWave: PASS\n");
     return 0;
 }
