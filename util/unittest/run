@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -f *.wav
+rm -f output/*.wav
 
 echo "Building unit tests..."
 ./build || exit 1

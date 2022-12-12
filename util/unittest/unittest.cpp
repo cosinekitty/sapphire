@@ -4,6 +4,12 @@
 #include "sapphire_engine.hpp"
 #include "wavefile.hpp"
 
+static int Fail(std::string name, std::string message)
+{
+    fprintf(stderr, "%s: FAIL - %s\n", name.c_str(), message.c_str());
+    return 1;
+}
+
 using UnitTestFunction = int (*) ();
 
 struct UnitTest
@@ -13,10 +19,12 @@ struct UnitTest
 };
 
 static int AutoGainControl();
+static int ReadWave();
 
 static const UnitTest CommandTable[] =
 {
-    { "agc",    AutoGainControl },
+    { "agc",        AutoGainControl },
+    { "readwave",   ReadWave },
     { nullptr,  nullptr }
 };
 
@@ -97,8 +105,8 @@ static int AgcTestCase(
     Sapphire::AutomaticGainLimiter agc;
     agc.setCeiling(ceiling);
 
-    string harshFileName = string("agc_input_")  + name + ".wav";
-    string mildFileName  = string("agc_output_") + name + ".wav";
+    string harshFileName = string("output/agc_input_")  + name + ".wav";
+    string mildFileName  = string("output/agc_output_") + name + ".wav";
 
     WaveFileWriter harsh;
     if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))
@@ -244,3 +252,15 @@ static int AutoGainControl()
     return 0;
 }
 
+
+static int ReadWave()
+{
+    const char *inFileName = "input/genesis.wav";
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("ReadWave", std::string("Could not open input file: ") + inFileName);
+
+    printf("ReadWave: PASS\n");
+    return 0;
+}

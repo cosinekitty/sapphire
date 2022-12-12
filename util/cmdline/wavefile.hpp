@@ -1,6 +1,6 @@
 /*
     wavefile.hpp  -  Don Cross <cosinekitty@gmail.com>
-    Quick and dirty 16-bit PCM WAV file writer.
+    Quick and dirty 16-bit PCM WAV file reader/writer.
 */
 
 #ifndef __COSINEKITTY_WAVEFILE_HPP
@@ -137,5 +137,37 @@ public:
             Flush();
     }
 };
+
+
+class WaveFileReader
+{
+private:
+    FILE *infile = nullptr;
+
+public:
+    ~WaveFileReader()
+    {
+        Close();
+    }
+
+    void Close()
+    {
+        if (infile != nullptr)
+        {
+            fclose(infile);
+            infile = nullptr;
+        }
+    }
+
+    bool Open(const char *filename)
+    {
+        infile = fopen(filename, "rb");
+        if (!infile)
+            return false;
+
+        return true;
+    }
+};
+
 
 #endif // __COSINEKITTY_WAVEFILE_HPP
