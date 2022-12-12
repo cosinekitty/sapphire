@@ -34,7 +34,7 @@ int main()
     engine.setInputTilt(0.5);
     engine.setOutputTilt(0.5);
 
-    WaveFile wave;
+    WaveFileWriter wave;
     const char *filename = "elastika.wav";
     if (!wave.Open(filename, SAMPLE_RATE, CHANNELS))
     {

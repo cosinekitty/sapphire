@@ -100,14 +100,14 @@ static int AgcTestCase(
     string harshFileName = string("agc_input_")  + name + ".wav";
     string mildFileName  = string("agc_output_") + name + ".wav";
 
-    WaveFile harsh;
+    WaveFileWriter harsh;
     if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))
     {
         printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, harshFileName.c_str());
         return 1;
     }
 
-    WaveFile mild;
+    WaveFileWriter mild;
     if (!mild.Open(mildFileName.c_str(), sampleRate, 2))
     {
         printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, mildFileName.c_str());

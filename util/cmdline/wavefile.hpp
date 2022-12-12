@@ -11,7 +11,7 @@
 #include <vector>
 #include <stdexcept>
 
-class WaveFile
+class WaveFileWriter
 {
 private:
     FILE *outfile = nullptr;
@@ -88,7 +88,7 @@ private:
     }
 
 public:
-    ~WaveFile()
+    ~WaveFileWriter()
     {
         Close();
     }
