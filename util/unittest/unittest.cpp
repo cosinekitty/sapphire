@@ -322,13 +322,15 @@ static int Resonator()
     std::vector<float> buffer;
     buffer.resize(bufsize);
 
-    Sapphire::ResonatorEngine resonator;
+    Sapphire::ResonatorEngine resonator(sampleRate);
     for(;;)
     {
         size_t received = inwave.Read(buffer.data(), bufsize);
         for (size_t i = 0; i < received; i += 2)
         {
-            resonator.process(sampleRate, buffer[i], buffer[i+1], buffer[i], buffer[i+1]);
+            resonator.process(buffer[i], buffer[i+1], buffer[i], buffer[i+1]);
+            buffer[i]   *= 10.0f;
+            buffer[i+1] *= 10.0f;
         }
         outwave.WriteSamples(buffer.data(), received);
         if (received < bufsize)
