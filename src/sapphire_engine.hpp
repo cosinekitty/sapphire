@@ -6,7 +6,18 @@
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
+
+/*
+ * In the rack context this ifdef isn't needed; rack gives you simde for free
+ * but if you want to use this module outside of rack (which we do) you need to
+ * have a bring-your-own simde approach which will just use RACK SIMDE in rack builds
+ */
+#if defined(__SSE2__)
 #include <pmmintrin.h>
+#else
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include "simde/x86/sse4.2.h"
+#endif
 
 namespace Sapphire
 {
