@@ -1,6 +1,6 @@
 #!/bin/bash
 ELASTIKA_SRC=../../src
-g++ -Wall -Werror -O3 -I${ELASTIKA_SRC} -o elastika -D NO_RACK_DEPENDENCY \
+g++ -Wall -Werror -O3 -I${ELASTIKA_SRC} -I../include -o elastika -D NO_RACK_DEPENDENCY \
     elastika_standalone.cpp \
     ${ELASTIKA_SRC}/mesh_hex.cpp \
     ${ELASTIKA_SRC}/mesh_physics.cpp

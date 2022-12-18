@@ -6,7 +6,7 @@ else
     OPTS="-O3"
 fi
 
-g++ -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../cmdline \
+g++ -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include \
     unittest.cpp    \
     || exit 1
 
