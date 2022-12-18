@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <vector>
 #include <stdexcept>
+#include <string>
 
 
 const int IntSampleScale = 32700;
@@ -141,7 +142,7 @@ public:
     void WriteSamples(const float *data, int ndata)
     {
         if (outfile == nullptr)
-            throw std::logic_error("WaveFile is not open.");
+            throw std::logic_error("WaveFileWriter is not open.");
 
         for (int i = 0; i < ndata; ++i)
             buffer.push_back(IntSampleFromFloat(data[i]));
@@ -155,7 +156,7 @@ public:
     void WriteSamples(const int16_t *data, int ndata)
     {
         if (outfile == nullptr)
-            throw std::logic_error("WaveFile is not open.");
+            throw std::logic_error("WaveFileWriter is not open.");
 
         for (int i = 0; i < ndata; ++i)
             buffer.push_back(data[i]);
@@ -164,6 +165,92 @@ public:
 
         if (buffer.size() >= 10000)
             Flush();
+    }
+};
+
+
+class ScaledWaveFileWriter
+{
+private:
+    WaveFileWriter wave;
+    float maximum = 0.0f;
+    FILE *tempFile = nullptr;
+    std::string tempFileName;
+
+public:
+    ~ScaledWaveFileWriter()
+    {
+        Close();
+    }
+
+    bool Open(const char *filename, int sampleRate, int channels)
+    {
+        tempFileName = std::string(filename) + ".tmp";
+        tempFile = fopen(tempFileName.c_str(), "wb");
+        if (tempFile == nullptr)
+            return false;
+
+        if (!wave.Open(filename, sampleRate, channels))
+        {
+            fclose(tempFile);
+            remove(tempFileName.c_str());
+            return false;
+        }
+
+        maximum = 0.0f;
+        return true;
+    }
+
+    void WriteSamples(const float *data, int ndata)
+    {
+        if (tempFile == nullptr)
+            throw std::logic_error("ScaledWaveFileWriter is not open.");
+
+        for (int i = 0; i < ndata; ++i)
+        {
+            if (!std::isfinite(data[i]))
+                throw std::range_error("Non-finite audio data not allowed.");
+            maximum = std::max(maximum, std::abs(data[i]));
+        }
+
+        if (static_cast<size_t>(ndata) != fwrite(data, sizeof(float), ndata, tempFile))
+            throw std::runtime_error("Error writing to temporary file.");
+
+    }
+
+    void Close()
+    {
+        if (tempFile)
+        {
+            fclose(tempFile);
+            tempFile = nullptr;
+
+            FILE *rfile = fopen(tempFileName.c_str(), "rb");
+            if (rfile == nullptr)
+                throw std::logic_error(std::string("Coult not re-open temporary file for read: ") + tempFileName);
+
+            // Handle the case where silence was written. Avoid dividing by zero.
+            if (maximum == 0.0f)
+                maximum = 1.0f;
+
+            std::vector<float> buffer;
+            const size_t bufsize = 1024;
+            buffer.resize(bufsize);
+
+            for(;;)
+            {
+                size_t nread = fread(buffer.data(), sizeof(float), bufsize, rfile);
+                for (size_t i = 0; i < nread; ++i)
+                    buffer[i] /= maximum;
+
+                wave.WriteSamples(buffer.data(), nread);
+                if (nread < bufsize)
+                    break;
+            }
+
+            fclose(rfile);
+            remove(tempFileName.c_str());
+        }
     }
 };
 

@@ -26,11 +26,13 @@ struct UnitTest
 
 static int AutoGainControl();
 static int ReadWave();
+static int AutoScale();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
     { "readwave",   ReadWave },
+    { "scale",      AutoScale },
     { nullptr,  nullptr }
 };
 
@@ -293,4 +295,49 @@ static int ReadWave()
     }
 
     return Pass("ReadWave");
+}
+
+
+static int AutoScale()
+{
+    // Verify that class ScaledWaveFileWriter can automatically adjust the level
+    // of an output signal by a two-pass approach: write floating point data and
+    // remember maximum amplitude, then go back and use maximum amplitude to scale
+    // to 16-bit integer audio.
+
+    const char *outFileName = "output/scale.wav";
+    const int sampleRate = 44100;
+    const int channels = 2;
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("AutoScale", std::string("Could not open output file: ") + outFileName);
+
+    const size_t bufsize = 1024;
+    const size_t durationBuffers = (3 * static_cast<size_t>(sampleRate * channels)) / bufsize;
+    std::vector<float> buffer;
+    buffer.resize(bufsize);
+
+    float a = 1.0f;
+    float b = 0.0f;
+    float radians = (440.0 * 2.0 * M_PI) / sampleRate;
+    float c = cos(radians);
+    float s = sin(radians);
+
+    for (size_t n = 0; n < durationBuffers; ++n)
+    {
+        for (size_t i = 0; i < bufsize; i += channels)
+        {
+            // Generate a stereo 440 Hz (cosine, sine) pair.
+            buffer[i] = a;
+            buffer[i+1] = b;
+            float t = a*c - b*s;
+            b = a*s + b*c;
+            a = t;
+        }
+
+        outwave.WriteSamples(buffer.data(), bufsize);
+    }
+
+    return Pass("AutoScale");
 }
