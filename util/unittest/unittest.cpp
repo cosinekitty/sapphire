@@ -4,6 +4,18 @@
 #include "sapphire_engine.hpp"
 #include "wavefile.hpp"
 
+static int Fail(const std::string name, const std::string message)
+{
+    fprintf(stderr, "%s: FAIL - %s\n", name.c_str(), message.c_str());
+    return 1;
+}
+
+static int Pass(const std::string name)
+{
+    printf("%s: PASS\n", name.c_str());
+    return 0;
+}
+
 using UnitTestFunction = int (*) ();
 
 struct UnitTest
@@ -13,10 +25,12 @@ struct UnitTest
 };
 
 static int AutoGainControl();
+static int ReadWave();
 
 static const UnitTest CommandTable[] =
 {
-    { "agc",    AutoGainControl },
+    { "agc",        AutoGainControl },
+    { "readwave",   ReadWave },
     { nullptr,  nullptr }
 };
 
@@ -97,17 +111,17 @@ static int AgcTestCase(
     Sapphire::AutomaticGainLimiter agc;
     agc.setCeiling(ceiling);
 
-    string harshFileName = string("agc_input_")  + name + ".wav";
-    string mildFileName  = string("agc_output_") + name + ".wav";
+    string harshFileName = string("output/agc_input_")  + name + ".wav";
+    string mildFileName  = string("output/agc_output_") + name + ".wav";
 
-    WaveFile harsh;
+    WaveFileWriter harsh;
     if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))
     {
         printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, harshFileName.c_str());
         return 1;
     }
 
-    WaveFile mild;
+    WaveFileWriter mild;
     if (!mild.Open(mildFileName.c_str(), sampleRate, 2))
     {
         printf("AgcTestCase(%s): Cannot open output wave file: %s\n", name, mildFileName.c_str());
@@ -244,3 +258,39 @@ static int AutoGainControl()
     return 0;
 }
 
+
+static int ReadWave()
+{
+    const char *inFileName = "input/genesis.wav";
+    const char *outFileName = "output/genesis.wav";
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("ReadWave", std::string("Could not open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+    if (sampleRate != 44100 || channels != 2)
+    {
+        fprintf(stderr, "ReadWave: FAIL - Expected 44100 Hz stereo, but found %d Hz, %d channels.\n", sampleRate, channels);
+        return 1;
+    }
+
+    WaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("ReadWave", std::string("Could not open output file: ") + outFileName);
+
+    const size_t bufsize = 1024;
+    std::vector<int16_t> buffer;
+    buffer.resize(bufsize);
+
+    for(;;)
+    {
+        size_t received = inwave.Read(buffer.data(), bufsize);
+        outwave.WriteSamples(buffer.data(), received);
+        if (received < bufsize)
+            break;
+    }
+
+    return Pass("ReadWave");
+}

@@ -1,17 +1,40 @@
 /*
     wavefile.hpp  -  Don Cross <cosinekitty@gmail.com>
-    Quick and dirty 16-bit PCM WAV file writer.
+    Quick and dirty 16-bit PCM WAV file reader/writer.
 */
 
 #ifndef __COSINEKITTY_WAVEFILE_HPP
 #define __COSINEKITTY_WAVEFILE_HPP
 
 #include <cinttypes>
+#include <cstring>
 #include <cstdio>
 #include <vector>
 #include <stdexcept>
 
-class WaveFile
+
+const int IntSampleScale = 32700;
+
+
+inline int16_t IntSampleFromFloat(float x)
+{
+    if (x < -1.0f || x > +1.0f)
+        throw std::range_error(std::string("Floating-point audio output went out of range: " + std::to_string(x)));
+
+    return static_cast<int16_t>(IntSampleScale * x);
+}
+
+
+inline float FloatFromIntSample(int16_t s)
+{
+    if (s < -IntSampleScale || s > +IntSampleScale)
+        throw std::range_error("Integer audio output went out of range.");
+
+    return static_cast<float>(s) / IntSampleScale;
+}
+
+
+class WaveFileWriter
 {
 private:
     FILE *outfile = nullptr;
@@ -19,14 +42,6 @@ private:
     int nchannels = 0;
     int sampleRateHz = 0;
     int byteLength = 0;
-
-    int16_t ConvertSample(float x)
-    {
-        if (x < -1.0f || x > +1.0f)
-            throw std::range_error("Audio output went out of range.");
-
-        return static_cast<int16_t>(32700.0 * x);
-    }
 
     void Encode16(uint8_t *header, int offset, int value)
     {
@@ -88,7 +103,7 @@ private:
     }
 
 public:
-    ~WaveFile()
+    ~WaveFileWriter()
     {
         Close();
     }
@@ -129,7 +144,21 @@ public:
             throw std::logic_error("WaveFile is not open.");
 
         for (int i = 0; i < ndata; ++i)
-            buffer.push_back(ConvertSample(data[i]));
+            buffer.push_back(IntSampleFromFloat(data[i]));
+
+        byteLength += (2 * ndata);
+
+        if (buffer.size() >= 10000)
+            Flush();
+    }
+
+    void WriteSamples(const int16_t *data, int ndata)
+    {
+        if (outfile == nullptr)
+            throw std::logic_error("WaveFile is not open.");
+
+        for (int i = 0; i < ndata; ++i)
+            buffer.push_back(data[i]);
 
         byteLength += (2 * ndata);
 
@@ -137,5 +166,120 @@ public:
             Flush();
     }
 };
+
+
+class WaveFileReader
+{
+private:
+    FILE *infile = nullptr;
+    int sampleRate = 0;
+    int channels = 0;
+    size_t totalSamples = 0;     // total number of 16-bit integer data points
+    size_t samplesRead = 0;
+    std::vector<int16_t> conversionBuffer;  // for assisting reads into floating point buffer
+
+    int Decode16(const uint8_t *header, int offset)
+    {
+        return
+            static_cast<int>(header[offset+0]) |
+            static_cast<int>(header[offset+1] << 8);
+    }
+
+    int Decode32(const uint8_t *header, int offset)
+    {
+        return
+            static_cast<int>(header[offset+0]) |
+            static_cast<int>(header[offset+1] <<  8) |
+            static_cast<int>(header[offset+2] << 16) |
+            static_cast<int>(header[offset+3] << 24);
+    }
+
+public:
+    ~WaveFileReader()
+    {
+        Close();
+    }
+
+    void Close()
+    {
+        if (infile != nullptr)
+        {
+            fclose(infile);
+            infile = nullptr;
+        }
+        sampleRate = 0;
+        channels = 0;
+        totalSamples = 0;
+        samplesRead = 0;
+    }
+
+    bool Open(const char *filename)
+    {
+        Close();
+
+        infile = fopen(filename, "rb");
+        if (!infile)
+            return false;
+
+        uint8_t header[44];
+        size_t nread = fread(header, sizeof(header), 1, infile);
+        if (nread != 1)
+        {
+            // Too small to be a valid wave file.
+            Close();
+            return false;
+        }
+
+        // 00000000  52 49 46 46 ba 53 1f 00  57 41 56 45 66 6d 74 20  |RIFF.S..WAVEfmt |
+        // 00000010  10 00 00 00 01 00 02 00  44 ac 00 00 10 b1 02 00  |........D.......|
+        // 00000020  04 00 10 00 64 61 74 61  f4 52 1f 00 00 00 00 00  |....data.R......|
+        // 00000030  01 00 01 00 ff ff fe ff  01 00 01 00 ff ff 00 00  |................|
+        // 00000040  01 00 fe ff ff ff 03 00  02 00 fc ff ff ff 03 00  |................|
+
+        if (memcmp(header, "RIFF", 4) || memcmp(&header[8], "WAVEfmt ", 8))
+        {
+            // Incorrect signature
+            Close();
+            return false;
+        }
+
+        channels = Decode16(header, 22);
+        sampleRate = Decode32(header, 24);
+        unsigned nbytes = static_cast<unsigned>(Decode32(header, 40));
+        totalSamples = nbytes / sizeof(int16_t);    // FIXFIXFIX: should validate sample format is 16-bit
+        return true;
+    }
+
+    int SampleRate() const { return sampleRate; }
+    int Channels() const { return channels; }
+    size_t TotalSamples() const { return totalSamples; }
+
+    size_t Read(int16_t *data, size_t requestedSamples)
+    {
+        size_t remaining = totalSamples - samplesRead;
+        size_t attempt = std::min(requestedSamples, remaining);
+        size_t received = fread(data, sizeof(int16_t), attempt, infile);
+        samplesRead += received;
+        return received;
+    }
+
+    size_t Read(float *data, size_t requestedSamples)
+    {
+        size_t remaining = totalSamples - samplesRead;
+        size_t attempt = std::min(requestedSamples, remaining);
+
+        if (conversionBuffer.size() < attempt)
+            conversionBuffer.resize(attempt);
+
+        size_t received = fread(conversionBuffer.data(), sizeof(int16_t), attempt, infile);
+        samplesRead += received;
+
+        for (size_t i = 0; i < received; ++i)
+            data[i] = FloatFromIntSample(conversionBuffer[i]);
+
+        return received;
+    }
+};
+
 
 #endif // __COSINEKITTY_WAVEFILE_HPP
