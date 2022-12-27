@@ -226,8 +226,8 @@ struct MootsWidget : ModuleWidget
     Moots* mootsModule;
 
     MootsWidget(Moots* module)
+        : mootsModule(module)
     {
-        mootsModule = module;
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
 

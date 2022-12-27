@@ -71,8 +71,8 @@ struct TubeUnitWidget : ModuleWidget
     TubeUnitModule *tubeUnitModule;
 
     TubeUnitWidget(TubeUnitModule* module)
+        : tubeUnitModule(module)
     {
-        tubeUnitModule = module;
         setModule(module);
     }
 };

@@ -375,11 +375,11 @@ public:
 struct ElastikaWidget : ModuleWidget
 {
     ElastikaModule *elastikaModule;
-    ElastikaWarningLightWidget *warningLight;
+    ElastikaWarningLightWidget *warningLight = nullptr;
 
     ElastikaWidget(ElastikaModule* module)
+        : elastikaModule(module)
     {
-        elastikaModule = module;
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
