@@ -20,6 +20,8 @@ struct TubeUnitModule : Module
 
     enum OutputId
     {
+        AUDIO_LEFT_OUTPUT,
+        AUDIO_RIGHT_OUTPUT,
         OUTPUTS_LEN
     };
 
@@ -31,6 +33,9 @@ struct TubeUnitModule : Module
     TubeUnitModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+        configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+        configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
         initialize();
     }
@@ -62,6 +67,16 @@ struct TubeUnitModule : Module
 
     void process(const ProcessArgs& args) override
     {
+        float sample[2];
+
+        engine.process(args.sampleRate, sample[0], sample[1]);
+
+        // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
+        sample[0] *= 5.0f;
+        sample[1] *= 5.0f;
+
+        outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
+        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
     }
 };
 
@@ -75,6 +90,10 @@ struct TubeUnitWidget : ModuleWidget
     {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
+
+        // Audio output jacks
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
     }
 };
 

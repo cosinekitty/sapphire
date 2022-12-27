@@ -21,6 +21,13 @@ namespace Sapphire
         void initialize()
         {
         }
+
+        void process(float sampleRate, float& leftOutput, float& rightOutput)
+        {
+            (void)sampleRate;
+            leftOutput = 0.0f;
+            rightOutput = 0.0f;
+        }
     };
 }
 
