@@ -33,6 +33,16 @@
         "Filter",
         "Reverb"
       ]
+    },
+    {
+      "slug": "TubeUnit",
+      "name": "Tube Unit",
+      "description": "Tubular waveguide synth.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Oscillator"
+      ]
     }
   ]
 }

@@ -12,6 +12,7 @@ extern Plugin* pluginInstance;
 // Declare each Model, defined in each module source file
 extern Model* modelMoots;
 extern Model* modelElastika;
+extern Model* modelTubeUnit;
 
 // Custom controls for Sapphire modules.
 
