@@ -74,6 +74,7 @@ struct TubeUnitWidget : ModuleWidget
         : tubeUnitModule(module)
     {
         setModule(module);
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
     }
 };
 
