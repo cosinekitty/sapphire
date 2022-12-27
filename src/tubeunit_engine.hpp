@@ -6,4 +6,22 @@
 
 #include "sapphire_engine.hpp"
 
+namespace Sapphire
+{
+    class TubeUnitEngine
+    {
+    private:
+
+    public:
+        TubeUnitEngine()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+        }
+    };
+}
+
 #endif // __COSINEKITTY_TUBEUNIT_ENGINE_HPP

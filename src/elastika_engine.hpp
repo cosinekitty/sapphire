@@ -242,7 +242,10 @@ namespace Sapphire
         bool enableAgc = false;
 
     public:
-        ElastikaEngine() { initialize(); }
+        ElastikaEngine()
+        {
+            initialize();
+        }
 
         void initialize()
         {

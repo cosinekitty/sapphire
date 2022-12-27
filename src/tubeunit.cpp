@@ -6,7 +6,63 @@
 
 struct TubeUnitModule : Module
 {
+    Sapphire::TubeUnitEngine engine;
 
+    enum ParamId
+    {
+        PARAMS_LEN
+    };
+
+    enum InputId
+    {
+        INPUTS_LEN
+    };
+
+    enum OutputId
+    {
+        OUTPUTS_LEN
+    };
+
+    enum LightId
+    {
+        LIGHTS_LEN
+    };
+
+    TubeUnitModule()
+    {
+        config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+        initialize();
+    }
+
+    void initialize()
+    {
+        engine.initialize();
+    }
+
+    void onReset(const ResetEvent& e) override
+    {
+        Module::onReset(e);
+        initialize();
+    }
+
+    json_t* dataToJson() override
+    {
+        json_t* root = json_object();
+        return root;
+    }
+
+    void dataFromJson(json_t* root) override
+    {
+    }
+
+    void onSampleRateChange(const SampleRateChangeEvent& e) override
+    {
+    }
+
+    void process(const ProcessArgs& args) override
+    {
+    }
 };
 
 
