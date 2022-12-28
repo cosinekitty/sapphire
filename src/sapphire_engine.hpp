@@ -454,20 +454,20 @@ namespace Sapphire
     };
 
 
-    template <typename item_t>
+    template <typename item_t, size_t bufsize = 10000>
     class DelayLine
     {
     private:
+        static_assert(bufsize > 1);     // the buffer must be able to hold at least 1 sample
+
         std::vector<item_t> buffer;
-        size_t front = 1;       // postion where data is inserted
-        size_t back = 0;        // postion where data is removed
+        size_t front = 1;               // postion where data is inserted
+        size_t back = 0;                // postion where data is removed
 
     public:
-        static const size_t maxSamples = 10000;
-
         DelayLine()
         {
-            buffer.resize(maxSamples);
+            buffer.resize(bufsize);
         }
 
         item_t read() const
@@ -478,25 +478,36 @@ namespace Sapphire
         void write(const item_t& x)
         {
             buffer.at(front) = x;
-            front = (front + 1) % maxSamples;
-            back = (back + 1) % maxSamples;
+            front = (front + 1) % bufsize;
+            back = (back + 1) % bufsize;
+        }
+
+        size_t getMaxLength() const
+        {
+            return bufsize - 1;
         }
 
         size_t getLength() const
         {
-            return ((maxSamples + front) - back) % maxSamples;
+            return ((bufsize + front) - back) % bufsize;
         }
 
-        void setLength(size_t nsamples)
+        size_t setLength(size_t requestedSamples)
         {
-            if (nsamples < 1 || nsamples > maxSamples)
-                throw std::range_error(std::string("Delay line number of samples must be 1..") + std::to_string(static_cast<unsigned long>(maxSamples)));
+            // If the requested number of samples is invalid, clamp it to the valid range.
+            // Essentially, we do the best we can, but exact pitch control is only possible
+            // within certain bounds.
+            const size_t nsamples = std::clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,
             // because the usage contract is to to call read() before calling write().
+            back = ((front + bufsize) - nsamples) % bufsize;
 
-            back = ((front + maxSamples) - nsamples) % maxSamples;
+            assert(nsamples == getLength());
+
+            // Let the caller know how many samples we actually used for the delay line length.
+            return nsamples;
         }
 
         void clear()

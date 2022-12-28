@@ -22,8 +22,24 @@ namespace Sapphire
             if (sampleRate <= 0.0f)
                 throw std::logic_error("Invalid sample rate in TubeUnitEngine");
 
-            if (rootFrequency <= 0.0f || rootFrequency >= sampleRate / 2.0f)
+            if (rootFrequency <= 0.0f)
                 throw std::logic_error("Invalid root frequency in TubeUnitEngine");
+
+            // FIXFIXFIX: Implement fractional sample wavelength using sinc formula.
+            // For now, round down to integer number of samples.
+            // Divide wavelength by 2 because we have both inbound and outbound delay lines.
+            // But we can still get to the nearest integer sample by allowing one delay
+            // line to have an odd length and the other an even length, if needed.
+            // FIXFIXFIX ??? Do we really need two delay lines, or can we merge into one delay line?
+            // Consider a single delay line, but expanded to support multiple "taps".
+
+            size_t nsamples = static_cast<size_t>(std::floor(sampleRate / rootFrequency));
+            size_t smallerHalf = nsamples / 2;
+            size_t largerHalf = nsamples - smallerHalf;
+
+            // The `setLength` calls will clamp the delay line lengths as needed.
+            outbound.setLength(smallerHalf);
+            inbound.setLength(largerHalf);
         }
 
     public:
@@ -40,12 +56,6 @@ namespace Sapphire
 
         void setSampleRate(float sampleRateHz)
         {
-            // FIXFIXFIX: Implement fractional sample wavelength using sinc formula.
-            // For now, round down to integer number of samples.
-            // Divide wavelength by 2 because we have both inbound and outbound delay lines.
-            // But we can still get to the nearest integer sample by allowing one delay
-            // line to have an odd length and the other an even length, if needed.
-            // FIXFIXFIX ??? Do we really need two delay lines, or can we merge into one delay line?
             sampleRate = sampleRateHz;
             dirty = true;
         }

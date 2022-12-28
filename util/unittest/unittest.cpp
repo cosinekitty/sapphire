@@ -347,7 +347,9 @@ static int AutoScale()
 
 static int DelayLineTest()
 {
-    Sapphire::DelayLine<float> delay;
+    using delay_t = Sapphire::DelayLine<float>;
+    delay_t delay;
+    const size_t m = delay.getMaxLength();
 
     // Should start out as a 1-sample buffer.
     if (delay.getLength() != 1)
@@ -368,7 +370,14 @@ static int DelayLineTest()
         return Fail("DelayLineTest", "Third read: did not find expected value.");
 
     // Set a longer buffer length.
-    delay.setLength(5);
+    size_t n = delay.setLength(5);
+    if (n != 5)
+        return Fail("DelayLineTest", "delay.setLength(5) did not return 5.");
+
+    // Verify the length is coherent.
+    if (delay.getLength() != 5)
+        return Fail("DelayLineTest", "Did not read back length = 5.");
+
     delay.clear();
     for (int i = 1; i <= 5; ++i)
     {
@@ -387,6 +396,21 @@ static int DelayLineTest()
 
         delay.write(0.0f);
     }
+
+    // Verify that invalid lengths get clamped.
+    n = delay.setLength(0);
+    if (n != 1)
+        return Fail("DelayLineTest", "delay.setLength(0) did not return 1  -- clamp failure.");
+
+    if (delay.getLength() != 1)
+        return Fail("DelayLineTest", "delay.getLength() != 1 after delay.setLength(0) -- clamp failure.");
+
+    n = delay.setLength(m + 1);
+    if (n != m)
+        return Fail("DelayLineTest", "delay.setLength(m+1) did return m -- clamp failure.");
+
+    if (delay.getLength() != m)
+        return Fail("DelayLineTest", "delay.getLength() != m after delay.setLength(m+1) -- clamp failure.");
 
     return Pass("DelayLineTest");
 }
