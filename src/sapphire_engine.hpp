@@ -37,6 +37,17 @@ namespace Sapphire
         return x;
     }
 
+    inline size_t Clamp(size_t x, size_t minValue, size_t maxValue)
+    {
+        if (x < minValue)
+            return minValue;
+
+        if (x > maxValue)
+            return maxValue;
+
+        return x;
+    }
+
     class Slewer
     {
     private:
@@ -458,7 +469,7 @@ namespace Sapphire
     class DelayLine
     {
     private:
-        static_assert(bufsize > 1);     // the buffer must be able to hold at least 1 sample
+        static_assert(bufsize > 1, "The buffer must have room for more than 1 sample.");
 
         std::vector<item_t> buffer;
         size_t front = 1;               // postion where data is inserted
@@ -497,7 +508,7 @@ namespace Sapphire
             // If the requested number of samples is invalid, clamp it to the valid range.
             // Essentially, we do the best we can, but exact pitch control is only possible
             // within certain bounds.
-            const size_t nsamples = std::clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
+            size_t nsamples = Clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,
