@@ -41,7 +41,9 @@
       "tags": [
         "Physical modeling",
         "Effect",
-        "Oscillator"
+        "Oscillator",
+        "Polyphonic",
+        "Synth voice"
       ]
     }
   ]
