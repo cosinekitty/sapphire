@@ -347,7 +347,7 @@ static int AutoScale()
 
 static int DelayLineTest()
 {
-    Sapphire::DelayLine delay;
+    Sapphire::DelayLine<float> delay;
 
     // Should start out as a 1-sample buffer.
     if (delay.getLength() != 1)

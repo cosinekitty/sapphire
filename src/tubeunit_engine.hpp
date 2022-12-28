@@ -11,8 +11,8 @@ namespace Sapphire
     class TubeUnitEngine
     {
     private:
-        DelayLine outbound;
-        DelayLine inbound;
+        DelayLine<float> outbound;
+        DelayLine<float> inbound;
         float sampleRate = 0.0f;
         float rootFrequency = 0.0f;
         bool dirty = true;      // Do the delay lines need to be reconfigured?

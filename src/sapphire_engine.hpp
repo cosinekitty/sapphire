@@ -454,10 +454,11 @@ namespace Sapphire
     };
 
 
+    template <typename item_t>
     class DelayLine
     {
     private:
-        std::vector<float> buffer;
+        std::vector<item_t> buffer;
         size_t front = 1;       // postion where data is inserted
         size_t back = 0;        // postion where data is removed
 
@@ -469,12 +470,12 @@ namespace Sapphire
             buffer.resize(maxSamples);
         }
 
-        float read() const
+        item_t read() const
         {
             return buffer.at(back);
         }
 
-        void write(float x)
+        void write(const item_t& x)
         {
             buffer.at(front) = x;
             front = (front + 1) % maxSamples;
@@ -500,8 +501,8 @@ namespace Sapphire
 
         void clear()
         {
-            for (float& x : buffer)
-                x = 0.0f;
+            for (item_t& x : buffer)
+                x = {};
         }
     };
 }
