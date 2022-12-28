@@ -43,6 +43,7 @@ struct TubeUnitModule : Module
     void initialize()
     {
         engine.initialize();
+        engine.setRootFrequency(110.0f);
     }
 
     void onReset(const ResetEvent& e) override
@@ -63,13 +64,14 @@ struct TubeUnitModule : Module
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override
     {
+        engine.setSampleRate(e.sampleRate);
     }
 
     void process(const ProcessArgs& args) override
     {
         float sample[2];
 
-        engine.process(args.sampleRate, sample[0], sample[1]);
+        engine.process(sample[0], sample[1]);
 
         // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
         sample[0] *= 5.0f;

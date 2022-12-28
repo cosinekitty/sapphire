@@ -452,6 +452,58 @@ namespace Sapphire
             return follower;
         }
     };
+
+
+    class DelayLine
+    {
+    private:
+        std::vector<float> buffer;
+        size_t front = 1;       // postion where data is inserted
+        size_t back = 0;        // postion where data is removed
+
+    public:
+        static const size_t maxSamples = 10000;
+
+        DelayLine()
+        {
+            buffer.resize(maxSamples);
+        }
+
+        float read() const
+        {
+            return buffer.at(back);
+        }
+
+        void write(float x)
+        {
+            buffer.at(front) = x;
+            front = (front + 1) % maxSamples;
+            back = (back + 1) % maxSamples;
+        }
+
+        size_t getLength() const
+        {
+            return ((maxSamples + front) - back) % maxSamples;
+        }
+
+        void setLength(size_t nsamples)
+        {
+            if (nsamples < 1 || nsamples > maxSamples)
+                throw std::range_error(std::string("Delay line number of samples must be 1..") + std::to_string(static_cast<unsigned long>(maxSamples)));
+
+            // Leave `front` where it is. Adjust `back` forward or backward as needed.
+            // If `front` and `back` are the same, then the length is 1 sample,
+            // because the usage contract is to to call read() before calling write().
+
+            back = ((front + maxSamples) - nsamples) % maxSamples;
+        }
+
+        void clear()
+        {
+            for (float& x : buffer)
+                x = 0.0f;
+        }
+    };
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP

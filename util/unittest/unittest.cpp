@@ -27,10 +27,12 @@ struct UnitTest
 static int AutoGainControl();
 static int ReadWave();
 static int AutoScale();
+static int DelayLineTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
+    { "delay",      DelayLineTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
     { nullptr,  nullptr }
@@ -340,4 +342,51 @@ static int AutoScale()
     }
 
     return Pass("AutoScale");
+}
+
+
+static int DelayLineTest()
+{
+    Sapphire::DelayLine delay;
+
+    // Should start out as a 1-sample buffer.
+    if (delay.getLength() != 1)
+        return Fail("DelayLineTest", std::string("Expected length=1, but found: ") + std::to_string(delay.getLength()));
+
+    float x = delay.read();
+    if (x != 0.0f)
+        return Fail("DelayLineTest", "Expected initial read of 0.");
+
+    delay.write(123.0f);
+    x = delay.read();
+    if (x != 123.0f)
+        return Fail("DelayLineTest", std::string("Second read: did not find expected value. Found: ") + std::to_string(x));
+
+    delay.write(456.0f);
+    x = delay.read();
+    if (x != 456.0f)
+        return Fail("DelayLineTest", "Third read: did not find expected value.");
+
+    // Set a longer buffer length.
+    delay.setLength(5);
+    delay.clear();
+    for (int i = 1; i <= 5; ++i)
+    {
+        x = delay.read();
+        if (x != 0.0f)
+            return Fail("DelayLineTest", std::string("i=") + std::to_string(i) + ": did not read zero.");
+
+        delay.write(static_cast<float>(i));
+    }
+
+    for (int i = 1; i <= 5; ++i)
+    {
+        x = delay.read();
+        if (x != static_cast<float>(i))
+            return Fail("DelayLineTest", std::string("i=") + std::to_string(i) + ": did not read back i value.");
+
+        delay.write(0.0f);
+    }
+
+    return Pass("DelayLineTest");
 }
