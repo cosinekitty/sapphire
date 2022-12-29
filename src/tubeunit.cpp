@@ -80,22 +80,65 @@ struct TubeUnitModule : Module
 
     void process(const ProcessArgs& args) override
     {
-        // The current number of channels is determined
-        // by the most polyphonic of the following input cables:
-        // - Tube V/OCT
-        // - Formant
-        // - Gate
-        // But still present one channel of output if there are no inputs.
+        using namespace Sapphire;
+
         int tubeVoctChannels = inputs[TUBE_VOCT_INPUT].getChannels();
         int formantVoctChannels = inputs[FORMANT_VOCT_INPUT].getChannels();
         int voiceGateChannels = inputs[VOICE_GATE_INPUT].getChannels();
+
+        // The current number of channels is determined
+        // by the most polyphonic of the following input cables:
+        // - Tube V/OCT
+        // - Formant V/OCT
+        // - Voice Gate
+        // But still present one channel of output if there are no inputs.
         int outputChannels = std::max({1, tubeVoctChannels, formantVoctChannels, voiceGateChannels});
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(outputChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(outputChannels);
 
+        // Any of the inputs could have any number of channels 0..16.
+        // We use simple and consistent rules to handle all possible cases:
+        //
+        // 1. Set the respective inputs to a default value.
+        // 2. Each time we move to a new channel, if there is a corresponding input channel,
+        //    update the input value.
+        // 3. Otherwise keep the most recent value for the remaining channels.
+        //
+        // For example, if Tube V/OCT has values [3.5, 2.5, 4.1],
+        // Formant V/OCT has values [2.1, -1.2],
+        // and Voice Gate has the single value [5.0],
+        // then the effective number of channels is 3 and Format V/OCT
+        // is interpreted as [2.1, -1.2, -1.2], and Voice Gate is interpreted
+        // as [5.0, 5.0, 5.0].
+        float tubeFreqHz = TubeUnitDefaultRootFrequencyHz;
+        float formantFreqHz = TubeUnitDefaultFormantFrequencyHz;
+        bool active = true;
+
         for (int c = 0; c < outputChannels; ++c)
         {
+            if (c < tubeVoctChannels)
+                tubeFreqHz = FrequencyFromVoct(inputs[TUBE_VOCT_INPUT].getVoltage(c), TubeUnitDefaultRootFrequencyHz);
+
+            if (c < formantVoctChannels)
+                formantFreqHz = FrequencyFromVoct(inputs[FORMANT_VOCT_INPUT].getVoltage(c), TubeUnitDefaultFormantFrequencyHz);
+
+            if (c < voiceGateChannels)
+            {
+                // Schmitt Trigger
+                float gate = inputs[VOICE_GATE_INPUT].getVoltage(c);
+                if (gate <= 0.1f)
+                    active = false;
+                else if (gate >= 1.0f)
+                    active = true;
+                else
+                    active = engine[c].getActive();
+            }
+
+            engine[c].setActive(active);
+            engine[c].setRootFrequency(tubeFreqHz);
+            engine[c].setFormantFrequency(formantFreqHz);
+
             float sample[2];
             engine[c].process(sample[0], sample[1]);
 
