@@ -92,14 +92,27 @@ namespace Sapphire
 
         void process(float& leftOutput, float& rightOutput)
         {
+            // Guarantee some kind of output: start with silence.
+            leftOutput = rightOutput = 0.0f;
+
             if (dirty)
             {
                 configure();
                 dirty = false;
             }
 
-            leftOutput = 0.0f;
-            rightOutput = 0.0f;
+            // Find the effective air pressure at the closed end of the tube.
+            float inSignal = inbound.readForward(0) + outbound.readBackward(0);
+            (void) inSignal;
+
+            if (active)
+            {
+                // The voice gate is high. Keep the formant vibrating.
+            }
+
+            // Even if the voice gate is low (not active), there can be a fadeout period.
+            // Keep virbrations moving through the two waveguides (delay lines).
+
         }
     };
 }

@@ -487,9 +487,20 @@ namespace Sapphire
             buffer.resize(bufsize);
         }
 
-        item_t read() const
+        item_t readForward(size_t offset) const
         {
-            return buffer.at(back);
+            // Access an item at an integer offset toward the future from the back of the delay line.
+            if (offset >= bufsize)
+                throw std::range_error("Delay line offset is out of bounds.");
+            return buffer.at((back + offset) % bufsize);
+        }
+
+        item_t readBackward(size_t offset) const
+        {
+            // Access an item at an integer offset into the past from the front of the delay line.
+            if (offset >= bufsize)
+                throw std::range_error("Delay line offset is out of bounds.");
+            return buffer.at(((bufsize + front) - (offset + 1)) % bufsize);
         }
 
         void write(const item_t& x)

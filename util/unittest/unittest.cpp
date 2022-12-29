@@ -355,17 +355,17 @@ static int DelayLineTest()
     if (delay.getLength() != 1)
         return Fail("DelayLineTest", std::string("Expected length=1, but found: ") + std::to_string(delay.getLength()));
 
-    float x = delay.read();
+    float x = delay.readForward(0);
     if (x != 0.0f)
         return Fail("DelayLineTest", "Expected initial read of 0.");
 
     delay.write(123.0f);
-    x = delay.read();
+    x = delay.readForward(0);
     if (x != 123.0f)
         return Fail("DelayLineTest", std::string("Second read: did not find expected value. Found: ") + std::to_string(x));
 
     delay.write(456.0f);
-    x = delay.read();
+    x = delay.readForward(0);
     if (x != 456.0f)
         return Fail("DelayLineTest", "Third read: did not find expected value.");
 
@@ -381,16 +381,27 @@ static int DelayLineTest()
     delay.clear();
     for (int i = 1; i <= 5; ++i)
     {
-        x = delay.read();
+        x = delay.readForward(0);
         if (x != 0.0f)
             return Fail("DelayLineTest", std::string("i=") + std::to_string(i) + ": did not read zero.");
 
         delay.write(static_cast<float>(i));
     }
 
+    for (size_t offset = 0; offset < 5; ++offset)
+    {
+        x = delay.readForward(offset);
+        if (x != static_cast<float>(offset+1))
+            return Fail("DelayLineTest", "Incorrect result returned by readForward.");
+
+        x = delay.readBackward(offset);
+        if (x != static_cast<float>(5-offset))
+            return Fail("DelayLineTest", "Incorrect result returned by readBackward.");
+    }
+
     for (int i = 1; i <= 5; ++i)
     {
-        x = delay.read();
+        x = delay.readForward(0);
         if (x != static_cast<float>(i))
             return Fail("DelayLineTest", std::string("i=") + std::to_string(i) + ": did not read back i value.");
 
