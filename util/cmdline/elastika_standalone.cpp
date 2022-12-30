@@ -35,7 +35,7 @@ int main()
     engine.setOutputTilt(0.5);
 
     WaveFileWriter wave;
-    const char *filename = "elastika.wav";
+    const char *filename = "test/elastika.wav";
     if (!wave.Open(filename, SAMPLE_RATE, CHANNELS))
     {
         fprintf(stderr, "ERROR: Cannot open output file: %s\n", filename);
