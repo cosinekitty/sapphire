@@ -166,6 +166,8 @@ namespace Sapphire
             // Keep virbrations moving through the two waveguides (delay lines).
             outbound.write(voicePressure);
             inbound.write(reflectionPressure);
+
+            leftOutput = rightOutput = voicePressure;
         }
     };
 }
