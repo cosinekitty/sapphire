@@ -33,6 +33,12 @@ int main()
     float sample[CHANNELS];
     for (int s = 0; s < DURATION_SAMPLES; ++s)
     {
+        // Apply airflow from 0.2 seconds until 8.0 seconds.
+        if (s >= DURATION_SAMPLES/50 && s <= (DURATION_SAMPLES*8)/10)
+            engine.setAirflow(1.0f);
+        else
+            engine.setAirflow(0.0f);
+
         engine.process(sample[0], sample[1]);
         wave.WriteSamples(sample, CHANNELS);
     }

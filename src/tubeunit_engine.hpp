@@ -9,16 +9,28 @@
 namespace Sapphire
 {
     const float TubeUnitDefaultRootFrequencyHz    =  32.70319566257483f;    // C1
+    const float TubeUnitAtmosphericPressurePa     = 101325.0f;
 
     class TubeUnitEngine
     {
     private:
-        DelayLine<float> outbound;
-        DelayLine<float> inbound;
         float sampleRate = 0.0f;
-        float airflow = 0.0f;           // mass flow rate of air, normalized to [-1, +1].
-        float rootFrequency = 0.0f;     // resonant frequency of tube in Hz
-        bool dirty = true;              // Do the delay lines need to be reconfigured?
+
+        bool dirty;                     // Do the delay lines need to be reconfigured?
+        DelayLine<float> outbound;      // sends pressure waves from the mouth to the opening
+        DelayLine<float> inbound;       // reflects pressure waves from the opening back to the mouth
+        float airflow;                  // mass flow rate of air, normalized to [-1, +1].
+        float rootFrequency;            // resonant frequency of tube in Hz
+        float mouthPressure;            // mouth chamber pressure relative to ambient atmosphere (i.e. can be negative) [Pa]
+        float mouthVolume;              // total volume of mouth chamber (scales pressure changes relative to airflow rate) [m^3]
+        float stopper1;                 // x-coordinate that limits leftward  movement of the piston [millimeters]
+        float stopper2;                 // x-coordinate that limits rightward movement of the piston [millimeters]
+        float bypass1;                  // x-coordinate where bypass starts to open [millimeters]
+        float bypass2;                  // x-coordinate where bypass is fully open [millimeters]
+        float bypassResistance;
+        float pistonPosition;           // x-coordinate of the piston [millimeters]
+        float pistonSpeed;              // horizontal speed of the piston [millimeters/second]
+        float reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
 
         void configure()
         {
@@ -52,11 +64,21 @@ namespace Sapphire
 
         void initialize()
         {
-            inbound.clear();
-            outbound.clear();
-            rootFrequency = TubeUnitDefaultRootFrequencyHz;
-            airflow = 0.0f;
             dirty = true;       // force re-configure
+            outbound.clear();
+            inbound.clear();
+            airflow = 0.0f;
+            rootFrequency = TubeUnitDefaultRootFrequencyHz;
+            mouthPressure = 0.0f;
+            mouthVolume = 1.0e-4;   // 0.1 liters
+            stopper1 = -10.0f;
+            stopper2 = +10.0f;
+            bypass1  =  +7.0f;
+            bypass2  =  +8.0f;
+            bypassResistance = 0.1f;
+            pistonPosition = 0.0f;
+            pistonSpeed = 0.0f;
+            reflectionFraction = 0.8f;
         }
 
         void setSampleRate(float sampleRateHz)
@@ -79,36 +101,39 @@ namespace Sapphire
 
         void process(float& leftOutput, float& rightOutput)
         {
-            // Guarantee some kind of output: start with silence.
-            leftOutput = rightOutput = 0.0f;
-
             if (dirty)
             {
                 configure();
                 dirty = false;
             }
 
-            // The tube has two ends: an open end where the sound comes out
-            // and a closed end where the "voice" is applied. The so-called
-            // voice is analogous to a clarinet reed or a trumpet player's lips.
-            // Find the effective air pressure at the closed end of the tube.
-            float inSignal = inbound.readForward(0) + outbound.readBackward(0);
-            (void)inSignal;
+            // The tube has two ends: the breech and the bell.
+            // The breech is where air enters from the mouth, around the piston, through the bypass.
+            // The bell is where air exits at the end of the tube.
+            float breechPressure = inbound.readForward(0);
 
-            // Find the effective pressure the open end of the tube.
-            float outSignal = inbound.readBackward(0) + outbound.readForward(0);
-            (void)outSignal;
+            // Use the piston's current position to determine whether,
+            // and how much, the bypass valve is open.
+            float bypassFraction = Clamp((pistonPosition - bypass1)/(bypass2 - bypass1));
+            (void)bypassFraction;
 
-            float voicePressure = 0.0f;
+            // The flow rate through the bypass is proportional to the pressure difference
+            // across it, multiplied by the fraction it is currently open.
+            float bypassFlowRate = bypassResistance*(mouthPressure - breechPressure);
 
-            float reflectionPressure = 0.5 * outSignal;    // FIXFIXFIX - not a real formula
+            float outSignal = breechPressure + bypassFlowRate;
 
-            // Even if the voice gate is low (not active), there can be a fadeout period.
-            // Keep virbrations moving through the two waveguides (delay lines).
-            outbound.write(voicePressure);
-            inbound.write(reflectionPressure);
+            // Find the effective pressure the open end of the tube (the "bell"):
+            float bellPressure = outbound.readForward(0);
 
-            leftOutput = rightOutput = voicePressure;
+            // Keep vibrations moving through the two waveguides (delay lines).
+            outbound.write(outSignal);
+
+            // Reflection from the open end of a tube causes the return pressure
+            // wave to be inverted.
+            inbound.write(-reflectionFraction * bellPressure);
+
+            leftOutput = rightOutput = bellPressure;
         }
     };
 }
