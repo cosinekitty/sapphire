@@ -81,7 +81,7 @@ namespace Sapphire
             airflow = 0.0f;
             rootFrequency = TubeUnitDefaultRootFrequencyHz;
             mouthPressure = 0.0f;
-            mouthVolume = 1.0e-4;   // 0.1 liters
+            mouthVolume = 3.0e-6;
             stopper1 = -10.0f;
             stopper2 = +10.0f;
             bypass1  =  +7.0f;
@@ -90,10 +90,10 @@ namespace Sapphire
             pistonPosition = 0.0f;
             pistonSpeed = 0.0f;
             pistonArea = 6.45e-4;       // one square inch, converted to m^2
-            pistonMass = 1.0e-4;        // 0.1 grams, converted to kg
-            springRestLength = -5.0f;
-            springConstant = 1.0f;
-            reflectionFraction = 0.8f;
+            pistonMass = 1.0e-5;        // 0.1 grams, converted to kg
+            springRestLength = -1.0f;
+            springConstant = 0.01f;
+            reflectionFraction = 0.95f;
             outputScale = 100.0f;
         }
 
