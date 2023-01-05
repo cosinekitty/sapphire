@@ -44,6 +44,12 @@ namespace Sapphire
             if (rootFrequency <= 0.0f)
                 throw std::logic_error("Invalid root frequency in TubeUnitEngine");
 
+            // A tube that is open on one end and closed on the other end has a negative
+            // reflection at the open end and a positive reflection at the closed end.
+            // Therefore a pulse has to travel the length of the tube 4 times
+            // (that is, back and forth, then back and forth again) to complete a cycle.
+            // Thus the tube must be 1/4 the length of the number of samples for a period of the root frequency.
+
             // FIXFIXFIX: Implement fractional sample wavelength using sinc formula.
             // For now, round down to integer number of samples.
             // Divide wavelength by 2 because we have both inbound and outbound delay lines.
@@ -51,7 +57,7 @@ namespace Sapphire
             // line to have an odd length and the other an even length, if needed.
             // FIXFIXFIX ??? Do we really need two delay lines, or can we merge into one delay line?
 
-            size_t nsamples = static_cast<size_t>(std::floor(sampleRate / rootFrequency));
+            size_t nsamples = static_cast<size_t>(std::floor(sampleRate / (2.0 * rootFrequency)));
             size_t smallerHalf = nsamples / 2;
             size_t largerHalf = nsamples - smallerHalf;
 
