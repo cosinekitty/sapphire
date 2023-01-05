@@ -35,6 +35,7 @@ namespace Sapphire
         float springRestLength;         // x-coordinate where spring is completely relaxed (zero force) [millimeters]
         float springConstant;           // converts displacement from spring rest position [mm] into newtons of force
         float reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
+        float outputScale;              // divisor to limit output amplitude
 
         void configure()
         {
@@ -93,6 +94,7 @@ namespace Sapphire
             springRestLength = -5.0f;
             springConstant = 1.0f;
             reflectionFraction = 0.8f;
+            outputScale = 100.0f;
         }
 
         void setSampleRate(float sampleRateHz)
@@ -177,7 +179,7 @@ namespace Sapphire
                 pistonSpeed += dv;
             }
 
-            leftOutput = rightOutput = bellPressure;
+            leftOutput = rightOutput = bellPressure / outputScale;
         }
     };
 }
