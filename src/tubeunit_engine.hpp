@@ -150,6 +150,9 @@ namespace Sapphire
 
             // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
             mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
+            // Do not allow mouth pressure to go below vacuum level.
+            if (mouthPressure < -TubeUnitAtmosphericPressurePa)
+                mouthPressure = -TubeUnitAtmosphericPressurePa;
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).
