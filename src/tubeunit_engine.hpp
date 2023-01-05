@@ -27,9 +27,13 @@ namespace Sapphire
         float stopper2;                 // x-coordinate that limits rightward movement of the piston [millimeters]
         float bypass1;                  // x-coordinate where bypass starts to open [millimeters]
         float bypass2;                  // x-coordinate where bypass is fully open [millimeters]
-        float bypassResistance;
+        float bypassResistance;         // how much the bypass constricts airflow due to pressure differences across it
         float pistonPosition;           // x-coordinate of the piston [millimeters]
         float pistonSpeed;              // horizontal speed of the piston [millimeters/second]
+        float pistonArea;               // cross-sectional surface area of the piston in m^2
+        float pistonMass;               // mass of the piston [kg]
+        float springRestLength;         // x-coordinate where spring is completely relaxed (zero force) [millimeters]
+        float springConstant;           // converts displacement from spring rest position [mm] into newtons of force
         float reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
 
         void configure()
@@ -78,6 +82,10 @@ namespace Sapphire
             bypassResistance = 0.1f;
             pistonPosition = 0.0f;
             pistonSpeed = 0.0f;
+            pistonArea = 6.45e-4;       // one square inch, converted to m^2
+            pistonMass = 1.0e-4;        // 0.1 grams, converted to kg
+            springRestLength = -5.0f;
+            springConstant = 1.0f;
             reflectionFraction = 0.8f;
         }
 
@@ -115,11 +123,10 @@ namespace Sapphire
             // Use the piston's current position to determine whether,
             // and how much, the bypass valve is open.
             float bypassFraction = Clamp((pistonPosition - bypass1)/(bypass2 - bypass1));
-            (void)bypassFraction;
 
             // The flow rate through the bypass is proportional to the pressure difference
             // across it, multiplied by the fraction it is currently open.
-            float bypassFlowRate = bypassResistance*(mouthPressure - breechPressure);
+            float bypassFlowRate = bypassFraction * bypassResistance * (mouthPressure - breechPressure);
 
             float outSignal = breechPressure + bypassFlowRate;
 
@@ -132,6 +139,37 @@ namespace Sapphire
             // Reflection from the open end of a tube causes the return pressure
             // wave to be inverted.
             inbound.write(-reflectionFraction * bellPressure);
+
+            // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
+            mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
+
+            // Update the piston's position and speed using F=ma,
+            // where F = ((net pressure) * area) - (spring force).
+            float netPistonForce = (mouthPressure - breechPressure)*pistonArea;
+            netPistonForce -= (pistonPosition - springRestLength)*springConstant;
+
+            // F = m*(dv/dt) ==> dv = (F/m)*dt = (F/m)/sampleRate
+            float dv = (netPistonForce / pistonMass) / sampleRate;
+
+            // dx/dt = v ==> dx = v*dt = v/sampleRate
+            // Use the mean speed over the interval.
+            pistonPosition += (pistonSpeed + dv/2) / sampleRate;
+
+            // If the piston hits a stopper, halt its speed also.
+            if (pistonPosition < stopper1)
+            {
+                pistonPosition = stopper1;
+                pistonSpeed = 0.0f;
+            }
+            else if (pistonPosition > stopper2)
+            {
+                pistonPosition = stopper2;
+                pistonSpeed = 0.0f;
+            }
+            else
+            {
+                pistonSpeed += dv;
+            }
 
             leftOutput = rightOutput = bellPressure;
         }

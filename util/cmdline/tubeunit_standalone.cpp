@@ -22,7 +22,7 @@ int main()
     TubeUnitEngine engine;
     engine.setSampleRate(SAMPLE_RATE);
 
-    WaveFileWriter wave;
+    ScaledWaveFileWriter wave;
     const char *filename = "test/tubeunit.wav";
     if (!wave.Open(filename, SAMPLE_RATE, CHANNELS))
     {
