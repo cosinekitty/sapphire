@@ -50,7 +50,7 @@ namespace Sapphire
 
     inline float FrequencyFromVoct(float voct, float centerHz)
     {
-        const float semi = voct / 12.0f;
+        const float semi = voct * 12.0f;
         return centerHz * std::pow(1.0594630943592953f, semi);
     }
 
