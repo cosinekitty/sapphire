@@ -1,0 +1,3 @@
+#!/bin/bash
+g++ -ldl -lpthread -D NO_RACK_DEPENDENCY -I../../include -I../../../src -o tubeunit tubeunit_realtime.cpp
+
