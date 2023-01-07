@@ -30,9 +30,6 @@ int main(int argc, const char* argv[])
     using namespace Sapphire;
 
     const int SAMPLE_RATE = 44100;
-    const int CHANNELS = 2;
-    const int DURATION_SECONDS = 10;
-    const int DURATION_SAMPLES = SAMPLE_RATE * DURATION_SECONDS;
 
     TubeUnitEngine engine;
     engine.setSampleRate(SAMPLE_RATE);
