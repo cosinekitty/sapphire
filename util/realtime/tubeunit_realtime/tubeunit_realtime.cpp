@@ -24,6 +24,46 @@ static void AudioDataCallback(
 }
 
 
+std::vector<std::string> Tokenize(const char* line)
+{
+    using namespace std;
+
+    vector<string> tokens;
+    bool inspace = true;
+    for (int i = 0; line[i] != '\0' && line[i] != '\n' && line[i] != '\r' && line[i] != '#'; ++i)
+    {
+        if (line[i] == ' ' || line[i] == '\t')
+        {
+            inspace = true;
+        }
+        else
+        {
+            if (inspace)
+            {
+                inspace = false;
+                tokens.push_back(string(1, line[i]));
+            }
+            else
+                tokens.back() += line[i];
+        }
+    }
+    return tokens;
+}
+
+
+void PrintHelp()
+{
+    printf(
+        "\n"
+        "Commands:\n"
+        "\n"
+        "    h = Print this help text.\n"
+        "    q = Quit.\n"
+        "\n"
+    );
+}
+
+
 int main(int argc, const char* argv[])
 {
     using namespace std;
@@ -51,11 +91,26 @@ int main(int argc, const char* argv[])
 
     ma_device_start(&device);
 
+    PrintHelp();
+
     char line[256];
     while (fgets(line, sizeof(line), stdin))
     {
-        if (line[0] == 'q')
-            break;
+        vector<string> tokens = Tokenize(line);
+
+        if (tokens.size() > 0)
+        {
+            if (tokens[0] == "q")
+                break;
+
+            if (tokens[0] == "h")
+            {
+                PrintHelp();
+                continue;
+            }
+
+            printf("??? Unknown command.\n");
+        }
     }
 
     ma_device_uninit(&device);
