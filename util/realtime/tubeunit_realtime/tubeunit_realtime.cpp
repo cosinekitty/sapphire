@@ -1,13 +1,56 @@
 #include <cstdio>
+#include <mutex>
+#include <queue>
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
 #include "tubeunit_engine.hpp"
 
+enum class CommandKind
+{
+    SetAirflow,
+};
+
+struct RenderCommand
+{
+    CommandKind kind;
+    float value;
+
+    RenderCommand(CommandKind _kind, float _value)
+        : kind(_kind)
+        , value(_value)
+        {}
+};
+
 struct RenderContext
 {
     Sapphire::TubeUnitEngine engine;
+    std::mutex lock;
+    std::queue<RenderCommand> commandQueue;
+
+    void ProcessCommands()
+    {
+        std::lock_guard<std::mutex> guard(lock);
+
+        while (!commandQueue.empty())
+        {
+            RenderCommand command = commandQueue.front();
+            commandQueue.pop();
+            switch (command.kind)
+            {
+            case CommandKind::SetAirflow:
+                engine.setAirflow(command.value);
+                break;
+            }
+        }
+    }
+
+    void SendCommand(CommandKind _kind, float _value)
+    {
+        std::lock_guard<std::mutex> guard(lock);
+        commandQueue.push(RenderCommand{ _kind, _value });
+    }
 };
 
 
@@ -17,10 +60,13 @@ static void AudioDataCallback(
     const void *input,
     ma_uint32 frameCount)
 {
+    using namespace std;
     using namespace Sapphire;
 
     float* data = static_cast<float*>(output);
-    RenderContext& context= *static_cast<RenderContext*>(device->pUserData);
+    RenderContext& context = *static_cast<RenderContext*>(device->pUserData);
+
+    context.ProcessCommands();
 
     for (ma_uint32 frame = 0; frame < frameCount; ++frame)
     {
@@ -62,8 +108,9 @@ void PrintHelp()
         "\n"
         "Commands:\n"
         "\n"
-        "    h = Print this help text.\n"
-        "    q = Quit.\n"
+        "    h   = Print this help text.\n"
+        "    q   = Quit.\n"
+        "    a x = Set airflow to x [-1, +1].\n"
         "\n"
     );
 }
@@ -115,7 +162,13 @@ int main(int argc, const char* argv[])
                 continue;
             }
 
-            printf("??? Unknown command.\n");
+            if (tokens[0] == "a" && tokens.size() == 2)
+            {
+                context.SendCommand(CommandKind::SetAirflow, atof(tokens[1].c_str()));
+                continue;
+            }
+
+            printf("??? Invalid command.\n");
         }
     }
 
