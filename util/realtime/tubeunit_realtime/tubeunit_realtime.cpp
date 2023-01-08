@@ -5,6 +5,11 @@
 
 #include "tubeunit_engine.hpp"
 
+struct RenderContext
+{
+    Sapphire::TubeUnitEngine engine;
+};
+
 
 static void AudioDataCallback(
     ma_device* device,
@@ -15,11 +20,11 @@ static void AudioDataCallback(
     using namespace Sapphire;
 
     float* data = static_cast<float*>(output);
-    TubeUnitEngine& engine = *static_cast<TubeUnitEngine*>(device->pUserData);
+    RenderContext& context= *static_cast<RenderContext*>(device->pUserData);
 
     for (ma_uint32 frame = 0; frame < frameCount; ++frame)
     {
-        engine.process(data[2*frame], data[2*frame + 1]);
+        context.engine.process(data[2*frame], data[2*frame + 1]);
     }
 }
 
@@ -71,16 +76,17 @@ int main(int argc, const char* argv[])
 
     const int SAMPLE_RATE = 44100;
 
-    TubeUnitEngine engine;
-    engine.setSampleRate(SAMPLE_RATE);
-    engine.setAirflow(1.0);
+    RenderContext context;
+
+    context.engine.setSampleRate(SAMPLE_RATE);
+    context.engine.setAirflow(1.0);
 
     ma_device_config config = ma_device_config_init(ma_device_type_playback);
     config.playback.format = ma_format_f32;
     config.playback.channels = 2;
     config.sampleRate = SAMPLE_RATE;
     config.dataCallback = AudioDataCallback;
-    config.pUserData = &engine;
+    config.pUserData = &context;
 
     ma_device device;
     if (ma_device_init(nullptr, &config, &device) != MA_SUCCESS)
