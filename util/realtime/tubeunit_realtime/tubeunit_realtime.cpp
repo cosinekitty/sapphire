@@ -11,6 +11,7 @@ enum class CommandKind
 {
     SetAirflow,
     SetRootFrequency,
+    SetSpringConstant,
 };
 
 struct RenderCommand
@@ -47,6 +48,10 @@ struct RenderContext
             case CommandKind::SetRootFrequency:
                 engine.setRootFrequency(command.value);
                 break;
+
+            case CommandKind::SetSpringConstant:
+                engine.setSpringConstant(command.value);
+                break;
             }
         }
     }
@@ -61,13 +66,16 @@ struct RenderContext
     {
         float airflow;
         float rootFrequency;
+        float springConstant;
         {
             std::lock_guard<std::mutex> guard(lock);
             airflow = engine.getAirFlow();
             rootFrequency = engine.getRootFrequency();
+            springConstant = engine.getSpringConstant();
         }
         printf("airflow = %f\n", airflow);
         printf("root frequency = %f\n", rootFrequency);
+        printf("spring constant = %f\n", springConstant);
     }
 
     void Initialize()
@@ -138,6 +146,7 @@ void PrintHelp()
         "    i   = Initialize.\n"
         "    a x = Set airflow to x [-1, +1].\n"
         "    f x = Set root frequency to x [1, 10000].\n"
+        "    k x = Set spring constant to x [1e-6, 1e+6].\n"
         "\n"
     );
 }
@@ -198,6 +207,12 @@ int main(int argc, const char* argv[])
             if (tokens[0] == "f" && tokens.size() == 2)
             {
                 context.SendCommand(CommandKind::SetRootFrequency, atof(tokens[1].c_str()));
+                continue;
+            }
+
+            if (tokens[0] == "k" && tokens.size() == 2)
+            {
+                context.SendCommand(CommandKind::SetSpringConstant, atof(tokens[1].c_str()));
                 continue;
             }
 

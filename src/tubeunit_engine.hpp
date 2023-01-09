@@ -124,6 +124,16 @@ namespace Sapphire
             return airflow;
         }
 
+        void setSpringConstant(float k)
+        {
+            springConstant = Clamp(k, 1.0e-6f, 1.0e+6f);
+        }
+
+        float getSpringConstant() const
+        {
+            return springConstant;
+        }
+
         void process(float& leftOutput, float& rightOutput)
         {
             if (dirty)
