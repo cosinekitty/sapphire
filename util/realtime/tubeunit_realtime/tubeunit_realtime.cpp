@@ -51,6 +51,19 @@ struct RenderContext
         std::lock_guard<std::mutex> guard(lock);
         commandQueue.push(RenderCommand{ _kind, _value });
     }
+
+    void ReadParameters()
+    {
+        float airflow;
+        float rootFrequency;
+        {
+            std::lock_guard<std::mutex> guard(lock);
+            airflow = engine.getAirFlow();
+            rootFrequency = engine.getRootFrequency();
+        }
+        printf("airflow = %f\n", airflow);
+        printf("root frequency = %f\n", rootFrequency);
+    }
 };
 
 
@@ -110,6 +123,7 @@ void PrintHelp()
         "\n"
         "    h   = Print this help text.\n"
         "    q   = Quit.\n"
+        "    r   = Read current parameters.\n"
         "    a x = Set airflow to x [-1, +1].\n"
         "\n"
     );
@@ -165,6 +179,12 @@ int main(int argc, const char* argv[])
             if (tokens[0] == "a" && tokens.size() == 2)
             {
                 context.SendCommand(CommandKind::SetAirflow, atof(tokens[1].c_str()));
+                continue;
+            }
+
+            if (tokens[0] == "r")
+            {
+                context.ReadParameters();
                 continue;
             }
 

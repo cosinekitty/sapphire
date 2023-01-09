@@ -105,14 +105,23 @@ namespace Sapphire
 
         void setRootFrequency(float rootFrequencyHz)
         {
-            // Clamp the root frequency to a range that is representable by the waveguides.
-            rootFrequency = rootFrequencyHz;
+            rootFrequency = Clamp(rootFrequencyHz, 1.0f, 10000.0f);
             dirty = true;
+        }
+
+        float getRootFrequency() const
+        {
+            return rootFrequency;
         }
 
         void setAirflow(float airflowMassRate)
         {
             airflow = Clamp(airflowMassRate, -1.0f, +1.0f);
+        }
+
+        float getAirFlow() const
+        {
+            return airflow;
         }
 
         void process(float& leftOutput, float& rightOutput)
