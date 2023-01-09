@@ -10,6 +10,7 @@
 enum class CommandKind
 {
     SetAirflow,
+    SetRootFrequency,
 };
 
 struct RenderCommand
@@ -41,6 +42,10 @@ struct RenderContext
             {
             case CommandKind::SetAirflow:
                 engine.setAirflow(command.value);
+                break;
+
+            case CommandKind::SetRootFrequency:
+                engine.setRootFrequency(command.value);
                 break;
             }
         }
@@ -132,6 +137,7 @@ void PrintHelp()
         "    r   = Read current parameters.\n"
         "    i   = Initialize.\n"
         "    a x = Set airflow to x [-1, +1].\n"
+        "    f x = Set root frequency to x [1, 10000].\n"
         "\n"
     );
 }
@@ -186,6 +192,12 @@ int main(int argc, const char* argv[])
             if (tokens[0] == "a" && tokens.size() == 2)
             {
                 context.SendCommand(CommandKind::SetAirflow, atof(tokens[1].c_str()));
+                continue;
+            }
+
+            if (tokens[0] == "f" && tokens.size() == 2)
+            {
+                context.SendCommand(CommandKind::SetRootFrequency, atof(tokens[1].c_str()));
                 continue;
             }
 
