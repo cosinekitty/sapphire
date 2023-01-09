@@ -64,6 +64,12 @@ struct RenderContext
         printf("airflow = %f\n", airflow);
         printf("root frequency = %f\n", rootFrequency);
     }
+
+    void Initialize()
+    {
+        std::lock_guard<std::mutex> guard(lock);
+        engine.initialize();
+    }
 };
 
 
@@ -124,6 +130,7 @@ void PrintHelp()
         "    h   = Print this help text.\n"
         "    q   = Quit.\n"
         "    r   = Read current parameters.\n"
+        "    i   = Initialize.\n"
         "    a x = Set airflow to x [-1, +1].\n"
         "\n"
     );
@@ -185,6 +192,12 @@ int main(int argc, const char* argv[])
             if (tokens[0] == "r")
             {
                 context.ReadParameters();
+                continue;
+            }
+
+            if (tokens[0] == "i")
+            {
+                context.Initialize();
                 continue;
             }
 
