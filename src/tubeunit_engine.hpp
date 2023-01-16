@@ -12,6 +12,8 @@ namespace Sapphire
 {
     using complex_t = std::complex<float>;
 
+    const float TubeUnitDefaultRootFrequencyHz = 3.0f;
+
     class TubeUnitEngine
     {
     private:
@@ -80,7 +82,7 @@ namespace Sapphire
             outbound.clear();
             inbound.clear();
             airflow = 0.0f;
-            rootFrequency = 3.0f;
+            rootFrequency = TubeUnitDefaultRootFrequencyHz;
             mouthPressure = 0.0f;
             mouthVolume = 3.0e-6;
             stopper1 = -10.0f;
