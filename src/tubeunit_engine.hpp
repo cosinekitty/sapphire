@@ -4,12 +4,13 @@
 // Sapphire tubular waveguide synth, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
+#include <complex>
+
 #include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
-    const float TubeUnitDefaultRootFrequencyHz    =  32.70319566257483f;    // C1
-    const float TubeUnitAtmosphericPressurePa     = 101325.0f;
+    using complex_t = std::complex<float>;
 
     class TubeUnitEngine
     {
@@ -17,11 +18,11 @@ namespace Sapphire
         float sampleRate = 0.0f;
 
         bool dirty;                     // Do the delay lines need to be reconfigured?
-        DelayLine<float> outbound;      // sends pressure waves from the mouth to the opening
-        DelayLine<float> inbound;       // reflects pressure waves from the opening back to the mouth
+        DelayLine<complex_t> outbound;  // sends pressure waves from the mouth to the opening
+        DelayLine<complex_t> inbound;   // reflects pressure waves from the opening back to the mouth
         float airflow;                  // mass flow rate of air, normalized to [-1, +1].
         float rootFrequency;            // resonant frequency of tube in Hz
-        float mouthPressure;            // mouth chamber pressure relative to ambient atmosphere (i.e. can be negative) [Pa]
+        complex_t mouthPressure;            // mouth chamber pressure relative to ambient atmosphere (i.e. can be negative) [Pa]
         float mouthVolume;              // total volume of mouth chamber (scales pressure changes relative to airflow rate) [m^3]
         float stopper1;                 // x-coordinate that limits leftward  movement of the piston [millimeters]
         float stopper2;                 // x-coordinate that limits rightward movement of the piston [millimeters]
@@ -34,7 +35,7 @@ namespace Sapphire
         float pistonMass;               // mass of the piston [kg]
         float springRestLength;         // x-coordinate where spring is completely relaxed (zero force) [millimeters]
         float springConstant;           // converts displacement from spring rest position [mm] into newtons of force
-        float reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
+        complex_t reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
         float outputScale;              // divisor to limit output amplitude
 
         void configure()
@@ -79,7 +80,7 @@ namespace Sapphire
             outbound.clear();
             inbound.clear();
             airflow = 0.0f;
-            rootFrequency = TubeUnitDefaultRootFrequencyHz;
+            rootFrequency = 3.0f;
             mouthPressure = 0.0f;
             mouthVolume = 3.0e-6;
             stopper1 = -10.0f;
@@ -92,8 +93,8 @@ namespace Sapphire
             pistonArea = 6.45e-4;       // one square inch, converted to m^2
             pistonMass = 1.0e-5;        // 0.1 grams, converted to kg
             springRestLength = -1.0f;
-            springConstant = 0.01f;
-            reflectionFraction = 0.95f;
+            springConstant = 0.503f;
+            reflectionFraction = complex_t(0.3f, -0.9f);
             outputScale = 100.0f;
         }
 
@@ -134,6 +135,16 @@ namespace Sapphire
             return springConstant;
         }
 
+        void setReflection(float real, float imag)
+        {
+            reflectionFraction = complex_t(real, imag);
+        }
+
+        complex_t getReflection() const
+        {
+            return reflectionFraction;
+        }
+
         void process(float& leftOutput, float& rightOutput)
         {
             if (dirty)
@@ -145,7 +156,7 @@ namespace Sapphire
             // The tube has two ends: the breech and the bell.
             // The breech is where air enters from the mouth, around the piston, through the bypass.
             // The bell is where air exits at the end of the tube.
-            float breechPressure = inbound.readForward(0);
+            complex_t breechPressure = inbound.readForward(0);
 
             // Use the piston's current position to determine whether,
             // and how much, the bypass valve is open.
@@ -153,12 +164,12 @@ namespace Sapphire
 
             // The flow rate through the bypass is proportional to the pressure difference
             // across it, multiplied by the fraction it is currently open.
-            float bypassFlowRate = bypassFraction * bypassResistance * (mouthPressure - breechPressure);
+            complex_t bypassFlowRate = bypassFraction * bypassResistance * (mouthPressure - breechPressure);
 
-            float outSignal = breechPressure + bypassFlowRate;
+            complex_t outSignal = breechPressure + bypassFlowRate;
 
             // Find the effective pressure the open end of the tube (the "bell"):
-            float bellPressure = outbound.readForward(0);
+            complex_t bellPressure = outbound.readForward(0);
 
             // Keep vibrations moving through the two waveguides (delay lines).
             outbound.write(outSignal);
@@ -169,21 +180,24 @@ namespace Sapphire
 
             // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
             mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
+
+#if 0
             // Do not allow mouth pressure to go below vacuum level.
             if (mouthPressure < -TubeUnitAtmosphericPressurePa)
                 mouthPressure = -TubeUnitAtmosphericPressurePa;
+#endif
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).
-            float netPistonForce = (mouthPressure - breechPressure)*pistonArea;
+            complex_t netPistonForce = (mouthPressure - breechPressure)*pistonArea;
             netPistonForce -= (pistonPosition - springRestLength)*springConstant;
 
             // F = m*(dv/dt) ==> dv = (F/m)*dt = (F/m)/sampleRate
-            float dv = (netPistonForce / pistonMass) / sampleRate;
+            complex_t dv = (netPistonForce / pistonMass) / sampleRate;
 
             // dx/dt = v ==> dx = v*dt = v/sampleRate
             // Use the mean speed over the interval.
-            pistonPosition += (pistonSpeed + dv/2) / sampleRate;
+            pistonPosition += (pistonSpeed + dv.real()/2) / sampleRate;
 
             // If the piston hits a stopper, halt its speed also.
             if (pistonPosition < stopper1)
@@ -198,10 +212,11 @@ namespace Sapphire
             }
             else
             {
-                pistonSpeed += dv;
+                pistonSpeed += dv.real();
             }
 
-            leftOutput = rightOutput = bellPressure / outputScale;
+            leftOutput  = bellPressure.real() / outputScale;
+            rightOutput = bellPressure.imag() / outputScale;
         }
     };
 }

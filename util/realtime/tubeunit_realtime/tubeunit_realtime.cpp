@@ -12,16 +12,19 @@ enum class CommandKind
     SetAirflow,
     SetRootFrequency,
     SetSpringConstant,
+    SetReflectionFraction,
 };
 
 struct RenderCommand
 {
     CommandKind kind;
     float value;
+    float imag;
 
-    RenderCommand(CommandKind _kind, float _value)
+    RenderCommand(CommandKind _kind, float _value, float _imag)
         : kind(_kind)
         , value(_value)
+        , imag(_imag)
         {}
 };
 
@@ -52,14 +55,18 @@ struct RenderContext
             case CommandKind::SetSpringConstant:
                 engine.setSpringConstant(command.value);
                 break;
+
+            case CommandKind::SetReflectionFraction:
+                engine.setReflection(command.value, command.imag);
+                break;
             }
         }
     }
 
-    void SendCommand(CommandKind _kind, float _value)
+    void SendCommand(CommandKind _kind, float _value, float _imag = 0.0f)
     {
         std::lock_guard<std::mutex> guard(lock);
-        commandQueue.push(RenderCommand{ _kind, _value });
+        commandQueue.push(RenderCommand{ _kind, _value, _imag });
     }
 
     void ReadParameters()
@@ -67,15 +74,18 @@ struct RenderContext
         float airflow;
         float rootFrequency;
         float springConstant;
+        Sapphire::complex_t reflection;
         {
             std::lock_guard<std::mutex> guard(lock);
             airflow = engine.getAirFlow();
             rootFrequency = engine.getRootFrequency();
             springConstant = engine.getSpringConstant();
+            reflection = engine.getReflection();
         }
         printf("airflow = %f\n", airflow);
         printf("root frequency = %f\n", rootFrequency);
         printf("spring constant = %f\n", springConstant);
+        printf("reflection = (%f, %f)\n", reflection.real(), reflection.imag());
     }
 
     void Initialize()
@@ -147,6 +157,7 @@ void PrintHelp()
         "    a x = Set airflow to x [-1, +1].\n"
         "    f x = Set root frequency to x [1, 10000].\n"
         "    k x = Set spring constant to x [1e-6, 1e+6].\n"
+        "    z x y = Set reflection fraction (real, imag).\n"
         "\n"
     );
 }
@@ -162,7 +173,7 @@ int main(int argc, const char* argv[])
     RenderContext context;
 
     context.engine.setSampleRate(SAMPLE_RATE);
-    context.engine.setAirflow(1.0);
+    context.engine.setAirflow(0.6);
 
     ma_device_config config = ma_device_config_init(ma_device_type_playback);
     config.playback.format = ma_format_f32;
@@ -213,6 +224,12 @@ int main(int argc, const char* argv[])
             if (tokens[0] == "k" && tokens.size() == 2)
             {
                 context.SendCommand(CommandKind::SetSpringConstant, atof(tokens[1].c_str()));
+                continue;
+            }
+
+            if (tokens[0] == "z" && tokens.size() == 3)
+            {
+                context.SendCommand(CommandKind::SetReflectionFraction, atof(tokens[1].c_str()), atof(tokens[2].c_str()));
                 continue;
             }
 
