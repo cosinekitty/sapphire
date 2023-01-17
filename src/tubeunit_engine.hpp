@@ -183,6 +183,7 @@ namespace Sapphire
             // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
             mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
 
+            // FIXFIXFIX: consider bicubic limiter here, or some other way of preventing unbounded output.
 #if 0
             // Do not allow mouth pressure to go below vacuum level.
             if (mouthPressure < -TubeUnitAtmosphericPressurePa)

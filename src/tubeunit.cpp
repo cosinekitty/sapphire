@@ -10,6 +10,7 @@ struct TubeUnitModule : Module
 
     enum ParamId
     {
+        AIRFLOW_PARAM,
         PARAMS_LEN
     };
 
@@ -41,6 +42,8 @@ struct TubeUnitModule : Module
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+
+        configParam(AIRFLOW_PARAM, 0.0f, 1.0f, 0.0f, "Airflow");
 
         initialize();
     }
@@ -107,7 +110,8 @@ struct TubeUnitModule : Module
         // "normalled" to the remaining channels.
 
         float tubeFreqHz = TubeUnitDefaultRootFrequencyHz;
-        float airflow = 0.0f;
+        float airflowKnob = params[AIRFLOW_PARAM].getValue();
+        float airflow = airflowKnob;
 
         for (int c = 0; c < outputChannels; ++c)
         {
@@ -115,9 +119,9 @@ struct TubeUnitModule : Module
                 tubeFreqHz = FrequencyFromVoct(inputs[TUBE_VOCT_INPUT].getVoltage(c), TubeUnitDefaultRootFrequencyHz);
 
             if (c < airflowChannels)
-                airflow = inputs[AIRFLOW_INPUT].getVoltage(c);
+                airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
 
-            engine[c].setAirflow(airflow / 5.0);
+            engine[c].setAirflow(airflow);
             engine[c].setRootFrequency(tubeFreqHz);
 
             float sample[2];
@@ -151,6 +155,9 @@ struct TubeUnitWidget : ModuleWidget
         // Audio output jacks
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
+
+        // Parameter knobs
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, TubeUnitModule::AIRFLOW_PARAM));
     }
 };
 
