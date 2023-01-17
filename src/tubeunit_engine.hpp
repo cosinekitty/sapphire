@@ -37,7 +37,8 @@ namespace Sapphire
         float pistonMass;               // mass of the piston [kg]
         float springRestLength;         // x-coordinate where spring is completely relaxed (zero force) [millimeters]
         float springConstant;           // converts displacement from spring rest position [mm] into newtons of force
-        complex_t reflectionFraction;       // what fraction of pressure is reflected from the open end of the tube?
+        float reflectionDecay;          // how quickly reverberations die down in the tube [0, 1]
+        float reflectionAngle;          // complex angle of reflection coefficient [fraction of pi]
         float outputScale;              // divisor to limit output amplitude
 
         void configure()
@@ -96,7 +97,8 @@ namespace Sapphire
             pistonMass = 1.0e-5;        // 0.1 grams, converted to kg
             springRestLength = -1.0f;
             springConstant = 0.503f;
-            reflectionFraction = complex_t(0.3f, -0.9f);
+            reflectionDecay = 0.5f;
+            reflectionAngle = 0.87f;
             outputScale = 100.0f;
         }
 
@@ -137,14 +139,14 @@ namespace Sapphire
             return springConstant;
         }
 
-        void setReflection(float real, float imag)
+        void setReflectionDecay(float decay)
         {
-            reflectionFraction = complex_t(real, imag);
+            reflectionDecay = decay;
         }
 
-        complex_t getReflection() const
+        void setReflectionAngle(float angle)
         {
-            return reflectionFraction;
+            reflectionAngle = angle;
         }
 
         void process(float& leftOutput, float& rightOutput)
@@ -178,6 +180,12 @@ namespace Sapphire
 
             // Reflection from the open end of a tube causes the return pressure
             // wave to be inverted.
+            // Convert the (decay, angle) pair into a complex coefficient.
+            // FIXFIXFIX: optimize to eliminate redundant exp/pow/log calculations on every sample.
+            float halflife = std::pow(10.0f, (2.0 * reflectionDecay) - 1.0);     // exponential range 0.1 seconds ... 10 seconds.
+            float magnitude = std::pow(0.5f, static_cast<float>(1.0 / (rootFrequency * halflife)));
+            float radians = M_PI * reflectionAngle;
+            complex_t reflectionFraction { magnitude * std::cos(radians), magnitude * std::sin(radians) };
             inbound.write(-reflectionFraction * bellPressure);
 
             // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.

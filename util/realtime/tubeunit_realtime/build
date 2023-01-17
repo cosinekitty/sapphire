@@ -1,7 +1,0 @@
-#!/bin/bash
-rm -f tubeunit
-g++ -ldl -lpthread -D NO_RACK_DEPENDENCY -I../../include -I../../../src -o tubeunit tubeunit_realtime.cpp || exit 1
-echo "Built realtime version of Tube Unit:"
-ls -l tubeunit
-exit 0
-

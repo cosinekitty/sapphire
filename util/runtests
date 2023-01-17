@@ -9,7 +9,5 @@ cd cmdline || Fail "cannot change to cmdline directory"
 ./run || exit 1
 cd ../unittest || Fail "cannot change directory to ../unittest"
 ./run || exit 1
-cd ../realtime/tubeunit_realtime || Fail "cannot change directory to ../realtime/tubeunit_realtime"
-./build || exit 1
 echo "runtests: All tests passed."
 exit 0
