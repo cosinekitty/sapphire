@@ -13,6 +13,7 @@ struct TubeUnitModule : Module
         AIRFLOW_PARAM,
         REFLECTION_DECAY_PARAM,
         REFLECTION_ANGLE_PARAM,
+        STIFFNESS_PARAM,
         PARAMS_LEN
     };
 
@@ -48,6 +49,7 @@ struct TubeUnitModule : Module
         configParam(AIRFLOW_PARAM, 0.0f, 1.0f, 0.0f, "Airflow");
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.0f, "Reflection angle");
+        configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
 
         initialize();
     }
@@ -115,6 +117,7 @@ struct TubeUnitModule : Module
         float airflow = airflowKnob;
         float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
         float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
+        float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
 
         for (int c = 0; c < outputChannels; ++c)
         {
@@ -128,6 +131,7 @@ struct TubeUnitModule : Module
             engine[c].setRootFrequency(tubeFreqHz);
             engine[c].setReflectionDecay(reflectionDecay);
             engine[c].setReflectionAngle(reflectionAngle);
+            engine[c].setSpringConstant(stiffness);
 
             float sample[2];
             engine[c].process(sample[0], sample[1]);
@@ -162,9 +166,10 @@ struct TubeUnitWidget : ModuleWidget
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
 
         // Parameter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60.00)), module, TubeUnitModule::AIRFLOW_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  80.00)), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 100.00)), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 0*17)), module, TubeUnitModule::AIRFLOW_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 1*17)), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 2*17)), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 3*17)), module, TubeUnitModule::STIFFNESS_PARAM));
     }
 };
 
