@@ -39,7 +39,9 @@ namespace Sapphire
         float springConstant;           // converts displacement from spring rest position [mm] into newtons of force
         float reflectionDecay;          // how quickly reverberations die down in the tube [0, 1]
         float reflectionAngle;          // complex angle of reflection coefficient [fraction of pi]
-        float outputScale;              // divisor to limit output amplitude
+        AutomaticGainLimiter agc;       // dynamically adapts to, and compensates for, excessive output levels
+        bool enableAgc = false;
+        float gain;
 
         void configure()
         {
@@ -99,7 +101,8 @@ namespace Sapphire
             springConstant = 0.503f;
             reflectionDecay = 0.5f;
             reflectionAngle = 0.87f;
-            outputScale = 100.0f;
+            setAgcEnabled(true);
+            setGain();
         }
 
         void setSampleRate(float sampleRateHz)
@@ -147,6 +150,40 @@ namespace Sapphire
         void setReflectionAngle(float angle)
         {
             reflectionAngle = angle;
+        }
+
+        bool getAgcEnabled() const
+        {
+            return enableAgc;
+        }
+
+        void setAgcEnabled(bool enable)
+        {
+            if (enable && !enableAgc)
+            {
+                // If the AGC isn't enabled, and caller wants to enable it,
+                // re-initialize the AGC so it forgets any previous level it had settled on.
+                agc.initialize();
+            }
+            enableAgc = enable;
+        }
+
+        void setAgcLevel(float level)
+        {
+            // Unlike Elastika, Tube Unit is calibrated for unit dimensionless output.
+            // The `level` value must be compensated by the caller the same way that
+            // the output from `process` is used.
+            agc.setCeiling(level);
+        }
+
+        double getAgcDistortion() const     // returns 0 when no distortion, or a positive value correlated with AGC distortion
+        {
+            return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+        }
+
+        void setGain(float slider = 1.0f)       // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+        {
+            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f) / 180.0f;
         }
 
         void process(float& leftOutput, float& rightOutput)
@@ -226,8 +263,14 @@ namespace Sapphire
                 pistonSpeed += dv.real();
             }
 
-            leftOutput  = bellPressure.real() / outputScale;
-            rightOutput = bellPressure.imag() / outputScale;
+            leftOutput  = bellPressure.real() * gain;
+            rightOutput = bellPressure.imag() * gain;
+
+            if (enableAgc)
+            {
+                // Automatic gain control to limit excessive output voltages.
+                agc.process(sampleRate, leftOutput, rightOutput);
+            }
         }
     };
 }

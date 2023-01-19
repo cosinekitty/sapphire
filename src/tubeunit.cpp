@@ -7,6 +7,8 @@
 struct TubeUnitModule : Module
 {
     Sapphire::TubeUnitEngine engine[PORT_MAX_CHANNELS];
+    AgcLevelQuantity *agcLevelQuantity = nullptr;
+    bool enableLimiterWarning;
 
     enum ParamId
     {
@@ -14,6 +16,8 @@ struct TubeUnitModule : Module
         REFLECTION_DECAY_PARAM,
         REFLECTION_ANGLE_PARAM,
         STIFFNESS_PARAM,
+        LEVEL_KNOB_PARAM,
+        AGC_LEVEL_PARAM,
         PARAMS_LEN
     };
 
@@ -51,11 +55,25 @@ struct TubeUnitModule : Module
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.0f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
 
+        agcLevelQuantity = configParam<AgcLevelQuantity>(
+            AGC_LEVEL_PARAM,
+            AGC_LEVEL_MIN,
+            AGC_DISABLE_MAX,
+            AGC_LEVEL_DEFAULT,
+            "Output limiter"
+        );
+        agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+
+        auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
+        levelKnob->randomizeEnabled = false;
+
         initialize();
     }
 
     void initialize()
     {
+        enableLimiterWarning = true;
+
         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
             engine[c].initialize();
     }
@@ -69,11 +87,14 @@ struct TubeUnitModule : Module
     json_t* dataToJson() override
     {
         json_t* root = json_object();
+        json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
         return root;
     }
 
     void dataFromJson(json_t* root) override
     {
+        json_t *warningFlag = json_object_get(root, "limiterWarningLight");
+        enableLimiterWarning = !json_is_boolean(warningFlag) || json_boolean_value(warningFlag);
     }
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -82,10 +103,8 @@ struct TubeUnitModule : Module
             engine[c].setSampleRate(e.sampleRate);
     }
 
-    void process(const ProcessArgs& args) override
+    int numActiveChannels()
     {
-        using namespace Sapphire;
-
         int tubeVoctChannels = inputs[TUBE_VOCT_INPUT].getChannels();
         int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
 
@@ -95,7 +114,21 @@ struct TubeUnitModule : Module
         // - Formant V/OCT
         // - Voice Gate
         // But still present one channel of output if there are no inputs.
+
         int outputChannels = std::max({1, tubeVoctChannels, airflowChannels});
+        assert(outputChannels >= 1 && outputChannels <= PORT_MAX_CHANNELS);
+        return outputChannels;
+    }
+
+    void process(const ProcessArgs& args) override
+    {
+        using namespace Sapphire;
+
+        reflectAgcSlider();
+
+        int tubeVoctChannels = inputs[TUBE_VOCT_INPUT].getChannels();
+        int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
+        int outputChannels = numActiveChannels();
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(outputChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(outputChannels);
@@ -118,6 +151,7 @@ struct TubeUnitModule : Module
         float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
         float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
         float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
+        float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         for (int c = 0; c < outputChannels; ++c)
         {
@@ -127,6 +161,7 @@ struct TubeUnitModule : Module
             if (c < airflowChannels)
                 airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
 
+            engine[c].setGain(gain);
             engine[c].setAirflow(airflow);
             engine[c].setRootFrequency(tubeFreqHz);
             engine[c].setReflectionDecay(reflectionDecay);
@@ -144,12 +179,93 @@ struct TubeUnitModule : Module
             outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1], c);
         }
     }
+
+    void reflectAgcSlider()
+    {
+        // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+        if (agcLevelQuantity && agcLevelQuantity->changed)
+        {
+            bool enabled = agcLevelQuantity->isAgcEnabled();
+            for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+            {
+                if (enabled)
+                    engine[c].setAgcLevel(agcLevelQuantity->clampedAgc() / 5.0f);
+                engine[c].setAgcEnabled(enabled);
+            }
+            agcLevelQuantity->changed = false;
+        }
+    }
+
+    float getAgcDistortion()
+    {
+        // Return the maximum distortion from the engines that are actively producing output.
+        float maxDistortion = 0.0f;
+        int outputChannels = numActiveChannels();
+        for (int c = 0; c < outputChannels; ++c)
+        {
+            float distortion = engine[c].getAgcDistortion();
+            if (distortion > maxDistortion)
+                maxDistortion = distortion;
+        }
+        return maxDistortion;
+    }
+};
+
+
+class TubeUnitWarningLightWidget : public LightWidget
+{
+private:
+    TubeUnitModule *tubeUnitModule;
+
+    static int colorComponent(double scale, int lo, int hi)
+    {
+        return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+    }
+
+    NVGcolor warningColor(double distortion)
+    {
+        bool enableWarning = tubeUnitModule && tubeUnitModule->enableLimiterWarning;
+
+        if (!enableWarning || distortion <= 0.0)
+            return nvgRGBA(0, 0, 0, 0);     // no warning light
+
+        double decibels = 20.0 * std::log10(1.0 + distortion);
+        double scale = clamp(decibels / 24.0);
+
+        int red   = colorComponent(scale, 0x90, 0xff);
+        int green = colorComponent(scale, 0x20, 0x50);
+        int blue  = 0x00;
+        int alpha = 0x70;
+
+        return nvgRGBA(red, green, blue, alpha);
+    }
+
+public:
+    TubeUnitWarningLightWidget(TubeUnitModule *module)
+        : tubeUnitModule(module)
+    {
+        borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
+        bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+    }
+
+    void drawLayer(const DrawArgs& args, int layer) override
+    {
+        if (layer == 1)
+        {
+            // Update the warning light state dynamically.
+            // Turn on the warning when the AGC is limiting the output.
+            double distortion = tubeUnitModule ? tubeUnitModule->getAgcDistortion() : 0.0;
+            color = warningColor(distortion);
+        }
+        LightWidget::drawLayer(args, layer);
+    }
 };
 
 
 struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
+    TubeUnitWarningLightWidget *warningLight = nullptr;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
@@ -170,6 +286,33 @@ struct TubeUnitWidget : ModuleWidget
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 1*17)), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 2*17)), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 3*17)), module, TubeUnitModule::STIFFNESS_PARAM));
+
+        RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
+        addParam(levelKnob);
+
+        // Superimpose a warning light on the output level knob.
+        // We turn the warning light on when one or more of the 16 limiters are distoring the output.
+        warningLight = new TubeUnitWarningLightWidget(module);
+        warningLight->box.pos  = Vec(0.0f, 0.0f);
+        warningLight->box.size = levelKnob->box.size;
+        levelKnob->addChild(warningLight);
+    }
+
+    void appendContextMenu(Menu* menu) override
+    {
+        if (tubeUnitModule != nullptr)
+        {
+            menu->addChild(new MenuSeparator);
+
+            if (tubeUnitModule->agcLevelQuantity)
+            {
+                // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
+                menu->addChild(new AgcLevelSlider(tubeUnitModule->agcLevelQuantity));
+
+                // Add an option to enable/disable the warning slider.
+                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &tubeUnitModule->enableLimiterWarning));
+            }
+        }
     }
 };
 
