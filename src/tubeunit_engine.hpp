@@ -186,6 +186,33 @@ namespace Sapphire
             gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f) / 180.0f;
         }
 
+        float getBypassWidth() const
+        {
+            return bypass2 - bypass1;
+        }
+
+        float getBypassCenter() const
+        {
+            return (bypass1 + bypass2) / 2;
+        }
+
+        void setBypassWidth(float width)
+        {
+            // Dilate around the current center.
+            float center = getBypassCenter();
+            float dilate = Clamp(width/2, 0.01f, stopper2 - stopper1);
+            bypass1 = center - dilate;
+            bypass2 = center + dilate;
+        }
+
+        void setBypassCenter(float center)
+        {
+            float dilate = getBypassWidth() / 2;
+            float clampedCenter = Clamp(center, stopper1, stopper2);
+            bypass1 = clampedCenter - dilate;
+            bypass2 = clampedCenter + dilate;
+        }
+
         void process(float& leftOutput, float& rightOutput)
         {
             if (dirty)

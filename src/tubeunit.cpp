@@ -18,6 +18,8 @@ struct TubeUnitModule : Module
         STIFFNESS_PARAM,
         LEVEL_KNOB_PARAM,
         AGC_LEVEL_PARAM,
+        BYPASS_WIDTH_PARAM,
+        BYPASS_CENTER_PARAM,
         PARAMS_LEN
     };
 
@@ -54,6 +56,8 @@ struct TubeUnitModule : Module
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.0f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
+        configParam(BYPASS_WIDTH_PARAM, 0.01f, 20.0f, 1.0f, "Bypass width");
+        configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 7.5f, "Bypass center");
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -152,6 +156,8 @@ struct TubeUnitModule : Module
         float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
         float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
         float gain = params[LEVEL_KNOB_PARAM].getValue();
+        float bypassWidth = params[BYPASS_WIDTH_PARAM].getValue();
+        float bypassCenter = params[BYPASS_CENTER_PARAM].getValue();
 
         for (int c = 0; c < outputChannels; ++c)
         {
@@ -167,6 +173,8 @@ struct TubeUnitModule : Module
             engine[c].setReflectionDecay(reflectionDecay);
             engine[c].setReflectionAngle(reflectionAngle);
             engine[c].setSpringConstant(stiffness);
+            engine[c].setBypassWidth(bypassWidth);
+            engine[c].setBypassCenter(bypassCenter);
 
             float sample[2];
             engine[c].process(sample[0], sample[1]);
@@ -286,6 +294,9 @@ struct TubeUnitWidget : ModuleWidget
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 1*17)), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 2*17)), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 3*17)), module, TubeUnitModule::STIFFNESS_PARAM));
+
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 0*17)), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 1*17)), module, TubeUnitModule::BYPASS_CENTER_PARAM));
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
