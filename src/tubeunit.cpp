@@ -52,12 +52,12 @@ struct TubeUnitModule : Module
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
-        configParam(AIRFLOW_PARAM, 0.0f, 1.0f, 0.0f, "Airflow");
+        configParam(AIRFLOW_PARAM, 0.0f, 5.0f, 1.0f, "Airflow");
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
-        configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.0f, "Reflection angle");
+        configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.1f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
-        configParam(BYPASS_WIDTH_PARAM, 0.01f, 20.0f, 1.0f, "Bypass width");
-        configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 7.5f, "Bypass center");
+        configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 3.0f, "Bypass width");
+        configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,

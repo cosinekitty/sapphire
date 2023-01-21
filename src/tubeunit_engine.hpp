@@ -124,7 +124,7 @@ namespace Sapphire
 
         void setAirflow(float airflowMassRate)
         {
-            airflow = Clamp(airflowMassRate, -1.0f, +1.0f);
+            airflow = Clamp(airflowMassRate, -1.0f, +10.0f);
         }
 
         float getAirFlow() const
