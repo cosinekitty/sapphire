@@ -48,11 +48,6 @@ namespace Sapphire
         return x;
     }
 
-    inline float FrequencyFromVoct(float voct, float centerHz)
-    {
-        return centerHz * std::pow(1.0594630943592953f, 12 * voct);
-    }
-
     class Slewer
     {
     private:

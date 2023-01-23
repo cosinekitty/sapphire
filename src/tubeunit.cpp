@@ -20,6 +20,7 @@ struct TubeUnitModule : Module
         AGC_LEVEL_PARAM,
         BYPASS_WIDTH_PARAM,
         BYPASS_CENTER_PARAM,
+        ROOT_FREQUENCY_PARAM,
         PARAMS_LEN
     };
 
@@ -58,6 +59,7 @@ struct TubeUnitModule : Module
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
         configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 3.0f, "Bypass width");
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
+        configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.0f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -149,7 +151,8 @@ struct TubeUnitModule : Module
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
 
-        float tubeFreqHz = TubeUnitDefaultRootFrequencyHz;
+        float tubeFreqKnob = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
+        float tubeFreqHz = tubeFreqKnob;
         float airflowKnob = params[AIRFLOW_PARAM].getValue();
         float airflow = airflowKnob;
         float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
@@ -162,7 +165,7 @@ struct TubeUnitModule : Module
         for (int c = 0; c < outputChannels; ++c)
         {
             if (c < tubeVoctChannels)
-                tubeFreqHz = FrequencyFromVoct(inputs[TUBE_VOCT_INPUT].getVoltage(c), TubeUnitDefaultRootFrequencyHz);
+                tubeFreqHz = tubeFreqKnob + std::pow(2.0f, inputs[TUBE_VOCT_INPUT].getVoltage(c));
 
             if (c < airflowChannels)
                 airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
@@ -297,6 +300,7 @@ struct TubeUnitWidget : ModuleWidget
 
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 0*17)), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 1*17)), module, TubeUnitModule::BYPASS_CENTER_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 2*17)), module, TubeUnitModule::ROOT_FREQUENCY_PARAM));
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
