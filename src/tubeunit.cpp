@@ -273,6 +273,12 @@ public:
 };
 
 
+inline Vec TubeUnitKnobPos(int x, int y)
+{
+    return mm2px(Vec(14.0f + x*17.0f, 60.0f + y*17.0f));
+}
+
+
 struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
@@ -293,14 +299,13 @@ struct TubeUnitWidget : ModuleWidget
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
 
         // Parameter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 0*17)), module, TubeUnitModule::AIRFLOW_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 1*17)), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 2*17)), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00,  60 + 3*17)), module, TubeUnitModule::STIFFNESS_PARAM));
-
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 0*17)), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 1*17)), module, TubeUnitModule::BYPASS_CENTER_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(30.00,  60 + 2*17)), module, TubeUnitModule::ROOT_FREQUENCY_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 0), module, TubeUnitModule::AIRFLOW_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 1), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 2), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 3), module, TubeUnitModule::ROOT_FREQUENCY_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 3), module, TubeUnitModule::STIFFNESS_PARAM));
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
