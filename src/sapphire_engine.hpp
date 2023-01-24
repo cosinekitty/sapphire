@@ -283,7 +283,7 @@ namespace Sapphire
             else
             {
                 float c = sampleRateHz / (M_PI * fc);
-                yprev = (x + xprev - yprev*(1.0 - c)) / (1.0 + c);
+                yprev = (x + xprev - yprev*(1 - c)) / (1 + c);
             }
             xprev = x;
         }

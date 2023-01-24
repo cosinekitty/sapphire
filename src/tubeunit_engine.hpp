@@ -43,6 +43,7 @@ namespace Sapphire
         bool enableAgc = false;
         float gain;
         float vortex;
+        StagedFilter<complex_t, 1> dcRejectFilter;
 
         void configure()
         {
@@ -105,6 +106,8 @@ namespace Sapphire
             setAgcEnabled(true);
             setGain();
             vortex = 0.0f;
+            dcRejectFilter.SetCutoffFrequency(10.0f);
+            dcRejectFilter.Reset();
         }
 
         void setSampleRate(float sampleRateHz)
@@ -245,6 +248,7 @@ namespace Sapphire
 
             // Find the effective pressure the open end of the tube (the "bell"):
             complex_t bellPressure = outbound.readForward(0);
+            bellPressure = dcRejectFilter.UpdateHiPass(bellPressure, sampleRate);
 
             // Keep vibrations moving through the two waveguides (delay lines).
             outbound.write(outSignal);
