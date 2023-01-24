@@ -260,26 +260,20 @@ namespace Sapphire
 
     using PhysicsVectorList = std::vector<PhysicsVector>;
 
+    template <typename value_t>
     class LoHiPassFilter
     {
     private:
-        bool  first;
-        float xprev;
-        float yprev;
-        float fc;
+        bool  first {true};
+        value_t xprev {};
+        value_t yprev {};
+        float fc {20.0f};
 
     public:
-        LoHiPassFilter()
-            : first(true)
-            , xprev(0.0)
-            , yprev(0.0)
-            , fc(20.0)
-            {}
-
         void Reset() { first = true; }
         void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
 
-        void Update(float x, float sampleRateHz)
+        void Update(value_t x, float sampleRateHz)
         {
             if (first)
             {
@@ -294,16 +288,16 @@ namespace Sapphire
             xprev = x;
         }
 
-        float HiPass() const { return xprev - yprev; }
-        float LoPass() const { return yprev; };
+        value_t HiPass() const { return xprev - yprev; }
+        value_t LoPass() const { return yprev; };
     };
 
 
-    template <int LAYERS>
+    template <typename value_t, int LAYERS>
     class StagedFilter
     {
     private:
-        LoHiPassFilter stage[LAYERS];
+        LoHiPassFilter<value_t> stage[LAYERS];
 
     public:
         void Reset()
@@ -318,9 +312,9 @@ namespace Sapphire
                 stage[i].SetCutoffFrequency(cutoffFrequencyHz);
         }
 
-        float UpdateLoPass(float x, float sampleRateHz)
+        value_t UpdateLoPass(value_t x, float sampleRateHz)
         {
-            float y = x;
+            value_t y = x;
             for (int i=0; i < LAYERS; ++i)
             {
                 stage[i].Update(y, sampleRateHz);
@@ -329,9 +323,9 @@ namespace Sapphire
             return y;
         }
 
-        float UpdateHiPass(float x, float sampleRateHz)
+        value_t UpdateHiPass(value_t x, float sampleRateHz)
         {
-            float y = x;
+            value_t y = x;
             for (int i=0; i < LAYERS; ++i)
             {
                 stage[i].Update(y, sampleRateHz);

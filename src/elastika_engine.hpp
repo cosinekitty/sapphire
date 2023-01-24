@@ -231,8 +231,8 @@ namespace Sapphire
         MeshInput rightInput;
         MeshOutput leftOutput;
         MeshOutput rightOutput;
-        StagedFilter<ELASTIKA_FILTER_LAYERS> leftLoCut;
-        StagedFilter<ELASTIKA_FILTER_LAYERS> rightLoCut;
+        StagedFilter<float, ELASTIKA_FILTER_LAYERS> leftLoCut;
+        StagedFilter<float, ELASTIKA_FILTER_LAYERS> rightLoCut;
         float halfLife;
         float drive;
         float gain;

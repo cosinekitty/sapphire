@@ -74,8 +74,8 @@ private:
     std::mt19937 rand;
     double rspan;
     double rmid;
-    Sapphire::StagedFilter<3> lo;
-    Sapphire::StagedFilter<3> hi;
+    Sapphire::StagedFilter<float, 3> lo;
+    Sapphire::StagedFilter<float, 3> hi;
     double amplitude;
     double sampleRate;
 
