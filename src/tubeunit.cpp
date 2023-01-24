@@ -21,6 +21,7 @@ struct TubeUnitModule : Module
         BYPASS_WIDTH_PARAM,
         BYPASS_CENTER_PARAM,
         ROOT_FREQUENCY_PARAM,
+        VORTEX_PARAM,
         PARAMS_LEN
     };
 
@@ -60,6 +61,7 @@ struct TubeUnitModule : Module
         configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 3.0f, "Bypass width");
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
         configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.0f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
+        configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -152,6 +154,7 @@ struct TubeUnitModule : Module
         // "normalled" to the remaining channels.
 
         float tubeFreqKnob = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
+        float vortex = params[VORTEX_PARAM].getValue();
         float tubeFreqHz = tubeFreqKnob;
         float airflowKnob = params[AIRFLOW_PARAM].getValue();
         float airflow = airflowKnob;
@@ -178,6 +181,7 @@ struct TubeUnitModule : Module
             engine[c].setSpringConstant(stiffness);
             engine[c].setBypassWidth(bypassWidth);
             engine[c].setBypassCenter(bypassCenter);
+            engine[c].setVortex(vortex);
 
             float sample[2];
             engine[c].process(sample[0], sample[1]);
@@ -300,6 +304,7 @@ struct TubeUnitWidget : ModuleWidget
 
         // Parameter knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 0), module, TubeUnitModule::AIRFLOW_PARAM));
+        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 0), module, TubeUnitModule::VORTEX_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 1), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));

@@ -42,6 +42,7 @@ namespace Sapphire
         AutomaticGainLimiter agc;       // dynamically adapts to, and compensates for, excessive output levels
         bool enableAgc = false;
         float gain;
+        float vortex;
 
         void configure()
         {
@@ -103,6 +104,7 @@ namespace Sapphire
             reflectionAngle = 0.87f;
             setAgcEnabled(true);
             setGain();
+            vortex = 0.0f;
         }
 
         void setSampleRate(float sampleRateHz)
@@ -213,6 +215,11 @@ namespace Sapphire
             bypass2 = clampedCenter + dilate;
         }
 
+        void setVortex(float v)
+        {
+            vortex = v;
+        }
+
         void process(float& leftOutput, float& rightOutput)
         {
             if (dirty)
@@ -264,7 +271,9 @@ namespace Sapphire
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).
-            complex_t netPistonForce = (mouthPressure - breechPressure)*pistonArea;
+            // But include a little weirdness using the `vortex` parameter.
+            complex_t feedback = ((1 - vortex) + vortex*mouthPressure)*breechPressure;
+            complex_t netPistonForce = (mouthPressure - feedback)*pistonArea;
             netPistonForce -= (pistonPosition - springRestLength)*springConstant;
 
             // F = m*(dv/dt) ==> dv = (F/m)*dt = (F/m)/sampleRate
