@@ -271,13 +271,15 @@ namespace Sapphire
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).
-            // But include a little weirdness using the `vortex` parameter.
-            complex_t feedback = ((1 - vortex) + vortex*mouthPressure)*breechPressure;
-            complex_t netPistonForce = (mouthPressure - feedback)*pistonArea;
-            netPistonForce -= (pistonPosition - springRestLength)*springConstant;
-
+            // Then from force, calculate velocity increment:
             // F = m*(dv/dt) ==> dv = (F/m)*dt = (F/m)/sampleRate
-            complex_t dv = (netPistonForce / pistonMass) / sampleRate;
+            complex_t dv = (
+                (mouthPressure - breechPressure)*pistonArea -
+                (pistonPosition - springRestLength)*springConstant
+            ) / (pistonMass * sampleRate);
+
+            // Include a little weirdness using the `vortex` parameter.
+            dv *= complex_t{std::cos(vortex), std::sin(vortex)};
 
             // dx/dt = v ==> dx = v*dt = v/sampleRate
             // Use the mean speed over the interval.
