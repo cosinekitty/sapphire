@@ -279,7 +279,13 @@ namespace Sapphire
             ) / (pistonMass * sampleRate);
 
             // Include a little weirdness using the `vortex` parameter.
-            dv *= complex_t{std::cos(vortex), std::sin(vortex)};
+            float dvmag = std::abs(dv);
+            if (dvmag > 0.0f)       // prevent division by zero; if dv=0, leave it 0.
+            {
+                float x = vortex / 2;
+                complex_t dir = dv / dvmag;
+                dv *= ((1-x) + x*dir);
+            }
 
             // dx/dt = v ==> dx = v*dt = v/sampleRate
             // Use the mean speed over the interval.
