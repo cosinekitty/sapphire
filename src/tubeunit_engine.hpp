@@ -310,7 +310,7 @@ namespace Sapphire
                 pistonSpeed += dv.real();
             }
 
-            complex_t result = loPassFilter.UpdateLoPass(bellPressure, sampleRate);
+            complex_t result = loPassFilter.UpdateLoPass(bellPressure * complex_t{1,1}, sampleRate);
             leftOutput  = result.real() * gain;
             rightOutput = result.imag() * gain;
 
