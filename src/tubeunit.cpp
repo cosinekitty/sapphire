@@ -22,7 +22,6 @@ struct TubeUnitModule : Module
         BYPASS_CENTER_PARAM,
         ROOT_FREQUENCY_PARAM,
         VORTEX_PARAM,
-        CUTOFF_FREQUENCY_PARAM,
         PARAMS_LEN
     };
 
@@ -59,11 +58,10 @@ struct TubeUnitModule : Module
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.1f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
-        configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 6.0f, "Bypass width");
+        configParam(BYPASS_WIDTH_PARAM, 0.5f, 20.0f, 6.0f, "Bypass width");
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
         configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.7279248f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
         configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
-        configParam(CUTOFF_FREQUENCY_PARAM, 0.0f, 6.0f, 4.0f, "Cutoff", " Hz", 2, 100, 0);
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -156,7 +154,6 @@ struct TubeUnitModule : Module
         // "normalled" to the remaining channels.
 
         float tubeFreqKnob = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
-        float cutoffFreqKnob = 100 * std::pow(2.0f, params[CUTOFF_FREQUENCY_PARAM].getValue());
         float vortex = params[VORTEX_PARAM].getValue();
         float tubeFreqHz = tubeFreqKnob;
         float airflowKnob = params[AIRFLOW_PARAM].getValue();
@@ -177,7 +174,6 @@ struct TubeUnitModule : Module
                 airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
 
             engine[c].setGain(gain);
-            engine[c].setCutoffFrequency(cutoffFreqKnob);
             engine[c].setAirflow(airflow);
             engine[c].setRootFrequency(tubeFreqHz);
             engine[c].setReflectionDecay(reflectionDecay);
@@ -309,7 +305,6 @@ struct TubeUnitWidget : ModuleWidget
         // Parameter knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 0), module, TubeUnitModule::AIRFLOW_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 0), module, TubeUnitModule::VORTEX_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(2, 0), module, TubeUnitModule::CUTOFF_FREQUENCY_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 1), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));

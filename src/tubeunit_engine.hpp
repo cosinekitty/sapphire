@@ -190,7 +190,7 @@ namespace Sapphire
 
         void setGain(float slider = 1.0f)       // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f) / 180.0f;
+            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f) / 80.0f;
         }
 
         float getBypassWidth() const
@@ -223,11 +223,6 @@ namespace Sapphire
         void setVortex(float v)
         {
             vortex = v;
-        }
-
-        void setCutoffFrequency(float freq)
-        {
-            loPassFilter.SetCutoffFrequency(freq);
         }
 
         void process(float& leftOutput, float& rightOutput)
