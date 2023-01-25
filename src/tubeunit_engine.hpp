@@ -44,6 +44,7 @@ namespace Sapphire
         float gain;
         float vortex;
         StagedFilter<complex_t, 1> dcRejectFilter;
+        StagedFilter<complex_t, 1> loPassFilter;
 
         void configure()
         {
@@ -64,7 +65,6 @@ namespace Sapphire
             // Divide wavelength by 2 because we have both inbound and outbound delay lines.
             // But we can still get to the nearest integer sample by allowing one delay
             // line to have an odd length and the other an even length, if needed.
-            // FIXFIXFIX ??? Do we really need two delay lines, or can we merge into one delay line?
 
             size_t nsamples = static_cast<size_t>(std::floor(sampleRate / (2.0 * rootFrequency)));
             size_t smallerHalf = nsamples / 2;
@@ -108,6 +108,8 @@ namespace Sapphire
             vortex = 0.0f;
             dcRejectFilter.SetCutoffFrequency(10.0f);
             dcRejectFilter.Reset();
+            loPassFilter.SetCutoffFrequency(8000.0f);
+            loPassFilter.Reset();
         }
 
         void setSampleRate(float sampleRateHz)
@@ -223,6 +225,11 @@ namespace Sapphire
             vortex = v;
         }
 
+        void setCutoffFrequency(float freq)
+        {
+            loPassFilter.SetCutoffFrequency(freq);
+        }
+
         void process(float& leftOutput, float& rightOutput)
         {
             if (dirty)
@@ -256,7 +263,6 @@ namespace Sapphire
             // Reflection from the open end of a tube causes the return pressure
             // wave to be inverted.
             // Convert the (decay, angle) pair into a complex coefficient.
-            // FIXFIXFIX: optimize to eliminate redundant exp/pow/log calculations on every sample.
             float halflife = std::pow(10.0f, (2.0 * reflectionDecay) - 1.0);     // exponential range 0.1 seconds ... 10 seconds.
             float magnitude = std::pow(0.5f, static_cast<float>(1.0 / (rootFrequency * halflife)));
             float radians = M_PI * reflectionAngle;
@@ -265,13 +271,6 @@ namespace Sapphire
 
             // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
             mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
-
-            // FIXFIXFIX: consider bicubic limiter here, or some other way of preventing unbounded output.
-#if 0
-            // Do not allow mouth pressure to go below vacuum level.
-            if (mouthPressure < -TubeUnitAtmosphericPressurePa)
-                mouthPressure = -TubeUnitAtmosphericPressurePa;
-#endif
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).
@@ -311,8 +310,9 @@ namespace Sapphire
                 pistonSpeed += dv.real();
             }
 
-            leftOutput  = bellPressure.real() * gain;
-            rightOutput = bellPressure.imag() * gain;
+            complex_t result = loPassFilter.UpdateLoPass(bellPressure, sampleRate);
+            leftOutput  = result.real() * gain;
+            rightOutput = result.imag() * gain;
 
             if (enableAgc)
             {
