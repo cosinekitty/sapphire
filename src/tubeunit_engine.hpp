@@ -24,7 +24,7 @@ namespace Sapphire
         DelayLine<complex_t> inbound;   // reflects pressure waves from the opening back to the mouth
         float airflow;                  // mass flow rate of air, normalized to [-1, +1].
         float rootFrequency;            // resonant frequency of tube in Hz
-        complex_t mouthPressure;            // mouth chamber pressure relative to ambient atmosphere (i.e. can be negative) [Pa]
+        complex_t mouthPressure;        // mouth chamber pressure relative to ambient atmosphere (i.e. can be negative) [Pa]
         float mouthVolume;              // total volume of mouth chamber (scales pressure changes relative to airflow rate) [m^3]
         float stopper1;                 // x-coordinate that limits leftward  movement of the piston [millimeters]
         float stopper2;                 // x-coordinate that limits rightward movement of the piston [millimeters]
