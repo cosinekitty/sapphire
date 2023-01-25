@@ -59,9 +59,9 @@ struct TubeUnitModule : Module
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.1f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
-        configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 3.0f, "Bypass width");
+        configParam(BYPASS_WIDTH_PARAM, 0.1f, 20.0f, 6.0f, "Bypass width");
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
-        configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.0f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
+        configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.7279248f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
         configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
         configParam(CUTOFF_FREQUENCY_PARAM, 0.0f, 6.0f, 4.0f, "Cutoff", " Hz", 2, 100, 0);
 
