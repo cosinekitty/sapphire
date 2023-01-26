@@ -30,6 +30,7 @@ struct TubeUnitModule : Module
         ROOT_FREQUENCY_ATTEN,
         VORTEX_ATTEN,
         BYPASS_WIDTH_ATTEN,
+        BYPASS_CENTER_ATTEN,
 
         PARAMS_LEN
     };
@@ -40,6 +41,7 @@ struct TubeUnitModule : Module
         AIRFLOW_INPUT,
         VORTEX_INPUT,
         BYPASS_WIDTH_INPUT,
+        BYPASS_CENTER_INPUT,
         INPUTS_LEN
     };
 
@@ -63,6 +65,7 @@ struct TubeUnitModule : Module
         configInput(VORTEX_INPUT, "Vortex");
         configInput(ROOT_FREQUENCY_INPUT, "Root frequency");
         configInput(BYPASS_WIDTH_INPUT, "Bypass width");
+        configInput(BYPASS_CENTER_INPUT, "Bypass center");
 
         configParam(AIRFLOW_PARAM, 0.0f, 5.0f, 1.0f, "Airflow");
         configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
@@ -77,6 +80,7 @@ struct TubeUnitModule : Module
         configParam(VORTEX_ATTEN, -1, 1, 0, "Vortex", "%", 0, 100);
         configParam(ROOT_FREQUENCY_ATTEN, -1, 1, 0, "Root frequency", "%", 0, 100);
         configParam(BYPASS_WIDTH_ATTEN, -1, 1, 0, "Bypass width", "%", 0, 100);
+        configParam(BYPASS_CENTER_ATTEN, -1, 1, 0, "Bypass center", "%", 0, 100);
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
@@ -176,13 +180,15 @@ struct TubeUnitModule : Module
         int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
         int vortexChannels = inputs[VORTEX_INPUT].getChannels();
         int bypassWidthChannels = inputs[BYPASS_WIDTH_INPUT].getChannels();
+        int bypassCenterChannels = inputs[BYPASS_CENTER_INPUT].getChannels();
 
         numActiveChannels = std::max({
             1,
             rootFrequencyChannels,
             airflowChannels,
             vortexChannels,
-            bypassWidthChannels
+            bypassWidthChannels,
+            bypassCenterChannels
         });
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
@@ -211,6 +217,9 @@ struct TubeUnitModule : Module
 
             if (c < bypassWidthChannels)
                 bypassWidth = getControlValue(BYPASS_WIDTH_PARAM, BYPASS_WIDTH_ATTEN, BYPASS_WIDTH_INPUT, c, 0.5f, 20.0f);
+
+            if (c < bypassCenterChannels)
+                bypassCenter = getControlValue(BYPASS_CENTER_PARAM, BYPASS_CENTER_ATTEN, BYPASS_CENTER_INPUT, c, -10.0f, +10.0f);
 
             engine[c].setGain(gain);
             engine[c].setAirflow(airflow);
@@ -340,7 +349,7 @@ struct TubeUnitWidget : ModuleWidget
         addControlGroup(0, 0, TubeUnitModule::AIRFLOW_PARAM, TubeUnitModule::AIRFLOW_INPUT, TubeUnitModule::AIRFLOW_ATTEN);
         addControlGroup(1, 0, TubeUnitModule::VORTEX_PARAM, TubeUnitModule::VORTEX_INPUT, TubeUnitModule::VORTEX_ATTEN);
         addControlGroup(0, 1, TubeUnitModule::BYPASS_WIDTH_PARAM, TubeUnitModule::BYPASS_WIDTH_INPUT, TubeUnitModule::BYPASS_WIDTH_ATTEN);
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
+        addControlGroup(1, 1, TubeUnitModule::BYPASS_CENTER_PARAM, TubeUnitModule::BYPASS_CENTER_INPUT, TubeUnitModule::BYPASS_CENTER_ATTEN);
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 2), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
         addControlGroup(0, 3, TubeUnitModule::ROOT_FREQUENCY_PARAM, TubeUnitModule::ROOT_FREQUENCY_INPUT, TubeUnitModule::ROOT_FREQUENCY_ATTEN);
