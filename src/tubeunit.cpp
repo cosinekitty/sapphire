@@ -26,13 +26,14 @@ struct TubeUnitModule : Module
 
         // Attenuverter knobs
         AIRFLOW_ATTEN,
+        ROOT_FREQUENCY_ATTEN,
 
         PARAMS_LEN
     };
 
     enum InputId
     {
-        TUBE_VOCT_INPUT,
+        ROOT_FREQUENCY_INPUT,
         AIRFLOW_INPUT,
         INPUTS_LEN
     };
@@ -53,7 +54,7 @@ struct TubeUnitModule : Module
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-        configInput(TUBE_VOCT_INPUT, "Tube V/OCT");
+        configInput(ROOT_FREQUENCY_INPUT, "Root frequency");
         configInput(AIRFLOW_INPUT, "Airflow");
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -69,6 +70,7 @@ struct TubeUnitModule : Module
         configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
 
         configParam(AIRFLOW_ATTEN, -1, 1, 0, "Airflow", "%", 0, 100);
+        configParam(ROOT_FREQUENCY_ATTEN, -1, 1, 0, "Root frequency", "%", 0, 100);
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -120,7 +122,7 @@ struct TubeUnitModule : Module
 
     int numActiveChannels()
     {
-        int tubeVoctChannels = inputs[TUBE_VOCT_INPUT].getChannels();
+        int tubeVoctChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
         int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
 
         // The current number of channels is determined
@@ -141,7 +143,7 @@ struct TubeUnitModule : Module
 
         reflectAgcSlider();
 
-        int tubeVoctChannels = inputs[TUBE_VOCT_INPUT].getChannels();
+        int tubeVoctChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
         int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
         int outputChannels = numActiveChannels();
 
@@ -175,7 +177,7 @@ struct TubeUnitModule : Module
         for (int c = 0; c < outputChannels; ++c)
         {
             if (c < tubeVoctChannels)
-                tubeFreqHz = tubeFreqKnob + std::pow(2.0f, inputs[TUBE_VOCT_INPUT].getVoltage(c));
+                tubeFreqHz = tubeFreqKnob + std::pow(2.0f, inputs[ROOT_FREQUENCY_INPUT].getVoltage(c));
 
             if (c < airflowChannels)
                 airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
@@ -286,7 +288,7 @@ public:
 
 inline Vec TubeUnitKnobPos(float x, float y)
 {
-    return mm2px(Vec(10.0f + x*17.0f, 40.0f + y*24.0f));
+    return mm2px(Vec(21.0f + x*20.0f, 20.0f + y*18.0f));
 }
 
 
@@ -301,9 +303,6 @@ struct TubeUnitWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
-        // Input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.00, 20.00)), module, TubeUnitModule::TUBE_VOCT_INPUT));
-
         // Audio output jacks
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
@@ -315,7 +314,7 @@ struct TubeUnitWidget : ModuleWidget
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 2), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 3), module, TubeUnitModule::ROOT_FREQUENCY_PARAM));
+        addControlGroup(0, 3, TubeUnitModule::ROOT_FREQUENCY_PARAM, TubeUnitModule::ROOT_FREQUENCY_INPUT, TubeUnitModule::ROOT_FREQUENCY_ATTEN);
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 3), module, TubeUnitModule::STIFFNESS_PARAM));
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
@@ -339,11 +338,11 @@ struct TubeUnitWidget : ModuleWidget
         Vec knobCenter = TubeUnitKnobPos(x, y);
         addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, param));
 
-        Vec portCenter = knobCenter.plus(mm2px(Vec(-4.0, 10.0)));
-        addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, input));
-
-        Vec attenCenter = knobCenter.plus(mm2px(Vec(+4.0, 10.0)));
+        Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0, -4.0)));
         addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, atten));
+
+        Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0, +4.0)));
+        addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, input));
     }
 
     void appendContextMenu(Menu* menu) override
