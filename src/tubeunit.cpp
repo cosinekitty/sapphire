@@ -12,6 +12,7 @@ struct TubeUnitModule : Module
 
     enum ParamId
     {
+        // Large knobs for manual parameter adjustment
         AIRFLOW_PARAM,
         REFLECTION_DECAY_PARAM,
         REFLECTION_ANGLE_PARAM,
@@ -22,6 +23,10 @@ struct TubeUnitModule : Module
         BYPASS_CENTER_PARAM,
         ROOT_FREQUENCY_PARAM,
         VORTEX_PARAM,
+
+        // Attenuverter knobs
+        AIRFLOW_ATTEN,
+
         PARAMS_LEN
     };
 
@@ -62,6 +67,8 @@ struct TubeUnitModule : Module
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
         configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.7279248f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
         configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
+
+        configParam(AIRFLOW_ATTEN, -1, 1, 0, "Airflow", "%", 0, 100);
 
         agcLevelQuantity = configParam<AgcLevelQuantity>(
             AGC_LEVEL_PARAM,
@@ -277,9 +284,9 @@ public:
 };
 
 
-inline Vec TubeUnitKnobPos(int x, int y)
+inline Vec TubeUnitKnobPos(float x, float y)
 {
-    return mm2px(Vec(14.0f + x*17.0f, 60.0f + y*17.0f));
+    return mm2px(Vec(10.0f + x*17.0f, 40.0f + y*24.0f));
 }
 
 
@@ -296,14 +303,13 @@ struct TubeUnitWidget : ModuleWidget
 
         // Input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.00, 20.00)), module, TubeUnitModule::TUBE_VOCT_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.00, 40.00)), module, TubeUnitModule::AIRFLOW_INPUT));
 
         // Audio output jacks
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
 
         // Parameter knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 0), module, TubeUnitModule::AIRFLOW_PARAM));
+        addControlGroup(0, 0, TubeUnitModule::AIRFLOW_PARAM, TubeUnitModule::AIRFLOW_INPUT, TubeUnitModule::AIRFLOW_ATTEN);
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 0), module, TubeUnitModule::VORTEX_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 1), module, TubeUnitModule::BYPASS_WIDTH_PARAM));
         addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 1), module, TubeUnitModule::BYPASS_CENTER_PARAM));
@@ -321,6 +327,23 @@ struct TubeUnitWidget : ModuleWidget
         warningLight->box.pos  = Vec(0.0f, 0.0f);
         warningLight->box.size = levelKnob->box.size;
         levelKnob->addChild(warningLight);
+    }
+
+    void addControlGroup(   // add a large control knob, CV input jack, and a small attenuverter knob
+        float x,
+        float y,
+        TubeUnitModule::ParamId param,
+        TubeUnitModule::InputId input,
+        TubeUnitModule::ParamId atten)
+    {
+        Vec knobCenter = TubeUnitKnobPos(x, y);
+        addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, param));
+
+        Vec portCenter = knobCenter.plus(mm2px(Vec(-4.0, 10.0)));
+        addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, input));
+
+        Vec attenCenter = knobCenter.plus(mm2px(Vec(+4.0, 10.0)));
+        addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, atten));
     }
 
     void appendContextMenu(Menu* menu) override
