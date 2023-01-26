@@ -18,8 +18,6 @@ struct TubeUnitModule : Module
         REFLECTION_DECAY_PARAM,
         REFLECTION_ANGLE_PARAM,
         STIFFNESS_PARAM,
-        LEVEL_KNOB_PARAM,
-        AGC_LEVEL_PARAM,
         BYPASS_WIDTH_PARAM,
         BYPASS_CENTER_PARAM,
         ROOT_FREQUENCY_PARAM,
@@ -27,21 +25,32 @@ struct TubeUnitModule : Module
 
         // Attenuverter knobs
         AIRFLOW_ATTEN,
-        ROOT_FREQUENCY_ATTEN,
-        VORTEX_ATTEN,
+        REFLECTION_DECAY_ATTEN,
+        REFLECTION_ANGLE_ATTEN,
+        STIFFNESS_ATTEN,
         BYPASS_WIDTH_ATTEN,
         BYPASS_CENTER_ATTEN,
+        ROOT_FREQUENCY_ATTEN,
+        VORTEX_ATTEN,
+
+        // Parameters that do not participate in "control groups".
+        LEVEL_KNOB_PARAM,
+        AGC_LEVEL_PARAM,
 
         PARAMS_LEN
     };
 
     enum InputId
     {
-        ROOT_FREQUENCY_INPUT,
         AIRFLOW_INPUT,
-        VORTEX_INPUT,
+        REFLECTION_DECAY_INPUT,
+        REFLECTION_ANGLE_INPUT,
+        STIFFNESS_INPUT,
         BYPASS_WIDTH_INPUT,
         BYPASS_CENTER_INPUT,
+        ROOT_FREQUENCY_INPUT,
+        VORTEX_INPUT,
+
         INPUTS_LEN
     };
 
@@ -49,6 +58,7 @@ struct TubeUnitModule : Module
     {
         AUDIO_LEFT_OUTPUT,
         AUDIO_RIGHT_OUTPUT,
+
         OUTPUTS_LEN
     };
 
@@ -62,25 +72,31 @@ struct TubeUnitModule : Module
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
         configInput(AIRFLOW_INPUT, "Airflow");
-        configInput(VORTEX_INPUT, "Vortex");
-        configInput(ROOT_FREQUENCY_INPUT, "Root frequency");
+        configInput(REFLECTION_DECAY_INPUT, "Reflection decay");
+        configInput(REFLECTION_ANGLE_INPUT, "Reflection angle");
+        configInput(STIFFNESS_INPUT, "Stiffness");
         configInput(BYPASS_WIDTH_INPUT, "Bypass width");
         configInput(BYPASS_CENTER_INPUT, "Bypass center");
+        configInput(ROOT_FREQUENCY_INPUT, "Root frequency");
+        configInput(VORTEX_INPUT, "Vortex");
 
         configParam(AIRFLOW_PARAM, 0.0f, 5.0f, 1.0f, "Airflow");
-        configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
         configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
         configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.1f, "Reflection angle");
         configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
         configParam(BYPASS_WIDTH_PARAM, 0.5f, 20.0f, 6.0f, "Bypass width");
         configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
         configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.7279248f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
+        configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
 
-        configParam(AIRFLOW_ATTEN, -1, 1, 0, "Airflow", "%", 0, 100);
-        configParam(VORTEX_ATTEN, -1, 1, 0, "Vortex", "%", 0, 100);
-        configParam(ROOT_FREQUENCY_ATTEN, -1, 1, 0, "Root frequency", "%", 0, 100);
-        configParam(BYPASS_WIDTH_ATTEN, -1, 1, 0, "Bypass width", "%", 0, 100);
-        configParam(BYPASS_CENTER_ATTEN, -1, 1, 0, "Bypass center", "%", 0, 100);
+        configAtten(AIRFLOW_ATTEN, "Airflow");
+        configAtten(REFLECTION_DECAY_ATTEN, "Reflection decay");
+        configAtten(REFLECTION_ANGLE_ATTEN, "Reflection angle");
+        configAtten(STIFFNESS_ATTEN, "Stiffness");
+        configAtten(BYPASS_WIDTH_ATTEN, "Bypass width");
+        configAtten(BYPASS_CENTER_ATTEN, "Bypass center");
+        configAtten(ROOT_FREQUENCY_ATTEN, "Root frequency");
+        configAtten(VORTEX_ATTEN, "Vortex");
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
@@ -98,6 +114,11 @@ struct TubeUnitModule : Module
         levelKnob->randomizeEnabled = false;
 
         initialize();
+    }
+
+    void configAtten(TubeUnitModule::ParamId id, std::string name)
+    {
+        configParam(id, -1, 1, 0, name, "%", 0, 100);
     }
 
     void initialize()
@@ -176,50 +197,65 @@ struct TubeUnitModule : Module
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
 
-        int rootFrequencyChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
         int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
-        int vortexChannels = inputs[VORTEX_INPUT].getChannels();
+        int reflectionDecayChannels = inputs[REFLECTION_DECAY_INPUT].getChannels();
+        int reflectionAngleChannels = inputs[REFLECTION_ANGLE_INPUT].getChannels();
+        int stiffnessChannels = inputs[STIFFNESS_INPUT].getChannels();
         int bypassWidthChannels = inputs[BYPASS_WIDTH_INPUT].getChannels();
         int bypassCenterChannels = inputs[BYPASS_CENTER_INPUT].getChannels();
+        int rootFrequencyChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
+        int vortexChannels = inputs[VORTEX_INPUT].getChannels();
 
         numActiveChannels = std::max({
-            1,
-            rootFrequencyChannels,
+            1,  // always produce at least 1 output channel
             airflowChannels,
-            vortexChannels,
+            reflectionDecayChannels,
+            reflectionAngleChannels,
+            stiffnessChannels,
             bypassWidthChannels,
-            bypassCenterChannels
+            bypassCenterChannels,
+            rootFrequencyChannels,
+            vortexChannels,
         });
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
 
-        float rootFrequency = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
-        float vortex = params[VORTEX_PARAM].getValue();
         float airflow = params[AIRFLOW_PARAM].getValue();
         float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
         float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
         float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
-        float gain = params[LEVEL_KNOB_PARAM].getValue();
         float bypassWidth = params[BYPASS_WIDTH_PARAM].getValue();
         float bypassCenter = params[BYPASS_CENTER_PARAM].getValue();
+        float rootFrequency = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
+        float vortex = params[VORTEX_PARAM].getValue();
+        float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         for (int c = 0; c < numActiveChannels; ++c)
         {
-            if (c < rootFrequencyChannels)
-                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_PARAM, ROOT_FREQUENCY_ATTEN, ROOT_FREQUENCY_INPUT, c, 0.0f, 8.0f));
-
             if (c < airflowChannels)
                 airflow = getControlValue(AIRFLOW_PARAM, AIRFLOW_ATTEN, AIRFLOW_INPUT, c, 0.0f, 5.0f);
 
-            if (c < vortexChannels)
-                vortex = getControlValue(VORTEX_PARAM, VORTEX_ATTEN, VORTEX_INPUT, c, 0.0f, 1.0f);
+            if (c < reflectionDecayChannels)
+                reflectionDecay = getControlValue(REFLECTION_DECAY_PARAM, REFLECTION_DECAY_ATTEN, REFLECTION_DECAY_INPUT, c, 0.0f, 1.0f);
+
+            if (c < reflectionAngleChannels)
+                reflectionAngle = M_PI * getControlValue(REFLECTION_ANGLE_PARAM, REFLECTION_ANGLE_ATTEN, REFLECTION_ANGLE_INPUT, c, -1.0f, +1.0f);
+
+            if (c < stiffnessChannels)
+                stiffness = 0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_PARAM, STIFFNESS_ATTEN, STIFFNESS_INPUT, c, 0.0f, 1.0f));
 
             if (c < bypassWidthChannels)
                 bypassWidth = getControlValue(BYPASS_WIDTH_PARAM, BYPASS_WIDTH_ATTEN, BYPASS_WIDTH_INPUT, c, 0.5f, 20.0f);
 
             if (c < bypassCenterChannels)
                 bypassCenter = getControlValue(BYPASS_CENTER_PARAM, BYPASS_CENTER_ATTEN, BYPASS_CENTER_INPUT, c, -10.0f, +10.0f);
+
+            if (c < rootFrequencyChannels)
+                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_PARAM, ROOT_FREQUENCY_ATTEN, ROOT_FREQUENCY_INPUT, c, 0.0f, 8.0f));
+
+            if (c < vortexChannels)
+                vortex = getControlValue(VORTEX_PARAM, VORTEX_ATTEN, VORTEX_INPUT, c, 0.0f, 1.0f);
 
             engine[c].setGain(gain);
             engine[c].setAirflow(airflow);
@@ -347,13 +383,13 @@ struct TubeUnitWidget : ModuleWidget
 
         // Parameter knobs
         addControlGroup(0, 0, TubeUnitModule::AIRFLOW_PARAM, TubeUnitModule::AIRFLOW_INPUT, TubeUnitModule::AIRFLOW_ATTEN);
-        addControlGroup(1, 0, TubeUnitModule::VORTEX_PARAM, TubeUnitModule::VORTEX_INPUT, TubeUnitModule::VORTEX_ATTEN);
-        addControlGroup(0, 1, TubeUnitModule::BYPASS_WIDTH_PARAM, TubeUnitModule::BYPASS_WIDTH_INPUT, TubeUnitModule::BYPASS_WIDTH_ATTEN);
+        addControlGroup(0, 1, TubeUnitModule::VORTEX_PARAM, TubeUnitModule::VORTEX_INPUT, TubeUnitModule::VORTEX_ATTEN);
+        addControlGroup(1, 0, TubeUnitModule::BYPASS_WIDTH_PARAM, TubeUnitModule::BYPASS_WIDTH_INPUT, TubeUnitModule::BYPASS_WIDTH_ATTEN);
         addControlGroup(1, 1, TubeUnitModule::BYPASS_CENTER_PARAM, TubeUnitModule::BYPASS_CENTER_INPUT, TubeUnitModule::BYPASS_CENTER_ATTEN);
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(0, 2), module, TubeUnitModule::REFLECTION_DECAY_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 2), module, TubeUnitModule::REFLECTION_ANGLE_PARAM));
-        addControlGroup(0, 3, TubeUnitModule::ROOT_FREQUENCY_PARAM, TubeUnitModule::ROOT_FREQUENCY_INPUT, TubeUnitModule::ROOT_FREQUENCY_ATTEN);
-        addParam(createParamCentered<RoundLargeBlackKnob>(TubeUnitKnobPos(1, 3), module, TubeUnitModule::STIFFNESS_PARAM));
+        addControlGroup(2, 0, TubeUnitModule::REFLECTION_DECAY_PARAM, TubeUnitModule::REFLECTION_DECAY_INPUT, TubeUnitModule::REFLECTION_DECAY_ATTEN);
+        addControlGroup(2, 1, TubeUnitModule::REFLECTION_ANGLE_PARAM, TubeUnitModule::REFLECTION_ANGLE_INPUT, TubeUnitModule::REFLECTION_ANGLE_ATTEN);
+        addControlGroup(3, 0, TubeUnitModule::ROOT_FREQUENCY_PARAM, TubeUnitModule::ROOT_FREQUENCY_INPUT, TubeUnitModule::ROOT_FREQUENCY_ATTEN);
+        addControlGroup(3, 1, TubeUnitModule::STIFFNESS_PARAM, TubeUnitModule::STIFFNESS_INPUT, TubeUnitModule::STIFFNESS_ATTEN);
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
@@ -367,8 +403,8 @@ struct TubeUnitWidget : ModuleWidget
     }
 
     void addControlGroup(   // add a large control knob, CV input jack, and a small attenuverter knob
-        float x,
         float y,
+        float x,
         TubeUnitModule::ParamId param,
         TubeUnitModule::InputId input,
         TubeUnitModule::ParamId atten)
