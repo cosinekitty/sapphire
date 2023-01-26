@@ -5,7 +5,7 @@
 // https://github.com/cosinekitty/sapphire
 
 
-extern const std::vector<SapphireControlGroup>& tubeUnitControls;
+extern const std::vector<SapphireControlGroup> tubeUnitControls;
 
 
 struct TubeUnitModule : Module
@@ -402,7 +402,7 @@ struct TubeUnitWidget : ModuleWidget
     }
 };
 
-const std::vector<SapphireControlGroup>& tubeUnitControls {
+const std::vector<SapphireControlGroup> tubeUnitControls {
     {
         "Airflow", 0, 0,
         TubeUnitModule::AIRFLOW_PARAM,
