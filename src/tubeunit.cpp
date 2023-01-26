@@ -9,6 +9,7 @@ struct TubeUnitModule : Module
     Sapphire::TubeUnitEngine engine[PORT_MAX_CHANNELS];
     AgcLevelQuantity *agcLevelQuantity = nullptr;
     bool enableLimiterWarning;
+    int numActiveChannels;
 
     enum ParamId
     {
@@ -89,6 +90,7 @@ struct TubeUnitModule : Module
 
     void initialize()
     {
+        numActiveChannels = 0;
         enableLimiterWarning = true;
 
         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
@@ -120,21 +122,28 @@ struct TubeUnitModule : Module
             engine[c].setSampleRate(e.sampleRate);
     }
 
-    int numActiveChannels()
+    void onBypass(const BypassEvent& e) override
     {
-        int tubeVoctChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
-        int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
+        numActiveChannels = 0;
+    }
 
-        // The current number of channels is determined
-        // by the most polyphonic of the following input cables:
-        // - Tube V/OCT
-        // - Formant V/OCT
-        // - Voice Gate
-        // But still present one channel of output if there are no inputs.
-
-        int outputChannels = std::max({1, tubeVoctChannels, airflowChannels});
-        assert(outputChannels >= 1 && outputChannels <= PORT_MAX_CHANNELS);
-        return outputChannels;
+    float getControlValue(
+        ParamId sliderId,
+        ParamId attenuId,
+        InputId cvInputId,
+        int cvChannel,
+        float minSlider,
+        float maxSlider)
+    {
+        float slider = params[sliderId].getValue();
+        float attenu = params[attenuId].getValue();
+        float cv = inputs[cvInputId].getVoltage(cvChannel);
+        // When the attenuverter is set to 100%, and the cv is +5V, we want
+        // to swing a slider that is all the way down (minSlider)
+        // to act like it is all the way up (maxSlider).
+        // Thus we allow the complete range of control for any CV whose
+        // range is [-5, +5] volts.
+        return Sapphire::Clamp(slider + attenu*(cv / 5)*(maxSlider - minSlider), minSlider, maxSlider);
     }
 
     void process(const ProcessArgs& args) override
@@ -142,13 +151,6 @@ struct TubeUnitModule : Module
         using namespace Sapphire;
 
         reflectAgcSlider();
-
-        int tubeVoctChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
-        int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
-        int outputChannels = numActiveChannels();
-
-        outputs[AUDIO_LEFT_OUTPUT ].setChannels(outputChannels);
-        outputs[AUDIO_RIGHT_OUTPUT].setChannels(outputChannels);
 
         // Any of the inputs could have any number of channels 0..16.
         // We use simple and consistent rules to handle all possible cases:
@@ -162,11 +164,21 @@ struct TubeUnitModule : Module
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
 
-        float tubeFreqKnob = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
+        int rootFrequencyChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
+        int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
+
+        numActiveChannels = std::max({
+            1,
+            rootFrequencyChannels,
+            airflowChannels
+        });
+
+        outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
+        outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+
+        float rootFrequency = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
         float vortex = params[VORTEX_PARAM].getValue();
-        float tubeFreqHz = tubeFreqKnob;
-        float airflowKnob = params[AIRFLOW_PARAM].getValue();
-        float airflow = airflowKnob;
+        float airflow = params[AIRFLOW_PARAM].getValue();
         float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
         float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
         float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
@@ -174,17 +186,17 @@ struct TubeUnitModule : Module
         float bypassWidth = params[BYPASS_WIDTH_PARAM].getValue();
         float bypassCenter = params[BYPASS_CENTER_PARAM].getValue();
 
-        for (int c = 0; c < outputChannels; ++c)
+        for (int c = 0; c < numActiveChannels; ++c)
         {
-            if (c < tubeVoctChannels)
-                tubeFreqHz = tubeFreqKnob + std::pow(2.0f, inputs[ROOT_FREQUENCY_INPUT].getVoltage(c));
+            if (c < rootFrequencyChannels)
+                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_PARAM, ROOT_FREQUENCY_ATTEN, ROOT_FREQUENCY_INPUT, c, 0.0f, 8.0f));
 
             if (c < airflowChannels)
-                airflow = airflowKnob + (inputs[AIRFLOW_INPUT].getVoltage(c) / 5.0f);
+                airflow = getControlValue(AIRFLOW_PARAM, AIRFLOW_ATTEN, AIRFLOW_INPUT, c, 0.0f, 5.0f);
 
             engine[c].setGain(gain);
             engine[c].setAirflow(airflow);
-            engine[c].setRootFrequency(tubeFreqHz);
+            engine[c].setRootFrequency(rootFrequency);
             engine[c].setReflectionDecay(reflectionDecay);
             engine[c].setReflectionAngle(reflectionAngle);
             engine[c].setSpringConstant(stiffness);
@@ -224,8 +236,7 @@ struct TubeUnitModule : Module
     {
         // Return the maximum distortion from the engines that are actively producing output.
         float maxDistortion = 0.0f;
-        int outputChannels = numActiveChannels();
-        for (int c = 0; c < outputChannels; ++c)
+        for (int c = 0; c < numActiveChannels; ++c)
         {
             float distortion = engine[c].getAgcDistortion();
             if (distortion > maxDistortion)
