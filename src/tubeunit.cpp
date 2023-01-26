@@ -71,12 +71,15 @@ struct TubeUnitModule : Module
         LIGHTS_LEN
     };
 
+    const SapphireControlGroup *cgLookup[INPUTS_LEN] {};
+
     TubeUnitModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
         for (const SapphireControlGroup& cg : tubeUnitControls)
         {
+            cgLookup[cg.inputId] = &cg;
             configInput(cg.inputId, cg.name);
             configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
             configParam(cg.attenId, -1, 1, 0, cg.name, "%", 0, 100);
@@ -139,23 +142,18 @@ struct TubeUnitModule : Module
         numActiveChannels = 0;
     }
 
-    float getControlValue(
-        ParamId sliderId,
-        ParamId attenuId,
-        InputId cvInputId,
-        int cvChannel,
-        float minSlider,
-        float maxSlider)
+    float getControlValue(InputId inputId, int cvChannel)
     {
-        float slider = params[sliderId].getValue();
-        float attenu = params[attenuId].getValue();
-        float cv = inputs[cvInputId].getVoltage(cvChannel);
+        const SapphireControlGroup& cg = *cgLookup[inputId];
+        float slider = params[cg.paramId].getValue();
+        float attenu = params[cg.attenId].getValue();
+        float cv = inputs[cg.inputId].getVoltage(cvChannel);
         // When the attenuverter is set to 100%, and the cv is +5V, we want
         // to swing a slider that is all the way down (minSlider)
         // to act like it is all the way up (maxSlider).
         // Thus we allow the complete range of control for any CV whose
         // range is [-5, +5] volts.
-        return Sapphire::Clamp(slider + attenu*(cv / 5)*(maxSlider - minSlider), minSlider, maxSlider);
+        return Sapphire::Clamp(slider + attenu*(cv / 5)*(cg.maxValue - cg.minValue), cg.minValue, cg.maxValue);
     }
 
     void process(const ProcessArgs& args) override
@@ -213,28 +211,28 @@ struct TubeUnitModule : Module
         for (int c = 0; c < numActiveChannels; ++c)
         {
             if (c < airflowChannels)
-                airflow = getControlValue(AIRFLOW_PARAM, AIRFLOW_ATTEN, AIRFLOW_INPUT, c, 0.0f, 5.0f);
+                airflow = getControlValue(AIRFLOW_INPUT, c);
 
             if (c < reflectionDecayChannels)
-                reflectionDecay = getControlValue(REFLECTION_DECAY_PARAM, REFLECTION_DECAY_ATTEN, REFLECTION_DECAY_INPUT, c, 0.0f, 1.0f);
+                reflectionDecay = getControlValue(REFLECTION_DECAY_INPUT, c);
 
             if (c < reflectionAngleChannels)
-                reflectionAngle = M_PI * getControlValue(REFLECTION_ANGLE_PARAM, REFLECTION_ANGLE_ATTEN, REFLECTION_ANGLE_INPUT, c, -1.0f, +1.0f);
+                reflectionAngle = M_PI * getControlValue(REFLECTION_ANGLE_INPUT, c);
 
             if (c < stiffnessChannels)
-                stiffness = 0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_PARAM, STIFFNESS_ATTEN, STIFFNESS_INPUT, c, 0.0f, 1.0f));
+                stiffness = 0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_INPUT, c));
 
             if (c < bypassWidthChannels)
-                bypassWidth = getControlValue(BYPASS_WIDTH_PARAM, BYPASS_WIDTH_ATTEN, BYPASS_WIDTH_INPUT, c, 0.5f, 20.0f);
+                bypassWidth = getControlValue(BYPASS_WIDTH_INPUT, c);
 
             if (c < bypassCenterChannels)
-                bypassCenter = getControlValue(BYPASS_CENTER_PARAM, BYPASS_CENTER_ATTEN, BYPASS_CENTER_INPUT, c, -10.0f, +10.0f);
+                bypassCenter = getControlValue(BYPASS_CENTER_INPUT, c);
 
             if (c < rootFrequencyChannels)
-                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_PARAM, ROOT_FREQUENCY_ATTEN, ROOT_FREQUENCY_INPUT, c, 0.0f, 8.0f));
+                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c));
 
             if (c < vortexChannels)
-                vortex = getControlValue(VORTEX_PARAM, VORTEX_ATTEN, VORTEX_INPUT, c, 0.0f, 1.0f);
+                vortex = getControlValue(VORTEX_INPUT, c);
 
             engine[c].setGain(gain);
             engine[c].setAirflow(airflow);
