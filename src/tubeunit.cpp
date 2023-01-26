@@ -147,13 +147,19 @@ struct TubeUnitModule : Module
         const SapphireControlGroup& cg = *cgLookup[inputId];
         float slider = params[cg.paramId].getValue();
         float attenu = params[cg.attenId].getValue();
-        float cv = inputs[cg.inputId].getVoltage(cvChannel);
-        // When the attenuverter is set to 100%, and the cv is +5V, we want
-        // to swing a slider that is all the way down (minSlider)
-        // to act like it is all the way up (maxSlider).
-        // Thus we allow the complete range of control for any CV whose
-        // range is [-5, +5] volts.
-        return Sapphire::Clamp(slider + attenu*(cv / 5)*(cg.maxValue - cg.minValue), cg.minValue, cg.maxValue);
+        int nChannels = inputs[cg.inputId].getChannels();
+        if (nChannels > 0)
+        {
+            int c = std::min(nChannels-1, cvChannel);
+            float cv = inputs[cg.inputId].getVoltage(c);
+            // When the attenuverter is set to 100%, and the cv is +5V, we want
+            // to swing a slider that is all the way down (minSlider)
+            // to act like it is all the way up (maxSlider).
+            // Thus we allow the complete range of control for any CV whose
+            // range is [-5, +5] volts.
+            slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
+        }
+        return Sapphire::Clamp(slider, cg.minValue, cg.maxValue);
     }
 
     void process(const ProcessArgs& args) override
@@ -162,87 +168,29 @@ struct TubeUnitModule : Module
 
         reflectAgcSlider();
 
-        // Any of the inputs could have any number of channels 0..16.
-        // We use simple and consistent rules to handle all possible cases:
-        //
-        // 1. Set the respective inputs to a default value.
-        // 2. Each time we move to a new channel, if there is a corresponding input channel,
-        //    update the input value.
-        // 3. Otherwise keep the most recent value for the remaining channels.
-        //
-        // In other words, whichever input has the most channels selects the output channel count.
+        // Whichever input has the most channels selects the output channel count.
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
-
-        int airflowChannels = inputs[AIRFLOW_INPUT].getChannels();
-        int reflectionDecayChannels = inputs[REFLECTION_DECAY_INPUT].getChannels();
-        int reflectionAngleChannels = inputs[REFLECTION_ANGLE_INPUT].getChannels();
-        int stiffnessChannels = inputs[STIFFNESS_INPUT].getChannels();
-        int bypassWidthChannels = inputs[BYPASS_WIDTH_INPUT].getChannels();
-        int bypassCenterChannels = inputs[BYPASS_CENTER_INPUT].getChannels();
-        int rootFrequencyChannels = inputs[ROOT_FREQUENCY_INPUT].getChannels();
-        int vortexChannels = inputs[VORTEX_INPUT].getChannels();
-
-        numActiveChannels = std::max({
-            1,  // always produce at least 1 output channel
-            airflowChannels,
-            reflectionDecayChannels,
-            reflectionAngleChannels,
-            stiffnessChannels,
-            bypassWidthChannels,
-            bypassCenterChannels,
-            rootFrequencyChannels,
-            vortexChannels,
-        });
+        numActiveChannels = 1;  // always produce at least 1 output channel
+        for (const SapphireControlGroup& cg : tubeUnitControls)
+            numActiveChannels = std::max(numActiveChannels, inputs[cg.inputId].getChannels());
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
 
-        float airflow = params[AIRFLOW_PARAM].getValue();
-        float reflectionDecay = params[REFLECTION_DECAY_PARAM].getValue();
-        float reflectionAngle = M_PI * params[REFLECTION_ANGLE_PARAM].getValue();
-        float stiffness = 0.005f * std::pow(10.0f, 4.0f * params[STIFFNESS_PARAM].getValue());
-        float bypassWidth = params[BYPASS_WIDTH_PARAM].getValue();
-        float bypassCenter = params[BYPASS_CENTER_PARAM].getValue();
-        float rootFrequency = 4 * std::pow(2.0f, params[ROOT_FREQUENCY_PARAM].getValue());
-        float vortex = params[VORTEX_PARAM].getValue();
         float gain = params[LEVEL_KNOB_PARAM].getValue();
 
         for (int c = 0; c < numActiveChannels; ++c)
         {
-            if (c < airflowChannels)
-                airflow = getControlValue(AIRFLOW_INPUT, c);
-
-            if (c < reflectionDecayChannels)
-                reflectionDecay = getControlValue(REFLECTION_DECAY_INPUT, c);
-
-            if (c < reflectionAngleChannels)
-                reflectionAngle = M_PI * getControlValue(REFLECTION_ANGLE_INPUT, c);
-
-            if (c < stiffnessChannels)
-                stiffness = 0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_INPUT, c));
-
-            if (c < bypassWidthChannels)
-                bypassWidth = getControlValue(BYPASS_WIDTH_INPUT, c);
-
-            if (c < bypassCenterChannels)
-                bypassCenter = getControlValue(BYPASS_CENTER_INPUT, c);
-
-            if (c < rootFrequencyChannels)
-                rootFrequency = 4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c));
-
-            if (c < vortexChannels)
-                vortex = getControlValue(VORTEX_INPUT, c);
-
             engine[c].setGain(gain);
-            engine[c].setAirflow(airflow);
-            engine[c].setRootFrequency(rootFrequency);
-            engine[c].setReflectionDecay(reflectionDecay);
-            engine[c].setReflectionAngle(reflectionAngle);
-            engine[c].setSpringConstant(stiffness);
-            engine[c].setBypassWidth(bypassWidth);
-            engine[c].setBypassCenter(bypassCenter);
-            engine[c].setVortex(vortex);
+            engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
+            engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
+            engine[c].setReflectionDecay(getControlValue(REFLECTION_DECAY_INPUT, c));
+            engine[c].setReflectionAngle(M_PI * getControlValue(REFLECTION_ANGLE_INPUT, c));
+            engine[c].setSpringConstant(0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_INPUT, c)));
+            engine[c].setBypassWidth(getControlValue(BYPASS_WIDTH_INPUT, c));
+            engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
+            engine[c].setVortex(getControlValue(VORTEX_INPUT, c));
 
             float sample[2];
             engine[c].process(sample[0], sample[1]);
