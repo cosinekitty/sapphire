@@ -19,7 +19,6 @@ namespace Sapphire
     private:
         float sampleRate = 0.0f;
 
-        bool dirty;                     // Do the delay lines need to be reconfigured?
         DelayLine<complex_t> outbound;  // sends pressure waves from the mouth to the opening
         DelayLine<complex_t> inbound;   // reflects pressure waves from the opening back to the mouth
         float airflow;                  // mass flow rate of air, normalized to [-1, +1].
@@ -83,7 +82,6 @@ namespace Sapphire
 
         void initialize()
         {
-            dirty = true;       // force re-configure
             outbound.clear();
             inbound.clear();
             airflow = 0.0f;
@@ -115,13 +113,11 @@ namespace Sapphire
         void setSampleRate(float sampleRateHz)
         {
             sampleRate = sampleRateHz;
-            dirty = true;
         }
 
         void setRootFrequency(float rootFrequencyHz)
         {
             rootFrequency = Clamp(rootFrequencyHz, 1.0f, 10000.0f);
-            dirty = true;
         }
 
         float getRootFrequency() const
@@ -227,11 +223,7 @@ namespace Sapphire
 
         void process(float& leftOutput, float& rightOutput)
         {
-            if (dirty)
-            {
-                configure();
-                dirty = false;
-            }
+            configure();
 
             // The tube has two ends: the breech and the bell.
             // The breech is where air enters from the mouth, around the piston, through the bypass.
