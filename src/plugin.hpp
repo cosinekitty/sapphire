@@ -14,6 +14,44 @@ extern Model* modelMoots;
 extern Model* modelElastika;
 extern Model* modelTubeUnit;
 
+struct SapphireControlGroup     // represents the combination: knob + CV input + attenuverter
+{
+    std::string name;
+    int paramId;
+    int attenId;
+    int inputId;
+    float minValue;
+    float maxValue;
+    float defaultValue;
+    std::string unit;
+    float displayBase;
+    float displayMultiplier;
+
+    SapphireControlGroup(
+        std::string _name,
+        int _paramId,
+        int _attenId,
+        int _inputId,
+        float _minValue,
+        float _maxValue,
+        float _defaultValue,
+        std::string _unit = "",
+        float _displayBase = 0.0f,
+        float _displayMultiplier = 1.0f
+    )
+        : name(_name)
+        , paramId(_paramId)
+        , attenId(_attenId)
+        , inputId(_inputId)
+        , minValue(_minValue)
+        , maxValue(_maxValue)
+        , defaultValue(_defaultValue)
+        , unit(_unit)
+        , displayBase(_displayBase)
+        , displayMultiplier(_displayMultiplier)
+    {}
+};
+
 // Custom controls for Sapphire modules.
 
 struct SapphirePort : app::SvgPort

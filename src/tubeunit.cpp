@@ -4,6 +4,10 @@
 // Sapphire Tube Unit for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
+
+extern const std::vector<SapphireControlGroup>& tubeUnitControls;
+
+
 struct TubeUnitModule : Module
 {
     Sapphire::TubeUnitEngine engine[PORT_MAX_CHANNELS];
@@ -71,32 +75,12 @@ struct TubeUnitModule : Module
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-        configInput(AIRFLOW_INPUT, "Airflow");
-        configInput(REFLECTION_DECAY_INPUT, "Reflection decay");
-        configInput(REFLECTION_ANGLE_INPUT, "Reflection angle");
-        configInput(STIFFNESS_INPUT, "Stiffness");
-        configInput(BYPASS_WIDTH_INPUT, "Bypass width");
-        configInput(BYPASS_CENTER_INPUT, "Bypass center");
-        configInput(ROOT_FREQUENCY_INPUT, "Root frequency");
-        configInput(VORTEX_INPUT, "Vortex");
-
-        configParam(AIRFLOW_PARAM, 0.0f, 5.0f, 1.0f, "Airflow");
-        configParam(REFLECTION_DECAY_PARAM,  0.0f, 1.0f, 0.5f, "Reflection decay");
-        configParam(REFLECTION_ANGLE_PARAM, -1.0f, 1.0f, 0.1f, "Reflection angle");
-        configParam(STIFFNESS_PARAM, 0.0f, 1.0f, 0.5f, "Stiffness");
-        configParam(BYPASS_WIDTH_PARAM, 0.5f, 20.0f, 6.0f, "Bypass width");
-        configParam(BYPASS_CENTER_PARAM, -10.0f, +10.0f, 5.0f, "Bypass center");
-        configParam(ROOT_FREQUENCY_PARAM, 0.0f, 8.0f, 2.7279248f, "Root frequency", " Hz", 2, 4, 0);  // freq = (4 Hz) * (2**v)
-        configParam(VORTEX_PARAM, 0.0f, 1.0f, 0.0f, "Vortex");
-
-        configAtten(AIRFLOW_ATTEN, "Airflow");
-        configAtten(REFLECTION_DECAY_ATTEN, "Reflection decay");
-        configAtten(REFLECTION_ANGLE_ATTEN, "Reflection angle");
-        configAtten(STIFFNESS_ATTEN, "Stiffness");
-        configAtten(BYPASS_WIDTH_ATTEN, "Bypass width");
-        configAtten(BYPASS_CENTER_ATTEN, "Bypass center");
-        configAtten(ROOT_FREQUENCY_ATTEN, "Root frequency");
-        configAtten(VORTEX_ATTEN, "Vortex");
+        for (const SapphireControlGroup& cg : tubeUnitControls)
+        {
+            configInput(cg.inputId, cg.name);
+            configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
+            configParam(cg.attenId, -1, 1, 0, cg.name, "%", 0, 100);
+        }
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
@@ -114,11 +98,6 @@ struct TubeUnitModule : Module
         levelKnob->randomizeEnabled = false;
 
         initialize();
-    }
-
-    void configAtten(TubeUnitModule::ParamId id, std::string name)
-    {
-        configParam(id, -1, 1, 0, name, "%", 0, 100);
     }
 
     void initialize()
@@ -436,5 +415,66 @@ struct TubeUnitWidget : ModuleWidget
         }
     }
 };
+
+const std::vector<SapphireControlGroup>& tubeUnitControls {
+    {
+        "Airflow",
+        TubeUnitModule::AIRFLOW_PARAM,
+        TubeUnitModule::AIRFLOW_ATTEN,
+        TubeUnitModule::AIRFLOW_INPUT,
+        0.0f, 5.0f, 1.0f
+    },
+    {
+        "Reflection decay",
+        TubeUnitModule::REFLECTION_DECAY_PARAM,
+        TubeUnitModule::REFLECTION_DECAY_ATTEN,
+        TubeUnitModule::REFLECTION_DECAY_INPUT,
+        0.0f, 1.0f, 0.5f
+    },
+    {
+        "Reflection angle",
+        TubeUnitModule::REFLECTION_ANGLE_PARAM,
+        TubeUnitModule::REFLECTION_ANGLE_ATTEN,
+        TubeUnitModule::REFLECTION_ANGLE_INPUT,
+        -1.0f, +1.0f, 0.1f
+    },
+    {
+        "Stiffness",
+        TubeUnitModule::STIFFNESS_PARAM,
+        TubeUnitModule::STIFFNESS_ATTEN,
+        TubeUnitModule::STIFFNESS_INPUT,
+        0.0f, 1.0f, 0.5f
+    },
+    {
+        "Bypass width",
+        TubeUnitModule::BYPASS_WIDTH_PARAM,
+        TubeUnitModule::BYPASS_WIDTH_ATTEN,
+        TubeUnitModule::BYPASS_WIDTH_INPUT,
+        0.5f, 20.0f, 6.0f
+    },
+    {
+        "Bypass center",
+        TubeUnitModule::BYPASS_CENTER_PARAM,
+        TubeUnitModule::BYPASS_CENTER_ATTEN,
+        TubeUnitModule::BYPASS_CENTER_INPUT,
+        -10.0f, +10.0f, 5.0f
+    },
+    {
+        "Root frequency",
+        TubeUnitModule::ROOT_FREQUENCY_PARAM,
+        TubeUnitModule::ROOT_FREQUENCY_ATTEN,
+        TubeUnitModule::ROOT_FREQUENCY_INPUT,
+        0.0f, 8.0f, 2.7279248f,
+        " Hz", 2, 4
+    },
+    {
+        "Vortex",
+        TubeUnitModule::VORTEX_PARAM,
+        TubeUnitModule::VORTEX_ATTEN,
+        TubeUnitModule::VORTEX_INPUT,
+        0.0f, 1.0f, 0.0f
+    },
+};
+
 
 Model* modelTubeUnit = createModel<TubeUnitModule, TubeUnitWidget>("TubeUnit");
