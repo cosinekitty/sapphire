@@ -361,14 +361,17 @@ struct TubeUnitWidget : ModuleWidget
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
 
         // Parameter knobs
-        addControlGroup(0, 0, TubeUnitModule::AIRFLOW_PARAM, TubeUnitModule::AIRFLOW_INPUT, TubeUnitModule::AIRFLOW_ATTEN);
-        addControlGroup(0, 1, TubeUnitModule::VORTEX_PARAM, TubeUnitModule::VORTEX_INPUT, TubeUnitModule::VORTEX_ATTEN);
-        addControlGroup(1, 0, TubeUnitModule::BYPASS_WIDTH_PARAM, TubeUnitModule::BYPASS_WIDTH_INPUT, TubeUnitModule::BYPASS_WIDTH_ATTEN);
-        addControlGroup(1, 1, TubeUnitModule::BYPASS_CENTER_PARAM, TubeUnitModule::BYPASS_CENTER_INPUT, TubeUnitModule::BYPASS_CENTER_ATTEN);
-        addControlGroup(2, 0, TubeUnitModule::REFLECTION_DECAY_PARAM, TubeUnitModule::REFLECTION_DECAY_INPUT, TubeUnitModule::REFLECTION_DECAY_ATTEN);
-        addControlGroup(2, 1, TubeUnitModule::REFLECTION_ANGLE_PARAM, TubeUnitModule::REFLECTION_ANGLE_INPUT, TubeUnitModule::REFLECTION_ANGLE_ATTEN);
-        addControlGroup(3, 0, TubeUnitModule::ROOT_FREQUENCY_PARAM, TubeUnitModule::ROOT_FREQUENCY_INPUT, TubeUnitModule::ROOT_FREQUENCY_ATTEN);
-        addControlGroup(3, 1, TubeUnitModule::STIFFNESS_PARAM, TubeUnitModule::STIFFNESS_INPUT, TubeUnitModule::STIFFNESS_ATTEN);
+        for (const SapphireControlGroup& cg : tubeUnitControls)
+        {
+            Vec knobCenter = TubeUnitKnobPos(cg.xGrid, cg.yGrid);
+            addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, cg.paramId));
+
+            Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0, -4.0)));
+            addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, cg.attenId));
+
+            Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0, +4.0)));
+            addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
+        }
 
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
@@ -379,23 +382,6 @@ struct TubeUnitWidget : ModuleWidget
         warningLight->box.pos  = Vec(0.0f, 0.0f);
         warningLight->box.size = levelKnob->box.size;
         levelKnob->addChild(warningLight);
-    }
-
-    void addControlGroup(   // add a large control knob, CV input jack, and a small attenuverter knob
-        float y,
-        float x,
-        TubeUnitModule::ParamId param,
-        TubeUnitModule::InputId input,
-        TubeUnitModule::ParamId atten)
-    {
-        Vec knobCenter = TubeUnitKnobPos(x, y);
-        addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, param));
-
-        Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0, -4.0)));
-        addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, atten));
-
-        Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0, +4.0)));
-        addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, input));
     }
 
     void appendContextMenu(Menu* menu) override
@@ -418,49 +404,49 @@ struct TubeUnitWidget : ModuleWidget
 
 const std::vector<SapphireControlGroup>& tubeUnitControls {
     {
-        "Airflow",
+        "Airflow", 0, 0,
         TubeUnitModule::AIRFLOW_PARAM,
         TubeUnitModule::AIRFLOW_ATTEN,
         TubeUnitModule::AIRFLOW_INPUT,
         0.0f, 5.0f, 1.0f
     },
     {
-        "Reflection decay",
-        TubeUnitModule::REFLECTION_DECAY_PARAM,
-        TubeUnitModule::REFLECTION_DECAY_ATTEN,
-        TubeUnitModule::REFLECTION_DECAY_INPUT,
-        0.0f, 1.0f, 0.5f
+        "Vortex", 0, 1,
+        TubeUnitModule::VORTEX_PARAM,
+        TubeUnitModule::VORTEX_ATTEN,
+        TubeUnitModule::VORTEX_INPUT,
+        0.0f, 1.0f, 0.0f
     },
     {
-        "Reflection angle",
-        TubeUnitModule::REFLECTION_ANGLE_PARAM,
-        TubeUnitModule::REFLECTION_ANGLE_ATTEN,
-        TubeUnitModule::REFLECTION_ANGLE_INPUT,
-        -1.0f, +1.0f, 0.1f
-    },
-    {
-        "Stiffness",
-        TubeUnitModule::STIFFNESS_PARAM,
-        TubeUnitModule::STIFFNESS_ATTEN,
-        TubeUnitModule::STIFFNESS_INPUT,
-        0.0f, 1.0f, 0.5f
-    },
-    {
-        "Bypass width",
+        "Bypass width", 1, 0,
         TubeUnitModule::BYPASS_WIDTH_PARAM,
         TubeUnitModule::BYPASS_WIDTH_ATTEN,
         TubeUnitModule::BYPASS_WIDTH_INPUT,
         0.5f, 20.0f, 6.0f
     },
     {
-        "Bypass center",
+        "Bypass center", 1, 1,
         TubeUnitModule::BYPASS_CENTER_PARAM,
         TubeUnitModule::BYPASS_CENTER_ATTEN,
         TubeUnitModule::BYPASS_CENTER_INPUT,
         -10.0f, +10.0f, 5.0f
     },
     {
-        "Root frequency",
+        "Reflection decay", 2, 0,
+        TubeUnitModule::REFLECTION_DECAY_PARAM,
+        TubeUnitModule::REFLECTION_DECAY_ATTEN,
+        TubeUnitModule::REFLECTION_DECAY_INPUT,
+        0.0f, 1.0f, 0.5f
+    },
+    {
+        "Reflection angle", 2, 1,
+        TubeUnitModule::REFLECTION_ANGLE_PARAM,
+        TubeUnitModule::REFLECTION_ANGLE_ATTEN,
+        TubeUnitModule::REFLECTION_ANGLE_INPUT,
+        -1.0f, +1.0f, 0.1f
+    },
+    {
+        "Root frequency", 3, 0,
         TubeUnitModule::ROOT_FREQUENCY_PARAM,
         TubeUnitModule::ROOT_FREQUENCY_ATTEN,
         TubeUnitModule::ROOT_FREQUENCY_INPUT,
@@ -468,11 +454,11 @@ const std::vector<SapphireControlGroup>& tubeUnitControls {
         " Hz", 2, 4
     },
     {
-        "Vortex",
-        TubeUnitModule::VORTEX_PARAM,
-        TubeUnitModule::VORTEX_ATTEN,
-        TubeUnitModule::VORTEX_INPUT,
-        0.0f, 1.0f, 0.0f
+        "Stiffness", 3, 1,
+        TubeUnitModule::STIFFNESS_PARAM,
+        TubeUnitModule::STIFFNESS_ATTEN,
+        TubeUnitModule::STIFFNESS_INPUT,
+        0.0f, 1.0f, 0.5f
     },
 };
 

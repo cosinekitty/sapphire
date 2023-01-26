@@ -17,6 +17,8 @@ extern Model* modelTubeUnit;
 struct SapphireControlGroup     // represents the combination: knob + CV input + attenuverter
 {
     std::string name;
+    float yGrid;
+    float xGrid;
     int paramId;
     int attenId;
     int inputId;
@@ -29,6 +31,8 @@ struct SapphireControlGroup     // represents the combination: knob + CV input +
 
     SapphireControlGroup(
         std::string _name,
+        float _yGrid,
+        float _xGrid,
         int _paramId,
         int _attenId,
         int _inputId,
@@ -40,6 +44,8 @@ struct SapphireControlGroup     // represents the combination: knob + CV input +
         float _displayMultiplier = 1.0f
     )
         : name(_name)
+        , yGrid(_yGrid)
+        , xGrid(_xGrid)
         , paramId(_paramId)
         , attenId(_attenId)
         , inputId(_inputId)
