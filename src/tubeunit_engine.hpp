@@ -30,8 +30,8 @@ namespace Sapphire
         float bypass1;                  // x-coordinate where bypass starts to open [millimeters]
         float bypass2;                  // x-coordinate where bypass is fully open [millimeters]
         float bypassResistance;         // how much the bypass constricts airflow due to pressure differences across it
-        float pistonPosition;           // x-coordinate of the piston [millimeters]
-        float pistonSpeed;              // horizontal speed of the piston [millimeters/second]
+        complex_t pistonPosition;       // x-coordinate of the piston [millimeters]
+        complex_t pistonSpeed;          // horizontal speed of the piston [millimeters/second]
         float pistonArea;               // cross-sectional surface area of the piston in m^2
         float pistonMass;               // mass of the piston [kg]
         float springRestLength;         // x-coordinate where spring is completely relaxed (zero force) [millimeters]
@@ -93,8 +93,8 @@ namespace Sapphire
             bypass1  =  +7.0f;
             bypass2  =  +8.0f;
             bypassResistance = 0.1f;
-            pistonPosition = 0.0f;
-            pistonSpeed = 0.0f;
+            pistonPosition = {};
+            pistonSpeed = {};
             pistonArea = 6.45e-4;       // one square inch, converted to m^2
             pistonMass = 1.0e-5;        // 0.1 grams, converted to kg
             springRestLength = -1.0f;
@@ -232,7 +232,7 @@ namespace Sapphire
 
             // Use the piston's current position to determine whether,
             // and how much, the bypass valve is open.
-            float bypassFraction = Clamp((pistonPosition - bypass1)/(bypass2 - bypass1));
+            float bypassFraction = Clamp((pistonPosition.real() - bypass1)/(bypass2 - bypass1));
 
             // The flow rate through the bypass is proportional to the pressure difference
             // across it, multiplied by the fraction it is currently open.
@@ -279,22 +279,22 @@ namespace Sapphire
 
             // dx/dt = v ==> dx = v*dt = v/sampleRate
             // Use the mean speed over the interval.
-            pistonPosition += (pistonSpeed + dv.real()/2) / sampleRate;
+            pistonPosition += (pistonSpeed + dv/2.0f) / sampleRate;
 
             // If the piston hits a stopper, halt its speed also.
-            if (pistonPosition < stopper1)
+            if (pistonPosition.real() < stopper1)
             {
                 pistonPosition = stopper1;
-                pistonSpeed = 0.0f;
+                pistonSpeed = {};
             }
-            else if (pistonPosition > stopper2)
+            else if (pistonPosition.real() > stopper2)
             {
                 pistonPosition = stopper2;
-                pistonSpeed = 0.0f;
+                pistonSpeed = {};
             }
             else
             {
-                pistonSpeed += dv.real();
+                pistonSpeed += dv;
             }
 
             complex_t result = loPassFilter.UpdateLoPass(bellPressure * complex_t{1,1}, sampleRate);
