@@ -79,6 +79,7 @@ struct TubeUnitModule : Module
 
         for (const SapphireControlGroup& cg : tubeUnitControls)
         {
+            assert(cgLookup[cg.inputId] == nullptr);
             cgLookup[cg.inputId] = &cg;
             configInput(cg.inputId, cg.name);
             configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
