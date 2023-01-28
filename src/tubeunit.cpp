@@ -385,7 +385,7 @@ const std::vector<SapphireControlGroup> tubeUnitControls {
         TubeUnitModule::REFLECTION_ANGLE_PARAM,
         TubeUnitModule::REFLECTION_ANGLE_ATTEN,
         TubeUnitModule::REFLECTION_ANGLE_INPUT,
-        -1.0f, +1.0f, 0.1f
+        0.0f, +1.0f, 0.1f
     },
     {
         "Root frequency", 3, 0,
