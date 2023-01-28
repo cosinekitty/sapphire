@@ -12,8 +12,8 @@ struct TubeUnitModule : Module
 {
     Sapphire::TubeUnitEngine engine[PORT_MAX_CHANNELS];
     AgcLevelQuantity *agcLevelQuantity = nullptr;
-    bool enableLimiterWarning;
-    int numActiveChannels;
+    bool enableLimiterWarning = true;
+    int numActiveChannels = 0;
 
     enum ParamId
     {
@@ -179,11 +179,9 @@ struct TubeUnitModule : Module
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
 
-        float gain = params[LEVEL_KNOB_PARAM].getValue();
-
         for (int c = 0; c < numActiveChannels; ++c)
         {
-            engine[c].setGain(gain);
+            engine[c].setGain(params[LEVEL_KNOB_PARAM].getValue());
             engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
             engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
             engine[c].setReflectionDecay(getControlValue(REFLECTION_DECAY_INPUT, c));
@@ -193,15 +191,12 @@ struct TubeUnitModule : Module
             engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
             engine[c].setVortex(getControlValue(VORTEX_INPUT, c));
 
-            float sample[2];
-            engine[c].process(sample[0], sample[1]);
+            float left, right;
+            engine[c].process(left, right);
 
             // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
-            sample[0] *= 5.0f;
-            sample[1] *= 5.0f;
-
-            outputs[AUDIO_LEFT_OUTPUT ].setVoltage(sample[0], c);
-            outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1], c);
+            outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * left,  c);
+            outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * right, c);
         }
     }
 
