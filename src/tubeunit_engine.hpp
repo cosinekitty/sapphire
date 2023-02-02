@@ -212,7 +212,6 @@ namespace Sapphire
             double roundTripSamples = (sampleRate / (2.0 * rootFrequency));
 
             size_t nsamples = static_cast<size_t>(std::floor(roundTripSamples));
-            double sampleFraction = roundTripSamples - nsamples;
             size_t smallerHalf = nsamples / 2;
             size_t largerHalf = nsamples - smallerHalf;
 
@@ -222,7 +221,7 @@ namespace Sapphire
             outbound.setLength(largerHalf + windowSteps);
             inbound.setLength(smallerHalf);
 
-#if 0
+#if 1
             // Copy the window of outbound samples into a sinc-interpolator.
             Interpolator<complex_t, windowSteps> interp;
             for (int n = -windowSteps; n <= +windowSteps; ++n)
@@ -232,9 +231,9 @@ namespace Sapphire
             // Use the interpolator to handle the fractional number of samples needed
             // to produce the exact root frequency.
 
+            double sampleFraction = roundTripSamples - nsamples;
             complex_t bellPressure = interp.read(-sampleFraction);
 #else
-            (void)sampleFraction;
             complex_t bellPressure = outbound.readForward(windowSteps);
 #endif
 

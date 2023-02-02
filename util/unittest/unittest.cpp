@@ -433,6 +433,20 @@ static int InterpolatorTest()
 {
     using namespace Sapphire;
 
+    // Verify the Blackman function is working as expected.
+    // It is necessary for the Interpolator's functioning.
+    double y = Blackman(0.0);
+    if (std::abs(y) > 1.0e-12)
+        return Fail("InterpolatorTest", std::string("Expected Blackman(0.0) = 0.0, but found ") + std::to_string(y));
+
+    y = Blackman(0.5);
+    if (std::abs(y-1.0) > 1.0e-12)
+        return Fail("InterpolatorTest", std::string("Expected Blackman(0.5) = 1.0, but found ") + std::to_string(y));
+
+    y = Blackman(1.0);
+    if (std::abs(y) > 1.0e-12)
+        return Fail("InterpolatorTest", std::string("Expected Blackman(1.0) = 0.0, but found ") + std::to_string(y));
+
     Interpolator<float, 5> interp;
     interp.write(-5, 1.0f);
     interp.write(-4, 2.0f);
@@ -450,17 +464,17 @@ static int InterpolatorTest()
     float x = interp.read(-1.0);
     float diff = std::abs(x - 5.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(-1.0) excessive error") + std::to_string(diff));
+        return Fail("InterpolatorTest", std::string("interp.read(-1.0) excessive error: ") + std::to_string(diff));
 
     x = interp.read(0.0);
     diff = std::abs(x - 6.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(0.0) excessive error") + std::to_string(diff));
+        return Fail("InterpolatorTest", std::string("interp.read(0.0) excessive error: ") + std::to_string(diff));
 
     x = interp.read(+1.0);
     diff = std::abs(x - 5.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(+1.0) excessive error") + std::to_string(diff));
+        return Fail("InterpolatorTest", std::string("interp.read(+1.0) excessive error: ") + std::to_string(diff));
 
     // Dump intermediate values for manual inspection.
     for (double position = -1.0; position <= +1.005; position += 0.01)

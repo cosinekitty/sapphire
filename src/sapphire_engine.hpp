@@ -534,7 +534,26 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, size_t steps>
+    inline double Sinc(double x)
+    {
+        double angle = fabs(M_PI * x);
+        if (angle < 1.0e-9)
+            return 1.0;
+        return sin(angle) / angle;
+    }
+
+
+    inline double Blackman(double x)
+    {
+        // https://www.mathworks.com/help/signal/ref/blackman.html
+        // Blackman(0.0) = 0.0
+        // Blackman(0.5) = 1.0
+        // Blackman(1.0) = 0.0
+        return 0.42 - 0.5*cos((2*M_PI) * x) + 0.08*cos((4*M_PI) * x);
+    }
+
+
+    template <typename item_t, size_t steps, typename taper_t = float>
     class Interpolator
     {
     private:
@@ -559,18 +578,10 @@ namespace Sapphire
             item_t sum {};
             for (int n = -s; n <= s; ++n)
             {
-                double angle = M_PI * fabs(position - n);
-                double sinc;
-                if (angle < 1.0e-9)
-                    sinc = 1.0;
-                else
-                    sinc = sin(angle) / angle;
-
-                // For now, use modified sinc() with a simple cosine window.
-                // FIXFIXFIX: Consider replacing with a Kaiser window:
-                // https://ccrma.stanford.edu/~jos/pasp/Theory_Practice.html
-                float taper = sinc * cos(angle / (steps + 1.0));
-                sum += buffer[n+s] * taper;
+                double sinc = Sinc(position - n);
+                double window = ((position-n) + (s+1)) / (2*(s+1));
+                double taper = Blackman(window);
+                sum += buffer[n+s] * static_cast<taper_t>(sinc * taper);
             }
 
             return sum;
