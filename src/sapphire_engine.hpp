@@ -559,6 +559,13 @@ namespace Sapphire
         static const size_t nsamples = 1 + 2*steps;
         item_t buffer[nsamples] {};
 
+        static inline float SlowTaper(float x)
+        {
+            float sinc = Sinc(x);
+            float taper = Blackman((x + (steps+1)) / (2*(steps+1)));
+            return sinc * taper;
+        }
+
     public:
         void write(int position, item_t value)
         {
@@ -576,12 +583,7 @@ namespace Sapphire
             const int s = static_cast<int>(steps);
             item_t sum {};
             for (int n = -s; n <= s; ++n)
-            {
-                float sinc = Sinc(position - n);
-                float window = ((position - n) + (s+1)) / (2*(s+1));
-                float taper = Blackman(window);
-                sum += buffer[n+s] * (sinc * taper);
-            }
+                sum += buffer[n+s] * SlowTaper(position - n);
 
             return sum;
         }
