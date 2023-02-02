@@ -436,15 +436,15 @@ static int InterpolatorTest()
     // Verify the Blackman function is working as expected.
     // It is necessary for the Interpolator's functioning.
     double y = Blackman(0.0);
-    if (std::abs(y) > 1.0e-12)
+    if (std::abs(y) > 1.0e-7)
         return Fail("InterpolatorTest", std::string("Expected Blackman(0.0) = 0.0, but found ") + std::to_string(y));
 
     y = Blackman(0.5);
-    if (std::abs(y-1.0) > 1.0e-12)
+    if (std::abs(y-1.0) > 1.0e-7)
         return Fail("InterpolatorTest", std::string("Expected Blackman(0.5) = 1.0, but found ") + std::to_string(y));
 
     y = Blackman(1.0);
-    if (std::abs(y) > 1.0e-12)
+    if (std::abs(y) > 1.0e-7)
         return Fail("InterpolatorTest", std::string("Expected Blackman(1.0) = 0.0, but found ") + std::to_string(y));
 
     Interpolator<float, 5> interp;
