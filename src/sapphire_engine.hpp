@@ -533,27 +533,26 @@ namespace Sapphire
         }
     };
 
-
-    inline double Sinc(double x)
+    inline float Sinc(float x)
     {
-        double angle = fabs(M_PI * x);
-        if (angle < 1.0e-9)
-            return 1.0;
-        return sin(angle) / angle;
+        float angle = std::abs(static_cast<float>(M_PI * x));
+        if (angle < 1.0e-6f)
+            return 1.0f;
+        return std::sin(angle) / angle;
     }
 
 
-    inline double Blackman(double x)
+    inline float Blackman(float x)
     {
         // https://www.mathworks.com/help/signal/ref/blackman.html
         // Blackman(0.0) = 0.0
         // Blackman(0.5) = 1.0
         // Blackman(1.0) = 0.0
-        return 0.42 - 0.5*cos((2*M_PI) * x) + 0.08*cos((4*M_PI) * x);
+        return 0.42f - 0.5f*std::cos(static_cast<float>(2*M_PI) * x) + 0.08f*std::cos(static_cast<float>(4*M_PI) * x);
     }
 
 
-    template <typename item_t, size_t steps, typename taper_t = float>
+    template <typename item_t, size_t steps, typename scalar_t = float>
     class Interpolator
     {
     private:
@@ -569,19 +568,19 @@ namespace Sapphire
             buffer[index] = value;
         }
 
-        item_t read(double position) const
+        item_t read(float position) const
         {
-            if (position < -1.0 || position > +1.0)
+            if (position < -1.0f || position > +1.0f)
                 throw std::range_error("Interpolator read position is out of bounds.");
 
             const int s = static_cast<int>(steps);
             item_t sum {};
             for (int n = -s; n <= s; ++n)
             {
-                double sinc = Sinc(position - n);
-                double window = ((position-n) + (s+1)) / (2*(s+1));
-                double taper = Blackman(window);
-                sum += buffer[n+s] * static_cast<taper_t>(sinc * taper);
+                float sinc = Sinc(position - n);
+                float window = ((position - n) + (s+1)) / (2*(s+1));
+                float taper = Blackman(window);
+                sum += buffer[n+s] * (sinc * taper);
             }
 
             return sum;

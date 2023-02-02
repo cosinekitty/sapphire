@@ -44,6 +44,8 @@ namespace Sapphire
         float vortex;
         StagedFilter<complex_t, 1> dcRejectFilter;
         StagedFilter<complex_t, 1> loPassFilter;
+        static const int windowSteps = 5;
+        Interpolator<complex_t, windowSteps> interp;
 
     public:
         TubeUnitEngine()
@@ -208,7 +210,6 @@ namespace Sapphire
 
             // Divide wavelength by 2 because we have both inbound and outbound delay lines.
             // Add extra samples needed for the interpolator window, and round up to next higher integer.
-            const int windowSteps = 5;
             double roundTripSamples = (sampleRate / (2.0 * rootFrequency));
 
             size_t nsamples = static_cast<size_t>(std::floor(roundTripSamples));
@@ -221,9 +222,7 @@ namespace Sapphire
             outbound.setLength(largerHalf + windowSteps);
             inbound.setLength(smallerHalf);
 
-#if 1
             // Copy the window of outbound samples into a sinc-interpolator.
-            Interpolator<complex_t, windowSteps> interp;
             for (int n = -windowSteps; n <= +windowSteps; ++n)
                 interp.write(n, outbound.readForward(n + windowSteps));
 
@@ -231,12 +230,7 @@ namespace Sapphire
             // Use the interpolator to handle the fractional number of samples needed
             // to produce the exact root frequency.
 
-            double sampleFraction = roundTripSamples - nsamples;
-            complex_t bellPressure = interp.read(-sampleFraction);
-#else
-            complex_t bellPressure = outbound.readForward(windowSteps);
-#endif
-
+            complex_t bellPressure = interp.read(nsamples - roundTripSamples);
             bellPressure = dcRejectFilter.UpdateHiPass(bellPressure, sampleRate);
 
             // The tube has two ends: the breech and the bell.
