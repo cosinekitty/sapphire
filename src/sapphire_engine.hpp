@@ -549,6 +549,32 @@ namespace Sapphire
                 throw std::range_error("Interpolator write position is out of bounds.");
             buffer[index] = value;
         }
+
+        item_t read(double position) const
+        {
+            if (position < -1.0 || position > +1.0)
+                throw std::range_error("Interpolator read position is out of bounds.");
+
+            const int s = static_cast<int>(steps);
+            item_t sum {};
+            for (int n = -s; n <= s; ++n)
+            {
+                double angle = M_PI * fabs(position - n);
+                double sinc;
+                if (angle < 1.0e-9)
+                    sinc = 1.0;
+                else
+                    sinc = sin(angle) / angle;
+
+                // For now, use modified sinc() with a simple cosine window.
+                // FIXFIXFIX: Consider replacing with a Kaiser window:
+                // https://ccrma.stanford.edu/~jos/pasp/Theory_Practice.html
+                double taper = sinc * cos(angle / (steps + 1.0));
+                sum += buffer[n+s] * taper;
+            }
+
+            return sum;
+        }
     };
 }
 

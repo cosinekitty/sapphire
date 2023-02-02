@@ -446,6 +446,30 @@ static int InterpolatorTest()
     interp.write(+4, 2.0f);
     interp.write(+5, 1.0f);
 
+    // Verify the 3 central integer offsets interpolate exactly.
+    float x = interp.read(-1.0);
+    float diff = std::abs(x - 5.0f);
+    if (diff > 1.0e-6)
+        return Fail("InterpolatorTest", std::string("interp.read(-1.0) excessive error") + std::to_string(diff));
+
+    x = interp.read(0.0);
+    diff = std::abs(x - 6.0f);
+    if (diff > 1.0e-6)
+        return Fail("InterpolatorTest", std::string("interp.read(0.0) excessive error") + std::to_string(diff));
+
+    x = interp.read(+1.0);
+    diff = std::abs(x - 5.0f);
+    if (diff > 1.0e-6)
+        return Fail("InterpolatorTest", std::string("interp.read(+1.0) excessive error") + std::to_string(diff));
+
+    // Dump intermediate values for manual inspection.
+    for (double position = -1.0; position <= +1.005; position += 0.01)
+    {
+        if (position > 1.0) position = 1.0;
+        x = interp.read(position);
+        printf("InterpolatorTest: position = %0.3lf, x = %0.6f\n", position, x);
+    }
+
     return Pass("InterpolatorTest");
 }
 
