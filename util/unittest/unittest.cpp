@@ -28,11 +28,13 @@ static int AutoGainControl();
 static int ReadWave();
 static int AutoScale();
 static int DelayLineTest();
+static int InterpolatorTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
     { "delay",      DelayLineTest },
+    { "interp",     InterpolatorTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
     { nullptr,  nullptr }
@@ -425,3 +427,25 @@ static int DelayLineTest()
 
     return Pass("DelayLineTest");
 }
+
+
+static int InterpolatorTest()
+{
+    using namespace Sapphire;
+
+    Interpolator<float, 5> interp;
+    interp.write(-5, 1.0f);
+    interp.write(-4, 2.0f);
+    interp.write(-3, 3.0f);
+    interp.write(-2, 4.0f);
+    interp.write(-1, 5.0f);
+    interp.write( 0, 6.0f);
+    interp.write(+1, 5.0f);
+    interp.write(+2, 4.0f);
+    interp.write(+3, 3.0f);
+    interp.write(+4, 2.0f);
+    interp.write(+5, 1.0f);
+
+    return Pass("InterpolatorTest");
+}
+

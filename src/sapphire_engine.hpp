@@ -532,6 +532,24 @@ namespace Sapphire
                 x = {};
         }
     };
+
+
+    template <typename item_t, size_t steps>
+    class Interpolator
+    {
+    private:
+        static const size_t nsamples = 1 + 2*steps;
+        item_t buffer[nsamples] {};
+
+    public:
+        void write(int position, item_t value)
+        {
+            size_t index = static_cast<size_t>(static_cast<int>(steps) + position);
+            if (index >= nsamples)
+                throw std::range_error("Interpolator write position is out of bounds.");
+            buffer[index] = value;
+        }
+    };
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP
