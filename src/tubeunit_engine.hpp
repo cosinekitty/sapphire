@@ -45,35 +45,6 @@ namespace Sapphire
         StagedFilter<complex_t, 1> dcRejectFilter;
         StagedFilter<complex_t, 1> loPassFilter;
 
-        void configure()
-        {
-            if (sampleRate <= 0.0f)
-                throw std::logic_error("Invalid sample rate in TubeUnitEngine");
-
-            if (rootFrequency <= 0.0f)
-                throw std::logic_error("Invalid root frequency in TubeUnitEngine");
-
-            // A tube that is open on one end and closed on the other end has a negative
-            // reflection at the open end and a positive reflection at the closed end.
-            // Therefore a pulse has to travel the length of the tube 4 times
-            // (that is, back and forth, then back and forth again) to complete a cycle.
-            // Thus the tube must be 1/4 the length of the number of samples for a period of the root frequency.
-
-            // FIXFIXFIX: Implement fractional sample wavelength using sinc formula.
-            // For now, round down to integer number of samples.
-            // Divide wavelength by 2 because we have both inbound and outbound delay lines.
-            // But we can still get to the nearest integer sample by allowing one delay
-            // line to have an odd length and the other an even length, if needed.
-
-            size_t nsamples = static_cast<size_t>(std::floor(sampleRate / (2.0 * rootFrequency)));
-            size_t smallerHalf = nsamples / 2;
-            size_t largerHalf = nsamples - smallerHalf;
-
-            // The `setLength` calls will clamp the delay line lengths as needed.
-            outbound.setLength(smallerHalf);
-            inbound.setLength(largerHalf);
-        }
-
     public:
         TubeUnitEngine()
         {
@@ -223,7 +194,51 @@ namespace Sapphire
 
         void process(float& leftOutput, float& rightOutput)
         {
-            configure();
+            if (sampleRate <= 0.0f)
+                throw std::logic_error("Invalid sample rate in TubeUnitEngine");
+
+            if (rootFrequency <= 0.0f)
+                throw std::logic_error("Invalid root frequency in TubeUnitEngine");
+
+            // A tube that is open on one end and closed on the other end has a negative
+            // reflection at the open end and a positive reflection at the closed end.
+            // Therefore a pulse has to travel the length of the tube 4 times
+            // (that is, back and forth, then back and forth again) to complete a cycle.
+            // Thus the tube must be 1/4 the length of the number of samples for a period of the root frequency.
+
+            // Divide wavelength by 2 because we have both inbound and outbound delay lines.
+            // Add extra samples needed for the interpolator window, and round up to next higher integer.
+            const int windowSteps = 5;
+            double roundTripSamples = (sampleRate / (2.0 * rootFrequency));
+
+            size_t nsamples = static_cast<size_t>(std::floor(roundTripSamples));
+            double sampleFraction = roundTripSamples - nsamples;
+            size_t smallerHalf = nsamples / 2;
+            size_t largerHalf = nsamples - smallerHalf;
+
+            if (largerHalf < windowSteps + 1)
+                throw std::logic_error("outbound delay line is not large enough for interpolation.");
+
+            outbound.setLength(largerHalf + windowSteps);
+            inbound.setLength(smallerHalf);
+
+#if 0
+            // Copy the window of outbound samples into a sinc-interpolator.
+            Interpolator<complex_t, windowSteps> interp;
+            for (int n = -windowSteps; n <= +windowSteps; ++n)
+                interp.write(n, outbound.readForward(n + windowSteps));
+
+            // Find the effective pressure the open end of the tube (the "bell").
+            // Use the interpolator to handle the fractional number of samples needed
+            // to produce the exact root frequency.
+
+            complex_t bellPressure = interp.read(-sampleFraction);
+#else
+            (void)sampleFraction;
+            complex_t bellPressure = outbound.readForward(windowSteps);
+#endif
+
+            bellPressure = dcRejectFilter.UpdateHiPass(bellPressure, sampleRate);
 
             // The tube has two ends: the breech and the bell.
             // The breech is where air enters from the mouth, around the piston, through the bypass.
@@ -239,10 +254,6 @@ namespace Sapphire
             complex_t bypassFlowRate = bypassFraction * bypassResistance * (mouthPressure - breechPressure);
 
             complex_t outSignal = breechPressure + bypassFlowRate;
-
-            // Find the effective pressure the open end of the tube (the "bell"):
-            complex_t bellPressure = outbound.readForward(0);
-            bellPressure = dcRejectFilter.UpdateHiPass(bellPressure, sampleRate);
 
             // Keep vibrations moving through the two waveguides (delay lines).
             outbound.write(outSignal);

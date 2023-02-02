@@ -569,7 +569,7 @@ namespace Sapphire
                 // For now, use modified sinc() with a simple cosine window.
                 // FIXFIXFIX: Consider replacing with a Kaiser window:
                 // https://ccrma.stanford.edu/~jos/pasp/Theory_Practice.html
-                double taper = sinc * cos(angle / (steps + 1.0));
+                float taper = sinc * cos(angle / (steps + 1.0));
                 sum += buffer[n+s] * taper;
             }
 
