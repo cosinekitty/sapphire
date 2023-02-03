@@ -552,24 +552,34 @@ namespace Sapphire
     }
 
 
-    template <typename item_t, size_t steps>
-    class Interpolator
+    inline float SlowTaper(float x, size_t steps)
+    {
+        float sinc = Sinc(x);
+        float taper = Blackman((x + (steps+1)) / (2*(steps+1)));
+        return sinc * taper;
+    }
+
+
+    template <size_t steps>
+    class InterpolatorTable
     {
     private:
-        static const size_t nsamples = 1 + 2*steps;
-        item_t buffer[nsamples] {};
-
-        static inline float SlowTaper(float x)
-        {
-            float sinc = Sinc(x);
-            float taper = Blackman((x + (steps+1)) / (2*(steps+1)));
-            return sinc * taper;
-        }
-
         static const size_t nsegments = 0x8001;
         std::vector<float> table;
 
-        float FastTaper(float x) const
+    public:
+        InterpolatorTable()
+        {
+            // Pre-calculate an interpolation table over the range x = [0, steps+1].
+            table.resize(nsegments);
+            for (size_t i = 0; i < nsegments; ++i)
+            {
+                float x = static_cast<float>(i * (steps+1)) / static_cast<float>(nsegments-1);
+                table[i] = SlowTaper(x, steps);
+            }
+        }
+
+        float Taper(float x) const
         {
             // The taper function is even, so we can cut the range in half with absolute value:
             x = std::abs(x);
@@ -585,23 +595,18 @@ namespace Sapphire
             float y2 = (i+1 < nsegments) ? table.at(i+1) : 0.0f;
             return (1-frac)*y1 + frac*y2;
         }
+    };
+
+
+    template <typename item_t, size_t steps>
+    class Interpolator
+    {
+    private:
+        static const InterpolatorTable<steps> table;
+        static const size_t nsamples = 1 + 2*steps;
+        item_t buffer[nsamples] {};
 
     public:
-        Interpolator()
-        {
-            // FIXFIXFIX: make `table` and its initialization static.
-            // There is no need for redundant copies of it!
-            // It might require removing `steps` as a template parameter and making it a uniform constant.
-
-            // Pre-calculate an interpolation table over the range x = [0, steps+1].
-            table.resize(nsegments);
-            for (size_t i = 0; i < nsegments; ++i)
-            {
-                float x = static_cast<float>(i * (steps+1)) / static_cast<float>(nsegments-1);
-                table[i] = SlowTaper(x);
-            }
-        }
-
         void write(int position, item_t value)
         {
             size_t index = static_cast<size_t>(static_cast<int>(steps) + position);
@@ -618,11 +623,14 @@ namespace Sapphire
             const int s = static_cast<int>(steps);
             item_t sum {};
             for (int n = -s; n <= s; ++n)
-                sum += buffer[n+s] * FastTaper(position - n);
+                sum += buffer[n+s] * table.Taper(position - n);
 
             return sum;
         }
     };
+
+    template <typename item_t, size_t steps>
+    const InterpolatorTable<steps> Interpolator<item_t, steps>::table;
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP
