@@ -566,7 +566,7 @@ namespace Sapphire
             return sinc * taper;
         }
 
-        static const size_t nsegments = 1024;
+        static const size_t nsegments = 0x8001;
         std::vector<float> table;
 
         float FastTaper(float x) const
@@ -589,6 +589,10 @@ namespace Sapphire
     public:
         Interpolator()
         {
+            // FIXFIXFIX: make `table` and its initialization static.
+            // There is no need for redundant copies of it!
+            // It might require removing `steps` as a template parameter and making it a uniform constant.
+
             // Pre-calculate an interpolation table over the range x = [0, steps+1].
             table.resize(nsegments);
             for (size_t i = 0; i < nsegments; ++i)
