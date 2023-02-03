@@ -505,22 +505,27 @@ static int TaperTest()
     InterpolatorTable table {nsteps, nsegments};
 
     const float limit = static_cast<float>(nsteps + 1);
-    const float increment = 0.00008675309f;
+    const float increment = 8.675309e-6f;
     float sum = 0.0f;
+    float maxdy = 0.0f;
     int n = 0;
     for (float x = -limit; x <= +limit; x += increment)
     {
         float y1 = SlowTaper(x, nsteps);
         float y2 = table.Taper(x);
         float dy = y1 - y2;
+        maxdy = std::max(maxdy, dy);
         sum += (dy * dy);
         ++n;
     }
 
     float dev = std::sqrt(sum / n);
-    printf("TaperTest: n = %d, standard deviation = %0.4e\n", n, dev);
-    if (dev > 2.77e-8f)
+    printf("TaperTest: n = %d, standard deviation = %0.4e, max error = %0.4e\n", n, dev, maxdy);
+    if (dev > 2.71e-8f)
         return Fail("TaperTest", "Excessive error standard deviation.");
+
+    if (maxdy > 2.39e-7f)
+        return Fail("TaperTest", "Excessive maximum error.");
 
     return Pass("TaperTest");
 }
