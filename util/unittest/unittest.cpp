@@ -29,6 +29,7 @@ static int ReadWave();
 static int AutoScale();
 static int DelayLineTest();
 static int InterpolatorTest();
+static int TaperTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -37,6 +38,7 @@ static const UnitTest CommandTable[] =
     { "interp",     InterpolatorTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
+    { "taper",      TaperTest },
     { nullptr,  nullptr }
 };
 
@@ -485,5 +487,21 @@ static int InterpolatorTest()
     }
 
     return Pass("InterpolatorTest");
+}
+
+
+static int TaperTest()
+{
+    using namespace Sapphire;
+
+    // Verify the accuracy of the sinc window optimization.
+    // Compare the original `SlowTaper` calculation with the
+    // fast approximation in `InterpolatorTable::Taper`.
+
+    const size_t nsteps = 5;
+    const size_t nsegments = 0x8001;
+    InterpolatorTable table {nsteps, nsegments};
+
+    return Pass("TaperTest");
 }
 

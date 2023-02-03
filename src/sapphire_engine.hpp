@@ -560,15 +560,17 @@ namespace Sapphire
     }
 
 
-    template <size_t steps>
     class InterpolatorTable
     {
     private:
-        static const size_t nsegments = 0x8001;
+        const size_t steps;
+        const size_t nsegments;
         std::vector<float> table;
 
     public:
-        InterpolatorTable()
+        InterpolatorTable(size_t _steps, size_t _nsegments)
+            : steps(_steps)
+            , nsegments(_nsegments)
         {
             // Pre-calculate an interpolation table over the range x = [0, steps+1].
             table.resize(nsegments);
@@ -591,8 +593,8 @@ namespace Sapphire
 
             size_t i = static_cast<size_t>(std::floor(ir));
             float frac = ir - i;
-            float y1 = table.at(i);
-            float y2 = (i+1 < nsegments) ? table.at(i+1) : 0.0f;
+            float y1 = table[i];
+            float y2 = (i+1 < nsegments) ? table[i+1] : 0.0f;
             return (1-frac)*y1 + frac*y2;
         }
     };
@@ -602,7 +604,7 @@ namespace Sapphire
     class Interpolator
     {
     private:
-        static const InterpolatorTable<steps> table;
+        static const InterpolatorTable table;
         static const size_t nsamples = 1 + 2*steps;
         item_t buffer[nsamples] {};
 
@@ -630,7 +632,7 @@ namespace Sapphire
     };
 
     template <typename item_t, size_t steps>
-    const InterpolatorTable<steps> Interpolator<item_t, steps>::table;
+    const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x8001};
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP
