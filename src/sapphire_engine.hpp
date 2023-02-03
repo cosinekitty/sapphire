@@ -552,7 +552,7 @@ namespace Sapphire
     }
 
 
-    template <typename item_t, size_t steps, typename scalar_t = float>
+    template <typename item_t, size_t steps>
     class Interpolator
     {
     private:
@@ -566,7 +566,38 @@ namespace Sapphire
             return sinc * taper;
         }
 
+        static const size_t nsegments = 1024;
+        std::vector<float> table;
+
+        float FastTaper(float x) const
+        {
+            // The taper function is even, so we can cut the range in half with absolute value:
+            x = std::abs(x);
+
+            float ir = (x * (nsegments-1)) / (steps+1);
+
+            if (ir > nsegments-1)
+                return 0.0f;
+
+            size_t i = static_cast<size_t>(std::floor(ir));
+            float frac = ir - i;
+            float y1 = table.at(i);
+            float y2 = (i+1 < nsegments) ? table.at(i+1) : 0.0f;
+            return (1-frac)*y1 + frac*y2;
+        }
+
     public:
+        Interpolator()
+        {
+            // Pre-calculate an interpolation table over the range x = [0, steps+1].
+            table.resize(nsegments);
+            for (size_t i = 0; i < nsegments; ++i)
+            {
+                float x = static_cast<float>(i * (steps+1)) / static_cast<float>(nsegments-1);
+                table[i] = SlowTaper(x);
+            }
+        }
+
         void write(int position, item_t value)
         {
             size_t index = static_cast<size_t>(static_cast<int>(steps) + position);
@@ -583,7 +614,7 @@ namespace Sapphire
             const int s = static_cast<int>(steps);
             item_t sum {};
             for (int n = -s; n <= s; ++n)
-                sum += buffer[n+s] * SlowTaper(position - n);
+                sum += buffer[n+s] * FastTaper(position - n);
 
             return sum;
         }
