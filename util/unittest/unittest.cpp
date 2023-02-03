@@ -478,6 +478,7 @@ static int InterpolatorTest()
     if (diff > 1.0e-6)
         return Fail("InterpolatorTest", std::string("interp.read(+1.0) excessive error: ") + std::to_string(diff));
 
+#if 0
     // Dump intermediate values for manual inspection.
     for (double position = -1.0; position <= +1.005; position += 0.01)
     {
@@ -485,6 +486,7 @@ static int InterpolatorTest()
         x = interp.read(position);
         printf("InterpolatorTest: position = %0.3lf, x = %0.6f\n", position, x);
     }
+#endif
 
     return Pass("InterpolatorTest");
 }
@@ -501,6 +503,24 @@ static int TaperTest()
     const size_t nsteps = 5;
     const size_t nsegments = 0x8001;
     InterpolatorTable table {nsteps, nsegments};
+
+    const float limit = static_cast<float>(nsteps + 1);
+    const float increment = 0.00008675309f;
+    float sum = 0.0f;
+    int n = 0;
+    for (float x = -limit; x <= +limit; x += increment)
+    {
+        float y1 = SlowTaper(x, nsteps);
+        float y2 = table.Taper(x);
+        float dy = y1 - y2;
+        sum += (dy * dy);
+        ++n;
+    }
+
+    float dev = std::sqrt(sum / n);
+    printf("TaperTest: n = %d, standard deviation = %0.4e\n", n, dev);
+    if (dev > 2.77e-8f)
+        return Fail("TaperTest", "Excessive error standard deviation.");
 
     return Pass("TaperTest");
 }
