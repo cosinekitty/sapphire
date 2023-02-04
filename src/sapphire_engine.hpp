@@ -560,6 +560,12 @@ namespace Sapphire
     }
 
 
+    inline float QuadInterp(float Q, float R, float S, float x)
+    {
+        return (((S + Q)/2 - R)*x + ((S - Q)/2))*x + R;
+    }
+
+
     class InterpolatorTable
     {
     private:
@@ -570,7 +576,7 @@ namespace Sapphire
     public:
         InterpolatorTable(size_t _steps, size_t _nsegments)
             : steps(_steps)
-            , nsegments(_nsegments)
+            , nsegments(_nsegments | 1)     // IMPORTANT: force `nsegments` to be an odd integer!
         {
             // Pre-calculate an interpolation table over the range x = [0, steps+1].
             table.resize(nsegments);
@@ -586,16 +592,67 @@ namespace Sapphire
             // The taper function is even, so we can cut the range in half with absolute value:
             x = std::abs(x);
 
+            // Calculate the real-valued table index.
             float ir = (x * (nsegments-1)) / (steps+1);
 
+            // The taper window goes to zero at the endpoints,
+            // and we consider it uniformly zero outside the window of relevance.
             if (ir > nsegments-1)
                 return 0.0f;
 
-            size_t i = static_cast<size_t>(std::floor(ir));
-            float frac = ir - i;
-            float y1 = table[i];
-            float y2 = (i+1 < nsegments) ? table[i+1] : 0.0f;
-            return (1-frac)*y1 + frac*y2;
+            // We will find a best-fit parabola passing through 3 points.
+            // Do not allow any discontinuities in the curve!
+            // That means we cannot pick two different parabolas for
+            // nearby real values `ir` except across integer values where
+            // both parabolas will converge to the same endpoint.
+            // We already forced `nsegments` to be an odd number, so that we can
+            // always break the regions into a whole number of parabolas.
+            // Example: suppose nsegments = 7. Then the following index groups
+            // are used to calculate parabolas:
+            //
+            //      [0, 1, 2]: for 0 <= ir <= 2
+            //      [2, 3, 4]: for 2 <  ir <= 4
+            //      [4, 5, 6]: for 4 <  ir <= 6
+            //
+            // The general rule is: the leftmost of the 3 indices must be even.
+            // All 3 indices must be in the range [0, nsegments-1].
+
+            // Round to the nearest integer for the central index.
+            size_t imid = static_cast<size_t>(std::round(ir));
+
+            // `di` = Fractional distance from the central index.
+            float di = ir - static_cast<float>(imid);
+
+            if (imid == 0)
+            {
+                // We must shift imid upward by one slot.
+                ++imid;
+                di -= 1.0f;
+            }
+            else if (imid == nsegments-1)
+            {
+                // We must shift imid downward by one slot.
+                --imid;
+                di += 1.0f;
+            }
+            else if (0 == (imid & 1))
+            {
+                // The middle index is not allowed to be even like this.
+                // Adjust it up or down as needed.
+                if (di < 0.0f)
+                {
+                    --imid;
+                    di += 1.0f;
+                }
+                else
+                {
+                    ++imid;
+                    di -= 1.0f;
+                }
+            }
+
+            assert(imid & 1);
+            return QuadInterp(table.at(imid-1), table.at(imid), table.at(imid+1), di);
         }
     };
 
@@ -632,7 +689,7 @@ namespace Sapphire
     };
 
     template <typename item_t, size_t steps>
-    const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x8001};
+    const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
 }
 
 #endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP

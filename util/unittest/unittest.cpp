@@ -30,12 +30,14 @@ static int AutoScale();
 static int DelayLineTest();
 static int InterpolatorTest();
 static int TaperTest();
+static int QuadraticTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
+    { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
     { "taper",      TaperTest },
@@ -466,17 +468,26 @@ static int InterpolatorTest()
     float x = interp.read(-1.0);
     float diff = std::abs(x - 5.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(-1.0) excessive error: ") + std::to_string(diff));
+    {
+        fprintf(stderr, "InterpolatorTest: interp.read(-1.0) excessive error: %e\n", diff);
+        return 1;
+    }
 
     x = interp.read(0.0);
     diff = std::abs(x - 6.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(0.0) excessive error: ") + std::to_string(diff));
+    {
+        fprintf(stderr, "InterpolatorTest: interp.read(0.0) excessive error: %e\n", diff);
+        return 1;
+    }
 
     x = interp.read(+1.0);
     diff = std::abs(x - 5.0f);
     if (diff > 1.0e-6)
-        return Fail("InterpolatorTest", std::string("interp.read(+1.0) excessive error: ") + std::to_string(diff));
+    {
+        fprintf(stderr, "InterpolatorTest: interp.read(+1.0) excessive error: %e\n", diff);
+        return 1;
+    }
 
 #if 0
     // Dump intermediate values for manual inspection.
@@ -530,3 +541,32 @@ static int TaperTest()
     return Pass("TaperTest");
 }
 
+
+static int QuadEndpointCheck(float Q, float R, float S)
+{
+    using namespace Sapphire;
+
+    float q = QuadInterp(Q, R, S, -1.0f);
+    float r = QuadInterp(Q, R, S,  0.0f);
+    float s = QuadInterp(Q, R, S, +1.0f);
+
+    float error = std::max({std::abs(Q-q), std::abs(R-r), std::abs(S-s)});
+    if (error > 0.0f)
+    {
+        fprintf(stderr, "QuadEndpointCheck(%f, %f, %f): EXCESSIVE ERROR %e\n", Q, R, S, error);
+        return 1;
+    }
+    return 0;
+}
+
+
+static int QuadraticTest()
+{
+    using namespace Sapphire;
+
+    // Verify the quadratic interpolator hits the endpoints of a parabola.
+    if (QuadEndpointCheck(-3.0f, +4.0f, -7.0f))
+        return 1;
+
+    return Pass("QuadraticTest");
+}
