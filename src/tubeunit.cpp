@@ -147,7 +147,6 @@ struct TubeUnitModule : Module
     {
         const SapphireControlGroup& cg = *cgLookup[inputId];
         float slider = params[cg.paramId].getValue();
-        float attenu = params[cg.attenId].getValue();
         int nChannels = inputs[cg.inputId].getChannels();
         if (nChannels > 0)
         {
@@ -158,6 +157,7 @@ struct TubeUnitModule : Module
             // to act like it is all the way up (maxSlider).
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
+            float attenu = params[cg.attenId].getValue();
             slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
         }
         return Sapphire::Clamp(slider, cg.minValue, cg.maxValue);
@@ -283,7 +283,7 @@ public:
 
 inline Vec TubeUnitKnobPos(float x, float y)
 {
-    return mm2px(Vec(20.0f + x*26.0f, 20.0f + y*20.0f));
+    return mm2px(Vec(20.0f + x*26.0f, 32.0f + y*20.0f - x*10.0f));
 }
 
 
