@@ -26,6 +26,8 @@ RACKTOOL=../../rack-plugin-toolchain
         make install
 "
 
+python3 patch_tubeunit.py || exit 1
+
 SAPPHIRE=$(realpath ..)
 cd ${RACKTOOL} || Fail "Cannot change directory to ${RACKTOOL}"
 rm -rf plugin-build
