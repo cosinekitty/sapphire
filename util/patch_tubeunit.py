@@ -7,8 +7,38 @@
 #
 import sys
 
+
+def TubeUnitKnobPos(x, y):
+    return (20.0 + x*27.0, 34.0 + y*20.0 - x*10.0)
+
+def Move(x, y):
+    return 'M {:0.2f},{:0.2f} '.format(x, y)
+
+def Line(x, y):
+    return 'L {:0.2f},{:0.2f} '.format(x, y)
+
 def ArtworkText():
-    return '\n    '
+    HexHorRadius = 19.0
+    HexHorStep = 8
+    HexVerRadius = 10.0
+    t = '\n'
+    t += '    <path style="fill-opacity:0.0;fill:#000000;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
+    t += '        d="'
+    for y in range(4):
+        for x in range(2):
+            sx, sy = TubeUnitKnobPos(x, y)
+            t += Move(sx - HexHorRadius, sy)
+            t += Line(sx - HexHorStep, sy - HexVerRadius)
+            t += Line(sx + HexHorStep, sy - HexVerRadius)
+            t += Line(sx + HexHorRadius, sy)
+            t += Line(sx + HexHorStep, sy + HexVerRadius)
+            t += Line(sx - HexHorStep, sy + HexVerRadius)
+            t += 'z '
+    t += '"\n'
+    t += '    />\n'
+    t += '    '
+    return t
+
 
 def main():
     svgFileName = '../res/tubeunit.svg'
