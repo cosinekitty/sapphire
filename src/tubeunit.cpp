@@ -299,8 +299,13 @@ struct TubeUnitWidget : ModuleWidget
         setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.5, 115.00)), module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.5, 115.00)), module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
+        Vec levelKnobPos = TubeUnitKnobPos(1, 4);
+        const float outJackDx = 12.0;
+        const float outJackDy =  5.0;
+        Vec ljVec = levelKnobPos.plus(mm2px(Vec(+outJackDx, -outJackDy)));
+        Vec rjVec = levelKnobPos.plus(mm2px(Vec(+outJackDx, +outJackDy)));
+        addOutput(createOutputCentered<SapphirePort>(ljVec, module, TubeUnitModule::AUDIO_LEFT_OUTPUT));
+        addOutput(createOutputCentered<SapphirePort>(rjVec, module, TubeUnitModule::AUDIO_RIGHT_OUTPUT));
 
         // Parameter knobs
         for (const SapphireControlGroup& cg : tubeUnitControls)
@@ -317,7 +322,6 @@ struct TubeUnitWidget : ModuleWidget
             addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
         }
 
-        Vec levelKnobPos = TubeUnitKnobPos(1, 4);
         RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(levelKnobPos, module, TubeUnitModule::LEVEL_KNOB_PARAM);
         addParam(levelKnob);
 
