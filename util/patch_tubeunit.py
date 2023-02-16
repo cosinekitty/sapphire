@@ -18,21 +18,22 @@ def Line(x, y):
     return 'L {:0.2f},{:0.2f} '.format(x, y)
 
 def ArtworkText():
-    HexHorRadius = 19.0
-    HexHorStep = 8
-    HexVerRadius = 10.0
+    PentDx1 = 10.0
+    PentDx3 = 19.0
+    PentDx2 = 8.0
+    PentDy  = 10.0
     t = '\n'
     t += '    <path style="fill-opacity:0.0;fill:#000000;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
     t += '        d="'
     for y in range(4):
         for x in range(2):
             sx, sy = TubeUnitKnobPos(x, y)
-            t += Move(sx - HexHorRadius, sy)
-            t += Line(sx - HexHorStep, sy - HexVerRadius)
-            t += Line(sx + HexHorStep, sy - HexVerRadius)
-            t += Line(sx + HexHorRadius, sy)
-            t += Line(sx + HexHorStep, sy + HexVerRadius)
-            t += Line(sx - HexHorStep, sy + HexVerRadius)
+            xdir = 1.0 - 2.0*x
+            t += Move(sx - xdir*PentDx1, sy - PentDy)
+            t += Line(sx + xdir*PentDx2, sy - PentDy)
+            t += Line(sx + xdir*PentDx3, sy)
+            t += Line(sx + xdir*PentDx2, sy + PentDy)
+            t += Line(sx - xdir*PentDx1, sy + PentDy )
             t += 'z '
     t += '"\n'
     t += '    />\n'
