@@ -8,8 +8,8 @@
 import sys
 
 
-def TubeUnitKnobPos(x, y):
-    return (20.0 + x*27.0, 34.0 + y*20.0 - x*10.0)
+def PentagonOrigin(x, y):
+    return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
 def Move(x, y):
     return 'M {:0.2f},{:0.2f} '.format(x, y)
@@ -18,16 +18,16 @@ def Line(x, y):
     return 'L {:0.2f},{:0.2f} '.format(x, y)
 
 def ArtworkText():
-    PentDx1 = 10.0
-    PentDx3 = 19.0
-    PentDx2 = 8.0
-    PentDy  = 10.0
+    PentDx1 = 14.0
+    PentDx3 = 16.0
+    PentDx2 =  8.0
+    PentDy  = 10.5
     t = '\n'
     t += '    <path style="fill-opacity:0.0;fill:#000000;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
     t += '        d="'
     for y in range(4):
         for x in range(2):
-            sx, sy = TubeUnitKnobPos(x, y)
+            sx, sy = PentagonOrigin(x, y)
             xdir = 1.0 - 2.0*x
             t += Move(sx - xdir*PentDx1, sy - PentDy)
             t += Line(sx + xdir*PentDx2, sy - PentDy)

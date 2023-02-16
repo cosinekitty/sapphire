@@ -283,7 +283,7 @@ public:
 
 inline Vec TubeUnitKnobPos(float x, float y)
 {
-    return mm2px(Vec(20.0f + x*27.0f, 34.0f + y*20.0f - x*10.0f));
+    return mm2px(Vec(20.5f + x*20.0f, 34.0f + y*21.0f - x*10.5f));
 }
 
 
@@ -305,13 +305,15 @@ struct TubeUnitWidget : ModuleWidget
         // Parameter knobs
         for (const SapphireControlGroup& cg : tubeUnitControls)
         {
+            int xdir = 1 - 2*cg.xGrid;      // map xGrid=[0, 1] to a direction [+1, -1]
+
             Vec knobCenter = TubeUnitKnobPos(cg.xGrid, cg.yGrid);
             addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, cg.paramId));
 
-            Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0, -4.0)));
+            Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, -4.0)));
             addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, cg.attenId));
 
-            Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0, +4.0)));
+            Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, +4.0)));
             addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
         }
 
