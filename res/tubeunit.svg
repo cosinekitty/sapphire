@@ -53,6 +53,74 @@
        width="142.40133"
        height="31.788567"
        id="rect479" />
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_0"
+       x1="0.0"
+       y1="0.0"
+       x2="60.0"
+       y2="0.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#5754c4;stop-opacity:1;"
+         offset="0"
+         id="stop966" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop968" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_1"
+       x1="0.0"
+       y1="0.0"
+       x2="60.0"
+       y2="0.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#0060f9;stop-opacity:1;"
+         offset="0"
+         id="stop10" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop12" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_2"
+       x1="0.0"
+       y1="0.0"
+       x2="60.0"
+       y2="0.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#976de4;stop-opacity:1;"
+         offset="0"
+         id="stop15" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop17" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="gradient_3"
+       x1="0.0"
+       y1="0.0"
+       x2="60.0"
+       y2="0.0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         style="stop-color:#0081d7;stop-opacity:1;"
+         offset="0"
+         id="stop20" />
+      <stop
+         style="stop-color:#4f8df2;stop-opacity:0;"
+         offset="1"
+         id="stop22" />
+    </linearGradient>
   </defs>
   <g
      inkscape:label="panel"
@@ -67,6 +135,23 @@
        y="0.2"
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
+    <!--begin artwork-->
+    <path style="fill:url(#gradient_0);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z "
+    />
+
+    <path style="fill:url(#gradient_1);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z "
+    />
+
+    <path style="fill:url(#gradient_2);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z "
+    />
+
+    <path style="fill:url(#gradient_3);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,85.50 L 26.50,85.50 L 34.50,96.00 L 26.50,106.50 L 4.50,106.50 z M 56.50,75.00 L 34.50,75.00 L 26.50,85.50 L 34.50,96.00 L 56.50,96.00 z "
+    />
+    <!--end artwork-->
     <g
        aria-label="sapphire"
        id="brand_text"
@@ -425,11 +510,6 @@
          d="m 50.962014,61.275607 q 0.03175,0 0.04939,0.02117 0.02117,0.02117 0.02117,0.04939 v 0.885472 q 0,0.04233 -0.03175,0.0635 -0.162277,0.109362 -0.356305,0.172862 -0.190501,0.05997 -0.388056,0.05997 -0.363362,0 -0.652639,-0.162278 -0.285751,-0.165806 -0.451556,-0.455084 -0.162278,-0.289278 -0.162278,-0.652639 0,-0.363361 0.162278,-0.652639 0.165805,-0.289278 0.451556,-0.451556 0.289277,-0.165806 0.652639,-0.165806 0.197555,0 0.373945,0.04939 0.179916,0.04586 0.321027,0.141111 0.03175,0.02117 0.03175,0.05997 0,0.03175 -0.0247,0.05292 -0.02117,0.01764 -0.04233,0.01764 -0.01764,0 -0.04586,-0.01411 -0.296334,-0.165806 -0.613834,-0.165806 -0.324556,0 -0.578556,0.144639 -0.254,0.144639 -0.398639,0.402167 -0.141111,0.257528 -0.141111,0.582084 0,0.324556 0.141111,0.582084 0.144639,0.257528 0.398639,0.402167 0.254,0.144639 0.578556,0.144639 0.162278,0 0.328083,-0.04939 0.169334,-0.05292 0.306917,-0.137584 v -0.783167 h -0.635 q -0.02822,0 -0.04939,-0.02117 -0.02117,-0.02117 -0.02117,-0.04939 0,-0.03175 0.02117,-0.04939 0.02117,-0.02117 0.04939,-0.02117 z"
          id="path2362" />
     </g>
-    <!--begin artwork-->
-    <path style="fill-opacity:0.0;fill:#000000;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-        d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z M 4.50,85.50 L 26.50,85.50 L 34.50,96.00 L 26.50,106.50 L 4.50,106.50 z M 56.50,75.00 L 34.50,75.00 L 26.50,85.50 L 34.50,96.00 L 56.50,96.00 z "
-    />
-    <!--end artwork-->
   </g>
   <metadata
      id="metadata3609">

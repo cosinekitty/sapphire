@@ -22,10 +22,12 @@ def ArtworkText():
     PentDx3 = 16.0
     PentDx2 =  8.0
     PentDy  = 10.5
-    t = '\n'
-    t += '    <path style="fill-opacity:0.0;fill:#000000;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
-    t += '        d="'
+    t = ''
     for y in range(4):
+        gradientId = 'gradient_{}'.format(y)
+        t += '\n'
+        t += '    <path style="fill:url(#' + gradientId + ');fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
+        t += '        d="'
         for x in range(2):
             sx, sy = PentagonOrigin(x, y)
             xdir = 1.0 - 2.0*x
@@ -35,8 +37,8 @@ def ArtworkText():
             t += Line(sx + xdir*PentDx2, sy + PentDy)
             t += Line(sx - xdir*PentDx1, sy + PentDy )
             t += 'z '
-    t += '"\n'
-    t += '    />\n'
+        t += '"\n'
+        t += '    />\n'
     t += '    '
     return t
 
