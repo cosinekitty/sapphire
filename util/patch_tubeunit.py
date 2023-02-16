@@ -26,7 +26,7 @@ def ArtworkText():
     for y in range(4):
         gradientId = 'gradient_{}'.format(y)
         t += '\n'
-        t += '    <path style="fill:url(#' + gradientId + ');fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
+        t += '    <path style="fill:url(#' + gradientId + ');fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"\n'
         t += '        d="'
         for x in range(2):
             sx, sy = PentagonOrigin(x, y)
