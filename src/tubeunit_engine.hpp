@@ -18,7 +18,7 @@ namespace Sapphire
     {
     private:
         float sampleRate = 0.0f;
-
+        bool isQuiet = false;
         DelayLine<complex_t> outbound;  // sends pressure waves from the mouth to the opening
         DelayLine<complex_t> inbound;   // reflects pressure waves from the opening back to the mouth
         float airflow;                  // mass flow rate of air, normalized to [-1, +1].
@@ -55,6 +55,7 @@ namespace Sapphire
 
         void initialize()
         {
+            isQuiet = false;
             outbound.clear();
             inbound.clear();
             airflow = 0.0f;
@@ -81,6 +82,16 @@ namespace Sapphire
             dcRejectFilter.Reset();
             loPassFilter.SetCutoffFrequency(8000.0f);
             loPassFilter.Reset();
+        }
+
+        bool getQuiet() const
+        {
+            return isQuiet;
+        }
+
+        void setQuiet(bool q)
+        {
+            isQuiet = q;
         }
 
         void setSampleRate(float sampleRateHz)
@@ -260,8 +271,16 @@ namespace Sapphire
             complex_t reflectionFraction { magnitude * std::cos(radians), magnitude * std::sin(radians) };
             inbound.write(-reflectionFraction * bellPressure);
 
-            // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
-            mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
+            if (isQuiet)
+            {
+                // Immediately vent all mouth pressure and ignore all airflow.
+                mouthPressure = {};
+            }
+            else
+            {
+                // Update the pressure in the mouth by adding inbound airflow and subtracting outbound airflow.
+                mouthPressure += (airflow - bypassFlowRate) / (mouthVolume * sampleRate);
+            }
 
             // Update the piston's position and speed using F=ma,
             // where F = ((net pressure) * area) - (spring force).

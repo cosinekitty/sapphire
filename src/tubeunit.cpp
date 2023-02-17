@@ -46,6 +46,7 @@ struct TubeUnitModule : Module
 
     enum InputId
     {
+        // Control group inputs
         AIRFLOW_INPUT,
         REFLECTION_DECAY_INPUT,
         REFLECTION_ANGLE_INPUT,
@@ -54,6 +55,9 @@ struct TubeUnitModule : Module
         BYPASS_CENTER_INPUT,
         ROOT_FREQUENCY_INPUT,
         VORTEX_INPUT,
+
+        // Inputs that are not in a control group
+        QUIET_GATE_INPUT,
 
         INPUTS_LEN
     };
@@ -100,6 +104,8 @@ struct TubeUnitModule : Module
 
         auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
         levelKnob->randomizeEnabled = false;
+
+        configInput(QUIET_GATE_INPUT, "Vent gate");
 
         initialize();
     }
@@ -163,6 +169,25 @@ struct TubeUnitModule : Module
         return Sapphire::Clamp(slider, cg.minValue, cg.maxValue);
     }
 
+    void updateQuiet(int c)
+    {
+        const int quietGateChannels = inputs[QUIET_GATE_INPUT].getChannels();
+
+        if (c < quietGateChannels)
+        {
+            float qv = inputs[QUIET_GATE_INPUT].getVoltage(c);
+            if (qv >= 1.0f)
+                engine[c].setQuiet(true);
+            else if (qv < 0.1f)
+                engine[c].setQuiet(false);
+        }
+        else
+        {
+            bool copyQuiet = (quietGateChannels > 0) ? engine[quietGateChannels-1].getQuiet() : false;
+            engine[c].setQuiet(copyQuiet);
+        }
+    }
+
     void process(const ProcessArgs& args) override
     {
         using namespace Sapphire;
@@ -172,7 +197,7 @@ struct TubeUnitModule : Module
         // Whichever input has the most channels selects the output channel count.
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
-        numActiveChannels = 1;  // always produce at least 1 output channel
+        numActiveChannels = std::max(1, inputs[QUIET_GATE_INPUT].getChannels());
         for (const SapphireControlGroup& cg : tubeUnitControls)
             numActiveChannels = std::max(numActiveChannels, inputs[cg.inputId].getChannels());
 
@@ -181,6 +206,7 @@ struct TubeUnitModule : Module
 
         for (int c = 0; c < numActiveChannels; ++c)
         {
+            updateQuiet(c);
             engine[c].setGain(params[LEVEL_KNOB_PARAM].getValue());
             engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
             engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
@@ -331,6 +357,9 @@ struct TubeUnitWidget : ModuleWidget
         warningLight->box.pos  = Vec(0.0f, 0.0f);
         warningLight->box.size = levelKnob->box.size;
         levelKnob->addChild(warningLight);
+
+        // Input gate for quieting the tube.
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.5f, 16.0f)), module, TubeUnitModule::QUIET_GATE_INPUT));
     }
 
     void appendContextMenu(Menu* menu) override
