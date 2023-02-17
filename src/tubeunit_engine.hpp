@@ -18,7 +18,7 @@ namespace Sapphire
     {
     private:
         float sampleRate = 0.0f;
-        bool isQuiet = false;
+        bool isQuiet;
         DelayLine<complex_t> outbound;  // sends pressure waves from the mouth to the opening
         DelayLine<complex_t> inbound;   // reflects pressure waves from the opening back to the mouth
         float airflow;                  // mass flow rate of air, normalized to [-1, +1].
@@ -205,7 +205,7 @@ namespace Sapphire
             vortex = v;
         }
 
-        void process(float& leftOutput, float& rightOutput)
+        void process(float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
             if (sampleRate <= 0.0f)
                 throw std::logic_error("Invalid sample rate in TubeUnitEngine");
@@ -258,6 +258,8 @@ namespace Sapphire
             complex_t bypassFlowRate = bypassFraction * bypassResistance * (mouthPressure - breechPressure);
 
             complex_t outSignal = breechPressure + bypassFlowRate;
+            if (!isQuiet)
+                outSignal += 5.0f*complex_t{leftInput, rightInput};
 
             // Keep vibrations moving through the two waveguides (delay lines).
             outbound.write(outSignal);

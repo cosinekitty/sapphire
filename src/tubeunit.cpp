@@ -58,6 +58,8 @@ struct TubeUnitModule : Module
 
         // Inputs that are not in a control group
         QUIET_GATE_INPUT,
+        AUDIO_LEFT_INPUT,
+        AUDIO_RIGHT_INPUT,
 
         INPUTS_LEN
     };
@@ -106,6 +108,8 @@ struct TubeUnitModule : Module
         levelKnob->randomizeEnabled = false;
 
         configInput(QUIET_GATE_INPUT, "Vent gate");
+        configInput(AUDIO_LEFT_INPUT, "Left audio");
+        configInput(AUDIO_RIGHT_INPUT, "Right audio");
 
         initialize();
     }
@@ -198,11 +202,15 @@ struct TubeUnitModule : Module
         // Other inputs have their final supplied value (or default value if none)
         // "normalled" to the remaining channels.
         numActiveChannels = std::max(1, inputs[QUIET_GATE_INPUT].getChannels());
+        numActiveChannels = std::max(numActiveChannels, inputs[AUDIO_LEFT_INPUT].getChannels());
+        numActiveChannels = std::max(numActiveChannels, inputs[AUDIO_RIGHT_INPUT].getChannels());
         for (const SapphireControlGroup& cg : tubeUnitControls)
             numActiveChannels = std::max(numActiveChannels, inputs[cg.inputId].getChannels());
 
         outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
         outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+        float leftIn = 0.0f;
+        float rightIn = 0.0f;
 
         for (int c = 0; c < numActiveChannels; ++c)
         {
@@ -217,12 +225,18 @@ struct TubeUnitModule : Module
             engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
             engine[c].setVortex(getControlValue(VORTEX_INPUT, c));
 
-            float left, right;
-            engine[c].process(left, right);
+            if (c < inputs[AUDIO_LEFT_INPUT].getChannels())
+                leftIn = inputs[AUDIO_LEFT_INPUT].getVoltage(c) / 5.0f;
+
+            if (c < inputs[AUDIO_RIGHT_INPUT].getChannels())
+                rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltage(c) / 5.0f;
+
+            float leftOut, rightOut;
+            engine[c].process(leftOut, rightOut, leftIn, rightIn);
 
             // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
-            outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * left,  c);
-            outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * right, c);
+            outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * leftOut,  c);
+            outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * rightOut, c);
         }
     }
 
@@ -359,7 +373,11 @@ struct TubeUnitWidget : ModuleWidget
         levelKnob->addChild(warningLight);
 
         // Input gate for quieting the tube.
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.5f, 16.0f)), module, TubeUnitModule::QUIET_GATE_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.5, 16.0)), module, TubeUnitModule::QUIET_GATE_INPUT));
+
+        // Audio inputs (left and right).
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 9.0, 114.5)), module, TubeUnitModule::AUDIO_LEFT_INPUT));
+        addInput(createInputCentered<SapphirePort>(mm2px(Vec(23.0, 114.5)), module, TubeUnitModule::AUDIO_RIGHT_INPUT));
     }
 
     void appendContextMenu(Menu* menu) override
