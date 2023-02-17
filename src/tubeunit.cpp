@@ -111,6 +111,9 @@ struct TubeUnitModule : Module
         configInput(AUDIO_LEFT_INPUT, "Left audio");
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
 
+        configBypass(AUDIO_LEFT_INPUT,  AUDIO_LEFT_OUTPUT);
+        configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
+
         initialize();
     }
 
