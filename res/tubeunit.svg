@@ -136,22 +136,21 @@
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
     <!--begin artwork-->
-    <path
-       style="fill:url(#gradient_0);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-       d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z "
-       id="path20" />
-    <path
-       style="fill:url(#gradient_1);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-       d="M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z "
-       id="path22" />
-    <path
-       style="fill:url(#gradient_2);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-       d="M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z "
-       id="path24" />
-    <path
-       style="fill:url(#gradient_3);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-       d="M 4.50,85.50 L 26.50,85.50 L 34.50,96.00 L 26.50,106.50 L 4.50,106.50 z M 56.50,75.00 L 34.50,75.00 L 26.50,85.50 L 34.50,96.00 L 56.50,96.00 z "
-       id="path26" />
+    <path style="fill:url(#gradient_0);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z "
+    />
+
+    <path style="fill:url(#gradient_1);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z "
+    />
+
+    <path style="fill:url(#gradient_2);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z "
+    />
+
+    <path style="fill:url(#gradient_3);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 4.50,85.50 L 26.50,85.50 L 34.50,96.00 L 26.50,106.50 L 4.50,106.50 z M 56.50,75.00 L 34.50,75.00 L 26.50,85.50 L 34.50,96.00 L 56.50,96.00 z "
+    />
     <!--end artwork-->
     <g
        aria-label="sapphire"
