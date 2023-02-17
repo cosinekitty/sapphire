@@ -30,13 +30,13 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.6801556"
-     inkscape:cx="-81.540067"
-     inkscape:cy="247.59612"
-     inkscape:window-width="1920"
-     inkscape:window-height="1029"
+     inkscape:cx="108.3233"
+     inkscape:cy="248.1913"
+     inkscape:window-width="1447"
+     inkscape:window-height="1019"
      inkscape:window-x="0"
      inkscape:window-y="27"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:current-layer="PanelLayer"
      inkscape:lockguides="false" />
   <defs
@@ -62,11 +62,11 @@
        y2="0.0"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#5754c4;stop-opacity:1;"
+         style="stop-color:#d374b1;stop-opacity:1;"
          offset="0"
          id="stop966" />
       <stop
-         style="stop-color:#4f8df2;stop-opacity:0;"
+         style="stop-color:#3d74ca;stop-opacity:1;"
          offset="1"
          id="stop968" />
     </linearGradient>
@@ -79,11 +79,11 @@
        y2="0.0"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#0060f9;stop-opacity:1;"
+         style="stop-color:#ca635d;stop-opacity:1;"
          offset="0"
          id="stop10" />
       <stop
-         style="stop-color:#4f8df2;stop-opacity:0;"
+         style="stop-color:#0e9561;stop-opacity:1;"
          offset="1"
          id="stop12" />
     </linearGradient>
@@ -96,11 +96,11 @@
        y2="0.0"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#976de4;stop-opacity:1;"
+         style="stop-color:#677dce;stop-opacity:1;"
          offset="0"
          id="stop15" />
       <stop
-         style="stop-color:#4f8df2;stop-opacity:0;"
+         style="stop-color:#4853dc;stop-opacity:1;"
          offset="1"
          id="stop17" />
     </linearGradient>
@@ -113,11 +113,11 @@
        y2="0.0"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#29aab4;stop-opacity:1;"
+         style="stop-color:#339829;stop-opacity:1;"
          offset="0"
          id="stop25" />
       <stop
-         style="stop-color:#4f8df2;stop-opacity:0;"
+         style="stop-color:#c16341;stop-opacity:1;"
          offset="1"
          id="stop27" />
     </linearGradient>
@@ -136,19 +136,19 @@
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
     <!--begin artwork-->
-    <path style="fill:url(#gradient_0);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+    <path style="fill:url(#gradient_0);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
         d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z "
     />
 
-    <path style="fill:url(#gradient_1);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+    <path style="fill:url(#gradient_1);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
         d="M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z "
     />
 
-    <path style="fill:url(#gradient_2);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+    <path style="fill:url(#gradient_2);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
         d="M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z "
     />
 
-    <path style="fill:url(#gradient_3);fill-opacity:1;stroke:#202040;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+    <path style="fill:url(#gradient_3);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
         d="M 4.50,85.50 L 26.50,85.50 L 34.50,96.00 L 26.50,106.50 L 4.50,106.50 z M 56.50,75.00 L 34.50,75.00 L 26.50,85.50 L 34.50,96.00 L 56.50,96.00 z "
     />
     <!--end artwork-->
