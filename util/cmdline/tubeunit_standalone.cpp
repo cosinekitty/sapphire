@@ -39,7 +39,7 @@ int main()
         else
             engine.setAirflow(0.0f);
 
-        engine.process(sample[0], sample[1]);
+        engine.process(sample[0], sample[1], 0.0f, 0.0f);
         wave.WriteSamples(sample, CHANNELS);
     }
 
