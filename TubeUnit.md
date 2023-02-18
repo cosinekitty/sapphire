@@ -9,7 +9,15 @@ It can generate sounds on its own, or act as a filter to process input audio.
 
 ### Physics model
 
-### Controls
+Tube Unit is loosely based on a physical acoustics model of a resonant tube,
+but with some fanciful departures from real-world physics to make it more fun.
+The following schematic will be helpful for understanding and using Tube Unit.
+
+![Tube Unit physics model](./images/tubeunit_model.svg)
+
+
+
+### Control groups
 
 * **AIRFLOW**
 * **VORTEX**
@@ -20,10 +28,16 @@ It can generate sounds on its own, or act as a filter to process input audio.
 * **ROOT**
 * **SPRING**
 
+### Other inputs
+
+* **VENT**
+* **L** and **R** audio inputs
+
 ### Output level (OUT)
 
 The knob at the bottom right marked OUT adjusts the volume level of the
-stereo output signal.
+stereo output signal. It controls the polyphonic outputs of the output
+ports in the lower right corner labeled **L** and **R**.
 
 ### Context menu
 
