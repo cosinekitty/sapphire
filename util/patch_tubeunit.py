@@ -23,6 +23,8 @@ def ArtworkText():
     PentDx2 =  8.0
     PentDy  = 10.5
     t = ''
+
+    # Render the pentagons that surround all 8 control groups.
     for y in range(4):
         gradientId = 'gradient_{}'.format(y)
         t += '\n'
@@ -39,6 +41,38 @@ def ArtworkText():
             t += 'z '
         t += '"\n'
         t += '    />\n'
+
+    # Render a serpentine default-hidden emphasis border around the control groups
+    # that affect audio inputs. We will show these only when audio inputs are connected.
+
+    '''
+        <path
+        style="fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
+        d="M 9.0,114.5 L 23.0,114.5 z"
+        id="input_connector_path" />
+    '''
+
+    t += '    <path id="audio_emphasis_path" '
+    t += 'style="fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" '
+    t += 'd="'
+    sx, sy = PentagonOrigin(0, 3)
+    t += Move(sx - PentDx1, sy + PentDy)
+    sx, sy = PentagonOrigin(0, 2)
+    t += Line(sx - PentDx1, sy - PentDy)
+    t += Line(sx + PentDx2, sy - PentDy)
+    sx, sy = PentagonOrigin(1, 2)
+    t += Line(sx - PentDx2, sy - PentDy)
+    t += Line(sx + PentDx1, sy - PentDy)
+    sx, sy = PentagonOrigin(1, 3)
+    t += Line(sx + PentDx1, sy - PentDy)
+    t += Line(sx - PentDx2, sy - PentDy)
+    sx, sy = PentagonOrigin(0, 3)
+    t += Line(sx + PentDx2, sy - PentDy)
+    t += Line(sx + PentDx3, sy)
+    t += Line(sx + PentDx2, sy + PentDy)
+    t += ' z" />\n'
+
+    # Padding before end-artwork xml comment...
     t += '    '
     return t
 

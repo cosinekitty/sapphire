@@ -271,6 +271,11 @@ struct TubeUnitModule : Module
         }
         return maxDistortion;
     }
+
+    bool hasAudioInput()
+    {
+        return inputs[AUDIO_LEFT_INPUT].getChannels() + inputs[AUDIO_RIGHT_INPUT].getChannels() > 0;
+    }
 };
 
 
@@ -334,12 +339,24 @@ struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
+    NSVGshape *audioEmphasisPath = nullptr;
+    app::SvgPanel *svgPanel = nullptr;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
     {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
+        svgPanel = createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg"));
+        setPanel(svgPanel);
+        if (svgPanel && svgPanel->svg && svgPanel->svg->handle)
+        {
+            // Search for my special <path id="audio_emphasis_path" ... />
+            // I toggle this path's visibility as needed, depending on whether there are audio inputs.
+            // For now we capture a pointer to this path.
+            for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
+                if (!strcmp(shape->id, "audio_emphasis_path"))
+                    audioEmphasisPath = shape;
+        }
 
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
@@ -398,6 +415,37 @@ struct TubeUnitWidget : ModuleWidget
                 menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &tubeUnitModule->enableLimiterWarning));
             }
         }
+    }
+
+    void draw(const DrawArgs& args) override
+    {
+        if (audioEmphasisPath != nullptr)
+        {
+            // Update the visibility state of the emphasized border around certain pentagons,
+            // depending on whether anything is connected to the audio input jacks.
+            // This gives the user a clue that these three controls are the ones that
+            // can affect audio input.
+
+            bool audio = (tubeUnitModule != nullptr) && tubeUnitModule->hasAudioInput();
+            bool visible = (0 != (audioEmphasisPath->flags & NSVG_FLAGS_VISIBLE));
+
+            // Force redrawing the panel only when a change has occurred.
+            if (audio != visible)
+            {
+                // Toggle the visiblility flag inside the emphasis path.
+                if (audio)
+                    audioEmphasisPath->flags |= NSVG_FLAGS_VISIBLE;
+                else
+                    audioEmphasisPath->flags &= ~NSVG_FLAGS_VISIBLE;
+
+                // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
+                if (svgPanel && svgPanel->fb)
+                    svgPanel->fb->dirty = true;
+            }
+        }
+
+        // Call parent class's draw method to finish the rendering.
+        ModuleWidget::draw(args);
     }
 };
 
