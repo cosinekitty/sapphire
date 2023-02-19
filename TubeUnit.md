@@ -15,8 +15,6 @@ The following schematic will be helpful for understanding and using Tube Unit.
 
 ![Tube Unit physics model](./images/tubeunit_model.svg)
 
-
-
 ### Control groups
 
 * **AIRFLOW**
@@ -38,6 +36,8 @@ The following schematic will be helpful for understanding and using Tube Unit.
 The knob at the bottom right marked OUT adjusts the volume level of the
 stereo output signal. It controls the polyphonic outputs of the output
 ports in the lower right corner labeled **L** and **R**.
+
+### Polyphony
 
 ### Context menu
 
