@@ -167,12 +167,12 @@
      inkscape:groupmode="layer"
      id="PanelLayer">
     <rect
-       style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.401661;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
+       style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
        id="rect13067"
-       width="60.5"
-       height="128.10001"
-       x="0.2"
-       y="0.2"
+       width="60.96"
+       height="128.5"
+       x="0.0"
+       y="0.0"
        inkscape:label="border_rect"
        sodipodi:insensitive="true" />
     <path
