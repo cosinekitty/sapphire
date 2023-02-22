@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">22 Feb 2023</td>
+<td align="center">2.2.1</td>
+<td align="left">
+<ul>
+    Initial release of Sapphire <a href="TubeUnit.md">Tube Unit</a>.
+</ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">18 Nov 2022</td>
 <td align="center">2.1.3</td>
 <td align="left">
@@ -54,7 +64,7 @@ Improvements based on community feedback.
 <td align="center">8 Nov 2022</td>
 <td align="center">2.1.1</td>
 <td align="left">
-Initial release of Sapphire Elastika.
+Initial release of Sapphire <a href="Elastika.md">Elastika</a>.
 </td>
 </tr>
 
@@ -92,7 +102,7 @@ Made the following fixes/improvements to Sapphire Moots:
 <td align="center">19 Aug 2022</td>
 <td align="center">2.0.0</td>
 <td align="left">
-Initial release of Sapphire Moots.
+Initial release of Sapphire <a href="Moots.md">Moots</a>.
 </td>
 </tr>
 
