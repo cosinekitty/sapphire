@@ -3,41 +3,117 @@
 ![Tube Unit](images/tubeunit.png)
 
 Tube Unit is a stereo effect synthesizer based on waveguide resonance.
-It can generate sounds on its own, or act as a filter to process input audio.
+It can generate sounds on its own or act as a filter to process input audio.
+It creates a wide variety of sounds with complex textures and frequency components,
+along with a versatile stereo field.
 
 ### Demo videos
 
 ### Physics model
 
+![Tube Unit physics model](./images/tubeunit_model.svg)
+
 Tube Unit is loosely based on a physical acoustics model of a resonant tube,
 but with some fanciful departures from real-world physics to make it more fun.
-The following schematic will be helpful for understanding and using Tube Unit.
 
-![Tube Unit physics model](./images/tubeunit_model.svg)
+Air flows into a sealed spheroid chamber as indicated by AIRFLOW in the diagram above.
+As pressure builds up in the chamber, it causes increasing force on a spring/piston assembly.
+The force causes the spring to stretch, lifting the piston higher.
+
+As the piston reaches the CENTER line, it allows air to escape into the ROOT tube.
+As air escapes, pressure in the chamber starts to decrease, allowing the spring to
+pull the piston back down. This sets up a vibrating movement similar to a reed
+in a woodwind instrument or a trumpet player's lips.
+
+As air enters the ROOT tube, its pressure is modified by a VORTEX parameter (described below),
+causing a pressure wave to travel down the length of the tube at the speed of sound.
+Air has mass, and therefore carries momentum. The momentum of air leaving the tube
+causes a little excess pressure to be pulled out of the end of the tube,
+causing a negative pressure to build up there.
+
+Extra control parameters DECAY and ANGLE are involved in reflections of negative
+pressure from the far end of the tube. DECAY causes loss of energy in the reflection,
+thus allowing the energy to die down. ANGLE adds a rotation in circular polarization
+of the pressure wave.
+
+This polariazation idea is where we depart from traditional physics.
+Instead of the air pressure in the system being a real number, Tube Unit
+models air pressure as a complex number. The complex value of the pressure
+leaving the tube becomes a stereo output signal. The pressure's real value
+is used for the left channel, and the imaginary value is used for the right channel.
+
+More precisely, DECAY is a real factor $0 \le \rho \lt 1$ that attenuates the reflected
+pressure, and ANGLE is a complex factor $e ^ {i \theta}$ that rotates its stereo orientation.
+
+Complex-valued pressure waves keep bouncing back and forth in the tube, interacting
+with the piston and affecting the chamber pressure whenever the piston seal is open.
+
+The next section describes Tube Unit's controls in more detail.
 
 ### Control groups
 
-* **AIRFLOW**
-* **VORTEX**
-* **WIDTH**
-* **CENTER**
-* **DECAY**
-* **ANGLE**
-* **ROOT**
-* **SPRING**
+Tube Unit's panel includes 8 *control groups*, each consisting of a large manual
+control knob, a small attenuverter knob, and a control voltage (CV) port. A pentagon
+with a colored background delimits each control group.
+
+* **AIRFLOW**: Controls the rate at which air is forced into the spheroid chamber.
+It is analogous to how hard a trumpet player blows into a trumpet.
+* **VORTEX**: Introduces an angular rotation in the circular polarization of air entering the tube.
+* **WIDTH**: Dilates or constricts the diameter of the valve through which air escapes from the piston seal.
+When the width is smaller, smaller movements of the piston cause larger changes in the air escape rate, which
+can cause a shriller sound. Larger width values can make the sound more mellow.
+* **CENTER**: Adjusts how far up or down the escape valve is relative to the piston's movement.
+Higher values move the escape valve upward, requiring more pressure to build up in the chamber
+before the piston can move high enough to allow air to start escaping into the tube.
+* **DECAY**: An attenuation constant that affects how quickly vibrations reflecting back and forth
+in the tube die out. Larger values cause more reververation.
+* **ANGLE**: The angular polarization introduced to negative reflections returning from the far
+end of the tube.
+* **ROOT**: Adjusts the resonant frequency of the tube by making it longer or shorter.
+The ROOT is expressed in Hz, but it is definitely **not** a V/OCT control. Tube Unit
+is intended as an effect module, not a melodic voice.
+* **SPRING**: Adjusts the strength of the piston spring. Higher values make the spring
+harder to stretch, resulting in faster piston vibrations.
 
 ### Other inputs
 
-* **VENT**
-* **L** and **R** audio inputs
+* **VENT**: A gate input that rapidly opens the spheroid chamber and allows all the air to escape.
+The vent opens when the voltage exceeds +1.0V and stays open until the voltage decreases below +0.1V.
+This is known as *Schmitt trigger* logic, and prevents unwanted oscillations in the vent control
+due to slight variations in the input voltage.
+* **L** and **R** audio inputs: Although Tube Unit is primarily designed for synthesizing sounds,
+it is also possible to inject external audio signals directly into the resonant tube. These signals
+are mixed with pressure signals caused by air escaping from the piston/valve assembly. Because
+external audio injection is only affected by the DECAY, ANGLE, and ROOT parameters, as soon as
+you connect any cables to L/R, those control groups light up as a reminder of this limitation.
+However, all 8 control groups still continue to function in modifying airflow, so long as the
+AIRFLOW control is not locked at zero.
 
 ### Output level (OUT)
 
 The knob at the bottom right marked OUT adjusts the volume level of the
-stereo output signal. It controls the polyphonic outputs of the output
+stereo output signal. It controls the outputs of the output
 ports in the lower right corner labeled **L** and **R**.
 
 ### Polyphony
+
+Tube Unit is fully polyphonic. The **L** and **R** output channels each have
+the same number of channels, from 1 to 16, depending on the polyphony of the inputs you supply.
+All 8 control group CV ports, the **L** and **R** input ports, and the VENT port all
+contribute to the number of output channels.
+
+Tube Unit always produces at least one channel on each stereo output.
+However, if any of the 11 input jacks has more than one channel, the
+one with the maximum number of channels determines the number of output channels.
+Inputs with fewer than the maximum number of channels have independent values
+for the channels they supply. The remaining channels are copied from the final
+supplied channel.
+
+For example, if you plug a 7-channel cable into AIRFLOW, and a 3-channel cable
+into ROOT, but no other cables, Tube Unit will output 7 channels. All 7 channels
+will receive a separate AIRFLOW signal. The first 3 channels will have a separate
+ROOT signal, but the remaining 4 will receive the same ROOT signal as the third
+channel.
 
 ### Context menu
 
