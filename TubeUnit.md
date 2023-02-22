@@ -12,7 +12,11 @@ along with a versatile stereo field.
 Here are some videos demonstrating Tube Unit in action.
 Headphones are recommended to best experience the stereo field.
 
-Demonstration of polyphonic capabilities:
+Simple demo of Tube Unit operation:
+
+[![Tube Unit basic operation](https://img.youtube.com/vi/wshWy5dcFRE/0.jpg)](https://www.youtube.com/watch?v=wshWy5dcFRE)
+
+Example of polyphonic capabilities:
 
 [![Tube Unit polyphonic workout](https://img.youtube.com/vi/5lpwC7-hMCo/0.jpg)](https://www.youtube.com/watch?v=5lpwC7-hMCo)
 
