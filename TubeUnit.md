@@ -77,7 +77,7 @@ can cause a shriller sound. Larger width values can make the sound more mellow.
 Higher values move the escape valve upward, requiring more pressure to build up in the chamber
 before the piston can move high enough to allow air to start escaping into the tube.
 * **DECAY**: An attenuation constant that affects how quickly vibrations reflecting back and forth
-in the tube die out. Larger values cause more reververation.
+in the tube die out. Larger values cause more reverberation.
 * **ANGLE**: The angular polarization introduced to negative reflections returning from the far
 end of the tube.
 * **ROOT**: Adjusts the resonant frequency of the tube by making it longer or shorter.
@@ -96,9 +96,9 @@ due to slight variations in the input voltage.
 it is also possible to inject external audio signals directly into the resonant tube. These signals
 are mixed with pressure signals caused by air escaping from the piston/valve assembly. Because
 external audio injection is only affected by the DECAY, ANGLE, and ROOT parameters, as soon as
-you connect any cables to L/R, those control groups light up as a reminder of this limitation.
-However, all 8 control groups still continue to function in modifying airflow, so long as the
-AIRFLOW control is not locked at zero.
+you connect any cables to either L/R input, those control groups light up as a reminder of this limitation.
+However, all 8 control groups still continue to operate normally: they still affect any air flowing
+past the piston.
 
 ### Output level (OUT)
 
@@ -108,9 +108,9 @@ ports in the lower right corner labeled **L** and **R**.
 
 ### Polyphony
 
-Tube Unit is fully polyphonic. The **L** and **R** output channels each have
+Tube Unit is fully polyphonic. The **L** and **R** output ports always have
 the same number of channels, from 1 to 16, depending on the polyphony of the inputs you supply.
-All 8 control group CV ports, the **L** and **R** input ports, and the VENT port all
+All 8 control group CV ports, the **L** and **R** input ports, and the VENT port, all
 contribute to the number of output channels.
 
 Tube Unit always produces at least one channel on each stereo output.
