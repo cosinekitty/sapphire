@@ -45,6 +45,15 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "Beehive",
+      "name": "Beehive",
+      "description": "Experimental module for hot-swap panel design workflow.",
+      "tags": [
+        "Effect",
+        "Filter"
+      ]
     }
   ]
 }
