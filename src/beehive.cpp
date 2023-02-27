@@ -57,6 +57,7 @@ struct BeehiveWidget : ModuleWidget
 {
     const std::string svgFileName = asset::plugin(pluginInstance, "res/beehive.svg");
     std::map<std::string, Widget*> lookup;
+    app::SvgPanel* svgPanel = nullptr;
 
     BeehiveWidget(BeehiveModule *module)
     {
@@ -84,12 +85,25 @@ struct BeehiveWidget : ModuleWidget
 
     void reloadPanel()
     {
-        // Load and parse the SVG file.
-        app::SvgPanel *svgPanel = createPanel(svgFileName);
-
-        // Define (or redefine) the graphics that VCV Rack draws for the panel.
-        // `setPanel` helpfully frees any existing panel before replacing with a new panel.
-        setPanel(svgPanel);
+        if (svgPanel == nullptr)
+        {
+            // Load and parse the SVG file for the first time.
+            svgPanel = createPanel(svgFileName);
+            setPanel(svgPanel);
+        }
+        else
+        {
+            // Once loaded, VCV Rack caches the panel internally.
+            // We have to force it to reload the file.
+            try
+            {
+                svgPanel->svg->loadFile(svgFileName);
+            }
+            catch (Exception& e)
+            {
+                WARN("Cannot reload panel from %s: %s", svgFileName.c_str(), e.what());
+            }
+        }
 
         // Find shapes whose SVG identifier matches one of our control names.
         // Use coordinates from the SVG object to set the position of the matching control.
@@ -108,7 +122,13 @@ struct BeehiveWidget : ModuleWidget
     {
         float x = (shape->bounds[0] + shape->bounds[2]) / 2;
         float y = (shape->bounds[1] + shape->bounds[3]) / 2;
-    	widget->box.pos = Vec{x, y}.minus(widget->box.size.div(2));
+        widget->box.pos = Vec{x, y}.minus(widget->box.size.div(2));
+    }
+
+    void appendContextMenu(Menu *menu) override
+    {
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuItem("Reload panel", "", [this]{ reloadPanel(); }));
     }
 };
 
