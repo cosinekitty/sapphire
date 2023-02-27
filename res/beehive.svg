@@ -73,6 +73,8 @@
 
     <g id="ControlLayer" display="none">
         <!--begin generated controls-->
+        <path id="beehive_output_left" d="M 40.0,50.0 L 40.0,50.0" />
+        <path id="beehive_output_right" d="M 40.0,60.0 L 40.0,60.0" />
         <!--end generated controls-->
     </g>
     <g id="PanelLayer">
