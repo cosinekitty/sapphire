@@ -4,6 +4,7 @@
     This is a dummy plugin for experimenting with a "hotload" panel design workflow.
 */
 
+#include <map>
 #include "plugin.hpp"
 
 struct BeehiveModule : Module
@@ -20,6 +21,8 @@ struct BeehiveModule : Module
 
     enum OutputId
     {
+        AUDIO_LEFT_OUTPUT,
+        AUDIO_RIGHT_OUTPUT,
         OUTPUTS_LEN
     };
 
@@ -52,16 +55,60 @@ struct BeehiveModule : Module
 
 struct BeehiveWidget : ModuleWidget
 {
-    std::string svgFileName;
-    app::SvgPanel *svgPanel = nullptr;
+    const std::string svgFileName = asset::plugin(pluginInstance, "res/beehive.svg");
+    std::map<std::string, Widget*> lookup;
 
     BeehiveWidget(BeehiveModule *module)
     {
         setModule(module);
+        createComponents();
+        reloadPanel();
+    }
 
-        svgFileName = asset::plugin(pluginInstance, "res/beehive.svg");
-        svgPanel = createPanel(svgFileName);
+    void createComponents()
+    {
+        // Create all the controls: input ports, output ports, and parameters.
+        // But don't worry about where they go! Just put them all at (0, 0).
+        // The reloadPanel function will move everything to the correct location
+        // based on information from the SVG file.
+        createOutputPort(BeehiveModule::AUDIO_LEFT_OUTPUT,  "beehive_output_left");
+        createOutputPort(BeehiveModule::AUDIO_RIGHT_OUTPUT, "beehive_output_right");
+    }
+
+    void createOutputPort(BeehiveModule::OutputId id, std::string name)
+    {
+        SapphirePort *port = createOutput<SapphirePort>(Vec{}, module, id);
+        lookup[name] = port;
+        addOutput(port);
+    }
+
+    void reloadPanel()
+    {
+        // Load and parse the SVG file.
+        app::SvgPanel *svgPanel = createPanel(svgFileName);
+
+        // Define (or redefine) the graphics that VCV Rack draws for the panel.
+        // `setPanel` helpfully frees any existing panel before replacing with a new panel.
         setPanel(svgPanel);
+
+        // Find shapes whose SVG identifier matches one of our control names.
+        // Use coordinates from the SVG object to set the position of the matching control.
+        if (svgPanel && svgPanel->svg && svgPanel->svg->handle)
+        {
+            for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
+            {
+                auto search = lookup.find(shape->id);
+                if (search != lookup.end())
+                    reposition(search->second, shape);
+            }
+        }
+    }
+
+    void reposition(Widget* widget, NSVGshape* shape)
+    {
+        float x = (shape->bounds[0] + shape->bounds[2]) / 2;
+        float y = (shape->bounds[1] + shape->bounds[3]) / 2;
+    	widget->box.pos = Vec{x, y}.minus(widget->box.size.div(2));
     }
 };
 
