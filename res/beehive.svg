@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="60.96mm" height="128.5mm" viewBox="0 0 60.96 128.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="60.96mm" height="128.5mm" viewBox="0 0 60.96 128.5">
     <g id="BackgroundLayer">
         <rect
         style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
-        id="rect13067"
+        id="border_rect"
         width="60.96"
         height="128.5"
         x="0.0"
-        y="0.0"
-        inkscape:label="border_rect"
-        sodipodi:insensitive="true" />
+        y="0.0" />
 
         <g
         aria-label="sapphire"
@@ -73,8 +71,8 @@
 
     <g id="ControlLayer" display="none">
         <!--begin generated controls-->
-        <path id="beehive_output_left" d="M 40.0,50.0 L 40.0,50.0" />
-        <path id="beehive_output_right" d="M 40.0,60.0 L 40.0,60.0" />
+        <circle id="beehive_output_left"  cx="40.0" cy="50.0" r="1.0" />
+        <circle id="beehive_output_right" cx="40.0" cy="60.0" r="1.0" />
         <!--end generated controls-->
     </g>
     <g id="PanelLayer">
