@@ -37,36 +37,55 @@ namespace rack
                 svgPanel = createPanel(svgFileName);
                 setPanel(svgPanel);
             }
-            else
+            else if (svgPanel->svg != nullptr)
             {
                 // Once loaded, VCV Rack caches the panel internally.
-                // We have to force it to reload the file.
-                try
+                // We have to force it to reload and reparse the SVG file.
+                // Attempt to create a new SVG handle before replacing the one
+                // that exists. This way, in case the file is missing or corrupt,
+                // we don't lose the existing panel, nor do we risk crashing VCV Rack.
+                // This is quite likely during iterative development, which is why
+                // this code exists in the first place!
+                NSVGimage *replacement = nsvgParseFromFile(svgFileName.c_str(), "px", SVG_DPI);
+                if (replacement == nullptr)
                 {
-                    svgPanel->svg->loadFile(svgFileName);
+                    // Leave the existing panel in place, and log why it didn't change.
+                    WARN("Cannot load/parse SVG file [%s]", svgFileName.c_str());
                 }
-                catch (Exception& e)
+                else
                 {
-                    WARN("Cannot reload panel from %s: %s", svgFileName.c_str(), e.what());
+                    // Successful reload. Destroy the old SVG and replace it with the new one.
+                    if (svgPanel->svg->handle)
+                        nsvgDelete(svgPanel->svg->handle);
+
+                    svgPanel->svg->handle = replacement;
                 }
             }
+            else
+            {
+                // This should never happen. If it does, there is a bug I need to fix.
+                WARN("Weird! Somehow we lost our SVG panel.");
+            }
 
-            // Find shapes whose SVG identifier matches one of our control names.
-            // Use coordinates from the SVG object to set the position of the matching control.
             if (svgPanel && svgPanel->svg && svgPanel->svg->handle)
             {
-                for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
+                if (svgPanel->svg && svgPanel->svg->handle)
                 {
-                    auto search = svgWidgetMap.find(shape->id);
-                    if (search != svgWidgetMap.end())
-                        reposition(search->second, shape);
+                    // Find shapes whose SVG identifier matches one of our control names.
+                    // Use coordinates from the SVG object to set the position of the matching control.
+                    for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
+                    {
+                        auto search = svgWidgetMap.find(shape->id);
+                        if (search != svgWidgetMap.end())
+                            reposition(search->second, shape);
+                    }
                 }
-            }
 
-            if (svgPanel && svgPanel->fb)
-            {
-                // Mark the SVG frame buffer as dirty, so it forces a redraw.
-                svgPanel->fb->dirty = true;
+                if (svgPanel->fb)
+                {
+                    // Mark the SVG frame buffer as dirty, so it forces a redraw.
+                    svgPanel->fb->dirty = true;
+                }
             }
         }
 
