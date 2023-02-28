@@ -11,6 +11,9 @@ struct BeehiveModule : Module
 {
     enum ParamId
     {
+        FREQUENCY_PARAM,
+        RESONANCE_PARAM,
+        DECAY_PARAM,
         PARAMS_LEN
     };
 
@@ -34,6 +37,14 @@ struct BeehiveModule : Module
     BeehiveModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+        configParam(FREQUENCY_PARAM, 0.0f, 1.0f, 0.5f, "Frequency");
+        configParam(RESONANCE_PARAM, 0.0f, 1.0f, 0.5f, "Resonance");
+        configParam(DECAY_PARAM, 0.0f, 1.0f, 0.5f, "Decay");
+
+        configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+        configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+
         initialize();
     }
 
@@ -72,8 +83,20 @@ struct BeehiveWidget : ModuleWidget
         // But don't worry about where they go! Just put them all at (0, 0).
         // The reloadPanel function will move everything to the correct location
         // based on information from the SVG file.
+
+        createLargeKnob(BeehiveModule::FREQUENCY_PARAM, "beehive_frequency_knob");
+        createLargeKnob(BeehiveModule::RESONANCE_PARAM, "beehive_resonance_knob");
+        createLargeKnob(BeehiveModule::DECAY_PARAM,     "beehive_decay_knob");
+
         createOutputPort(BeehiveModule::AUDIO_LEFT_OUTPUT,  "beehive_output_left");
         createOutputPort(BeehiveModule::AUDIO_RIGHT_OUTPUT, "beehive_output_right");
+    }
+
+    void createLargeKnob(BeehiveModule::ParamId id, std::string name)
+    {
+        RoundLargeBlackKnob *knob = createParam<RoundLargeBlackKnob>(Vec{}, module, id);
+        lookup[name] = knob;
+        addParam(knob);
     }
 
     void createOutputPort(BeehiveModule::OutputId id, std::string name)
