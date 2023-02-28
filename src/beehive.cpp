@@ -116,6 +116,12 @@ struct BeehiveWidget : ModuleWidget
                     reposition(search->second, shape);
             }
         }
+
+        if (svgPanel && svgPanel->fb)
+        {
+            // Mark the SVG frame buffer as dirty, so it forces a redraw.
+            svgPanel->fb->dirty = true;
+        }
     }
 
     void reposition(Widget* widget, NSVGshape* shape)
