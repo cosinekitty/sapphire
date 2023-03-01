@@ -69,21 +69,18 @@ namespace rack
 
             if (svgPanel && svgPanel->svg && svgPanel->svg->handle)
             {
-                if (svgPanel->svg && svgPanel->svg->handle)
+                // Find shapes whose SVG identifier matches one of our control names.
+                // Use coordinates from the SVG object to set the position of the matching control.
+                for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
                 {
-                    // Find shapes whose SVG identifier matches one of our control names.
-                    // Use coordinates from the SVG object to set the position of the matching control.
-                    for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
-                    {
-                        auto search = svgWidgetMap.find(shape->id);
-                        if (search != svgWidgetMap.end())
-                            reposition(search->second, shape);
-                    }
+                    auto search = svgWidgetMap.find(shape->id);
+                    if (search != svgWidgetMap.end())
+                        reposition(search->second, shape);
                 }
 
                 if (svgPanel->fb)
                 {
-                    // Mark the SVG frame buffer as dirty, so it forces a redraw.
+                    // Mark the SVG frame buffer as dirty to force redrawing the panel.
                     svgPanel->fb->dirty = true;
                 }
             }
