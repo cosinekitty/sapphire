@@ -15,6 +15,7 @@
 #include <rack.hpp>
 #include <string>
 #include <map>
+#include <unistd.h>
 
 namespace rack
 {
@@ -23,10 +24,13 @@ namespace rack
         std::string svgFileName;
         std::map<std::string, Widget*> svgWidgetMap;
         app::SvgPanel* svgPanel = nullptr;
+        bool isReloadEnabled = false;
 
         ReloadableModuleWidget(std::string panelSvgFileName)
             : svgFileName(panelSvgFileName)
         {
+            std::string flagFileName = panelSvgFileName + ".reload";
+            isReloadEnabled = (0 == access(flagFileName.c_str(), F_OK));
         }
 
         void reloadPanel()
@@ -109,6 +113,15 @@ namespace rack
         {
             addOutput(output);
             svgWidgetMap[svgid] = output;
+        }
+
+        void appendContextMenu(Menu *menu) override
+        {
+            if (isReloadEnabled)
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(createMenuItem("Reload panel", "", [this]{ reloadPanel(); }));
+            }
         }
     };
 }

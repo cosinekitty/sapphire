@@ -99,12 +99,6 @@ struct BeehiveWidget : ReloadableModuleWidget
         SapphirePort *port = createOutput<SapphirePort>(Vec{}, module, outputId);
         addReloadableOutput(port, svgId);
     }
-
-    void appendContextMenu(Menu *menu) override
-    {
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuItem("Reload panel", "", [this]{ reloadPanel(); }));
-    }
 };
 
 
