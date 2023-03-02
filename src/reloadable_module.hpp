@@ -120,8 +120,19 @@ namespace rack
             if (isReloadEnabled)
             {
                 menu->addChild(new MenuSeparator);
-                menu->addChild(createMenuItem("Reload panel", "", [this]{ reloadPanel(); }));
+                menu->addChild(createMenuItem("Reload panel", "F5", [this]{ reloadPanel(); }));
             }
+        }
+
+        void onHoverKey(const HoverKeyEvent& e) override
+        {
+            if (isReloadEnabled && (e.key == GLFW_KEY_F5))
+            {
+                reloadPanel();
+                e.consume(this);
+                return;
+            }
+            ModuleWidget::onHoverKey(e);
         }
     };
 }
