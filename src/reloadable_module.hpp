@@ -15,6 +15,8 @@
 #include <rack.hpp>
 #include <string>
 #include <map>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 namespace rack
@@ -25,6 +27,9 @@ namespace rack
         std::map<std::string, Widget*> svgWidgetMap;
         app::SvgPanel* svgPanel = nullptr;
         bool isReloadEnabled = false;
+        bool isPollingEnabled = false;
+        double prevPollTime = 0.0;
+        struct stat prevStatBuf {};
 
         ReloadableModuleWidget(std::string panelSvgFileName)
             : svgFileName(panelSvgFileName)
@@ -120,7 +125,8 @@ namespace rack
             if (isReloadEnabled)
             {
                 menu->addChild(new MenuSeparator);
-                menu->addChild(createMenuItem("Reload panel", "F5", [this]{ reloadPanel(); }));
+                menu->addChild(createMenuItem("Reload panel now", "F5", [this]{ reloadPanel(); }));
+                menu->addChild(createBoolPtrMenuItem<bool>("Poll SVG for reload", "", &isPollingEnabled));
             }
         }
 
@@ -133,6 +139,33 @@ namespace rack
                 return;
             }
             ModuleWidget::onHoverKey(e);
+        }
+
+        void step() override
+        {
+            if (isPollingEnabled)
+            {
+                // Check the SVG file's last-modification-time once per second.
+                double now = system::getTime();
+                double elapsed = now - prevPollTime;
+                if (elapsed >= 1.0)
+                {
+                    prevPollTime = now;
+                    struct stat statBuf;
+                    if (0 == stat(svgFileName.c_str(), &statBuf))
+                    {
+                        // Has the SVG file's modification time changed?
+                        // For maximum source portability, check the POSIX-required seconds field only.
+                        // We aren't polling more than once per second, and realistically,
+                        // the SVG file isn't changing more than once per second either.
+                        if (0 != memcmp(&statBuf.st_mtime, &prevStatBuf.st_mtime, sizeof(statBuf.st_mtime)))
+                        {
+                            prevStatBuf = statBuf;
+                            reloadPanel();
+                        }
+                    }
+                }
+            }
         }
     };
 }
