@@ -82,18 +82,18 @@ def main():
     print('patch_tubeunit.py: Inserting artwork into {}'.format(svgFileName))
     with open(svgFileName, 'rt') as infile:
         svgText = infile.read()
-        frontText = '<!--begin artwork-->'
-        backText = '<!--end artwork-->'
-        frontIndex = svgText.index(frontText)
-        backIndex = svgText.index(backText)
-        if backIndex < frontIndex:
-            raise Exception('Front and back markers are backwards!')
-        frontIndex += len(frontText)
-        outText = svgText[:frontIndex] + ArtworkText() + svgText[backIndex:]
-        with open(svgFileName, 'wt') as outfile:
-            outfile.write(outText)
-        print('patch_tubeunit.py: SUCCESS')
-        return 0
+    frontText = '<!--begin artwork-->'
+    backText = '<!--end artwork-->'
+    frontIndex = svgText.index(frontText)
+    backIndex = svgText.index(backText)
+    if backIndex < frontIndex:
+        raise Exception('Front and back markers are backwards!')
+    frontIndex += len(frontText)
+    outText = svgText[:frontIndex] + ArtworkText() + svgText[backIndex:]
+    with open(svgFileName, 'wt') as outfile:
+        outfile.write(outText)
+    print('patch_tubeunit.py: SUCCESS')
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
