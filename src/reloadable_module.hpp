@@ -143,6 +143,7 @@ namespace rack
 
         void step() override
         {
+            ModuleWidget::step();
             if (isPollingEnabled)
             {
                 // Check the SVG file's last-modification-time once per second.
