@@ -98,6 +98,7 @@ def PathForShape(n:int) -> str:
 if __name__ == '__main__':
     # Read the entire text of the SVG file.
     svgFileName = '../res/elastika.svg'
+    print('patch_elastika.py: Inserting artwork into {}'.format(svgFileName))
     with open(svgFileName, 'rt') as infile:
         svg = infile.read()
     shapeList = GetShapeList(svg)
@@ -117,7 +118,7 @@ if __name__ == '__main__':
         n = controlNumber.get(shape.name)
         if n is not None:
             p = PathForShape(n)
-            print(shape, n, p)
+            #print(shape, n, p)
             text += shape.ReplacePath(p)
         else:
             text += shape.text
@@ -125,4 +126,5 @@ if __name__ == '__main__':
     text += svg[offset:]
     with open(svgFileName, 'wt') as outfile:
         outfile.write(text)
+    print('patch_elastika.py: SUCCESS')
     sys.exit(0)

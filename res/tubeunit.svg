@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="60.96mm" height="128.5mm" viewBox="0 0 60.96 128.5">
-  <title>Tube Unit</title>
   <!-- https://github.com/cosinekitty/sapphire -->
+  <title>Sapphire Tube Unit</title>
   <defs>
     <linearGradient id="gradient_0" x1="50" y1="0" x2="0" y2="0" gradientUnits="userSpaceOnUse">
       <stop style="stop-color:#906be8;stop-opacity:1;" offset="0"/>
