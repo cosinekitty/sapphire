@@ -13,6 +13,7 @@ struct TubeUnitModule : Module
     Sapphire::TubeUnitEngine engine[PORT_MAX_CHANNELS];
     AgcLevelQuantity *agcLevelQuantity = nullptr;
     bool enableLimiterWarning = true;
+    bool isInvertedVentPort = false;
     int numActiveChannels = 0;
 
     enum ParamId
@@ -121,6 +122,7 @@ struct TubeUnitModule : Module
     {
         numActiveChannels = 0;
         enableLimiterWarning = true;
+        isInvertedVentPort = false;
 
         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
             engine[c].initialize();
@@ -136,13 +138,19 @@ struct TubeUnitModule : Module
     {
         json_t* root = json_object();
         json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+        json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
         return root;
     }
 
     void dataFromJson(json_t* root) override
     {
+        // If the JSON is damaged, default to enabling the warning light.
         json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-        enableLimiterWarning = !json_is_boolean(warningFlag) || json_boolean_value(warningFlag);
+        enableLimiterWarning = !json_is_false(warningFlag);
+
+        // Upgrade from older/damaged JSON by defaulting the vent toggle to OFF.
+        json_t *ventFlag = json_object_get(root, "toggleVentPort");
+        isInvertedVentPort = json_is_true(ventFlag);
     }
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -178,21 +186,24 @@ struct TubeUnitModule : Module
 
     void updateQuiet(int c)
     {
+        bool quiet{};
         const int quietGateChannels = inputs[QUIET_GATE_INPUT].getChannels();
-
         if (c < quietGateChannels)
         {
             float qv = inputs[QUIET_GATE_INPUT].getVoltage(c);
             if (qv >= 1.0f)
-                engine[c].setQuiet(true);
+                quiet = !isInvertedVentPort;
             else if (qv < 0.1f)
-                engine[c].setQuiet(false);
+                quiet = isInvertedVentPort;
+            else
+                quiet = engine[c].getQuiet();
         }
+        else if (quietGateChannels > 0)
+            quiet = engine[quietGateChannels-1].getQuiet();
         else
-        {
-            bool copyQuiet = (quietGateChannels > 0) ? engine[quietGateChannels-1].getQuiet() : false;
-            engine[c].setQuiet(copyQuiet);
-        }
+            quiet = isInvertedVentPort;
+
+        engine[c].setQuiet(quiet);
     }
 
     void process(const ProcessArgs& args) override
@@ -413,6 +424,9 @@ struct TubeUnitWidget : ModuleWidget
 
                 // Add an option to enable/disable the warning slider.
                 menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &tubeUnitModule->enableLimiterWarning));
+
+                // Add toggle for whether the VENT port should be inverted to a SEAL port.
+                menu->addChild(createBoolPtrMenuItem<bool>("Toggle VENT/SEAL", "", &tubeUnitModule->isInvertedVentPort));
             }
         }
     }
