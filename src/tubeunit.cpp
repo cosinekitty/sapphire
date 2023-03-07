@@ -87,9 +87,9 @@ struct TubeUnitModule : Module
         {
             assert(cgLookup[cg.inputId] == nullptr);
             cgLookup[cg.inputId] = &cg;
-            configInput(cg.inputId, cg.name);
+            configInput(cg.inputId, cg.name + " CV");
             configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
-            configParam(cg.attenId, -1, 1, 0, cg.name, "%", 0, 100);
+            configParam(cg.attenId, -1, 1, 0, cg.name + " attenuverter", "%", 0, 100);
         }
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");

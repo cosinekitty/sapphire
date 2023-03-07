@@ -82,13 +82,13 @@ struct ElastikaModule : Module
         configParam(CURL_SLIDER_PARAM, -1, +1, 0, "Magnetic field");
         configParam(MASS_SLIDER_PARAM, -1, +1, 0, "Impurity mass", "", 10, 1);
 
-        configParam(FRICTION_ATTEN_PARAM, -1, 1, 0, "Friction", "%", 0, 100);
-        configParam(STIFFNESS_ATTEN_PARAM, -1, 1, 0, "Stiffness", "%", 0, 100);
-        configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span", "%", 0, 100);
-        configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field", "%", 0, 100);
-        configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass", "%", 0, 100);
-        configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle", "%", 0, 100);
-        configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle", "%", 0, 100);
+        configParam(FRICTION_ATTEN_PARAM, -1, 1, 0, "Friction attenuverter", "%", 0, 100);
+        configParam(STIFFNESS_ATTEN_PARAM, -1, 1, 0, "Stiffness attenuverter", "%", 0, 100);
+        configParam(SPAN_ATTEN_PARAM, -1, 1, 0, "Spring span attenuverter", "%", 0, 100);
+        configParam(CURL_ATTEN_PARAM, -1, 1, 0, "Magnetic field attenuverter", "%", 0, 100);
+        configParam(MASS_ATTEN_PARAM, -1, 1, 0, "Impurity mass attenuverter", "%", 0, 100);
+        configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle attenuverter", "%", 0, 100);
+        configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle attenuverter", "%", 0, 100);
 
         dcRejectQuantity = configParam<DcRejectQuantity>(
             DC_REJECT_PARAM,
