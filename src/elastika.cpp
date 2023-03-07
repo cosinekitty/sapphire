@@ -11,9 +11,9 @@ struct ElastikaModule : Module
     DcRejectQuantity *dcRejectQuantity = nullptr;
     AgcLevelQuantity *agcLevelQuantity = nullptr;
     Sapphire::Slewer slewer;
-    bool isPowerGateActive;
-    bool isQuiet;
-    bool enableLimiterWarning;
+    bool isPowerGateActive = true;
+    bool isQuiet = false;
+    bool enableLimiterWarning = true;
 
     enum ParamId
     {
@@ -170,8 +170,9 @@ struct ElastikaModule : Module
 
     void dataFromJson(json_t* root) override
     {
+        // If the JSON is damaged, default to enabling the warning light.
         json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-        enableLimiterWarning = !json_is_boolean(warningFlag) || json_boolean_value(warningFlag);
+        enableLimiterWarning = !json_is_false(warningFlag);
     }
 
     void onSampleRateChange(const SampleRateChangeEvent& e) override

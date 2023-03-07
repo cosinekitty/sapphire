@@ -59,17 +59,11 @@ namespace Sapphire
             On,             // audio slewing is enabled, and currently the output is connected
         };
 
-        SlewState state;
-        int rampLength;
-        int count;          // IMPORTANT: valid only when state == Ramping; must ignore otherwise
+        SlewState state = Disabled;
+        int rampLength = 1;
+        int count = 0;          // IMPORTANT: valid only when state == Ramping; must ignore otherwise
 
     public:
-        Slewer()
-            : state(Disabled)
-            , rampLength(1)
-            , count(0)
-            {}
-
         void setRampLength(int newRampLength)
         {
             rampLength = std::max(1, newRampLength);
