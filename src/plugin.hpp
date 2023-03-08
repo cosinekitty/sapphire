@@ -31,8 +31,8 @@ struct SapphireControlGroup     // represents the combination: knob + CV input +
 
     SapphireControlGroup(
         std::string _name,
-        float _yGrid,
-        float _xGrid,
+        int _yGrid,
+        int _xGrid,
         int _paramId,
         int _attenId,
         int _inputId,
