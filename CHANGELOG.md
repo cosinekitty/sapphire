@@ -9,6 +9,18 @@
 </tr>
 
 <tr valign="top">
+<td align="center">10 Mar 2023</td>
+<td align="center">2.2.2</td>
+<td align="left">
+<ul>
+    Enhancements to Tube Unit:
+    <li>Added VENT/SEAL toggle menu option. Allows inverting the logic for the gate input.</li>
+    <li>Added more descriptive hover-text for attenuverter knobs and CV input ports.</li>
+</ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">3 Mar 2023</td>
 <td align="center">2.2.1</td>
 <td align="left">
