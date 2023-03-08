@@ -146,3 +146,19 @@ struct AgcLevelSlider : ui::Slider
         box.size.x = 200.0f;
     }
 };
+
+inline bool IsVisible(const NSVGshape *shape)
+{
+    return (shape != nullptr) && (0 != (shape->flags & NSVG_FLAGS_VISIBLE));
+}
+
+inline void SetVisibility(NSVGshape *shape, bool visible)
+{
+    if (shape != nullptr)
+    {
+        if (visible)
+            shape->flags |= NSVG_FLAGS_VISIBLE;
+        else
+            shape->flags &= ~NSVG_FLAGS_VISIBLE;
+    }
+}

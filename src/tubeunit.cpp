@@ -351,7 +351,11 @@ struct TubeUnitWidget : ModuleWidget
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
     NSVGshape *audioEmphasisPath = nullptr;
+    std::vector<NSVGshape*> ventLetters;
+    std::vector<NSVGshape*> sealLetters;
     app::SvgPanel *svgPanel = nullptr;
+    bool firstDraw = true;
+    bool prevShowSeal = false;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
@@ -364,9 +368,20 @@ struct TubeUnitWidget : ModuleWidget
             // Search for my special <path id="audio_emphasis_path" ... />
             // I toggle this path's visibility as needed, depending on whether there are audio inputs.
             // For now we capture a pointer to this path.
+            // Also search for the individual letters in the VENT and SEAL labels.
+            // Unfortunately, nanosvg ignores the visibility of groups, so I have to operate
+            // on each individual (letter) path within each group.
             for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
+            {
+                int index;
+
                 if (!strcmp(shape->id, "audio_emphasis_path"))
                     audioEmphasisPath = shape;
+                else if (1 == sscanf(shape->id, "vent_label_%d", &index))
+                    ventLetters.push_back(shape);
+                else if (1 == sscanf(shape->id, "seal_label_%d", &index))
+                    sealLetters.push_back(shape);
+            }
         }
 
         // Audio output jacks
@@ -433,6 +448,8 @@ struct TubeUnitWidget : ModuleWidget
 
     void draw(const DrawArgs& args) override
     {
+        bool changed = false;
+
         if (audioEmphasisPath != nullptr)
         {
             // Update the visibility state of the emphasized border around certain pentagons,
@@ -441,22 +458,33 @@ struct TubeUnitWidget : ModuleWidget
             // can affect audio input.
 
             bool audio = (tubeUnitModule != nullptr) && tubeUnitModule->hasAudioInput();
-            bool visible = (0 != (audioEmphasisPath->flags & NSVG_FLAGS_VISIBLE));
 
             // Force redrawing the panel only when a change has occurred.
-            if (audio != visible)
+            if (IsVisible(audioEmphasisPath) != audio)
             {
                 // Toggle the visiblility flag inside the emphasis path.
-                if (audio)
-                    audioEmphasisPath->flags |= NSVG_FLAGS_VISIBLE;
-                else
-                    audioEmphasisPath->flags &= ~NSVG_FLAGS_VISIBLE;
-
-                // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
-                if (svgPanel && svgPanel->fb)
-                    svgPanel->fb->dirty = true;
+                SetVisibility(audioEmphasisPath, audio);
+                changed = true;
             }
         }
+
+        bool showSeal = (tubeUnitModule != nullptr) && tubeUnitModule->isInvertedVentPort;
+        if (firstDraw || (prevShowSeal != showSeal))
+        {
+            firstDraw = false;
+            prevShowSeal = showSeal;
+            changed = true;
+
+            for (NSVGshape *shape : sealLetters)
+                SetVisibility(shape, showSeal);
+
+            for (NSVGshape *shape : ventLetters)
+                SetVisibility(shape, !showSeal);
+        }
+
+        // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
+        if (changed && svgPanel && svgPanel->fb)
+            svgPanel->fb->dirty = true;
 
         // Call parent class's draw method to finish the rendering.
         ModuleWidget::draw(args);
