@@ -88,10 +88,11 @@ harder to stretch, resulting in faster piston vibrations.
 
 ### Other inputs
 
-* **VENT**: A gate input that rapidly opens the spheroid chamber and allows all the air to escape.
+* **VENT** / **SEAL**: <a name="vent_port"></a>A gate input that rapidly opens the spheroid chamber and allows all the air to escape.
+This gate also cuts off any input audio supplied through the ports at the bottom left.
 The vent opens when the voltage exceeds +1.0V and stays open until the voltage decreases below +0.1V.
 This is known as *Schmitt trigger* logic, and prevents unwanted oscillations in the vent control
-due to slight variations in the input voltage.
+due to slight variations in the input voltage. The VENT can be [toggled to an opposite SEAL mode](#vent_seal_toggle) using the context menu.
 * **L** and **R** audio inputs: Although Tube Unit is primarily designed for synthesizing sounds,
 it is also possible to inject external audio signals directly into the resonant tube. These signals
 are mixed with pressure signals caused by air escaping from the piston/valve assembly. Because
@@ -132,7 +133,8 @@ Tube Unit's context menu looks like this:
 
 ![Tube Unit context menu](./images/tubeunit_menu.png)
 
-It includes options for controlling a built-in output limiter,
+It includes options for controlling a built-in output limiter
+and for toggling the upper left input gate between VENT and SEAL,
 as described below.
 
 ### Output limiter
@@ -193,3 +195,34 @@ for this in the right-click context menu labeled
 will toggle whether the warning light turns on
 when the limiter is active. The warning light option
 defaults to being enabled.
+
+<a name="vent_seal_toggle"></a>
+### Toggling between VENT mode and SEAL mode
+As [mentioned above](#vent_port), there is a VENT port in the upper left
+corner of the panel.
+
+![Tube Unit in VENT mode](./images/tubeunit_vent_mode.png)
+
+In VENT mode, the gate
+defaults to allowing sound generation. If a cable
+is connected, a low signal (below +0.1V) allows
+Tube Unit to make sounds, a high signal (above +1.0V)
+causes Tube Unit to decay to silence, and any value
+in the gray area between +0.1V and +1.0V causes
+Tube Unit to remain in the same state.
+
+However, if you right-click and enable the
+"Toggle VENT/SEAL" option like this,
+
+![Tube Unit in SEAL mode](./images/tubeunit_menu_seal_mode.png)
+
+then the VENT label changes to SEAL:
+
+![Tube Unit in SEAL mode](./images/tubeunit_seal_mode.png)
+
+SEAL mode inverts the logic of the port so that when it is low
+(or unplugged) Tube Unit remains silent. When the SEAL input is
+high, Tube Unit starts making sound.
+
+The VENT/SEAL input is polyphonic just like all the
+other input ports in Tube Unit.
