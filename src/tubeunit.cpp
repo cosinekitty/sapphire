@@ -480,6 +480,9 @@ struct TubeUnitWidget : ModuleWidget
 
             for (NSVGshape *shape : ventLetters)
                 SetVisibility(shape, !showSeal);
+
+            if (tubeUnitModule != nullptr)
+                tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
         }
 
         // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
