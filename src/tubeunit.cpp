@@ -350,10 +350,9 @@ struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
-    NSVGshape *audioEmphasisPath = nullptr;
-    SvgPanel *svgPanel = nullptr;
     SvgScrew *ventLabel = nullptr;
     SvgScrew *sealLabel = nullptr;
+    SvgScrew *audioEmphasis = nullptr;
     bool firstDraw = true;
     bool prevShowSeal = false;
 
@@ -361,19 +360,7 @@ struct TubeUnitWidget : ModuleWidget
         : tubeUnitModule(module)
     {
         setModule(module);
-        svgPanel = createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg"));
-        setPanel(svgPanel);
-        if (svgPanel && svgPanel->svg && svgPanel->svg->handle)
-        {
-            // Search for my special <path id="audio_emphasis_path" ... />
-            // I toggle this path's visibility as needed, depending on whether there are audio inputs.
-            // For now we capture a pointer to this path.
-            for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
-            {
-                if (!strcmp(shape->id, "audio_emphasis_path"))
-                    audioEmphasisPath = shape;
-            }
-        }
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
         ventLabel = createWidget<SvgScrew>(Vec(45.0f, 41.5f));
         ventLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_vent.svg")));
@@ -383,6 +370,11 @@ struct TubeUnitWidget : ModuleWidget
         sealLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_seal.svg")));
         addChild(sealLabel);
         sealLabel->hide();
+
+        audioEmphasis = createWidget<SvgScrew>(Vec(0.0f, 0.0f));
+        audioEmphasis->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_audio_path.svg")));
+        addChild(audioEmphasis);
+        audioEmphasis->hide();
 
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
@@ -450,6 +442,7 @@ struct TubeUnitWidget : ModuleWidget
     {
         if (tubeUnitModule != nullptr)
         {
+            // Toggle between showing "SEAL" or "VENT" depending on the toggle state.
             bool showSeal = tubeUnitModule->isInvertedVentPort;
             if (prevShowSeal != showSeal)
             {
@@ -458,39 +451,15 @@ struct TubeUnitWidget : ModuleWidget
                 ventLabel->setVisible(!showSeal);
                 tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
             }
-        }
 
-        ModuleWidget::step();
-    }
-
-    void draw(const DrawArgs& args) override
-    {
-        bool changed = false;
-
-        if (audioEmphasisPath != nullptr)
-        {
             // Update the visibility state of the emphasized border around certain pentagons,
             // depending on whether anything is connected to the audio input jacks.
             // This gives the user a clue that these three controls are the ones that
             // can affect audio input.
-
-            bool audio = (tubeUnitModule != nullptr) && tubeUnitModule->hasAudioInput();
-
-            // Force redrawing the panel only when a change has occurred.
-            if (IsVisible(audioEmphasisPath) != audio)
-            {
-                // Toggle the visiblility flag inside the emphasis path.
-                SetVisibility(audioEmphasisPath, audio);
-                changed = true;
-            }
+            audioEmphasis->setVisible(tubeUnitModule->hasAudioInput());
         }
 
-        // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
-        if (changed && svgPanel && svgPanel->fb)
-            svgPanel->fb->dirty = true;
-
-        // Call parent class's draw method to finish the rendering.
-        ModuleWidget::draw(args);
+        ModuleWidget::step();
     }
 };
 

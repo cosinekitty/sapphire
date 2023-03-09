@@ -42,18 +42,23 @@ def ArtworkText():
         t += '"\n'
         t += '    />\n'
 
+    # Padding before end-artwork xml comment...
+    t += '    '
+    return t
+
+
+def AudioPathText():
+    PentDx1 = 14.0
+    PentDx3 = 16.0
+    PentDx2 =  8.0
+    PentDy  = 10.5
+    t = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    t += '<svg xmlns="http://www.w3.org/2000/svg" width="60.96mm" height="128.5mm" viewBox="0 0 60.96 128.5">\n'
+
     # Render a serpentine default-hidden emphasis border around the control groups
     # that affect audio inputs. We will show these only when audio inputs are connected.
 
-    '''
-        <path
-        style="fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none"
-        d="M 9.0,114.5 L 23.0,114.5 z"
-        id="input_connector_path" />
-    '''
-
-    t += '    <path id="audio_emphasis_path" '
-    t += 'style="fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" '
+    t += '<path style="fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" '
     t += 'd="'
     sx, sy = PentagonOrigin(0, 3)
     t += Move(sx - PentDx1, sy + PentDy)
@@ -70,10 +75,10 @@ def ArtworkText():
     t += Line(sx + PentDx2, sy - PentDy)
     t += Line(sx + PentDx3, sy)
     t += Line(sx + PentDx2, sy + PentDy)
-    t += ' z" />\n'
+    t += 'z" />\n'
 
     # Padding before end-artwork xml comment...
-    t += '    '
+    t += '</svg>'
     return t
 
 
@@ -92,6 +97,12 @@ def main():
     outText = svgText[:frontIndex] + ArtworkText() + svgText[backIndex:]
     with open(svgFileName, 'wt') as outfile:
         outfile.write(outText)
+
+    audioPathFileName = '../res/tubeunit_audio_path.svg'
+    print('patch_tubeunit.py: Creating {}'.format(audioPathFileName))
+    with open(audioPathFileName, 'wt') as outfile:
+        outfile.write(AudioPathText())
+
     print('patch_tubeunit.py: SUCCESS')
     return 0
 
