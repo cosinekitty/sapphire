@@ -350,9 +350,9 @@ struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
-    SvgScrew *ventLabel = nullptr;
-    SvgScrew *sealLabel = nullptr;
-    SvgScrew *audioEmphasis = nullptr;
+    SvgPanel *ventLabel = nullptr;
+    SvgPanel *sealLabel = nullptr;
+    SvgPanel *audioEmphasis = nullptr;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
@@ -360,26 +360,21 @@ struct TubeUnitWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
-        ventLabel = createWidget<SvgScrew>(Vec(45.0f, 41.5f));
-        ventLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_vent.svg")));
+        ventLabel = createPanel(asset::plugin(pluginInstance, "res/tubeunit_vent.svg"));
         addChild(ventLabel);
 
-        sealLabel = createWidget<SvgScrew>(Vec(45.0f, 41.5f));
-        sealLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_seal.svg")));
+        sealLabel = createPanel(asset::plugin(pluginInstance, "res/tubeunit_seal.svg"));
         addChild(sealLabel);
         sealLabel->hide();
 
-        audioEmphasis = createWidget<SvgScrew>(Vec(0.0f, 0.0f));
-        audioEmphasis->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_audio_path.svg")));
+        audioEmphasis = createPanel(asset::plugin(pluginInstance, "res/tubeunit_audio_path.svg"));
         addChild(audioEmphasis);
         audioEmphasis->hide();
 
         // The control group text labels go in their own layer after (on top of) audioEmphasis,
         // so that when I show/hide the audioEmphasis layer, its slight opacity doesn't change
         // the contrast of the label text.
-        SvgScrew *textLabels = createWidget<SvgScrew>(Vec(0.0f, 0.0f));
-        textLabels->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_labels.svg")));
-        addChild(textLabels);
+        addChild(createPanel(asset::plugin(pluginInstance, "res/tubeunit_labels.svg")));
 
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
