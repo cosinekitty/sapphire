@@ -374,7 +374,7 @@ struct TubeUnitWidget : ModuleWidget
         // The control group text labels go in their own layer after (on top of) audioEmphasis,
         // so that when I show/hide the audioEmphasis layer, its slight opacity doesn't change
         // the contrast of the label text.
-        addChild(createPanel(asset::plugin(pluginInstance, "res/tubeunit_labels.svg")));
+        addChild(SapphireSvgOverlay::Load("res/tubeunit_labels.svg"));
 
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
