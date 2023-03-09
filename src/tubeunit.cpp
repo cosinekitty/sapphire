@@ -351,9 +351,9 @@ struct TubeUnitWidget : ModuleWidget
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
     NSVGshape *audioEmphasisPath = nullptr;
-    std::vector<NSVGshape*> ventLetters;
-    std::vector<NSVGshape*> sealLetters;
-    app::SvgPanel *svgPanel = nullptr;
+    SvgPanel *svgPanel = nullptr;
+    SvgScrew *ventLabel = nullptr;
+    SvgScrew *sealLabel = nullptr;
     bool firstDraw = true;
     bool prevShowSeal = false;
 
@@ -368,21 +368,21 @@ struct TubeUnitWidget : ModuleWidget
             // Search for my special <path id="audio_emphasis_path" ... />
             // I toggle this path's visibility as needed, depending on whether there are audio inputs.
             // For now we capture a pointer to this path.
-            // Also search for the individual letters in the VENT and SEAL labels.
-            // Unfortunately, nanosvg ignores the visibility of groups, so I have to operate
-            // on each individual (letter) path within each group.
             for (NSVGshape* shape = svgPanel->svg->handle->shapes; shape != nullptr; shape = shape->next)
             {
-                int index;
-
                 if (!strcmp(shape->id, "audio_emphasis_path"))
                     audioEmphasisPath = shape;
-                else if (1 == sscanf(shape->id, "vent_label_%d", &index))
-                    ventLetters.push_back(shape);
-                else if (1 == sscanf(shape->id, "seal_label_%d", &index))
-                    sealLetters.push_back(shape);
             }
         }
+
+        ventLabel = createWidget<SvgScrew>(Vec(45.0f, 41.5f));
+        ventLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_vent.svg")));
+        addChild(ventLabel);
+
+        sealLabel = createWidget<SvgScrew>(Vec(45.0f, 41.5f));
+        sealLabel->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_seal.svg")));
+        addChild(sealLabel);
+        sealLabel->hide();
 
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
@@ -474,12 +474,6 @@ struct TubeUnitWidget : ModuleWidget
             firstDraw = false;
             prevShowSeal = showSeal;
             changed = true;
-
-            for (NSVGshape *shape : sealLetters)
-                SetVisibility(shape, showSeal);
-
-            for (NSVGshape *shape : ventLetters)
-                SetVisibility(shape, !showSeal);
 
             if (tubeUnitModule != nullptr)
                 tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
