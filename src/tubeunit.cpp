@@ -374,6 +374,13 @@ struct TubeUnitWidget : ModuleWidget
         addChild(audioEmphasis);
         audioEmphasis->hide();
 
+        // The control group text labels go in their own layer after (on top of) audioEmphasis,
+        // so that when I show/hide the audioEmphasis layer, its slight opacity doesn't change
+        // the contrast of the label text.
+        SvgScrew *textLabels = createWidget<SvgScrew>(Vec(0.0f, 0.0f));
+        textLabels->setSvg(Svg::load(asset::plugin(pluginInstance, "res/tubeunit_labels.svg")));
+        addChild(textLabels);
+
         // Audio output jacks
         Vec levelKnobPos = TubeUnitKnobPos(1, 4);
         const float outJackDx = 12.0;
