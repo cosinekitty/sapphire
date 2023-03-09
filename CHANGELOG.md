@@ -13,7 +13,8 @@
 <td align="center">2.2.2</td>
 <td align="left">
 <ul>
-    Enhancements to Tube Unit:
+    Changes to Tube Unit:
+    <li>Fixed display issues when there were multiple Tube Units in a patch, some with audio connected, others without. The yellow pathway around ROOT, DECAY, and ANGLE would sometimes be incorrectly shown/hidden.</li>
     <li>Added VENT/SEAL toggle menu option. Allows inverting the logic for the gate input.</li>
     <li>Added more descriptive hover-text for attenuverter knobs and CV input ports.</li>
 </ul>
