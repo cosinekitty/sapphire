@@ -446,6 +446,23 @@ struct TubeUnitWidget : ModuleWidget
         }
     }
 
+    void step() override
+    {
+        if (tubeUnitModule != nullptr)
+        {
+            bool showSeal = tubeUnitModule->isInvertedVentPort;
+            if (prevShowSeal != showSeal)
+            {
+                prevShowSeal = showSeal;
+                sealLabel->setVisible(showSeal);
+                ventLabel->setVisible(!showSeal);
+                tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
+            }
+        }
+
+        ModuleWidget::step();
+    }
+
     void draw(const DrawArgs& args) override
     {
         bool changed = false;
@@ -466,17 +483,6 @@ struct TubeUnitWidget : ModuleWidget
                 SetVisibility(audioEmphasisPath, audio);
                 changed = true;
             }
-        }
-
-        bool showSeal = (tubeUnitModule != nullptr) && tubeUnitModule->isInvertedVentPort;
-        if (firstDraw || (prevShowSeal != showSeal))
-        {
-            firstDraw = false;
-            prevShowSeal = showSeal;
-            changed = true;
-
-            if (tubeUnitModule != nullptr)
-                tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
         }
 
         // Mark the SVG frame buffer's panel as dirty, so it forces a redraw.
