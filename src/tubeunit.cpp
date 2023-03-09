@@ -353,8 +353,6 @@ struct TubeUnitWidget : ModuleWidget
     SvgScrew *ventLabel = nullptr;
     SvgScrew *sealLabel = nullptr;
     SvgScrew *audioEmphasis = nullptr;
-    bool firstDraw = true;
-    bool prevShowSeal = false;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
@@ -444,9 +442,8 @@ struct TubeUnitWidget : ModuleWidget
         {
             // Toggle between showing "SEAL" or "VENT" depending on the toggle state.
             bool showSeal = tubeUnitModule->isInvertedVentPort;
-            if (prevShowSeal != showSeal)
+            if (sealLabel->isVisible() != showSeal)
             {
-                prevShowSeal = showSeal;
                 sealLabel->setVisible(showSeal);
                 ventLabel->setVisible(!showSeal);
                 tubeUnitModule->configInput(TubeUnitModule::QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
