@@ -350,9 +350,9 @@ struct TubeUnitWidget : ModuleWidget
 {
     TubeUnitModule *tubeUnitModule;
     TubeUnitWarningLightWidget *warningLight = nullptr;
-    SvgPanel *ventLabel = nullptr;
-    SvgPanel *sealLabel = nullptr;
-    SvgPanel *audioEmphasis = nullptr;
+    SapphireSvgOverlay *ventLabel = nullptr;
+    SapphireSvgOverlay *sealLabel = nullptr;
+    SapphireSvgOverlay *audioEmphasis = nullptr;
 
     TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
@@ -360,14 +360,14 @@ struct TubeUnitWidget : ModuleWidget
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
-        ventLabel = createPanel(asset::plugin(pluginInstance, "res/tubeunit_vent.svg"));
+        ventLabel = SapphireSvgOverlay::Load("res/tubeunit_vent.svg");
         addChild(ventLabel);
 
-        sealLabel = createPanel(asset::plugin(pluginInstance, "res/tubeunit_seal.svg"));
+        sealLabel = SapphireSvgOverlay::Load("res/tubeunit_seal.svg");
         addChild(sealLabel);
         sealLabel->hide();
 
-        audioEmphasis = createPanel(asset::plugin(pluginInstance, "res/tubeunit_audio_path.svg"));
+        audioEmphasis = SapphireSvgOverlay::Load("res/tubeunit_audio_path.svg");
         addChild(audioEmphasis);
         audioEmphasis->hide();
 
