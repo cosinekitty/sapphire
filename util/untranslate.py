@@ -20,10 +20,11 @@ def FixPath(path, dx, dy):
     shiftNext = False
     shiftRest = False
     command = None
+    startPath = True
     for t in path.split():
         u = t
         if t == 'm':
-            shiftNext = True
+            shiftNext = startPath
             shiftRest = False
             command = t
         elif t in ['M', 'Q', 'H', 'V', 'L']:
@@ -51,10 +52,11 @@ def FixPath(path, dx, dy):
                 else:
                     raise Exception('Unknown command [{}] before scalar [{}]'.format(command, t))
         elif t in ['z', 'Z']:
-            pass
+            shiftNext = shiftRest = False
         else:
             raise Exception('Unknown path token [{}]'.format(t))
         fix.append(u)
+        startPath = False
     return ' '.join(fix)
 
 def RemoveTranslates(elem, xOffset, yOffset):
@@ -68,6 +70,8 @@ def RemoveTranslates(elem, xOffset, yOffset):
             xAdjust += float(m.group(1))
             yAdjust += float(m.group(2))
             del elem.attrib['transform']
+        else:
+            print('Ignoring unknown transform: {}'.format(transform))
 
     # Update all path coordinates for this node.
     if elem.tag == '{http://www.w3.org/2000/svg}path':
