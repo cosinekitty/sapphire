@@ -16,6 +16,10 @@ class Error(Exception):
         Exception.__init__(self, message)
 
 
+def _FormatMillimeters(x: float) -> str:
+    return '{:0.6g}'.format(x)
+
+
 class Font:
     def __init__(self, filename:str) -> None:
         self.filename = filename
@@ -35,7 +39,7 @@ class Font:
         mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
         x = xpos
         y = ypos + mmPerUnit * (self.ttfont['head'].yMax + self.ttfont['head'].yMin/2)
-        spen = SVGPathPen(self.glyphs)
+        spen = SVGPathPen(self.glyphs, _FormatMillimeters)
         for ch in text:
             if glyph := self.glyphs.get(ch):
                 tran = DecomposedTransform(translateX = x, translateY = y, scaleX = mmPerUnit, scaleY = -mmPerUnit).toTransform()
