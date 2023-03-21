@@ -97,8 +97,8 @@ class Element:
         self.children.append(elem)
         return self
 
-    def svg(self) -> str:
-        text = '<' + self.tag
+    def svg(self, indent:str = '    ', depth:int = 0) -> str:
+        text = '{}<{}'.format(depth*indent, self.tag)
         for (k, v) in self.attrib.items():
             text += ' {}="{}"'.format(k, v)
         if len(self.children) == 0:
@@ -106,8 +106,8 @@ class Element:
         else:
             text += '>\n'
             for child in self.children:
-                text += child.svg()
-            text += '</{}>\n'.format(self.tag)
+                text += child.svg(indent, 1+depth)
+            text += '{}</{}>\n'.format(depth*indent, self.tag)
         return text
 
 
@@ -129,5 +129,5 @@ class Panel(Element):
         self.setAttrib('height', '{:0.2f}mm'.format(self.mmHeight))
         self.setAttrib('viewBox', '0 0 {:0.2f} {:0.2f}'.format(self.mmWidth, self.mmHeight))
 
-    def svg(self) -> str:
-        return '<?xml version="1.0" encoding="utf-8"?>\n' + super().svg()
+    def svg(self, indent:str = '    ', depth:int = 0) -> str:
+        return '<?xml version="1.0" encoding="utf-8"?>\n' + super().svg(indent, depth)
