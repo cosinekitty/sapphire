@@ -12,17 +12,17 @@ from fontTools.misc.transform import DecomposedTransform    # type: ignore
 
 class Error(Exception):
     """Indicates an error in an svgpanel function."""
-    def __init__(self, message: str) -> None:
+    def __init__(self, message:str) -> None:
         Exception.__init__(self, message)
 
 
 class Font:
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename:str) -> None:
         self.filename = filename
         self.ttfont = TTFont(filename)
         self.glyphs = self.ttfont.getGlyphSet()
 
-    def render(self, text: str, xpos: float, ypos: float, points: float) -> str:
+    def render(self, text:str, xpos:float, ypos:float, points:float) -> str:
         # Calculate how many millimeters there are per font unit in this point size.
         mmPerEm = (25.4 / 72)*points
         mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
@@ -42,16 +42,18 @@ class Font:
 
 
 class Element:
-    def __init__(self, tag: str) -> None:
+    def __init__(self, tag:str, id:str = '') -> None:
         self.tag = tag
         self.attrib: Dict[str, str] = {}
         self.children: List[Element] = []
+        self.setAttrib('id', id)
 
-    def setAttrib(self, key: str, value: str) -> 'Element':
-        self.attrib[key] = value
+    def setAttrib(self, key:str, value:str) -> 'Element':
+        if value:
+            self.attrib[key] = value
         return self
 
-    def append(self, elem: 'Element') -> 'Element':
+    def append(self, elem:'Element') -> 'Element':
         self.children.append(elem)
         return self
 
@@ -70,13 +72,13 @@ class Element:
 
 
 class TextPath(Element):
-    def __init__(self, text:str, x:float, y:float, font:Font, points:float) -> None:
-        super().__init__('path')
+    def __init__(self, text:str, x:float, y:float, font:Font, points:float, id:str = '') -> None:
+        super().__init__('path', id)
         self.setAttrib('d', font.render(text, x, y, points))
 
 
 class Panel(Element):
-    def __init__(self, hpWidth: int) -> None:
+    def __init__(self, hpWidth:int) -> None:
         super().__init__('svg')
         if hpWidth <= 0:
             raise Error('Invalid hpWidth={}'.format(hpWidth))

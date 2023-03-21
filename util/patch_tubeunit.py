@@ -112,9 +112,7 @@ def Label(text:str, font:Font, i:int, j:int, dx:float, dy:float) -> TextPath:
     (x, y) = PentagonOrigin(i, j)
     x -= 8.1
     y -= 6.7
-    label = TextPath(text, x+dx, y+dy, font, 10.0)
-    label.setAttrib('id', text.lower() + '_label')
-    return label
+    return TextPath(text, x+dx, y+dy, font, 10.0, text.lower() + '_label')
 
 
 def GenerateLabelLayer() -> int:
