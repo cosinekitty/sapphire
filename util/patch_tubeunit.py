@@ -6,7 +6,7 @@
 #   decorative artwork.
 #
 import sys
-
+from svgpanel import *
 
 def PentagonOrigin(x, y):
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
@@ -82,7 +82,7 @@ def AudioPathText():
     return t
 
 
-def main():
+def PatchMainPanel() -> int:
     svgFileName = '../res/tubeunit.svg'
     print('patch_tubeunit.py: Inserting artwork into {}'.format(svgFileName))
     with open(svgFileName, 'rt') as infile:
@@ -97,14 +97,63 @@ def main():
     outText = svgText[:frontIndex] + ArtworkText() + svgText[backIndex:]
     with open(svgFileName, 'wt') as outfile:
         outfile.write(outText)
+    return 0
 
+
+def GenerateAudioPathLayer() -> int:
     audioPathFileName = '../res/tubeunit_audio_path.svg'
     print('patch_tubeunit.py: Creating {}'.format(audioPathFileName))
     with open(audioPathFileName, 'wt') as outfile:
         outfile.write(AudioPathText())
+    return 0
 
+
+def Label(text:str, font:Font, i:int, j:int, dx:float, dy:float) -> TextPath:
+    (x, y) = PentagonOrigin(i, j)
+    x -= 8.1
+    y -= 6.7
+    label = TextPath(text, x+dx, y+dy, font, 10.0)
+    label.setAttrib('id', text.lower() + '_label')
+    return label
+
+
+def GenerateLabelLayer() -> int:
+    svgFileName = '../res/tubeunit_labels.svg'
+    panel = Panel(12)
+
+    group = (Element('g')
+        .setAttrib('id', 'control_labels')
+        .setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+    )
+
+    font = Font('Quicksand-Light.ttf')
+    group.append(Label('AIRFLOW', font, 0, 0, 0.0, 0.0))
+    group.append(Label('WIDTH',   font, 0, 1, 4.0, 0.0))
+    group.append(Label('DECAY',   font, 0, 2, 4.1, 0.0))
+    group.append(Label('ROOT',    font, 0, 3, 5.2, 0.0))
+    group.append(Label('VORTEX',  font, 1, 0, 1.0, 0.0))
+    group.append(Label('CENTER',  font, 1, 1, 1.0, 0.0))
+    group.append(Label('ANGLE',   font, 1, 2, 1.0, 0.0))
+    group.append(Label('SPRING',  font, 1, 3, 1.0, 0.0))
+
+    panel.append(group)
+
+    with open(svgFileName, 'wt') as outfile:
+        outfile.write(panel.svg())
+
+    print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
+    return 0
+
+
+def Success() -> int:
     print('patch_tubeunit.py: SUCCESS')
     return 0
 
+
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(
+        PatchMainPanel() or
+        GenerateAudioPathLayer() or
+        GenerateLabelLayer() or
+        Success()
+    )
