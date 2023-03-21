@@ -22,12 +22,19 @@ class Font:
         self.ttfont = TTFont(filename)
         self.glyphs = self.ttfont.getGlyphSet()
 
+    def __enter__(self) -> 'Font':
+        self.ttfont.__enter__()
+        return self
+
+    def __exit__(self, exc_type:Any, exc_val:Any, exc_tb:Any) -> Any:
+        return self.ttfont.__exit__(exc_type, exc_val, exc_tb)
+
     def render(self, text:str, xpos:float, ypos:float, points:float) -> str:
         # Calculate how many millimeters there are per font unit in this point size.
         mmPerEm = (25.4 / 72)*points
         mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
         x = xpos
-        y = ypos
+        y = ypos + mmPerUnit * (self.ttfont['head'].yMax + self.ttfont['head'].yMin/2)
         spen = SVGPathPen(self.glyphs)
         for ch in text:
             if glyph := self.glyphs.get(ch):
@@ -39,6 +46,32 @@ class Font:
                 # Use a "3-em space", which confusingly is one-third of an em wide.
                 x += mmPerEm / 3
         return str(spen.getCommands())
+
+    def measure(self, text:str, points:float) -> Tuple[float,float]:
+        mmPerEm = (25.4 / 72)*points
+        mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
+        x = 0.0
+        y = mmPerUnit * (self.ttfont['head'].yMax - self.ttfont['head'].yMin)
+        for ch in text:
+            if glyph := self.glyphs.get(ch):
+                x += mmPerUnit * glyph.width
+            else:
+                # Use a "3-em space", which confusingly is one-third of an em wide.
+                x += mmPerEm / 3
+        return (x, y)
+
+
+class TextItem:
+    def __init__(self, text:str, font:Font, points:float):
+        self.text = text
+        self.font = font
+        self.points = points
+
+    def render(self, x:float, y:float) -> str:
+        return self.font.render(self.text, x, y, self.points)
+
+    def measure(self) -> Tuple[float,float]:
+        return self.font.measure(self.text, self.points)
 
 
 class Element:
@@ -52,6 +85,9 @@ class Element:
         if value:
             self.attrib[key] = value
         return self
+
+    def setAttribFloat(self, key:str, value:float) -> 'Element':
+        return self.setAttrib(key, '{:0.3g}'.format(value))
 
     def append(self, elem:'Element') -> 'Element':
         self.children.append(elem)
@@ -72,9 +108,9 @@ class Element:
 
 
 class TextPath(Element):
-    def __init__(self, text:str, x:float, y:float, font:Font, points:float, id:str = '') -> None:
+    def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:
         super().__init__('path', id)
-        self.setAttrib('d', font.render(text, x, y, points))
+        self.setAttrib('d', textItem.render(x, y))
 
 
 class Panel(Element):

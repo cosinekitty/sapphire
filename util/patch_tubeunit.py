@@ -108,31 +108,40 @@ def GenerateAudioPathLayer() -> int:
     return 0
 
 
-def Label(text:str, font:Font, i:int, j:int, dx:float, dy:float) -> TextPath:
+def LabelRJ(text:str, font:Font, i:int, j:int) -> TextPath:
+    """Create a right-justified text label."""
+    ti = TextItem(text, font, 10.0)
+    (w, h) = ti.measure()
     (x, y) = PentagonOrigin(i, j)
-    x -= 8.1
-    y -= 6.7
-    return TextPath(text, x+dx, y+dy, font, 10.0, text.lower() + '_label')
+    (dx, dy) = (7.0, -12.8)
+    return TextPath(ti, x-w+dx, y+(h/2)+dy, text.lower() + '_label')
+
+
+def LabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
+    """Create a left-justified text label."""
+    ti = TextItem(text, font, 10.0)
+    (_, h) = ti.measure()
+    (x, y) = PentagonOrigin(i, j)
+    (dx, dy) = (-7.0, -12.8)
+    return TextPath(ti, x+dx, y+(h/2)+dy, text.lower() + '_label')
 
 
 def GenerateLabelLayer() -> int:
     svgFileName = '../res/tubeunit_labels.svg'
     panel = Panel(12)
 
-    group = (Element('g')
-        .setAttrib('id', 'control_labels')
-        .setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-    )
+    group = Element('g', 'control_labels')
+    group.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
 
-    font = Font('Quicksand-Light.ttf')
-    group.append(Label('AIRFLOW', font, 0, 0, 0.0, 0.0))
-    group.append(Label('WIDTH',   font, 0, 1, 4.0, 0.0))
-    group.append(Label('DECAY',   font, 0, 2, 4.1, 0.0))
-    group.append(Label('ROOT',    font, 0, 3, 5.2, 0.0))
-    group.append(Label('VORTEX',  font, 1, 0, 1.0, 0.0))
-    group.append(Label('CENTER',  font, 1, 1, 1.0, 0.0))
-    group.append(Label('ANGLE',   font, 1, 2, 1.0, 0.0))
-    group.append(Label('SPRING',  font, 1, 3, 1.0, 0.0))
+    with Font('Quicksand-Light.ttf') as font:
+        group.append(LabelRJ('AIRFLOW', font, 0, 0))
+        group.append(LabelRJ('WIDTH',   font, 0, 1))
+        group.append(LabelRJ('DECAY',   font, 0, 2))
+        group.append(LabelRJ('ROOT',    font, 0, 3))
+        group.append(LabelLJ('VORTEX',  font, 1, 0))
+        group.append(LabelLJ('CENTER',  font, 1, 1))
+        group.append(LabelLJ('ANGLE',   font, 1, 2))
+        group.append(LabelLJ('SPRING',  font, 1, 3))
 
     panel.append(group)
 
