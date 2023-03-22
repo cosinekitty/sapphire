@@ -181,6 +181,11 @@ def GenerateMainPanel() -> str:
         tp = TextPath(ti, 14.3, 109.4)
         tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
         pl.append(tp)
+        # 'OUT' label
+        ti = TextItem('OUT', font, 10.0)
+        tp = TextPath(ti, 36.7, 96.2)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
 
     # Gemstones
     gg = Element('g', 'gemstones')
@@ -190,6 +195,11 @@ def GenerateMainPanel() -> str:
     gg.append(SapphireGemstone(gemMarginX, gemY))
     gg.append(SapphireGemstone(panel.mmWidth - (gemMarginX + SapphireGemstone.mmWidth), gemY))
     pl.append(gg)
+
+    inputConnectorPath = Element('path', 'input_connector_path')
+    inputConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    inputConnectorPath.setAttrib('d', 'M 9,114.5 L 23,114.5 z')
+    pl.append(inputConnectorPath)
 
     panel.append(pl)
     with open(svgFileName, 'wt') as outfile:
