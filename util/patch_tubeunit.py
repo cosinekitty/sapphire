@@ -11,12 +11,6 @@ from svgpanel import *
 def PentagonOrigin(x, y):
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
-def Move(x, y):
-    return 'M {:0.2f},{:0.2f} '.format(x, y)
-
-def Line(x, y):
-    return 'L {:0.2f},{:0.2f} '.format(x, y)
-
 def ArtworkText():
     PentDx1 = 14.0
     PentDx3 = 16.0
@@ -52,14 +46,11 @@ def AudioPathText():
     PentDx3 = 16.0
     PentDx2 =  8.0
     PentDy  = 10.5
-    t = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    t += '<svg xmlns="http://www.w3.org/2000/svg" width="60.96mm" height="128.5mm" viewBox="0 0 60.96 128.5">\n'
 
     # Render a serpentine default-hidden emphasis border around the control groups
     # that affect audio inputs. We will show these only when audio inputs are connected.
 
-    t += '<path style="fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" '
-    t += 'd="'
+    t = ''
     sx, sy = PentagonOrigin(0, 3)
     t += Move(sx - PentDx1, sy + PentDy)
     sx, sy = PentagonOrigin(0, 2)
@@ -75,11 +66,14 @@ def AudioPathText():
     t += Line(sx + PentDx2, sy - PentDy)
     t += Line(sx + PentDx3, sy)
     t += Line(sx + PentDx2, sy + PentDy)
-    t += 'z" />\n'
+    t += 'z'
 
-    # Padding before end-artwork xml comment...
-    t += '</svg>'
-    return t
+    path = Element('path')
+    path.setAttrib('style', 'fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    path.setAttrib('d', t)
+    panel = Panel(12)
+    panel.append(path)
+    return panel.svg()
 
 
 def PatchMainPanel() -> int:
