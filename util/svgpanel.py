@@ -104,7 +104,7 @@ class Element:
         return self
 
     def setAttribFloat(self, key:str, value:float) -> 'Element':
-        return self.setAttrib(key, '{:0.3g}'.format(value))
+        return self.setAttrib(key, '{:0.6g}'.format(value))
 
     def append(self, elem:'Element') -> 'Element':
         self.children.append(elem)
@@ -121,6 +121,18 @@ class TextPath(Element):
     def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:
         super().__init__('path', id)
         self.setAttrib('d', textItem.render(x, y))
+
+
+class BorderRect(Element):
+    def __init__(self, hpWidth:int, fillColor:str, borderColor:str) -> None:
+        super().__init__('rect', 'border_rect')
+        if hpWidth <= 0:
+            raise Error('Invalid hpWidth={}'.format(hpWidth))
+        self.setAttribFloat('width', 5.08 * hpWidth)
+        self.setAttribFloat('height', 128.5)
+        self.setAttrib('x', '0')
+        self.setAttrib('y', '0')
+        self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
 
 
 class Panel(Element):
