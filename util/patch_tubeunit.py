@@ -128,7 +128,7 @@ def GenerateMainPanel() -> str:
     defs.append(LinearGradient('gradient_0', 50.0,  0.0,  0.0, 0.0, '#906be8', '#b242bd'))
     defs.append(LinearGradient('gradient_1', 60.0,  0.0,  0.0, 0.0, '#6d96d6', '#3372d4'))
     defs.append(LinearGradient('gradient_2',  0.0,  0.0, 60.0, 0.0, '#986de4', '#4373e6'))
-    defs.append(LinearGradient('gradient_3', 50.0,  0.0,  0.0, 0.0, '#3d81a0', '#26abbf'))
+    defs.append(LinearGradient('gradient_3', 60.0,  0.0,  0.0, 0.0, '#3d81a0', '#26abbf'))
     panel.append(defs)
 
     pl = Element('g', 'PanelLayer')
@@ -157,7 +157,7 @@ def GenerateMainPanel() -> str:
         # Model name 'tube unit' at top of panel.
         ti = TextItem('tube unit', font, 22.0)
         (dx, _) = ti.measure()
-        tp = TextPath(ti, (panel.mmWidth - dx)/2, 0.3)
+        tp = TextPath(ti, (panel.mmWidth - dx)/2, 0.2)
         tp.setAttrib('style', 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel')
         pl.append(tp)
         # Brand name 'sapphire' at bottom of panel.
@@ -186,6 +186,16 @@ def GenerateMainPanel() -> str:
         tp = TextPath(ti, 36.7, 96.2)
         tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
         pl.append(tp)
+        # left output label
+        ti = TextItem('L', font, 10.0)
+        tp = TextPath(ti, 57.0, 100.0)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
+        # right output label
+        ti = TextItem('R', font, 10.0)
+        tp = TextPath(ti, 57.0, 110.0)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
 
     # Gemstones
     gg = Element('g', 'gemstones')
@@ -200,6 +210,11 @@ def GenerateMainPanel() -> str:
     inputConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
     inputConnectorPath.setAttrib('d', 'M 9,114.5 L 23,114.5 z')
     pl.append(inputConnectorPath)
+
+    driveConnectorPath = Element('path', 'drive_connector_path')
+    driveConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    driveConnectorPath.setAttrib('d', 'M 40.5,107.5 L 52.5,102.5 z L 52.5,112.5 z')
+    pl.append(driveConnectorPath)
 
     panel.append(pl)
     with open(svgFileName, 'wt') as outfile:
