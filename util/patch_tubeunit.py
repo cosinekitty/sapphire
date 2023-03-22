@@ -176,6 +176,11 @@ def GenerateMainPanel() -> str:
         tp = TextPath(ti, 21.7, 106.5)
         tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
         pl.append(tp)
+        # 'IN' label
+        ti = TextItem('IN', font, 10.0)
+        tp = TextPath(ti, 14.3, 109.4)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
 
     # Gemstones
     gg = Element('g', 'gemstones')
