@@ -5,10 +5,15 @@ For more information, see:
 https://github.com/cosinekitty/svgpanel
 """
 from typing import Any, List, Tuple, Optional, Union, Callable, Dict
+import xml.etree.ElementTree as et
 from fontTools.ttLib import TTFont                          # type: ignore
 from fontTools.pens.svgPathPen import SVGPathPen            # type: ignore
 from fontTools.pens.transformPen import TransformPen        # type: ignore
 from fontTools.misc.transform import DecomposedTransform    # type: ignore
+
+# Prevent seeing lots of "ns0:" everywhere when we re-serialized the XML.
+et.register_namespace('', 'http://www.w3.org/2000/svg')
+
 
 class Error(Exception):
     """Indicates an error in an svgpanel function."""
@@ -97,18 +102,11 @@ class Element:
         self.children.append(elem)
         return self
 
-    def svg(self, indent:str = '    ', depth:int = 0) -> str:
-        text = '{}<{}'.format(depth*indent, self.tag)
-        for (k, v) in self.attrib.items():
-            text += ' {}="{}"'.format(k, v)
-        if len(self.children) == 0:
-            text += '/>\n'
-        else:
-            text += '>\n'
-            for child in self.children:
-                text += child.svg(indent, 1+depth)
-            text += '{}</{}>\n'.format(depth*indent, self.tag)
-        return text
+    def xml(self) -> et.Element:
+        elem = et.Element(self.tag, self.attrib)
+        for child in self.children:
+            elem.append(child.xml())
+        return elem
 
 
 class TextPath(Element):
@@ -129,5 +127,11 @@ class Panel(Element):
         self.setAttrib('height', '{:0.2f}mm'.format(self.mmHeight))
         self.setAttrib('viewBox', '0 0 {:0.2f} {:0.2f}'.format(self.mmWidth, self.mmHeight))
 
-    def svg(self, indent:str = '    ', depth:int = 0) -> str:
-        return '<?xml version="1.0" encoding="utf-8"?>\n' + super().svg(indent, depth)
+    def svg(self, indent:str = '    ') -> str:
+        root = self.xml()
+        et.indent(root, indent)
+        rootBytes = et.tostring(root, encoding='utf-8')
+        # Just being picky, but I prefer generating my own <?xml ... ?> declaration,
+        # just so I can use double-quotes for consistency.
+        # See: https://bugs.python.org/issue36233
+        return '<?xml version="1.0" encoding="utf-8"?>\n' + rootBytes.decode('utf8') + '\n'    # type: ignore
