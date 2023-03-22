@@ -166,6 +166,16 @@ def GenerateMainPanel() -> str:
         tp = TextPath(ti, (panel.mmWidth - dx)/2, panel.mmHeight - (dy + 0.5))
         tp.setAttrib('style', 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-linecap:square')
         pl.append(tp)
+        # left input label
+        ti = TextItem('L', font, 10.0)
+        tp = TextPath(ti, 8.1, 106.5)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
+        # right input label
+        ti = TextItem('R', font, 10.0)
+        tp = TextPath(ti, 21.7, 106.5)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
 
     # Gemstones
     gg = Element('g', 'gemstones')
