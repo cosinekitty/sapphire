@@ -145,8 +145,14 @@ def GenerateMainPanel() -> str:
             t += 'z '
         pl.append(Element('path').setAttrib('style', style).setAttrib('d', t))
 
-    panel.append(pl)
+    with Font('Quicksand-Light.ttf') as font:
+        ti = TextItem('tube unit', font, 22.0)
+        (dx, _) = ti.measure()
+        tp = TextPath(ti, (panel.mmWidth - dx)/2, 0.3)
+        tp.setAttrib('style', 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
 
+    panel.append(pl)
     with open(svgFileName, 'wt') as outfile:
         outfile.write(panel.svg())
     print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
