@@ -146,10 +146,17 @@ def GenerateMainPanel() -> str:
         pl.append(Element('path').setAttrib('style', style).setAttrib('d', t))
 
     with Font('Quicksand-Light.ttf') as font:
+        # Model name 'tube unit' at top of panel.
         ti = TextItem('tube unit', font, 22.0)
         (dx, _) = ti.measure()
         tp = TextPath(ti, (panel.mmWidth - dx)/2, 0.3)
         tp.setAttrib('style', 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel')
+        pl.append(tp)
+        # Brand name 'sapphire' at bottom of panel.
+        ti = TextItem('sapphire', font, 22.0)
+        (dx, dy) = ti.measure()
+        tp = TextPath(ti, (panel.mmWidth - dx)/2, panel.mmHeight - (dy + 0.5))
+        tp.setAttrib('style', 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-linecap:square')
         pl.append(tp)
 
     panel.append(pl)
