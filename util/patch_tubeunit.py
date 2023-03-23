@@ -91,9 +91,9 @@ def GenerateMainPanel() -> str:
         ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
         pl.append(ti.toPath(panel.mmWidth/2, panel.mmHeight - 0.5, HorizontalAlignment.Center, VerticalAlignment.Bottom, BRAND_NAME_STYLE))
 
+        pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
         pl.append(ControlTextPath(font, 'L',    8.1, 106.5))
         pl.append(ControlTextPath(font, 'R',   21.8, 106.5))
-        pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
         pl.append(ControlTextPath(font, 'OUT', 36.7,  96.2))
         pl.append(ControlTextPath(font, 'L',   57.0, 100.0))
         pl.append(ControlTextPath(font, 'R',   57.0, 110.0))
