@@ -15,41 +15,6 @@ def PentagonOrigin(x, y):
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
 
-def AudioPathText():
-    PentDx1 = 14.0
-    PentDx3 = 16.0
-    PentDx2 =  8.0
-    PentDy  = 10.5
-
-    # Render a serpentine default-hidden emphasis border around the control groups
-    # that affect audio inputs. We will show these only when audio inputs are connected.
-
-    t = ''
-    sx, sy = PentagonOrigin(0, 3)
-    t += Move(sx - PentDx1, sy + PentDy)
-    sx, sy = PentagonOrigin(0, 2)
-    t += Line(sx - PentDx1, sy - PentDy)
-    t += Line(sx + PentDx2, sy - PentDy)
-    sx, sy = PentagonOrigin(1, 2)
-    t += Line(sx - PentDx2, sy - PentDy)
-    t += Line(sx + PentDx1, sy - PentDy)
-    sx, sy = PentagonOrigin(1, 3)
-    t += Line(sx + PentDx1, sy - PentDy)
-    t += Line(sx - PentDx2, sy - PentDy)
-    sx, sy = PentagonOrigin(0, 3)
-    t += Line(sx + PentDx2, sy - PentDy)
-    t += Line(sx + PentDx3, sy)
-    t += Line(sx + PentDx2, sy + PentDy)
-    t += 'z'
-
-    path = Element('path')
-    path.setAttrib('style', 'fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
-    path.setAttrib('d', t)
-    panel = Panel(PANEL_WIDTH)
-    panel.append(path)
-    return panel.svg()
-
-
 def GenerateMainPanel() -> str:
     svgFileName = '../res/tubeunit.svg'
     panel = Panel(PANEL_WIDTH)
@@ -118,17 +83,46 @@ def GenerateMainPanel() -> str:
     pl.append(driveConnectorPath)
 
     panel.append(pl)
-    with open(svgFileName, 'wt') as outfile:
-        outfile.write(panel.svg())
+    panel.save(svgFileName)
     print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
     return 0
 
 
 def GenerateAudioPathLayer() -> int:
     audioPathFileName = '../res/tubeunit_audio_path.svg'
-    print('patch_tubeunit.py: Creating {}'.format(audioPathFileName))
-    with open(audioPathFileName, 'wt') as outfile:
-        outfile.write(AudioPathText())
+    PentDx1 = 14.0
+    PentDx3 = 16.0
+    PentDx2 =  8.0
+    PentDy  = 10.5
+
+    # Render a serpentine default-hidden emphasis border around the control groups
+    # that affect audio inputs. We will show these only when audio inputs are connected.
+
+    t = ''
+    sx, sy = PentagonOrigin(0, 3)
+    t += Move(sx - PentDx1, sy + PentDy)
+    sx, sy = PentagonOrigin(0, 2)
+    t += Line(sx - PentDx1, sy - PentDy)
+    t += Line(sx + PentDx2, sy - PentDy)
+    sx, sy = PentagonOrigin(1, 2)
+    t += Line(sx - PentDx2, sy - PentDy)
+    t += Line(sx + PentDx1, sy - PentDy)
+    sx, sy = PentagonOrigin(1, 3)
+    t += Line(sx + PentDx1, sy - PentDy)
+    t += Line(sx - PentDx2, sy - PentDy)
+    sx, sy = PentagonOrigin(0, 3)
+    t += Line(sx + PentDx2, sy - PentDy)
+    t += Line(sx + PentDx3, sy)
+    t += Line(sx + PentDx2, sy + PentDy)
+    t += 'z'
+
+    path = Element('path')
+    path.setAttrib('style', 'fill:#ffffff;fill-opacity:0.2;stroke:#e0e000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    path.setAttrib('d', t)
+    panel = Panel(PANEL_WIDTH)
+    panel.append(path)
+    panel.save(audioPathFileName)
+    print('patch_tubeunit.py: Wrote {}'.format(audioPathFileName))
     return 0
 
 
@@ -168,10 +162,7 @@ def GenerateLabelLayer() -> int:
         group.append(LabelLJ('SPRING',  font, 1, 3))
 
     panel.append(group)
-
-    with open(svgFileName, 'wt') as outfile:
-        outfile.write(panel.svg())
-
+    panel.save(svgFileName)
     print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
     return 0
 
@@ -186,8 +177,7 @@ def GenerateVentLayer(name:str) -> int:
         tp.setAttrib('style', CONTROL_LABEL_STYLE)
     panel = Panel(PANEL_WIDTH)
     panel.append(tp)
-    with open(filename, 'wt') as outfile:
-        outfile.write(panel.svg())
+    panel.save(filename)
 
 
 def Success() -> int:

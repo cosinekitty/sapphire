@@ -215,3 +215,7 @@ class Panel(Element):
         # just so I can use double-quotes for consistency.
         # See: https://bugs.python.org/issue36233
         return '<?xml version="1.0" encoding="utf-8"?>\n' + rootBytes.decode('utf8') + '\n'    # type: ignore
+
+    def save(self, outFileName:str, indent:str = '    ') -> None:
+        with open(outFileName, 'wt') as outfile:
+            outfile.write(self.svg(indent))
