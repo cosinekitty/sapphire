@@ -135,6 +135,18 @@ class BorderRect(Element):
         self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
 
 
+class LinearGradient(Element):
+    def __init__(self, id:str, x1:float, y1:float, x2:float, y2:float, color1:str, color2:str) -> None:
+        super().__init__('linearGradient', id)
+        self.setAttribFloat('x1', x1)
+        self.setAttribFloat('y1', y1)
+        self.setAttribFloat('x2', x2)
+        self.setAttribFloat('y2', y2)
+        self.setAttrib('gradientUnits', 'userSpaceOnUse')
+        self.append(Element('stop').setAttrib('offset', '0').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color1)))
+        self.append(Element('stop').setAttrib('offset', '1').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color2)))
+
+
 class Panel(Element):
     def __init__(self, hpWidth:int) -> None:
         super().__init__('svg')
