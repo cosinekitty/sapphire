@@ -36,6 +36,26 @@ class VerticalAlignment(Enum):
     Bottom = 2
 
 
+def HorAdjust(hor:HorizontalAlignment) -> float:
+    if hor == HorizontalAlignment.Left:
+        return 0.0
+    if hor == HorizontalAlignment.Center:
+        return -0.5
+    if hor == HorizontalAlignment.Right:
+        return -1.0
+    raise Error('Invalid horizontal alignment: {}'.format(hor))
+
+
+def VerAdjust(ver:VerticalAlignment) -> float:
+    if ver == VerticalAlignment.Top:
+        return 0.0
+    if ver == VerticalAlignment.Middle:
+        return -0.5
+    if ver == VerticalAlignment.Bottom:
+        return -1.0
+    raise Error('Invalid vertical alignment: {}'.format(ver))
+
+
 def Move(x:float, y:float) -> str:
     return 'M {:0.2f},{:0.2f} '.format(x, y)
 
@@ -113,27 +133,9 @@ class TextItem:
             vertical: VerticalAlignment,
             style: str = '',
             id: str = '') -> 'TextPath':
-
         (dx, dy) = self.measure()
-
-        if horizontal == HorizontalAlignment.Left:
-            x = xpos
-        elif horizontal == HorizontalAlignment.Right:
-            x = xpos - dx
-        elif horizontal == HorizontalAlignment.Center:
-            x = xpos - (dx/2)
-        else:
-            raise Error('Invalid horizontal alignment: {}'.format(horizontal))
-
-        if vertical == VerticalAlignment.Top:
-            y = ypos
-        elif vertical == VerticalAlignment.Bottom:
-            y = ypos - dy
-        elif vertical == VerticalAlignment.Middle:
-            y = ypos - (dy/2)
-        else:
-            raise Error('Invalid vertical alignment: {}'.format(vertical))
-
+        x = xpos + dx*HorAdjust(horizontal)
+        y = ypos + dy*VerAdjust(vertical)
         tp = TextPath(self, x, y, id)
         tp.setAttrib('style', style)
         return tp
