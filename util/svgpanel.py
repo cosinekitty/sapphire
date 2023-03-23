@@ -4,7 +4,7 @@
 For more information, see:
 https://github.com/cosinekitty/svgpanel
 """
-from typing import Any, List, Tuple, Optional, Union, Callable, Dict
+from typing import Any, List, Tuple, Dict
 from enum import Enum, unique
 import xml.etree.ElementTree as et
 from fontTools.ttLib import TTFont                          # type: ignore

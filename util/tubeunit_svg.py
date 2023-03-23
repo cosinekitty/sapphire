@@ -5,17 +5,18 @@
 #   Generates Tube Unit's SVG panel and transparency layers.
 #
 import sys
+from typing import Tuple
 from svgpanel import *
 from sapphire import *
 
 PANEL_WIDTH = 12
 
 
-def PentagonOrigin(x, y):
+def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
 
-def GenerateMainPanel() -> str:
+def GenerateMainPanel() -> int:
     svgFileName = '../res/tubeunit.svg'
     panel = Panel(PANEL_WIDTH)
 
@@ -164,6 +165,8 @@ def GenerateVentLayer(name:str) -> int:
     panel = Panel(PANEL_WIDTH)
     panel.append(tp)
     panel.save(filename)
+    print('tubeunit_svg.py: Wrote {}'.format(filename))
+    return 0
 
 
 def Success() -> int:

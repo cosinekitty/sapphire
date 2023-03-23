@@ -27,6 +27,8 @@ RACKTOOL=../../rack-plugin-toolchain
 "
 
 python3 patch_elastika.py || exit 1
+
+mypy --strict tubeunit_svg.py || exit 1
 python3 tubeunit_svg.py || exit 1
 
 SAPPHIRE=$(realpath ..)
