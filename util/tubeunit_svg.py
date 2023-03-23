@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   patch_tubeunit.py   -   Don Cross <cosinekitty@gmail.com>
+#   tubeunit_svg.py   -   Don Cross <cosinekitty@gmail.com>
 #
 #   Generates Tube Unit's SVG panel and transparency layers.
 #
@@ -70,7 +70,7 @@ def GenerateMainPanel() -> str:
 
     panel.append(pl)
     panel.save(svgFileName)
-    print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
+    print('tubeunit_svg.py: Wrote {}'.format(svgFileName))
     return 0
 
 
@@ -108,7 +108,7 @@ def GenerateAudioPathLayer() -> int:
     panel = Panel(PANEL_WIDTH)
     panel.append(path)
     panel.save(audioPathFileName)
-    print('patch_tubeunit.py: Wrote {}'.format(audioPathFileName))
+    print('tubeunit_svg.py: Wrote {}'.format(audioPathFileName))
     return 0
 
 
@@ -149,7 +149,7 @@ def GenerateLabelLayer() -> int:
 
     panel.append(group)
     panel.save(svgFileName)
-    print('patch_tubeunit.py: Wrote {}'.format(svgFileName))
+    print('tubeunit_svg.py: Wrote {}'.format(svgFileName))
     return 0
 
 
@@ -167,7 +167,7 @@ def GenerateVentLayer(name:str) -> int:
 
 
 def Success() -> int:
-    print('patch_tubeunit.py: SUCCESS')
+    print('tubeunit_svg.py: SUCCESS')
     return 0
 
 
