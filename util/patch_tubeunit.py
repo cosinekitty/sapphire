@@ -125,7 +125,7 @@ def GenerateMainPanel() -> str:
         pl.append(tp)
         # right input label
         ti = TextItem('R', font, 10.0)
-        tp = TextPath(ti, 21.7, 106.5)
+        tp = TextPath(ti, 21.8, 106.5)
         tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
         pl.append(tp)
         # 'IN' label
