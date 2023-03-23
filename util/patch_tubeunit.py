@@ -48,7 +48,7 @@ def GenerateMainPanel() -> str:
             t += 'z '
         pl.append(Element('path').setAttrib('style', style).setAttrib('d', t))
 
-    with Font('Quicksand-Light.ttf') as font:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(ModelNamePath(panel, font, 'tube unit'))
         pl.append(BrandNamePath(panel, font))
         pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
@@ -146,7 +146,7 @@ def GenerateLabelLayer() -> int:
     group = Element('g', 'control_labels')
     group.setAttrib('style', CONTROL_LABEL_STYLE)
 
-    with Font('Quicksand-Light.ttf') as font:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
         group.append(LabelRJ('AIRFLOW', font, 0, 0))
         group.append(LabelRJ('WIDTH',   font, 0, 1))
         group.append(LabelRJ('DECAY',   font, 0, 2))
@@ -165,7 +165,7 @@ def GenerateLabelLayer() -> int:
 def GenerateVentLayer(name:str) -> int:
     filename = '../res/tubeunit_{}.svg'.format(name.lower())
     (x, y) = (20.1, 16.0)
-    with Font('Quicksand-Light.ttf') as font:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
         ti = TextItem(name, font, 10.0)
         (w, h) = ti.measure()
         tp = TextPath(ti, x - w/2, y - h/2)

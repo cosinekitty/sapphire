@@ -2,6 +2,8 @@
 
 from svgpanel import *
 
+SAPPHIRE_FONT_FILENAME = 'Quicksand-Light.ttf'
+
 SAPPHIRE_PANEL_COLOR  = '#4f8df2'
 SAPPHIRE_BORDER_COLOR = '#5021d4'
 
@@ -13,6 +15,7 @@ BRAND_NAME_STYLE    = 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-lin
 
 CONTROL_LABEL_POINTS = 10.0
 CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
+
 
 class SapphireGemstone(Element):
     mmWidth = 5.43
@@ -33,6 +36,7 @@ def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
     ti = TextItem(name, font, MODEL_NAME_POINTS)
     tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE)
     return tp
+
 
 def BrandNamePath(panel:Panel, font:Font) -> TextPath:
     ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
