@@ -13,8 +13,13 @@ PANEL_WIDTH = 12
 
 
 def Print(message:str) -> int:
-    print('tubeunit_svg.py: ' + message)
+    print('tubeunit_svg.py:', message)
     return 0
+
+
+def Save(panel:Panel, filename:str) -> int:
+    panel.save(filename)
+    return Print('Wrote: ' + filename)
 
 
 def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:
@@ -65,22 +70,20 @@ def GenerateMainPanel() -> int:
         pl.append(ControlTextPath(font, 'R',   57.0, 110.0))
 
     inputConnectorPath = Element('path', 'input_connector_path')
-    inputConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    inputConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
     inputConnectorPath.setAttrib('d', 'M 9,114.5 L 23,114.5 z')
     pl.append(inputConnectorPath)
 
     driveConnectorPath = Element('path', 'drive_connector_path')
-    driveConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+    driveConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
     driveConnectorPath.setAttrib('d', 'M 40.5,107.5 L 52.5,102.5 z L 52.5,112.5 z')
     pl.append(driveConnectorPath)
 
     panel.append(pl)
-    panel.save(svgFileName)
-    return Print('Wrote {}'.format(svgFileName))
+    return Save(panel, svgFileName)
 
 
 def GenerateAudioPathLayer() -> int:
-    audioPathFileName = '../res/tubeunit_audio_path.svg'
     PentDx1 = 14.0
     PentDx3 = 16.0
     PentDx2 =  8.0
@@ -112,13 +115,12 @@ def GenerateAudioPathLayer() -> int:
     path.setAttrib('d', t)
     panel = Panel(PANEL_WIDTH)
     panel.append(path)
-    panel.save(audioPathFileName)
-    return Print('Wrote {}'.format(audioPathFileName))
+    return Save(panel, '../res/tubeunit_audio_path.svg')
 
 
 def LabelRJ(text:str, font:Font, i:int, j:int) -> TextPath:
     """Create a right-justified text label."""
-    ti = TextItem(text, font, 10.0)
+    ti = TextItem(text, font, CONTROL_LABEL_POINTS)
     (w, h) = ti.measure()
     (x, y) = PentagonOrigin(i, j)
     (dx, dy) = (7.0, -12.8)
@@ -127,7 +129,7 @@ def LabelRJ(text:str, font:Font, i:int, j:int) -> TextPath:
 
 def LabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
     """Create a left-justified text label."""
-    ti = TextItem(text, font, 10.0)
+    ti = TextItem(text, font, CONTROL_LABEL_POINTS)
     (_, h) = ti.measure()
     (x, y) = PentagonOrigin(i, j)
     (dx, dy) = (-7.0, -12.8)
@@ -135,7 +137,6 @@ def LabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
 
 
 def GenerateLabelLayer() -> int:
-    svgFileName = '../res/tubeunit_labels.svg'
     panel = Panel(PANEL_WIDTH)
 
     group = Element('g', 'control_labels')
@@ -152,22 +153,16 @@ def GenerateLabelLayer() -> int:
         group.append(LabelLJ('SPRING',  font, 1, 3))
 
     panel.append(group)
-    panel.save(svgFileName)
-    return Print('Wrote {}'.format(svgFileName))
+    return Save(panel, '../res/tubeunit_labels.svg')
 
 
 def GenerateVentLayer(name:str) -> int:
-    filename = '../res/tubeunit_{}.svg'.format(name.lower())
-    (x, y) = (20.1, 16.0)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        ti = TextItem(name, font, 10.0)
-        (w, h) = ti.measure()
-        tp = TextPath(ti, x - w/2, y - h/2)
-        tp.setAttrib('style', CONTROL_LABEL_STYLE)
+        ti = TextItem(name, font, CONTROL_LABEL_POINTS)
+    tp = ti.toPath(20.1, 16.0, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE)
     panel = Panel(PANEL_WIDTH)
     panel.append(tp)
-    panel.save(filename)
-    return Print('Wrote {}'.format(filename))
+    return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
 
 
 if __name__ == '__main__':
