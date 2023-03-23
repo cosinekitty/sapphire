@@ -12,6 +12,11 @@ from sapphire import *
 PANEL_WIDTH = 12
 
 
+def Print(message:str) -> int:
+    print('tubeunit_svg.py: ' + message)
+    return 0
+
+
 def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
@@ -71,8 +76,7 @@ def GenerateMainPanel() -> int:
 
     panel.append(pl)
     panel.save(svgFileName)
-    print('tubeunit_svg.py: Wrote {}'.format(svgFileName))
-    return 0
+    return Print('Wrote {}'.format(svgFileName))
 
 
 def GenerateAudioPathLayer() -> int:
@@ -109,8 +113,7 @@ def GenerateAudioPathLayer() -> int:
     panel = Panel(PANEL_WIDTH)
     panel.append(path)
     panel.save(audioPathFileName)
-    print('tubeunit_svg.py: Wrote {}'.format(audioPathFileName))
-    return 0
+    return Print('Wrote {}'.format(audioPathFileName))
 
 
 def LabelRJ(text:str, font:Font, i:int, j:int) -> TextPath:
@@ -150,8 +153,7 @@ def GenerateLabelLayer() -> int:
 
     panel.append(group)
     panel.save(svgFileName)
-    print('tubeunit_svg.py: Wrote {}'.format(svgFileName))
-    return 0
+    return Print('Wrote {}'.format(svgFileName))
 
 
 def GenerateVentLayer(name:str) -> int:
@@ -165,13 +167,7 @@ def GenerateVentLayer(name:str) -> int:
     panel = Panel(PANEL_WIDTH)
     panel.append(tp)
     panel.save(filename)
-    print('tubeunit_svg.py: Wrote {}'.format(filename))
-    return 0
-
-
-def Success() -> int:
-    print('tubeunit_svg.py: SUCCESS')
-    return 0
+    return Print('Wrote {}'.format(filename))
 
 
 if __name__ == '__main__':
@@ -181,5 +177,5 @@ if __name__ == '__main__':
         GenerateLabelLayer() or
         GenerateVentLayer('VENT') or
         GenerateVentLayer('SEAL') or
-        Success()
+        Print('SUCCESS')
     )
