@@ -27,3 +27,14 @@ def ControlTextPath(font:Font, text:str, xpos:float, ypos:float) -> TextPath:
     tp = TextPath(ti, xpos, ypos)
     tp.setAttrib('style', CONTROL_LABEL_STYLE)
     return tp
+
+
+def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
+    ti = TextItem(name, font, MODEL_NAME_POINTS)
+    tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE)
+    return tp
+
+def BrandNamePath(panel:Panel, font:Font) -> TextPath:
+    ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
+    tp = ti.toPath(panel.mmWidth/2, panel.mmHeight - 0.5, HorizontalAlignment.Center, VerticalAlignment.Bottom, BRAND_NAME_STYLE)
+    return tp
