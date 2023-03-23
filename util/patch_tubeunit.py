@@ -227,6 +227,20 @@ def GenerateLabelLayer() -> int:
     return 0
 
 
+def GenerateVentLayer(name:str) -> int:
+    filename = '../res/tubeunit_{}.svg'.format(name.lower())
+    (x, y) = (20.1, 16.0)
+    with Font('Quicksand-Light.ttf') as font:
+        ti = TextItem(name, font, 10.0)
+        (w, h) = ti.measure()
+        tp = TextPath(ti, x - w/2, y - h/2)
+        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+    panel = Panel(PANEL_WIDTH)
+    panel.append(tp)
+    with open(filename, 'wt') as outfile:
+        outfile.write(panel.svg())
+
+
 def Success() -> int:
     print('patch_tubeunit.py: SUCCESS')
     return 0
@@ -237,5 +251,7 @@ if __name__ == '__main__':
         GenerateMainPanel() or
         GenerateAudioPathLayer() or
         GenerateLabelLayer() or
+        GenerateVentLayer('VENT') or
+        GenerateVentLayer('SEAL') or
         Success()
     )
