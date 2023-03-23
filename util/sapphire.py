@@ -16,6 +16,8 @@ BRAND_NAME_STYLE    = 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-lin
 CONTROL_LABEL_POINTS = 10.0
 CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
 
+GEMSTONE_STYLE = 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1'
+
 
 class SapphireGemstone(Element):
     mmWidth = 5.43
@@ -34,11 +36,24 @@ def ControlTextPath(font:Font, text:str, xpos:float, ypos:float) -> TextPath:
 
 def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
     ti = TextItem(name, font, MODEL_NAME_POINTS)
-    tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE)
+    tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
     return tp
 
 
-def BrandNamePath(panel:Panel, font:Font) -> TextPath:
+def SapphireInsignia(panel:Panel, font:Font) -> Element:
+    insignia = Element('g', 'sapphire_insignia')
+    gemSpacing = 2.284
+    gemY = 121.0
     ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
-    tp = ti.toPath(panel.mmWidth/2, panel.mmHeight - 0.5, HorizontalAlignment.Center, VerticalAlignment.Bottom, BRAND_NAME_STYLE)
-    return tp
+    (dx, dy) = ti.measure()
+    x1 = (panel.mmWidth - dx)/2
+    y1 = panel.mmHeight - (dy + 0.5)
+    brandTextPath = TextPath(ti, x1, y1, 'brand_name')
+    brandTextPath.setAttrib('style', BRAND_NAME_STYLE)
+    gemGroup = Element('g', 'gemstones')
+    gemGroup.setAttrib('style', GEMSTONE_STYLE)
+    gemGroup.append(SapphireGemstone(x1 - (gemSpacing + SapphireGemstone.mmWidth), gemY))
+    gemGroup.append(SapphireGemstone(x1 + (dx + gemSpacing), gemY))
+    insignia.append(brandTextPath)
+    insignia.append(gemGroup)
+    return insignia

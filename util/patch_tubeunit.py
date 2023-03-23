@@ -49,23 +49,14 @@ def GenerateMainPanel() -> str:
         pl.append(Element('path').setAttrib('style', style).setAttrib('d', t))
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(SapphireInsignia(panel, font))
         pl.append(ModelNamePath(panel, font, 'tube unit'))
-        pl.append(BrandNamePath(panel, font))
         pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
         pl.append(ControlTextPath(font, 'L',    8.1, 106.5))
         pl.append(ControlTextPath(font, 'R',   21.8, 106.5))
         pl.append(ControlTextPath(font, 'OUT', 36.7,  96.2))
         pl.append(ControlTextPath(font, 'L',   57.0, 100.0))
         pl.append(ControlTextPath(font, 'R',   57.0, 110.0))
-
-    # Gemstones
-    gg = Element('g', 'gemstones')
-    gg.setAttrib('style', 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1')
-    gemMarginX = 7.5
-    gemY = 121.0
-    gg.append(SapphireGemstone(gemMarginX, gemY))
-    gg.append(SapphireGemstone(panel.mmWidth - (gemMarginX + SapphireGemstone.mmWidth), gemY))
-    pl.append(gg)
 
     inputConnectorPath = Element('path', 'input_connector_path')
     inputConnectorPath.setAttrib('style', 'fill:#141789;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
