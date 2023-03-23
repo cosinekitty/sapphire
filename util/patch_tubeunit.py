@@ -85,47 +85,18 @@ def GenerateMainPanel() -> str:
 
     with Font('Quicksand-Light.ttf') as font:
         # Model name 'tube unit' at top of panel.
-        ti = TextItem('tube unit', font, 22.0)
-        (dx, _) = ti.measure()
-        tp = TextPath(ti, (panel.mmWidth - dx)/2, 0.2)
-        tp.setAttrib('style', 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
+        ti = TextItem('tube unit', font, MODEL_NAME_POINTS)
+        pl.append(ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE))
         # Brand name 'sapphire' at bottom of panel.
-        ti = TextItem('sapphire', font, 22.0)
-        (dx, dy) = ti.measure()
-        tp = TextPath(ti, (panel.mmWidth - dx)/2, panel.mmHeight - (dy + 0.5))
-        tp.setAttrib('style', 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-linecap:square')
-        pl.append(tp)
-        # left input label
-        ti = TextItem('L', font, 10.0)
-        tp = TextPath(ti, 8.1, 106.5)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
-        # right input label
-        ti = TextItem('R', font, 10.0)
-        tp = TextPath(ti, 21.8, 106.5)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
-        # 'IN' label
-        ti = TextItem('IN', font, 10.0)
-        tp = TextPath(ti, 14.3, 109.4)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
-        # 'OUT' label
-        ti = TextItem('OUT', font, 10.0)
-        tp = TextPath(ti, 36.7, 96.2)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
-        # left output label
-        ti = TextItem('L', font, 10.0)
-        tp = TextPath(ti, 57.0, 100.0)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
-        # right output label
-        ti = TextItem('R', font, 10.0)
-        tp = TextPath(ti, 57.0, 110.0)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
-        pl.append(tp)
+        ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
+        pl.append(ti.toPath(panel.mmWidth/2, panel.mmHeight - 0.5, HorizontalAlignment.Center, VerticalAlignment.Bottom, BRAND_NAME_STYLE))
+
+        pl.append(ControlTextPath(font, 'L',    8.1, 106.5))
+        pl.append(ControlTextPath(font, 'R',   21.8, 106.5))
+        pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
+        pl.append(ControlTextPath(font, 'OUT', 36.7,  96.2))
+        pl.append(ControlTextPath(font, 'L',   57.0, 100.0))
+        pl.append(ControlTextPath(font, 'R',   57.0, 110.0))
 
     # Gemstones
     gg = Element('g', 'gemstones')
@@ -184,7 +155,7 @@ def GenerateLabelLayer() -> int:
     panel = Panel(PANEL_WIDTH)
 
     group = Element('g', 'control_labels')
-    group.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+    group.setAttrib('style', CONTROL_LABEL_STYLE)
 
     with Font('Quicksand-Light.ttf') as font:
         group.append(LabelRJ('AIRFLOW', font, 0, 0))
@@ -212,7 +183,7 @@ def GenerateVentLayer(name:str) -> int:
         ti = TextItem(name, font, 10.0)
         (w, h) = ti.measure()
         tp = TextPath(ti, x - w/2, y - h/2)
-        tp.setAttrib('style', 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel')
+        tp.setAttrib('style', CONTROL_LABEL_STYLE)
     panel = Panel(PANEL_WIDTH)
     panel.append(tp)
     with open(filename, 'wt') as outfile:

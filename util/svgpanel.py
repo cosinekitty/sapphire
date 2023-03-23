@@ -5,6 +5,7 @@ For more information, see:
 https://github.com/cosinekitty/svgpanel
 """
 from typing import Any, List, Tuple, Optional, Union, Callable, Dict
+from enum import Enum, unique
 import xml.etree.ElementTree as et
 from fontTools.ttLib import TTFont                          # type: ignore
 from fontTools.pens.svgPathPen import SVGPathPen            # type: ignore
@@ -19,6 +20,20 @@ class Error(Exception):
     """Indicates an error in an svgpanel function."""
     def __init__(self, message:str) -> None:
         Exception.__init__(self, message)
+
+
+@unique
+class HorizontalAlignment(Enum):
+    Left = 0
+    Center = 1
+    Right = 2
+
+
+@unique
+class VerticalAlignment(Enum):
+    Top = 0
+    Middle = 1
+    Bottom = 2
 
 
 def Move(x:float, y:float) -> str:
@@ -89,6 +104,39 @@ class TextItem:
 
     def measure(self) -> Tuple[float,float]:
         return self.font.measure(self.text, self.points)
+
+    def toPath(
+            self,
+            xpos: float,
+            ypos: float,
+            horizontal: HorizontalAlignment,
+            vertical: VerticalAlignment,
+            style: str = '',
+            id: str = '') -> 'TextPath':
+
+        (dx, dy) = self.measure()
+
+        if horizontal == HorizontalAlignment.Left:
+            x = xpos
+        elif horizontal == HorizontalAlignment.Right:
+            x = xpos - dx
+        elif horizontal == HorizontalAlignment.Center:
+            x = xpos - (dx/2)
+        else:
+            raise Error('Invalid horizontal alignment: {}'.format(horizontal))
+
+        if vertical == VerticalAlignment.Top:
+            y = ypos
+        elif vertical == VerticalAlignment.Bottom:
+            y = ypos - dy
+        elif vertical == VerticalAlignment.Middle:
+            y = ypos - (dy/2)
+        else:
+            raise Error('Invalid vertical alignment: {}'.format(vertical))
+
+        tp = TextPath(self, x, y, id)
+        tp.setAttrib('style', style)
+        return tp
 
 
 class Element:
