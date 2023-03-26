@@ -173,7 +173,7 @@ namespace Sapphire
             : v(_mm_set1_ps(0.0f))
             {}
 
-        PhysicsVector(float x)
+        PhysicsVector(float x)      // cppcheck-suppress [noExplicitConstructor]
             : v(_mm_set1_ps(x))
             {}
 
@@ -346,7 +346,7 @@ namespace Sapphire
     public:
         SliderMapping() {}
 
-        SliderMapping(SliderScale _scale, std::vector<float> _polynomial)
+        SliderMapping(SliderScale _scale, const std::vector<float>& _polynomial)
             : scale(_scale)
             , polynomial(_polynomial)
             {}

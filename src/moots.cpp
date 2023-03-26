@@ -225,7 +225,7 @@ struct MootsWidget : ModuleWidget
 {
     Moots* mootsModule;
 
-    MootsWidget(Moots* module)
+    explicit MootsWidget(Moots* module)
         : mootsModule(module)
     {
         setModule(module);

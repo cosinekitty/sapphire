@@ -30,7 +30,7 @@ struct SapphireControlGroup     // represents the combination: knob + CV input +
     float displayMultiplier;
 
     SapphireControlGroup(
-        std::string _name,
+        const std::string& _name,
         int _yGrid,
         int _xGrid,
         int _paramId,
@@ -39,7 +39,7 @@ struct SapphireControlGroup     // represents the combination: knob + CV input +
         float _minValue,
         float _maxValue,
         float _defaultValue,
-        std::string _unit = "",
+        const std::string& _unit = "",
         float _displayBase = 0.0f,
         float _displayMultiplier = 1.0f
     )
@@ -71,7 +71,7 @@ struct SapphirePort : app::SvgPort
 
 struct SapphireQuantity : ParamQuantity
 {
-    float value;
+    float value = 0.0f;
     bool changed = true;
 
     SapphireQuantity()
@@ -111,7 +111,7 @@ struct DcRejectQuantity : SapphireQuantity
 
 struct DcRejectSlider : ui::Slider
 {
-    DcRejectSlider(DcRejectQuantity *_quantity)
+    explicit DcRejectSlider(DcRejectQuantity *_quantity)
     {
         quantity = _quantity;
         box.size.x = 200.0f;        // without this, the menu display gets messed up
@@ -140,7 +140,7 @@ struct AgcLevelQuantity : SapphireQuantity
 
 struct AgcLevelSlider : ui::Slider
 {
-    AgcLevelSlider(AgcLevelQuantity *_quantity)
+    explicit AgcLevelSlider(AgcLevelQuantity *_quantity)
     {
         quantity = _quantity;
         box.size.x = 200.0f;

@@ -205,7 +205,7 @@ namespace Sapphire
             {}
 
         // Extract audio from the mesh
-        float Extract(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
+        float Extract(const Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
         {
             using namespace Sapphire;
 

@@ -106,7 +106,7 @@ namespace Sapphire
             {
                 for (int v = v1; v <= v2; ++v)
                 {
-                    HexGridElement& h = map.at(u, v);
+                    const HexGridElement& h = map.at(u, v);
                     if (h.ballIndex >= 0 && mesh.GetBallAt(h.ballIndex).IsMobile())
                     {
                         AddMissingAnchor(SPRINGDIR_E , h, u+1, v+0);
@@ -179,7 +179,7 @@ namespace Sapphire
             }
         }
 
-        void AddMissingAnchor(uint8_t dir, HexGridElement& first, int u2, int v2)
+        void AddMissingAnchor(uint8_t dir, const HexGridElement& first, int u2, int v2)
         {
             if (first.springsNeededMask & dir)
             {

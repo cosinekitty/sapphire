@@ -319,7 +319,7 @@ private:
     }
 
 public:
-    TubeUnitWarningLightWidget(TubeUnitModule *module)
+    explicit TubeUnitWarningLightWidget(TubeUnitModule *module)
         : tubeUnitModule(module)
     {
         borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
@@ -354,7 +354,7 @@ struct TubeUnitWidget : ModuleWidget
     SapphireSvgOverlay *sealLabel = nullptr;
     SapphireSvgOverlay *audioEmphasis = nullptr;
 
-    TubeUnitWidget(TubeUnitModule* module)
+    explicit TubeUnitWidget(TubeUnitModule* module)
         : tubeUnitModule(module)
     {
         setModule(module);

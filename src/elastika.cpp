@@ -352,7 +352,7 @@ private:
     }
 
 public:
-    ElastikaWarningLightWidget(ElastikaModule *module)
+    explicit ElastikaWarningLightWidget(ElastikaModule *module)
         : elastikaModule(module)
     {
         borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
@@ -378,7 +378,7 @@ struct ElastikaWidget : ModuleWidget
     ElastikaModule *elastikaModule;
     ElastikaWarningLightWidget *warningLight = nullptr;
 
-    ElastikaWidget(ElastikaModule* module)
+    explicit ElastikaWidget(ElastikaModule* module)
         : elastikaModule(module)
     {
         setModule(module);
