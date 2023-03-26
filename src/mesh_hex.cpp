@@ -254,10 +254,10 @@ namespace Sapphire
         mp.rightOutputDir1 = pos_factor * PhysicsVector(0,  0, +1,  0);
         mp.rightOutputDir2 = pos_factor * PhysicsVector(0, +1,  0,  0);
 
-        assert(mesh.GetBallAt(mp.leftInputBallIndex).IsAnchor());
-        assert(mesh.GetBallAt(mp.rightInputBallIndex).IsAnchor());
-        assert(mesh.GetBallAt(mp.leftOutputBallIndex).IsMobile());
-        assert(mesh.GetBallAt(mp.rightOutputBallIndex).IsMobile());
+        assert(mesh.IsAnchor(mp.leftInputBallIndex));
+        assert(mesh.IsAnchor(mp.rightInputBallIndex));
+        assert(mesh.IsMobile(mp.leftOutputBallIndex));
+        assert(mesh.IsMobile(mp.rightOutputBallIndex));
 
         return mp;
     }
