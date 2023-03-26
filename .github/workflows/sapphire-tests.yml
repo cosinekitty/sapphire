@@ -5,5 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install cppcheck
+      run: sudo apt install -y cppcheck
     - name: Sapphire unit tests
       run: cd util && ./runtests

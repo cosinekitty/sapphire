@@ -5,6 +5,7 @@ Fail()
     exit 1
 }
 
+cppcheck --error-exitcode=9 --inline-suppr --suppress=missingIncludeSystem --suppress=missingInclude --suppress=useStlAlgorithm --suppress=unusedFunction -I ../src  --enable=all ../src || exit 1
 cd cmdline || Fail "cannot change to cmdline directory"
 ./run || exit 1
 cd ../unittest || Fail "cannot change directory to ../unittest"
