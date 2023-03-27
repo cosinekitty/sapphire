@@ -24,6 +24,7 @@ class Error(Exception):
 
 @unique
 class HorizontalAlignment(Enum):
+    """Specifies how a text block is to be aligned horizontally."""
     Left = 0
     Center = 1
     Right = 2
@@ -31,12 +32,13 @@ class HorizontalAlignment(Enum):
 
 @unique
 class VerticalAlignment(Enum):
+    """Specifies how a text block is to be aligned vertically."""
     Top = 0
     Middle = 1
     Bottom = 2
 
 
-def HorAdjust(hor:HorizontalAlignment) -> float:
+def _HorAdjust(hor:HorizontalAlignment) -> float:
     if hor == HorizontalAlignment.Left:
         return 0.0
     if hor == HorizontalAlignment.Center:
@@ -46,7 +48,7 @@ def HorAdjust(hor:HorizontalAlignment) -> float:
     raise Error('Invalid horizontal alignment: {}'.format(hor))
 
 
-def VerAdjust(ver:VerticalAlignment) -> float:
+def _VerAdjust(ver:VerticalAlignment) -> float:
     if ver == VerticalAlignment.Top:
         return 0.0
     if ver == VerticalAlignment.Middle:
@@ -57,10 +59,12 @@ def VerAdjust(ver:VerticalAlignment) -> float:
 
 
 def Move(x:float, y:float) -> str:
+    """Move the pen in an SVG path."""
     return 'M {:0.2f},{:0.2f} '.format(x, y)
 
 
 def Line(x:float, y:float) -> str:
+    """Draw a line segment with the pen in an SVG path."""
     return 'L {:0.2f},{:0.2f} '.format(x, y)
 
 
@@ -69,6 +73,7 @@ def _FormatMillimeters(x: float) -> str:
 
 
 class Font:
+    """A TrueType/OpenType font used for generating SVG paths."""
     def __init__(self, filename:str) -> None:
         self.filename = filename
         self.ttfont = TTFont(filename)
@@ -82,6 +87,7 @@ class Font:
         return self.ttfont.__exit__(exc_type, exc_val, exc_tb)
 
     def render(self, text:str, xpos:float, ypos:float, points:float) -> str:
+        """Generate the SVG path that draws this text block at a given location."""
         # Calculate how many millimeters there are per font unit in this point size.
         mmPerEm = (25.4 / 72)*points
         mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
@@ -100,6 +106,7 @@ class Font:
         return str(spen.getCommands())
 
     def measure(self, text:str, points:float) -> Tuple[float,float]:
+        """Returns a (width, height) tuple of a rectangle that fits around this text block."""
         mmPerEm = (25.4 / 72)*points
         mmPerUnit = mmPerEm / self.ttfont['head'].unitsPerEm
         x = 0.0
@@ -114,15 +121,18 @@ class Font:
 
 
 class TextItem:
+    """A line of text to be rendered using a given font and size."""
     def __init__(self, text:str, font:Font, points:float):
         self.text = text
         self.font = font
         self.points = points
 
     def render(self, x:float, y:float) -> str:
+        """Generate the SVG path that draws this text block at a given location."""
         return self.font.render(self.text, x, y, self.points)
 
     def measure(self) -> Tuple[float,float]:
+        """Returns a (width, height) tuple of a rectangle that fits around this text block."""
         return self.font.measure(self.text, self.points)
 
     def toPath(
@@ -133,15 +143,17 @@ class TextItem:
             vertical: VerticalAlignment,
             style: str = '',
             id: str = '') -> 'TextPath':
+        """Converts this text block to a path with a given vertical and horizontal alignment."""
         (dx, dy) = self.measure()
-        x = xpos + dx*HorAdjust(horizontal)
-        y = ypos + dy*VerAdjust(vertical)
+        x = xpos + dx*_HorAdjust(horizontal)
+        y = ypos + dy*_VerAdjust(vertical)
         tp = TextPath(self, x, y, id)
         tp.setAttrib('style', style)
         return tp
 
 
 class Element:
+    """An XML element inside an SVG file."""
     def __init__(self, tag:str, id:str = '') -> None:
         self.tag = tag
         self.attrib: Dict[str, str] = {}
@@ -149,18 +161,22 @@ class Element:
         self.setAttrib('id', id)
 
     def setAttrib(self, key:str, value:str) -> 'Element':
+        """Define or replace an attribute in this XML element."""
         if value:
             self.attrib[key] = value
         return self
 
     def setAttribFloat(self, key:str, value:float) -> 'Element':
+        """Set a floating point attribute in this XML element."""
         return self.setAttrib(key, '{:0.6g}'.format(value))
 
     def append(self, elem:'Element') -> 'Element':
+        """Add a child element to this element's list of children."""
         self.children.append(elem)
         return self
 
     def xml(self) -> et.Element:
+        """Convert this element to XML text."""
         elem = et.Element(self.tag, self.attrib)
         for child in self.children:
             elem.append(child.xml())
@@ -168,12 +184,14 @@ class Element:
 
 
 class TextPath(Element):
+    """An SVG path that is rendered from text expressed in a given font and size."""
     def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:
         super().__init__('path', id)
         self.setAttrib('d', textItem.render(x, y))
 
 
 class BorderRect(Element):
+    """A filled rectangle with border for the bottom layer of your panel design."""
     def __init__(self, hpWidth:int, fillColor:str, borderColor:str) -> None:
         super().__init__('rect', 'border_rect')
         if hpWidth <= 0:
@@ -186,6 +204,7 @@ class BorderRect(Element):
 
 
 class LinearGradient(Element):
+    """Defines a linear gradient SVG element to be used for filled patterns later in your panel."""
     def __init__(self, id:str, x1:float, y1:float, x2:float, y2:float, color1:str, color2:str) -> None:
         super().__init__('linearGradient', id)
         self.setAttribFloat('x1', x1)
@@ -198,6 +217,7 @@ class LinearGradient(Element):
 
 
 class Panel(Element):
+    """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
     def __init__(self, hpWidth:int) -> None:
         super().__init__('svg')
         if hpWidth <= 0:
@@ -210,6 +230,7 @@ class Panel(Element):
         self.setAttrib('viewBox', '0 0 {:0.2f} {:0.2f}'.format(self.mmWidth, self.mmHeight))
 
     def svg(self, indent:str = '    ') -> str:
+        """Convert this panel to a complete SVG document."""
         root = self.xml()
         et.indent(root, indent)
         rootBytes = et.tostring(root, encoding='utf-8')
@@ -219,5 +240,6 @@ class Panel(Element):
         return '<?xml version="1.0" encoding="utf-8"?>\n' + rootBytes.decode('utf8') + '\n'    # type: ignore
 
     def save(self, outFileName:str, indent:str = '    ') -> None:
+        """Write this panel to an SVG file."""
         with open(outFileName, 'wt') as outfile:
             outfile.write(self.svg(indent))
