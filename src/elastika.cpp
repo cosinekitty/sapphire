@@ -1,4 +1,5 @@
 #include "plugin.hpp"
+#include "reloadable_widget.hpp"
 #include "elastika_engine.hpp"
 
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
@@ -373,23 +374,26 @@ public:
 };
 
 
-struct ElastikaWidget : ModuleWidget
+using SliderType = VCVLightSlider<YellowLight>;
+
+
+struct ElastikaWidget : ReloadableModuleWidget
 {
     ElastikaModule *elastikaModule;
     ElastikaWarningLightWidget *warningLight = nullptr;
 
     explicit ElastikaWidget(ElastikaModule* module)
-        : elastikaModule(module)
+        : ReloadableModuleWidget(asset::plugin(pluginInstance, "res/elastika.svg"))
+        , elastikaModule(module)
     {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/elastika.svg")));
 
         // Sliders
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec( 8.00, 46.00)), module, ElastikaModule::FRICTION_SLIDER_PARAM, ElastikaModule::FRICTION_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(19.24, 46.00)), module, ElastikaModule::STIFFNESS_SLIDER_PARAM, ElastikaModule::STIFFNESS_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(30.48, 46.00)), module, ElastikaModule::SPAN_SLIDER_PARAM, ElastikaModule::SPAN_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(41.72, 46.00)), module, ElastikaModule::CURL_SLIDER_PARAM, ElastikaModule::CURL_LIGHT));
-        addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(52.96, 46.00)), module, ElastikaModule::MASS_SLIDER_PARAM, ElastikaModule::MASS_LIGHT));
+        addSlider(ElastikaModule::FRICTION_SLIDER_PARAM, ElastikaModule::FRICTION_LIGHT, "fric_slider");
+        addSlider(ElastikaModule::STIFFNESS_SLIDER_PARAM, ElastikaModule::STIFFNESS_LIGHT, "stif_slider");
+        addSlider(ElastikaModule::SPAN_SLIDER_PARAM, ElastikaModule::SPAN_LIGHT, "span_slider");
+        addSlider(ElastikaModule::CURL_SLIDER_PARAM, ElastikaModule::CURL_LIGHT, "curl_slider");
+        addSlider(ElastikaModule::MASS_SLIDER_PARAM, ElastikaModule::MASS_LIGHT, "mass_slider");
 
         // Attenuverters
         addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, ElastikaModule::FRICTION_ATTEN_PARAM));
@@ -436,6 +440,15 @@ struct ElastikaWidget : ModuleWidget
         // Power enable/disable
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT));
         addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, ElastikaModule::POWER_GATE_INPUT));
+
+        // Load the SVG and place all controls at their correct coordinates.
+        reloadPanel();
+    }
+
+    void addSlider(ElastikaModule::ParamId paramId, ElastikaModule::LightId lightId, std::string svgId)
+    {
+        SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
+        addReloadableParam(slider, svgId);
     }
 
     void appendContextMenu(Menu* menu) override
