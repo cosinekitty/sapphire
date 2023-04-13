@@ -420,17 +420,17 @@ struct ElastikaWidget : ReloadableModuleWidget
         addKnob(ElastikaModule::OUTPUT_TILT_KNOB_PARAM, "output_tilt_knob");
 
         // CV input jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, ElastikaModule::FRICTION_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(19.24, 81.74)), module, ElastikaModule::STIFFNESS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 81.74)), module, ElastikaModule::SPAN_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(41.72, 81.74)), module, ElastikaModule::CURL_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(52.96, 81.74)), module, ElastikaModule::MASS_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 22.50)), module, ElastikaModule::INPUT_TILT_CV_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(53.00, 22.50)), module, ElastikaModule::OUTPUT_TILT_CV_INPUT));
+        addSapphireInput(ElastikaModule::FRICTION_CV_INPUT, "fric_cv");
+        addSapphireInput(ElastikaModule::STIFFNESS_CV_INPUT, "stif_cv");
+        addSapphireInput(ElastikaModule::SPAN_CV_INPUT, "span_cv");
+        addSapphireInput(ElastikaModule::CURL_CV_INPUT, "curl_cv");
+        addSapphireInput(ElastikaModule::MASS_CV_INPUT, "mass_cv");
+        addSapphireInput(ElastikaModule::INPUT_TILT_CV_INPUT, "input_tilt_cv");
+        addSapphireInput(ElastikaModule::OUTPUT_TILT_CV_INPUT, "output_tilt_cv");
 
         // Audio input Jacks
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec( 7.50, 115.00)), module, ElastikaModule::AUDIO_LEFT_INPUT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(20.50, 115.00)), module, ElastikaModule::AUDIO_RIGHT_INPUT));
+        addSapphireInput(ElastikaModule::AUDIO_LEFT_INPUT, "audio_left_input");
+        addSapphireInput(ElastikaModule::AUDIO_RIGHT_INPUT, "audio_right_input");
 
         // Audio output jacks
         addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, ElastikaModule::AUDIO_LEFT_OUTPUT));
@@ -438,7 +438,7 @@ struct ElastikaWidget : ReloadableModuleWidget
 
         // Power enable/disable
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT));
-        addInput(createInputCentered<SapphirePort>(mm2px(Vec(30.48, 104.0)), module, ElastikaModule::POWER_GATE_INPUT));
+        addSapphireInput(ElastikaModule::POWER_GATE_INPUT, "power_gate_input");
 
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();
@@ -454,6 +454,12 @@ struct ElastikaWidget : ReloadableModuleWidget
     {
         Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
         addReloadableParam(trimpot, svgId);
+    }
+
+    void addSapphireInput(ElastikaModule::InputId paramId, const char *svgId)
+    {
+        SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, paramId);
+        addReloadableInput(port, svgId);
     }
 
     RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const char *svgId)
