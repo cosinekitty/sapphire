@@ -56,7 +56,8 @@
 
     <circle id="drive_knob" cx="14.0"  cy="102.0" r="1" />
     <circle id="level_knob" cx="46.96" cy="102.0" r="1" />
-
+    <circle id="input_tilt_knob"  cx="19.24" cy="17.50" r="1" />
+    <circle id="output_tilt_knob" cx="41.72" cy="17.50" r="1" />
 
   </g>
   <g id="PanelLayer">

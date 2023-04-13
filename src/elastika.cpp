@@ -416,8 +416,8 @@ struct ElastikaWidget : ReloadableModuleWidget
         levelKnob->addChild(warningLight);
 
         // Tilt angle knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(19.24, 17.50)), module, ElastikaModule::INPUT_TILT_KNOB_PARAM));
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(41.72, 17.50)), module, ElastikaModule::OUTPUT_TILT_KNOB_PARAM));
+        addKnob(ElastikaModule::INPUT_TILT_KNOB_PARAM, "input_tilt_knob");
+        addKnob(ElastikaModule::OUTPUT_TILT_KNOB_PARAM, "output_tilt_knob");
 
         // CV input jacks
         addInput(createInputCentered<SapphirePort>(mm2px(Vec( 8.00, 81.74)), module, ElastikaModule::FRICTION_CV_INPUT));
