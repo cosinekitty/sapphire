@@ -445,7 +445,7 @@ struct ElastikaWidget : ReloadableModuleWidget
         reloadPanel();
     }
 
-    void addSlider(ElastikaModule::ParamId paramId, ElastikaModule::LightId lightId, std::string svgId)
+    void addSlider(ElastikaModule::ParamId paramId, ElastikaModule::LightId lightId, const std::string& svgId)
     {
         SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
         addReloadableParam(slider, svgId);

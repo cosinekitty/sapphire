@@ -31,7 +31,7 @@ namespace rack
         double prevPollTime = 0.0;
         struct stat prevStatBuf {};
 
-        ReloadableModuleWidget(std::string panelSvgFileName)
+        explicit ReloadableModuleWidget(const std::string& panelSvgFileName)
             : svgFileName(panelSvgFileName)
         {
             std::string flagFileName = panelSvgFileName + ".reload";
@@ -102,19 +102,19 @@ namespace rack
             widget->box.pos = Vec{x, y}.minus(widget->box.size.div(2));
         }
 
-        void addReloadableParam(ParamWidget* param, std::string svgid)
+        void addReloadableParam(ParamWidget* param, const std::string& svgid)
         {
             addParam(param);
             svgWidgetMap[svgid] = param;
         }
 
-        void addReloadableInput(PortWidget* input, std::string svgid)
+        void addReloadableInput(PortWidget* input, const std::string& svgid)
         {
             addInput(input);
             svgWidgetMap[svgid] = input;
         }
 
-        void addReloadableOutput(PortWidget* output, std::string svgid)
+        void addReloadableOutput(PortWidget* output, const std::string& svgid)
         {
             addOutput(output);
             svgWidgetMap[svgid] = output;
