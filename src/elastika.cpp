@@ -437,7 +437,8 @@ struct ElastikaWidget : ReloadableModuleWidget
         addSapphireOutput(ElastikaModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
 
         // Power enable/disable
-        addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT));
+        auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT);
+        addReloadableParam(toggle, "power_toggle");
         addSapphireInput(ElastikaModule::POWER_GATE_INPUT, "power_gate_input");
 
         // Load the SVG and place all controls at their correct coordinates.
