@@ -444,19 +444,19 @@ struct ElastikaWidget : ReloadableModuleWidget
         reloadPanel();
     }
 
-    void addSlider(ElastikaModule::ParamId paramId, ElastikaModule::LightId lightId, const std::string& svgId)
+    void addSlider(ElastikaModule::ParamId paramId, ElastikaModule::LightId lightId, const char *svgId)
     {
         SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
         addReloadableParam(slider, svgId);
     }
 
-    void addAttenuverter(ElastikaModule::ParamId paramId, const std::string& svgId)
+    void addAttenuverter(ElastikaModule::ParamId paramId, const char *svgId)
     {
         Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
         addReloadableParam(trimpot, svgId);
     }
 
-    RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const std::string& svgId)
+    RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const char *svgId)
     {
         RoundLargeBlackKnob *knob = createParamCentered<RoundLargeBlackKnob>(Vec{}, module, paramId);
         addReloadableParam(knob, svgId);
