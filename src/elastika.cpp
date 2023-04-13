@@ -433,8 +433,8 @@ struct ElastikaWidget : ReloadableModuleWidget
         addSapphireInput(ElastikaModule::AUDIO_RIGHT_INPUT, "audio_right_input");
 
         // Audio output jacks
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(40.46, 115.00)), module, ElastikaModule::AUDIO_LEFT_OUTPUT));
-        addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(53.46, 115.00)), module, ElastikaModule::AUDIO_RIGHT_OUTPUT));
+        addSapphireOutput(ElastikaModule::AUDIO_LEFT_OUTPUT, "audio_left_output");
+        addSapphireOutput(ElastikaModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
 
         // Power enable/disable
         addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(30.48, 95.0)), module, ElastikaModule::POWER_TOGGLE_PARAM, ElastikaModule::POWER_LIGHT));
@@ -460,6 +460,12 @@ struct ElastikaWidget : ReloadableModuleWidget
     {
         SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, paramId);
         addReloadableInput(port, svgId);
+    }
+
+    void addSapphireOutput(ElastikaModule::OutputId paramId, const char *svgId)
+    {
+        SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, paramId);
+        addReloadableOutput(port, svgId);
     }
 
     RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const char *svgId)

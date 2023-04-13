@@ -64,6 +64,8 @@
 
     <circle id="power_gate_input" cx="30.48" cy="104.0" r="1" />
 
+    <circle id="audio_left_output"  cx="40.46" cy="115.0" r="1" />
+    <circle id="audio_right_output" cx="53.46" cy="115.0" r="1" />
   </g>
   <g id="PanelLayer">
     <rect width="60.96" height="128.5" x="0.0" y="0.0" style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto" />
