@@ -396,13 +396,13 @@ struct ElastikaWidget : ReloadableModuleWidget
         addSlider(ElastikaModule::MASS_SLIDER_PARAM, ElastikaModule::MASS_LIGHT, "mass_slider");
 
         // Attenuverters
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 72.00)), module, ElastikaModule::FRICTION_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(19.24, 72.00)), module, ElastikaModule::STIFFNESS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(30.48, 72.00)), module, ElastikaModule::SPAN_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(41.72, 72.00)), module, ElastikaModule::CURL_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(52.96, 72.00)), module, ElastikaModule::MASS_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec( 8.00, 12.50)), module, ElastikaModule::INPUT_TILT_ATTEN_PARAM));
-        addParam(createParamCentered<Trimpot>(mm2px(Vec(53.00, 12.50)), module, ElastikaModule::OUTPUT_TILT_ATTEN_PARAM));
+        addAttenuverter(ElastikaModule::FRICTION_ATTEN_PARAM, "fric_atten");
+        addAttenuverter(ElastikaModule::STIFFNESS_ATTEN_PARAM, "stif_atten");
+        addAttenuverter(ElastikaModule::SPAN_ATTEN_PARAM, "span_atten");
+        addAttenuverter(ElastikaModule::CURL_ATTEN_PARAM, "curl_atten");
+        addAttenuverter(ElastikaModule::MASS_ATTEN_PARAM, "mass_atten");
+        addAttenuverter(ElastikaModule::INPUT_TILT_ATTEN_PARAM, "input_tilt_atten");
+        addAttenuverter(ElastikaModule::OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten");
 
         // Drive and Level knobs
         addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, ElastikaModule::DRIVE_KNOB_PARAM));
@@ -449,6 +449,12 @@ struct ElastikaWidget : ReloadableModuleWidget
     {
         SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
         addReloadableParam(slider, svgId);
+    }
+
+    void addAttenuverter(ElastikaModule::ParamId paramId, const std::string& svgId)
+    {
+        Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
+        addReloadableParam(trimpot, svgId);
     }
 
     void appendContextMenu(Menu* menu) override
