@@ -54,6 +54,10 @@
     <circle id="input_tilt_cv"  cx="8.00"  cy="22.50" r="1" />
     <circle id="output_tilt_cv" cx="53.00" cy="22.50" r="1" />
 
+    <circle id="drive_knob" cx="14.0"  cy="102.0" r="1" />
+    <circle id="level_knob" cx="46.96" cy="102.0" r="1" />
+
+
   </g>
   <g id="PanelLayer">
     <rect width="60.96" height="128.5" x="0.0" y="0.0" style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto" />

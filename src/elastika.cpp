@@ -405,9 +405,8 @@ struct ElastikaWidget : ReloadableModuleWidget
         addAttenuverter(ElastikaModule::OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten");
 
         // Drive and Level knobs
-        addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(14.00, 102.00)), module, ElastikaModule::DRIVE_KNOB_PARAM));
-        RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(46.96, 102.00)), module, ElastikaModule::LEVEL_KNOB_PARAM);
-        addParam(levelKnob);
+        addKnob(ElastikaModule::DRIVE_KNOB_PARAM, "drive_knob");
+        RoundLargeBlackKnob *levelKnob = addKnob(ElastikaModule::LEVEL_KNOB_PARAM, "level_knob");
 
         // Superimpose a warning light on the output level knob.
         // We turn the warning light on when the limiter is distoring the output.
@@ -455,6 +454,13 @@ struct ElastikaWidget : ReloadableModuleWidget
     {
         Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
         addReloadableParam(trimpot, svgId);
+    }
+
+    RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const std::string& svgId)
+    {
+        RoundLargeBlackKnob *knob = createParamCentered<RoundLargeBlackKnob>(Vec{}, module, paramId);
+        addReloadableParam(knob, svgId);
+        return knob;
     }
 
     void appendContextMenu(Menu* menu) override
