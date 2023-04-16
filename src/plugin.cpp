@@ -14,4 +14,5 @@ void init(Plugin* p)
     p->addModel(modelMoots);
     p->addModel(modelElastika);
     p->addModel(modelTubeUnit);
+    p->addModel(modelCantilever);
 }

@@ -45,6 +45,16 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "Cantilever",
+      "name": "Cantilever",
+      "description": "Rigid plank physical model.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Filter"
+      ]
     }
   ]
 }

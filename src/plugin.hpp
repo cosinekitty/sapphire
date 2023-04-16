@@ -13,6 +13,7 @@ extern Plugin* pluginInstance;
 extern Model* modelMoots;
 extern Model* modelElastika;
 extern Model* modelTubeUnit;
+extern Model* modelCantilever;
 
 struct SapphireControlGroup     // represents the combination: knob + CV input + attenuverter
 {

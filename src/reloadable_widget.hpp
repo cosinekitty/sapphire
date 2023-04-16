@@ -120,6 +120,12 @@ namespace rack
             svgWidgetMap[svgid] = output;
         }
 
+        void addSapphireOutput(int paramId, const char *svgId)
+        {
+            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, paramId);
+            addReloadableOutput(port, svgId);
+        }
+
         void appendContextMenu(Menu *menu) override
         {
             if (isReloadEnabled)

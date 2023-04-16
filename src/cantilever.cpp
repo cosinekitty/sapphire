@@ -21,6 +21,8 @@ struct CantileverModule : Module
 
     enum OutputId
     {
+        AUDIO_LEFT_OUTPUT,
+        AUDIO_RIGHT_OUTPUT,
         OUTPUTS_LEN
     };
 
@@ -32,6 +34,8 @@ struct CantileverModule : Module
     CantileverModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+        configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+        configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
         initialize();
     }
 
@@ -48,6 +52,9 @@ struct CantileverModule : Module
 
     void process(const ProcessArgs& args) override
     {
+        const float halflife = 5.0f;
+        float sample[2];
+        engine.process(args.sampleTime, halflife, sample);
     }
 };
 
@@ -61,6 +68,9 @@ struct CantileverWidget : ReloadableModuleWidget
         , cantileverModule(module)
     {
         setModule(module);
+
+        addSapphireOutput(CantileverModule::AUDIO_LEFT_OUTPUT,  "audio_left_output");
+        addSapphireOutput(CantileverModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
 
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();

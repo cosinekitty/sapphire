@@ -30,6 +30,10 @@ def GenerateMainPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
         pl.append(ModelNamePath(panel, font, 'cantilever'))
     panel.append(pl)
+    cl = ControlLayer()
+    cl.append(Component('audio_left_output',  45.0,  90.0))
+    cl.append(Component('audio_right_output', 45.0, 100.0))
+    panel.append(cl)
     return Save(panel, svgFileName)
 
 

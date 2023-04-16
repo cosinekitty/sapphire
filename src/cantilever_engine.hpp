@@ -151,6 +151,14 @@ namespace Sapphire
             rods = nextRods;
         }
 
+        void process(float dt, float halflife, float sample[2])
+        {
+            update(dt, halflife);
+            RodVector tilt{1.0f, 1.0f};
+            sample[0] = dot(rods[7].vel, tilt);
+            sample[1] = dot(rods[8].vel, tilt);
+        }
+
     private:
         void dampen(float dt, float halflife)
         {

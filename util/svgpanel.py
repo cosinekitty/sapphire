@@ -216,6 +216,22 @@ class LinearGradient(Element):
         self.append(Element('stop').setAttrib('offset', '1').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color2)))
 
 
+class Component(Element):
+    """Represents the location of a widget in the VCV Rack design."""
+    def __init__(self, id:str, xCenter:float, yCenter:float) -> None:
+        super().__init__('circle', id)
+        self.setAttribFloat('cx', xCenter)
+        self.setAttribFloat('cy', yCenter)
+        self.setAttribFloat('r', 1.0)
+
+
+class ControlLayer(Element):
+    """A layer that contains invisible elements used for defining widget positions."""
+    def __init__(self) -> None:
+        super().__init__('g', 'ControlLayer')
+        #self.setAttrib('style', 'display:none;')
+
+
 class Panel(Element):
     """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
     def __init__(self, hpWidth:int) -> None:
