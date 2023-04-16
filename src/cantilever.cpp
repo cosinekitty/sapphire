@@ -42,6 +42,9 @@ struct CantileverModule : Module
     void initialize()
     {
         engine.initialize();
+        auto& r = engine.rods;
+        r.at(9).pos.x = r.at(8).pos.x;
+        r.at(9).pos.y = r.at(8).pos.y + engine.restLength;
     }
 
     void onReset(const ResetEvent& e) override
@@ -55,6 +58,8 @@ struct CantileverModule : Module
         const float halflife = 5.0f;
         float sample[2];
         engine.process(args.sampleTime, halflife, sample);
+        outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
+        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
     }
 };
 

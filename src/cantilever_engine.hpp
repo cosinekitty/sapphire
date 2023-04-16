@@ -116,13 +116,13 @@ namespace Sapphire
         const int nrods = 10;
         std::vector<RodVector> forceList;
         std::vector<Rod> nextRods;
-        const float speedLimit = 10.0f;     // [m/s]
-        const float restLength = 0.01f;     // [m]
-        const float mass = 1.0e-4f;         // [kg]
         float bend = 0.0001f;               // joint rotary stiffness [N*m/rad]
         float stretch = 10.0f;              // rod tensile stiffness [N/m]
 
     public:
+        const float speedLimit = 10.0f;     // [m/s]
+        const float restLength = 0.01f;     // [m]
+        const float mass = 1.0e-6f;         // [kg]
         std::vector<Rod> rods;
 
         void initialize()
@@ -155,8 +155,9 @@ namespace Sapphire
         {
             update(dt, halflife);
             RodVector tilt{1.0f, 1.0f};
-            sample[0] = dot(rods[7].vel, tilt);
-            sample[1] = dot(rods[8].vel, tilt);
+            const float factor = 1.0;
+            sample[0] = factor * dot(rods[7].vel, tilt);
+            sample[1] = factor * dot(rods[8].vel, tilt);
         }
 
     private:
