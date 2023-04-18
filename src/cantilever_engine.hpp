@@ -76,6 +76,14 @@ namespace Sapphire
             // This is analogous to multiplying a complex number by i.
             return RodVector{-y, +x};
         }
+
+        RodVector rotate(float degrees) const
+        {
+            float radians = degrees * (M_PI / 180.0);
+            float c = std::cos(radians);
+            float s = std::sin(radians);
+            return RodVector{x*c - y*s, x*s + y*c};
+        }
     };
 
     inline float dot(const RodVector& a, const RodVector& b)
@@ -113,32 +121,36 @@ namespace Sapphire
     class CantileverEngine
     {
     private:
-        const int nrods = 10;
         std::vector<RodVector> forceList;
         std::vector<Rod> nextRods;
-        float bend = 0.0001f;               // joint rotary stiffness [N*m/rad]
-        float stretch = 10.0f;              // rod tensile stiffness [N/m]
+        float bend{};           // joint rotary stiffness [N*m/rad]
+        float stretch{};        // rod tensile stiffness [N/m]
 
-    public:
-        const float speedLimit = 10.0f;     // [m/s]
-        const float restLength = 0.01f;     // [m]
-        const float mass = 1.0e-6f;         // [kg]
-        std::vector<Rod> rods;
-
-        void initialize()
+        void initRods()
         {
             rods.clear();
-
             Rod rod;
             rod.mass = mass;
-
             for (int i = 0; i < nrods; ++i)
             {
                 rod.pos = RodVector{restLength * (1+i), 0.0f};
                 rods.push_back(rod);
             }
-
             nextRods = rods;
+        }
+
+    public:
+        const int nrods = 47;
+        const float speedLimit = 10.0f;     // [m/s]
+        const float restLength = 0.01f;     // [m]
+        const float mass = 9.0e-8f;         // [kg]
+        std::vector<Rod> rods;
+
+        void initialize()
+        {
+            initRods();
+            setStretch();
+            setBend();
         }
 
         void update(float dt, float halflife)
@@ -154,10 +166,39 @@ namespace Sapphire
         void process(float dt, float halflife, float sample[2])
         {
             update(dt, halflife);
-            RodVector tilt{1.0f, 1.0f};
-            const float factor = 1.0;
-            sample[0] = factor * dot(rods[7].vel, tilt);
-            sample[1] = factor * dot(rods[8].vel, tilt);
+            const float factor = 1000.0f;
+            sample[0] = factor * rods[7].pos.y;
+            sample[1] = factor * rods[8].pos.y;
+        }
+
+        void rotateRod(int index, float degrees)
+        {
+            if (index >= 0 && index < nrods)
+            {
+                RodVector dir = rods[index].pos;
+                if (index > 0)
+                    dir -= rods[index-1].pos;
+
+                dir = dir.rotate(degrees);
+                if (index > 0)
+                    dir += rods[index-1].pos;
+
+                rods[index].pos = dir;
+            }
+        }
+
+        void setStretch(float knob = 0.5f)
+        {
+            // The `knob` value is an externally facing dial value.
+            // Map it to an internal exponential range.
+            stretch = 30.0f * std::pow(10.0f, 2.0f*(knob - 0.5f));
+        }
+
+        void setBend(float knob = 0.5f)
+        {
+            // The `knob` value is an externally facing dial value.
+            // Map it to an internal exponential range.
+            bend = 0.0001f * std::pow(10.0f, 2.0f*(knob - 0.5f));
         }
 
     private:

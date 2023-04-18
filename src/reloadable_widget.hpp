@@ -126,6 +126,13 @@ namespace rack
             addReloadableOutput(port, svgId);
         }
 
+        RoundLargeBlackKnob *addKnob(int paramId, const char *svgId)
+        {
+            RoundLargeBlackKnob *knob = createParamCentered<RoundLargeBlackKnob>(Vec{}, module, paramId);
+            addReloadableParam(knob, svgId);
+            return knob;
+        }
+
         void appendContextMenu(Menu *menu) override
         {
             if (isReloadEnabled)
