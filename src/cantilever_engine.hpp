@@ -140,11 +140,16 @@ namespace Sapphire
         }
 
     public:
-        const int nrods = 47;
+        const int nrods;
         const float speedLimit = 10.0f;     // [m/s]
         const float restLength = 0.01f;     // [m]
         const float mass = 9.0e-8f;         // [kg]
         std::vector<Rod> rods;
+
+        explicit CantileverEngine(int _nrods)
+            : nrods(_nrods)
+        {
+        }
 
         void initialize()
         {

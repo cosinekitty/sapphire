@@ -7,7 +7,7 @@
 
 struct CantileverModule : Module
 {
-    Sapphire::CantileverEngine engine;
+    Sapphire::CantileverEngine engine{47};
 
     enum ParamId
     {
