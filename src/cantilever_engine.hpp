@@ -124,7 +124,7 @@ namespace Sapphire
         std::vector<RodVector> forceList;
         std::vector<Rod> nextRods;
         float bend{};           // joint rotary stiffness [N*m/rad]
-        float stretch{};        // rod tensile stiffness [N/m]
+        const float stretch = 1.0f;   // rod tensile stiffness [N/m]
 
         void initRods()
         {
@@ -154,7 +154,6 @@ namespace Sapphire
         void initialize()
         {
             initRods();
-            setStretch();
             setBend();
         }
 
@@ -192,18 +191,11 @@ namespace Sapphire
             }
         }
 
-        void setStretch(float knob = 0.5f)
-        {
-            // The `knob` value is an externally facing dial value.
-            // Map it to an internal exponential range.
-            stretch = 1.0f * std::pow(10.0f, 2.0f*(knob - 0.5f));
-        }
-
         void setBend(float knob = 0.5f)
         {
             // The `knob` value is an externally facing dial value.
             // Map it to an internal exponential range.
-            bend = 5.0e-5f * std::pow(10.0f, 3.0f*(knob - 0.5f));
+            bend = 4.0e-4f * std::pow(10.0f, 2.0f*(knob - 0.5f));
         }
 
     private:
