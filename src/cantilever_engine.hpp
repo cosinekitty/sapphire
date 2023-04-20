@@ -196,14 +196,14 @@ namespace Sapphire
         {
             // The `knob` value is an externally facing dial value.
             // Map it to an internal exponential range.
-            stretch = 30.0f * std::pow(10.0f, 2.0f*(knob - 0.5f));
+            stretch = 1.0f * std::pow(10.0f, 2.0f*(knob - 0.5f));
         }
 
         void setBend(float knob = 0.5f)
         {
             // The `knob` value is an externally facing dial value.
             // Map it to an internal exponential range.
-            bend = 0.0001f * std::pow(10.0f, 2.0f*(knob - 0.5f));
+            bend = 5.0e-5f * std::pow(10.0f, 3.0f*(knob - 0.5f));
         }
 
     private:

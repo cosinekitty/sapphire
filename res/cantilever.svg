@@ -14,7 +14,6 @@
     <g id="ControlLayer">
         <circle id="audio_left_output" cx="45" cy="90" r="1" />
         <circle id="audio_right_output" cx="45" cy="100" r="1" />
-        <circle id="stretch_knob" cx="30" cy="30" r="1" />
         <circle id="bend_knob" cx="30" cy="45" r="1" />
     </g>
 </svg>

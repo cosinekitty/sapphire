@@ -11,7 +11,6 @@ struct CantileverModule : Module
 
     enum ParamId
     {
-        STRETCH_KNOB_PARAM,
         BEND_KNOB_PARAM,
         PARAMS_LEN
     };
@@ -38,7 +37,6 @@ struct CantileverModule : Module
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
-        configParam(STRETCH_KNOB_PARAM, 0.0f, 1.0f, 0.5f, "Stretch", "");
         configParam(BEND_KNOB_PARAM, 0.0f, 1.0f, 0.5f, "Bend", "");
         initialize();
     }
@@ -59,7 +57,6 @@ struct CantileverModule : Module
     {
         const float halflife = 5.0f;
         float sample[2];
-        engine.setStretch(params[STRETCH_KNOB_PARAM].getValue());
         engine.setBend(params[BEND_KNOB_PARAM].getValue());
         engine.process(args.sampleTime, halflife, sample);
         outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * sample[0]);
@@ -80,7 +77,6 @@ struct CantileverWidget : ReloadableModuleWidget
 
         addSapphireOutput(CantileverModule::AUDIO_LEFT_OUTPUT,  "audio_left_output");
         addSapphireOutput(CantileverModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
-        addKnob(CantileverModule::STRETCH_KNOB_PARAM, "stretch_knob");
         addKnob(CantileverModule::BEND_KNOB_PARAM, "bend_knob");
 
         // Load the SVG and place all controls at their correct coordinates.
