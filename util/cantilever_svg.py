@@ -33,9 +33,10 @@ def GenerateMainPanel() -> int:
     cl = ControlLayer()
     cl.append(Component('audio_left_output',  45.0,  90.0))
     cl.append(Component('audio_right_output', 45.0, 100.0))
-    cl.append(Component('bend_knob',  30.0, 45.0))
-    cl.append(Component('tripx_knob', 30.0, 60.0))
-    cl.append(Component('tripy_knob', 30.0, 75.0))
+    cl.append(Component('bend_knob',   10.0, 45.0))
+    cl.append(Component('tripx_knob',  10.0, 60.0))
+    cl.append(Component('tripy_knob',  10.0, 75.0))
+    cl.append(Component('magnet_knob', 10.0, 90.0))
     panel.append(cl)
     return Save(panel, svgFileName)
 

@@ -128,6 +128,7 @@ namespace Sapphire
         float bend{};           // joint rotary stiffness [N*m/rad]
         float tripFrac{};       // fraction of cantilever length at which we detect trip
         float tripY{};          // y-coordinate above which we trip the magnet
+        float magnet{};         // magnetic field strength when active
         bool isTripped{};       // is the magnet currently tripped?
 
         void initRods()
@@ -161,6 +162,7 @@ namespace Sapphire
             setBend();
             setTripX();
             setTripY();
+            setMagnet();
             isTripped = false;
         }
 
@@ -179,7 +181,7 @@ namespace Sapphire
         {
             update(dt, halflife);
             const float factor = 1000.0f;
-            sample[0] = factor * ((rods[7].pos - rods[6].pos).magnitude() - restLength);
+            sample[0] = factor * ((rods[4].pos - rods[3].pos).magnitude() - restLength);
             sample[1] = factor * ((rods[8].pos - rods[7].pos).magnitude() - restLength);
         }
 
@@ -214,6 +216,11 @@ namespace Sapphire
         void setTripY(float knob = 0.5f)
         {
             tripY = (knob - 0.5f)*(restLength / 3.0f);
+        }
+
+        void setMagnet(float knob = 0.5)
+        {
+            magnet = 1.0e-3f * std::pow(10.0f, 2.0f*(knob - 1.0f));
         }
 
     private:
@@ -300,7 +307,7 @@ namespace Sapphire
                 if (isTripped && (i == n-1))
                 {
                     // Include a downward magnetic force.
-                    forceList[i].y -= 1.0e-3f;
+                    forceList[i].y -= magnet;
                 }
 
                 // Calculate torque caused by the bending of the left joint.
