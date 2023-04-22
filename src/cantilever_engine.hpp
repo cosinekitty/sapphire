@@ -206,14 +206,14 @@ namespace Sapphire
             bend = 4.0e-4f * std::pow(10.0f, 2.0f*(knob - 0.5f));
         }
 
-        void setTripX(float knob = 0.1f)
+        void setTripX(float knob = 0.5f)
         {
             tripFrac = std::max(0.0f, std::min(1.0f, knob));
         }
 
         void setTripY(float knob = 0.5f)
         {
-            tripY = (knob - 0.5f)*(restLength / 10.0f);
+            tripY = (knob - 0.5f)*(restLength / 3.0f);
         }
 
     private:

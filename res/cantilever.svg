@@ -15,5 +15,7 @@
         <circle id="audio_left_output" cx="45" cy="90" r="1" />
         <circle id="audio_right_output" cx="45" cy="100" r="1" />
         <circle id="bend_knob" cx="30" cy="45" r="1" />
+        <circle id="tripx_knob" cx="30" cy="60" r="1" />
+        <circle id="tripy_knob" cx="30" cy="75" r="1" />
     </g>
 </svg>
