@@ -129,6 +129,8 @@ namespace Sapphire
         float tripFrac{};       // fraction of cantilever length at which we detect trip
         float tripY{};          // y-coordinate above which we trip the magnet
         float magnet{};         // magnetic field strength when active
+        float halflife{};       // halflife of energy decay in seconds
+        float massFactor{};     // dimensionless coefficient to multiply by ball masses
         bool isTripped{};       // is the magnet currently tripped?
 
         void initRods()
@@ -163,23 +165,25 @@ namespace Sapphire
             setTripX();
             setTripY();
             setMagnet();
+            setHalfLife();
+            setMassFactor();
             isTripped = false;
         }
 
-        void update(float dt, float halflife)
+        void update(float dt)
         {
-            dampen(dt, halflife);
+            dampen(dt);
             updateTrip();
             calcForces(rods);
-            extrapolate(dt/2, speedLimit, forceList, rods, nextRods);
+            extrapolate(dt/2, speedLimit, massFactor, forceList, rods, nextRods);
             calcForces(nextRods);
-            extrapolate(dt, speedLimit, forceList, rods, nextRods);
+            extrapolate(dt, speedLimit, massFactor, forceList, rods, nextRods);
             rods = nextRods;
         }
 
-        void process(float dt, float halflife, float sample[2])
+        void process(float dt, float sample[2])
         {
-            update(dt, halflife);
+            update(dt);
             const float factor = 1000.0f;
             sample[0] = factor * ((rods[4].pos - rods[3].pos).magnitude() - restLength);
             sample[1] = factor * ((rods[8].pos - rods[7].pos).magnitude() - restLength);
@@ -218,13 +222,23 @@ namespace Sapphire
             tripY = (knob - 0.5f)*(restLength / 3.0f);
         }
 
-        void setMagnet(float knob = 0.5)
+        void setMagnet(float knob = 0.5f)
         {
             magnet = 1.0e-3f * std::pow(10.0f, 2.0f*(knob - 1.0f));
         }
 
+        void setHalfLife(float knob = 0.5f)
+        {
+            halflife = std::pow(10.0f, 3.0f*(knob - 0.5f));
+        }
+
+        void setMassFactor(float knob = 0.5f)
+        {
+            massFactor = std::pow(10.0f, 2.0f*(knob - 0.5f));
+        }
+
     private:
-        void dampen(float dt, float halflife)
+        void dampen(float dt)
         {
             // damp^(frictionHalfLife/dt) = 0.5.
             const float damp = pow(0.5, dt/halflife);
@@ -257,6 +271,7 @@ namespace Sapphire
         static void extrapolate(
             float dt,
             float speedLimit,
+            float massFactor,
             const std::vector<RodVector>& forceList,
             const std::vector<Rod>& sourceList,
             std::vector<Rod>& targetList)
@@ -266,7 +281,7 @@ namespace Sapphire
             for (int i = 0; i < n; ++i)
             {
                 // F = ma  ==>  a = F/m   ==>  dv = dt*(F/m)
-                RodVector dv = forceList[i] * (dt / sourceList[i].mass);
+                RodVector dv = forceList[i] * (dt / (massFactor * sourceList[i].mass));
 
                 // Assume the mean velocity over the interval is v + dv/2.
                 // dr = dt*(v + dv/2).

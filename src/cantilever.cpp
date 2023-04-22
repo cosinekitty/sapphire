@@ -15,6 +15,8 @@ struct CantileverModule : Module
         TRIP_POSITION_PARAM,
         TRIP_LEVEL_PARAM,
         MAGNET_STRENGTH_PARAM,
+        DECAY_KNOB_PARAM,
+        MASS_KNOB_PARAM,
         PARAMS_LEN
     };
 
@@ -44,6 +46,8 @@ struct CantileverModule : Module
         configParam(TRIP_POSITION_PARAM, 0.0f, 1.0f, 0.5f, "Trip position x");
         configParam(TRIP_LEVEL_PARAM, 0.0f, 1.0f, 0.5f, "Trip level y");
         configParam(MAGNET_STRENGTH_PARAM, 0.0f, 1.0f, 0.5f, "Magnet strength");
+        configParam(DECAY_KNOB_PARAM, 0.0f, 1.0f, 0.5f, "Decay");
+        configParam(MASS_KNOB_PARAM, 0.0f, 1.0f, 0.5f, "Mass factor");
         initialize();
     }
 
@@ -60,13 +64,14 @@ struct CantileverModule : Module
 
     void process(const ProcessArgs& args) override
     {
-        const float halflife = 5.0f;
         float sample[2];
+        engine.setHalfLife(params[DECAY_KNOB_PARAM].getValue());
+        engine.setMassFactor(params[MASS_KNOB_PARAM].getValue());
         engine.setBend(params[BEND_KNOB_PARAM].getValue());
         engine.setTripX(params[TRIP_POSITION_PARAM].getValue());
         engine.setTripY(params[TRIP_LEVEL_PARAM].getValue());
         engine.setMagnet(params[MAGNET_STRENGTH_PARAM].getValue());
-        engine.process(args.sampleTime, halflife, sample);
+        engine.process(args.sampleTime, sample);
         outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * sample[1]);
     }
@@ -85,6 +90,8 @@ struct CantileverWidget : ReloadableModuleWidget
 
         addSapphireOutput(CantileverModule::AUDIO_LEFT_OUTPUT,  "audio_left_output");
         addSapphireOutput(CantileverModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
+        addKnob(CantileverModule::DECAY_KNOB_PARAM, "decay_knob");
+        addKnob(CantileverModule::MASS_KNOB_PARAM, "mass_knob");
         addKnob(CantileverModule::BEND_KNOB_PARAM, "bend_knob");
         addKnob(CantileverModule::TRIP_POSITION_PARAM, "tripx_knob");
         addKnob(CantileverModule::TRIP_LEVEL_PARAM, "tripy_knob");
