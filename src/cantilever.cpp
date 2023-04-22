@@ -44,7 +44,6 @@ struct CantileverModule : Module
     void initialize()
     {
         engine.initialize();
-        engine.rotateRod(engine.nrods-1, 5.0f);
     }
 
     void onReset(const ResetEvent& e) override

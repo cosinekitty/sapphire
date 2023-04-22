@@ -121,10 +121,14 @@ namespace Sapphire
     class CantileverEngine
     {
     private:
+        const float stretch = 2.0f;   // rod tensile stiffness [N/m]
+
         std::vector<RodVector> forceList;
         std::vector<Rod> nextRods;
         float bend{};           // joint rotary stiffness [N*m/rad]
-        const float stretch = 1.0f;   // rod tensile stiffness [N/m]
+        float tripFrac{};       // fraction of cantilever length at which we detect trip
+        float tripY{};          // y-coordinate above which we trip the magnet
+        bool isTripped{};       // is the magnet currently tripped?
 
         void initRods()
         {
@@ -143,11 +147,11 @@ namespace Sapphire
         const int nrods;
         const float speedLimit = 10.0f;     // [m/s]
         const float restLength = 0.01f;     // [m]
-        const float mass = 9.0e-8f;         // [kg]
+        const float mass = 3.0e-8f;         // [kg]
         std::vector<Rod> rods;
 
         explicit CantileverEngine(int _nrods)
-            : nrods(_nrods)
+            : nrods(std::max(1, _nrods))
         {
         }
 
@@ -155,11 +159,15 @@ namespace Sapphire
         {
             initRods();
             setBend();
+            setTripX();
+            setTripY();
+            isTripped = false;
         }
 
         void update(float dt, float halflife)
         {
             dampen(dt, halflife);
+            updateTrip();
             calcForces(rods);
             extrapolate(dt/2, speedLimit, forceList, rods, nextRods);
             calcForces(nextRods);
@@ -171,8 +179,8 @@ namespace Sapphire
         {
             update(dt, halflife);
             const float factor = 1000.0f;
-            sample[0] = factor * rods[7].pos.y;
-            sample[1] = factor * rods[8].pos.y;
+            sample[0] = factor * ((rods[7].pos - rods[6].pos).magnitude() - restLength);
+            sample[1] = factor * ((rods[8].pos - rods[7].pos).magnitude() - restLength);
         }
 
         void rotateRod(int index, float degrees)
@@ -198,6 +206,16 @@ namespace Sapphire
             bend = 4.0e-4f * std::pow(10.0f, 2.0f*(knob - 0.5f));
         }
 
+        void setTripX(float knob = 0.1f)
+        {
+            tripFrac = std::max(0.0f, std::min(1.0f, knob));
+        }
+
+        void setTripY(float knob = 0.5f)
+        {
+            tripY = (knob - 0.5f)*(restLength / 10.0f);
+        }
+
     private:
         void dampen(float dt, float halflife)
         {
@@ -205,6 +223,28 @@ namespace Sapphire
             const float damp = pow(0.5, dt/halflife);
             for (Rod& r : rods)
                 r.vel *= damp;
+        }
+
+        void updateTrip()
+        {
+            // Find the y-coordinate of the point along the cantilever
+            // corresponding to the fraction of the cantilever's total length.
+            // First of all, which rod are we talking about?
+            float pos = tripFrac * nrods;
+            int rindex = std::max(0, std::min(nrods-1, static_cast<int>(std::floor(pos))));
+
+            // Secondly, how far along this rod are we talking about?
+            float rfrac = std::max(0.0f, std::min(1.0f, pos - rindex));
+
+            // Get the y-coordinates of this rod's endpoints.
+            float y1 = (rindex > 0) ? rods.at(rindex-1).pos.y : 0.0f;
+            float y2 = rods.at(rindex).pos.y;
+
+            // Interpolate the y-coordinate at the selected location along the rod.
+            float y = y1 + rfrac*(y2 - y1);
+
+            // Should the magnet be turned on or off?
+            isTripped = (y >= tripY);
         }
 
         static void extrapolate(
@@ -256,6 +296,12 @@ namespace Sapphire
                 // or negative if it is compressed and trying to get longer again.
                 RodVector tension = udir * (stretch*(length - restLength));
                 forceList[i] = -tension;
+
+                if (isTripped && (i == n-1))
+                {
+                    // Include a downward magnetic force.
+                    forceList[i].y -= 1.0e-3f;
+                }
 
                 // Calculate torque caused by the bending of the left joint.
                 // If this is the first rod, the bending is with respect to the x-direction.
