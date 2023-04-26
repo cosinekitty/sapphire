@@ -463,19 +463,6 @@ struct ElastikaWidget : ReloadableModuleWidget
         addReloadableInput(port, svgId);
     }
 
-    void addSapphireOutput(ElastikaModule::OutputId paramId, const char *svgId)
-    {
-        SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, paramId);
-        addReloadableOutput(port, svgId);
-    }
-
-    RoundLargeBlackKnob *addKnob(ElastikaModule::ParamId paramId, const char *svgId)
-    {
-        RoundLargeBlackKnob *knob = createParamCentered<RoundLargeBlackKnob>(Vec{}, module, paramId);
-        addReloadableParam(knob, svgId);
-        return knob;
-    }
-
     void appendContextMenu(Menu* menu) override
     {
         if (elastikaModule != nullptr)
