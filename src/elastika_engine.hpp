@@ -118,12 +118,12 @@ namespace Sapphire
 
     struct MeshAudioParameters
     {
-        int leftInputBallIndex        = -1;
-        int rightInputBallIndex       = -1;
-        int leftOutputBallIndex       = -1;
-        int rightOutputBallIndex      = -1;
-        int leftVarMassBallIndex      = -1;
-        int rightVarMassBallIndex     = -1;
+        int leftInputBallIndex        {-1};
+        int rightInputBallIndex       {-1};
+        int leftOutputBallIndex       {-1};
+        int rightOutputBallIndex      {-1};
+        int leftVarMassBallIndex      {-1};
+        int rightVarMassBallIndex     {-1};
         PhysicsVector leftInputDir1   {0.0f};
         PhysicsVector leftInputDir2   {0.0f};
         PhysicsVector rightInputDir1  {0.0f};
