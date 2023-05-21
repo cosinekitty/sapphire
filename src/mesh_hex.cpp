@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <assert.h>
 #include <math.h>
 #include "sapphire_engine.hpp"
