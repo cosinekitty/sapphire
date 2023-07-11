@@ -46,7 +46,7 @@ namespace Sapphire
 
         float& operator[](int i) { return s[i]; }
         const float& operator[](int i) const { return s[i]; }
-        static PhysicsVector zero() { return PhysicsVector(0.0); }
+        static PhysicsVector zero() { return PhysicsVector{}; }
     };
 
     inline PhysicsVector operator + (const PhysicsVector& a, const PhysicsVector& b)
