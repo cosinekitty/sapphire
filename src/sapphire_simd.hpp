@@ -1,6 +1,9 @@
 #ifndef __COSINEKITTY_SAPPHIRE_SIMD_HPP
 #define __COSINEKITTY_SAPPHIRE_SIMD_HPP
 
+#include <cmath>
+#include <vector>
+
 #ifdef NO_RACK_DEPENDENCY
 /*
  * In the rack context this ifdef isn't needed; rack gives you simde for free
