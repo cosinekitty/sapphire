@@ -3,16 +3,10 @@
 */
 
 #include <cstdio>
-#include "waterpool.hpp"
+#include "water_engine.hpp"
 #include "wavefile.hpp"
 
-const int WIDTH  = 120;
-const int HEIGHT =  50;
-
-using pool_t = Sapphire::WaterPoolSimd<WIDTH, HEIGHT>;
-
 const int STEPS  = 100000;
-
 const int CHANNELS = 2;
 const int SAMPLE_RATE = 48000;
 const float DURATION_SECONDS = 7.0f;
@@ -30,23 +24,33 @@ int main()
     const char *outFileName = "test/waterpool.wav";
 
     ScaledWaveFileWriter outwave;
-    if (!outwave.Open(outFileName, SAMPLE_RATE, 2))
+    if (!outwave.Open(outFileName, SAMPLE_RATE, CHANNELS))
     {
         printf("Cannot open output wave file: %s\n", outFileName);
         return 1;
     }
 
-    pool_t pool;
-    pool.putPos(WIDTH-10, 13, 1.0f);
+    WaterEngine engine;
+    engine.setHalfLife(halflife);
+    engine.setPropagation(k);
 
+    float input[CHANNELS] = {0.0f, 0.0f};
     float sample[CHANNELS];
     for (int frame = 0; frame < DURATION_FRAMES; ++frame)
     {
-        // Produce stereo output by listening to a pair of locations.
-        sample[0] = pool.get(30, 43).pos;
-        sample[1] = pool.get(31, 47).pos;
+        if (frame == 100)
+        {
+            input[0] = +1.0f;
+            input[1] = -1.0f;
+        }
+        else
+        {
+            input[0] = 0.0f;
+            input[1] = 0.0f;
+        }
+
+        engine.process(dt, sample[0], sample[1], input[0], input[1]);
         outwave.WriteSamples(sample, CHANNELS);
-        pool.update(dt, halflife, k);
     }
 
     outwave.Close();

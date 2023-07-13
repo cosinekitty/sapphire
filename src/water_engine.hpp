@@ -24,10 +24,20 @@ namespace Sapphire
         int leftOutputY  {WATERPOOL_HEIGHT/3};
         int rightOutputX {(WATERPOOL_WIDTH*9)/10};
         int rightOutputY {(WATERPOOL_HEIGHT*2)/3};
-        float halflife {0.3f};
+        float halflife   {0.3f};
         float propagation {250000.0f};
 
     public:
+        void setHalfLife(float newHalfLife)
+        {
+            halflife = Clamp(halflife, 0.01f, 10.0f);
+        }
+
+        void setPropagation(float k)
+        {
+            propagation = Clamp(k, 1.0f, 1.0e+9f);
+        }
+
         void process(float dt, float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
             // Feed input into the pool.
