@@ -9,8 +9,8 @@
 
 namespace Sapphire
 {
-    const int WATERPOOL_WIDTH  = 80;
-    const int WATERPOOL_HEIGHT = 60;
+    const int WATERPOOL_WIDTH  = 24;
+    const int WATERPOOL_HEIGHT = 24;
 
     class WaterEngine
     {
@@ -46,7 +46,7 @@ namespace Sapphire
             rightOutputX = (WATERPOOL_WIDTH*9)/10;
             rightOutputY = (WATERPOOL_HEIGHT*2)/3;
             halflife = 0.3f;
-            propagation = 250000.0f;
+            propagation = 5.5e+5f;
         }
 
         void setHalfLife(float newHalfLife)

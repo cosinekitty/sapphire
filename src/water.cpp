@@ -80,6 +80,14 @@ struct WaterPoolWidget : ReloadableModuleWidget
     {
         setModule(module);
 
+        // Audio input Jacks
+        addSapphireInput(WaterPoolModule::AUDIO_LEFT_INPUT, "audio_left_input");
+        addSapphireInput(WaterPoolModule::AUDIO_RIGHT_INPUT, "audio_right_input");
+
+        // Audio output jacks
+        addSapphireOutput(WaterPoolModule::AUDIO_LEFT_OUTPUT, "audio_left_output");
+        addSapphireOutput(WaterPoolModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
+
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();
     }
