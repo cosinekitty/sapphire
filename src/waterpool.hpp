@@ -102,7 +102,7 @@ namespace Sapphire
             }
         };
 
-        std::unique_ptr<buffer_t> buffer = std::make_unique<buffer_t>();
+        buffer_t *buffer = new buffer_t;
 
         inline float term(float hpos, int q, int x, int y) const
         {
@@ -110,6 +110,18 @@ namespace Sapphire
         }
 
     public:
+        ~WaterPoolSimd()
+        {
+            delete buffer;
+        }
+
+        void initialize()
+        {
+            for (int i = 0; i < QUADRANT_WIDTH; ++i)
+                for (int j = 0; j < QUADRANT_HEIGHT; ++j)
+                    buffer->array[i][j] = WaterCellSimd{};
+        }
+
         CellState get(int i, int j) const
         {
             coord_t c{i, j};

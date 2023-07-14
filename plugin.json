@@ -45,6 +45,18 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "WaterPool",
+      "name": "Water Pool",
+      "description": "Water pool waveguide synth.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Filter",
+        "Polyphonic",
+        "Reverb"
+      ]
     }
   ]
 }

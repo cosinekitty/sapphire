@@ -16,18 +16,39 @@ namespace Sapphire
     {
     private:
         WaterPoolSimd<WATERPOOL_WIDTH, WATERPOOL_HEIGHT> pool;
-        int leftInputX   {WATERPOOL_WIDTH/10};
-        int leftInputY   {WATERPOOL_HEIGHT/3};
-        int rightInputX  {WATERPOOL_WIDTH/10};
-        int rightInputY  {(WATERPOOL_HEIGHT*2)/3};
-        int leftOutputX  {(WATERPOOL_WIDTH*9)/10};
-        int leftOutputY  {WATERPOOL_HEIGHT/3};
-        int rightOutputX {(WATERPOOL_WIDTH*9)/10};
-        int rightOutputY {(WATERPOOL_HEIGHT*2)/3};
-        float halflife   {0.3f};
-        float propagation {250000.0f};
+        int leftInputX;
+        int leftInputY;
+        int rightInputX;
+        int rightInputY;
+        int leftOutputX;
+        int leftOutputY;
+        int rightOutputX;
+        int rightOutputY;
+        float halflife;
+        float propagation;
 
     public:
+        WaterEngine()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            // Reset to initial state.
+            pool.initialize();
+            leftInputX = WATERPOOL_WIDTH/10;
+            leftInputY = WATERPOOL_HEIGHT/3;
+            rightInputX = WATERPOOL_WIDTH/10;
+            rightInputY = (WATERPOOL_HEIGHT*2)/3;
+            leftOutputX = (WATERPOOL_WIDTH*9)/10;
+            leftOutputY = WATERPOOL_HEIGHT/3;
+            rightOutputX = (WATERPOOL_WIDTH*9)/10;
+            rightOutputY = (WATERPOOL_HEIGHT*2)/3;
+            halflife = 0.3f;
+            propagation = 250000.0f;
+        }
+
         void setHalfLife(float newHalfLife)
         {
             halflife = Clamp(halflife, 0.01f, 10.0f);
