@@ -58,11 +58,8 @@ def GenerateMainPanel() -> int:
     outJackDx = 12.0
     outJackDy =  5.0
     (levelKnobX, levelKnobY) = KnobPos(1, 4)
-    (ljx, ljy) = (levelKnobX + outJackDx, levelKnobY - outJackDy)
-    (rjx, rjy) = (levelKnobX + outJackDx, levelKnobY + outJackDy)
-
-    pl.append(Component('audio_left_output',  ljx, ljy))
-    pl.append(Component('audio_right_output', rjx, rjy))
+    pl.append(Component('audio_left_output',  levelKnobX + outJackDx, levelKnobY - outJackDy))
+    pl.append(Component('audio_right_output', levelKnobX + outJackDx, levelKnobY + outJackDy))
 
     panel.append(pl)
     return Save(panel, svgFileName)
