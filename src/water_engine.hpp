@@ -45,18 +45,18 @@ namespace Sapphire
             leftOutputY = WATERPOOL_HEIGHT/3;
             rightOutputX = (WATERPOOL_WIDTH*9)/10;
             rightOutputY = (WATERPOOL_HEIGHT*2)/3;
-            halflife = 0.3f;
-            propagation = 5.5e+5f;
+            setHalfLife();
+            setPropagation();
         }
 
-        void setHalfLife(float newHalfLife)
+        void setHalfLife(float h = -1.0f)
         {
-            halflife = Clamp(halflife, 0.01f, 10.0f);
+            halflife = std::pow(10.0f, Clamp(h, -2.0f, +1.0f));
         }
 
-        void setPropagation(float k)
+        void setPropagation(float k = 7.0f)
         {
-            propagation = Clamp(k, 1.0f, 1.0e+9f);
+            propagation = std::pow(10.0f, Clamp(k, 5.0f, 9.0f));
         }
 
         void process(float dt, float& leftOutput, float& rightOutput, float leftInput, float rightInput)

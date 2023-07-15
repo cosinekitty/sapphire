@@ -11,6 +11,7 @@ struct WaterPoolModule : Module
 
     enum ParamId
     {
+        PROPAGATION_PARAM,
         PARAMS_LEN
     };
 
@@ -36,6 +37,7 @@ struct WaterPoolModule : Module
     WaterPoolModule()
     {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+        configParam(PROPAGATION_PARAM, 4.0f, 8.9f, 7.0f, "Propagation");
         configInput(AUDIO_LEFT_INPUT, "Left audio");
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -62,6 +64,8 @@ struct WaterPoolModule : Module
 
         float leftIn = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
         float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+        float prop = params[PROPAGATION_PARAM].getValue();
+        engine.setPropagation(prop);
         float sample[2];
         engine.process(args.sampleTime, sample[0], sample[1], leftIn, rightIn);
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
@@ -79,6 +83,8 @@ struct WaterPoolWidget : ReloadableModuleWidget
         , waterPoolModule(module)
     {
         setModule(module);
+
+        addKnob(WaterPoolModule::PROPAGATION_PARAM, "propagation_knob");
 
         // Audio input Jacks
         addSapphireInput(WaterPoolModule::AUDIO_LEFT_INPUT, "audio_left_input");
