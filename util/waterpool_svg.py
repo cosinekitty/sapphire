@@ -62,6 +62,7 @@ def GenerateMainPanel() -> int:
     pl.append(Component('audio_right_output', levelKnobX + outJackDx, levelKnobY + outJackDy))
 
     pl.append(Component("propagation_knob", 20.0, 20.0))
+    pl.append(Component("dispersion_knob", 20.0, 35.0))
 
     panel.append(pl)
     return Save(panel, svgFileName)

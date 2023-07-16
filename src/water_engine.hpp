@@ -26,6 +26,7 @@ namespace Sapphire
         int rightOutputY;
         float halflife;
         float propagation;
+        float dispersion;
 
     public:
         WaterEngine()
@@ -47,6 +48,7 @@ namespace Sapphire
             rightOutputY = (WATERPOOL_HEIGHT*2)/3;
             setHalfLife();
             setPropagation();
+            setDispersion();
         }
 
         void setHalfLife(float h = -1.0f)
@@ -59,6 +61,11 @@ namespace Sapphire
             propagation = std::pow(10.0f, Clamp(k, 5.0f, 9.0f));
         }
 
+        void setDispersion(float r = 0.0f)
+        {
+            dispersion = Clamp(r, 0.0f, 1.0f);
+        }
+
         void process(float dt, float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
             // Feed input into the pool.
@@ -66,7 +73,7 @@ namespace Sapphire
             pool.putPos(rightInputX, rightInputY, rightInput);
 
             // Update the simulation state.
-            pool.update(dt, halflife, propagation);
+            pool.update(dt, halflife, propagation, dispersion);
 
             // Extract output from the pool.
             leftOutput  = pool.get(leftOutputX,  leftOutputY ).pos;

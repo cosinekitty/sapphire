@@ -16,6 +16,7 @@
 #define __COSINEKITTY_WATERPOOL_HPP
 
 #include <memory>
+#include <random>
 #include <stdexcept>
 #include "sapphire_simd.hpp"
 
@@ -27,12 +28,14 @@ namespace Sapphire
         float pos;
         float vel;
         float acc;
+        float rnd;
 
-        CellState(float _wet, float _pos, float _vel, float _acc)
+        CellState(float _wet, float _pos, float _vel, float _acc, float _rnd)
             : wet(_wet)
             , pos(_pos)
             , vel(_vel)
             , acc(_acc)
+            , rnd(_rnd)
             {}
     };
 
@@ -44,9 +47,17 @@ namespace Sapphire
         // For example, pos.s[0] is the position in quadrant 0,
         // pos.s[1] is the position in quadrant 1, etc.
         PhysicsVector wet {1.0f};
+        PhysicsVector rnd;
         PhysicsVector pos;
         PhysicsVector vel;
         PhysicsVector acc;
+
+        WaterCellSimd()
+            {}
+
+        explicit WaterCellSimd(float _rnd)
+            : rnd(_rnd)
+            {}
     };
 
     template <int WIDTH, int HEIGHT>
@@ -117,16 +128,19 @@ namespace Sapphire
 
         void initialize()
         {
+            std::mt19937 gen;
+            std::normal_distribution<float> dist {0.0f, 0.5f};
+
             for (int i = 0; i < QUADRANT_WIDTH; ++i)
                 for (int j = 0; j < QUADRANT_HEIGHT; ++j)
-                    buffer->array[i][j] = WaterCellSimd{};
+                    buffer->array[i][j] = WaterCellSimd{Clamp(dist(gen), -1.0f, +1.0f)};
         }
 
         CellState get(int i, int j) const
         {
             coord_t c{i, j};
             const WaterCellSimd& s = buffer->array[c.x][c.y];
-            return CellState{s.wet[c.q], s.pos[c.q], s.vel[c.q], s.acc[c.q]};
+            return CellState{s.wet[c.q], s.pos[c.q], s.vel[c.q], s.acc[c.q], s.rnd[c.q]};
         }
 
         void putWet(int i, int j, float wet)
@@ -147,7 +161,13 @@ namespace Sapphire
             buffer->array[c.x][c.y].vel[c.q] = vel;
         }
 
-        void update(float dt, float halflife, float k)
+        void putRnd(int i, int j, float rnd)
+        {
+            coord_t c{i, j};
+            buffer->array[c.x][c.y].rnd[c.q] = rnd;
+        }
+
+        void update(float dt, float halflife, float k, float r)
         {
             const float damp = std::pow(0.5f, dt/halflife);
 
@@ -278,7 +298,7 @@ namespace Sapphire
                 for (int j = 0; j <= H; ++j)
                 {
                     WaterCellSimd& h = buffer->array[i][j];
-                    h.vel = (damp * h.vel) + (dt * h.acc);
+                    h.vel = (damp * h.vel) + (dt * (1.0f + r*h.rnd) * h.acc);
                     h.pos += (dt * h.vel);
                 }
             }
