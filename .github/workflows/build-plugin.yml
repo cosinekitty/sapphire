@@ -3,7 +3,7 @@ on:
   [push, pull_request]
 
 env:
-  rack-sdk-version: 2.2.0
+  rack-sdk-version: 2.3.0
   rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
 
 defaults:
@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [win, linux]
+        platform: [win-x64, linux-x64]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,7 +35,7 @@ jobs:
         run: |
           export PLUGIN_DIR=$GITHUB_WORKSPACE
           pushd ${{ env.rack-plugin-toolchain-dir }}
-          make plugin-build-${{ matrix.platform }}-x64
+          make plugin-build-${{ matrix.platform }}
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -65,13 +65,15 @@ jobs:
           unzip Rack-SDK.zip
       - name: Build plugin
         run: |
+          CROSS_COMPILE_TARGET_x64=x86_64-apple-darwin
+          CROSS_COMPILE_TARGET_arm64=arm64-apple-darwin
           export RACK_DIR=$HOME/Rack-SDK
-          export CROSS_COMPILE=${{ matrix.platform }}
-          make -j dep
-          make -j dist
-          lipo -archs plugin.dylib
+          export CROSS_COMPILE=$CROSS_COMPILE_TARGET_${{ matrix.platform }}
+          make dep
+          make dist
+          echo "Plugin architecture '$(lipo -archs plugin*.dylib)'"
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          path: dist
-          name: mac
+          path: dist/*.vcvplugin
+          name: mac-${{ matrix.platform }}
