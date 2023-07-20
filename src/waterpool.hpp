@@ -65,6 +65,8 @@ namespace Sapphire
             WaterCellSimd array[QUADRANT_WIDTH][QUADRANT_HEIGHT];
         };
 
+        buffer_t *buffer = new buffer_t;
+
         struct coord_t
         {
             const int x;
@@ -101,8 +103,6 @@ namespace Sapphire
                     throw std::range_error("cannot recalc j");
             }
         };
-
-        buffer_t *buffer = new buffer_t;
 
         inline float term(float hpos, int q, int x, int y) const
         {
