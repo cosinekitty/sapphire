@@ -21,21 +21,6 @@
 
 namespace Sapphire
 {
-    struct CellState
-    {
-        float wet;
-        float pos;
-        float vel;
-        float acc;
-
-        CellState(float _wet, float _pos, float _vel, float _acc)
-            : wet(_wet)
-            , pos(_pos)
-            , vel(_vel)
-            , acc(_acc)
-            {}
-    };
-
     class WaterCellSimd
     {
     public:
@@ -120,13 +105,6 @@ namespace Sapphire
             for (int i = 0; i < QUADRANT_WIDTH; ++i)
                 for (int j = 0; j < QUADRANT_HEIGHT; ++j)
                     buffer->array[i][j] = WaterCellSimd{};
-        }
-
-        CellState get(int i, int j) const
-        {
-            coord_t c{i, j};
-            const WaterCellSimd& s = buffer->array[c.x][c.y];
-            return CellState{s.wet[c.q], s.pos[c.q], s.vel[c.q], s.acc[c.q]};
         }
 
         float& wet(int i, int j)
