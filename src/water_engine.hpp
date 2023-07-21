@@ -70,20 +70,20 @@ namespace Sapphire
             // Update the water state.
             pool.update(dt, halflife, propagation);
 
+            // Extract output from the pool.
+            leftOutput  = pool.pos(leftOutputX,  leftOutputY );
+            rightOutput = pool.pos(rightOutputX, rightOutputY);
+
             // Calculate a gate signal based on whether a simulated reflection
             // of a laser beam from a specific location on the surface falls inside
             // a designated target area.
-            float lx = pool.pos(leftOutputX, leftOutputY) - pool.pos(leftOutputX-1, leftOutputY);
-            float ly = pool.pos(leftOutputX, leftOutputY) - pool.pos(leftOutputX, leftOutputY-1);
+            float lx = leftOutput - pool.pos(leftOutputX-1, leftOutputY);
+            float ly = leftOutput - pool.pos(leftOutputX, leftOutputY-1);
             const float lr = 0.001f;
             if (lx*lx + ly*ly < lr*lr)
                 agitator = 10.0f;
             else
                 agitator = 0.0f;
-
-            // Extract output from the pool.
-            leftOutput  = pool.pos(leftOutputX,  leftOutputY );
-            rightOutput = pool.pos(rightOutputX, rightOutputY);
         }
 
         float getAgitator() const
