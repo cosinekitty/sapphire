@@ -60,6 +60,7 @@ def GenerateMainPanel() -> int:
     (levelKnobX, levelKnobY) = KnobPos(1, 4)
     pl.append(Component('audio_left_output',  levelKnobX + outJackDx, levelKnobY - outJackDy))
     pl.append(Component('audio_right_output', levelKnobX + outJackDx, levelKnobY + outJackDy))
+    pl.append(Component('agitator_output', levelKnobX + outJackDx, levelKnobY - 3*outJackDy))
 
     pl.append(Component("propagation_knob", 20.0, 20.0))
 

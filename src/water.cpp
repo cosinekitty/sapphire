@@ -26,6 +26,7 @@ struct WaterPoolModule : Module
     {
         AUDIO_LEFT_OUTPUT,
         AUDIO_RIGHT_OUTPUT,
+        AGITATOR_OUTPUT,
         OUTPUTS_LEN
     };
 
@@ -42,6 +43,7 @@ struct WaterPoolModule : Module
         configInput(AUDIO_RIGHT_INPUT, "Right audio");
         configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+        configOutput(AGITATOR_OUTPUT, "Agitator");
         configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
         configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
         initialize();
@@ -70,6 +72,7 @@ struct WaterPoolModule : Module
         engine.process(args.sampleTime, sample[0], sample[1], leftIn, rightIn);
         outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
         outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
+        outputs[AGITATOR_OUTPUT].setVoltage(engine.getAgitator());
     }
 };
 
@@ -93,6 +96,7 @@ struct WaterPoolWidget : ReloadableModuleWidget
         // Audio output jacks
         addSapphireOutput(WaterPoolModule::AUDIO_LEFT_OUTPUT, "audio_left_output");
         addSapphireOutput(WaterPoolModule::AUDIO_RIGHT_OUTPUT, "audio_right_output");
+        addSapphireOutput(WaterPoolModule::AGITATOR_OUTPUT, "agitator_output");
 
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();

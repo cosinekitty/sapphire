@@ -129,30 +129,32 @@ namespace Sapphire
             return CellState{s.wet[c.q], s.pos[c.q], s.vel[c.q], s.acc[c.q]};
         }
 
-        void putWet(int i, int j, float wet)
+        float& wet(int i, int j)
         {
             coord_t c{i, j};
-            buffer->array[c.x][c.y].wet[c.q] = wet;
+            return buffer->array[c.x][c.y].wet[c.q];
         }
 
-        void putPos(int i, int j, float pos)
+        float& pos(int i, int j)
         {
             coord_t c{i, j};
-            buffer->array[c.x][c.y].pos[c.q] = pos;
+            return buffer->array[c.x][c.y].pos[c.q];
         }
 
-        void putVel(int i, int j, float vel)
+        float& vel(int i, int j)
         {
             coord_t c{i, j};
-            buffer->array[c.x][c.y].vel[c.q] = vel;
+            return buffer->array[c.x][c.y].vel[c.q];
         }
 
-        void update(float dt, float halflife, float k)
+        float& acc(int i, int j)
         {
-            const float damp = std::pow(0.5f, dt/halflife);
+            coord_t c{i, j};
+            return buffer->array[c.x][c.y].acc[c.q];
+        }
 
-            // First pass: calculate accelerations.
-
+        void calcAccelerations(float k)
+        {
             for (int i = 1; i < W; ++i)
             {
                 // The interior region of each quadrant benefits from SIMD optimizations
@@ -270,6 +272,11 @@ namespace Sapphire
                         term(h.pos[q], q^1, 0  , H  )
                     );
             }
+        }
+
+        void updateMovement(float dt, float halflife)
+        {
+            const float damp = std::pow(0.5f, dt/halflife);
 
             // Second pass: use accelerations to update velocities and positions.
             // We can use SIMD for all cells because these calculations are all local to each cell.
@@ -282,6 +289,12 @@ namespace Sapphire
                     h.pos += (dt * h.vel);
                 }
             }
+        }
+
+        void update(float dt, float halflife, float k)
+        {
+            calcAccelerations(k);
+            updateMovement(dt, halflife);
         }
     };
 }
