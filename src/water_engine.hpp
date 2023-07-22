@@ -27,6 +27,7 @@ namespace Sapphire
         float halflife;
         float propagation;
         float agitator;
+        float detectorRadius;
 
     public:
         WaterEngine()
@@ -48,6 +49,7 @@ namespace Sapphire
             rightOutputY = (WATERPOOL_HEIGHT*2)/3;
             setHalfLife();
             setPropagation();
+            setDetectorRadius();
             agitator = 0.0f;
         }
 
@@ -59,6 +61,11 @@ namespace Sapphire
         void setPropagation(float k = 7.0f)
         {
             propagation = std::pow(10.0f, Clamp(k, 5.0f, 9.0f));
+        }
+
+        void setDetectorRadius(float r = -3.0f)
+        {
+            detectorRadius = std::pow(10.0f, Clamp(r, -5.0f, -1.0f));
         }
 
         void process(float dt, float& leftOutput, float& rightOutput, float leftInput, float rightInput)
@@ -79,8 +86,7 @@ namespace Sapphire
             // a designated target area.
             float lx = leftOutput - pool.pos(leftOutputX-1, leftOutputY);
             float ly = leftOutput - pool.pos(leftOutputX, leftOutputY-1);
-            const float lr = 0.001f;
-            if (lx*lx + ly*ly < lr*lr)
+            if (lx*lx + ly*ly < detectorRadius*detectorRadius)
                 agitator = 10.0f;
             else
                 agitator = 0.0f;

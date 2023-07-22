@@ -25,5 +25,6 @@
         <circle id="agitator_output" cx="52.5" cy="92.5" r="1" />
         <circle id="propagation_knob" cx="20" cy="20" r="1" />
         <circle id="decay_knob" cx="20" cy="45" r="1" />
+        <circle id="radius_knob" cx="20" cy="60" r="1" />
     </g>
 </svg>

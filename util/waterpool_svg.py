@@ -64,6 +64,7 @@ def GenerateMainPanel() -> int:
 
     pl.append(Component("propagation_knob", 20.0, 20.0))
     pl.append(Component("decay_knob", 20.0, 45.0))
+    pl.append(Component("radius_knob", 20.0, 60.0))
 
     panel.append(pl)
     return Save(panel, svgFileName)
