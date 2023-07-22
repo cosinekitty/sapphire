@@ -63,6 +63,7 @@ def GenerateMainPanel() -> int:
     pl.append(Component('agitator_output', levelKnobX + outJackDx, levelKnobY - 3*outJackDy))
 
     pl.append(Component("propagation_knob", 20.0, 20.0))
+    pl.append(Component("decay_knob", 20.0, 45.0))
 
     panel.append(pl)
     return Save(panel, svgFileName)

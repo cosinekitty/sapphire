@@ -53,7 +53,7 @@ namespace Sapphire
 
         void setHalfLife(float h = -1.0f)
         {
-            halflife = std::pow(10.0f, Clamp(h, -2.0f, +1.0f));
+            halflife = std::pow(10.0f, Clamp(h, -3.0f, +1.0f));
         }
 
         void setPropagation(float k = 7.0f)
