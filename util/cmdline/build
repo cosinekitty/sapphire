@@ -9,6 +9,9 @@ else
     OPTS="-O3"
 fi
 
+g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -o bin/lohifilter -D NO_RACK_DEPENDENCY \
+    lohifilter.cpp || exit 1
+
 g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elastika -D NO_RACK_DEPENDENCY \
     elastika_standalone.cpp \
     ${SAPPHIRE_SRC}/mesh_hex.cpp \
