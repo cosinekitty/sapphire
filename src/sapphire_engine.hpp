@@ -153,7 +153,7 @@ namespace Sapphire
             if (first)
             {
                 first = false;
-                yprev = x;
+                yprev = 0;
             }
             else
             {
