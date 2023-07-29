@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "reloadable_widget.hpp"
+#include "sapphire_widget.hpp"
 #include "elastika_engine.hpp"
 
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
@@ -377,13 +377,13 @@ public:
 using SliderType = VCVLightSlider<YellowLight>;
 
 
-struct ElastikaWidget : ReloadableModuleWidget
+struct ElastikaWidget : SapphireReloadableModuleWidget
 {
     ElastikaModule *elastikaModule;
     ElastikaWarningLightWidget *warningLight = nullptr;
 
     explicit ElastikaWidget(ElastikaModule* module)
-        : ReloadableModuleWidget(asset::plugin(pluginInstance, "res/elastika.svg"))
+        : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/elastika.svg"))
         , elastikaModule(module)
     {
         setModule(module);
