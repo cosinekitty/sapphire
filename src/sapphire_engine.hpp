@@ -139,27 +139,18 @@ namespace Sapphire
     class LoHiPassFilter
     {
     private:
-        bool  first {true};
         value_t xprev {};
         value_t yprev {};
         float fc {20.0f};
 
     public:
-        void Reset() { first = true; }
+        void Reset() { xprev = yprev = 0; }
         void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
 
         void Update(value_t x, float sampleRateHz)
         {
-            if (first)
-            {
-                first = false;
-                yprev = 0;
-            }
-            else
-            {
-                float c = sampleRateHz / (M_PI * fc);
-                yprev = (x + xprev - yprev*(1 - c)) / (1 + c);
-            }
+            float c = sampleRateHz / (M_PI * fc);
+            yprev = (x + xprev - yprev*(1 - c)) / (1 + c);
             xprev = x;
         }
 
