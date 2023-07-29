@@ -457,12 +457,6 @@ struct ElastikaWidget : ReloadableModuleWidget
         addReloadableParam(trimpot, svgId);
     }
 
-    void addSapphireInput(ElastikaModule::InputId paramId, const char *svgId)
-    {
-        SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, paramId);
-        addReloadableInput(port, svgId);
-    }
-
     void appendContextMenu(Menu* menu) override
     {
         if (elastikaModule != nullptr)

@@ -120,6 +120,12 @@ namespace rack
             svgWidgetMap[svgid] = output;
         }
 
+        void addSapphireInput(int paramId, const char *svgId)
+        {
+            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, paramId);
+            addReloadableInput(port, svgId);
+        }
+
         void addSapphireOutput(int paramId, const char *svgId)
         {
             SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, paramId);
