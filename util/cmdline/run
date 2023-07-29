@@ -1,14 +1,14 @@
 #!/bin/bash
 echo "Sapphire engines standalone test: running ..."
-rm -f test/*.wav
+rm -f test/*.wav bin/{elastika,tubeunit}
 echo "Compiling..."
 ./build || exit 1
 echo "Running Elastika..."
-./elastika || exit 1
+./bin/elastika || exit 1
 echo "Running TubeUnit..."
-./tubeunit || exit 1
+./bin/tubeunit || exit 1
 ls -l test/*.wav
 diff {test,correct}/elastika.wav || exit 1
-#diff {test,correct}/tubeunit.wav || exit 1
+diff {test,correct}/tubeunit.wav || exit 1
 echo "Sapphire engines standalone test: PASS"
 exit 0
