@@ -1,9 +1,9 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
-#include "filter_tree_16.hpp"
+#include "filter_tree_8.hpp"
 
-using filter_t = Sapphire::FilterTree_16<float>;
-static_assert(filter_t::NBANDS == PORT_MAX_CHANNELS, "FilterTree_16 has wrong number of frequency bands.");
+using filter_t = Sapphire::FilterTree_8<float>;
+static_assert(filter_t::NBANDS == 8, "FilterTree_8 has wrong number of frequency bands.");
 
 // Sapphire Spectrum for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire

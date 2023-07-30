@@ -1,0 +1,15 @@
+#/bin/bash
+
+python3 patch_elastika.py || exit 1
+
+mypy --strict tubeunit_svg.py || exit 1
+python3 tubeunit_svg.py || exit 1
+
+mypy --strict spectrum_svg.py || exit 1
+python3 spectrum_svg.py || exit 1
+
+mypy --strict GenerateFilterTree.py || exit 1
+python3 GenerateFilterTree.py ../src/filter_tree_8.hpp 3 20.0 20000.0 || exit 1
+
+echo "codegen: Finished."
+exit 0
