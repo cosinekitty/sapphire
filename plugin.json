@@ -45,6 +45,16 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "Spectrum",
+      "name": "Spectrum",
+      "description": "Super-simple 16-band frequency splitter.",
+      "tags": [
+        "Equalizer",
+        "Filter",
+        "Polyphonic"
+      ]
     }
   ]
 }
