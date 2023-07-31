@@ -4,7 +4,9 @@ SAPPHIRE_SRC=../../src
 rm -f elastika tubeunit
 
 if [[ "$1" == "debug" ]]; then
-    OPTS="-ggdb3 -g3 -O0"
+    OPTS="-ggdb3 -g3 -Og"
+elif [[ "$1" == "asan" ]]; then
+    OPTS="-fsanitize=address -static-libasan -g -Og"
 else
     OPTS="-O3"
 fi

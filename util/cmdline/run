@@ -2,7 +2,7 @@
 echo "Sapphire engines standalone test: running ..."
 rm -f test/*.wav test/lohifilter.txt bin/{elastika,tubeunit}
 echo "Compiling..."
-./build || exit 1
+./build $1 || exit 1
 echo "Running filter test..."
 ./bin/lohifilter > test/lohifilter.txt || exit 1
 echo "Running Elastika..."
