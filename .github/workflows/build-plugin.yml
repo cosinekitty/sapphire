@@ -1,9 +1,8 @@
 name: Build VCV Rack Plugin
-on:
-  [push, pull_request]
+on: [push, pull_request]
 
 env:
-  rack-sdk-version: 2.3.0
+  rack-sdk-version: latest
   rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
 
 defaults:
@@ -44,7 +43,7 @@ jobs:
 
   build-mac:
     name: mac
-    runs-on: macos-12
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -71,7 +70,6 @@ jobs:
           export CROSS_COMPILE=$CROSS_COMPILE_TARGET_${{ matrix.platform }}
           make dep
           make dist
-          echo "Plugin architecture '$(lipo -archs plugin*.dylib)'"
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
