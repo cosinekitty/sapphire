@@ -45,6 +45,16 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "VoltJerky",
+      "name": "Volt Jerky",
+      "description": "Chaotic oscillator based on J. C. Sprott's jerk circuit.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Oscillator"
+      ]
     }
   ]
 }
