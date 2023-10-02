@@ -4,7 +4,7 @@
 For more information, see:
 https://github.com/cosinekitty/svgpanel
 """
-from typing import Any, List, Tuple, Dict
+from typing import Any, List, Tuple, Dict, Optional
 from enum import Enum, unique
 import xml.etree.ElementTree as et
 from fontTools.ttLib import TTFont                          # type: ignore
@@ -15,6 +15,8 @@ from fontTools.misc.transform import DecomposedTransform    # type: ignore
 # Prevent seeing lots of "ns0:" everywhere when we re-serialized the XML.
 et.register_namespace('', 'http://www.w3.org/2000/svg')
 
+HP_WIDTH_MM = 5.08
+PANEL_HEIGHT_MM = 128.5
 
 class Error(Exception):
     """Indicates an error in an svgpanel function."""
@@ -131,9 +133,10 @@ class TextItem:
         """Generate the SVG path that draws this text block at a given location."""
         return self.font.render(self.text, x, y, self.points)
 
-    def measure(self) -> Tuple[float,float]:
+    def measure(self, xscale:float = 1.0, yscale:float = 1.0) -> Tuple[float,float]:
         """Returns a (width, height) tuple of a rectangle that fits around this text block."""
-        return self.font.measure(self.text, self.points)
+        (width, height) = self.font.measure(self.text, self.points)
+        return (xscale*width, yscale*height)
 
     def toPath(
             self,
@@ -142,22 +145,26 @@ class TextItem:
             horizontal: HorizontalAlignment,
             vertical: VerticalAlignment,
             style: str = '',
-            id: str = '') -> 'TextPath':
+            id: str = '',
+            xscale: float = 1.0,
+            yscale: float = 1.0) -> 'TextPath':
         """Converts this text block to a path with a given vertical and horizontal alignment."""
-        (dx, dy) = self.measure()
+        (dx, dy) = self.measure(xscale, yscale)
         x = xpos + dx*_HorAdjust(horizontal)
         y = ypos + dy*_VerAdjust(vertical)
         tp = TextPath(self, x, y, id)
+        if (xscale != 1.0) or (yscale != 1.0):
+            tp.setAttrib('transform', 'scale({:0.6g},{:0.6g})'.format(xscale, yscale))
         tp.setAttrib('style', style)
         return tp
 
 
 class Element:
     """An XML element inside an SVG file."""
-    def __init__(self, tag:str, id:str = '') -> None:
+    def __init__(self, tag:str, id:str = '', children: Optional[List['Element']] = None) -> None:
         self.tag = tag
         self.attrib: Dict[str, str] = {}
-        self.children: List[Element] = []
+        self.children: List[Element] = children or []
         self.setAttrib('id', id)
 
     def setAttrib(self, key:str, value:str) -> 'Element':
@@ -183,6 +190,41 @@ class Element:
         return elem
 
 
+class Path(Element):
+    """An SVG path with pre-rendered coordinates."""
+    def __init__(self, dpath:str, style:str = '', id:str = '') -> None:
+        super().__init__('path', id)
+        self.setAttrib('d', dpath)
+        self.setAttrib('style', style)
+
+
+class LineElement(Element):
+    """SVG Line"""
+    def __init__(self, x1:float, y1:float, x2:float, y2:float, style:str = '', id:str = '') -> None:
+        super().__init__('line', id)
+        self.setAttrib('x1', '{:0.2f}'.format(x1))
+        self.setAttrib('y1', '{:0.2f}'.format(y1))
+        self.setAttrib('x2', '{:0.2f}'.format(x2))
+        self.setAttrib('y2', '{:0.2f}'.format(y2))
+        self.setAttrib('style', style)
+
+
+class Polyline(Element):
+    """SVG Polyline"""
+    def __init__(self, points:str, style:str = '', id:str = '') -> None:
+        super().__init__('polyline', id)
+        self.setAttrib('points', points)
+        self.setAttrib('style', style)
+
+
+class Polygon(Element):
+    """SVG Polygon"""
+    def __init__(self, points:str, style:str = '', id:str = '') -> None:
+        super().__init__('polygon', id)
+        self.setAttrib('points', points)
+        self.setAttrib('style', style)
+
+
 class TextPath(Element):
     """An SVG path that is rendered from text expressed in a given font and size."""
     def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:
@@ -196,8 +238,8 @@ class BorderRect(Element):
         super().__init__('rect', 'border_rect')
         if hpWidth <= 0:
             raise Error('Invalid hpWidth={}'.format(hpWidth))
-        self.setAttribFloat('width', 5.08 * hpWidth)
-        self.setAttribFloat('height', 128.5)
+        self.setAttribFloat('width', HP_WIDTH_MM * hpWidth)
+        self.setAttribFloat('height', PANEL_HEIGHT_MM)
         self.setAttrib('x', '0')
         self.setAttrib('y', '0')
         self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
@@ -238,8 +280,8 @@ class Panel(Element):
         super().__init__('svg')
         if hpWidth <= 0:
             raise Error('Invalid hpWidth={}'.format(hpWidth))
-        self.mmWidth = 5.08 * hpWidth
-        self.mmHeight = 128.5
+        self.mmWidth = HP_WIDTH_MM * hpWidth
+        self.mmHeight = PANEL_HEIGHT_MM
         self.setAttrib('xmlns', 'http://www.w3.org/2000/svg')
         self.setAttrib('width', '{:0.2f}mm'.format(self.mmWidth))
         self.setAttrib('height', '{:0.2f}mm'.format(self.mmHeight))
