@@ -14,7 +14,9 @@ namespace Analog
     class JerkCircuit
     {
     private:
-        const double timeDilation;
+        const double maxDt = 2.3e-5;
+        double timeDilation = 1.0;
+        double timeDilationExponent = 0.0;      // cached for efficiency, to avoid redundant calls to std::pow()
         const double w0;    // initial voltage of capacitor C1
         const double x0;    // initial voltage of capacitor C2
         const double y0;    // initial voltage of capacitor C3
@@ -52,31 +54,8 @@ namespace Analog
         double dx{};
         double dy{};
 
-    public:
-        const int iterationLimit = 5;
-
-        JerkCircuit(double _timeDilation, double _w0, double _x0, double _y0)
-            : timeDilation(_timeDilation)
-            , w0(_w0)
-            , x0(_x0)
-            , y0(_y0)
+        int step(double dt)
         {
-            initialize();
-        }
-
-        void initialize()
-        {
-            w1 = w0;
-            x1 = x0;
-            y1 = y0;
-            z1 = -(R6/R4)*x0;       // op-amp acts instantly
-            dw = dx = dy = 0;
-        }
-
-        int update(float sampleRateHz)
-        {
-            double dt = timeDilation / sampleRateHz;
-
             // Form an initial guess about the mean voltage during the time interval `dt`.
             // Use linear extrapolation to guess that the voltages will keep changing
             // at the same rate they did in the previous sample.
@@ -132,6 +111,47 @@ namespace Analog
                 zm = (z1 + z2)/2;
             }
         }
+
+    public:
+        const int iterationLimit = 5;
+
+        JerkCircuit(double _w0, double _x0, double _y0)
+            : w0(_w0)
+            , x0(_x0)
+            , y0(_y0)
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            w1 = w0;
+            x1 = x0;
+            y1 = y0;
+            z1 = -(R6/R4)*x0;       // op-amp acts instantly
+            dw = dx = dy = 0;
+        }
+
+        int update(float sampleRateHz)
+        {
+            double dt = timeDilation / sampleRateHz;
+            int nsteps = static_cast<int>(std::ceil(dt / maxDt));
+            dt /= nsteps;
+            int iter = 0;
+            for (int s = 0; s < nsteps; ++s)
+                iter += step(dt);
+            return iter;
+        }
+
+        void setTimeDilationExponent(double exponent)
+        {
+            if (exponent != timeDilationExponent)
+            {
+                timeDilationExponent = exponent;
+                timeDilation = std::pow(10.0, exponent);
+            }
+        }
+
 
         double wVoltage() const { return w1; }
         double xVoltage() const { return x1; }

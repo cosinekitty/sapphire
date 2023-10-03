@@ -34,6 +34,7 @@ def GenerateMainPanel() -> int:
         pl.append(Component('w_output', 40.0, outputPortY1 + 0*outputPortDY))
         pl.append(Component('x_output', 40.0, outputPortY1 + 1*outputPortDY))
         pl.append(Component('y_output', 40.0, outputPortY1 + 2*outputPortDY))
+        pl.append(Component('time_dilation_knob', 25.0, 70.0))
     panel.append(pl)
     return Save(panel, svgFileName)
 

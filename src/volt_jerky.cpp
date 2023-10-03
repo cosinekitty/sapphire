@@ -10,6 +10,7 @@ namespace VoltJerkyTypes
 {
     enum ParamId
     {
+        TIME_DILATION_KNOB_PARAM,
         PARAMS_LEN
     };
 
@@ -23,7 +24,6 @@ namespace VoltJerkyTypes
         W_OUTPUT,
         X_OUTPUT,
         Y_OUTPUT,
-
         OUTPUTS_LEN
     };
 
@@ -39,7 +39,7 @@ struct VoltJerkyModule : Module
     Analog::JerkCircuit circuit;
 
     VoltJerkyModule()
-        : circuit(1.0, +0.507, -0.013, +0.017)
+        : circuit(+0.507, -0.013, +0.017)
     {
         using namespace VoltJerkyTypes;
 
@@ -48,6 +48,8 @@ struct VoltJerkyModule : Module
         configOutput(W_OUTPUT, "W");
         configOutput(X_OUTPUT, "X");
         configOutput(Y_OUTPUT, "Y");
+
+        configParam(TIME_DILATION_KNOB_PARAM, -2, +1, 0, "Time dilation");
 
         initialize();
     }
@@ -67,10 +69,16 @@ struct VoltJerkyModule : Module
     {
         using namespace VoltJerkyTypes;
 
+        circuit.setTimeDilationExponent(params[TIME_DILATION_KNOB_PARAM].getValue());
         circuit.update(args.sampleRate);
         outputs[W_OUTPUT].setVoltage(circuit.wVoltage());
         outputs[X_OUTPUT].setVoltage(circuit.xVoltage());
         outputs[Y_OUTPUT].setVoltage(circuit.yVoltage());
+    }
+
+    void onSampleRateChange(const SampleRateChangeEvent& e) override
+    {
+        INFO("new sample rate = %f", e.sampleRate);
     }
 };
 
@@ -87,6 +95,8 @@ struct VoltJerkyWidget : SapphireReloadableModuleWidget
         addSapphireOutput(W_OUTPUT, "w_output");
         addSapphireOutput(X_OUTPUT, "x_output");
         addSapphireOutput(Y_OUTPUT, "y_output");
+
+        addKnob(TIME_DILATION_KNOB_PARAM, "time_dilation_knob");
 
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();
