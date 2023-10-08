@@ -21,7 +21,7 @@ namespace Analog
         const double x0;    // initial voltage of capacitor C2
         const double y0;    // initial voltage of capacitor C3
 
-        const double R1 = 1000;
+        //const double R1 = 1000;
         const double R2 = 1000;
         const double R3 = 1000;
         const double R4 = 1000;
@@ -54,6 +54,8 @@ namespace Analog
         double dx{};
         double dy{};
 
+        double rknob = 0.0;
+
         int step(double dt)
         {
             // Form an initial guess about the mean voltage during the time interval `dt`.
@@ -68,6 +70,8 @@ namespace Analog
             const double tolerance = 1.0e-12;        // one picovolt
             const double toleranceSquared = tolerance * tolerance;
 
+            double r1 = 700.0 + (rknob*500.0);
+
             for (int iter = 1; true; ++iter)
             {
                 // Remember the previous delta voltages, so we can tell whether we have converged next time.
@@ -76,7 +80,7 @@ namespace Analog
                 double ey = dy;
 
                 // Update the finite changes of the voltage variables after the time interval.
-                dw = -dt/C1*(wm/R1 + diodeCurrent(zm) + ym/R5);
+                dw = -dt/C1*(wm/r1 + diodeCurrent(zm) + ym/R5);
                 dx = -dt/C2*(wm/R2);
                 dy = -dt/C3*(xm/R3);
 
@@ -152,6 +156,10 @@ namespace Analog
             }
         }
 
+        void setResistanceKnob(double knob)
+        {
+            rknob = std::max(-1.0, std::min(+1.0, knob));
+        }
 
         double wVoltage() const { return w1; }
         double xVoltage() const { return x1; }

@@ -11,6 +11,7 @@ namespace VoltJerkyTypes
     enum ParamId
     {
         TIME_DILATION_KNOB_PARAM,
+        RESISTANCE_KNOB_PARAM,
         PARAMS_LEN
     };
 
@@ -50,6 +51,7 @@ struct VoltJerkyModule : Module
         configOutput(Y_OUTPUT, "Y");
 
         configParam(TIME_DILATION_KNOB_PARAM, -2, +1, 0, "Time dilation");
+        configParam(RESISTANCE_KNOB_PARAM, -1, +1, 0, "Resistance adjust");
 
         initialize();
     }
@@ -70,6 +72,7 @@ struct VoltJerkyModule : Module
         using namespace VoltJerkyTypes;
 
         circuit.setTimeDilationExponent(params[TIME_DILATION_KNOB_PARAM].getValue());
+        circuit.setResistanceKnob(params[RESISTANCE_KNOB_PARAM].getValue());
         circuit.update(args.sampleRate);
         outputs[W_OUTPUT].setVoltage(circuit.wVoltage());
         outputs[X_OUTPUT].setVoltage(circuit.xVoltage());
@@ -97,6 +100,7 @@ struct VoltJerkyWidget : SapphireReloadableModuleWidget
         addSapphireOutput(Y_OUTPUT, "y_output");
 
         addKnob(TIME_DILATION_KNOB_PARAM, "time_dilation_knob");
+        addKnob(RESISTANCE_KNOB_PARAM, "resistance_knob");
 
         // Load the SVG and place all controls at their correct coordinates.
         reloadPanel();

@@ -14,5 +14,6 @@
         <circle id="x_output" cx="40" cy="100" r="1" />
         <circle id="y_output" cx="40" cy="110" r="1" />
         <circle id="time_dilation_knob" cx="25" cy="70" r="1" />
+        <circle id="resistance_knob" cx="25" cy="90" r="1" />
     </g>
 </svg>
