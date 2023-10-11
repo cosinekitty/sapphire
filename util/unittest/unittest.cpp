@@ -3,6 +3,7 @@
 #include <random>
 #include "sapphire_engine.hpp"
 #include "wavefile.hpp"
+#include "chaos.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -25,6 +26,7 @@ struct UnitTest
 };
 
 static int AutoGainControl();
+static int ChaosTest();
 static int ReadWave();
 static int AutoScale();
 static int DelayLineTest();
@@ -35,6 +37,7 @@ static int QuadraticTest();
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
+    { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
     { "quad",       QuadraticTest },
@@ -570,3 +573,93 @@ static int QuadraticTest()
 
     return Pass("QuadraticTest");
 }
+
+
+static int CheckLimits(const Sapphire::ChaoticOscillator& osc)
+{
+    double x = osc.vx();
+    double y = osc.vy();
+    double z = osc.vz();
+    if (!std::isfinite(x) || std::abs(x) > Sapphire::AMPLITUDE)
+    {
+        printf("x is out of bounds: %lg\n", x);
+        return 1;
+    }
+    if (!std::isfinite(y) || std::abs(y) > Sapphire::AMPLITUDE)
+    {
+        printf("y is out of bounds: %lg\n", y);
+        return 1;
+    }
+    if (!std::isfinite(z) || std::abs(z) > Sapphire::AMPLITUDE)
+    {
+        printf("z is out of bounds: %lg\n", z);
+        return 1;
+    }
+    return 0;
+}
+
+
+static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name)
+{
+    printf("RangeTest(%s): starting\n", name);
+
+    const long SAMPLE_RATE = 44100;
+    const long SIM_SECONDS = 6 * 3600;
+    const long SIM_SAMPLES = SIM_SECONDS * SAMPLE_RATE;
+    const double dt = 1.0 / SAMPLE_RATE;
+
+    double xMin = 0;
+    double xMax = 0;
+    double yMin = 0;
+    double yMax = 0;
+    double zMin = 0;
+    double zMax = 0;
+
+    const long SETTLE_SECONDS = 60;
+    const long SETTLE_SAMPLES = SETTLE_SECONDS * SAMPLE_RATE;
+    for (long i = 0; i < SETTLE_SAMPLES; ++i)
+    {
+        osc.update(dt);
+        if (CheckLimits(osc)) return 1;
+    }
+
+    for (long i = 0; i < SIM_SAMPLES; ++i)
+    {
+        osc.update(dt);
+        if (CheckLimits(osc)) return 1;
+        if (i == 0)
+        {
+            xMin = xMax = osc.vx();
+            yMin = yMax = osc.vy();
+            zMin = zMax = osc.vz();
+        }
+        else
+        {
+            xMin = std::min(xMin, osc.vx());
+            xMax = std::max(xMax, osc.vx());
+            yMin = std::min(yMin, osc.vy());
+            yMax = std::max(yMax, osc.vy());
+            zMin = std::min(zMin, osc.vz());
+            zMax = std::max(zMax, osc.vz());
+        }
+    }
+
+    printf("RangeTest(%s): finished\n", name);
+    printf("vx range: %10.6lf %10.6lf\n", xMin, xMax);
+    printf("vy range: %10.6lf %10.6lf\n", yMin, yMax);
+    printf("vz range: %10.6lf %10.6lf\n", zMin, zMax);
+
+    return 0;
+}
+
+
+static int ChaosTest()
+{
+    Sapphire::Rucklidge ruck;
+    ruck.setKnob(+1.0);     // maximum chaos and maximum range
+
+    return
+        RangeTest(ruck, "Rucklidge") ||
+        Pass("ChaosTest");
+}
+
