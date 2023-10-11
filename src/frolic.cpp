@@ -49,7 +49,7 @@ struct FrolicModule : Module
         configOutput(Y_OUTPUT, "Y");
         configOutput(Z_OUTPUT, "Z");
 
-        configParam(SPEED_KNOB_PARAM, -2, +1, 0, "Speed");
+        configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
         configParam(CHAOS_KNOB_PARAM, -1, +1, 0, "Chaos adjust");
 
         initialize();
@@ -71,7 +71,8 @@ struct FrolicModule : Module
         using namespace FrolicTypes;
 
         circuit.setKnob(params[CHAOS_KNOB_PARAM].getValue());
-        circuit.update(args.sampleTime);
+        double dt = args.sampleTime * std::pow(2.0f, params[SPEED_KNOB_PARAM].getValue());
+        circuit.update(dt);
         outputs[X_OUTPUT].setVoltage(circuit.vx());
         outputs[Y_OUTPUT].setVoltage(circuit.vy());
         outputs[Z_OUTPUT].setVoltage(circuit.vz());
