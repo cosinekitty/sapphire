@@ -15,4 +15,5 @@ void init(Plugin* p)
     p->addModel(modelElastika);
     p->addModel(modelTubeUnit);
     p->addModel(modelFrolic);
+    p->addModel(modelTricorder);
 }

@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 #
-#   voltjerky_svg.py  -  Don Cross <cosinekitty@gmail.com>
+#   chaos_svg.py  -  Don Cross <cosinekitty@gmail.com>
 #
-#   Generates the SVG panel design for Sapphire Volt Jerky.
+#   Generates the SVG panel design for Sapphire Frolic.
 #
 import sys
 from svgpanel import *
 from sapphire import *
-
-PANEL_WIDTH = 4
 
 
 def Print(message:str) -> int:
@@ -21,7 +19,8 @@ def Save(panel:Panel, filename:str) -> int:
     return Print('Wrote: ' + filename)
 
 
-def GenerateMainPanel(name: str) -> int:
+def GenerateChaosPanel(name: str) -> int:
+    PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
@@ -41,8 +40,22 @@ def GenerateMainPanel(name: str) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateTricorderPanel() -> int:
+    PANEL_WIDTH = 25
+    svgFileName = '../res/tricorder.svg'
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(SapphireInsignia(panel, font))
+        pl.append(ModelNamePath(panel, font, 'tricorder'))
+    panel.append(pl)
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
-        GenerateMainPanel('frolic') or
+        GenerateChaosPanel('frolic') or
+        GenerateTricorderPanel() or
         Print('SUCCESS')
     )

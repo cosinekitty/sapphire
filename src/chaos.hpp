@@ -150,15 +150,12 @@ namespace Sapphire
 
     class Rucklidge : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite17.html
     {
-    private:
-        const double k = 2.0;
-
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
             const double a = KnobValue(knob, 3.8, 6.7);
             return SlopeVector (
-                -k*x + a*y - y*z,
+                -2*x + a*y - y*z,
                 x,
                 -z + y*y
             );

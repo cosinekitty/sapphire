@@ -53,7 +53,16 @@
       "tags": [
         "Physical modeling",
         "Effect",
-        "Oscillator"
+        "Low-frequency oscillator"
+      ]
+    },
+    {
+      "slug": "Tricorder",
+      "name": "Tricorder",
+      "description": "3D plotter expander module for Frolic.",
+      "tags": [
+        "Expander",
+        "Visual"
       ]
     }
   ]
