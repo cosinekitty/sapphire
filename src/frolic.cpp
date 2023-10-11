@@ -70,9 +70,8 @@ struct FrolicModule : Module
     {
         using namespace FrolicTypes;
 
-        //circuit.setTimeDilationExponent(params[SPEED_KNOB_PARAM].getValue());
         circuit.setKnob(params[CHAOS_KNOB_PARAM].getValue());
-        circuit.update(args.sampleRate);
+        circuit.update(args.sampleTime);
         outputs[X_OUTPUT].setVoltage(circuit.vx());
         outputs[Y_OUTPUT].setVoltage(circuit.vy());
         outputs[Z_OUTPUT].setVoltage(circuit.vz());
