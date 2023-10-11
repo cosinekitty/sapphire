@@ -47,9 +47,9 @@
       ]
     },
     {
-      "slug": "VoltJerky",
-      "name": "Volt Jerky",
-      "description": "Chaotic oscillator based on J. C. Sprott's jerk circuit.",
+      "slug": "Frolic",
+      "name": "Frolic",
+      "description": "Chaotic oscillator based on the Rucklidge Attractor.",
       "tags": [
         "Physical modeling",
         "Effect",
