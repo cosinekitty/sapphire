@@ -51,13 +51,11 @@ namespace Sapphire
     {
     protected:
         double knob = 0.0;
-        double x{};
-        double y{};
-        double z{};
-
-        virtual SlopeVector slopes() const = 0;
+        virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
     private:
+        const int max_iter = 2;
+
         const double max_dt;
         const double x0;
         const double y0;
@@ -69,6 +67,31 @@ namespace Sapphire
         const double ymax;
         const double zmin;
         const double zmax;
+
+        double x1{};
+        double y1{};
+        double z1{};
+
+        void step(double dt)
+        {
+            SlopeVector s = slopes(x1, y1, z1);
+            double dx = dt * s.mx;
+            double dy = dt * s.my;
+            double dz = dt * s.mz;
+            for (int iter = 0; iter < max_iter; ++iter)
+            {
+                double xm = x1 + dx/2;
+                double ym = y1 + dy/2;
+                double zm = z1 + dz/2;
+                s = slopes(xm, ym, zm);
+                dx = dt * s.mx;
+                dy = dt * s.my;
+                dz = dt * s.mz;
+            }
+            x1 += dx;
+            y1 += dy;
+            z1 += dz;
+        }
 
     public:
         ChaoticOscillator(
@@ -96,9 +119,9 @@ namespace Sapphire
 
         void initialize()
         {
-            x = x0;
-            y = y0;
-            z = z0;
+            x1 = x0;
+            y1 = y0;
+            z1 = z0;
         }
 
         void setKnob(double k)
@@ -108,9 +131,9 @@ namespace Sapphire
         }
 
         // Scaled values...
-        double vx() const { return Remap(x, xmin, xmax); }
-        double vy() const { return Remap(y, ymin, ymax); }
-        double vz() const { return Remap(z, zmin, zmax); }
+        double vx() const { return Remap(x1, xmin, xmax); }
+        double vy() const { return Remap(y1, ymin, ymax); }
+        double vz() const { return Remap(z1, zmin, zmax); }
 
         void update(double dt)
         {
@@ -120,12 +143,7 @@ namespace Sapphire
             const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
-            {
-                SlopeVector s = slopes();
-                x += et * s.mx;
-                y += et * s.my;
-                z += et * s.mz;
-            }
+                step(et);
         }
     };
 
@@ -136,7 +154,7 @@ namespace Sapphire
         const double k = 2.0;
 
     protected:
-        SlopeVector slopes() const override
+        SlopeVector slopes(double x, double y, double z) const override
         {
             const double a = KnobValue(knob, 3.8, 6.7);
             return SlopeVector (
