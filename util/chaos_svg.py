@@ -27,18 +27,19 @@ def GenerateMainPanel(name: str) -> int:
     pl = Element('g', 'PanelLayer')
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        #pl.append(SapphireInsignia(panel, font))
-        pl.append(SapphireGemstone((panel.mmWidth - 5.43)/2, 121.0).setAttrib('style', GEMSTONE_STYLE))
+        pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         outputPortY1 = 90.0
         outputPortDY = 10.0
-        pl.append(Component('x_output', 10.0, outputPortY1 + 0*outputPortDY))
-        pl.append(Component('y_output', 10.0, outputPortY1 + 1*outputPortDY))
-        pl.append(Component('z_output', 10.0, outputPortY1 + 2*outputPortDY))
-        pl.append(Component('speed_knob', 10.0, 30.0))
-        pl.append(Component('chaos_knob', 10.0, 60.0))
+        xmid = panel.mmWidth / 2
+        pl.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
+        pl.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
+        pl.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
+        pl.append(Component('speed_knob', xmid, 30.0))
+        pl.append(Component('chaos_knob', xmid, 60.0))
     panel.append(pl)
     return Save(panel, svgFileName)
+
 
 if __name__ == '__main__':
     sys.exit(

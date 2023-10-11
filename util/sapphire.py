@@ -58,3 +58,11 @@ def SapphireInsignia(panel:Panel, font:Font) -> Element:
     insignia.append(brandTextPath)
     insignia.append(gemGroup)
     return insignia
+
+
+def CenteredGemstone(panel:Panel) -> SapphireGemstone:
+    '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
+    gem = SapphireGemstone((panel.mmWidth - SapphireGemstone.mmWidth)/2, 121.0)
+    gem.setAttrib('id', 'sapphire_gemstone')
+    gem.setAttrib('style', GEMSTONE_STYLE)
+    return gem
