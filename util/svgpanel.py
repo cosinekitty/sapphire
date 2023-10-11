@@ -184,7 +184,16 @@ class Element:
 
     def xml(self) -> et.Element:
         """Convert this element to XML text."""
-        elem = et.Element(self.tag, self.attrib)
+        if 'id' in self.attrib:
+            # When the element has an id, put it first. Take advantage of Python's
+            # ability to preserve insertion order in a dictionary.
+            attrib = {'id': self.attrib['id']}
+            for (key, value) in self.attrib.items():
+                if key != 'id':
+                    attrib[key] = value
+        else:
+            attrib = self.attrib
+        elem = et.Element(self.tag, attrib)
         for child in self.children:
             elem.append(child.xml())
         return elem
