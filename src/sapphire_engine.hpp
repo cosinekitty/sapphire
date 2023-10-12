@@ -1,5 +1,4 @@
-#ifndef __COSINEKITTY_SAPPHIRE_ENGINE_HPP
-#define __COSINEKITTY_SAPPHIRE_ENGINE_HPP
+#pragma once
 
 #include <cmath>
 #include <cassert>
@@ -557,5 +556,3 @@ namespace Sapphire
     template <typename item_t, size_t steps>
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
 }
-
-#endif  // __COSINEKITTY_SAPPHIRE_ENGINE_HPP

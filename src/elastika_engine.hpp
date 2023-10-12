@@ -1,5 +1,4 @@
-#ifndef __COSINEKITTY_ELASTIKA_ENGINE_HPP
-#define __COSINEKITTY_ELASTIKA_ENGINE_HPP
+#pragma once
 
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -185,9 +184,9 @@ namespace Sapphire
             {}
 
         // Inject audio into the mesh
-        void Inject(Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction, float sample)
+        void Inject(PhysicsMesh& mesh, const PhysicsVector& direction, float sample)
         {
-            Sapphire::Ball& ball = mesh.GetBallAt(ballIndex);
+            Ball& ball = mesh.GetBallAt(ballIndex);
             ball.pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
         }
     };
@@ -208,10 +207,8 @@ namespace Sapphire
             {}
 
         // Extract audio from the mesh
-        float Extract(const Sapphire::PhysicsMesh& mesh, const Sapphire::PhysicsVector& direction)
+        float Extract(const PhysicsMesh& mesh, const PhysicsVector& direction)
         {
-            using namespace Sapphire;
-
             PhysicsVector movement = mesh.GetBallDisplacement(ballIndex);
             return Dot(movement, direction);
         }
@@ -426,5 +423,3 @@ namespace Sapphire
         }
     };
 }
-
-#endif // __COSINEKITTY_ELASTIKA_ENGINE_HPP

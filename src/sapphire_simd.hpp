@@ -1,6 +1,4 @@
-#ifndef __COSINEKITTY_SAPPHIRE_SIMD_HPP
-#define __COSINEKITTY_SAPPHIRE_SIMD_HPP
-
+#pragma once
 #include <cmath>
 #include <vector>
 
@@ -127,5 +125,3 @@ namespace Sapphire
 
     using PhysicsVectorList = std::vector<PhysicsVector>;
 }
-
-#endif // __COSINEKITTY_SAPPHIRE_SIMD_HPP

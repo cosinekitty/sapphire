@@ -1,5 +1,4 @@
-#ifndef __COSINEKITTY_TUBEUNIT_ENGINE_HPP
-#define __COSINEKITTY_TUBEUNIT_ENGINE_HPP
+#pragma once
 
 // Sapphire tubular waveguide synth, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -334,5 +333,3 @@ namespace Sapphire
         }
     };
 }
-
-#endif // __COSINEKITTY_TUBEUNIT_ENGINE_HPP

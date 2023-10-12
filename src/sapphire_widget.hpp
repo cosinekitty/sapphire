@@ -11,7 +11,7 @@
 #pragma once
 #include "reloadable_widget.hpp"
 
-namespace rack
+namespace Sapphire
 {
     struct SapphireReloadableModuleWidget : ReloadableModuleWidget
     {
