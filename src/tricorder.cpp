@@ -9,6 +9,8 @@ namespace Sapphire
 {
     namespace Tricorder
     {
+        struct TricorderWidget;
+
         enum ParamId
         {
             PARAMS_LEN
@@ -34,7 +36,6 @@ namespace Sapphire
             TricorderModule()
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-
                 initialize();
             }
 
@@ -84,6 +85,36 @@ namespace Sapphire
         };
 
 
+        struct TricorderDisplay : LedDisplay
+        {
+            TricorderModule* module;
+            TricorderWidget* parent;
+
+            TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
+                : module(_module)
+                , parent(_parent)
+            {
+                box.pos = mm2px(Vec(8.0f, 12.0f));
+                box.size = mm2px(Vec(110.0f, 105.0f));
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                if (layer != 1)
+                    return;
+
+                drawBackground(args);
+
+                if (module == nullptr)
+                    return;
+            }
+
+            void drawBackground(const DrawArgs& args)
+            {
+            }
+        };
+
+
         struct TricorderWidget : SapphireReloadableModuleWidget
         {
             explicit TricorderWidget(TricorderModule *module)
@@ -93,6 +124,8 @@ namespace Sapphire
 
                 // Load the SVG and place all controls at their correct coordinates.
                 reloadPanel();
+
+                addChild(new TricorderDisplay(module, this));
             }
         };
     }
