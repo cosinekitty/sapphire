@@ -50,7 +50,26 @@ struct TricorderModule : Module
         initialize();
     }
 
-    int messageCount = 0;
+    static bool isCompatibleModule(const Module *module)
+    {
+        if (module == nullptr)
+            return false;
+
+        if (module->model == modelFrolic)
+            return true;
+
+        return false;
+    }
+
+    const Sapphire::TricorderMessage* inboundMessage() const
+    {
+        using namespace Sapphire;
+
+        if (isCompatibleModule(leftExpander.module))
+            return static_cast<const TricorderMessage *>(leftExpander.module->rightExpander.consumerMessage);
+
+        return nullptr;
+    }
 
     void process(const ProcessArgs& args) override
     {
@@ -58,22 +77,14 @@ struct TricorderModule : Module
 
         // Is a compatible module connected to the left?
         // If so, receive a triplet of voltages from it and put them in the buffer.
-        if (leftExpander.module != nullptr && leftExpander.module->model == modelFrolic)
+        const TricorderMessage *msg = inboundMessage();
+        if (msg == nullptr)
         {
-            const TricorderMessage* msg = static_cast<const TricorderMessage *>(leftExpander.module->rightExpander.consumerMessage);
-            if (msg != nullptr)
-            {
-                // Experiment to verify I understand the message passing stuff.
-                if (messageCount > 0)
-                {
-                    --messageCount;
-                }
-                else
-                {
-                    messageCount = 44100;
-                    INFO("Tricorder message: x=%f, y=%f, z=%f", msg->x, msg->y, msg->z);
-                }
-            }
+            // FIXFIXFIX - clear the display if it has stuff on it
+        }
+        else
+        {
+            // FIXFIXFIX - buffer the voltages
         }
     }
 };
