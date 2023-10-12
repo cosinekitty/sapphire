@@ -580,17 +580,17 @@ static int CheckLimits(const Sapphire::ChaoticOscillator& osc)
     double x = osc.vx();
     double y = osc.vy();
     double z = osc.vz();
-    if (!std::isfinite(x) || std::abs(x) > Sapphire::AMPLITUDE)
+    if (!std::isfinite(x) || std::abs(x) > Sapphire::CHAOS_AMPLITUDE)
     {
         printf("x is out of bounds: %lg\n", x);
         return 1;
     }
-    if (!std::isfinite(y) || std::abs(y) > Sapphire::AMPLITUDE)
+    if (!std::isfinite(y) || std::abs(y) > Sapphire::CHAOS_AMPLITUDE)
     {
         printf("y is out of bounds: %lg\n", y);
         return 1;
     }
-    if (!std::isfinite(z) || std::abs(z) > Sapphire::AMPLITUDE)
+    if (!std::isfinite(z) || std::abs(z) > Sapphire::CHAOS_AMPLITUDE)
     {
         printf("z is out of bounds: %lg\n", z);
         return 1;

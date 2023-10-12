@@ -10,18 +10,18 @@
 
 namespace Sapphire
 {
-    const double AMPLITUDE = 5.0;  // the intended peak amplitude of output voltage
+    const double CHAOS_AMPLITUDE = 5.0;  // the intended peak amplitude of output voltage
 
     inline double Remap(double v, double vmin, double vmax)
     {
-        // Remaps v from the range [vmin, vmax] to [-AMPLITUDE, +AMPLITUDE].
+        // Remaps v from the range [vmin, vmax] to [-CHAOS_AMPLITUDE, +CHAOS_AMPLITUDE].
         // But before we know the range, return the unmodified signal.
         if (vmax <= vmin)
             return v;
 
         // How far along the range is v in the range [vmin, vmax]?
         double r = (v - vmin) / (vmax - vmin);      // [0, 1]
-        return AMPLITUDE * (2*r - 1);
+        return CHAOS_AMPLITUDE * (2*r - 1);
     }
 
 
