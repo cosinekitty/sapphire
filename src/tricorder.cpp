@@ -29,6 +29,67 @@ namespace Sapphire
 
         using PointList = std::vector<Point>;
 
+        class RotationMatrix
+        {
+        private:
+            float rot[3][3];
+
+        public:
+            RotationMatrix()
+            {
+                initialize();
+            }
+
+            void initialize()
+            {
+                rot[0][0] = 1;
+                rot[0][1] = 0;
+                rot[0][2] = 0;
+                rot[1][0] = 0;
+                rot[1][1] = 1;
+                rot[1][2] = 0;
+                rot[2][0] = 0;
+                rot[2][1] = 0;
+                rot[2][2] = 1;
+            }
+
+            void pivot(
+                unsigned axis,     // selects which axis to rotate around: 0=x, 1=y, 2=z
+                float radians)     // rotation counterclockwise looking from the positive direction of `axis` toward the origin
+            {
+                float c = std::cos(radians);
+                float s = std::sin(radians);
+
+                // We need to maintain the "right-hand" rule, no matter which
+                // axis was selected. That means we pick (i, j, k) axis order
+                // such that the following vector cross product is satisfied:
+                // i x j = k
+                unsigned i = (axis + 1) % 3;
+                unsigned j = (axis + 2) % 3;
+                unsigned k = axis % 3;
+
+                float t   = c*rot[i][i] - s*rot[i][j];
+                rot[i][j] = s*rot[i][i] + c*rot[i][j];
+                rot[i][i] = t;
+
+                t         = c*rot[j][i] - s*rot[j][j];
+                rot[j][j] = s*rot[j][i] + c*rot[j][j];
+                rot[j][i] = t;
+
+                t         = c*rot[k][i] - s*rot[k][j];
+                rot[k][j] = s*rot[k][i] + c*rot[k][j];
+                rot[k][i] = t;
+            }
+
+            Point rotate(const Point& p)
+            {
+                float x = rot[0][0]*p.x + rot[1][0]*p.y + rot[2][0]*p.z;
+                float y = rot[0][1]*p.x + rot[1][1]*p.y + rot[2][1]*p.z;
+                float z = rot[0][2]*p.x + rot[1][2]*p.y + rot[2][2]*p.z;
+                return Point(x, y, z);
+            }
+        };
+
         enum ParamId
         {
             PARAMS_LEN
@@ -138,14 +199,13 @@ namespace Sapphire
 
                     // Only insert new points if the position has changed significantly
                     // or a sufficient amount of time has passed.
-                    // But always insert the point if it is the first one!
                     secondsAccum += args.sampleTime;
                     float dx = x - xprev;
                     float dy = y - yprev;
                     float dz = z - zprev;
                     float distance = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-                    if (n == 0 || secondsAccum > 0.2f || distance > 0.05f)
+                    if (secondsAccum > 0.05f || distance > 0.05f)
                     {
                         if (n < TRAIL_LENGTH)
                         {
@@ -170,10 +230,12 @@ namespace Sapphire
 
         struct TricorderDisplay : LedDisplay
         {
+            float radiansPerStep = 0.005f;
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
             TricorderModule* module;
             TricorderWidget* parent;
+            RotationMatrix orientation;
 
             TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
                 : module(_module)
@@ -249,10 +311,19 @@ namespace Sapphire
 
             Vec project(const Point& p)
             {
+                // Apply the rotation matrix to the 3D point.
+                Point q = orientation.rotate(p);
+
                 // Project the 3D point 'p' onto a screen location Vec.
-                float x = (MM_SIZE/2) * (1 + p.x/voltageScale);
-                float y = (MM_SIZE/2) * (1 - p.y/voltageScale);
-                return mm2px(Vec(x, y));
+                float sx = (MM_SIZE/2) * (1 + q.x/voltageScale);
+                float sy = (MM_SIZE/2) * (1 - q.y/voltageScale);
+                return mm2px(Vec(sx, sy));
+            }
+
+            void step() override
+            {
+                // Update rotation around the y-axis.
+                orientation.pivot(1, radiansPerStep);
             }
         };
 
