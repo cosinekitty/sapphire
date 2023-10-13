@@ -39,7 +39,7 @@ namespace Sapphire
         struct FrolicModule : Module
         {
             Rucklidge circuit;
-            TricorderMessage tricorderMessage[2];
+            Tricorder::Message tricorderMessage[2];
 
             FrolicModule()
             {
@@ -78,7 +78,7 @@ namespace Sapphire
                 outputs[Y_OUTPUT].setVoltage(circuit.vy());
                 outputs[Z_OUTPUT].setVoltage(circuit.vz());
 
-                TricorderMessage& msg = *static_cast<TricorderMessage*>(rightExpander.producerMessage);
+                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(rightExpander.producerMessage);
                 msg.x = circuit.vx();
                 msg.y = circuit.vy();
                 msg.z = circuit.vz();

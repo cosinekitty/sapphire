@@ -95,10 +95,14 @@ namespace Sapphire
                 return false;
             }
 
-            const TricorderMessage* inboundMessage() const
+            const Message* inboundMessage() const
             {
                 if (isCompatibleModule(leftExpander.module))
-                    return static_cast<const TricorderMessage *>(leftExpander.module->rightExpander.consumerMessage);
+                {
+                    const Message* message = static_cast<const Message *>(leftExpander.module->rightExpander.consumerMessage);
+                    if (IsValidMessage(message))
+                        return message;
+                }
 
                 return nullptr;
             }
@@ -115,7 +119,7 @@ namespace Sapphire
             {
                 // Is a compatible module connected to the left?
                 // If so, receive a triplet of voltages from it and put them in the buffer.
-                const TricorderMessage *msg = inboundMessage();
+                const Message *msg = inboundMessage();
                 if (msg == nullptr)
                 {
                     // There is no compatible module flush to the left of Tricorder.
