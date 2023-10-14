@@ -231,6 +231,7 @@ namespace Sapphire
         struct TricorderDisplay : LedDisplay
         {
             float radiansPerStep = -0.004f;
+            float rotationRadians = 0.0f;
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
             TricorderModule* module;
@@ -243,6 +244,7 @@ namespace Sapphire
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
+                orientation.pivot(0, 20.0*(M_PI/180.0));
             }
 
             NVGcolor trailColor(int i, int n)
@@ -263,17 +265,16 @@ namespace Sapphire
                 if (layer != 1)
                     return;
 
-                drawBackground(args);
-
                 if (module == nullptr)
                     return;
+
+                drawBackground(args);
 
                 const int n = static_cast<int>(module->pointList.size());
                 if (n == 0)
                     return;
 
                 nvgSave(args.vg);
-                NVGcolor color;
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
 
@@ -283,7 +284,7 @@ namespace Sapphire
                     // Render from the front to the back.
                     for (int i = 1; i < n; ++i)
                     {
-                        color = trailColor(i, n);
+                        NVGcolor color = trailColor(i, n);
                         line(args.vg, color, module->pointList.at(i-1), module->pointList.at(i));
                     }
                     drawTip(args.vg, module->pointList.at(n-1));
@@ -295,7 +296,7 @@ namespace Sapphire
                     for (int i = 1; i < TRAIL_LENGTH; ++i)
                     {
                         int next = (curr + 1) % TRAIL_LENGTH;
-                        color = trailColor(i, n);
+                        NVGcolor color = trailColor(i, n);
                         line(args.vg, color, module->pointList.at(curr), module->pointList.at(next));
                         curr = next;
                     }
@@ -326,8 +327,23 @@ namespace Sapphire
                 nvgFill(vg);
             }
 
+            void drawAxis(NVGcontext* vg, char label, Point tip, Point arrow1, Point arrow2)
+            {
+                Point origin(0, 0, 0);
+                NVGcolor axisColor = nvgRGB(0x60, 0x60, 0x60);
+                line(vg, axisColor, origin, tip);
+                line(vg, axisColor, tip, arrow1);
+                line(vg, axisColor, tip, arrow2);
+            }
+
             void drawBackground(const DrawArgs& args)
             {
+                const float r = 4.0f;
+                const float a = 0.93f * r;
+                const float b = 0.03f * r;
+                drawAxis(args.vg, 'X', Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
+                drawAxis(args.vg, 'Y', Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
+                drawAxis(args.vg, 'Z', Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
             }
 
             Vec project(const Point& p)
@@ -343,8 +359,10 @@ namespace Sapphire
 
             void step() override
             {
-                // Update rotation around the y-axis.
-                orientation.pivot(1, radiansPerStep);
+                rotationRadians = std::fmod(rotationRadians + radiansPerStep, 2*M_PI);
+                orientation.initialize();
+                orientation.pivot(1, rotationRadians);
+                orientation.pivot(0, 20*(M_PI/180));
             }
         };
 
