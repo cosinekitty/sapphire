@@ -245,6 +245,19 @@ namespace Sapphire
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
             }
 
+            NVGcolor trailColor(int i, int n)
+            {
+                float fadeDenom = TRAIL_LENGTH / 3.0f;
+                NVGcolor tail = SCHEME_PURPLE;
+                NVGcolor head = SCHEME_CYAN;
+                tail.a = std::min(1.0f, i/fadeDenom);
+                float rise = std::min(1.0f, (n-i)/fadeDenom);
+                tail.r = rise*tail.r + (1-rise)*head.r;
+                tail.g = rise*tail.g + (1-rise)*head.g;
+                tail.b = rise*tail.b + (1-rise)*head.b;
+                return tail;
+            }
+
             void drawLayer(const DrawArgs& args, int layer) override
             {
                 if (layer != 1)
@@ -260,8 +273,7 @@ namespace Sapphire
                     return;
 
                 nvgSave(args.vg);
-                NVGcolor color = SCHEME_CYAN;
-                float fadeDenom = TRAIL_LENGTH / 3.0f;
+                NVGcolor color;
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
 
@@ -271,7 +283,7 @@ namespace Sapphire
                     // Render from the front to the back.
                     for (int i = 1; i < n; ++i)
                     {
-                        color.a = std::min(1.0f, i/fadeDenom);
+                        color = trailColor(i, n);
                         line(args.vg, color, module->pointList.at(i-1), module->pointList.at(i));
                     }
                     drawTip(args.vg, module->pointList.at(n-1));
@@ -283,7 +295,7 @@ namespace Sapphire
                     for (int i = 1; i < TRAIL_LENGTH; ++i)
                     {
                         int next = (curr + 1) % TRAIL_LENGTH;
-                        color.a = std::min(1.0f, i/fadeDenom);
+                        color = trailColor(i, n);
                         line(args.vg, color, module->pointList.at(curr), module->pointList.at(next));
                         curr = next;
                     }
