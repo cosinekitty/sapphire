@@ -230,7 +230,7 @@ namespace Sapphire
 
         struct TricorderDisplay : LedDisplay
         {
-            float radiansPerStep = 0.005f;
+            float radiansPerStep = -0.004f;
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
             TricorderModule* module;
@@ -260,17 +260,20 @@ namespace Sapphire
                     return;
 
                 nvgSave(args.vg);
-                nvgStrokeColor(args.vg, SCHEME_YELLOW);
+                NVGcolor color = SCHEME_CYAN;
+                float fadeDenom = TRAIL_LENGTH / 3.0f;
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
-                nvgBeginPath(args.vg);
+
                 if (n < TRAIL_LENGTH)
                 {
                     // The pointList has not yet reached full capacity.
                     // Render from the front to the back.
                     for (int i = 1; i < n; ++i)
-                        drawSegment(args.vg, i==1, module->pointList.at(i-1), module->pointList.at(i));
-
+                    {
+                        color.a = std::min(1.0f, i/fadeDenom);
+                        line(args.vg, color, module->pointList.at(i-1), module->pointList.at(i));
+                    }
                     drawTip(args.vg, module->pointList.at(n-1));
                 }
                 else
@@ -280,7 +283,8 @@ namespace Sapphire
                     for (int i = 1; i < TRAIL_LENGTH; ++i)
                     {
                         int next = (curr + 1) % TRAIL_LENGTH;
-                        drawSegment(args.vg, i==1, module->pointList.at(curr), module->pointList.at(next));
+                        color.a = std::min(1.0f, i/fadeDenom);
+                        line(args.vg, color, module->pointList.at(curr), module->pointList.at(next));
                         curr = next;
                     }
                     drawTip(args.vg, module->pointList.at(curr));
@@ -289,20 +293,25 @@ namespace Sapphire
                 nvgRestore(args.vg);
             }
 
-            void drawSegment(NVGcontext* vg, bool first, const Point& a, const Point& b)
+            void line(NVGcontext *vg, const NVGcolor& color, const Point& a, const Point& b)
             {
-                if (first)
-                {
-                    Vec sa = project(a);
-                    nvgMoveTo(vg, sa.x, sa.y);
-                }
+                Vec sa = project(a);
                 Vec sb = project(b);
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, color);
+                nvgMoveTo(vg, sa.x, sa.y);
                 nvgLineTo(vg, sb.x, sb.y);
+                nvgStroke(vg);
             }
 
             void drawTip(NVGcontext* vg, const Point& p)
             {
-                nvgStroke(vg);
+                Vec s = project(p);
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_WHITE);
+                nvgFillColor(vg, SCHEME_WHITE);
+                nvgCircle(vg, s.x, s.y, 1.0);
+                nvgFill(vg);
             }
 
             void drawBackground(const DrawArgs& args)
