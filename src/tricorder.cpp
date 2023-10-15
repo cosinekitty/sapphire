@@ -20,6 +20,12 @@ namespace Sapphire
             float y;
             float z;
 
+            Point()
+                : x(0)
+                , y(0)
+                , z(0)
+                {}
+
             Point(float _x, float _y, float _z)
                 : x(_x)
                 , y(_y)
@@ -113,6 +119,7 @@ namespace Sapphire
         struct TricorderModule : Module
         {
             PointList pointList;
+            int pointCount{};
             int nextPointIndex{};
             float secondsAccum{};
             float xprev{};
@@ -121,14 +128,14 @@ namespace Sapphire
 
             TricorderModule()
             {
-                pointList.reserve(TRAIL_LENGTH);
+                pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 initialize();
             }
 
             void resetPointList()
             {
-                pointList.clear();
+                pointCount = 0;
                 nextPointIndex = 0;
                 secondsAccum = 0.0f;
                 xprev = yprev = zprev = 0.0f;
@@ -189,8 +196,6 @@ namespace Sapphire
                 }
                 else
                 {
-                    int n = static_cast<int>(pointList.size());
-
                     // Sanity check the values fed to us from the other module.
                     float x = filter(msg->x);
                     float y = filter(msg->y);
@@ -207,9 +212,9 @@ namespace Sapphire
 
                     if (secondsAccum > 0.05f || distance > 0.05f)
                     {
-                        if (n < TRAIL_LENGTH)
+                        if (pointCount < TRAIL_LENGTH)
                         {
-                            pointList.push_back(p);
+                            pointList[pointCount++] = p;
                         }
                         else
                         {
@@ -270,7 +275,7 @@ namespace Sapphire
 
                 drawBackground(args);
 
-                const int n = static_cast<int>(module->pointList.size());
+                const int n = module->pointCount;
                 if (n == 0)
                     return;
 
