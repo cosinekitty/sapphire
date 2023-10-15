@@ -242,6 +242,7 @@ namespace Sapphire
             TricorderModule* module;
             TricorderWidget* parent;
             RotationMatrix orientation;
+            NVGcolor axisColor = nvgRGB(0x70, 0x70, 0x60);
 
             TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
                 : module(_module)
@@ -332,10 +333,9 @@ namespace Sapphire
                 nvgFill(vg);
             }
 
-            void drawAxis(NVGcontext* vg, char label, Point tip, Point arrow1, Point arrow2)
+            void drawAxis(NVGcontext* vg, Point tip, Point arrow1, Point arrow2)
             {
                 Point origin(0, 0, 0);
-                NVGcolor axisColor = nvgRGB(0x60, 0x60, 0x60);
                 line(vg, axisColor, origin, tip);
                 line(vg, axisColor, tip, arrow1);
                 line(vg, axisColor, tip, arrow2);
@@ -346,9 +346,42 @@ namespace Sapphire
                 const float r = 4.0f;
                 const float a = 0.93f * r;
                 const float b = 0.03f * r;
-                drawAxis(args.vg, 'X', Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
-                drawAxis(args.vg, 'Y', Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
-                drawAxis(args.vg, 'Z', Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
+                drawAxis(args.vg, Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
+                drawAxis(args.vg, Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
+                drawAxis(args.vg, Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
+                drawLetterX(args.vg, r);
+                drawLetterY(args.vg, r);
+                drawLetterZ(args.vg, r);
+            }
+
+            void drawLetterX(NVGcontext *vg, float r)
+            {
+                const float La = r * 1.04f;
+                const float Lb = r * 1.08f;
+                const float Lc = r * 0.05f;
+                line(vg, axisColor, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
+                line(vg, axisColor, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
+            }
+
+            void drawLetterY(NVGcontext *vg, float r)
+            {
+                const float La = r * 1.04f;
+                const float Lb = r * 0.04f;
+                const float Lc = r * 1.09f;
+                const float Ld = r * 1.14f;
+                line(vg, axisColor, Point(0, Lc, 0), Point(  0, La, 0));
+                line(vg, axisColor, Point(0, Lc, 0), Point(-Lb, Ld, 0));
+                line(vg, axisColor, Point(0, Lc, 0), Point(+Lb, Ld, 0));
+            }
+
+            void drawLetterZ(NVGcontext *vg, float r)
+            {
+                const float La = r * 1.04f;
+                const float Lb = r * 1.08f;
+                const float Lc = r * 0.05f;
+                line(vg, axisColor, Point(0, +Lc, La), Point(0, +Lc, Lb));
+                line(vg, axisColor, Point(0, +Lc, Lb), Point(0, -Lc, La));
+                line(vg, axisColor, Point(0, -Lc, La), Point(0, -Lc, Lb));
             }
 
             Vec project(const Point& p)
