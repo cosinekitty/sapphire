@@ -243,12 +243,14 @@ namespace Sapphire
             Vec vec2;           // rotated and scaled screen coordinates for second endpoint
             float prox;         // z-order proximity of segment's midpoint: larger values are closer to the viewer
             SegmentKind kind;   // what coloring rules to apply to the segment
+            int index;          // index along the trail, used for fading the end; [1 .. TRAIL_LENGTH-1]
 
-            LineSegment(Vec _vec1, Vec _vec2, float _prox, SegmentKind _kind)
+            LineSegment(Vec _vec1, Vec _vec2, float _prox, SegmentKind _kind, int _index)
                 : vec1(_vec1)
                 , vec2(_vec2)
                 , prox(_prox)
                 , kind(_kind)
+                , index(_index)
                 {}
         };
 
@@ -266,7 +268,7 @@ namespace Sapphire
 
         struct TricorderDisplay : LedDisplay
         {
-            float radiansPerStep = -0.004f;
+            float radiansPerStep = -0.003f;
             float rotationRadians = 0.0f;
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
@@ -283,21 +285,6 @@ namespace Sapphire
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
                 orientation.pivot(0, 20.0*(M_PI/180.0));
             }
-
-#if 0
-            NVGcolor trailColor(int i, int n)
-            {
-                float fadeDenom = TRAIL_LENGTH / 3.0f;
-                NVGcolor tail = SCHEME_PURPLE;
-                NVGcolor head = SCHEME_CYAN;
-                tail.a = std::min(1.0f, i/fadeDenom);
-                float rise = std::min(1.0f, (n-i)/fadeDenom);
-                tail.r = rise*tail.r + (1-rise)*head.r;
-                tail.g = rise*tail.g + (1-rise)*head.g;
-                tail.b = rise*tail.b + (1-rise)*head.b;
-                return tail;
-            }
-#endif
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
@@ -323,7 +310,7 @@ namespace Sapphire
                     {
                         const Point& p1 = module->pointList[i-1];
                         const Point& p2 = module->pointList[i];
-                        addSegment(SegmentKind::Curve, p1, p2);
+                        addSegment(SegmentKind::Curve, i, p1, p2);
                     }
                     //drawTip(args.vg, module->pointList.at(n-1));
                 }
@@ -336,7 +323,7 @@ namespace Sapphire
                         int next = (curr + 1) % TRAIL_LENGTH;
                         const Point& p1 = module->pointList[curr];
                         const Point& p2 = module->pointList[next];
-                        addSegment(SegmentKind::Curve, p1, p2);
+                        addSegment(SegmentKind::Curve, i, p1, p2);
                         curr = next;
                     }
                     //drawTip(args.vg, module->pointList.at(curr));
@@ -387,28 +374,30 @@ namespace Sapphire
                     break;
                 }
 
+                float opacity = (seg.index < 0) ? 1.0f : std::min(1.0f, (20.0f * seg.index) / TRAIL_LENGTH);
                 float prox = std::max(0.0f, std::min(1.0f, seg.prox));
                 float dist = 1 - prox;
                 NVGcolor color;
-                color.a = 1;
+                color.a = opacity;
                 color.r = prox*nearColor.r + dist*farColor.r;
                 color.g = prox*nearColor.g + dist*farColor.g;
                 color.b = prox*nearColor.b + dist*farColor.b;
                 return color;
             }
 
-            void addSegment(SegmentKind kind, const Point& point1, const Point& point2)
+            void addSegment(SegmentKind kind, int index, const Point& point1, const Point& point2)
             {
                 float prox1;
                 Vec vec1 = project(point1, prox1);
                 float prox2;
                 Vec vec2 = project(point2, prox2);
-                expandSegment(0, kind, vec1, vec2, prox1, prox2, point1, point2);
+                expandSegment(0, kind, index, vec1, vec2, prox1, prox2, point1, point2);
             }
 
             void expandSegment(
                 int depth,
                 SegmentKind kind,
+                int index,
                 const Vec& vec1,
                 const Vec& vec2,
                 float prox1,
@@ -420,7 +409,7 @@ namespace Sapphire
                 // or we have hit recursion depth limit, add a single line segment.
                 if (depth == 5 || std::abs(prox1 - prox2) < 0.05f)
                 {
-                    renderList.push_back(LineSegment(vec1, vec2, (prox1+prox2)/2, kind));
+                    renderList.push_back(LineSegment(vec1, vec2, (prox1+prox2)/2, kind, index));
                 }
                 else
                 {
@@ -428,8 +417,8 @@ namespace Sapphire
                     Point pointm((point1.x + point2.x)/2, (point1.y + point2.y)/2, (point1.z + point2.z)/2);
                     float proxm;
                     Vec vecm = project(pointm, proxm);
-                    expandSegment(1+depth, kind, vec1, vecm, prox1, proxm, point1, pointm);
-                    expandSegment(1+depth, kind, vecm, vec2, proxm, prox2, pointm, point2);
+                    expandSegment(1+depth, kind, index, vec1, vecm, prox1, proxm, point1, pointm);
+                    expandSegment(1+depth, kind, index, vecm, vec2, proxm, prox2, pointm, point2);
                 }
             }
 
@@ -448,9 +437,9 @@ namespace Sapphire
             void drawAxis(Point tip, Point arrow1, Point arrow2)
             {
                 Point origin(0, 0, 0);
-                addSegment(SegmentKind::Axis, origin, tip);
-                addSegment(SegmentKind::Axis, tip, arrow1);
-                addSegment(SegmentKind::Axis, tip, arrow2);
+                addSegment(SegmentKind::Axis, -1, origin, tip);
+                addSegment(SegmentKind::Axis, -1, tip, arrow1);
+                addSegment(SegmentKind::Axis, -1, tip, arrow2);
             }
 
             void drawBackground()
@@ -471,8 +460,8 @@ namespace Sapphire
                 const float La = r * 1.04f;
                 const float Lb = r * 1.08f;
                 const float Lc = r * 0.05f;
-                addSegment(SegmentKind::Axis, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
-                addSegment(SegmentKind::Axis, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
+                addSegment(SegmentKind::Axis, -1, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
+                addSegment(SegmentKind::Axis, -1, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
             }
 
             void drawLetterY(float r)
@@ -481,9 +470,9 @@ namespace Sapphire
                 const float Lb = r * 0.04f;
                 const float Lc = r * 1.09f;
                 const float Ld = r * 1.14f;
-                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(  0, La, 0));
-                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(-Lb, Ld, 0));
-                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(+Lb, Ld, 0));
+                addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(  0, La, 0));
+                addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(-Lb, Ld, 0));
+                addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(+Lb, Ld, 0));
             }
 
             void drawLetterZ(float r)
@@ -491,9 +480,9 @@ namespace Sapphire
                 const float La = r * 1.04f;
                 const float Lb = r * 1.08f;
                 const float Lc = r * 0.05f;
-                addSegment(SegmentKind::Axis, Point(0, +Lc, La), Point(0, +Lc, Lb));
-                addSegment(SegmentKind::Axis, Point(0, +Lc, Lb), Point(0, -Lc, La));
-                addSegment(SegmentKind::Axis, Point(0, -Lc, La), Point(0, -Lc, Lb));
+                addSegment(SegmentKind::Axis, -1, Point(0, +Lc, La), Point(0, +Lc, Lb));
+                addSegment(SegmentKind::Axis, -1, Point(0, +Lc, Lb), Point(0, -Lc, La));
+                addSegment(SegmentKind::Axis, -1, Point(0, -Lc, La), Point(0, -Lc, Lb));
             }
 
             Vec project(const Point& p, float& prox) const
