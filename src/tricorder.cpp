@@ -13,7 +13,7 @@ namespace Sapphire
     {
         struct TricorderWidget;
 
-        const int TRAIL_LENGTH = 2000;      // how many (x, y, z) points are held for the 3D plot
+        const int TRAIL_LENGTH = 500;      // how many (x, y, z) points are held for the 3D plot
 
         struct Point
         {
@@ -211,7 +211,7 @@ namespace Sapphire
                     float dz = z - zprev;
                     float distance = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-                    if (secondsAccum > 0.05f || distance > 0.05f)
+                    if (distance > 0.1f)
                     {
                         if (pointCount < TRAIL_LENGTH)
                         {
@@ -365,6 +365,7 @@ namespace Sapphire
                     NVGcolor color = segmentColor(seg);
                     nvgBeginPath(vg);
                     nvgStrokeColor(vg, color);
+                    nvgStrokeWidth(vg, 1.0f);
                     nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
                     nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
                     nvgStroke(vg);
@@ -373,7 +374,6 @@ namespace Sapphire
 
             NVGcolor segmentColor(const LineSegment& seg) const
             {
-                //NVGcolor axisColor = nvgRGB(0x70, 0x70, 0x60);
                 NVGcolor nearColor;
                 NVGcolor farColor;
                 switch (seg.kind)
@@ -384,7 +384,7 @@ namespace Sapphire
                     break;
 
                 case SegmentKind::Axis:
-                    nearColor = SCHEME_ORANGE;
+                    nearColor = nvgRGB(0x70, 0x70, 0x60);
                     farColor = SCHEME_DARK_GRAY;
                     break;
 
@@ -400,12 +400,40 @@ namespace Sapphire
                 return color;
             }
 
-            void addSegment(SegmentKind kind, const Point& a, const Point& b)
+            void addSegment(SegmentKind kind, const Point& point1, const Point& point2)
             {
-                Vec sa = project(a);
-                float prox;
-                Vec sb = project(b, prox);
-                renderList.push_back(LineSegment(sa, sb, prox, kind));
+                float prox1;
+                Vec vec1 = project(point1, prox1);
+                float prox2;
+                Vec vec2 = project(point2, prox2);
+                expandSegment(0, kind, vec1, vec2, prox1, prox2, point1, point2);
+            }
+
+            void expandSegment(
+                int depth,
+                SegmentKind kind,
+                const Vec& vec1,
+                const Vec& vec2,
+                float prox1,
+                float prox2,
+                const Point& point1,
+                const Point& point2)
+            {
+                // If the endpoints are close enough to the same z-level (observer proximity)
+                // or we have hit recursion depth limit, add a single line segment.
+                if (depth == 5 || std::abs(prox1 - prox2) < 0.05f)
+                {
+                    renderList.push_back(LineSegment(vec1, vec2, (prox1+prox2)/2, kind));
+                }
+                else
+                {
+                    // Recursively split the line segment in two to handle inclination toward observer.
+                    Point pointm((point1.x + point2.x)/2, (point1.y + point2.y)/2, (point1.z + point2.z)/2);
+                    float proxm;
+                    Vec vecm = project(pointm, proxm);
+                    expandSegment(1+depth, kind, vec1, vecm, prox1, proxm, point1, pointm);
+                    expandSegment(1+depth, kind, vecm, vec2, proxm, prox2, pointm, point2);
+                }
             }
 
 #if 0
@@ -481,12 +509,6 @@ namespace Sapphire
                 float sy = (MM_SIZE/2) * (1 - q.y/voltageScale);
                 prox = std::max(0.0f, std::min(1.0f, 1.0f + q.z/voltageScale));
                 return mm2px(Vec(sx, sy));
-            }
-
-            Vec project(const Point& p) const
-            {
-                float prox;   // ignored and discarded
-                return project(p, prox);
             }
 
             void step() override
