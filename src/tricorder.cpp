@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
@@ -87,7 +88,7 @@ namespace Sapphire
                 rot[k][i] = t;
             }
 
-            Point rotate(const Point& p)
+            Point rotate(const Point& p) const
             {
                 float x = rot[0][0]*p.x + rot[1][0]*p.y + rot[2][0]*p.z;
                 float y = rot[0][1]*p.x + rot[1][1]*p.y + rot[2][1]*p.z;
@@ -233,6 +234,40 @@ namespace Sapphire
         };
 
 
+        enum class SegmentKind
+        {
+            Curve,
+            Axis,
+        };
+
+
+        struct LineSegment
+        {
+            Vec vec1;           // rotated and scaled screen coordinates for first endpoint
+            Vec vec2;           // rotated and scaled screen coordinates for second endpoint
+            float prox;         // z-order proximity of segment's midpoint: larger values are closer to the viewer
+            SegmentKind kind;   // what coloring rules to apply to the segment
+
+            LineSegment(Vec _vec1, Vec _vec2, float _prox, SegmentKind _kind)
+                : vec1(_vec1)
+                , vec2(_vec2)
+                , prox(_prox)
+                , kind(_kind)
+                {}
+        };
+
+        inline bool operator < (const LineSegment& a, const LineSegment& b)      // needed for sorting renderList
+        {
+            // We want to sort the renderList in ascending order of the `prox` field.
+            // The larger `prox` is, the closer the midpoint of the linesegment is to the viewer.
+            // We want to draw farther line segments first, closer line segments last, so that
+            // the closer line segments overlap the farther ones.
+            return a.prox < b.prox;
+        }
+
+        using RenderList = std::vector<LineSegment>;
+
+
         struct TricorderDisplay : LedDisplay
         {
             float radiansPerStep = -0.004f;
@@ -242,7 +277,7 @@ namespace Sapphire
             TricorderModule* module;
             TricorderWidget* parent;
             RotationMatrix orientation;
-            NVGcolor axisColor = nvgRGB(0x70, 0x70, 0x60);
+            RenderList renderList;
 
             TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
                 : module(_module)
@@ -253,6 +288,7 @@ namespace Sapphire
                 orientation.pivot(0, 20.0*(M_PI/180.0));
             }
 
+#if 0
             NVGcolor trailColor(int i, int n)
             {
                 float fadeDenom = TRAIL_LENGTH / 3.0f;
@@ -265,6 +301,7 @@ namespace Sapphire
                 tail.b = rise*tail.b + (1-rise)*head.b;
                 return tail;
             }
+#endif
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
@@ -274,15 +311,13 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                drawBackground(args);
-
                 const int n = module->pointCount;
                 if (n == 0)
                     return;
 
-                nvgSave(args.vg);
-                Rect b = box.zeroPos();
-                nvgScissor(args.vg, RECT_ARGS(b));
+                renderList.clear();
+
+                drawBackground();
 
                 if (n < TRAIL_LENGTH)
                 {
@@ -290,10 +325,11 @@ namespace Sapphire
                     // Render from the front to the back.
                     for (int i = 1; i < n; ++i)
                     {
-                        NVGcolor color = trailColor(i, n);
-                        line(args.vg, color, module->pointList.at(i-1), module->pointList.at(i));
+                        const Point& p1 = module->pointList[i-1];
+                        const Point& p2 = module->pointList[i];
+                        addSegment(SegmentKind::Curve, p1, p2);
                     }
-                    drawTip(args.vg, module->pointList.at(n-1));
+                    //drawTip(args.vg, module->pointList.at(n-1));
                 }
                 else
                 {
@@ -302,27 +338,77 @@ namespace Sapphire
                     for (int i = 1; i < TRAIL_LENGTH; ++i)
                     {
                         int next = (curr + 1) % TRAIL_LENGTH;
-                        NVGcolor color = trailColor(i, n);
-                        line(args.vg, color, module->pointList.at(curr), module->pointList.at(next));
+                        const Point& p1 = module->pointList[curr];
+                        const Point& p2 = module->pointList[next];
+                        addSegment(SegmentKind::Curve, p1, p2);
                         curr = next;
                     }
-                    drawTip(args.vg, module->pointList.at(curr));
+                    //drawTip(args.vg, module->pointList.at(curr));
                 }
+
+                nvgSave(args.vg);
+                Rect b = box.zeroPos();
+                nvgScissor(args.vg, RECT_ARGS(b));
+                render(args.vg);
                 nvgResetScissor(args.vg);
                 nvgRestore(args.vg);
             }
 
-            void line(NVGcontext *vg, const NVGcolor& color, const Point& a, const Point& b)
+            void render(NVGcontext *vg)
             {
-                Vec sa = project(a);
-                Vec sb = project(b);
-                nvgBeginPath(vg);
-                nvgStrokeColor(vg, color);
-                nvgMoveTo(vg, sa.x, sa.y);
-                nvgLineTo(vg, sb.x, sb.y);
-                nvgStroke(vg);
+                // Sort in ascending order of line segment midpoint.
+                std::sort(renderList.begin(), renderList.end());
+
+                // Render in z-order to create correct blocking of segment visibility.
+                for (const LineSegment& seg : renderList)
+                {
+                    NVGcolor color = segmentColor(seg);
+                    nvgBeginPath(vg);
+                    nvgStrokeColor(vg, color);
+                    nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
+                    nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
+                    nvgStroke(vg);
+                }
             }
 
+            NVGcolor segmentColor(const LineSegment& seg) const
+            {
+                //NVGcolor axisColor = nvgRGB(0x70, 0x70, 0x60);
+                NVGcolor nearColor;
+                NVGcolor farColor;
+                switch (seg.kind)
+                {
+                case SegmentKind::Curve:
+                    nearColor = SCHEME_CYAN;
+                    farColor = SCHEME_DARK_GRAY;
+                    break;
+
+                case SegmentKind::Axis:
+                    nearColor = SCHEME_ORANGE;
+                    farColor = SCHEME_DARK_GRAY;
+                    break;
+
+                default:
+                    return SCHEME_RED;
+                }
+
+                NVGcolor color;
+                color.a = 1;
+                color.r = seg.prox*nearColor.r + (1-seg.prox)*farColor.r;
+                color.g = seg.prox*nearColor.g + (1-seg.prox)*farColor.g;
+                color.b = seg.prox*nearColor.b + (1-seg.prox)*farColor.b;
+                return color;
+            }
+
+            void addSegment(SegmentKind kind, const Point& a, const Point& b)
+            {
+                Vec sa = project(a);
+                float prox;
+                Vec sb = project(b, prox);
+                renderList.push_back(LineSegment(sa, sb, prox, kind));
+            }
+
+#if 0
             void drawTip(NVGcontext* vg, const Point& p)
             {
                 Vec s = project(p);
@@ -332,59 +418,60 @@ namespace Sapphire
                 nvgCircle(vg, s.x, s.y, 1.0);
                 nvgFill(vg);
             }
+#endif
 
-            void drawAxis(NVGcontext* vg, Point tip, Point arrow1, Point arrow2)
+            void drawAxis(Point tip, Point arrow1, Point arrow2)
             {
                 Point origin(0, 0, 0);
-                line(vg, axisColor, origin, tip);
-                line(vg, axisColor, tip, arrow1);
-                line(vg, axisColor, tip, arrow2);
+                addSegment(SegmentKind::Axis, origin, tip);
+                addSegment(SegmentKind::Axis, tip, arrow1);
+                addSegment(SegmentKind::Axis, tip, arrow2);
             }
 
-            void drawBackground(const DrawArgs& args)
+            void drawBackground()
             {
                 const float r = 4.0f;
                 const float a = 0.93f * r;
                 const float b = 0.03f * r;
-                drawAxis(args.vg, Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
-                drawAxis(args.vg, Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
-                drawAxis(args.vg, Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
-                drawLetterX(args.vg, r);
-                drawLetterY(args.vg, r);
-                drawLetterZ(args.vg, r);
+                drawAxis(Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
+                drawAxis(Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
+                drawAxis(Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
+                drawLetterX(r);
+                drawLetterY(r);
+                drawLetterZ(r);
             }
 
-            void drawLetterX(NVGcontext *vg, float r)
+            void drawLetterX(float r)
             {
                 const float La = r * 1.04f;
                 const float Lb = r * 1.08f;
                 const float Lc = r * 0.05f;
-                line(vg, axisColor, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
-                line(vg, axisColor, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
+                addSegment(SegmentKind::Axis, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
+                addSegment(SegmentKind::Axis, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
             }
 
-            void drawLetterY(NVGcontext *vg, float r)
+            void drawLetterY(float r)
             {
                 const float La = r * 1.04f;
                 const float Lb = r * 0.04f;
                 const float Lc = r * 1.09f;
                 const float Ld = r * 1.14f;
-                line(vg, axisColor, Point(0, Lc, 0), Point(  0, La, 0));
-                line(vg, axisColor, Point(0, Lc, 0), Point(-Lb, Ld, 0));
-                line(vg, axisColor, Point(0, Lc, 0), Point(+Lb, Ld, 0));
+                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(  0, La, 0));
+                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(-Lb, Ld, 0));
+                addSegment(SegmentKind::Axis, Point(0, Lc, 0), Point(+Lb, Ld, 0));
             }
 
-            void drawLetterZ(NVGcontext *vg, float r)
+            void drawLetterZ(float r)
             {
                 const float La = r * 1.04f;
                 const float Lb = r * 1.08f;
                 const float Lc = r * 0.05f;
-                line(vg, axisColor, Point(0, +Lc, La), Point(0, +Lc, Lb));
-                line(vg, axisColor, Point(0, +Lc, Lb), Point(0, -Lc, La));
-                line(vg, axisColor, Point(0, -Lc, La), Point(0, -Lc, Lb));
+                addSegment(SegmentKind::Axis, Point(0, +Lc, La), Point(0, +Lc, Lb));
+                addSegment(SegmentKind::Axis, Point(0, +Lc, Lb), Point(0, -Lc, La));
+                addSegment(SegmentKind::Axis, Point(0, -Lc, La), Point(0, -Lc, Lb));
             }
 
-            Vec project(const Point& p)
+            Vec project(const Point& p, float& prox) const
             {
                 // Apply the rotation matrix to the 3D point.
                 Point q = orientation.rotate(p);
@@ -392,7 +479,14 @@ namespace Sapphire
                 // Project the 3D point 'p' onto a screen location Vec.
                 float sx = (MM_SIZE/2) * (1 + q.x/voltageScale);
                 float sy = (MM_SIZE/2) * (1 - q.y/voltageScale);
+                prox = std::max(0.0f, std::min(1.0f, 1.0f + q.z/voltageScale));
                 return mm2px(Vec(sx, sy));
+            }
+
+            Vec project(const Point& p) const
+            {
+                float prox;   // ignored and discarded
+                return project(p, prox);
             }
 
             void step() override
