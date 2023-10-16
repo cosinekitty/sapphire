@@ -122,7 +122,6 @@ namespace Sapphire
             PointList pointList;
             int pointCount{};
             int nextPointIndex{};
-            float secondsAccum{};
             float xprev{};
             float yprev{};
             float zprev{};
@@ -138,7 +137,6 @@ namespace Sapphire
             {
                 pointCount = 0;
                 nextPointIndex = 0;
-                secondsAccum = 0.0f;
                 xprev = yprev = zprev = 0.0f;
             }
 
@@ -205,7 +203,6 @@ namespace Sapphire
 
                     // Only insert new points if the position has changed significantly
                     // or a sufficient amount of time has passed.
-                    secondsAccum += args.sampleTime;
                     float dx = x - xprev;
                     float dy = y - yprev;
                     float dz = z - zprev;
@@ -224,7 +221,6 @@ namespace Sapphire
                         }
 
                         // Because we added a point, reset the creteria for adding another point.
-                        secondsAccum = 0.0f;
                         xprev = x;
                         yprev = y;
                         zprev = z;
@@ -365,7 +361,7 @@ namespace Sapphire
                     NVGcolor color = segmentColor(seg);
                     nvgBeginPath(vg);
                     nvgStrokeColor(vg, color);
-                    nvgStrokeWidth(vg, 1.0f);
+                    nvgStrokeWidth(vg, seg.prox/2 + 0.5f);
                     nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
                     nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
                     nvgStroke(vg);
@@ -375,28 +371,29 @@ namespace Sapphire
             NVGcolor segmentColor(const LineSegment& seg) const
             {
                 NVGcolor nearColor;
-                NVGcolor farColor;
+                NVGcolor farColor = SCHEME_DARK_GRAY;
                 switch (seg.kind)
                 {
                 case SegmentKind::Curve:
                     nearColor = SCHEME_CYAN;
-                    farColor = SCHEME_DARK_GRAY;
                     break;
 
                 case SegmentKind::Axis:
-                    nearColor = nvgRGB(0x70, 0x70, 0x60);
-                    farColor = SCHEME_DARK_GRAY;
+                    nearColor = nvgRGB(0x90, 0x90, 0x60);
                     break;
 
                 default:
-                    return SCHEME_RED;
+                    nearColor = SCHEME_RED;
+                    break;
                 }
 
+                float prox = std::max(0.0f, std::min(1.0f, seg.prox));
+                float dist = 1 - prox;
                 NVGcolor color;
                 color.a = 1;
-                color.r = seg.prox*nearColor.r + (1-seg.prox)*farColor.r;
-                color.g = seg.prox*nearColor.g + (1-seg.prox)*farColor.g;
-                color.b = seg.prox*nearColor.b + (1-seg.prox)*farColor.b;
+                color.r = prox*nearColor.r + dist*farColor.r;
+                color.g = prox*nearColor.g + dist*farColor.g;
+                color.b = prox*nearColor.b + dist*farColor.b;
                 return color;
             }
 
@@ -507,7 +504,7 @@ namespace Sapphire
                 // Project the 3D point 'p' onto a screen location Vec.
                 float sx = (MM_SIZE/2) * (1 + q.x/voltageScale);
                 float sy = (MM_SIZE/2) * (1 - q.y/voltageScale);
-                prox = std::max(0.0f, std::min(1.0f, 1.0f + q.z/voltageScale));
+                prox = (1 + q.z/voltageScale) / 2;
                 return mm2px(Vec(sx, sy));
             }
 
