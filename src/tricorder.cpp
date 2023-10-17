@@ -388,9 +388,10 @@ namespace Sapphire
                     else
                     {
                         NVGcolor color = segmentColor(seg, pointCount);
+                        float width = (seg.kind == SegmentKind::Axis) ? 1.0 : seg.prox/2 + 1.0f;
                         nvgBeginPath(vg);
                         nvgStrokeColor(vg, color);
-                        nvgStrokeWidth(vg, seg.prox/2 + 1.0f);
+                        nvgStrokeWidth(vg, width);
                         nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
                         nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
                         nvgStroke(vg);
@@ -481,22 +482,13 @@ namespace Sapphire
                 }
             }
 
-            void drawAxis(Point tip, Point arrow1, Point arrow2)
-            {
-                Point origin(0, 0, 0);
-                addSegment(SegmentKind::Axis, -1, origin, tip);
-                addSegment(SegmentKind::Axis, -1, tip, arrow1);
-                addSegment(SegmentKind::Axis, -1, tip, arrow2);
-            }
-
             void drawBackground()
             {
                 const float r = 4.0f;
-                const float a = 0.93f * r;
-                const float b = 0.03f * r;
-                drawAxis(Point(r, 0, 0), Point(a, +b, 0), Point(a, -b, 0));
-                drawAxis(Point(0, r, 0), Point(+b, a, 0), Point(-b, a, 0));
-                drawAxis(Point(0, 0, r), Point(0, +b, a), Point(0, -b, a));
+                Point origin(0, 0, 0);
+                addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
+                addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
+                addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
                 drawLetterX(r);
                 drawLetterY(r);
                 drawLetterZ(r);
@@ -505,10 +497,10 @@ namespace Sapphire
             void drawLetterX(float r)
             {
                 const float La = r * 1.04f;
-                const float Lb = r * 1.08f;
-                const float Lc = r * 0.05f;
-                addSegment(SegmentKind::Axis, -1, Point(La, -Lc, 0), Point(Lb, +Lc, 0));
-                addSegment(SegmentKind::Axis, -1, Point(La, +Lc, 0), Point(Lb, -Lc, 0));
+                const float Lb = r * 1.14f;
+                const float Lc = r * 0.02f;
+                addSegment(SegmentKind::Axis, -1, Point(La, 0, -Lc), Point(Lb, 0, +Lc));
+                addSegment(SegmentKind::Axis, -1, Point(La, 0, +Lc), Point(Lb, 0, -Lc));
             }
 
             void drawLetterY(float r)
@@ -525,11 +517,11 @@ namespace Sapphire
             void drawLetterZ(float r)
             {
                 const float La = r * 1.04f;
-                const float Lb = r * 1.08f;
-                const float Lc = r * 0.05f;
-                addSegment(SegmentKind::Axis, -1, Point(0, +Lc, La), Point(0, +Lc, Lb));
-                addSegment(SegmentKind::Axis, -1, Point(0, +Lc, Lb), Point(0, -Lc, La));
-                addSegment(SegmentKind::Axis, -1, Point(0, -Lc, La), Point(0, -Lc, Lb));
+                const float Lb = r * 1.14f;
+                const float Lc = r * 0.02f;
+                addSegment(SegmentKind::Axis, -1, Point(-Lc, 0, La), Point(+Lc, 0, La));
+                addSegment(SegmentKind::Axis, -1, Point(+Lc, 0, La), Point(-Lc, 0, Lb));
+                addSegment(SegmentKind::Axis, -1, Point(-Lc, 0, Lb), Point(+Lc, 0, Lb));
             }
 
             Vec project(const Point& p, float& prox) const
@@ -549,7 +541,7 @@ namespace Sapphire
                 rotationRadians = std::fmod(rotationRadians + radiansPerStep, 2*M_PI);
                 orientation.initialize();
                 orientation.pivot(1, rotationRadians);
-                orientation.pivot(0, 20*(M_PI/180));
+                orientation.pivot(0, 23.5*(M_PI/180));
             }
         };
 
