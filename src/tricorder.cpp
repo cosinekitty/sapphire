@@ -225,6 +225,20 @@ namespace Sapphire
                         yprev = y;
                         zprev = z;
                     }
+                    else if (pointCount > 0)
+                    {
+                        // Instead of adding a new point, update the position of the most recently
+                        // added point. This makes the animation much smoother.
+                        if (pointCount < TRAIL_LENGTH)
+                        {
+                            pointList[pointCount-1] = p;
+                        }
+                        else
+                        {
+                            int latestPointIndex = (nextPointIndex + (TRAIL_LENGTH - 1)) % TRAIL_LENGTH;
+                            pointList[latestPointIndex] = p;
+                        }
+                    }
                 }
             }
         };
