@@ -352,12 +352,12 @@ namespace Sapphire
                 nvgSave(args.vg);
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
-                render(args.vg);
+                render(args.vg, n);
                 nvgResetScissor(args.vg);
                 nvgRestore(args.vg);
             }
 
-            void render(NVGcontext *vg)
+            void render(NVGcontext *vg, int pointCount)
             {
                 // Sort in ascending order of line segment midpoint.
                 std::sort(renderList.begin(), renderList.end());
@@ -375,7 +375,7 @@ namespace Sapphire
                     }
                     else
                     {
-                        NVGcolor color = segmentColor(seg);
+                        NVGcolor color = segmentColor(seg, pointCount);
                         nvgBeginPath(vg);
                         nvgStrokeColor(vg, color);
                         nvgStrokeWidth(vg, seg.prox/2 + 0.5f);
@@ -386,7 +386,7 @@ namespace Sapphire
                 }
             }
 
-            NVGcolor segmentColor(const LineSegment& seg) const
+            NVGcolor segmentColor(const LineSegment& seg, int pointCount) const
             {
                 NVGcolor nearColor;
                 NVGcolor farColor = SCHEME_DARK_GRAY;
@@ -408,7 +408,10 @@ namespace Sapphire
                     break;
                 }
 
-                float opacity = (seg.index < 0) ? 1.0f : std::min(1.0f, (20.0f * seg.index) / TRAIL_LENGTH);
+                float denom = static_cast<float>(std::max(40, pointCount));
+                float factor = static_cast<float>(std::min(20, std::max(5, pointCount)));
+                float opacity = (seg.index < 0) ? 1.0f : std::min(1.0f, (factor * seg.index) / denom);
+
                 float prox = std::max(0.0f, std::min(1.0f, seg.prox));
                 float dist = 1 - prox;
                 NVGcolor color;
