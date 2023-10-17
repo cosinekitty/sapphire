@@ -234,6 +234,7 @@ namespace Sapphire
         {
             Curve,
             Axis,
+            Tip,
         };
 
 
@@ -252,6 +253,11 @@ namespace Sapphire
                 , kind(_kind)
                 , index(_index)
                 {}
+
+            static LineSegment MakeTip(Vec vec, float prox)   // total hack!
+            {
+                return LineSegment(vec, vec, prox, SegmentKind::Tip, -1);
+            }
         };
 
         inline bool operator < (const LineSegment& a, const LineSegment& b)      // needed for sorting renderList
@@ -312,7 +318,7 @@ namespace Sapphire
                         const Point& p2 = module->pointList[i];
                         addSegment(SegmentKind::Curve, i, p1, p2);
                     }
-                    //drawTip(args.vg, module->pointList.at(n-1));
+                    addTip(module->pointList[n-1]);
                 }
                 else
                 {
@@ -326,7 +332,7 @@ namespace Sapphire
                         addSegment(SegmentKind::Curve, i, p1, p2);
                         curr = next;
                     }
-                    //drawTip(args.vg, module->pointList.at(curr));
+                    addTip(module->pointList[curr]);
                 }
 
                 nvgSave(args.vg);
@@ -345,13 +351,24 @@ namespace Sapphire
                 // Render in z-order to create correct blocking of segment visibility.
                 for (const LineSegment& seg : renderList)
                 {
-                    NVGcolor color = segmentColor(seg);
-                    nvgBeginPath(vg);
-                    nvgStrokeColor(vg, color);
-                    nvgStrokeWidth(vg, seg.prox/2 + 0.5f);
-                    nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
-                    nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
-                    nvgStroke(vg);
+                    if (seg.kind == SegmentKind::Tip)
+                    {
+                        nvgBeginPath(vg);
+                        nvgStrokeColor(vg, SCHEME_WHITE);
+                        nvgFillColor(vg, SCHEME_WHITE);
+                        nvgCircle(vg, seg.vec1.x, seg.vec1.y, 1.0);
+                        nvgFill(vg);
+                    }
+                    else
+                    {
+                        NVGcolor color = segmentColor(seg);
+                        nvgBeginPath(vg);
+                        nvgStrokeColor(vg, color);
+                        nvgStrokeWidth(vg, seg.prox/2 + 0.5f);
+                        nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
+                        nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
+                        nvgStroke(vg);
+                    }
                 }
             }
 
@@ -383,6 +400,13 @@ namespace Sapphire
                 color.g = prox*nearColor.g + dist*farColor.g;
                 color.b = prox*nearColor.b + dist*farColor.b;
                 return color;
+            }
+
+            void addTip(const Point& point)
+            {
+                float prox;
+                Vec vec = project(point, prox);
+                renderList.push_back(LineSegment::MakeTip(vec, prox));
             }
 
             void addSegment(SegmentKind kind, int index, const Point& point1, const Point& point2)
@@ -421,18 +445,6 @@ namespace Sapphire
                     expandSegment(1+depth, kind, index, vecm, vec2, proxm, prox2, pointm, point2);
                 }
             }
-
-#if 0
-            void drawTip(NVGcontext* vg, const Point& p)
-            {
-                Vec s = project(p);
-                nvgBeginPath(vg);
-                nvgStrokeColor(vg, SCHEME_WHITE);
-                nvgFillColor(vg, SCHEME_WHITE);
-                nvgCircle(vg, s.x, s.y, 1.0);
-                nvgFill(vg);
-            }
-#endif
 
             void drawAxis(Point tip, Point arrow1, Point arrow2)
             {
