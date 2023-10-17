@@ -125,6 +125,7 @@ namespace Sapphire
             float xprev{};
             float yprev{};
             float zprev{};
+            bool bypassing = false;
 
             TricorderModule()
             {
@@ -149,6 +150,17 @@ namespace Sapphire
             {
                 Module::onReset(e);
                 initialize();
+            }
+
+            void onBypass(const BypassEvent&) override
+            {
+                bypassing = true;
+                resetPointList();
+            }
+
+            void onUnBypass(const UnBypassEvent&) override
+            {
+                bypassing = false;
             }
 
             static bool isCompatibleModule(const Module *module)
@@ -321,7 +333,7 @@ namespace Sapphire
                 if (layer != 1)
                     return;
 
-                if (module == nullptr)
+                if (module == nullptr || module->bypassing)
                     return;
 
                 const int n = module->pointCount;
@@ -538,6 +550,9 @@ namespace Sapphire
 
             void step() override
             {
+                if (module == nullptr || module->bypassing)
+                    return;
+
                 rotationRadians = std::fmod(rotationRadians + radiansPerStep, 2*M_PI);
                 orientation.initialize();
                 orientation.pivot(1, rotationRadians);
