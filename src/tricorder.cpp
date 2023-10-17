@@ -428,6 +428,9 @@ namespace Sapphire
             {
                 float prox;
                 Vec vec = project(point, prox);
+                // Give the tip a slight proximity bonus to account for its small radius.
+                // We want to draw the tip after the line segment it is connected to.
+                prox += 0.1;
                 renderList.push_back(LineSegment::MakeTip(vec, prox));
             }
 
