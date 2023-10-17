@@ -298,10 +298,12 @@ namespace Sapphire
         using RenderList = std::vector<LineSegment>;
 
 
-        struct TricorderDisplay : Widget
+        struct TricorderDisplay : OpaqueWidget
         {
-            float radiansPerStep = -0.003f;
-            float rotationRadians = 0.0f;
+            float yRotationRadians = 0.0f;
+            float xRotationRadians = 23.5*(M_PI/180);
+            float yRadiansPerStep = -0.003f;
+            float xRadiansPerStep = 0;
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
             TricorderModule* module;
@@ -315,7 +317,6 @@ namespace Sapphire
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
-                orientation.pivot(0, 20.0*(M_PI/180.0));
             }
 
             void draw(const DrawArgs& args) override
@@ -325,7 +326,7 @@ namespace Sapphire
                 nvgRect(args.vg, RECT_ARGS(r));
                 nvgFillColor(args.vg, SCHEME_BLACK);
                 nvgFill(args.vg);
-                Widget::draw(args);
+                OpaqueWidget::draw(args);
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -553,10 +554,47 @@ namespace Sapphire
                 if (module == nullptr || module->bypassing)
                     return;
 
-                rotationRadians = std::fmod(rotationRadians + radiansPerStep, 2*M_PI);
+                yRotationRadians = std::fmod(yRotationRadians + yRadiansPerStep, 2*M_PI);
                 orientation.initialize();
-                orientation.pivot(1, rotationRadians);
-                orientation.pivot(0, 23.5*(M_PI/180));
+                orientation.pivot(1, yRotationRadians);
+                orientation.pivot(0, xRotationRadians);
+            }
+
+            void onEnter(const EnterEvent& e) override
+            {
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+            }
+
+            void onDragStart(const DragStartEvent& e) override
+            {
+                if (e.button != GLFW_MOUSE_BUTTON_LEFT)
+                    return;
+
+                // Stop auto-rotation if in effect.
+                xRadiansPerStep = yRadiansPerStep = 0;
+            }
+
+            void onDragEnd(const DragEndEvent& e) override
+            {
+                if (e.button != GLFW_MOUSE_BUTTON_LEFT)
+                    return;
+            }
+
+            void onDragMove(const DragMoveEvent& e) override
+            {
+                if (e.button != GLFW_MOUSE_BUTTON_LEFT)
+                    return;
+
+                // Adjust latitude/longitude angles based on mouse movement.
+                const float scale = 0.3 / MM_SIZE;
+                const float lon = scale * e.mouseDelta.x;
+                const float lat = scale * e.mouseDelta.y;
+                yRotationRadians += lon;
+                xRotationRadians += lat;
+                e.consume(this);
             }
         };
 
