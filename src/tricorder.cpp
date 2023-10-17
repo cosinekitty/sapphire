@@ -362,6 +362,8 @@ namespace Sapphire
                 // Sort in ascending order of line segment midpoint.
                 std::sort(renderList.begin(), renderList.end());
 
+                nvgLineCap(vg, NVG_ROUND);
+
                 // Render in z-order to create correct blocking of segment visibility.
                 for (const LineSegment& seg : renderList)
                 {
@@ -370,7 +372,7 @@ namespace Sapphire
                         nvgBeginPath(vg);
                         nvgStrokeColor(vg, SCHEME_WHITE);
                         nvgFillColor(vg, SCHEME_WHITE);
-                        nvgCircle(vg, seg.vec1.x, seg.vec1.y, 1.0);
+                        nvgCircle(vg, seg.vec1.x, seg.vec1.y, 1.5);
                         nvgFill(vg);
                     }
                     else
@@ -378,7 +380,7 @@ namespace Sapphire
                         NVGcolor color = segmentColor(seg, pointCount);
                         nvgBeginPath(vg);
                         nvgStrokeColor(vg, color);
-                        nvgStrokeWidth(vg, seg.prox/2 + 0.5f);
+                        nvgStrokeWidth(vg, seg.prox/2 + 1.0f);
                         nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
                         nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
                         nvgStroke(vg);
@@ -415,10 +417,10 @@ namespace Sapphire
                 float prox = std::max(0.0f, std::min(1.0f, seg.prox));
                 float dist = 1 - prox;
                 NVGcolor color;
-                color.a = opacity;
-                color.r = prox*nearColor.r + dist*farColor.r;
-                color.g = prox*nearColor.g + dist*farColor.g;
-                color.b = prox*nearColor.b + dist*farColor.b;
+                color.a = 1;
+                color.r = opacity*(prox*nearColor.r + dist*farColor.r);
+                color.g = opacity*(prox*nearColor.g + dist*farColor.g);
+                color.b = opacity*(prox*nearColor.b + dist*farColor.b);
                 return color;
             }
 
