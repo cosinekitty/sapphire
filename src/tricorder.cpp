@@ -286,7 +286,7 @@ namespace Sapphire
         using RenderList = std::vector<LineSegment>;
 
 
-        struct TricorderDisplay : LedDisplay
+        struct TricorderDisplay : Widget
         {
             float radiansPerStep = -0.003f;
             float rotationRadians = 0.0f;
@@ -304,6 +304,16 @@ namespace Sapphire
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
                 orientation.pivot(0, 20.0*(M_PI/180.0));
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                math::Rect r = box.zeroPos();
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, RECT_ARGS(r));
+                nvgFillColor(args.vg, SCHEME_BLACK);
+                nvgFill(args.vg);
+                Widget::draw(args);
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
