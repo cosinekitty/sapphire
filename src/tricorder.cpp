@@ -13,7 +13,7 @@ namespace Sapphire
     {
         struct TricorderWidget;
 
-        const int TRAIL_LENGTH = 500;      // how many (x, y, z) points are held for the 3D plot
+        const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
         struct Point
         {
@@ -394,14 +394,17 @@ namespace Sapphire
                 {
                 case SegmentKind::Curve:
                     nearColor = SCHEME_CYAN;
+                    farColor = SCHEME_PURPLE;
                     break;
 
                 case SegmentKind::Axis:
                     nearColor = nvgRGB(0x90, 0x90, 0x60);
+                    farColor = SCHEME_DARK_GRAY;
                     break;
 
                 default:
                     nearColor = SCHEME_RED;
+                    farColor = SCHEME_RED;
                     break;
                 }
 
