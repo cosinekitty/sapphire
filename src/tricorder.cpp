@@ -97,6 +97,14 @@ namespace Sapphire
             }
         };
 
+        inline float WrapAngle(float radians)
+        {
+            float wrap = std::fmod(radians, 2*M_PI);
+            if (wrap < 0)
+                wrap += 2*M_PI;
+            return wrap;
+        }
+
         enum ParamId
         {
             PARAMS_LEN
@@ -519,7 +527,7 @@ namespace Sapphire
             void drawLetterY(float r)
             {
                 const float La = r * 1.04f;
-                const float Lb = r * 0.04f;
+                const float Lb = r * 0.02f;
                 const float Lc = r * 1.09f;
                 const float Ld = r * 1.14f;
                 addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(  0, La, 0));
@@ -554,7 +562,7 @@ namespace Sapphire
                 if (module == nullptr || module->bypassing)
                     return;
 
-                yRotationRadians = std::fmod(yRotationRadians + yRadiansPerStep, 2*M_PI);
+                yRotationRadians = WrapAngle(yRotationRadians + yRadiansPerStep);
                 orientation.initialize();
                 orientation.pivot(1, yRotationRadians);
                 orientation.pivot(0, xRotationRadians);
@@ -589,11 +597,11 @@ namespace Sapphire
                     return;
 
                 // Adjust latitude/longitude angles based on mouse movement.
-                const float scale = 0.3 / MM_SIZE;
+                const float scale = 0.35 / MM_SIZE;
                 const float lon = scale * e.mouseDelta.x;
                 const float lat = scale * e.mouseDelta.y;
-                yRotationRadians += lon;
-                xRotationRadians += lat;
+                yRotationRadians = WrapAngle(yRotationRadians + lon);
+                xRotationRadians = WrapAngle(xRotationRadians + lat);
                 e.consume(this);
             }
         };
