@@ -357,6 +357,18 @@ namespace Sapphire
         };
 
 
+        int ActivePointCount(const TricorderModule* module)
+        {
+            if (module == nullptr)
+                return 0;
+
+            if (module->bypassing)
+                return 0;
+
+            return module->pointCount;
+        }
+
+
         enum class SegmentKind
         {
             Curve,
@@ -626,10 +638,7 @@ namespace Sapphire
                 if (layer != 1)
                     return;
 
-                if (module == nullptr || module->bypassing)
-                    return;
-
-                const int n = module->pointCount;
+                const int n = ActivePointCount(module);
                 if (n == 0)
                     return;
 
@@ -924,6 +933,11 @@ namespace Sapphire
             // inside any of the buttons. Otherwise all buttons are invisible.
             // This is a distinction because the buttons are OpaqueWidget,
             // meaning once the mouse enters a button, it "leaves" the display.
+
+            // Special case: buttons are never shown when the module is not active,
+            // whether because of being bypassed or disconnected from an input signal.
+            if (0 == ActivePointCount(display.module))
+                return false;
 
             if (display.ownsMouse)
                 return true;
