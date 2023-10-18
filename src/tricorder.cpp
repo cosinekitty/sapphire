@@ -306,6 +306,84 @@ namespace Sapphire
         using RenderList = std::vector<LineSegment>;
 
 
+        inline float ButtonLeft(float mmSize)
+        {
+            return mmSize * 0.05f;
+        }
+
+        inline float ButtonTop(float mmSize)
+        {
+            return mmSize * 0.05f;
+        }
+
+        inline float ButtonWidth(float mmSize)
+        {
+            return mmSize * 0.10f;
+        }
+
+        inline float ButtonHeight(float mmSize)
+        {
+            return mmSize * 0.10f;
+        }
+
+        struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
+        {
+            bool isButtonVisible = false;
+            bool inside = false;
+
+            TricorderButton(float x1, float y1, float dx, float dy)
+            {
+                box.pos = mm2px(Vec(x1, y1));
+                box.size = mm2px(Vec(dx, dy));
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                if (!isButtonVisible && !inside)
+                    return;
+
+                NVGcolor color = SCHEME_ORANGE;
+                color.a = 0.25f;
+                math::Rect r = box.zeroPos();
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, RECT_ARGS(r));
+                nvgFillColor(args.vg, color);
+                nvgFill(args.vg);
+                OpaqueWidget::draw(args);
+            }
+
+            void showButton()
+            {
+                // My own implementation of visibility state, similar to Widget::show()
+                // but without the flip-flopping of enter/leave messages.
+                isButtonVisible = true;
+            }
+
+            void hideButton()
+            {
+                isButtonVisible = false;
+            }
+
+            void onEnter(const EnterEvent& e) override
+            {
+                inside = true;
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                inside = false;
+            }
+        };
+
+
+        struct TricorderButton_ToggleAxes : TricorderButton
+        {
+            TricorderButton_ToggleAxes(float mmSize)
+                : TricorderButton(ButtonLeft(mmSize), ButtonTop(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                {}
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
             float yRotationRadians = 0.0f;
@@ -318,6 +396,7 @@ namespace Sapphire
             TricorderWidget* parent;
             RotationMatrix orientation;
             RenderList renderList;
+            TricorderButton_ToggleAxes* toggleAxesButton;
 
             TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
                 : module(_module)
@@ -325,6 +404,9 @@ namespace Sapphire
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
+
+                toggleAxesButton = new TricorderButton_ToggleAxes(MM_SIZE);
+                addChild(toggleAxesButton);
             }
 
             void draw(const DrawArgs& args) override
@@ -570,10 +652,12 @@ namespace Sapphire
 
             void onEnter(const EnterEvent& e) override
             {
+                toggleAxesButton->showButton();
             }
 
             void onLeave(const LeaveEvent& e) override
             {
+                toggleAxesButton->hideButton();
             }
 
             void onDragStart(const DragStartEvent& e) override
