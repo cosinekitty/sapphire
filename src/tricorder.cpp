@@ -789,6 +789,19 @@ namespace Sapphire
                 orientation.pivot(0, xRotationRadians);
             }
 
+            void onButton(const ButtonEvent& e) override
+            {
+                OpaqueWidget::onButton(e);
+                if (e.button != GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    // Prevent right-click from launching context menu inside the display area.
+                    // Showing the context menu causes buttons to disappear for no reason.
+                    // If people want the context menu, they have to click outside the display area.
+                    if (!e.isConsumed())
+                        e.consume(this);
+                }
+            }
+
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
