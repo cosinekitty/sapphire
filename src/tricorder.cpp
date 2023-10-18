@@ -454,6 +454,19 @@ namespace Sapphire
         };
 
 
+        struct TricorderButton_SpinLeft : TricorderButton
+        {
+            TricorderButton_SpinLeft(TricorderDisplay& _display, float mmSize)
+                : TricorderButton(_display, ButtonLeft(mmSize), ButtonMiddle(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                {}
+
+            void onButtonClick() override
+            {
+                SelectRotationMode(display, -1, 0);
+            }
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
             float rotationSpeed = 0.003;
@@ -479,6 +492,7 @@ namespace Sapphire
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
                 toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this, MM_SIZE));
                 addButton(new TricorderButton_SpinRight(*this, MM_SIZE));
+                addButton(new TricorderButton_SpinLeft(*this, MM_SIZE));
                 selectRotationMode(-1, 0);
             }
 
