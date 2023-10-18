@@ -12,6 +12,7 @@ namespace Sapphire
     namespace Tricorder
     {
         struct TricorderWidget;
+        struct TricorderDisplay;
 
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
@@ -336,55 +337,57 @@ namespace Sapphire
             return mmSize * 0.10f;
         }
 
+        bool AreButtonsVisible(const TricorderDisplay&);
+
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
-            bool isButtonVisible = false;
-            static int insideCount;     // how many of the buttons are we inside (should be 0 or 1 at any time)
+            TricorderDisplay& display;
+            bool ownsMouse = false;
+            bool isMousePressed = false;
 
-            TricorderButton(float x1, float y1, float dx, float dy)
+            TricorderButton(TricorderDisplay& _display, float x1, float y1, float dx, float dy)
+                : display(_display)
             {
                 box.pos = mm2px(Vec(x1, y1));
                 box.size = mm2px(Vec(dx, dy));
             }
 
+            bool isButtonVisible() const
+            {
+                // My own replacement for Widget::isVisible() that works around its issues
+                // with supporting automatic hide/show of all buttons depending on whether
+                // the mouse is inside the parent rectangle. The weird part comes from trying
+                // to keep buttons visible when the mouse moves into a button, thus "leaving"
+                // the parent window, causing the buttons to become invisible. This becomes
+                // a vicious loop of showing/hiding all the buttons. My workaround resolves
+                // this by keeping all buttons visible when the mouse cursor is owned by the parent
+                // or any of the buttons inside the parent.
+                return AreButtonsVisible(display);
+            }
+
             void draw(const DrawArgs& args) override
             {
-                // Tricky: the parent class TricorderDisplay thinks it has been "left"
-                // when any button has been entered. We don't want to actually hide
-                // the buttons when putting the mouse over any of them.
-                if (!isButtonVisible && insideCount == 0)
-                    return;
-
-                NVGcolor color = SCHEME_ORANGE;
-                color.a = 0.25f;
-                math::Rect r = box.zeroPos();
-                nvgBeginPath(args.vg);
-                nvgRect(args.vg, RECT_ARGS(r));
-                nvgFillColor(args.vg, color);
-                nvgFill(args.vg);
-                OpaqueWidget::draw(args);
-            }
-
-            void showButton()
-            {
-                // My own implementation of visibility state, similar to Widget::show()
-                // but without the flip-flopping of enter/leave messages.
-                isButtonVisible = true;
-            }
-
-            void hideButton()
-            {
-                isButtonVisible = false;
+                if (isButtonVisible())
+                {
+                    NVGcolor color = SCHEME_ORANGE;
+                    color.a = 0.25f;
+                    math::Rect r = box.zeroPos();
+                    nvgBeginPath(args.vg);
+                    nvgRect(args.vg, RECT_ARGS(r));
+                    nvgFillColor(args.vg, color);
+                    nvgFill(args.vg);
+                    OpaqueWidget::draw(args);
+                }
             }
 
             void onEnter(const EnterEvent& e) override
             {
-                ++insideCount;
+                ownsMouse = true;
             }
 
             void onLeave(const LeaveEvent& e) override
             {
-                --insideCount;
+                ownsMouse = false;
             }
 
             void onButton(const ButtonEvent& e) override
@@ -400,23 +403,32 @@ namespace Sapphire
                 }
             }
 
-            virtual void onMousePress() {}
-            virtual void onMouseRelease() {}
+            virtual void onButtonClick() {}
+
+            virtual void onMousePress()
+            {
+                isMousePressed = true;
+            }
+
+            virtual void onMouseRelease()
+            {
+                if (isMousePressed)
+                    onButtonClick();
+
+                isMousePressed = false;
+            }
         };
-
-
-        int TricorderButton::insideCount = 0;
 
 
         struct TricorderButton_ToggleAxes : TricorderButton
         {
             bool axesAreVisible = true;
 
-            explicit TricorderButton_ToggleAxes(float mmSize)
-                : TricorderButton(ButtonLeft(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            TricorderButton_ToggleAxes(TricorderDisplay& _display, float mmSize)
+                : TricorderButton(_display, ButtonLeft(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
                 {}
 
-            void onMouseRelease() override
+            void onButtonClick() override
             {
                 axesAreVisible = !axesAreVisible;
             }
@@ -436,6 +448,8 @@ namespace Sapphire
             RotationMatrix orientation;
             RenderList renderList;
             TricorderButton_ToggleAxes* toggleAxesButton;
+            std::vector<TricorderButton*> buttonList;
+            bool ownsMouse = false;
 
             TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
                 : module(_module)
@@ -443,9 +457,15 @@ namespace Sapphire
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
+                toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this, MM_SIZE));
+            }
 
-                toggleAxesButton = new TricorderButton_ToggleAxes(MM_SIZE);
-                addChild(toggleAxesButton);
+            template <typename button_t>
+            button_t* addButton(button_t* button)
+            {
+                addChild(button);
+                buttonList.push_back(button);
+                return button;
             }
 
             void draw(const DrawArgs& args) override
@@ -694,12 +714,12 @@ namespace Sapphire
 
             void onEnter(const EnterEvent& e) override
             {
-                toggleAxesButton->showButton();
+                ownsMouse = true;
             }
 
             void onLeave(const LeaveEvent& e) override
             {
-                toggleAxesButton->hideButton();
+                ownsMouse = false;
             }
 
             void onDragStart(const DragStartEvent& e) override
@@ -731,6 +751,19 @@ namespace Sapphire
                 e.consume(this);
             }
         };
+
+
+        bool AreButtonsVisible(const TricorderDisplay& display)
+        {
+            if (display.ownsMouse)
+                return true;
+
+            for (const TricorderButton* button : display.buttonList)
+                if (button->ownsMouse)
+                    return true;
+
+            return false;
+        }
 
 
         struct TricorderWidget : SapphireReloadableModuleWidget
