@@ -327,6 +327,11 @@ namespace Sapphire
             return mmSize * 0.85f;
         }
 
+        inline float ButtonMiddle(float mmSize)
+        {
+            return mmSize * 0.45f;
+        }
+
         inline float ButtonWidth(float mmSize)
         {
             return mmSize * 0.10f;
@@ -338,6 +343,7 @@ namespace Sapphire
         }
 
         bool AreButtonsVisible(const TricorderDisplay&);
+        void SelectRotationMode(TricorderDisplay&, int longitudeDirection, int latitudeDirection);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
@@ -435,12 +441,26 @@ namespace Sapphire
         };
 
 
+        struct TricorderButton_SpinRight : TricorderButton
+        {
+            TricorderButton_SpinRight(TricorderDisplay& _display, float mmSize)
+                : TricorderButton(_display, ButtonRight(mmSize), ButtonMiddle(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                {}
+
+            void onButtonClick() override
+            {
+                SelectRotationMode(display, +1, 0);
+            }
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
+            float rotationSpeed = 0.003;
             float yRotationRadians = 0.0f;
             float xRotationRadians = 23.5*(M_PI/180);
-            float yRadiansPerStep = -0.003f;
-            float xRadiansPerStep = 0;
+            float yRadiansPerStep{};
+            float xRadiansPerStep{};
             float voltageScale = 5.0f;
             const float MM_SIZE = 105.0f;
             TricorderModule* module;
@@ -458,6 +478,8 @@ namespace Sapphire
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
                 toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this, MM_SIZE));
+                addButton(new TricorderButton_SpinRight(*this, MM_SIZE));
+                selectRotationMode(-1, 0);
             }
 
             template <typename button_t>
@@ -466,6 +488,12 @@ namespace Sapphire
                 addChild(button);
                 buttonList.push_back(button);
                 return button;
+            }
+
+            void selectRotationMode(int longitudeDirection, int latitudeDirection)
+            {
+                yRadiansPerStep = rotationSpeed * longitudeDirection;
+                xRadiansPerStep = rotationSpeed * latitudeDirection;
             }
 
             void draw(const DrawArgs& args) override
@@ -755,6 +783,12 @@ namespace Sapphire
 
         bool AreButtonsVisible(const TricorderDisplay& display)
         {
+            // Buttons are either all visible or all invisible.
+            // They are all visible if the mouse is inside the display or
+            // inside any of the buttons. Otherwise all buttons are invisible.
+            // This is a distinction because the buttons are OpaqueWidget,
+            // meaning once the mouse enters a button, it "leaves" the display.
+
             if (display.ownsMouse)
                 return true;
 
@@ -763,6 +797,12 @@ namespace Sapphire
                     return true;
 
             return false;
+        }
+
+
+        void SelectRotationMode(TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
+        {
+            display.selectRotationMode(longitudeDirection, latitudeDirection);
         }
 
 
