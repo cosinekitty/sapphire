@@ -16,6 +16,16 @@ namespace Sapphire
 
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
+        const float DISPLAY_MM_SIZE = 105.0f;       // lateral mm dimension of square 3D display
+        const float BUTTON_WIDTH    = DISPLAY_MM_SIZE * 0.10f;
+        const float BUTTON_HEIGHT   = DISPLAY_MM_SIZE * 0.10f;
+        const float BUTTON_LEFT     = DISPLAY_MM_SIZE * 0.05f;
+        const float BUTTON_RIGHT    = DISPLAY_MM_SIZE * 0.85f;
+        const float BUTTON_CENTER   = DISPLAY_MM_SIZE * 0.45f;
+        const float BUTTON_TOP      = DISPLAY_MM_SIZE * 0.05f;
+        const float BUTTON_BOTTOM   = DISPLAY_MM_SIZE * 0.85f;
+        const float BUTTON_MIDDLE   = DISPLAY_MM_SIZE * 0.45f;
+
         struct Point
         {
             float x;
@@ -306,52 +316,6 @@ namespace Sapphire
 
         using RenderList = std::vector<LineSegment>;
 
-        // Horizontal placement of buttons
-
-        inline float ButtonLeft(float mmSize)
-        {
-            return mmSize * 0.05f;
-        }
-
-        inline float ButtonRight(float mmSize)
-        {
-            return mmSize * 0.85f;
-        }
-
-        inline float ButtonCenter(float mmSize)
-        {
-            return mmSize * 0.45f;
-        }
-
-        // Vertical placement of buttons
-
-        inline float ButtonTop(float mmSize)
-        {
-            return mmSize * 0.05f;
-        }
-
-        inline float ButtonBottom(float mmSize)
-        {
-            return mmSize * 0.85f;
-        }
-
-        inline float ButtonMiddle(float mmSize)
-        {
-            return mmSize * 0.45f;
-        }
-
-        // Button dimensions
-
-        inline float ButtonWidth(float mmSize)
-        {
-            return mmSize * 0.10f;
-        }
-
-        inline float ButtonHeight(float mmSize)
-        {
-            return mmSize * 0.10f;
-        }
-
         bool AreButtonsVisible(const TricorderDisplay&);
         void SelectRotationMode(TricorderDisplay&, int longitudeDirection, int latitudeDirection);
 
@@ -361,11 +325,11 @@ namespace Sapphire
             bool ownsMouse = false;
             bool isMousePressed = false;
 
-            TricorderButton(TricorderDisplay& _display, float x1, float y1, float dx, float dy)
+            TricorderButton(TricorderDisplay& _display, float x1, float y1)
                 : display(_display)
             {
                 box.pos = mm2px(Vec(x1, y1));
-                box.size = mm2px(Vec(dx, dy));
+                box.size = mm2px(Vec(BUTTON_WIDTH, BUTTON_HEIGHT));
             }
 
             bool isButtonVisible() const
@@ -440,8 +404,8 @@ namespace Sapphire
         {
             bool axesAreVisible = true;
 
-            TricorderButton_ToggleAxes(TricorderDisplay& _display, float mmSize)
-                : TricorderButton(_display, ButtonLeft(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            explicit TricorderButton_ToggleAxes(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_LEFT, BUTTON_BOTTOM)
                 {}
 
             void onButtonClick() override
@@ -453,8 +417,8 @@ namespace Sapphire
 
         struct TricorderButton_SpinRight : TricorderButton
         {
-            TricorderButton_SpinRight(TricorderDisplay& _display, float mmSize)
-                : TricorderButton(_display, ButtonRight(mmSize), ButtonMiddle(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            explicit TricorderButton_SpinRight(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_RIGHT, BUTTON_MIDDLE)
                 {}
 
             void onButtonClick() override
@@ -466,8 +430,8 @@ namespace Sapphire
 
         struct TricorderButton_SpinLeft : TricorderButton
         {
-            TricorderButton_SpinLeft(TricorderDisplay& _display, float mmSize)
-                : TricorderButton(_display, ButtonLeft(mmSize), ButtonMiddle(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            explicit TricorderButton_SpinLeft(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_LEFT, BUTTON_MIDDLE)
                 {}
 
             void onButtonClick() override
@@ -479,8 +443,8 @@ namespace Sapphire
 
         struct TricorderButton_SpinUp : TricorderButton
         {
-            TricorderButton_SpinUp(TricorderDisplay& _display, float mmSize)
-                : TricorderButton(_display, ButtonCenter(mmSize), ButtonTop(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            explicit TricorderButton_SpinUp(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_CENTER, BUTTON_TOP)
                 {}
 
             void onButtonClick() override
@@ -492,8 +456,8 @@ namespace Sapphire
 
         struct TricorderButton_SpinDown : TricorderButton
         {
-            TricorderButton_SpinDown(TricorderDisplay& _display, float mmSize)
-                : TricorderButton(_display, ButtonCenter(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+            explicit TricorderButton_SpinDown(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_CENTER, BUTTON_BOTTOM)
                 {}
 
             void onButtonClick() override
@@ -511,7 +475,6 @@ namespace Sapphire
             float yRadiansPerStep{};
             float xRadiansPerStep{};
             float voltageScale = 5.0f;
-            const float MM_SIZE = 105.0f;
             TricorderModule* module;
             TricorderWidget* parent;
             RotationMatrix orientation;
@@ -525,12 +488,12 @@ namespace Sapphire
                 , parent(_parent)
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
-                box.size = mm2px(Vec(MM_SIZE, MM_SIZE));
-                toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this, MM_SIZE));
-                addButton(new TricorderButton_SpinRight(*this, MM_SIZE));
-                addButton(new TricorderButton_SpinLeft(*this, MM_SIZE));
-                addButton(new TricorderButton_SpinUp(*this, MM_SIZE));
-                addButton(new TricorderButton_SpinDown(*this, MM_SIZE));
+                box.size = mm2px(Vec(DISPLAY_MM_SIZE, DISPLAY_MM_SIZE));
+                toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this));
+                addButton(new TricorderButton_SpinRight(*this));
+                addButton(new TricorderButton_SpinLeft(*this));
+                addButton(new TricorderButton_SpinUp(*this));
+                addButton(new TricorderButton_SpinDown(*this));
                 selectRotationMode(-1, 0);
             }
 
@@ -775,8 +738,8 @@ namespace Sapphire
                 Point q = orientation.rotate(p);
 
                 // Project the 3D point 'p' onto a screen location Vec.
-                float sx = (MM_SIZE/2) * (1 + q.x/voltageScale);
-                float sy = (MM_SIZE/2) * (1 - q.y/voltageScale);
+                float sx = (DISPLAY_MM_SIZE/2) * (1 + q.x/voltageScale);
+                float sy = (DISPLAY_MM_SIZE/2) * (1 - q.y/voltageScale);
                 prox = (1 + q.z/voltageScale) / 2;
                 return mm2px(Vec(sx, sy));
             }
@@ -824,7 +787,7 @@ namespace Sapphire
                     return;
 
                 // Adjust latitude/longitude angles based on mouse movement.
-                const float scale = 0.35 / MM_SIZE;
+                const float scale = 0.35 / DISPLAY_MM_SIZE;
                 const float lon = scale * e.mouseDelta.x;
                 const float lat = scale * e.mouseDelta.y;
                 yRotationRadians = WrapAngle(yRotationRadians + lon);
