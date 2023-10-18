@@ -306,6 +306,7 @@ namespace Sapphire
 
         using RenderList = std::vector<LineSegment>;
 
+        // Horizontal placement of buttons
 
         inline float ButtonLeft(float mmSize)
         {
@@ -316,6 +317,13 @@ namespace Sapphire
         {
             return mmSize * 0.85f;
         }
+
+        inline float ButtonCenter(float mmSize)
+        {
+            return mmSize * 0.45f;
+        }
+
+        // Vertical placement of buttons
 
         inline float ButtonTop(float mmSize)
         {
@@ -331,6 +339,8 @@ namespace Sapphire
         {
             return mmSize * 0.45f;
         }
+
+        // Button dimensions
 
         inline float ButtonWidth(float mmSize)
         {
@@ -467,6 +477,32 @@ namespace Sapphire
         };
 
 
+        struct TricorderButton_SpinUp : TricorderButton
+        {
+            TricorderButton_SpinUp(TricorderDisplay& _display, float mmSize)
+                : TricorderButton(_display, ButtonCenter(mmSize), ButtonTop(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                {}
+
+            void onButtonClick() override
+            {
+                SelectRotationMode(display, 0, -1);
+            }
+        };
+
+
+        struct TricorderButton_SpinDown : TricorderButton
+        {
+            TricorderButton_SpinDown(TricorderDisplay& _display, float mmSize)
+                : TricorderButton(_display, ButtonCenter(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                {}
+
+            void onButtonClick() override
+            {
+                SelectRotationMode(display, 0, +1);
+            }
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
             float rotationSpeed = 0.003;
@@ -493,6 +529,8 @@ namespace Sapphire
                 toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this, MM_SIZE));
                 addButton(new TricorderButton_SpinRight(*this, MM_SIZE));
                 addButton(new TricorderButton_SpinLeft(*this, MM_SIZE));
+                addButton(new TricorderButton_SpinUp(*this, MM_SIZE));
+                addButton(new TricorderButton_SpinDown(*this, MM_SIZE));
                 selectRotationMode(-1, 0);
             }
 
@@ -749,6 +787,7 @@ namespace Sapphire
                     return;
 
                 yRotationRadians = WrapAngle(yRotationRadians + yRadiansPerStep);
+                xRotationRadians = WrapAngle(xRotationRadians + xRadiansPerStep);
                 orientation.initialize();
                 orientation.pivot(1, yRotationRadians);
                 orientation.pivot(0, xRotationRadians);
