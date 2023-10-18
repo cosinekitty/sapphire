@@ -311,9 +311,19 @@ namespace Sapphire
             return mmSize * 0.05f;
         }
 
+        inline float ButtonRight(float mmSize)
+        {
+            return mmSize * 0.85f;
+        }
+
         inline float ButtonTop(float mmSize)
         {
             return mmSize * 0.05f;
+        }
+
+        inline float ButtonBottom(float mmSize)
+        {
+            return mmSize * 0.85f;
         }
 
         inline float ButtonWidth(float mmSize)
@@ -329,7 +339,7 @@ namespace Sapphire
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
             bool isButtonVisible = false;
-            bool inside = false;
+            static int insideCount;     // how many of the buttons are we inside (should be 0 or 1 at any time)
 
             TricorderButton(float x1, float y1, float dx, float dy)
             {
@@ -339,7 +349,10 @@ namespace Sapphire
 
             void draw(const DrawArgs& args) override
             {
-                if (!isButtonVisible && !inside)
+                // Tricky: the parent class TricorderDisplay thinks it has been "left"
+                // when any button has been entered. We don't want to actually hide
+                // the buttons when putting the mouse over any of them.
+                if (!isButtonVisible && insideCount == 0)
                     return;
 
                 NVGcolor color = SCHEME_ORANGE;
@@ -366,21 +379,47 @@ namespace Sapphire
 
             void onEnter(const EnterEvent& e) override
             {
-                inside = true;
+                ++insideCount;
             }
 
             void onLeave(const LeaveEvent& e) override
             {
-                inside = false;
+                --insideCount;
             }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    switch (e.action)
+                    {
+                    case GLFW_PRESS:    onMousePress();     break;
+                    case GLFW_RELEASE:  onMouseRelease();   break;
+                    }
+                    e.consume(this);
+                }
+            }
+
+            virtual void onMousePress() {}
+            virtual void onMouseRelease() {}
         };
+
+
+        int TricorderButton::insideCount = 0;
 
 
         struct TricorderButton_ToggleAxes : TricorderButton
         {
+            bool axesAreVisible = true;
+
             TricorderButton_ToggleAxes(float mmSize)
-                : TricorderButton(ButtonLeft(mmSize), ButtonTop(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
+                : TricorderButton(ButtonLeft(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
                 {}
+
+            void onMouseRelease() override
+            {
+                axesAreVisible = !axesAreVisible;
+            }
         };
 
 
@@ -587,14 +626,17 @@ namespace Sapphire
 
             void drawBackground()
             {
-                const float r = 4.0f;
-                Point origin(0, 0, 0);
-                addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
-                addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
-                addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
-                drawLetterX(r);
-                drawLetterY(r);
-                drawLetterZ(r);
+                if (toggleAxesButton->axesAreVisible)
+                {
+                    const float r = 4.0f;
+                    Point origin(0, 0, 0);
+                    addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
+                    addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
+                    addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
+                    drawLetterX(r);
+                    drawLetterY(r);
+                    drawLetterZ(r);
+                }
             }
 
             void drawLetterX(float r)
