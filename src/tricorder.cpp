@@ -412,7 +412,7 @@ namespace Sapphire
         {
             bool axesAreVisible = true;
 
-            TricorderButton_ToggleAxes(float mmSize)
+            explicit TricorderButton_ToggleAxes(float mmSize)
                 : TricorderButton(ButtonLeft(mmSize), ButtonBottom(mmSize), ButtonWidth(mmSize), ButtonHeight(mmSize))
                 {}
 
