@@ -350,7 +350,7 @@ namespace Sapphire
                 if (isButtonVisible())
                 {
                     NVGcolor color = SCHEME_ORANGE;
-                    color.a = 0.25f;
+                    color.a = ownsMouse ? 0.25f : 0.15f;
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
@@ -358,6 +358,17 @@ namespace Sapphire
                     nvgFill(args.vg);
                     OpaqueWidget::draw(args);
                 }
+            }
+
+            void line(const DrawArgs& args, float x1, float y1, float x2, float y2)
+            {
+                NVGcolor color = SCHEME_YELLOW;
+                color.a = ownsMouse ? 1.0f : 0.5f;
+                nvgBeginPath(args.vg);
+                nvgStrokeColor(args.vg, color);
+                nvgMoveTo(args.vg, mm2px(BUTTON_WIDTH * x1), mm2px(BUTTON_HEIGHT * y1));
+                nvgLineTo(args.vg, mm2px(BUTTON_WIDTH * x2), mm2px(BUTTON_HEIGHT * y2));
+                nvgStroke(args.vg);
             }
 
             void onEnter(const EnterEvent& e) override
@@ -411,6 +422,28 @@ namespace Sapphire
             void onButtonClick() override
             {
                 axesAreVisible = !axesAreVisible;
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                if (isButtonVisible())
+                {
+                    TricorderButton::draw(args);
+
+                    // The letter X
+                    line(args, 0.1, 0.35, 0.3, 0.65);
+                    line(args, 0.1, 0.65, 0.3, 0.35);
+
+                    // The letter Y
+                    line(args, 0.5, 0.65, 0.5, 0.5);
+                    line(args, 0.5, 0.5, 0.4, 0.35);
+                    line(args, 0.5, 0.5, 0.6, 0.35);
+
+                    // The letter Z
+                    line(args, 0.9, 0.65, 0.7, 0.65);
+                    line(args, 0.7, 0.65, 0.9, 0.35);
+                    line(args, 0.7, 0.35, 0.9, 0.35);
+                }
             }
         };
 
