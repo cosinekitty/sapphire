@@ -586,15 +586,13 @@ namespace Sapphire
         {
             float voltageScale = 5.0f;
             TricorderModule* module;
-            TricorderWidget* parent;
             RenderList renderList;
             TricorderButton_ToggleAxes* toggleAxesButton;
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
 
-            TricorderDisplay(TricorderModule* _module, TricorderWidget* _parent)
+            explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
-                , parent(_parent)
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(DISPLAY_MM_SIZE, DISPLAY_MM_SIZE));
@@ -968,7 +966,7 @@ namespace Sapphire
                 // Load the SVG and place all controls at their correct coordinates.
                 reloadPanel();
 
-                addChild(new TricorderDisplay(module, this));
+                addChild(new TricorderDisplay(module));
             }
         };
     }
