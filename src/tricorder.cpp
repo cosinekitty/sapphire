@@ -14,6 +14,13 @@ namespace Sapphire
         struct TricorderWidget;
         struct TricorderDisplay;
 
+        static int Polarity(float x)
+        {
+            if (x < 0) return -1;
+            if (x > 0) return +1;
+            return 0;
+        }
+
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
         const float DISPLAY_MM_SIZE = 105.0f;       // lateral mm dimension of square 3D display
@@ -145,6 +152,13 @@ namespace Sapphire
             float yprev{};
             float zprev{};
             bool bypassing = false;
+            const float rotationSpeed = 0.003;
+            float yRotationRadians{};
+            float xRotationRadians{};
+            float yRadiansPerStep{};
+            float xRadiansPerStep{};
+            bool axesAreVisible{};
+            RotationMatrix orientation;
 
             TricorderModule()
             {
@@ -163,6 +177,10 @@ namespace Sapphire
             void initialize()
             {
                 resetPointList();
+                selectRotationMode(-1, 0);
+                axesAreVisible = true;
+                yRotationRadians = 0.0f;
+                xRotationRadians = 23.5*(M_PI/180);
             }
 
             void onReset(const ResetEvent& e) override
@@ -272,6 +290,70 @@ namespace Sapphire
                     }
                 }
             }
+
+            void selectRotationMode(int longitudeDirection, int latitudeDirection)
+            {
+                yRadiansPerStep = rotationSpeed * longitudeDirection;
+                xRadiansPerStep = rotationSpeed * latitudeDirection;
+            }
+
+            void updateOrientation(float latChange, float lonChange)
+            {
+                yRotationRadians = WrapAngle(yRotationRadians + lonChange);
+                xRotationRadians = WrapAngle(xRotationRadians + latChange);
+                orientation.initialize();
+                orientation.pivot(1, yRotationRadians);
+                orientation.pivot(0, xRotationRadians);
+            }
+
+            void stepOrientation()
+            {
+                updateOrientation(xRadiansPerStep, yRadiansPerStep);
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t* root = json_object();
+                // Save display settings into the json object.
+
+                // Save the current auto-rotation state.
+                json_t* rotmode = json_array();
+                json_array_append_new(rotmode, json_integer(Polarity(xRadiansPerStep)));
+                json_array_append_new(rotmode, json_integer(Polarity(yRadiansPerStep)));
+                json_object_set_new(root, "rotation", rotmode);
+
+                // Save the current angles of rotation about the x-axis and y-axis.
+                json_t* orient = json_array();
+                json_array_append_new(orient, json_real(xRotationRadians));
+                json_array_append_new(orient, json_real(yRotationRadians));
+                json_object_set_new(root, "orientation", orient);
+
+                // Save the XYZ axes visibility state.
+                json_object_set_new(root, "axesVisible", json_boolean(axesAreVisible));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                // Restore display settings from the json object.
+                json_t *rotmode = json_object_get(root, "rotation");
+                if (json_is_array(rotmode) && json_array_size(rotmode) == 2)
+                {
+                    int latdir = json_integer_value(json_array_get(rotmode, 0));
+                    int londir = json_integer_value(json_array_get(rotmode, 1));
+                    selectRotationMode(londir, latdir);
+                }
+
+                json_t* orient = json_object_get(root, "orientation");
+                if (json_is_array(orient) && json_array_size(orient) == 2)
+                {
+                    xRotationRadians = json_number_value(json_array_get(orient, 0));
+                    yRotationRadians = json_number_value(json_array_get(orient, 1));
+                }
+
+                json_t* axesvis = json_object_get(root, "axesVisible");
+                axesAreVisible = !json_is_false(axesvis);
+            }
         };
 
 
@@ -318,6 +400,8 @@ namespace Sapphire
 
         bool AreButtonsVisible(const TricorderDisplay&);
         void SelectRotationMode(TricorderDisplay&, int longitudeDirection, int latitudeDirection);
+        void ToggleAxisVisibility(TricorderDisplay&);
+        bool AxesAreVisible(const TricorderDisplay&);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
@@ -413,15 +497,13 @@ namespace Sapphire
 
         struct TricorderButton_ToggleAxes : TricorderButton
         {
-            bool axesAreVisible = true;
-
             explicit TricorderButton_ToggleAxes(TricorderDisplay& _display)
                 : TricorderButton(_display, BUTTON_LEFT, BUTTON_BOTTOM)
                 {}
 
             void onButtonClick() override
             {
-                axesAreVisible = !axesAreVisible;
+                ToggleAxisVisibility(display);
             }
 
             void draw(const DrawArgs& args) override
@@ -502,15 +584,9 @@ namespace Sapphire
 
         struct TricorderDisplay : OpaqueWidget
         {
-            float rotationSpeed = 0.003;
-            float yRotationRadians = 0.0f;
-            float xRotationRadians = 23.5*(M_PI/180);
-            float yRadiansPerStep{};
-            float xRadiansPerStep{};
             float voltageScale = 5.0f;
             TricorderModule* module;
             TricorderWidget* parent;
-            RotationMatrix orientation;
             RenderList renderList;
             TricorderButton_ToggleAxes* toggleAxesButton;
             std::vector<TricorderButton*> buttonList;
@@ -527,7 +603,6 @@ namespace Sapphire
                 addButton(new TricorderButton_SpinLeft(*this));
                 addButton(new TricorderButton_SpinUp(*this));
                 addButton(new TricorderButton_SpinDown(*this));
-                selectRotationMode(-1, 0);
             }
 
             template <typename button_t>
@@ -536,12 +611,6 @@ namespace Sapphire
                 addChild(button);
                 buttonList.push_back(button);
                 return button;
-            }
-
-            void selectRotationMode(int longitudeDirection, int latitudeDirection)
-            {
-                yRadiansPerStep = rotationSpeed * longitudeDirection;
-                xRadiansPerStep = rotationSpeed * latitudeDirection;
             }
 
             void draw(const DrawArgs& args) override
@@ -722,7 +791,7 @@ namespace Sapphire
 
             void drawBackground()
             {
-                if (toggleAxesButton->axesAreVisible)
+                if (AxesAreVisible(*this))
                 {
                     const float r = 4.0f;
                     Point origin(0, 0, 0);
@@ -767,8 +836,14 @@ namespace Sapphire
 
             Vec project(const Point& p, float& prox) const
             {
+                if (module == nullptr)
+                {
+                    prox = 0;
+                    return Vec(0, 0);
+                }
+
                 // Apply the rotation matrix to the 3D point.
-                Point q = orientation.rotate(p);
+                Point q = module->orientation.rotate(p);
 
                 // Project the 3D point 'p' onto a screen location Vec.
                 float sx = (DISPLAY_MM_SIZE/2) * (1 + q.x/voltageScale);
@@ -782,11 +857,7 @@ namespace Sapphire
                 if (module == nullptr || module->bypassing)
                     return;
 
-                yRotationRadians = WrapAngle(yRotationRadians + yRadiansPerStep);
-                xRotationRadians = WrapAngle(xRotationRadians + xRadiansPerStep);
-                orientation.initialize();
-                orientation.pivot(1, yRotationRadians);
-                orientation.pivot(0, xRotationRadians);
+                module->stepOrientation();
             }
 
             void onButton(const ButtonEvent& e) override
@@ -817,8 +888,11 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                // Stop auto-rotation if in effect.
-                xRadiansPerStep = yRadiansPerStep = 0;
+                if (module != nullptr)
+                {
+                    // Stop auto-rotation if in effect.
+                    module->selectRotationMode(0, 0);
+                }
             }
 
             void onDragEnd(const DragEndEvent& e) override
@@ -832,13 +906,15 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                // Adjust latitude/longitude angles based on mouse movement.
-                const float scale = 0.35 / DISPLAY_MM_SIZE;
-                const float lon = scale * e.mouseDelta.x;
-                const float lat = scale * e.mouseDelta.y;
-                yRotationRadians = WrapAngle(yRotationRadians + lon);
-                xRotationRadians = WrapAngle(xRotationRadians + lat);
-                e.consume(this);
+                if (module != nullptr)
+                {
+                    // Adjust latitude/longitude angles based on mouse movement.
+                    const float scale = 0.35 / DISPLAY_MM_SIZE;
+                    const float lon = scale * e.mouseDelta.x;
+                    const float lat = scale * e.mouseDelta.y;
+                    module->updateOrientation(lat, lon);
+                    e.consume(this);
+                }
             }
         };
 
@@ -864,7 +940,21 @@ namespace Sapphire
 
         void SelectRotationMode(TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
         {
-            display.selectRotationMode(longitudeDirection, latitudeDirection);
+            if (display.module != nullptr)
+                display.module->selectRotationMode(longitudeDirection, latitudeDirection);
+        }
+
+
+        void ToggleAxisVisibility(TricorderDisplay& display)
+        {
+            if (display.module != nullptr)
+                display.module->axesAreVisible = !display.module->axesAreVisible;
+        }
+
+
+        bool AxesAreVisible(const TricorderDisplay& display)
+        {
+            return (display.module != nullptr) && display.module->axesAreVisible;
         }
 
 
