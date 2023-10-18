@@ -412,7 +412,7 @@ namespace Sapphire
 
         bool AreButtonsVisible(const TricorderDisplay&);
         void SelectRotationMode(TricorderDisplay&, int longitudeDirection, int latitudeDirection);
-        void ToggleAxisVisibility(TricorderDisplay&);
+        void ToggleAxisVisibility(const TricorderDisplay&);
         bool AxesAreVisible(const TricorderDisplay&);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
@@ -957,7 +957,7 @@ namespace Sapphire
         }
 
 
-        void ToggleAxisVisibility(TricorderDisplay& display)
+        void ToggleAxisVisibility(const TricorderDisplay& display)
         {
             if (display.module != nullptr)
                 display.module->axesAreVisible = !display.module->axesAreVisible;
