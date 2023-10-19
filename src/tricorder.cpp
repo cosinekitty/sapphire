@@ -176,10 +176,15 @@ namespace Sapphire
 
             void initialize()
             {
-                resetPointList();
-                selectRotationMode(-1, 0);
                 axesAreVisible = true;
-                yRotationRadians = 0.0f;
+                resetPointList();
+                resetPerspective();
+                selectRotationMode(-1, 0);
+            }
+
+            void resetPerspective()
+            {
+                yRotationRadians = -11.0*(M_PI/180);
                 xRotationRadians = 23.5*(M_PI/180);
             }
 
@@ -411,7 +416,8 @@ namespace Sapphire
         using RenderList = std::vector<LineSegment>;
 
         bool AreButtonsVisible(const TricorderDisplay&);
-        void SelectRotationMode(TricorderDisplay&, int longitudeDirection, int latitudeDirection);
+        void ResetPerspective(const TricorderDisplay&);
+        void SelectRotationMode(const TricorderDisplay&, int longitudeDirection, int latitudeDirection);
         void ToggleAxisVisibility(const TricorderDisplay&);
         bool AxesAreVisible(const TricorderDisplay&);
 
@@ -594,12 +600,24 @@ namespace Sapphire
         };
 
 
+        struct TricorderButton_Home : TricorderButton
+        {
+            explicit TricorderButton_Home(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_LEFT, BUTTON_TOP)
+                {}
+
+            void onButtonClick() override
+            {
+                ResetPerspective(display);
+            }
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
             float voltageScale = 5.0f;
             TricorderModule* module;
             RenderList renderList;
-            TricorderButton_ToggleAxes* toggleAxesButton;
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
 
@@ -608,11 +626,12 @@ namespace Sapphire
             {
                 box.pos = mm2px(Vec(10.5f, 12.0f));
                 box.size = mm2px(Vec(DISPLAY_MM_SIZE, DISPLAY_MM_SIZE));
-                toggleAxesButton = addButton(new TricorderButton_ToggleAxes(*this));
+                addButton(new TricorderButton_ToggleAxes(*this));
                 addButton(new TricorderButton_SpinRight(*this));
                 addButton(new TricorderButton_SpinLeft(*this));
                 addButton(new TricorderButton_SpinUp(*this));
                 addButton(new TricorderButton_SpinDown(*this));
+                addButton(new TricorderButton_Home(*this));
             }
 
             template <typename button_t>
@@ -950,10 +969,17 @@ namespace Sapphire
         }
 
 
-        void SelectRotationMode(TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
+        void SelectRotationMode(const TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
         {
             if (display.module != nullptr)
                 display.module->selectRotationMode(longitudeDirection, latitudeDirection);
+        }
+
+
+        void ResetPerspective(const TricorderDisplay& display)
+        {
+            if (display.module != nullptr)
+                display.module->resetPerspective();
         }
 
 
