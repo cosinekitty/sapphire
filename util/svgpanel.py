@@ -280,7 +280,7 @@ class ControlLayer(Element):
     """A layer that contains invisible elements used for defining widget positions."""
     def __init__(self) -> None:
         super().__init__('g', 'ControlLayer')
-        #self.setAttrib('style', 'display:none;')
+        self.setAttrib('style', 'display:none;')
 
 
 class Panel(Element):

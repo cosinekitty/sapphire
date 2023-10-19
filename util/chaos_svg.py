@@ -31,11 +31,13 @@ def GenerateChaosPanel(name: str) -> int:
         outputPortY1 = 90.0
         outputPortDY = 10.0
         xmid = panel.mmWidth / 2
-        pl.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
-        pl.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
-        pl.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
-        pl.append(Component('speed_knob', xmid, 30.0))
-        pl.append(Component('chaos_knob', xmid, 60.0))
+        controls = ControlLayer()
+        pl.append(controls)
+        controls.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
+        controls.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
+        controls.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
+        controls.append(Component('speed_knob', xmid, 30.0))
+        controls.append(Component('chaos_knob', xmid, 60.0))
         xOutLabel = xmid - 3.9
         yOutLabel = outputPortY1 - 10.0
         pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
