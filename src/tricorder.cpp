@@ -751,6 +751,7 @@ namespace Sapphire
             RenderList renderList;
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
+            bool isDragging = false;
 
             explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
@@ -1053,12 +1054,16 @@ namespace Sapphire
                     // Stop auto-rotation if in effect.
                     module->selectRotationMode(0, 0);
                 }
+
+                isDragging = true;
             }
 
             void onDragEnd(const DragEndEvent& e) override
             {
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
+
+                isDragging = false;
             }
 
             void onDragMove(const DragMoveEvent& e) override
@@ -1090,6 +1095,10 @@ namespace Sapphire
             // Special case: buttons are never shown when the module is not active,
             // whether because of being bypassed or disconnected from an input signal.
             if (0 == ActivePointCount(display.module))
+                return false;
+
+            // Another special case: hide the buttons while dragging orientation.
+            if (display.isDragging)
                 return false;
 
             if (display.ownsMouse)
