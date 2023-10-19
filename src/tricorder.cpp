@@ -706,6 +706,18 @@ namespace Sapphire
             {
                 AdjustZoom(display, +1);
             }
+
+            void draw(const DrawArgs& args) override
+            {
+                if (isButtonVisible())
+                {
+                    TricorderButton::draw(args);
+
+                    // Draw a plus sign.
+                    line(args, 0.2, 0.5, 0.8, 0.5);
+                    line(args, 0.5, 0.2, 0.5, 0.8);
+                }
+            }
         };
 
 
@@ -718,6 +730,17 @@ namespace Sapphire
             void onButtonClick() override
             {
                 AdjustZoom(display, -1);
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                if (isButtonVisible())
+                {
+                    TricorderButton::draw(args);
+
+                    // Draw a minus sign.
+                    line(args, 0.2, 0.5, 0.8, 0.5);
+                }
             }
         };
 
