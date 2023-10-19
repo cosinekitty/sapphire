@@ -30,7 +30,7 @@ namespace Sapphire
 
         const float DISPLAY_MM_MARGIN = 3.0f;
         const float DISPLAY_MM_WIDTH  = PANEL_MM_WIDTH - (2*DISPLAY_MM_MARGIN);
-        const float DISPLAY_MM_HEIGHT = 114.0f;       // vertical   mm dimension of 3D display
+        const float DISPLAY_MM_HEIGHT = 114.0f;
         const float DISPLAY_SCALE     = std::min(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT);
         const float BUTTON_WIDTH      = 0.10f * DISPLAY_SCALE;
         const float BUTTON_HEIGHT     = 0.10f * DISPLAY_SCALE;

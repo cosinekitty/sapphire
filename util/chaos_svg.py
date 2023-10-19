@@ -47,8 +47,7 @@ def GenerateTricorderPanel() -> int:
     pl = Element('g', 'PanelLayer')
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(SapphireInsignia(panel, font))
-        pl.append(ModelNamePath(panel, font, 'tricorder'))
+        pl.append(SapphireModelInsignia(panel, font, 'tricorder'))
     panel.append(pl)
     return Save(panel, svgFileName)
 

@@ -42,6 +42,7 @@ def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
 
 
 def SapphireInsignia(panel:Panel, font:Font) -> Element:
+    '''Creates a bottom-centered Sapphire insignia with gemstones on either side.'''
     insignia = Element('g', 'sapphire_insignia')
     gemSpacing = 2.284
     gemY = 121.0
@@ -53,10 +54,43 @@ def SapphireInsignia(panel:Panel, font:Font) -> Element:
     brandTextPath.setAttrib('style', BRAND_NAME_STYLE)
     gemGroup = Element('g', 'gemstones')
     gemGroup.setAttrib('style', GEMSTONE_STYLE)
-    gemGroup.append(SapphireGemstone(x1 - (gemSpacing + SapphireGemstone.mmWidth), gemY))
+    gdx = gemSpacing + SapphireGemstone.mmWidth
+    gemGroup.append(SapphireGemstone(x1 - gdx, gemY))
     gemGroup.append(SapphireGemstone(x1 + (dx + gemSpacing), gemY))
     insignia.append(brandTextPath)
     insignia.append(gemGroup)
+    return insignia
+
+
+def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
+    '''Creates a compound sapphire/model label at the top of the panel.'''
+    insignia = Element('g', 'sapphire_insignia')
+    gemSpacing = 3.0
+    sapphireTextItem = TextItem('sapphire', font, BRAND_NAME_POINTS)
+    (sdx, sdy) = sapphireTextItem.measure()
+    modelTextItem = TextItem(modelName, font, MODEL_NAME_POINTS)
+    (mdx, mdy) = modelTextItem.measure()
+    # Render "* sapphire * model *", where * = gemstone.
+    # We center this at the top of the panel.
+    gdx = SapphireGemstone.mmWidth + gemSpacing
+    gmdx = gdx + gemSpacing
+    dx = gdx + sdx + gmdx + mdx + gdx
+    x1 = (panel.mmWidth - dx)/2
+    gy1 = 3.5
+    ty1 = 0.2
+    insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
+    x1 += gdx
+    brandTextPath = TextPath(sapphireTextItem, x1, ty1)
+    brandTextPath.setAttrib('style', BRAND_NAME_STYLE)
+    insignia.append(brandTextPath)
+    x1 += sdx + gemSpacing
+    insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
+    x1 += gdx
+    modelTextPath = TextPath(modelTextItem, x1, ty1)
+    modelTextPath.setAttrib('style', MODEL_NAME_STYLE)
+    insignia.append(modelTextPath)
+    x1 += mdx + gemSpacing
+    insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
     return insignia
 
 
