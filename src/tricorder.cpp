@@ -447,6 +447,7 @@ namespace Sapphire
         using RenderList = std::vector<LineSegment>;
 
         bool AreButtonsVisible(const TricorderDisplay&);
+        float ButtonFade(const TricorderDisplay&);
         void ResetPerspective(const TricorderDisplay&);
         void SelectRotationMode(const TricorderDisplay&, int longitudeDirection, int latitudeDirection);
         void ToggleAxisVisibility(const TricorderDisplay&);
@@ -458,6 +459,7 @@ namespace Sapphire
             TricorderDisplay& display;
             bool ownsMouse = false;
             bool isMousePressed = false;
+            float fade{};
 
             TricorderButton(TricorderDisplay& _display, float x1, float y1)
                 : display(_display)
@@ -483,8 +485,9 @@ namespace Sapphire
             {
                 if (isButtonVisible())
                 {
+                    fade = ButtonFade(display);     // call once and cache for re-use by all the line() calls
                     NVGcolor color = SCHEME_ORANGE;
-                    color.a = ownsMouse ? 0.25f : 0.10f;
+                    color.a = (ownsMouse ? 0.25f : 0.10f) * fade;
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
@@ -497,6 +500,7 @@ namespace Sapphire
             void line(const DrawArgs& args, float x1, float y1, float x2, float y2)
             {
                 NVGcolor color = ownsMouse ? SCHEME_WHITE : SCHEME_YELLOW;
+                color.a = fade;
                 nvgBeginPath(args.vg);
                 nvgStrokeColor(args.vg, color);
                 nvgLineCap(args.vg, NVG_ROUND);
@@ -750,6 +754,8 @@ namespace Sapphire
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
             bool isDragging = false;
+            int64_t mouseStationaryCount = 0;
+            Vec hoverMousePos;      // valid only when ownsMouse is true
 
             explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
@@ -1037,6 +1043,25 @@ namespace Sapphire
                 module->stepOrientation();
             }
 
+            void onHover(const HoverEvent& e) override
+            {
+                if (ownsMouse)
+                {
+                    if (hoverMousePos.equals(e.pos))
+                    {
+                        // The mouse is not moving.
+                        ++mouseStationaryCount;
+                    }
+                    else
+                    {
+                        // The mouse is moving.
+                        hoverMousePos = e.pos;
+                        mouseStationaryCount = 0;
+                    }
+                }
+                OpaqueWidget::onHover(e);
+            }
+
             void onButton(const ButtonEvent& e) override
             {
                 OpaqueWidget::onButton(e);
@@ -1053,6 +1078,7 @@ namespace Sapphire
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
+                mouseStationaryCount = 0;
             }
 
             void onLeave(const LeaveEvent& e) override
@@ -1100,6 +1126,10 @@ namespace Sapphire
         };
 
 
+        const int MOUSE_STATIONARY_FADING = 300;
+        const int MOUSE_STATIONARY_VANISH = 360;
+
+
         bool AreButtonsVisible(const TricorderDisplay& display)
         {
             // Buttons are either all visible or all invisible.
@@ -1108,23 +1138,52 @@ namespace Sapphire
             // This is a distinction because the buttons are OpaqueWidget,
             // meaning once the mouse enters a button, it "leaves" the display.
 
-            // Special case: buttons are never shown when the module is not active,
+            // Buttons are never shown when the module is not active,
             // whether because of being bypassed or disconnected from an input signal.
             if (0 == ActivePointCount(display.module))
                 return false;
 
-            // Another special case: hide the buttons while dragging orientation.
+            // Hide the buttons while dragging orientation.
             if (display.isDragging)
                 return false;
 
             if (display.ownsMouse)
+            {
+                // Hide the buttons when the mouse has remained stationary for too long.
+                if (display.mouseStationaryCount > MOUSE_STATIONARY_VANISH)
+                    return false;
+
+                // Otherwise, because the mouse is inside the parent display, show the buttons.
                 return true;
+            }
 
             for (const TricorderButton* button : display.buttonList)
                 if (button->ownsMouse)
                     return true;
 
             return false;
+        }
+
+
+        float ButtonFade(const TricorderDisplay& display)
+        {
+            // When the mouse has remained stationary for a while, begin to fade
+            // out the buttons, instead of making them vanish instantly.
+            // This function calculates a value from 0 (hidden) to 1 (fully visible).
+            if (display.ownsMouse)
+            {
+                if (display.mouseStationaryCount >= MOUSE_STATIONARY_VANISH)
+                    return 0;
+
+                if (display.mouseStationaryCount > MOUSE_STATIONARY_FADING)
+                {
+                    float numer = display.mouseStationaryCount - MOUSE_STATIONARY_FADING;
+                    float denom = MOUSE_STATIONARY_VANISH - MOUSE_STATIONARY_FADING;
+                    return 1 - (numer/denom);
+                }
+            }
+
+            return 1;
         }
 
 
