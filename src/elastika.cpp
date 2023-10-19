@@ -452,12 +452,6 @@ namespace Sapphire
                 addReloadableParam(slider, svgId);
             }
 
-            void addAttenuverter(ParamId paramId, const char *svgId)
-            {
-                Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
-                addReloadableParam(trimpot, svgId);
-            }
-
             void appendContextMenu(Menu* menu) override
             {
                 if (elastikaModule != nullptr)

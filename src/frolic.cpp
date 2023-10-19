@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_simd.hpp"
 #include "chaos.hpp"
 #include "tricorder.hpp"
 
@@ -12,13 +13,23 @@ namespace Sapphire
     {
         enum ParamId
         {
+            // Large knobs for manual parameter adjustment
             SPEED_KNOB_PARAM,
             CHAOS_KNOB_PARAM,
+
+            // Attenuverter knobs
+            SPEED_ATTEN,
+            CHAOS_ATTEN,
+
             PARAMS_LEN
         };
 
         enum InputId
         {
+            // Control group CV inputs
+            SPEED_CV_INPUT,
+            CHAOS_CV_INPUT,
+
             INPUTS_LEN
         };
 
@@ -27,6 +38,7 @@ namespace Sapphire
             X_OUTPUT,
             Y_OUTPUT,
             Z_OUTPUT,
+
             OUTPUTS_LEN
         };
 
@@ -53,7 +65,13 @@ namespace Sapphire
                 configOutput(Z_OUTPUT, "Z");
 
                 configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
-                configParam(CHAOS_KNOB_PARAM, -1, +1, 0, "Chaos adjust");
+                configParam(CHAOS_KNOB_PARAM, -1, +1, 0, "Chaos");
+
+                configParam(SPEED_ATTEN, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
+                configParam(CHAOS_ATTEN, -1, 1, 0, "Chaos attenuverter", "%", 0, 100);
+
+                configInput(SPEED_CV_INPUT, "Speed CV");
+                configInput(CHAOS_CV_INPUT, "Chaos CV");
 
                 initialize();
             }
@@ -69,10 +87,26 @@ namespace Sapphire
                 initialize();
             }
 
+            float getControlValue(ParamId paramId, ParamId attenId, InputId inputId, float minValue, float maxValue)
+            {
+                float slider = params[paramId].getValue();
+                float cv = inputs[inputId].getVoltageSum();
+                // When the attenuverter is set to 100%, and the cv is +5V, we want
+                // to swing a slider that is all the way down (minSlider)
+                // to act like it is all the way up (maxSlider).
+                // Thus we allow the complete range of control for any CV whose
+                // range is [-5, +5] volts.
+                float attenu = params[attenId].getValue();
+                slider += attenu*(cv / 5)*(maxValue - minValue);
+                return Clamp(slider, minValue, maxValue);
+            }
+
             void process(const ProcessArgs& args) override
             {
-                circuit.setKnob(params[CHAOS_KNOB_PARAM].getValue());
-                double dt = args.sampleTime * std::pow(2.0f, params[SPEED_KNOB_PARAM].getValue());
+                float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
+                circuit.setKnob(chaos);
+                float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
+                double dt = args.sampleTime * std::pow(2.0f, speed);
                 circuit.update(dt);
                 outputs[X_OUTPUT].setVoltage(circuit.vx());
                 outputs[Y_OUTPUT].setVoltage(circuit.vy());
@@ -100,6 +134,12 @@ namespace Sapphire
 
                 addKnob(SPEED_KNOB_PARAM, "speed_knob");
                 addKnob(CHAOS_KNOB_PARAM, "chaos_knob");
+
+                addAttenuverter(SPEED_ATTEN, "speed_atten");
+                addAttenuverter(CHAOS_ATTEN, "chaos_atten");
+
+                addSapphireInput(SPEED_CV_INPUT, "speed_cv");
+                addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
 
                 // Load the SVG and place all controls at their correct coordinates.
                 reloadPanel();

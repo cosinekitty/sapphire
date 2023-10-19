@@ -127,6 +127,12 @@ namespace rack
             return knob;
         }
 
+        void addAttenuverter(int paramId, const char *svgId)
+        {
+            Trimpot *trimpot = createParamCentered<Trimpot>(Vec{}, module, paramId);
+            addReloadableParam(trimpot, svgId);
+        }
+
         void appendContextMenu(Menu *menu) override
         {
             if (isReloadEnabled)
