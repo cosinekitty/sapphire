@@ -572,10 +572,52 @@ namespace Sapphire
         };
 
 
-        struct TricorderButton_SpinRight : TricorderButton
+        struct TricorderSpinButton : TricorderButton
+        {
+            const bool flip;
+            const bool swap;
+
+            TricorderSpinButton(TricorderDisplay& _display, float x1, float y1, bool _flip, bool _swap)
+                : TricorderButton(_display, x1, y1)
+                , flip(_flip)
+                , swap(_swap)
+                {}
+
+            void draw(const DrawArgs& args) override
+            {
+                if (isButtonVisible())
+                {
+                    TricorderButton::draw(args);
+
+                    // Draw a double-chevron pattern, oriented in one of the four possible ways.
+                    xline(args, 0.2, 0.8, 0.5, 0.6);
+                    xline(args, 0.5, 0.6, 0.8, 0.8);
+                    xline(args, 0.2, 0.4, 0.5, 0.2);
+                    xline(args, 0.5, 0.2, 0.8, 0.4);
+                }
+            }
+
+            void xline(const DrawArgs& args, float x1, float y1, float x2, float y2)
+            {
+                if (flip)
+                {
+                    y1 = 1 - y1;
+                    y2 = 1 - y2;
+                }
+                if (swap)
+                {
+                    std::swap(x1, y1);
+                    std::swap(x2, y2);
+                }
+                line(args, x1, y1, x2, y2);
+            }
+        };
+
+
+        struct TricorderButton_SpinRight : TricorderSpinButton
         {
             explicit TricorderButton_SpinRight(TricorderDisplay& _display)
-                : TricorderButton(_display, BUTTON_RIGHT, BUTTON_MIDDLE)
+                : TricorderSpinButton(_display, BUTTON_RIGHT, BUTTON_MIDDLE, true, true)
                 {}
 
             void onButtonClick() override
@@ -585,10 +627,10 @@ namespace Sapphire
         };
 
 
-        struct TricorderButton_SpinLeft : TricorderButton
+        struct TricorderButton_SpinLeft : TricorderSpinButton
         {
             explicit TricorderButton_SpinLeft(TricorderDisplay& _display)
-                : TricorderButton(_display, BUTTON_LEFT, BUTTON_MIDDLE)
+                : TricorderSpinButton(_display, BUTTON_LEFT, BUTTON_MIDDLE, false, true)
                 {}
 
             void onButtonClick() override
@@ -598,10 +640,10 @@ namespace Sapphire
         };
 
 
-        struct TricorderButton_SpinUp : TricorderButton
+        struct TricorderButton_SpinUp : TricorderSpinButton
         {
             explicit TricorderButton_SpinUp(TricorderDisplay& _display)
-                : TricorderButton(_display, BUTTON_CENTER, BUTTON_TOP)
+                : TricorderSpinButton(_display, BUTTON_CENTER, BUTTON_TOP, false, false)
                 {}
 
             void onButtonClick() override
@@ -611,10 +653,10 @@ namespace Sapphire
         };
 
 
-        struct TricorderButton_SpinDown : TricorderButton
+        struct TricorderButton_SpinDown : TricorderSpinButton
         {
             explicit TricorderButton_SpinDown(TricorderDisplay& _display)
-                : TricorderButton(_display, BUTTON_CENTER, BUTTON_BOTTOM)
+                : TricorderSpinButton(_display, BUTTON_CENTER, BUTTON_BOTTOM, true, false)
                 {}
 
             void onButtonClick() override
