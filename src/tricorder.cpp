@@ -556,12 +556,10 @@ namespace Sapphire
                 ToggleAxisVisibility(display);
             }
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
-                    TricorderButton::draw(args);
-
                     // The letter X
                     line(args, 0.1, 0.35, 0.3, 0.65);
                     line(args, 0.1, 0.65, 0.3, 0.35);
@@ -591,12 +589,10 @@ namespace Sapphire
                 , swap(_swap)
                 {}
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
-                    TricorderButton::draw(args);
-
                     // Draw a double-chevron pattern, oriented in one of the four possible ways.
                     xline(args, 0.2, 0.8, 0.5, 0.6);
                     xline(args, 0.5, 0.6, 0.8, 0.8);
@@ -685,12 +681,10 @@ namespace Sapphire
                 ResetPerspective(display);
             }
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
-                    TricorderButton::draw(args);
-
                     // Draw a little cartoon house.
                     line(args, 0.2, 0.5, 0.5, 0.3);
                     line(args, 0.5, 0.3, 0.8, 0.5);
@@ -715,12 +709,10 @@ namespace Sapphire
                 AdjustZoom(display, +1);
             }
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
-                    TricorderButton::draw(args);
-
                     // Draw a plus sign.
                     line(args, 0.2, 0.5, 0.8, 0.5);
                     line(args, 0.5, 0.2, 0.5, 0.8);
@@ -740,12 +732,10 @@ namespace Sapphire
                 AdjustZoom(display, -1);
             }
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
-                    TricorderButton::draw(args);
-
                     // Draw a minus sign.
                     line(args, 0.2, 0.5, 0.8, 0.5);
                 }
@@ -806,7 +796,17 @@ namespace Sapphire
 
                 renderList.clear();
 
-                drawBackground();
+                if (AxesAreVisible(*this))
+                {
+                    const float r = 4.0f;
+                    Point origin(0, 0, 0);
+                    addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
+                    addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
+                    addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
+                    drawLetterX(r);
+                    drawLetterY(r);
+                    drawLetterZ(r);
+                }
 
                 if (n < TRAIL_LENGTH)
                 {
@@ -841,6 +841,8 @@ namespace Sapphire
                 render(args.vg, n);
                 nvgResetScissor(args.vg);
                 nvgRestore(args.vg);
+
+                OpaqueWidget::drawLayer(args, layer);
             }
 
             void render(NVGcontext *vg, int pointCount)
@@ -968,21 +970,6 @@ namespace Sapphire
                     Vec vecm = project(pointm, proxm);
                     expandSegment(1+depth, kind, index, vec1, vecm, prox1, proxm, point1, pointm);
                     expandSegment(1+depth, kind, index, vecm, vec2, proxm, prox2, pointm, point2);
-                }
-            }
-
-            void drawBackground()
-            {
-                if (AxesAreVisible(*this))
-                {
-                    const float r = 4.0f;
-                    Point origin(0, 0, 0);
-                    addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
-                    drawLetterX(r);
-                    drawLetterY(r);
-                    drawLetterZ(r);
                 }
             }
 
