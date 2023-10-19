@@ -476,7 +476,7 @@ namespace Sapphire
                 if (isButtonVisible())
                 {
                     NVGcolor color = SCHEME_ORANGE;
-                    color.a = ownsMouse ? 0.25f : 0.15f;
+                    color.a = ownsMouse ? 0.25f : 0.10f;
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
@@ -488,10 +488,10 @@ namespace Sapphire
 
             void line(const DrawArgs& args, float x1, float y1, float x2, float y2)
             {
-                NVGcolor color = SCHEME_YELLOW;
-                color.a = ownsMouse ? 1.0f : 0.5f;
+                NVGcolor color = ownsMouse ? SCHEME_WHITE : SCHEME_YELLOW;
                 nvgBeginPath(args.vg);
                 nvgStrokeColor(args.vg, color);
+                nvgLineCap(args.vg, NVG_ROUND);
                 nvgMoveTo(args.vg, mm2px(BUTTON_WIDTH * x1), mm2px(BUTTON_HEIGHT * y1));
                 nvgLineTo(args.vg, mm2px(BUTTON_WIDTH * x2), mm2px(BUTTON_HEIGHT * y2));
                 nvgStroke(args.vg);
