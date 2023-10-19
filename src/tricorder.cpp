@@ -159,6 +159,7 @@ namespace Sapphire
             float xRadiansPerStep{};
             bool axesAreVisible{};
             RotationMatrix orientation;
+            float voltageScale{};
 
             TricorderModule()
             {
@@ -184,8 +185,30 @@ namespace Sapphire
 
             void resetPerspective()
             {
+                voltageScale = 5.0f;
                 yRotationRadians = -11.0*(M_PI/180);
-                xRotationRadians = 23.5*(M_PI/180);
+                xRotationRadians = +23.5*(M_PI/180);
+            }
+
+            void adjustZoom(int adjust)
+            {
+                const float factor = 1.1f;
+                const float maxVoltageScale = 20.0f;
+                const float minVoltageScale = 0.1f;
+                float s;
+                if (adjust < 0)
+                {
+                    // Zooming out, so make voltage scale larger.
+                    s = voltageScale * factor;
+                }
+                else
+                {
+                    // Zooming in, so make voltage scale smaller.
+                    s = voltageScale / factor;
+                }
+
+                if (minVoltageScale <= s && s <= maxVoltageScale)
+                    voltageScale = s;
             }
 
             void onReset(const ResetEvent& e) override
@@ -420,6 +443,7 @@ namespace Sapphire
         void SelectRotationMode(const TricorderDisplay&, int longitudeDirection, int latitudeDirection);
         void ToggleAxisVisibility(const TricorderDisplay&);
         bool AxesAreVisible(const TricorderDisplay&);
+        void AdjustZoom(const TricorderDisplay&, int adjust);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
@@ -613,9 +637,34 @@ namespace Sapphire
         };
 
 
+        struct TricorderButton_ZoomIn : TricorderButton
+        {
+            explicit TricorderButton_ZoomIn(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_RIGHT, BUTTON_TOP)
+                {}
+
+            void onButtonClick() override
+            {
+                AdjustZoom(display, +1);
+            }
+        };
+
+
+        struct TricorderButton_ZoomOut : TricorderButton
+        {
+            explicit TricorderButton_ZoomOut(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_RIGHT, BUTTON_BOTTOM)
+                {}
+
+            void onButtonClick() override
+            {
+                AdjustZoom(display, -1);
+            }
+        };
+
+
         struct TricorderDisplay : OpaqueWidget
         {
-            float voltageScale = 5.0f;
             TricorderModule* module;
             RenderList renderList;
             std::vector<TricorderButton*> buttonList;
@@ -632,6 +681,8 @@ namespace Sapphire
                 addButton(new TricorderButton_SpinUp(*this));
                 addButton(new TricorderButton_SpinDown(*this));
                 addButton(new TricorderButton_Home(*this));
+                addButton(new TricorderButton_ZoomIn(*this));
+                addButton(new TricorderButton_ZoomOut(*this));
             }
 
             template <typename button_t>
@@ -872,9 +923,10 @@ namespace Sapphire
                 Point q = module->orientation.rotate(p);
 
                 // Project the 3D point 'p' onto a screen location Vec.
-                float sx = (DISPLAY_MM_SIZE/2) * (1 + q.x/voltageScale);
-                float sy = (DISPLAY_MM_SIZE/2) * (1 - q.y/voltageScale);
-                prox = (1 + q.z/voltageScale) / 2;
+                float s = module->voltageScale;
+                float sx = (DISPLAY_MM_SIZE/2) * (1 + q.x/s);
+                float sy = (DISPLAY_MM_SIZE/2) * (1 - q.y/s);
+                prox = (1 + q.z/s) / 2;
                 return mm2px(Vec(sx, sy));
             }
 
@@ -993,6 +1045,13 @@ namespace Sapphire
         bool AxesAreVisible(const TricorderDisplay& display)
         {
             return (display.module != nullptr) && display.module->axesAreVisible;
+        }
+
+
+        void AdjustZoom(const TricorderDisplay& display, int adjust)
+        {
+            if (display.module != nullptr)
+                display.module->adjustZoom(adjust);
         }
 
 
