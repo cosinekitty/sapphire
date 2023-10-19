@@ -676,6 +676,23 @@ namespace Sapphire
             {
                 ResetPerspective(display);
             }
+
+            void draw(const DrawArgs& args) override
+            {
+                if (isButtonVisible())
+                {
+                    TricorderButton::draw(args);
+
+                    // Draw a little cartoon house.
+                    line(args, 0.2, 0.5, 0.5, 0.3);
+                    line(args, 0.5, 0.3, 0.8, 0.5);
+                    line(args, 0.8, 0.5, 0.75, 0.5);
+                    line(args, 0.75, 0.5, 0.75, 0.8);
+                    line(args, 0.75, 0.8, 0.25, 0.8);
+                    line(args, 0.25, 0.8, 0.25, 0.5);
+                    line(args, 0.25, 0.5, 0.2, 0.5);
+                }
+            }
         };
 
 
