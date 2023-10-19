@@ -848,7 +848,8 @@ namespace Sapphire
                 // Sort in ascending order of line segment midpoint.
                 std::sort(renderList.begin(), renderList.end());
 
-                nvgLineCap(vg, NVG_ROUND);
+                NVGcolor shadowColor = SCHEME_BLACK;
+                const float shadowThickness = 0.7f;
 
                 // Render in z-order to create correct blocking of segment visibility.
                 for (const LineSegment& seg : renderList)
@@ -865,7 +866,19 @@ namespace Sapphire
                     {
                         NVGcolor color = segmentColor(seg, pointCount);
                         float width = (seg.kind == SegmentKind::Axis) ? 1.5 : seg.prox/2 + 1.8f;
+
+                        // Shadow line
                         nvgBeginPath(vg);
+                        nvgLineCap(vg, NVG_BUTT);
+                        nvgStrokeColor(vg, shadowColor);
+                        nvgStrokeWidth(vg, width + shadowThickness);
+                        nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
+                        nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
+                        nvgStroke(vg);
+
+                        // Illuminated line
+                        nvgBeginPath(vg);
+                        nvgLineCap(vg, NVG_ROUND);
                         nvgStrokeColor(vg, color);
                         nvgStrokeWidth(vg, width);
                         nvgMoveTo(vg, seg.vec1.x, seg.vec1.y);
@@ -978,7 +991,14 @@ namespace Sapphire
                 const float La = r * 1.05f;
                 const float Lb = r * 1.15f;
                 const float Lc = r * 0.03f;
-                addSegment(SegmentKind::Axis, -1, Point(La, 0, -Lc), Point(Lb, 0, +Lc));
+                // We used to draw the letter X using two line segments.
+                // The problem is that both line segments have the same midpoint,
+                // which causes the z-order sort to keep flipping back and forth
+                // between which segment was drawn on top. This caused an unpleasant
+                // "vibration". Fix this by breaking one of the segments into two parts.
+                Point mid((La+Lb)/2, 0, 0);
+                addSegment(SegmentKind::Axis, -1, Point(La, 0, -Lc), mid);
+                addSegment(SegmentKind::Axis, -1, mid, Point(Lb, 0, +Lc));
                 addSegment(SegmentKind::Axis, -1, Point(La, 0, +Lc), Point(Lb, 0, -Lc));
             }
 
