@@ -481,13 +481,13 @@ namespace Sapphire
                 return AreButtonsVisible(display);
             }
 
-            void draw(const DrawArgs& args) override
+            void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (isButtonVisible())
+                if (layer==1 && isButtonVisible())
                 {
                     fade = ButtonFade(display);     // call once and cache for re-use by all the line() calls
-                    NVGcolor color = SCHEME_ORANGE;
-                    color.a = (ownsMouse ? 0.25f : 0.10f) * fade;
+                    NVGcolor color = nvgRGB(0x70, 0x58, 0x13);
+                    color.a = (ownsMouse ? 1.0f : 0.2f) * fade;
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
@@ -562,6 +562,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                TricorderButton::drawLayer(args, layer);
                 if (layer==1 && isButtonVisible())
                 {
                     // The letter X
@@ -595,6 +596,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                TricorderButton::drawLayer(args, layer);
                 if (layer==1 && isButtonVisible())
                 {
                     // Draw a double-chevron pattern, oriented in one of the four possible ways.
@@ -687,6 +689,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                TricorderButton::drawLayer(args, layer);
                 if (layer==1 && isButtonVisible())
                 {
                     // Draw a little cartoon house.
@@ -715,6 +718,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                TricorderButton::drawLayer(args, layer);
                 if (layer==1 && isButtonVisible())
                 {
                     // Draw a plus sign.
@@ -738,6 +742,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                TricorderButton::drawLayer(args, layer);
                 if (layer==1 && isButtonVisible())
                 {
                     // Draw a minus sign.
