@@ -864,7 +864,7 @@ namespace Sapphire
                     else
                     {
                         NVGcolor color = segmentColor(seg, pointCount);
-                        float width = (seg.kind == SegmentKind::Axis) ? 1.0 : seg.prox/2 + 1.0f;
+                        float width = (seg.kind == SegmentKind::Axis) ? 1.5 : seg.prox/2 + 1.8f;
                         nvgBeginPath(vg);
                         nvgStrokeColor(vg, color);
                         nvgStrokeWidth(vg, width);
@@ -878,7 +878,7 @@ namespace Sapphire
             NVGcolor segmentColor(const LineSegment& seg, int pointCount) const
             {
                 NVGcolor nearColor;
-                NVGcolor farColor = SCHEME_DARK_GRAY;
+                NVGcolor farColor;
                 switch (seg.kind)
                 {
                 case SegmentKind::Curve:
@@ -887,8 +887,8 @@ namespace Sapphire
                     break;
 
                 case SegmentKind::Axis:
-                    nearColor = nvgRGB(0x90, 0x90, 0x60);
-                    farColor = SCHEME_DARK_GRAY;
+                    nearColor = nvgRGB(0xf0, 0xf0, 0xa0);
+                    farColor = nvgRGB(0x30, 0x30, 0x20);
                     break;
 
                 default:
@@ -975,19 +975,19 @@ namespace Sapphire
 
             void drawLetterX(float r)
             {
-                const float La = r * 1.04f;
-                const float Lb = r * 1.14f;
-                const float Lc = r * 0.02f;
+                const float La = r * 1.05f;
+                const float Lb = r * 1.15f;
+                const float Lc = r * 0.03f;
                 addSegment(SegmentKind::Axis, -1, Point(La, 0, -Lc), Point(Lb, 0, +Lc));
                 addSegment(SegmentKind::Axis, -1, Point(La, 0, +Lc), Point(Lb, 0, -Lc));
             }
 
             void drawLetterY(float r)
             {
-                const float La = r * 1.04f;
-                const float Lb = r * 0.02f;
-                const float Lc = r * 1.09f;
-                const float Ld = r * 1.14f;
+                const float La = r * 1.05f;
+                const float Lb = r * 0.03f;
+                const float Lc = r * 1.10f;
+                const float Ld = r * 1.15f;
                 addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(  0, La, 0));
                 addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(-Lb, Ld, 0));
                 addSegment(SegmentKind::Axis, -1, Point(0, Lc, 0), Point(+Lb, Ld, 0));
@@ -995,9 +995,9 @@ namespace Sapphire
 
             void drawLetterZ(float r)
             {
-                const float La = r * 1.04f;
-                const float Lb = r * 1.14f;
-                const float Lc = r * 0.02f;
+                const float La = r * 1.05f;
+                const float Lb = r * 1.15f;
+                const float Lc = r * 0.03f;
                 addSegment(SegmentKind::Axis, -1, Point(-Lc, 0, La), Point(+Lc, 0, La));
                 addSegment(SegmentKind::Axis, -1, Point(+Lc, 0, La), Point(-Lc, 0, Lb));
                 addSegment(SegmentKind::Axis, -1, Point(-Lc, 0, Lb), Point(+Lc, 0, Lb));
