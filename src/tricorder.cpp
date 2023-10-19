@@ -23,15 +23,23 @@ namespace Sapphire
 
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
-        const float DISPLAY_MM_SIZE = 105.0f;       // lateral mm dimension of square 3D display
-        const float BUTTON_WIDTH    = DISPLAY_MM_SIZE * 0.10f;
-        const float BUTTON_HEIGHT   = DISPLAY_MM_SIZE * 0.10f;
-        const float BUTTON_LEFT     = DISPLAY_MM_SIZE * 0.05f;
-        const float BUTTON_RIGHT    = DISPLAY_MM_SIZE * 0.85f;
-        const float BUTTON_CENTER   = DISPLAY_MM_SIZE * 0.45f;
-        const float BUTTON_TOP      = DISPLAY_MM_SIZE * 0.05f;
-        const float BUTTON_BOTTOM   = DISPLAY_MM_SIZE * 0.85f;
-        const float BUTTON_MIDDLE   = DISPLAY_MM_SIZE * 0.45f;
+        const int PANEL_HP_WIDTH = 25;
+        const float HP_MM = 5.08f;
+        const float PANEL_MM_WIDTH = PANEL_HP_WIDTH * HP_MM;
+        const float PANEL_MM_HEIGHT = 128.5f;
+
+        const float DISPLAY_MM_MARGIN = 3.0f;
+        const float DISPLAY_MM_WIDTH  = PANEL_MM_WIDTH - (2*DISPLAY_MM_MARGIN);
+        const float DISPLAY_MM_HEIGHT = 114.0f;       // vertical   mm dimension of 3D display
+        const float DISPLAY_SCALE     = std::min(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT);
+        const float BUTTON_WIDTH      = 0.10f * DISPLAY_SCALE;
+        const float BUTTON_HEIGHT     = 0.10f * DISPLAY_SCALE;
+        const float BUTTON_LEFT       = 0.05f * DISPLAY_MM_WIDTH;
+        const float BUTTON_RIGHT      = 0.85f * DISPLAY_MM_WIDTH;
+        const float BUTTON_CENTER     = 0.45f * DISPLAY_MM_WIDTH;
+        const float BUTTON_TOP        = 0.05f * DISPLAY_MM_HEIGHT;
+        const float BUTTON_BOTTOM     = 0.85f * DISPLAY_MM_HEIGHT;
+        const float BUTTON_MIDDLE     = 0.45f * DISPLAY_MM_HEIGHT;
 
         struct Point
         {
@@ -756,8 +764,9 @@ namespace Sapphire
             explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
             {
-                box.pos = mm2px(Vec(10.5f, 12.0f));
-                box.size = mm2px(Vec(DISPLAY_MM_SIZE, DISPLAY_MM_SIZE));
+                const float mmTopMargin  = PANEL_MM_HEIGHT - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
+                box.pos = mm2px(Vec(DISPLAY_MM_MARGIN, mmTopMargin));
+                box.size = mm2px(Vec(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT));
                 addButton(new TricorderButton_ToggleAxes(*this));
                 addButton(new TricorderButton_SpinRight(*this));
                 addButton(new TricorderButton_SpinLeft(*this));
@@ -1007,8 +1016,8 @@ namespace Sapphire
 
                 // Project the 3D point 'p' onto a screen location Vec.
                 float s = module->voltageScale;
-                float sx = (DISPLAY_MM_SIZE/2) * (1 + q.x/s);
-                float sy = (DISPLAY_MM_SIZE/2) * (1 - q.y/s);
+                float sx = (DISPLAY_SCALE/2) * (1 + q.x/s);
+                float sy = (DISPLAY_SCALE/2) * (1 - q.y/s);
                 prox = (1 + q.z/s) / 2;
                 return mm2px(Vec(sx, sy));
             }
@@ -1074,7 +1083,7 @@ namespace Sapphire
                 if (module != nullptr)
                 {
                     // Adjust latitude/longitude angles based on mouse movement.
-                    const float scale = 0.35 / DISPLAY_MM_SIZE;
+                    const float scale = 0.35 / DISPLAY_SCALE;
                     const float lon = scale * e.mouseDelta.x;
                     const float lat = scale * e.mouseDelta.y;
                     module->updateOrientation(lat, lon);
