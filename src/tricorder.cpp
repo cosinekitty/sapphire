@@ -167,6 +167,7 @@ namespace Sapphire
             float xRadiansPerStep{};
             bool axesAreVisible{};
             RotationMatrix orientation;
+            const float defaultVoltageScale = 5.0f;
             float voltageScale{};
 
             TricorderModule()
@@ -193,9 +194,14 @@ namespace Sapphire
 
             void resetPerspective()
             {
-                voltageScale = 5.0f;
+                voltageScale = defaultVoltageScale;
                 yRotationRadians = -11.0*(M_PI/180);
                 xRotationRadians = +23.5*(M_PI/180);
+            }
+
+            float zoomFactor() const
+            {
+                return voltageScale / defaultVoltageScale;
             }
 
             void adjustZoom(int adjust)
@@ -878,7 +884,7 @@ namespace Sapphire
                     else
                     {
                         NVGcolor color = segmentColor(seg, pointCount);
-                        float width = (seg.kind == SegmentKind::Axis) ? 1.5 : seg.prox/2 + 1.8f;
+                        float width = (seg.kind == SegmentKind::Axis) ? 1.5 : 1.8f;
 
                         // Shadow line
                         nvgBeginPath(vg);
@@ -1121,7 +1127,7 @@ namespace Sapphire
                 if (module != nullptr)
                 {
                     // Adjust latitude/longitude angles based on mouse movement.
-                    const float scale = 0.35 / DISPLAY_SCALE;
+                    const float scale = (0.35 * module->zoomFactor()) / DISPLAY_SCALE;
                     const float lon = scale * e.mouseDelta.x;
                     const float lat = scale * e.mouseDelta.y;
                     module->updateOrientation(lat, lon);
