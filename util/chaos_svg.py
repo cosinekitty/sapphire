@@ -28,7 +28,7 @@ def GenerateChaosPanel(name: str) -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
-        outputPortY1 = 90.0
+        outputPortY1 = 91.5
         outputPortDY = 10.0
         xmid = panel.mmWidth / 2
         controls = ControlLayer()
@@ -56,7 +56,7 @@ def GenerateChaosPanel(name: str) -> int:
         lineGroup.append(LineElement(xmid, yChaosKnob, xmid - dxControlGroup, yChaosKnob + dyControlGroup))
         lineGroup.append(LineElement(xmid, yChaosKnob, xmid + dxControlGroup, yChaosKnob + dyControlGroup))
         xOutLabel = xmid - 3.9
-        yOutLabel = outputPortY1 - 10.0
+        yOutLabel = outputPortY1 - 10.5
         pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
         xPortLabel = xmid - 7.5
         yPortLabel = outputPortY1 - 2.4
