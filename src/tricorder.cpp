@@ -369,6 +369,10 @@ namespace Sapphire
 
                 // Save the XYZ axes visibility state.
                 json_object_set_new(root, "axesVisible", json_boolean(axesAreVisible));
+
+                // Save the zoom level (voltage scale).
+                json_object_set_new(root, "voltageScale", json_real(voltageScale));
+
                 return root;
             }
 
@@ -392,6 +396,10 @@ namespace Sapphire
 
                 json_t* axesvis = json_object_get(root, "axesVisible");
                 axesAreVisible = !json_is_false(axesvis);
+
+                json_t* scale = json_object_get(root, "voltageScale");
+                if (json_is_number(scale))
+                    voltageScale = json_number_value(scale);
             }
         };
 
