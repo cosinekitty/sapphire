@@ -132,19 +132,28 @@ def GenerateTinPanel() -> int:
     xmid = panel.mmWidth/2
     inputPortY1 = 30.0
     inputPortDY = 10.0
-    xPortLabel = xmid - 7.5
+    xPortLabel = xmid + 5.2
     yPortLabel = inputPortY1 - 2.4
+    xInLabel = xmid - 1.9
+    yInLabel = inputPortY1 - 10.5
+    inGradY1 = yInLabel - 1.5
+    inGradY2 = yPortLabel + 2*inputPortDY + 10.0
     controls = ControlLayer()
+    defs = Element('defs')
+    pl.append(defs)
+    defs.append(Gradient(inGradY1, inGradY2, '#a06de4', '#4f8df2', 'gradient_in'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'tin'))
         pl.append(CenteredGemstone(panel))
+        pl.append(ControlGroupArt('in_art', panel, inGradY1, inGradY2, 'gradient_in'))
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*inputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*inputPortDY, 'port_label_z'))
         controls.append(Component('x_input', xmid, inputPortY1 + 0*inputPortDY))
         controls.append(Component('y_input', xmid, inputPortY1 + 1*inputPortDY))
         controls.append(Component('z_input', xmid, inputPortY1 + 2*inputPortDY))
+        pl.append(ControlTextPath(font, 'IN', xInLabel, yInLabel, 'in_label'))
     pl.append(controls)
     panel.append(pl)
     return Save(panel, svgFileName)
