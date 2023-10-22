@@ -124,9 +124,36 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateTinPanel() -> int:
+    PANEL_WIDTH = 3
+    svgFileName = '../res/tin.svg'
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    xmid = panel.mmWidth/2
+    inputPortY1 = 30.0
+    inputPortDY = 10.0
+    xPortLabel = xmid - 6.0
+    yPortLabel = inputPortY1 - 2.4
+    controls = ControlLayer()
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, 'tin'))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*inputPortDY, 'port_label_x'))
+        pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*inputPortDY, 'port_label_y'))
+        pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*inputPortDY, 'port_label_z'))
+        controls.append(Component('x_input', xmid, inputPortY1 + 0*inputPortDY))
+        controls.append(Component('y_input', xmid, inputPortY1 + 1*inputPortDY))
+        controls.append(Component('z_input', xmid, inputPortY1 + 2*inputPortDY))
+    pl.append(controls)
+    panel.append(pl)
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
         GenerateTricorderPanel() or
+        GenerateTinPanel() or
         Print('SUCCESS')
     )
