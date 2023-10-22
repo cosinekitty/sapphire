@@ -15,6 +15,7 @@ extern Model* modelElastika;
 extern Model* modelTubeUnit;
 extern Model* modelFrolic;
 extern Model* modelTricorder;
+extern Model* modelTin;
 
 namespace Sapphire
 {

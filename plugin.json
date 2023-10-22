@@ -59,10 +59,19 @@
     {
       "slug": "Tricorder",
       "name": "Tricorder",
-      "description": "3D plotter expander module for Frolic.",
+      "description": "3D plotter expander module for Frolic and Tin.",
       "tags": [
         "Expander",
         "Visual"
+      ]
+    },
+    {
+      "slug": "Tin",
+      "name": "Tin",
+      "description": "Feeds arbitrary input signals into Tricorder.",
+      "tags": [
+        "Expander",
+        "Utility"
       ]
     }
   ]

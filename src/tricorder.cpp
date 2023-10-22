@@ -247,10 +247,7 @@ namespace Sapphire
                 if (module == nullptr)
                     return false;
 
-                if (module->model == modelFrolic)
-                    return true;
-
-                return false;
+                return module->model == modelFrolic || module->model == modelTin;
             }
 
             const Message* inboundMessage() const

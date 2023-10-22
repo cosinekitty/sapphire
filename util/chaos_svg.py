@@ -125,14 +125,14 @@ def GenerateTricorderPanel() -> int:
 
 
 def GenerateTinPanel() -> int:
-    PANEL_WIDTH = 3
+    PANEL_WIDTH = 4
     svgFileName = '../res/tin.svg'
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     xmid = panel.mmWidth/2
     inputPortY1 = 30.0
     inputPortDY = 10.0
-    xPortLabel = xmid - 6.0
+    xPortLabel = xmid - 7.5
     yPortLabel = inputPortY1 - 2.4
     controls = ControlLayer()
     with Font(SAPPHIRE_FONT_FILENAME) as font:

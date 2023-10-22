@@ -16,4 +16,5 @@ void init(Plugin* p)
     p->addModel(modelTubeUnit);
     p->addModel(modelFrolic);
     p->addModel(modelTricorder);
+    p->addModel(modelTin);
 }
