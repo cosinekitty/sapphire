@@ -9,6 +9,21 @@
 </tr>
 
 <tr valign="top">
+<td align="center">22 Oct 2023</td>
+<td align="center">2.3.0</td>
+<td align="left">
+<ul>
+    Added new modules:
+    <ul>
+        <li>Frolic: a low frequency chaotic oscillator with 3 outputs</li>
+        <li>Tricorder: a 3D animation scope designed for Frolic and Tin</li>
+        <li>Tin: sends any (x, y, z) values from input ports into Tricorder</li>
+    </ul>
+</ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">12 Mar 2023</td>
 <td align="center">2.2.2</td>
 <td align="left">
