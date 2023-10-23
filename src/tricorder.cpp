@@ -35,6 +35,7 @@ namespace Sapphire
         const float BUTTON_WIDTH      = 0.10f * DISPLAY_SCALE;
         const float BUTTON_HEIGHT     = 0.10f * DISPLAY_SCALE;
         const float BUTTON_LEFT       = 0.05f * DISPLAY_MM_WIDTH;
+        const float BUTTON_LEFTCENTER = 0.25f * DISPLAY_MM_WIDTH;
         const float BUTTON_RIGHT      = 0.85f * DISPLAY_MM_WIDTH;
         const float BUTTON_CENTER     = 0.45f * DISPLAY_MM_WIDTH;
         const float BUTTON_TOP        = 0.05f * DISPLAY_MM_HEIGHT;
@@ -174,6 +175,7 @@ namespace Sapphire
             float yRadiansPerStep{};
             float xRadiansPerStep{};
             bool axesAreVisible{};
+            bool numbersAreVisible{};
             RotationMatrix orientation;
             const float defaultVoltageScale = 5.0f;
             float voltageScale{};
@@ -198,6 +200,7 @@ namespace Sapphire
             void initialize()
             {
                 axesAreVisible = true;
+                numbersAreVisible = true;
                 resetPointList();
                 resetPerspective();
                 selectRotationMode(-1, 0);
@@ -384,6 +387,7 @@ namespace Sapphire
 
                 // Save the XYZ axes visibility state.
                 json_object_set_new(root, "axesVisible", json_boolean(axesAreVisible));
+                json_object_set_new(root, "numbersVisible", json_boolean(numbersAreVisible));
 
                 // Save the zoom level (voltage scale).
                 json_object_set_new(root, "voltageScale", json_real(voltageScale));
@@ -411,6 +415,9 @@ namespace Sapphire
 
                 json_t* axesvis = json_object_get(root, "axesVisible");
                 axesAreVisible = !json_is_false(axesvis);
+
+                json_t* numvis = json_object_get(root, "numbersVisible");
+                numbersAreVisible = !json_is_false(numvis);
 
                 json_t* scale = json_object_get(root, "voltageScale");
                 if (json_is_number(scale))
@@ -477,7 +484,9 @@ namespace Sapphire
         void ResetPerspective(const TricorderDisplay&);
         void SelectRotationMode(const TricorderDisplay&, int longitudeDirection, int latitudeDirection);
         void ToggleAxisVisibility(const TricorderDisplay&);
+        void ToggleNumbersVisibility(const TricorderDisplay&);
         bool AxesAreVisible(const TricorderDisplay&);
+        bool NumbersAreVisible(const TricorderDisplay& display);
         void AdjustZoom(const TricorderDisplay&, int adjust);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
@@ -604,6 +613,45 @@ namespace Sapphire
                     line(args, 0.9, 0.65, 0.7, 0.65);
                     line(args, 0.7, 0.65, 0.9, 0.35);
                     line(args, 0.7, 0.35, 0.9, 0.35);
+                }
+            }
+        };
+
+
+        struct TricorderButton_ToggleNumbers : TricorderButton
+        {
+            explicit TricorderButton_ToggleNumbers(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_LEFTCENTER, BUTTON_BOTTOM)
+                {}
+
+            void onButtonClick() override
+            {
+                ToggleNumbersVisibility(display);
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                TricorderButton::drawLayer(args, layer);
+                if (layer==1 && isButtonVisible())
+                {
+                    float dx = -0.04;
+
+                    // The numeral 1
+                    line(args, 0.2+dx, 0.35, 0.2+dx, 0.65);
+
+                    // The numeral 2
+                    float ex = dx - 0.04;
+                    line(args, 0.4+ex, 0.35, 0.6+ex, 0.35);
+                    line(args, 0.6+ex, 0.35, 0.6+ex, 0.50);
+                    line(args, 0.6+ex, 0.50, 0.4+ex, 0.50);
+                    line(args, 0.4+ex, 0.50, 0.4+ex, 0.65);
+                    line(args, 0.4+ex, 0.65, 0.6+ex, 0.65);
+
+                    // The numeral 3
+                    line(args, 0.7+dx, 0.65, 0.9+dx, 0.65);
+                    line(args, 0.9+dx, 0.65, 0.9+dx, 0.35);
+                    line(args, 0.9+dx, 0.35, 0.7+dx, 0.35);
+                    line(args, 0.9+dx, 0.50, 0.7+dx, 0.50);
                 }
             }
         };
@@ -803,6 +851,7 @@ namespace Sapphire
                 box.pos = mm2px(Vec(DISPLAY_MM_MARGIN, mmTopMargin));
                 box.size = mm2px(Vec(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT));
                 addButton(new TricorderButton_ToggleAxes(*this));
+                addButton(new TricorderButton_ToggleNumbers(*this));
                 addButton(new TricorderButton_SpinRight(*this));
                 addButton(new TricorderButton_SpinLeft(*this));
                 addButton(new TricorderButton_SpinUp(*this));
@@ -841,8 +890,7 @@ namespace Sapphire
 
                 renderList.clear();
 
-                bool visibleAxes = AxesAreVisible(*this);
-                if (visibleAxes)
+                if (AxesAreVisible(*this))
                 {
                     const float r = 4.0f;
                     Point origin(0, 0, 0);
@@ -885,7 +933,7 @@ namespace Sapphire
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
                 render(args.vg, n);
-                if (visibleAxes)
+                if (NumbersAreVisible(*this))
                     displayVoltageNumbers(args.vg);
                 nvgResetScissor(args.vg);
                 nvgRestore(args.vg);
@@ -1324,9 +1372,22 @@ namespace Sapphire
         }
 
 
+        void ToggleNumbersVisibility(const TricorderDisplay& display)
+        {
+            if (display.module != nullptr)
+                display.module->numbersAreVisible = !display.module->numbersAreVisible;
+        }
+
+
         bool AxesAreVisible(const TricorderDisplay& display)
         {
             return (display.module != nullptr) && display.module->axesAreVisible;
+        }
+
+
+        bool NumbersAreVisible(const TricorderDisplay& display)
+        {
+            return (display.module != nullptr) && display.module->numbersAreVisible;
         }
 
 

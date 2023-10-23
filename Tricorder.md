@@ -34,9 +34,10 @@ will appear:
 
 ![Tricorder controls](images/tricorder_controls.png)
 
-* The double-chevron symbols (&gt;&gt;) at the left, right, top, and bottom sides of the display 
+* The double-chevron symbols (&gt;&gt;) at the left, right, top, and bottom sides of the display
 allow rotating the animation in four different directions.
 * The XYZ button toggles whether coordinate axes are shown.
+* The 123 button toggles whether the voltage values are displayed as numbers at the bottom of the display.
 * The + and &minus; buttons zoom in and out.
 * The home button in the upper left corner resets the default orientation and zoom level.
 
