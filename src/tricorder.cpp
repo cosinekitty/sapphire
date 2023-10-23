@@ -769,6 +769,11 @@ namespace Sapphire
             }
         };
 
+        const int MOUSE_STATIONARY_FADING = 200;
+        const int MOUSE_STATIONARY_VANISH = MOUSE_STATIONARY_FADING + 50;
+
+        const int MOUSE_ABSENT_FADING = 5;
+        const int MOUSE_ABSENT_VANISH = MOUSE_ABSENT_FADING + 25;
 
         struct TricorderDisplay : OpaqueWidget
         {
@@ -777,7 +782,8 @@ namespace Sapphire
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
             bool isDragging = false;
-            int64_t mouseStationaryCount = 0;
+            int mouseStationaryCount = 0;
+            int mouseAbsentCount = MOUSE_ABSENT_VANISH;
             Vec hoverMousePos;      // valid only when ownsMouse is true
 
             explicit TricorderDisplay(TricorderModule* _module)
@@ -1058,12 +1064,28 @@ namespace Sapphire
                 return mm2px(Vec(sx, sy));
             }
 
+            bool isMouseInsideDisplay() const
+            {
+                if (ownsMouse)
+                    return true;
+
+                for (const TricorderButton* button : buttonList)
+                    if (button->ownsMouse)
+                        return true;
+
+                return false;
+            }
+
             void step() override
             {
                 if (module == nullptr || module->bypassing)
                     return;
 
                 module->stepOrientation();
+
+                if (!isMouseInsideDisplay())
+                    if (mouseAbsentCount < MOUSE_ABSENT_VANISH)
+                        ++mouseAbsentCount;
             }
 
             void onHover(const HoverEvent& e) override
@@ -1073,7 +1095,8 @@ namespace Sapphire
                     if (hoverMousePos.equals(e.pos))
                     {
                         // The mouse is not moving.
-                        ++mouseStationaryCount;
+                        if (mouseStationaryCount <= MOUSE_STATIONARY_VANISH)
+                            ++mouseStationaryCount;
                     }
                     else
                     {
@@ -1101,12 +1124,14 @@ namespace Sapphire
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
+                mouseAbsentCount = 0;
                 mouseStationaryCount = 0;
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 ownsMouse = false;
+                mouseAbsentCount = 0;
             }
 
             void onDragStart(const DragStartEvent& e) override
@@ -1149,10 +1174,6 @@ namespace Sapphire
         };
 
 
-        const int MOUSE_STATIONARY_FADING = 300;
-        const int MOUSE_STATIONARY_VANISH = 360;
-
-
         bool AreButtonsVisible(const TricorderDisplay& display)
         {
             // Buttons are either all visible or all invisible.
@@ -1184,6 +1205,11 @@ namespace Sapphire
                 if (button->ownsMouse)
                     return true;
 
+            // The mouse is completely outside the control area.
+            // There is a brief time where we fade out the buttons before making them disappear.
+            if (display.mouseAbsentCount < MOUSE_ABSENT_VANISH)
+                return true;
+
             return false;
         }
 
@@ -1204,6 +1230,16 @@ namespace Sapphire
                     float denom = MOUSE_STATIONARY_VANISH - MOUSE_STATIONARY_FADING;
                     return 1 - (numer/denom);
                 }
+            }
+
+            if (display.mouseAbsentCount >= MOUSE_ABSENT_FADING)
+            {
+                if (display.mouseAbsentCount >= MOUSE_ABSENT_VANISH)
+                    return 0;
+
+                float numer = display.mouseAbsentCount - MOUSE_ABSENT_FADING;
+                float denom = MOUSE_ABSENT_VANISH - MOUSE_ABSENT_FADING;
+                return 1 - (numer/denom);
             }
 
             return 1;
