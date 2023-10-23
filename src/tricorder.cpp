@@ -200,7 +200,7 @@ namespace Sapphire
             void initialize()
             {
                 axesAreVisible = true;
-                numbersAreVisible = true;
+                numbersAreVisible = false;
                 resetPointList();
                 resetPerspective();
                 selectRotationMode(-1, 0);
