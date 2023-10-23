@@ -289,10 +289,10 @@ namespace Sapphire
                     float z = filter(msg->z);
 
                     // Daisy chain this inbound message from the left to any chained module on the right.
-                    Message& msg = *static_cast<Message*>(rightExpander.producerMessage);
-                    msg.x = x;
-                    msg.y = y;
-                    msg.z = z;
+                    Message& daisy = *static_cast<Message*>(rightExpander.producerMessage);
+                    daisy.x = x;
+                    daisy.y = y;
+                    daisy.z = z;
                     rightExpander.requestMessageFlip();
 
                     // Only insert new points if the position has changed significantly
