@@ -23,10 +23,12 @@ $$
 
 The right sides of these equations are all linear functions
 of $x$, $y$, and $z$. The left sides are all rates of change
-of these variables with time. Basically the right sides are
-derived from the current position of a particle in 3D space,
-and the left sides tell you what direction the particle
-is moving toward from that location.
+of these variables with time.
+
+The equations above convert the current location
+of a particle into a velocity vector that points in the direction
+the particle must move. No matter where the particle is, Frolic calculates
+its velocity vector and uses it to update the particle's position vector.
 
 ### Knobs
 
