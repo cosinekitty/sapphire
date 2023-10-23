@@ -41,6 +41,11 @@ namespace Sapphire
         const float BUTTON_BOTTOM     = 0.85f * DISPLAY_MM_HEIGHT;
         const float BUTTON_MIDDLE     = 0.45f * DISPLAY_MM_HEIGHT;
 
+        const float NUMERIC_TOP       = 0.98f * DISPLAY_MM_HEIGHT;
+        const float NUMERIC_X_LEFT    = 0.10f * DISPLAY_MM_WIDTH;
+        const float NUMERIC_Y_LEFT    = 0.40f * DISPLAY_MM_WIDTH;
+        const float NUMERIC_Z_LEFT    = 0.70f * DISPLAY_MM_WIDTH;
+
         struct Point
         {
             float x;
@@ -159,6 +164,9 @@ namespace Sapphire
             float xprev{};
             float yprev{};
             float zprev{};
+            float xcurr{};
+            float ycurr{};
+            float zcurr{};
             bool bypassing = false;
             const float rotationSpeed = 0.003;
             float yRotationRadians{};
@@ -284,23 +292,23 @@ namespace Sapphire
                 else
                 {
                     // Sanity check the values fed to us from the other module.
-                    float x = filter(msg->x);
-                    float y = filter(msg->y);
-                    float z = filter(msg->z);
+                    xcurr = filter(msg->x);
+                    ycurr = filter(msg->y);
+                    zcurr = filter(msg->z);
 
                     // Daisy chain this inbound message from the left to any chained module on the right.
                     Message& daisy = *static_cast<Message*>(rightExpander.producerMessage);
-                    daisy.x = x;
-                    daisy.y = y;
-                    daisy.z = z;
+                    daisy.x = xcurr;
+                    daisy.y = ycurr;
+                    daisy.z = zcurr;
                     rightExpander.requestMessageFlip();
 
                     // Only insert new points if the position has changed significantly
                     // or a sufficient amount of time has passed.
-                    Point p(x, y, z);
-                    float dx = x - xprev;
-                    float dy = y - yprev;
-                    float dz = z - zprev;
+                    Point p(xcurr, ycurr, zcurr);
+                    float dx = xcurr - xprev;
+                    float dy = ycurr - yprev;
+                    float dz = zcurr - zprev;
                     float distance = std::sqrt(dx*dx + dy*dy + dz*dz);
 
                     if (distance > 0.1f)
@@ -316,9 +324,9 @@ namespace Sapphire
                         }
 
                         // Because we added a point, reset the creteria for adding another point.
-                        xprev = x;
-                        yprev = y;
-                        zprev = z;
+                        xprev = xcurr;
+                        yprev = ycurr;
+                        zprev = zcurr;
                     }
                     else if (pointCount > 0)
                     {
@@ -785,9 +793,11 @@ namespace Sapphire
             int mouseStationaryCount = 0;
             int mouseAbsentCount = MOUSE_ABSENT_VANISH;
             Vec hoverMousePos;      // valid only when ownsMouse is true
+            std::string fontPath;
 
             explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
+                , fontPath(asset::system("res/fonts/ShareTechMono-Regular.ttf"))
             {
                 const float mmTopMargin  = PANEL_MM_HEIGHT - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
                 box.pos = mm2px(Vec(DISPLAY_MM_MARGIN, mmTopMargin));
@@ -831,7 +841,8 @@ namespace Sapphire
 
                 renderList.clear();
 
-                if (AxesAreVisible(*this))
+                bool visibleAxes = AxesAreVisible(*this);
+                if (visibleAxes)
                 {
                     const float r = 4.0f;
                     Point origin(0, 0, 0);
@@ -874,6 +885,8 @@ namespace Sapphire
                 Rect b = box.zeroPos();
                 nvgScissor(args.vg, RECT_ARGS(b));
                 render(args.vg, n);
+                if (visibleAxes)
+                    displayVoltageNumbers(args.vg);
                 nvgResetScissor(args.vg);
                 nvgRestore(args.vg);
 
@@ -922,6 +935,50 @@ namespace Sapphire
                         nvgLineTo(vg, seg.vec2.x, seg.vec2.y);
                         nvgStroke(vg);
                     }
+                }
+            }
+
+            void formatVoltage(char *buffer, std::size_t size, float value, char varname)
+            {
+                if (size == 0)
+                    return;
+
+                if (!std::isfinite(value) || std::abs(value) > 999.0f)
+                    snprintf(buffer, size, "%c = ***.***", varname);
+                else
+                    snprintf(buffer, size, "%c = %7.3f", varname, value);
+
+                if (value > 0.0f)
+                {
+                    // Replace the rightmost space with a plus sign.
+                    int space = -1;
+                    for (int i = 0; buffer[i]; ++i)
+                        if (buffer[i] == ' ')
+                            space = i;
+
+                    if (space >= 0)
+                        buffer[space] = '+';
+                }
+            }
+
+            void displayVoltageNumbers(NVGcontext *vg)
+            {
+                if (module == nullptr)
+                    return;
+
+                char buffer[30];
+                std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+                if (font)
+                {
+                    nvgFontSize(vg, 14);
+                    nvgFontFaceId(vg, font->handle);
+                    nvgFillColor(vg, nvgRGBA(0x8f, 0xff, 0x70, 0xff));
+                    formatVoltage(buffer, sizeof(buffer), module->xcurr, 'X');
+                    nvgText(vg, mm2px(NUMERIC_X_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
+                    formatVoltage(buffer, sizeof(buffer), module->ycurr, 'Y');
+                    nvgText(vg, mm2px(NUMERIC_Y_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
+                    formatVoltage(buffer, sizeof(buffer), module->zcurr, 'Z');
+                    nvgText(vg, mm2px(NUMERIC_Z_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
                 }
             }
 
