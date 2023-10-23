@@ -169,9 +169,12 @@ namespace Sapphire
             RotationMatrix orientation;
             const float defaultVoltageScale = 5.0f;
             float voltageScale{};
+            Message daisyChainMessage[2];    // relays inputs to another module to the right
 
             TricorderModule()
             {
+                rightExpander.producerMessage = &daisyChainMessage[0];
+                rightExpander.consumerMessage = &daisyChainMessage[1];
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 initialize();
@@ -247,7 +250,7 @@ namespace Sapphire
                 if (module == nullptr)
                     return false;
 
-                return module->model == modelFrolic || module->model == modelTin;
+                return module->model == modelFrolic || module->model == modelTin || module->model == modelTricorder;
             }
 
             const Message* inboundMessage() const
@@ -262,12 +265,9 @@ namespace Sapphire
                 return nullptr;
             }
 
-            static float filter(float v)
+            static inline float filter(float v)
             {
-                if (!std::isfinite(v))
-                    return 0.0f;
-
-                return std::max(-10.0f, std::min(+10.0f, v));
+                return std::isfinite(v) ? v : 0;
             }
 
             void process(const ProcessArgs& args) override
@@ -287,10 +287,17 @@ namespace Sapphire
                     float x = filter(msg->x);
                     float y = filter(msg->y);
                     float z = filter(msg->z);
-                    Point p(x, y, z);
+
+                    // Daisy chain this inbound message from the left to any chained module on the right.
+                    Message& msg = *static_cast<Message*>(rightExpander.producerMessage);
+                    msg.x = x;
+                    msg.y = y;
+                    msg.z = z;
+                    rightExpander.requestMessageFlip();
 
                     // Only insert new points if the position has changed significantly
                     // or a sufficient amount of time has passed.
+                    Point p(x, y, z);
                     float dx = x - xprev;
                     float dy = y - yprev;
                     float dz = z - zprev;
