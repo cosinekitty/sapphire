@@ -40,7 +40,7 @@ the default by turning it all the way to the right.
 
 **CHAOS**: This knob controls the value of the $a$ parameter in the first equation.
 The value of $a$ ranges from 3.8 to 6.7, which was experimentally determined
-to give a wide range or orbital behavior: from highly ordered to highly chaotic.
+to give a wide range of orbital behavior: from highly ordered to highly chaotic.
 In other words, when the CHOAS knob is set all the way down (&minus;1), the
 value of $a$ is set to 3.8, resulting in a simple repeated loop.
 If CHOAS is all the way right (+1), the value of $a$ is set to 6.7 and the
@@ -52,7 +52,7 @@ Both can be operated over the full knob range using a wide enough attenuverter s
 
 ### Graphing with Tricorder
 
-[Tricorder](Tricorder.md) is a 3D oscilloscope designd for Frolic.
+[Tricorder](Tricorder.md) is a 3D oscilloscope designed for Frolic.
 If you place a Frolic immediately to the left of a Tricorder, Frolic
 will start to feed data into Tricorder, which will plot a 3D graph:
 
