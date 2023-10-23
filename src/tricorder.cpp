@@ -1014,13 +1014,13 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                char buffer[30];
                 std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
                 if (font)
                 {
                     nvgFontSize(vg, 14);
                     nvgFontFaceId(vg, font->handle);
                     nvgFillColor(vg, nvgRGBA(0x8f, 0xff, 0x70, 0xff));
+                    char buffer[30];
                     formatVoltage(buffer, sizeof(buffer), module->xcurr, 'X');
                     nvgText(vg, mm2px(NUMERIC_X_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
                     formatVoltage(buffer, sizeof(buffer), module->ycurr, 'Y');
