@@ -6,6 +6,22 @@ The latest release of the Sapphire plugin is available in the
 
 ---
 
+## Elastika
+
+Read the complete <a href="Elastika.md">Sapphire Elastika documentation</a>.
+
+<a href="Elastika.md"><img src="images/elastika.png" /></a>
+
+---
+
+## Frolic
+
+Read the complete <a href="Frolic.md">Sapphire Frolic documentation</a>.
+
+<a href="Frolic.md"><img src="images/frolic.png">
+
+---
+
 ## Moots
 
 Read the complete <a href="Moots.md">Sapphire Moots documentation</a>.
@@ -14,11 +30,19 @@ Read the complete <a href="Moots.md">Sapphire Moots documentation</a>.
 
 ---
 
-## Elastika
+## Tin
 
-Read the complete <a href="Elastika.md">Sapphire Elastika documentation</a>.
+Read the complete <a href="Tin.md">Sapphire Tin documentation</a>.
 
-<a href="Elastika.md"><img src="images/elastika.png" /></a>
+<a href="Tin.md"><img src="images/tin.png" /></a>
+
+---
+
+## Tricorder
+
+Read the complete <a href="Tricorder.md">Sapphire Tricorder documentation</a>.
+
+<a href="Tricorder.md"><img src="images/tricorder.png" /></a>
 
 ---
 
