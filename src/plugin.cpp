@@ -15,6 +15,7 @@ void init(Plugin* p)
     p->addModel(modelElastika);
     p->addModel(modelTubeUnit);
     p->addModel(modelFrolic);
+    p->addModel(modelGlee);
     p->addModel(modelTricorder);
     p->addModel(modelTin);
 }

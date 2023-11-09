@@ -162,6 +162,7 @@ def GenerateTinPanel() -> int:
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
+        GenerateChaosPanel('glee') or
         GenerateTricorderPanel() or
         GenerateTinPanel() or
         Print('SUCCESS')

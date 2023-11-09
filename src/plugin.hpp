@@ -14,6 +14,7 @@ extern Model* modelMoots;
 extern Model* modelElastika;
 extern Model* modelTubeUnit;
 extern Model* modelFrolic;
+extern Model* modelGlee;
 extern Model* modelTricorder;
 extern Model* modelTin;
 

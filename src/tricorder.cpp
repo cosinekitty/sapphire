@@ -261,7 +261,11 @@ namespace Sapphire
                 if (module == nullptr)
                     return false;
 
-                return module->model == modelFrolic || module->model == modelTin || module->model == modelTricorder;
+                return
+                    module->model == modelFrolic ||
+                    module->model == modelGlee ||
+                    module->model == modelTin ||
+                    module->model == modelTricorder;
             }
 
             const Message* inboundMessage() const

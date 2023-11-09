@@ -169,7 +169,38 @@ namespace Sapphire
                 -10.15,  +10.17,
                  -5.570,  +5.565,
                   0.000, +15.387)
+            {}
+    };
+
+
+    class Aizawa : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite3.html
+    {
+    private:
+        const double a = 0.95;
+        const double b = 0.69535;
+        const double d = 3.5;
+        const double e = 0.25;
+        const double f = 0.1;
+
+    protected:
+        SlopeVector slopes(double x, double y, double z) const override
         {
+            const double c = KnobValue(knob, 0.5941, 0.6117);
+            return SlopeVector(
+                (z-b)*x - d*y,
+                d*x + (z-b)*y,
+                c + a*z - z*z*z/3 - (x*x + y*y)*(1 + e*z) + f*z*x*x*x
+            );
         }
+
+    public:
+        Aizawa()
+            : ChaoticOscillator(
+                5.0e-05,
+                0.440125, -0.781267, -0.277170,
+                -1.505, +1.490,
+                -1.455, +1.530,
+                -0.370, +1.853)
+            {}
     };
 }
