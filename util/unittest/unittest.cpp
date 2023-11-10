@@ -658,8 +658,11 @@ static int ChaosTest()
     Sapphire::Rucklidge ruck;
     ruck.setKnob(+1.0);     // maximum chaos and maximum range
 
+    Sapphire::Aizawa aiza;
+
     return
         RangeTest(ruck, "Rucklidge") ||
+        RangeTest(aiza, "Aizawa") ||
         Pass("ChaosTest");
 }
 
