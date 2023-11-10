@@ -196,7 +196,7 @@ namespace Sapphire
     public:
         Aizawa()
             : ChaoticOscillator(
-                5.0e-05,
+                5.0e-04,
                 0.440125, -0.781267, -0.277170,
                 -1.505, +1.490,
                 -1.455, +1.530,
