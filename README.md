@@ -28,6 +28,17 @@ Read the complete <a href="Frolic.md">Sapphire Frolic documentation</a>.
 
 ---
 
+## Glee
+
+Another low-frequency and ultra-low-frequency chaotic oscillator
+for generating 3 simultaneous smooth but unpredictable voltages.
+
+Read the complete <a href="Glee.md">Sapphire Glee documentation</a>.
+
+<a href="Glee.md"><img src="images/glee.png"/></a>
+
+---
+
 ## Moots
 
 Simulates plugging/unplugging cables,
@@ -51,7 +62,7 @@ Read the complete <a href="Tin.md">Sapphire Tin documentation</a>.
 
 ## Tricorder
 
-A 3D oscilloscope designed for Frolic and Tin.
+A 3D oscilloscope designed for Frolic, Glee, and Tin.
 
 Read the complete <a href="Tricorder.md">Sapphire Tricorder documentation</a>.
 

@@ -6,12 +6,12 @@ Tricorder is a 3D oscilloscope designed for displaying
 animations of a triplet of low-frequency voltages.
 
 Tricorder was designed specifically as an expander module
-for [Frolic](Frolic.md), but it also allows graphing
+for [Frolic](Frolic.md) and [Glee](Glee.md), but it also allows graphing
 any three input voltages you want, using [Tin](Tin.md)
 instead of Frolic to the left of Tricorder.
 
 In general, Tricorder is useful for visually understanding the behavior
-of Frolic or any other 3D system of voltages.
+of Frolic, Glee, or any other 3D system of voltages.
 Tricorder also could be a fun decoration for your patch.
 
 The photo at the top is an example of Frolic placed to the immediate
