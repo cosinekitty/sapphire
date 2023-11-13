@@ -31,7 +31,7 @@ def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element
     return elem
 
 
-def ControlGroupArt(id: str, panel: Panel, y1: float, y2: float, gradientId: str) -> Path:
+def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float, gradientId: str) -> Path:
     path = ''
     xMargin = 0.38
     arcRadius = 4.0
@@ -42,9 +42,14 @@ def ControlGroupArt(id: str, panel: Panel, y1: float, y2: float, gradientId: str
     # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
     # arc for upper-left corner
     path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, x1 + arcRadius, y1)
-    # arc for upper-right corner
     path += Line(x2 - arcRadius, y1)
-    path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, x2, y1 + arcRadius)
+    # arc for upper-right corner
+    if moduleName == 'glee':
+        # right arc points upward, left arc points downward.
+        path += 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, x2, y1 - arcRadius)
+    else:
+        # both arcs point downward.
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, x2, y1 + arcRadius)
     path += Line(x2, y1)
     path += Line(x2, y2)
     path += 'z'
@@ -88,9 +93,9 @@ def GenerateChaosPanel(name: str) -> int:
         defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, '#3068ff', '#4f8df2', 'gradient_blue'))
         defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, '#a06de4', '#4f8df2', 'gradient_purple'))
         defs.append(Gradient(outGradY1, outGradY2, '#29aab4', '#4f8df2', 'gradient_tan'))
-        pl.append(ControlGroupArt('speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
-        pl.append(ControlGroupArt('chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
-        pl.append(ControlGroupArt('out_art', panel, outGradY1, outGradY2, 'gradient_tan'))
+        pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
+        pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_tan'))
         controls.append(Component('speed_knob', xmid, ySpeedKnob))
         controls.append(Component('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
         controls.append(Component('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
@@ -146,7 +151,7 @@ def GenerateTinPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'tin'))
         pl.append(CenteredGemstone(panel))
-        pl.append(ControlGroupArt('in_art', panel, inGradY1, inGradY2, 'gradient_in'))
+        pl.append(ControlGroupArt('tin', 'in_art', panel, inGradY1, inGradY2, 'gradient_in'))
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*inputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*inputPortDY, 'port_label_z'))
