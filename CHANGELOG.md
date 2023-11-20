@@ -9,6 +9,14 @@
 </tr>
 
 <tr valign="top">
+<td align="center">19 Nov 2023</td>
+<td align="center">2.3.1</td>
+<td align="left">
+    Added bonus module Glee, a chaotic oscillator similar to Frolic but with a different 3D shape.
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">22 Oct 2023</td>
 <td align="center">2.3.0</td>
 <td align="left">
