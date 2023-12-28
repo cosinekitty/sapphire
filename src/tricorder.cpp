@@ -846,6 +846,9 @@ namespace Sapphire
             int mouseAbsentCount = MOUSE_ABSENT_VANISH;
             Vec hoverMousePos;      // valid only when ownsMouse is true
             std::string fontPath;
+            float xprev{};
+            float yprev{};
+            float zprev{};
 
             explicit TricorderDisplay(TricorderModule* _module)
                 : module(_module)
@@ -1013,6 +1016,61 @@ namespace Sapphire
                 }
             }
 
+            void drawVoltageDirectionArrow(NVGcontext *vg, float x, float y, float delta)
+            {
+                if (std::abs(delta) < 1.0e-6f)
+                    return;     // don't draw an arrow
+
+                const float mmHorPos = 80.0f;
+                const float mmHeight = 8.0f;
+                const float mmArrowDx = 2.0f;
+                const float yArrowFrac = 0.4f;
+                float y1, dy;
+
+                if (delta < 0.0f)
+                {
+                    // Draw a downward-pointing arrow.
+                    y1 = y - mmHeight;
+                    dy = +mmHeight;
+                }
+                else
+                {
+                    // Draw an upward-pointing arrow.
+                    y1 = y;
+                    dy = -mmHeight;
+                }
+
+                // (Ax, Ay) = base of arrow
+                //float Ax = x + mmHorPos;
+                //float Ay = y1 + dy;
+
+                // (Bx, By) = tip of arrow
+                float Bx = x + mmHorPos;
+                float By = y1;
+
+                // (cx, cy) = left arrow fin
+                float Cx = Bx - mmArrowDx;
+                float Cy = y1 + (1-yArrowFrac)*dy;
+
+                // (Dx, Dy) = right arrow fin
+                float Dx = Bx + mmArrowDx;
+                float Dy = y1 + (1-yArrowFrac)*dy;
+
+                nvgBeginPath(vg);
+                nvgLineCap(vg, NVG_ROUND);
+                nvgStrokeColor(vg, SCHEME_WHITE);
+                nvgStrokeWidth(vg, 0.7f);
+
+                nvgMoveTo(vg, Cx, Cy);
+                nvgLineTo(vg, Bx, By);
+                nvgMoveTo(vg, Dx, Dy);
+                nvgLineTo(vg, Bx, By);
+                //nvgMoveTo(vg, Ax, Ay);
+                //nvgLineTo(vg, Bx, By);
+
+                nvgStroke(vg);
+            }
+
             void displayVoltageNumbers(NVGcontext *vg)
             {
                 if (module == nullptr)
@@ -1031,6 +1089,12 @@ namespace Sapphire
                     nvgText(vg, mm2px(NUMERIC_Y_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
                     formatVoltage(buffer, sizeof(buffer), module->zcurr, 'Z');
                     nvgText(vg, mm2px(NUMERIC_Z_LEFT), mm2px(NUMERIC_TOP), buffer, nullptr);
+                    drawVoltageDirectionArrow(vg, mm2px(NUMERIC_X_LEFT), mm2px(NUMERIC_TOP), module->xcurr - xprev);
+                    drawVoltageDirectionArrow(vg, mm2px(NUMERIC_Y_LEFT), mm2px(NUMERIC_TOP), module->ycurr - yprev);
+                    drawVoltageDirectionArrow(vg, mm2px(NUMERIC_Z_LEFT), mm2px(NUMERIC_TOP), module->zcurr - zprev);
+                    xprev = module->xcurr;
+                    yprev = module->ycurr;
+                    zprev = module->zcurr;
                 }
             }
 
