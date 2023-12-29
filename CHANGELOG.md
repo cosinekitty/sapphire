@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">29 Dec 2023</td>
+<td align="center">2.3.2</td>
+<td align="left">
+    <ul>
+        <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">19 Nov 2023</td>
 <td align="center">2.3.1</td>
 <td align="left">
