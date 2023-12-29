@@ -1024,37 +1024,33 @@ namespace Sapphire
                 const float mmHorPos = 80.0f;
                 const float mmHeight = 8.0f;
                 const float mmArrowDx = 2.0f;
-                const float yArrowFrac = 0.4f;
+                const float yArrowFrac = 0.5f;
                 float y1, dy;
 
                 if (delta < 0.0f)
                 {
                     // Draw a downward-pointing arrow.
-                    y1 = y - mmHeight;
-                    dy = +mmHeight;
+                    y1 = y;
+                    dy = -mmHeight;
                 }
                 else
                 {
                     // Draw an upward-pointing arrow.
-                    y1 = y;
-                    dy = -mmHeight;
+                    y1 = y - mmHeight;
+                    dy = +mmHeight;
                 }
-
-                // (Ax, Ay) = base of arrow
-                //float Ax = x + mmHorPos;
-                //float Ay = y1 + dy;
 
                 // (Bx, By) = tip of arrow
                 float Bx = x + mmHorPos;
                 float By = y1;
 
-                // (cx, cy) = left arrow fin
+                // (Cx, Cy) = left arrow fin
                 float Cx = Bx - mmArrowDx;
                 float Cy = y1 + (1-yArrowFrac)*dy;
 
                 // (Dx, Dy) = right arrow fin
                 float Dx = Bx + mmArrowDx;
-                float Dy = y1 + (1-yArrowFrac)*dy;
+                float Dy = Cy;
 
                 nvgBeginPath(vg);
                 nvgLineCap(vg, NVG_ROUND);
@@ -1063,10 +1059,8 @@ namespace Sapphire
 
                 nvgMoveTo(vg, Cx, Cy);
                 nvgLineTo(vg, Bx, By);
-                nvgMoveTo(vg, Dx, Dy);
-                nvgLineTo(vg, Bx, By);
-                //nvgMoveTo(vg, Ax, Ay);
-                //nvgLineTo(vg, Bx, By);
+                nvgLineTo(vg, Dx, Dy);
+                nvgClosePath(vg);
 
                 nvgStroke(vg);
             }
