@@ -83,6 +83,17 @@
         "Expander",
         "Utility"
       ]
+    },
+    {
+      "slug": "Nucleus",
+      "name": "Nucleus",
+      "description": "Simulation of a cloud of particles with mutually attractive, repulsive, and orthogonal forces.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Filter",
+        "Reverb"
+      ]
     }
   ]
 }

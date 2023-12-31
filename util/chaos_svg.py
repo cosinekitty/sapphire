@@ -164,11 +164,46 @@ def GenerateTinPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateNucleusPanel() -> int:
+    svgFileName = '../res/nucleus.svg'
+    PANEL_WIDTH = 10
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    controls = ControlLayer()
+    xmid = panel.mmWidth / 2
+    dxPort = 10.0   # horizontal distance between X, Y, Z columns.
+    yIn = 67.0
+    yVarNames = 55.0
+    yOutTop = 80.0
+    yOutBottom = 110.0
+    nOutputParticles = 4
+    dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)
+    dxVarNameText = 1.0
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, 'nucleus'))
+        pl.append(SapphireInsignia(panel, font))
+        pl.append(controls)
+        xpos = xmid - dxPort
+        for varname in ['X', 'Y', 'Z']:
+            pl.append(ControlTextPath(font, varname, xpos - dxVarNameText, yVarNames))
+            varlabel = Component(varname + '_input', xpos, yIn)
+            controls.append(varlabel)
+            ypos = yOutTop
+            for i in range(1, 1+nOutputParticles):
+                controls.append(Component(varname + str(i) + '_output', xpos, ypos))
+                ypos += dyOut
+            xpos += dxPort
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
         GenerateChaosPanel('glee') or
         GenerateTricorderPanel() or
         GenerateTinPanel() or
+        GenerateNucleusPanel() or
         Print('SUCCESS')
     )
