@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [[ "$1" == "debug" ]]; then
+    OPTS="-ggdb3 -g3 -O0"
+else
+    OPTS="-O3"
+fi
+
+echo "nucleus_solver: Building..."
+
+g++ -Wall -Werror -o nukesolve ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include \
+    nukesolve.cpp    \
+    || exit 1
+
+echo "nucleus_solver: Running..."
+./nukesolve || exit 1
+
+echo "nucleus_solver: SUCCESS"
+exit 0
