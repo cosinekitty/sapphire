@@ -10,6 +10,18 @@ namespace Sapphire
     {
         enum ParamId
         {
+            SPEED_KNOB_PARAM,
+            DECAY_KNOB_PARAM,
+            MAGNET_KNOB_PARAM,
+            IN_DRIVE_KNOB_PARAM,
+            OUT_LEVEL_KNOB_PARAM,
+
+            SPEED_ATTEN_PARAM,
+            DECAY_ATTEN_PARAM,
+            MAGNET_ATTEN_PARAM,
+            IN_DRIVE_ATTEN_PARAM,
+            OUT_LEVEL_ATTEN_PARAM,
+
             PARAMS_LEN
         };
 
@@ -18,6 +30,12 @@ namespace Sapphire
             X_INPUT,
             Y_INPUT,
             Z_INPUT,
+
+            SPEED_CV_INPUT,
+            DECAY_CV_INPUT,
+            MAGNET_CV_INPUT,
+            IN_DRIVE_CV_INPUT,
+            OUT_LEVEL_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -58,6 +76,24 @@ namespace Sapphire
                 configInput(Y_INPUT, "Y");
                 configInput(Z_INPUT, "Z");
 
+                configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
+                configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
+                configParam(MAGNET_KNOB_PARAM, 0, 1, 0.5, "Magnetic coupling");
+                configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
+                configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
+
+                configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
+                configParam(DECAY_ATTEN_PARAM, -1, 1, 0, "Decay attenuverter", "%", 0, 100);
+                configParam(MAGNET_ATTEN_PARAM, -1, 1, 0, "Magnetic coupling attenuverter", "%", 0, 100);
+                configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
+                configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
+
+                configInput(SPEED_CV_INPUT, "Speed CV");
+                configInput(DECAY_CV_INPUT, "Decay CV");
+                configInput(MAGNET_CV_INPUT, "Magnetic coupling CV");
+                configInput(IN_DRIVE_CV_INPUT, "Input level CV");
+                configInput(OUT_LEVEL_CV_INPUT, "Output level CV");
+
                 configOutput(X1_OUTPUT, "X1");
                 configOutput(Y1_OUTPUT, "Y1");
                 configOutput(Z1_OUTPUT, "Z1");
@@ -96,6 +132,24 @@ namespace Sapphire
                 addSapphireOutput(X4_OUTPUT, "x4_output");
                 addSapphireOutput(Y4_OUTPUT, "y4_output");
                 addSapphireOutput(Z4_OUTPUT, "z4_output");
+
+                addKnob(SPEED_KNOB_PARAM, "speed_knob");
+                addKnob(DECAY_KNOB_PARAM, "decay_knob");
+                addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
+                addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
+                addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
+
+                addSapphireInput(SPEED_CV_INPUT, "speed_cv");
+                addSapphireInput(DECAY_CV_INPUT, "decay_cv");
+                addSapphireInput(MAGNET_CV_INPUT, "magnet_cv");
+                addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
+                addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
+
+                addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
+                addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
+                addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
+                addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
+                addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
 
                 reloadPanel();
             }

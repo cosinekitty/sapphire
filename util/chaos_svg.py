@@ -164,28 +164,40 @@ def GenerateTinPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float) -> None:
+    dxControlGroup = 5.0
+    dyControlGroup = 11.0
+    dyControlText = -11.6
+    controls.append(Component(symbol + '_knob', x, y))
+    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
+    pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
+
+
 def GenerateNucleusPanel() -> int:
     svgFileName = '../res/nucleus.svg'
-    PANEL_WIDTH = 10
+    PANEL_WIDTH = 16
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    dxPort = 12.0           # horizontal distance between X, Y, Z columns.
-    yIn = 67.0              # vertical position of center of input X, Y, Z ports.
-    yVarNames = 55.0        # vertical positions of the labels "X", "Y", "Z".
-    yOutTop = 80.0          # vertical position of the top row of output ports.
-    yOutBottom = 113.0      # vertical position of the bottom row of output ports.
-    nOutputParticles = 4    # how many particles are used for output.
+    dxPort = 12.5               # horizontal distance between X, Y, Z columns.
+    yIn = 57.0                  # vertical position of center of input X, Y, Z ports.
+    yCushion = 12.0             # vertical space above input ports to put labels ("X", "Y", "Z").
+    yVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
+    yOutTop = 76.0              # vertical position of the top row of output ports.
+    yOutBottom = 110.0          # vertical position of the bottom row of output ports.
+    nOutputParticles = 4        # how many particles are used for output.
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
-    dxVarNameText = 1.0     # half the width of the labels ("X", "Y", "Z"); used for centering.
+    dxVarNameText = 1.0         # half the width of the labels ("X", "Y", "Z"); used for centering.
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(controls)
-        xpos = xmid - dxPort
+        xPortGridCenter = xmid + 12.0
+        xpos = xPortGridCenter - dxPort
         for varname in ['x', 'y', 'z']:
             pl.append(ControlTextPath(font, varname.upper(), xpos - dxVarNameText, yVarNames))
             varlabel = Component(varname + '_input', xpos, yIn)
@@ -195,6 +207,14 @@ def GenerateNucleusPanel() -> int:
                 controls.append(Component(varname + str(i) + '_output', xpos, ypos))
                 ypos += dyOut
             xpos += dxPort
+
+        yKnobRow1 = 25.0
+        dxKnobRow1 = 25.0
+        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - dxKnobRow1, yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + dxKnobRow1, yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid - dxKnobRow1, yIn, 5.5)
+        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - dxKnobRow1, yOutTop + (yOutBottom-yOutTop)/2, 5.5)
     return Save(panel, svgFileName)
 
 
