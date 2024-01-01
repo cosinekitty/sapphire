@@ -1,6 +1,7 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
 #include "nucleus_engine.hpp"
+#include "nucleus_init.hpp"
 
 // Nucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -115,31 +116,11 @@ namespace Sapphire
                 initialize();
             }
 
-            void initParticles()
-            {
-                // The input ball [0] goes at the origin.
-                engine.particle(0).pos = PhysicsVector::zero();
-
-                // The remaining particles go at evenly spaced angles around the origin.
-                // Alternate putting them slightly above/below the x-y plane.
-                const float radius = 1.0;
-                const float angleStep = (2.0 * M_PI) / NUM_PARTICLES;
-                float angle = 0.0f;
-                for (std::size_t i = 1; i < NUM_PARTICLES; ++i)
-                {
-                    Particle&p = engine.particle(i);
-                    p.pos[0] = radius * std::cos(angle);
-                    p.pos[1] = radius * std::sin(angle);
-                    p.pos[2] = (((i%10)/9.0) - 0.5) * 1.0e-6f;
-                    p.pos[3] = 0.0f;
-                    p.vel = PhysicsVector::zero();
-                    angle += angleStep;
-                }
-            }
-
             void initialize()
             {
-                initParticles();
+                int rc = SetMinimumEnergy(engine);
+                if (rc != 0)
+                    WARN("SetMinimumEnergy returned error %d", rc);
             }
 
             void onReset(const ResetEvent& e) override
