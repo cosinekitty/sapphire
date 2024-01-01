@@ -183,38 +183,42 @@ def GenerateNucleusPanel() -> int:
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPort = 12.5               # horizontal distance between X, Y, Z columns.
-    yIn = 57.0                  # vertical position of center of input X, Y, Z ports.
-    yCushion = 12.0             # vertical space above input ports to put labels ("X", "Y", "Z").
-    yVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
-    yOutTop = 76.0              # vertical position of the top row of output ports.
-    yOutBottom = 110.0          # vertical position of the bottom row of output ports.
+    yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
+    yCushion = 9.0              # vertical space above input ports to put labels ("X", "Y", "Z").
+    yOutTop = 84.0              # vertical position of the top row of output ports.
+    yOutBottom = 112.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
     dxVarNameText = 1.0         # half the width of the labels ("X", "Y", "Z"); used for centering.
+    yInVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
+    yOutVarNames = yOutTop - yCushion
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(controls)
+        xInputCenter = xmid - 12.0
         xPortGridCenter = xmid + 12.0
-        xpos = xPortGridCenter - dxPort
+        xInPos = xInputCenter - dxPort
+        xOutPos = xPortGridCenter - dxPort
         for varname in ['x', 'y', 'z']:
-            pl.append(ControlTextPath(font, varname.upper(), xpos - dxVarNameText, yVarNames))
-            varlabel = Component(varname + '_input', xpos, yIn)
+            pl.append(ControlTextPath(font, varname.upper(), xInPos - dxVarNameText, yInVarNames))
+            pl.append(ControlTextPath(font, varname.upper(), xOutPos - dxVarNameText, yOutVarNames))
+            varlabel = Component(varname + '_input', xInPos, yIn)
             controls.append(varlabel)
             ypos = yOutTop
             for i in range(1, 1+nOutputParticles):
-                controls.append(Component(varname + str(i) + '_output', xpos, ypos))
+                controls.append(Component(varname + str(i) + '_output', xOutPos, ypos))
                 ypos += dyOut
-            xpos += dxPort
+            xInPos += dxPort
+            xOutPos += dxPort
 
         yKnobRow1 = 25.0
-        dxKnobRow1 = 25.0
-        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - dxKnobRow1, yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + dxKnobRow1, yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid - dxKnobRow1, yIn, 5.5)
-        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - dxKnobRow1, yOutTop + (yOutBottom-yOutTop)/2, 5.5)
+        AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
+        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 18.5, yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutTop + (yOutBottom-yOutTop)/2 - 2.0, 3.5)
     return Save(panel, svgFileName)
 
 
