@@ -8,7 +8,7 @@ fi
 
 echo "nucleus_solver: Building..."
 
-g++ -Wall -Werror -o nukesolve ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include \
+g++ -Wall -Werror -o nukesolve ${OPTS} -D NO_RACK_DEPENDENCY -I../src -Iinclude \
     nukesolve.cpp    \
     || exit 1
 
