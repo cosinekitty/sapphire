@@ -172,14 +172,14 @@ def GenerateNucleusPanel() -> int:
     panel.append(pl)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    dxPort = 10.0   # horizontal distance between X, Y, Z columns.
-    yIn = 67.0
-    yVarNames = 55.0
-    yOutTop = 80.0
-    yOutBottom = 110.0
-    nOutputParticles = 4
-    dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)
-    dxVarNameText = 1.0
+    dxPort = 12.0           # horizontal distance between X, Y, Z columns.
+    yIn = 67.0              # vertical position of center of input X, Y, Z ports.
+    yVarNames = 55.0        # vertical positions of the labels "X", "Y", "Z".
+    yOutTop = 80.0          # vertical position of the top row of output ports.
+    yOutBottom = 113.0      # vertical position of the bottom row of output ports.
+    nOutputParticles = 4    # how many particles are used for output.
+    dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
+    dxVarNameText = 1.0     # half the width of the labels ("X", "Y", "Z"); used for centering.
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
