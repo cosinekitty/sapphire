@@ -11,21 +11,21 @@
             </g>
         </g>
         <g id="ControlLayer" style="display:none;">
-            <circle id="X_input" cx="15.4" cy="67" r="1" />
-            <circle id="X1_output" cx="15.4" cy="80" r="1" />
-            <circle id="X2_output" cx="15.4" cy="90" r="1" />
-            <circle id="X3_output" cx="15.4" cy="100" r="1" />
-            <circle id="X4_output" cx="15.4" cy="110" r="1" />
-            <circle id="Y_input" cx="25.4" cy="67" r="1" />
-            <circle id="Y1_output" cx="25.4" cy="80" r="1" />
-            <circle id="Y2_output" cx="25.4" cy="90" r="1" />
-            <circle id="Y3_output" cx="25.4" cy="100" r="1" />
-            <circle id="Y4_output" cx="25.4" cy="110" r="1" />
-            <circle id="Z_input" cx="35.4" cy="67" r="1" />
-            <circle id="Z1_output" cx="35.4" cy="80" r="1" />
-            <circle id="Z2_output" cx="35.4" cy="90" r="1" />
-            <circle id="Z3_output" cx="35.4" cy="100" r="1" />
-            <circle id="Z4_output" cx="35.4" cy="110" r="1" />
+            <circle id="x_input" cx="15.4" cy="67" r="1" />
+            <circle id="x1_output" cx="15.4" cy="80" r="1" />
+            <circle id="x2_output" cx="15.4" cy="90" r="1" />
+            <circle id="x3_output" cx="15.4" cy="100" r="1" />
+            <circle id="x4_output" cx="15.4" cy="110" r="1" />
+            <circle id="y_input" cx="25.4" cy="67" r="1" />
+            <circle id="y1_output" cx="25.4" cy="80" r="1" />
+            <circle id="y2_output" cx="25.4" cy="90" r="1" />
+            <circle id="y3_output" cx="25.4" cy="100" r="1" />
+            <circle id="y4_output" cx="25.4" cy="110" r="1" />
+            <circle id="z_input" cx="35.4" cy="67" r="1" />
+            <circle id="z1_output" cx="35.4" cy="80" r="1" />
+            <circle id="z2_output" cx="35.4" cy="90" r="1" />
+            <circle id="z3_output" cx="35.4" cy="100" r="1" />
+            <circle id="z4_output" cx="35.4" cy="110" r="1" />
         </g>
         <path d="M16.3544 58.5119Q16.372 58.5366 16.372 58.5542Q16.372 58.586 16.3509 58.6054Q16.3297 58.6248 16.2979 58.6248Q16.2591 58.6248 16.2415 58.5966L15.4336 57.4959L14.6293 58.5966Q14.6117 58.6248 14.5764 58.6248Q14.5446 58.6248 14.527 58.6054Q14.5094 58.586 14.5094 58.5648Q14.5094 58.5472 14.527 58.519L15.356 57.3865L14.5199 56.2471Q14.5058 56.2294 14.5058 56.2047Q14.5058 56.173 14.527 56.1536Q14.5482 56.1342 14.5764 56.1342Q14.6187 56.1342 14.6364 56.1624L15.4442 57.2666L16.2486 56.1589Q16.2697 56.1307 16.3015 56.1307Q16.3332 56.1307 16.3526 56.1465Q16.372 56.1624 16.372 56.1871Q16.372 56.2118 16.3544 56.2365L15.5254 57.3795Z" style="stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel" />
         <path d="M26.245 56.2435 25.4407 57.3372V58.5437Q25.4407 58.5719 25.4195 58.593Q25.3984 58.6142 25.3666 58.6142Q25.3349 58.6142 25.3137 58.593Q25.2925 58.5719 25.2925 58.5437V57.3513L24.4847 56.2435Q24.4706 56.2259 24.4706 56.1977Q24.4706 56.173 24.4935 56.1518Q24.5164 56.1307 24.5446 56.1307Q24.5834 56.1307 24.6046 56.1624L25.3666 57.2031L26.1286 56.1624Q26.1498 56.1307 26.1886 56.1307Q26.2203 56.1307 26.2397 56.1536Q26.2591 56.1765 26.2591 56.1977Q26.2591 56.2153 26.245 56.2435Z" style="stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel" />

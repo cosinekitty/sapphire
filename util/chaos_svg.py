@@ -186,8 +186,8 @@ def GenerateNucleusPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
         pl.append(controls)
         xpos = xmid - dxPort
-        for varname in ['X', 'Y', 'Z']:
-            pl.append(ControlTextPath(font, varname, xpos - dxVarNameText, yVarNames))
+        for varname in ['x', 'y', 'z']:
+            pl.append(ControlTextPath(font, varname.upper(), xpos - dxVarNameText, yVarNames))
             varlabel = Component(varname + '_input', xpos, yIn)
             controls.append(varlabel)
             ypos = yOutTop

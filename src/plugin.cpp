@@ -11,11 +11,12 @@ void init(Plugin* p)
 {
     pluginInstance = p;
 
-    p->addModel(modelMoots);
     p->addModel(modelElastika);
-    p->addModel(modelTubeUnit);
     p->addModel(modelFrolic);
     p->addModel(modelGlee);
-    p->addModel(modelTricorder);
+    p->addModel(modelMoots);
+    p->addModel(modelNucleus);
     p->addModel(modelTin);
+    p->addModel(modelTricorder);
+    p->addModel(modelTubeUnit);
 }
