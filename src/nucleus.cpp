@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
+#include "nucleus_engine.hpp"
 
 // Nucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -8,6 +9,8 @@ namespace Sapphire
 {
     namespace Nucleus
     {
+        const std::size_t NUM_PARTICLES = 5;
+
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -68,6 +71,8 @@ namespace Sapphire
 
         struct NucleusModule : Module
         {
+            NucleusEngine engine{NUM_PARTICLES};
+
             NucleusModule()
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -106,8 +111,71 @@ namespace Sapphire
                 configOutput(X4_OUTPUT, "X4");
                 configOutput(Y4_OUTPUT, "Y4");
                 configOutput(Z4_OUTPUT, "Z4");
+
+                initialize();
+            }
+
+            void initParticles()
+            {
+                // The input ball [0] goes at the origin.
+                engine.particle(0).pos = PhysicsVector::zero();
+
+                // The remaining particles go at evenly spaced angles around the origin.
+                // Alternate putting them slightly above/below the x-y plane.
+                const float radius = 1.0;
+                const float angleStep = (2.0 * M_PI) / NUM_PARTICLES;
+                float angle = 0.0f;
+                for (std::size_t i = 1; i < NUM_PARTICLES; ++i)
+                {
+                    Particle&p = engine.particle(i);
+                    p.pos[0] = radius * std::cos(angle);
+                    p.pos[1] = radius * std::sin(angle);
+                    p.pos[2] = (((i%10)/9.0) - 0.5) * 1.0e-6f;
+                    p.pos[3] = 0.0f;
+                    p.vel = PhysicsVector::zero();
+                    angle += angleStep;
+                }
+            }
+
+            void initialize()
+            {
+                initParticles();
+            }
+
+            void onReset(const ResetEvent& e) override
+            {
+                Module::onReset(e);
+                initialize();
+            }
+
+            float getControlValue(
+                ParamId sliderId,
+                ParamId attenuId,
+                InputId cvInputId,
+                float minSlider = 0.0f,
+                float maxSlider = 1.0f)
+            {
+                float slider = params[sliderId].getValue();
+                if (inputs[cvInputId].isConnected())
+                {
+                    float attenu = params[attenuId].getValue();
+                    float cv = inputs[cvInputId].getVoltageSum();
+                    // When the attenuverter is set to 100%, and the cv is +5V, we want
+                    // to swing a slider that is all the way down (minSlider)
+                    // to act like it is all the way up (maxSlider).
+                    // Thus we allow the complete range of control for any CV whose
+                    // range is [-5, +5] volts.
+                    slider += attenu * (cv / 5.0) * (maxSlider - minSlider);
+                }
+                return slider;
+            }
+
+            void process(const ProcessArgs& args) override
+            {
+                engine.update();
             }
         };
+
 
         struct NucleusWidget : SapphireReloadableModuleWidget
         {
