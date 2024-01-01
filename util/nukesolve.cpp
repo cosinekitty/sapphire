@@ -9,6 +9,7 @@
 
 static void Print(const Sapphire::NucleusEngine& engine);
 static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *outHeaderFileName);
+static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine);
 
 int main()
 {
@@ -39,10 +40,8 @@ int main()
         p.vel = PhysicsVector::zero();
     }
 
-    // FIXFIXFIX - Run the simulation until convergence.
-    Particle &input = engine.particle(0);
-    input.pos = input.vel = PhysicsVector::zero();
-    engine.update();
+    // Run the simulation until convergence.
+    if (SolveMinimumEnergy(engine)) return 1;
 
     Print(engine);
     if (WriteHeaderFile(engine, "../src/nucleus_init.hpp")) return 1;
@@ -103,5 +102,53 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     fprintf(outfile, "}\n");
     fclose(outfile);
     printf("nukesolve: Wrote header file [%s]\n", outHeaderFileName);
+    return 0;
+}
+
+
+static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
+{
+    using namespace Sapphire;
+
+    const int n = static_cast<int>(engine.numParticles());
+    int iter = 0;
+    for(;;)
+    {
+        ++iter;
+        if (iter > 1000000)
+        {
+            printf("nukesolve: EXCESSIVE ITERATION\n");
+            return 1;
+        }
+
+        // Always force the "input" particle, the one at index zero,
+        // to be fixed at the origin.
+        Particle &input = engine.particle(0);
+        input.pos = input.vel = PhysicsVector::zero();
+
+        // Update the simulation.
+        engine.update();
+
+        // Fix the input particle AGAIN!
+        input.pos = input.vel = PhysicsVector::zero();
+
+        // Break out of the loop as soon as we believe we have converged.
+        // We do this when all the particles are moving very slowly.
+        // We are quite happy with a tiny amount of residual movement for two reasons:
+        // (1) The code runs a little faster.
+        // (2) It leaves a tiny amount of quiet impulse to the system, which is interesing.
+        double score = 0.0;
+        for (int i = 1; i < n; ++i)
+        {
+            double magSquared = Dot(input.vel, input.vel);
+            score += magSquared;
+        }
+        score = std::sqrt(score);   // calculate RMS
+        printf("nukesolve: iter=%d, score=%lg\n", iter, score);
+        if (score < 1.0e-16)
+            break;
+    }
+
+    printf("nukesolve: Solved local-minimum-energy state for %d particles.\n", n);
     return 0;
 }
