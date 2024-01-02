@@ -110,8 +110,13 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 {
     using namespace Sapphire;
 
+    float dt = 0.001f;
+    float halflife = 0.001f;
+    float tolerance = 4.0e-5;
+
     const int n = static_cast<int>(engine.numParticles());
     int iter = 0;
+    double score = 0.0;
     for(;;)
     {
         ++iter;
@@ -123,32 +128,25 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 
         // Always force the "input" particle, the one at index zero,
         // to be fixed at the origin.
-        Particle &input = engine.particle(0);
-        input.pos = input.vel = PhysicsVector::zero();
+        engine.particle(0).pos = engine.particle(0).vel = PhysicsVector::zero();
 
         // Update the simulation.
-        engine.update();
-
-        // Fix the input particle AGAIN!
-        input.pos = input.vel = PhysicsVector::zero();
+        engine.update(dt, halflife);
 
         // Break out of the loop as soon as we believe we have converged.
         // We do this when all the particles are moving very slowly.
         // We are quite happy with a tiny amount of residual movement for two reasons:
         // (1) The code runs a little faster.
         // (2) It leaves a tiny amount of quiet impulse to the system, which is interesing.
-        double score = 0.0;
+        score = 0.0;
         for (int i = 1; i < n; ++i)
-        {
-            double magSquared = Dot(input.vel, input.vel);
-            score += magSquared;
-        }
+            score += Quadrature(engine.particle(0).vel);
         score = std::sqrt(score);   // calculate RMS
-        printf("nukesolve: iter=%d, score=%lg\n", iter, score);
-        if (score < 1.0e-16)
+        //printf("nukesolve: iter=%d, score=%lg\n", iter, score);
+        if (score < tolerance)
             break;
     }
 
-    printf("nukesolve: Solved local-minimum-energy state for %d particles.\n", n);
+    printf("nukesolve: Solved local-minimum-energy state for %d particles: iter=%d, score=%lg\n", n, iter, score);
     return 0;
 }

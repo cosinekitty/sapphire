@@ -151,9 +151,71 @@ namespace Sapphire
                 return slider;
             }
 
+            float getHalfLife()
+            {
+                float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT);
+                // `knob` is in the range [0, 1]. Convert to a reasonable exponential range of time decay.
+                // Let minimum value = 0.001 seconds (10^(-3)), max value = 10 seconds (10^(+1)).
+                return std::pow(10.0f, 4*knob - 3);
+            }
+
+            float getInputDrive()
+            {
+                float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT);
+                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+                return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
+            }
+
+            float getOutputLevel()
+            {
+                float knob = getControlValue(OUT_LEVEL_KNOB_PARAM, OUT_LEVEL_ATTEN_PARAM, OUT_LEVEL_CV_INPUT);
+                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+                return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
+            }
+
+            void copyOutput(OutputId outputId, float gain, int pindex, int vindex)
+            {
+                const Particle& p = engine.particle(pindex);
+                outputs[outputId].setChannels(1);
+                outputs[outputId].setVoltage(gain * p.pos[vindex], 0);
+            }
+
             void process(const ProcessArgs& args) override
             {
-                engine.update();
+                // Get current control settings.
+                const float drive = getInputDrive();
+                const float gain = getOutputLevel();
+                const float halflife = getHalfLife();
+
+                // Feed the input (X, Y, Z) into the position of ball #1.
+                // Scale the amplitude of the vector based on the input drive setting.
+                Particle& input = engine.particle(0);
+                input.pos[0] = drive * inputs[X_INPUT].getVoltageSum();
+                input.pos[1] = drive * inputs[Y_INPUT].getVoltageSum();
+                input.pos[2] = drive * inputs[Z_INPUT].getVoltageSum();
+                input.pos[3] = 0;
+                input.vel = PhysicsVector::zero();
+
+                // Run the simulation for one time step.
+                engine.update(args.sampleTime, halflife);
+
+                // Copy all the outputs.
+
+                copyOutput(X1_OUTPUT, gain, 1, 0);
+                copyOutput(Y1_OUTPUT, gain, 1, 1);
+                copyOutput(Z1_OUTPUT, gain, 1, 2);
+
+                copyOutput(X2_OUTPUT, gain, 2, 0);
+                copyOutput(Y2_OUTPUT, gain, 2, 1);
+                copyOutput(Z2_OUTPUT, gain, 2, 2);
+
+                copyOutput(X3_OUTPUT, gain, 3, 0);
+                copyOutput(Y3_OUTPUT, gain, 3, 1);
+                copyOutput(Z3_OUTPUT, gain, 3, 2);
+
+                copyOutput(X4_OUTPUT, gain, 4, 0);
+                copyOutput(Y4_OUTPUT, gain, 4, 1);
+                copyOutput(Z4_OUTPUT, gain, 4, 2);
             }
         };
 

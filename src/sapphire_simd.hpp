@@ -76,6 +76,11 @@ namespace Sapphire
         return PhysicsVector(_mm_mul_ps(a.v, b.v));
     }
 
+    inline PhysicsVector operator / (const PhysicsVector& a, const PhysicsVector& b)
+    {
+        return PhysicsVector(_mm_div_ps(a.v, b.v));
+    }
+
     inline PhysicsVector& operator += (PhysicsVector& a, const PhysicsVector& b)
     {
         return a = a + b;
@@ -107,9 +112,14 @@ namespace Sapphire
         );
     }
 
+    inline float Quadrature(const PhysicsVector& a)
+    {
+        return Dot(a, a);
+    }
+
     inline float Magnitude(const PhysicsVector &a)
     {
-        return std::sqrt(Dot(a, a));
+        return std::sqrt(Quadrature(a));
     }
 
     inline PhysicsVector Interpolate(

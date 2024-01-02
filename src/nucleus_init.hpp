@@ -10,37 +10,37 @@ namespace Sapphire
 
         Particle& p0 = engine.particle(0);
         p0.vel = PhysicsVector::zero();
-        p0.pos[0] = 0;
-        p0.pos[1] = 0;
-        p0.pos[2] = 0;
+        p0.pos[0] = -6.854534273514901e-09;
+        p0.pos[1] = -1.297891216722746e-08;
+        p0.pos[2] = -1.355260703661543e-08;
         p0.pos[3] = 0;
 
         Particle& p1 = engine.particle(1);
         p1.vel = PhysicsVector::zero();
-        p1.pos[0] = 1.445020079612732;
-        p1.pos[1] = 0.4829490184783936;
-        p1.pos[2] = 0.135395735502243;
+        p1.pos[0] = 0.4220401346683502;
+        p1.pos[1] = -0.3291995823383331;
+        p1.pos[2] = 0.9572452902793884;
         p1.pos[3] = 0;
 
         Particle& p2 = engine.particle(2);
         p2.vel = PhysicsVector::zero();
-        p2.pos[0] = -0.3826243281364441;
-        p2.pos[1] = -0.631231427192688;
-        p2.pos[2] = -0.1613524109125137;
+        p2.pos[0] = -0.2526869177818298;
+        p2.pos[1] = -0.9897432327270508;
+        p2.pos[2] = 0.3993206918239594;
         p2.pos[3] = 0;
 
         Particle& p3 = engine.particle(3);
         p3.vel = PhysicsVector::zero();
-        p3.pos[0] = -2.350261449813843;
-        p3.pos[1] = 0.4914562106132507;
-        p3.pos[2] = 0.589307427406311;
+        p3.pos[0] = -0.4374156892299652;
+        p3.pos[1] = -0.1912712454795837;
+        p3.pos[2] = 0.7553260922431946;
         p3.pos[3] = 0;
 
         Particle& p4 = engine.particle(4);
         p4.vel = PhysicsVector::zero();
-        p4.pos[0] = 1.097127676010132;
-        p4.pos[1] = -0.2905585467815399;
-        p4.pos[2] = -0.3641924262046814;
+        p4.pos[0] = 0.5502784848213196;
+        p4.pos[1] = -0.6880605816841125;
+        p4.pos[2] = 0.1490195691585541;
         p4.pos[3] = 0;
 
         return 0;
