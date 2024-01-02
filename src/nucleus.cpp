@@ -133,8 +133,8 @@ namespace Sapphire
                 ParamId sliderId,
                 ParamId attenuId,
                 InputId cvInputId,
-                float minSlider = 0.0f,
-                float maxSlider = 1.0f)
+                float minSlider,
+                float maxSlider)
             {
                 float slider = params[sliderId].getValue();
                 if (inputs[cvInputId].isConnected())
