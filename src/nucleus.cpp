@@ -173,6 +173,13 @@ namespace Sapphire
                 return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
             }
 
+            float getSpeedFactor()
+            {
+                float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT);
+                float factor = std::pow(2.0f, knob);
+                return factor;
+            }
+
             void copyOutput(OutputId outputId, float gain, int pindex, int vindex)
             {
                 const Particle& p = engine.particle(pindex);
@@ -186,6 +193,7 @@ namespace Sapphire
                 const float drive = getInputDrive();
                 const float gain = getOutputLevel();
                 const float halflife = getHalfLife();
+                const float speed = getSpeedFactor();
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
@@ -197,7 +205,7 @@ namespace Sapphire
                 input.vel = PhysicsVector::zero();
 
                 // Run the simulation for one time step.
-                engine.update(args.sampleTime, halflife);
+                engine.update(speed * args.sampleTime, halflife);
 
                 // Copy all the outputs.
 
