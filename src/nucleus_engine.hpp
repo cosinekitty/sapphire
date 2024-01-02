@@ -121,6 +121,11 @@ namespace Sapphire
             , next(_nParticles)
             {}
 
+        void setMagneticCoupling(float mc)
+        {
+            magneticCoupling = mc;
+        }
+
         void update(float dt, float halflife)
         {
             const float friction = std::pow(0.5, static_cast<double>(dt)/halflife);

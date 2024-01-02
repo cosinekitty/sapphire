@@ -84,7 +84,7 @@ namespace Sapphire
 
                 configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
                 configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
-                configParam(MAGNET_KNOB_PARAM, 0, 1, 0.5, "Magnetic coupling");
+                configParam(MAGNET_KNOB_PARAM, -1, 1, 0, "Magnetic coupling");
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
                 configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
 
@@ -153,7 +153,7 @@ namespace Sapphire
 
             float getHalfLife()
             {
-                float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT);
+                float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
                 // `knob` is in the range [0, 1]. Convert to a reasonable exponential range of time decay.
                 // Let minimum value = 0.001 seconds (10^(-3)), max value = 10 seconds (10^(+1)).
                 return std::pow(10.0f, 4*knob - 3);
@@ -161,23 +161,30 @@ namespace Sapphire
 
             float getInputDrive()
             {
-                float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT);
+                float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT, 0, 2);
                 // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
                 return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
             }
 
             float getOutputLevel()
             {
-                float knob = getControlValue(OUT_LEVEL_KNOB_PARAM, OUT_LEVEL_ATTEN_PARAM, OUT_LEVEL_CV_INPUT);
+                float knob = getControlValue(OUT_LEVEL_KNOB_PARAM, OUT_LEVEL_ATTEN_PARAM, OUT_LEVEL_CV_INPUT, 0, 2);
                 // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
                 return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
             }
 
             float getSpeedFactor()
             {
-                float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT);
+                float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -7, +7);
                 float factor = std::pow(2.0f, knob);
                 return factor;
+            }
+
+            float getMagneticCoupling()
+            {
+                float knob = getControlValue(MAGNET_KNOB_PARAM, MAGNET_ATTEN_PARAM, MAGNET_CV_INPUT, -1, +1);
+                const float scale = 0.015f;
+                return knob * scale;
             }
 
             void copyOutput(OutputId outputId, float gain, int pindex, int vindex)
@@ -194,6 +201,9 @@ namespace Sapphire
                 const float gain = getOutputLevel();
                 const float halflife = getHalfLife();
                 const float speed = getSpeedFactor();
+                const float magnet = getMagneticCoupling();
+
+                engine.setMagneticCoupling(magnet);
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
