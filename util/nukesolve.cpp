@@ -112,11 +112,11 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 
     float dt = 0.001f;
     float halflife = 0.001f;
-    float tolerance = 4.0e-5;
 
     const int n = static_cast<int>(engine.numParticles());
     int iter = 0;
-    double score = 0.0;
+    const float tolerance = 4.0e-5;
+    float score = 999;
     for(;;)
     {
         ++iter;
@@ -130,6 +130,9 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
         // to be fixed at the origin.
         engine.particle(0).pos = engine.particle(0).vel = PhysicsVector::zero();
 
+        if (score < tolerance)
+            break;
+
         // Update the simulation.
         engine.update(dt, halflife);
 
@@ -142,11 +145,8 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
         for (int i = 1; i < n; ++i)
             score += Quadrature(engine.particle(0).vel);
         score = std::sqrt(score);   // calculate RMS
-        //printf("nukesolve: iter=%d, score=%lg\n", iter, score);
-        if (score < tolerance)
-            break;
     }
 
-    printf("nukesolve: Solved local-minimum-energy state for %d particles: iter=%d, score=%lg\n", n, iter, score);
+    printf("nukesolve: Solved local-minimum-energy state for %d particles: iter=%d, score=%g\n", n, iter, score);
     return 0;
 }

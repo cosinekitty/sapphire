@@ -10,9 +10,9 @@ namespace Sapphire
 
         Particle& p0 = engine.particle(0);
         p0.vel = PhysicsVector::zero();
-        p0.pos[0] = -6.854534273514901e-09;
-        p0.pos[1] = -1.297891216722746e-08;
-        p0.pos[2] = -1.355260703661543e-08;
+        p0.pos[0] = 0;
+        p0.pos[1] = 0;
+        p0.pos[2] = 0;
         p0.pos[3] = 0;
 
         Particle& p1 = engine.particle(1);
