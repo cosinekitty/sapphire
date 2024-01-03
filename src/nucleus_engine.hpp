@@ -24,6 +24,7 @@ namespace Sapphire
         std::vector<Particle> curr;
         std::vector<Particle> next;
         float magneticCoupling{};
+        float speedLimit = 1000.0f;
 
         void calculateForces(std::vector<Particle>& array)
         {
@@ -71,6 +72,7 @@ namespace Sapphire
 
         void extrapolate(float dt)
         {
+            const float speedLimitSquared = speedLimit * speedLimit;
             const int n = static_cast<int>(numParticles());
 
             for (int i = 0; i < n; ++i)
@@ -89,6 +91,10 @@ namespace Sapphire
 
                 // Calculate the velocity at the end of the time interval.
                 p2.vel = p1.vel + dV;
+
+                float speedSquared = Quadrature(p2.vel);
+                if (speedSquared > speedLimitSquared)
+                    p2.vel *= speedLimit / std::sqrt(speedSquared);
             }
         }
 
