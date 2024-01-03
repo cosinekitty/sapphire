@@ -174,6 +174,12 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
 
 
+def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float) -> None:
+    controls.append(Component(symbol, x, y))
+    dxText = -6.0
+    dyText = -9.0
+    pl.append(ControlTextPath(font, label, x + dxText, y + dyText))
+
 def GenerateNucleusPanel() -> int:
     svgFileName = '../res/nucleus.svg'
     PANEL_WIDTH = 16
@@ -214,11 +220,13 @@ def GenerateNucleusPanel() -> int:
             xOutPos += dxPort
 
         yKnobRow1 = 25.0
+        yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 18.5, yIn - 2.5, 1.5)
-        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutTop + (yOutBottom-yOutTop)/2 - 2.0, 3.5)
+        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
+        AddButton(pl, controls, font, 'dc_reject_button', 'DC REJ', xmid - 24.0, yOutLevel - 20.0)
     return Save(panel, svgFileName)
 
 

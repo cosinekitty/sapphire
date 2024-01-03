@@ -26,6 +26,8 @@ namespace Sapphire
             IN_DRIVE_ATTEN_PARAM,
             OUT_LEVEL_ATTEN_PARAM,
 
+            DC_REJECT_BUTTON_PARAM,
+
             PARAMS_LEN
         };
 
@@ -67,6 +69,8 @@ namespace Sapphire
 
         enum LightId
         {
+            DC_REJECT_BUTTON_LIGHT,
+
             LIGHTS_LEN
         };
 
@@ -92,7 +96,6 @@ namespace Sapphire
         {
             NucleusEngine engine{NUM_PARTICLES};
             NucleusRow row[NUM_PARTICLES]{};
-            bool isEnabledDcReject{};
 
             NucleusModule()
             {
@@ -133,12 +136,14 @@ namespace Sapphire
                 configOutput(Y4_OUTPUT, "Y4");
                 configOutput(Z4_OUTPUT, "Z4");
 
+                configButton(DC_REJECT_BUTTON_PARAM, "DC reject");
+
                 initialize();
             }
 
             void initialize()
             {
-                isEnabledDcReject = true;
+                params[DC_REJECT_BUTTON_PARAM].setValue(1.0f);
 
                 for (std::size_t i = 0; i < NUM_PARTICLES; ++i)
                     row[i].initialize();
@@ -146,6 +151,11 @@ namespace Sapphire
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
+            }
+
+            bool isEnabledDcReject() const
+            {
+                return params[DC_REJECT_BUTTON_PARAM].value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override
@@ -218,7 +228,7 @@ namespace Sapphire
                 outputs[outputId].setChannels(1);
                 float vOut = gain * p.pos[vindex];
 
-                if (isEnabledDcReject)
+                if (isEnabledDcReject())
                 {
                     // Run through high-pass filter to remove DC content.
                     vOut = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
@@ -251,6 +261,9 @@ namespace Sapphire
                 // Adjust the time step by the `speed` parameter,
                 // so that the user can control the response over a wide range of frequencies.
                 engine.update(speed * args.sampleTime, halflife);
+
+                // Let the pushbutton light reflect the button state.
+                lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
 
                 // Copy all the outputs.
 
@@ -314,6 +327,9 @@ namespace Sapphire
                 addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+
+                auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, DC_REJECT_BUTTON_PARAM, DC_REJECT_BUTTON_LIGHT);
+                addReloadableParam(toggle, "dc_reject_button");
 
                 reloadPanel();
             }
