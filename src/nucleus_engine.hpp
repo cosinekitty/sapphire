@@ -27,6 +27,7 @@ namespace Sapphire
 
         void calculateForces(std::vector<Particle>& array)
         {
+            const float overlapDistance = 1.0e-4f;
             const int n = static_cast<int>(numParticles());
 
             // Reset all forces to zero, preparing to tally them.
@@ -48,15 +49,22 @@ namespace Sapphire
                     // Calculate mutual quadrature = distance squared.
                     PhysicsVector dr = b.pos - a.pos;
                     float dist2 = Quadrature(dr);
-                    float dist = std::sqrt(dist2);
-                    float dist3 = dist2 * dist;
 
-                    // Calculate the magnetic component of the mutual force and include it in the vector sum.
-                    PhysicsVector f = (dist - 1/dist3)*dr + (magneticCoupling / dist3)*Cross(b.vel - a.vel, dr);
+                    // If two particles are very close to each other, consider them overlapping,
+                    // and consider there to be zero force between them. This prevents division by
+                    // zero (or by very small distances), resulting in destabilizing the simulation.
+                    if (dist2 > overlapDistance * overlapDistance)
+                    {
+                        float dist = std::sqrt(dist2);
+                        float dist3 = dist2 * dist;
 
-                    // Forces always act in equal and opposite pairs.
-                    a.force += f;
-                    b.force -= f;
+                        // Calculate the magnetic component of the mutual force and include it in the vector sum.
+                        PhysicsVector f = (dist - 1/dist3)*dr + (magneticCoupling / dist3)*Cross(b.vel - a.vel, dr);
+
+                        // Forces always act in equal and opposite pairs.
+                        a.force += f;
+                        b.force -= f;
+                    }
                 }
             }
         }
@@ -67,20 +75,20 @@ namespace Sapphire
 
             for (int i = 0; i < n; ++i)
             {
-                const Particle& a = curr.at(i);
-                Particle& b = next.at(i);
+                const Particle& p1 = curr.at(i);
+                Particle& p2 = next.at(i);
 
                 // F = m*a  ==>  a = F/m.
-                PhysicsVector acc = a.force / a.mass;
+                PhysicsVector acc = p1.force / p1.mass;
 
                 // Estimate the net velocity change over the interval.
                 PhysicsVector dV = dt * acc;
 
                 // Calculate new position using mean velocity change over the interval.
-                b.pos = a.pos + (dt * (a.vel + dV/2));
+                p2.pos = p1.pos + (dt * (p1.vel + dV/2));
 
                 // Calculate the velocity at the end of the time interval.
-                b.vel = a.vel + dV;
+                p2.vel = p1.vel + dV;
             }
         }
 
