@@ -194,9 +194,9 @@ namespace Sapphire
             float getHalfLife()
             {
                 float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
-                // `knob` is in the range [0, 1]. Convert to a reasonable exponential range of time decay.
-                // Let minimum value = 0.1 seconds (10^(-1)), max value = 100 seconds (10^(+2)).
-                return std::pow(10.0f, 3*knob - 1);
+                const int minExp = -3;    // 0.001
+                const int maxExp = +2;    // 100
+                return std::pow(10.0f, minExp + (maxExp - minExp)*knob);
             }
 
             float getInputDrive()
@@ -265,7 +265,10 @@ namespace Sapphire
                 // Run the simulation for one time step.
                 // Adjust the time step by the `speed` parameter,
                 // so that the user can control the response over a wide range of frequencies.
-                engine.update(speed * args.sampleTime, halflife);
+                // Compensate for time dilation by multiplying speed and halflife:
+                // when running at 10x speed, we want the halflife to correspond
+                // to real time, not sim time.
+                engine.update(speed * args.sampleTime, speed * halflife);
 
                 // Let the pushbutton light reflect the button state.
                 lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
