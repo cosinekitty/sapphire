@@ -12,6 +12,8 @@ namespace Sapphire
     {
         const std::size_t NUM_PARTICLES = 5;
 
+        const float DC_REJECT_CUTOFF_HZ = 10.0f;
+
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -88,7 +90,10 @@ namespace Sapphire
             void initialize()
             {
                 for (int i = 0; i < 3; ++i)
+                {
+                    filter[i].SetCutoffFrequency(DC_REJECT_CUTOFF_HZ);
                     filter[i].Reset();
+                }
             }
         };
 
@@ -190,8 +195,8 @@ namespace Sapphire
             {
                 float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
                 // `knob` is in the range [0, 1]. Convert to a reasonable exponential range of time decay.
-                // Let minimum value = 0.001 seconds (10^(-3)), max value = 10 seconds (10^(+1)).
-                return std::pow(10.0f, 4*knob - 3);
+                // Let minimum value = 0.1 seconds (10^(-1)), max value = 100 seconds (10^(+2)).
+                return std::pow(10.0f, 3*knob - 1);
             }
 
             float getInputDrive()
