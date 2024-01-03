@@ -70,9 +70,29 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+        using NucleusDcRejectFilter = StagedFilter<float, 3>;
+
+        struct NucleusRow
+        {
+            NucleusDcRejectFilter filter[3];    // vindex: [0]=X, [1]=Y, [2]=Z.
+
+            NucleusRow()
+            {
+                initialize();
+            }
+
+            void initialize()
+            {
+                for (int i = 0; i < 3; ++i)
+                    filter[i].Reset();
+            }
+        };
+
         struct NucleusModule : Module
         {
             NucleusEngine engine{NUM_PARTICLES};
+            NucleusRow row[NUM_PARTICLES]{};
+            bool isEnabledDcReject{};
 
             NucleusModule()
             {
@@ -118,6 +138,11 @@ namespace Sapphire
 
             void initialize()
             {
+                isEnabledDcReject = true;
+
+                for (std::size_t i = 0; i < NUM_PARTICLES; ++i)
+                    row[i].initialize();
+
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
@@ -187,11 +212,19 @@ namespace Sapphire
                 return knob * scale;
             }
 
-            void copyOutput(OutputId outputId, float gain, int pindex, int vindex)
+            void copyOutput(float sampleRate, OutputId outputId, float gain, int pindex, int vindex)
             {
                 const Particle& p = engine.particle(pindex);
                 outputs[outputId].setChannels(1);
-                outputs[outputId].setVoltage(gain * p.pos[vindex], 0);
+                float vOut = gain * p.pos[vindex];
+
+                if (isEnabledDcReject)
+                {
+                    // Run through high-pass filter to remove DC content.
+                    vOut = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
+                }
+
+                outputs[outputId].setVoltage(vOut, 0);
             }
 
             void process(const ProcessArgs& args) override
@@ -215,25 +248,27 @@ namespace Sapphire
                 input.vel = PhysicsVector::zero();
 
                 // Run the simulation for one time step.
+                // Adjust the time step by the `speed` parameter,
+                // so that the user can control the response over a wide range of frequencies.
                 engine.update(speed * args.sampleTime, halflife);
 
                 // Copy all the outputs.
 
-                copyOutput(X1_OUTPUT, gain, 1, 0);
-                copyOutput(Y1_OUTPUT, gain, 1, 1);
-                copyOutput(Z1_OUTPUT, gain, 1, 2);
+                copyOutput(args.sampleRate, X1_OUTPUT, gain, 1, 0);
+                copyOutput(args.sampleRate, Y1_OUTPUT, gain, 1, 1);
+                copyOutput(args.sampleRate, Z1_OUTPUT, gain, 1, 2);
 
-                copyOutput(X2_OUTPUT, gain, 2, 0);
-                copyOutput(Y2_OUTPUT, gain, 2, 1);
-                copyOutput(Z2_OUTPUT, gain, 2, 2);
+                copyOutput(args.sampleRate, X2_OUTPUT, gain, 2, 0);
+                copyOutput(args.sampleRate, Y2_OUTPUT, gain, 2, 1);
+                copyOutput(args.sampleRate, Z2_OUTPUT, gain, 2, 2);
 
-                copyOutput(X3_OUTPUT, gain, 3, 0);
-                copyOutput(Y3_OUTPUT, gain, 3, 1);
-                copyOutput(Z3_OUTPUT, gain, 3, 2);
+                copyOutput(args.sampleRate, X3_OUTPUT, gain, 3, 0);
+                copyOutput(args.sampleRate, Y3_OUTPUT, gain, 3, 1);
+                copyOutput(args.sampleRate, Z3_OUTPUT, gain, 3, 2);
 
-                copyOutput(X4_OUTPUT, gain, 4, 0);
-                copyOutput(Y4_OUTPUT, gain, 4, 1);
-                copyOutput(Z4_OUTPUT, gain, 4, 2);
+                copyOutput(args.sampleRate, X4_OUTPUT, gain, 4, 0);
+                copyOutput(args.sampleRate, Y4_OUTPUT, gain, 4, 1);
+                copyOutput(args.sampleRate, Z4_OUTPUT, gain, 4, 2);
             }
         };
 
