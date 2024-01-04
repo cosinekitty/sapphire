@@ -111,7 +111,7 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
     using namespace Sapphire;
 
     float dt = 0.001f;
-    float halflife = 0.001f;
+    float halflife = 0.0001f;
 
     const int n = static_cast<int>(engine.numParticles());
     int iter = 0;
