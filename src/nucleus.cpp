@@ -12,7 +12,7 @@ namespace Sapphire
     {
         const std::size_t NUM_PARTICLES = 5;
 
-        const float DC_REJECT_CUTOFF_HZ = 10.0f;
+        const float DC_REJECT_CUTOFF_HZ = 30.0f;
 
         enum ParamId
         {
@@ -229,7 +229,7 @@ namespace Sapphire
             float getMagneticCoupling()
             {
                 float knob = getControlValue(MAGNET_KNOB_PARAM, MAGNET_ATTEN_PARAM, MAGNET_CV_INPUT, -1, +1);
-                const float scale = 0.015f;
+                const float scale = 0.09f;
                 return knob * scale;
             }
 

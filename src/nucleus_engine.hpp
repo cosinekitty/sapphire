@@ -21,6 +21,7 @@ namespace Sapphire
     class NucleusEngine
     {
     private:
+        const float max_dt = 0.0005f;
         std::vector<Particle> curr;
         std::vector<Particle> next;
         float magneticCoupling{};
@@ -142,10 +143,13 @@ namespace Sapphire
 
         void update(float dt, float halflife)
         {
-            const float friction = std::pow(0.5, static_cast<double>(dt)/halflife);
-
-            // FIXFIXFIX - Split into smaller time increments when needed for accuracy and stability.
-            step(dt, friction);
+            // Use oversampling to keep the time increment within stability limits.
+            int n = static_cast<int>(std::ceil(dt / max_dt));
+            if (n < 1) n = 1;   // should never happen, but be careful
+            const double et = dt / n;
+            const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
+            for (int i = 0; i < n; ++i)
+                step(et, friction);
         }
 
         std::size_t numParticles() const
