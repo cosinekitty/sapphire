@@ -101,6 +101,9 @@ namespace Sapphire
         {
             NucleusEngine engine{NUM_PARTICLES};
             NucleusRow row[NUM_PARTICLES]{};
+            bool prevDcReject{};
+            const int crossfadeLimit = 200;
+            int crossfadeCounter{};
 
             NucleusModule()
             {
@@ -156,6 +159,9 @@ namespace Sapphire
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
+
+                crossfadeCounter = 0;
+                prevDcReject = false;
             }
 
             bool isEnabledDcReject() const
@@ -227,18 +233,16 @@ namespace Sapphire
                 return knob * scale;
             }
 
-            void copyOutput(float sampleRate, OutputId outputId, float gain, int pindex, int vindex)
+            void copyOutput(float sampleRate, OutputId outputId, float gain, float mixFilt, int pindex, int vindex)
             {
                 const Particle& p = engine.particle(pindex);
                 outputs[outputId].setChannels(1);
                 float vOut = gain * p.pos[vindex];
-
-                if (isEnabledDcReject())
+                if (mixFilt > 0)
                 {
-                    // Run through high-pass filter to remove DC content.
-                    vOut = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
+                    float vFilt = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
+                    vOut = (1-mixFilt)*vOut + mixFilt*vFilt;
                 }
-
                 outputs[outputId].setVoltage(vOut, 0);
             }
 
@@ -273,23 +277,42 @@ namespace Sapphire
                 // Let the pushbutton light reflect the button state.
                 lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
 
+                if (isEnabledDcReject() != prevDcReject)
+                {
+                    // Trigger a cross-fade, to prevent clicking in audio streams.
+                    prevDcReject = isEnabledDcReject();
+                    crossfadeCounter = crossfadeLimit;
+                }
+
+                float mixFilt = 0;
+                if (isEnabledDcReject() || (crossfadeCounter > 0))
+                {
+                    // Mix the DC-reject signal with the raw signal using a linear fade.
+                    mixFilt = static_cast<float>(crossfadeCounter) / static_cast<float>(crossfadeLimit);
+                    if (isEnabledDcReject())
+                        mixFilt = 1 - mixFilt;
+
+                    if (crossfadeCounter > 0)
+                        --crossfadeCounter;
+                }
+
                 // Copy all the outputs.
 
-                copyOutput(args.sampleRate, X1_OUTPUT, gain, 1, 0);
-                copyOutput(args.sampleRate, Y1_OUTPUT, gain, 1, 1);
-                copyOutput(args.sampleRate, Z1_OUTPUT, gain, 1, 2);
+                copyOutput(args.sampleRate, X1_OUTPUT, gain, mixFilt, 1, 0);
+                copyOutput(args.sampleRate, Y1_OUTPUT, gain, mixFilt, 1, 1);
+                copyOutput(args.sampleRate, Z1_OUTPUT, gain, mixFilt, 1, 2);
 
-                copyOutput(args.sampleRate, X2_OUTPUT, gain, 2, 0);
-                copyOutput(args.sampleRate, Y2_OUTPUT, gain, 2, 1);
-                copyOutput(args.sampleRate, Z2_OUTPUT, gain, 2, 2);
+                copyOutput(args.sampleRate, X2_OUTPUT, gain, mixFilt, 2, 0);
+                copyOutput(args.sampleRate, Y2_OUTPUT, gain, mixFilt, 2, 1);
+                copyOutput(args.sampleRate, Z2_OUTPUT, gain, mixFilt, 2, 2);
 
-                copyOutput(args.sampleRate, X3_OUTPUT, gain, 3, 0);
-                copyOutput(args.sampleRate, Y3_OUTPUT, gain, 3, 1);
-                copyOutput(args.sampleRate, Z3_OUTPUT, gain, 3, 2);
+                copyOutput(args.sampleRate, X3_OUTPUT, gain, mixFilt, 3, 0);
+                copyOutput(args.sampleRate, Y3_OUTPUT, gain, mixFilt, 3, 1);
+                copyOutput(args.sampleRate, Z3_OUTPUT, gain, mixFilt, 3, 2);
 
-                copyOutput(args.sampleRate, X4_OUTPUT, gain, 4, 0);
-                copyOutput(args.sampleRate, Y4_OUTPUT, gain, 4, 1);
-                copyOutput(args.sampleRate, Z4_OUTPUT, gain, 4, 2);
+                copyOutput(args.sampleRate, X4_OUTPUT, gain, mixFilt, 4, 0);
+                copyOutput(args.sampleRate, Y4_OUTPUT, gain, mixFilt, 4, 1);
+                copyOutput(args.sampleRate, Z4_OUTPUT, gain, mixFilt, 4, 2);
             }
         };
 
