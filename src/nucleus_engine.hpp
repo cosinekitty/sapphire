@@ -10,6 +10,16 @@
 
 namespace Sapphire
 {
+    inline PhysicsVector EffectiveVelocity(const PhysicsVector& vel, float speedLimit)
+    {
+        float rawSpeed = Magnitude(vel);
+        if (rawSpeed < speedLimit / 1.0e+6)
+            return vel;     // prevent division by zero, or by very small numbers
+
+        float effSpeed = BicubicLimiter(rawSpeed, speedLimit);
+        return (effSpeed/rawSpeed) * vel;
+    }
+
     struct Particle
     {
         PhysicsVector pos;
@@ -60,8 +70,12 @@ namespace Sapphire
                         float dist = std::sqrt(dist2);
                         float dist3 = dist2 * dist;
 
+                        // Use effective velocities, not raw velocities, to calculate magnetic cross product.
+                        PhysicsVector av = EffectiveVelocity(a.vel, speedLimit);
+                        PhysicsVector bv = EffectiveVelocity(b.vel, speedLimit);
+
                         // Calculate the magnetic component of the mutual force and include it in the vector sum.
-                        PhysicsVector f = (dist - 1/dist3)*dr + (magneticCoupling / dist3)*Cross(b.vel - a.vel, dr);
+                        PhysicsVector f = (dist - 1/dist3)*dr + (magneticCoupling / dist3)*Cross(bv - av, dr);
 
                         // Forces always act in equal and opposite pairs.
                         a.force += f;
@@ -73,7 +87,6 @@ namespace Sapphire
 
         void extrapolate(float dt)
         {
-            const float speedLimitSquared = speedLimit * speedLimit;
             const int n = static_cast<int>(numParticles());
 
             for (int i = 0; i < n; ++i)
@@ -88,14 +101,13 @@ namespace Sapphire
                 PhysicsVector dV = dt * acc;
 
                 // Calculate new position using mean velocity change over the interval.
-                p2.pos = p1.pos + (dt * (p1.vel + dV/2));
+                // We must use the bicubic limiter / "effective velocity" to avoid explosions.
+
+                PhysicsVector v2 = p1.vel + dV/2;
+                p2.pos = p1.pos + (dt * EffectiveVelocity(v2, speedLimit));
 
                 // Calculate the velocity at the end of the time interval.
                 p2.vel = p1.vel + dV;
-
-                float speedSquared = Quadrature(p2.vel);
-                if (speedSquared > speedLimitSquared)
-                    p2.vel *= speedLimit / std::sqrt(speedSquared);
             }
         }
 

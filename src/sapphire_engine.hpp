@@ -21,6 +21,20 @@ namespace Sapphire
         return x;
     }
 
+    template <typename real_t>
+    real_t BicubicLimiter(real_t x, real_t yLimit)
+    {
+        real_t xLimit = (3*yLimit)/2;
+
+        if (x <= -xLimit)
+            return -yLimit;
+
+        if (x >= +xLimit)
+            return +yLimit;
+
+        return x - (4*x*x*x)/(27*yLimit*yLimit);
+    }
+
     class Slewer
     {
     private:
