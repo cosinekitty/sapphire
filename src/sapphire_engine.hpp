@@ -321,7 +321,7 @@ namespace Sapphire
             ceiling = VerifyPositive(_ceiling);
         }
 
-        void process(double sampleRate, float& left, float& right)
+        void process(double sampleRate, float& left, float& right)      // used for modules with stereo output
         {
             using namespace std;
 
@@ -329,6 +329,23 @@ namespace Sapphire
             update(sampleRate, input);
             left  /= follower;
             right /= follower;
+        }
+
+        void process(double sampleRate, std::vector<float>& buffer)     // used for modules with any number of outputs
+        {
+            using namespace std;
+
+            // Find maximum absolute value for all the input data.
+            float input = 0.0f;
+            for (float x : buffer)
+                input = max(input, abs(x));
+
+            // Update the limiter state using the maximum value we just found.
+            update(sampleRate, input);
+
+            // Scale the data based on the limiter state.
+            for (float& x : buffer)
+                x /= follower;
         }
 
         double getFollower() const

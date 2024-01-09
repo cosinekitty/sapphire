@@ -30,6 +30,8 @@ namespace Sapphire
 
             DC_REJECT_BUTTON_PARAM,
 
+            AGC_LEVEL_PARAM,
+
             PARAMS_LEN
         };
 
@@ -104,6 +106,8 @@ namespace Sapphire
             bool prevDcReject{};
             const int crossfadeLimit = 200;
             int crossfadeCounter{};
+            AgcLevelQuantity *agcLevelQuantity{};
+            bool enableLimiterWarning = true;
 
             NucleusModule()
             {
@@ -146,7 +150,30 @@ namespace Sapphire
 
                 configButton(DC_REJECT_BUTTON_PARAM, "DC reject");
 
+                agcLevelQuantity = configParam<AgcLevelQuantity>(
+                    AGC_LEVEL_PARAM,
+                    AGC_LEVEL_MIN,
+                    AGC_DISABLE_MAX,
+                    AGC_LEVEL_DEFAULT,
+                    "Output limiter"
+                );
+                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+
                 initialize();
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t* root = json_object();
+                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                // If the JSON is damaged, default to enabling the warning light.
+                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
+                enableLimiterWarning = !json_is_false(warningFlag);
             }
 
             void initialize()
@@ -156,12 +183,28 @@ namespace Sapphire
                 for (std::size_t i = 0; i < NUM_PARTICLES; ++i)
                     row[i].initialize();
 
+                engine.initialize();
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
 
                 crossfadeCounter = 0;
                 prevDcReject = false;
+                enableLimiterWarning = true;
+            }
+
+            void reflectAgcSlider()
+            {
+                // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+                // Avoid unnecessary work by updating only when we know the user's desired level has changed.
+                if (agcLevelQuantity && agcLevelQuantity->changed)
+                {
+                    bool enabled = agcLevelQuantity->isAgcEnabled();
+                    if (enabled)
+                        engine.setAgcLevel(agcLevelQuantity->clampedAgc());
+                    engine.setAgcEnabled(enabled);
+                    agcLevelQuantity->changed = false;
+                }
             }
 
             bool isEnabledDcReject() const
@@ -208,7 +251,7 @@ namespace Sapphire
             float getInputDrive()
             {
                 float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT, 0, 2);
-                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB) channels
                 return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
             }
 
@@ -233,12 +276,11 @@ namespace Sapphire
                 return knob * scale;
             }
 
-            void copyOutput(float sampleRate, OutputId outputId, float gain, float mixFilt, int pindex, int vindex)
+            void copyOutput(float sampleRate, OutputId outputId, float mixFilt, int pindex, int vindex)
             {
-                const Particle& p = engine.particle(pindex);
                 outputs[outputId].setChannels(1);
-                float vOut = gain * p.pos[vindex];
-                if (mixFilt > 0)
+                float vOut = engine.output(pindex, vindex);
+                if (mixFilt > 0)   // Is DC rejection enabled? Also, are we crossfading between raw and filtered signals?
                 {
                     float vFilt = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
                     vOut = (1-mixFilt)*vOut + mixFilt*vFilt;
@@ -266,13 +308,20 @@ namespace Sapphire
                 input.pos[3] = 0;
                 input.vel = PhysicsVector::zero();
 
+                // Update the automatic gain control settings into the engine before updating state.
+                // This order is required because engine.update() uses the AGC to moderate its outputs.
+                reflectAgcSlider();
+
                 // Run the simulation for one time step.
                 // Adjust the time step by the `speed` parameter,
                 // so that the user can control the response over a wide range of frequencies.
                 // Compensate for time dilation by multiplying speed and halflife:
                 // when running at 10x speed, we want the halflife to correspond
                 // to real time, not sim time.
-                engine.update(speed * args.sampleTime, speed * halflife);
+                // Pass in the original sample rate however, because this is used
+                // by the Automatic Gain Limiter to calculate decay constants for
+                // the actual output stream (not simulated physical time).
+                engine.update(speed * args.sampleTime, speed * halflife, args.sampleRate, gain);
 
                 // Let the pushbutton light reflect the button state.
                 lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
@@ -298,29 +347,83 @@ namespace Sapphire
 
                 // Copy all the outputs.
 
-                copyOutput(args.sampleRate, X1_OUTPUT, gain, mixFilt, 1, 0);
-                copyOutput(args.sampleRate, Y1_OUTPUT, gain, mixFilt, 1, 1);
-                copyOutput(args.sampleRate, Z1_OUTPUT, gain, mixFilt, 1, 2);
+                copyOutput(args.sampleRate, X1_OUTPUT, mixFilt, 1, 0);
+                copyOutput(args.sampleRate, Y1_OUTPUT, mixFilt, 1, 1);
+                copyOutput(args.sampleRate, Z1_OUTPUT, mixFilt, 1, 2);
 
-                copyOutput(args.sampleRate, X2_OUTPUT, gain, mixFilt, 2, 0);
-                copyOutput(args.sampleRate, Y2_OUTPUT, gain, mixFilt, 2, 1);
-                copyOutput(args.sampleRate, Z2_OUTPUT, gain, mixFilt, 2, 2);
+                copyOutput(args.sampleRate, X2_OUTPUT, mixFilt, 2, 0);
+                copyOutput(args.sampleRate, Y2_OUTPUT, mixFilt, 2, 1);
+                copyOutput(args.sampleRate, Z2_OUTPUT, mixFilt, 2, 2);
 
-                copyOutput(args.sampleRate, X3_OUTPUT, gain, mixFilt, 3, 0);
-                copyOutput(args.sampleRate, Y3_OUTPUT, gain, mixFilt, 3, 1);
-                copyOutput(args.sampleRate, Z3_OUTPUT, gain, mixFilt, 3, 2);
+                copyOutput(args.sampleRate, X3_OUTPUT, mixFilt, 3, 0);
+                copyOutput(args.sampleRate, Y3_OUTPUT, mixFilt, 3, 1);
+                copyOutput(args.sampleRate, Z3_OUTPUT, mixFilt, 3, 2);
 
-                copyOutput(args.sampleRate, X4_OUTPUT, gain, mixFilt, 4, 0);
-                copyOutput(args.sampleRate, Y4_OUTPUT, gain, mixFilt, 4, 1);
-                copyOutput(args.sampleRate, Z4_OUTPUT, gain, mixFilt, 4, 2);
+                copyOutput(args.sampleRate, X4_OUTPUT, mixFilt, 4, 0);
+                copyOutput(args.sampleRate, Y4_OUTPUT, mixFilt, 4, 1);
+                copyOutput(args.sampleRate, Z4_OUTPUT, mixFilt, 4, 2);
+            }
+        };
+
+
+        class NucleusWarningLightWidget : public LightWidget
+        {
+        private:
+            NucleusModule *nucleusModule;
+
+            static int colorComponent(double scale, int lo, int hi)
+            {
+                return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+            }
+
+            NVGcolor warningColor(double distortion)
+            {
+                bool enableWarning = nucleusModule && nucleusModule->enableLimiterWarning;
+
+                if (!enableWarning || distortion <= 0.0)
+                    return nvgRGBA(0, 0, 0, 0);     // no warning light
+
+                double decibels = 20.0 * std::log10(1.0 + distortion);
+                double scale = clamp(decibels / 24.0);
+
+                int red   = colorComponent(scale, 0x90, 0xff);
+                int green = colorComponent(scale, 0x20, 0x50);
+                int blue  = 0x00;
+                int alpha = 0x70;
+
+                return nvgRGBA(red, green, blue, alpha);
+            }
+
+        public:
+            explicit NucleusWarningLightWidget(NucleusModule *module)
+                : nucleusModule(module)
+            {
+                borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
+                bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                if (layer == 1)
+                {
+                    // Update the warning light state dynamically.
+                    // Turn on the warning when the AGC is limiting the output.
+                    double distortion = nucleusModule ? nucleusModule->engine.getAgcDistortion() : 0.0;
+                    color = warningColor(distortion);
+                }
+                LightWidget::drawLayer(args, layer);
             }
         };
 
 
         struct NucleusWidget : SapphireReloadableModuleWidget
         {
+            NucleusModule *nucleusModule;
+            NucleusWarningLightWidget* warningLight{};
+
             explicit NucleusWidget(NucleusModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/nucleus.svg"))
+                , nucleusModule(module)
             {
                 setModule(module);
 
@@ -345,7 +448,14 @@ namespace Sapphire
                 addKnob(DECAY_KNOB_PARAM, "decay_knob");
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
-                addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
+
+                // Superimpose a warning light on the output level knob.
+                // We turn the warning light on when the limiter is distoring the output.
+                auto levelKnob = addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
+                warningLight = new NucleusWarningLightWidget(module);
+                warningLight->box.pos  = Vec(0.0f, 0.0f);
+                warningLight->box.size = levelKnob->box.size;
+                levelKnob->addChild(warningLight);
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(DECAY_CV_INPUT, "decay_cv");
@@ -363,6 +473,23 @@ namespace Sapphire
                 addReloadableParam(toggle, "dc_reject_button");
 
                 reloadPanel();
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (nucleusModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+
+                    if (nucleusModule->agcLevelQuantity)
+                    {
+                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
+                        menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
+
+                        // Add an option to enable/disable the warning slider.
+                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &nucleusModule->enableLimiterWarning));
+                    }
+                }
             }
         };
     }

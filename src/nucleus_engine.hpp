@@ -36,6 +36,9 @@ namespace Sapphire
         std::vector<Particle> next;
         float magneticCoupling{};
         float speedLimit = 1000.0f;
+        AutomaticGainLimiter agc;
+        bool enableAgc = false;
+        std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
 
         void calculateForces(std::vector<Particle>& array)
         {
@@ -146,14 +149,50 @@ namespace Sapphire
         explicit NucleusEngine(std::size_t _nParticles)
             : curr(_nParticles)
             , next(_nParticles)
-            {}
+            , outputBuffer(3 * _nParticles)     // (x, y, z) position vectors
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            setAgcEnabled(true);
+            // The caller is responsible for resetting particle states.
+            // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
+        }
+
+        bool getAgcEnabled() const
+        {
+            return enableAgc;
+        }
+
+        void setAgcEnabled(bool enable)
+        {
+            if (enable && !enableAgc)
+            {
+                // If the AGC isn't enabled, and caller wants to enable it,
+                // re-initialize the AGC so it forgets any previous level it had settled on.
+                agc.initialize();
+            }
+            enableAgc = enable;
+        }
+
+        void setAgcLevel(float level)
+        {
+            agc.setCeiling(level);
+        }
+
+        double getAgcDistortion() const     // returns 0 when no distortion, or a positive value correlated with AGC distortion
+        {
+            return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+        }
 
         void setMagneticCoupling(float mc)
         {
             magneticCoupling = mc;
         }
 
-        void update(float dt, float halflife)
+        void update(float dt, float halflife, float sampleRate, float gain)
         {
             // Use oversampling to keep the time increment within stability limits.
             int n = static_cast<int>(std::ceil(dt / max_dt));
@@ -162,6 +201,23 @@ namespace Sapphire
             const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
             for (int i = 0; i < n; ++i)
                 step(et, friction);
+
+            // Copy outputs
+            const int nparticles = static_cast<int>(curr.size());
+            for (int i = 0; i < nparticles; ++i)
+            {
+                const Particle& p = curr.at(i);
+                for (int k = 0; k < 3; ++k)
+                    output(i, k) = gain * p.pos[k];
+            }
+
+            if (enableAgc)
+                agc.process(sampleRate, outputBuffer);
+        }
+
+        float& output(int p, int k)
+        {
+            return outputBuffer.at(3*p + k);
         }
 
         std::size_t numParticles() const
