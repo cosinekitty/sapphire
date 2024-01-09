@@ -315,13 +315,10 @@ namespace Sapphire
                 // Run the simulation for one time step.
                 // Adjust the time step by the `speed` parameter,
                 // so that the user can control the response over a wide range of frequencies.
-                // Compensate for time dilation by multiplying speed and halflife:
-                // when running at 10x speed, we want the halflife to correspond
-                // to real time, not sim time.
                 // Pass in the original sample rate however, because this is used
                 // by the Automatic Gain Limiter to calculate decay constants for
                 // the actual output stream (not simulated physical time).
-                engine.update(speed * args.sampleTime, speed * halflife, args.sampleRate, gain);
+                engine.update(speed * args.sampleTime, halflife, args.sampleRate, gain);
 
                 // Let the pushbutton light reflect the button state.
                 lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
