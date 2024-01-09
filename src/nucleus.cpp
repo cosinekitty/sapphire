@@ -12,8 +12,6 @@ namespace Sapphire
     {
         const std::size_t NUM_PARTICLES = 5;
 
-        const float DC_REJECT_CUTOFF_HZ = 30.0f;
-
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -78,34 +76,9 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        using NucleusDcRejectFilter = StagedFilter<float, 3>;
-
-        struct NucleusRow
-        {
-            NucleusDcRejectFilter filter[3];    // vindex: [0]=X, [1]=Y, [2]=Z.
-
-            NucleusRow()
-            {
-                initialize();
-            }
-
-            void initialize()
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    filter[i].SetCutoffFrequency(DC_REJECT_CUTOFF_HZ);
-                    filter[i].Reset();
-                }
-            }
-        };
-
         struct NucleusModule : Module
         {
             NucleusEngine engine{NUM_PARTICLES};
-            NucleusRow row[NUM_PARTICLES]{};
-            bool prevDcReject{};
-            const int crossfadeLimit = 200;
-            int crossfadeCounter{};
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
 
@@ -180,16 +153,11 @@ namespace Sapphire
             {
                 params[DC_REJECT_BUTTON_PARAM].setValue(1.0f);
 
-                for (std::size_t i = 0; i < NUM_PARTICLES; ++i)
-                    row[i].initialize();
-
                 engine.initialize();
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
 
-                crossfadeCounter = 0;
-                prevDcReject = false;
                 enableLimiterWarning = true;
             }
 
@@ -276,18 +244,6 @@ namespace Sapphire
                 return knob * scale;
             }
 
-            void copyOutput(float sampleRate, OutputId outputId, float mixFilt, int pindex, int vindex)
-            {
-                outputs[outputId].setChannels(1);
-                float vOut = engine.output(pindex, vindex);
-                if (mixFilt > 0)   // Is DC rejection enabled? Also, are we crossfading between raw and filtered signals?
-                {
-                    float vFilt = row[pindex].filter[vindex].UpdateHiPass(vOut, sampleRate);
-                    vOut = (1-mixFilt)*vOut + mixFilt*vFilt;
-                }
-                outputs[outputId].setVoltage(vOut, 0);
-            }
-
             void process(const ProcessArgs& args) override
             {
                 // Get current control settings.
@@ -312,6 +268,10 @@ namespace Sapphire
                 // This order is required because engine.update() uses the AGC to moderate its outputs.
                 reflectAgcSlider();
 
+                // Allow the user to toggle the DC reject option at any time.
+                // This will trigger an anti-click crossfade when needed.
+                engine.setDcRejectEnabled(isEnabledDcReject());
+
                 // Run the simulation for one time step.
                 // Adjust the time step by the `speed` parameter,
                 // so that the user can control the response over a wide range of frequencies.
@@ -320,45 +280,26 @@ namespace Sapphire
                 // the actual output stream (not simulated physical time).
                 engine.update(speed * args.sampleTime, halflife, args.sampleRate, gain);
 
-                // Let the pushbutton light reflect the button state.
+                // Let the DC reject pushbutton light reflect its button state.
                 lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
 
-                if (isEnabledDcReject() != prevDcReject)
-                {
-                    // Trigger a cross-fade, to prevent clicking in audio streams.
-                    prevDcReject = isEnabledDcReject();
-                    crossfadeCounter = crossfadeLimit;
-                }
+                // Report all output voltages to VCV Rack.
 
-                float mixFilt = 0;
-                if (isEnabledDcReject() || (crossfadeCounter > 0))
-                {
-                    // Mix the DC-reject signal with the raw signal using a linear fade.
-                    mixFilt = static_cast<float>(crossfadeCounter) / static_cast<float>(crossfadeLimit);
-                    if (isEnabledDcReject())
-                        mixFilt = 1 - mixFilt;
+                outputs[X1_OUTPUT].setVoltage(engine.output(1, 0));
+                outputs[Y1_OUTPUT].setVoltage(engine.output(1, 1));
+                outputs[Z1_OUTPUT].setVoltage(engine.output(1, 2));
 
-                    if (crossfadeCounter > 0)
-                        --crossfadeCounter;
-                }
+                outputs[X2_OUTPUT].setVoltage(engine.output(2, 0));
+                outputs[Y2_OUTPUT].setVoltage(engine.output(2, 1));
+                outputs[Z2_OUTPUT].setVoltage(engine.output(2, 2));
 
-                // Copy all the outputs.
+                outputs[X3_OUTPUT].setVoltage(engine.output(3, 0));
+                outputs[Y3_OUTPUT].setVoltage(engine.output(3, 1));
+                outputs[Z3_OUTPUT].setVoltage(engine.output(3, 2));
 
-                copyOutput(args.sampleRate, X1_OUTPUT, mixFilt, 1, 0);
-                copyOutput(args.sampleRate, Y1_OUTPUT, mixFilt, 1, 1);
-                copyOutput(args.sampleRate, Z1_OUTPUT, mixFilt, 1, 2);
-
-                copyOutput(args.sampleRate, X2_OUTPUT, mixFilt, 2, 0);
-                copyOutput(args.sampleRate, Y2_OUTPUT, mixFilt, 2, 1);
-                copyOutput(args.sampleRate, Z2_OUTPUT, mixFilt, 2, 2);
-
-                copyOutput(args.sampleRate, X3_OUTPUT, mixFilt, 3, 0);
-                copyOutput(args.sampleRate, Y3_OUTPUT, mixFilt, 3, 1);
-                copyOutput(args.sampleRate, Z3_OUTPUT, mixFilt, 3, 2);
-
-                copyOutput(args.sampleRate, X4_OUTPUT, mixFilt, 4, 0);
-                copyOutput(args.sampleRate, Y4_OUTPUT, mixFilt, 4, 1);
-                copyOutput(args.sampleRate, Z4_OUTPUT, mixFilt, 4, 2);
+                outputs[X4_OUTPUT].setVoltage(engine.output(4, 0));
+                outputs[Y4_OUTPUT].setVoltage(engine.output(4, 1));
+                outputs[Z4_OUTPUT].setVoltage(engine.output(4, 2));
             }
         };
 

@@ -28,6 +28,8 @@ namespace Sapphire
         float mass = 1.0e-3f;
     };
 
+    using NucleusDcRejectFilter = StagedFilter<float, 3>;
+
     class NucleusEngine
     {
     private:
@@ -39,6 +41,13 @@ namespace Sapphire
         AutomaticGainLimiter agc;
         bool enableAgc = false;
         std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
+
+        // DC reject state (consider moving into a separate class...)
+        bool enableDcReject = false;
+        const int crossfadeLimit = 200;
+        int crossfadeCounter{};
+        float mixFilt{};
+        std::vector<NucleusDcRejectFilter> filterArray;     // 3 filters per particle: (x, y, z)
 
         void calculateForces(std::vector<Particle>& array)
         {
@@ -145,18 +154,38 @@ namespace Sapphire
             }
         }
 
+        float filter(float sampleRate, int i, int k, float x)
+        {
+            if (mixFilt > 0)
+            {
+                // DC rejection is enabled, or we are crossfading.
+                float vFilt = filterArray.at(3*i + k).UpdateHiPass(x, sampleRate);
+                return (1-mixFilt)*x + mixFilt*vFilt;
+            }
+            return x;
+        }
+
     public:
         explicit NucleusEngine(std::size_t _nParticles)
             : curr(_nParticles)
             , next(_nParticles)
             , outputBuffer(3 * _nParticles)     // (x, y, z) position vectors
+            , filterArray(3 * _nParticles)
         {
             initialize();
         }
 
         void initialize()
         {
+            for (NucleusDcRejectFilter& f : filterArray)
+            {
+                f.SetCutoffFrequency(30);
+                f.Reset();
+            }
+            crossfadeCounter = 0;
             setAgcEnabled(true);
+            setDcRejectEnabled(true);
+
             // The caller is responsible for resetting particle states.
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
         }
@@ -187,6 +216,21 @@ namespace Sapphire
             return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
         }
 
+        bool getDcRejectEnabled() const
+        {
+            return enableDcReject;
+        }
+
+        void setDcRejectEnabled(bool enable)
+        {
+            if (enable != enableDcReject)
+            {
+                // Trigger a cross-fade, to prevent clicking in audio streams.
+                enableDcReject = enable;
+                crossfadeCounter = crossfadeLimit;
+            }
+        }
+
         void setMagneticCoupling(float mc)
         {
             magneticCoupling = mc;
@@ -202,13 +246,28 @@ namespace Sapphire
             for (int i = 0; i < n; ++i)
                 step(et, friction);
 
-            // Copy outputs
+            // Prepare for any crossfading betweeen raw signals and DC rej signals.
+            if (enableDcReject || (crossfadeCounter > 0))
+            {
+                // We will mix each DC-reject signal with the corresponding raw signal using a linear crossfade.
+                mixFilt = static_cast<float>(crossfadeCounter) / static_cast<float>(crossfadeLimit);
+                if (enableDcReject)
+                    mixFilt = 1 - mixFilt;      // toggle the crossfade direction
+
+                if (crossfadeCounter > 0)
+                    --crossfadeCounter;
+            }
+
+            // Copy outputs, and apply optional DC rejection.
+            // For a couple hundred samples after toggling the DC rejection option,
+            // there is a linear crossfade between the raw signal and the filtered
+            // signal, to reduce audio popping.
             const int nparticles = static_cast<int>(curr.size());
             for (int i = 0; i < nparticles; ++i)
             {
                 const Particle& p = curr.at(i);
                 for (int k = 0; k < 3; ++k)
-                    output(i, k) = gain * p.pos[k];
+                    output(i, k) = gain * filter(sampleRate, i, k, p.pos[k]);
             }
 
             if (enableAgc)
