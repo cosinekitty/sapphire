@@ -134,7 +134,7 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
             break;
 
         // Update the simulation.
-        engine.update(dt, halflife);
+        engine.update(dt, halflife, 44100, 1);
 
         // Break out of the loop as soon as we believe we have converged.
         // We do this when all the particles are moving very slowly.
