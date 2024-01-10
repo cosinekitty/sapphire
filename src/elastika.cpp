@@ -148,6 +148,8 @@ namespace Sapphire
 
             void initialize()
             {
+                agcLevelQuantity->initialize();
+                dcRejectQuantity->initialize();
                 engine.initialize();
                 engine.setDcRejectFrequency(dcRejectQuantity->value);
                 dcRejectQuantity->changed = false;
@@ -169,6 +171,8 @@ namespace Sapphire
             {
                 json_t* root = json_object();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+                agcLevelQuantity->save(root, "agcLevel");
+                dcRejectQuantity->save(root, "dcRejectFrequency");
                 return root;
             }
 
@@ -177,6 +181,8 @@ namespace Sapphire
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
+                agcLevelQuantity->load(root, "agcLevel");
+                dcRejectQuantity->load(root, "dcRejectFrequency");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override

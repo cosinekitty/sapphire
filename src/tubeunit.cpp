@@ -123,6 +123,7 @@ namespace Sapphire
 
             void initialize()
             {
+                agcLevelQuantity->initialize();
                 numActiveChannels = 0;
                 enableLimiterWarning = true;
                 isInvertedVentPort = false;
@@ -142,6 +143,7 @@ namespace Sapphire
                 json_t* root = json_object();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
+                agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
 
@@ -154,6 +156,8 @@ namespace Sapphire
                 // Upgrade from older/damaged JSON by defaulting the vent toggle to OFF.
                 json_t *ventFlag = json_object_get(root, "toggleVentPort");
                 isInvertedVentPort = json_is_true(ventFlag);
+
+                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override

@@ -9,10 +9,12 @@
 </tr>
 
 <tr valign="top">
-<td align="center">29 Dec 2023</td>
+<td align="center">11 Jan 2024</td>
 <td align="center">2.3.2</td>
 <td align="left">
     <ul>
+        <li>Added a new module: <a href="Nucleus.md">Nucleus</a>.</li>
+        <li>Fixed issues where Elastika and Tube Unit did not persist AGC level or DC reject frequency. They were being reset to their default values every time a patch was loaded.</li>
         <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
     </ul>
 </td>

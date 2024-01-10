@@ -99,6 +99,27 @@ namespace Sapphire
         float getValue() override { return value; }
 
         void setDisplayValue(float displayValue) override { setValue(displayValue); }
+
+        void save(json_t* root, const char *name)
+        {
+            json_object_set_new(root, name, json_real(value));
+        }
+
+        void load(json_t* root, const char *name)
+        {
+            json_t *level = json_object_get(root, name);
+            if (json_is_number(level))
+            {
+                double x = json_number_value(level);
+                setValue(x);
+            }
+        }
+
+        void initialize()
+        {
+            float x = getDefaultValue();
+            setValue(x);
+        }
     };
 
 
