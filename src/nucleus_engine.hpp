@@ -159,8 +159,8 @@ namespace Sapphire
             if (mixFilt > 0)
             {
                 // DC rejection is enabled, or we are crossfading.
-                float vFilt = filterArray.at(3*i + k).UpdateHiPass(x, sampleRate);
-                return (1-mixFilt)*x + mixFilt*vFilt;
+                float y = filterArray.at(3*i + k).UpdateHiPass(x, sampleRate);
+                return (1-mixFilt)*x + mixFilt*y;
             }
             return x;
         }
