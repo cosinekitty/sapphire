@@ -174,11 +174,10 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
 
 
-def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float) -> None:
+def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText:float=-6.0, dyText:float=-9.0) -> None:
     controls.append(Component(symbol, x, y))
-    dxText = -6.0
-    dyText = -9.0
     pl.append(ControlTextPath(font, label, x + dxText, y + dyText))
+
 
 def GenerateNucleusPanel() -> int:
     svgFileName = '../res/nucleus.svg'
@@ -226,7 +225,7 @@ def GenerateNucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 18.5, yIn - 2.5, 1.5)
         AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
-        AddButton(pl, controls, font, 'dc_reject_button', 'DC REJ', xmid - 24.0, yOutLevel - 20.0)
+        AddButton(pl, controls, font, 'dc_reject_button', 'AUDIO', xmid - 24.0, yOutLevel - 20.0, -5.5)
     return Save(panel, svgFileName)
 
 
