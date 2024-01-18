@@ -9,13 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">11 Jan 2024</td>
-<td align="center">2.3.2</td>
+<td align="center">18 Jan 2024</td>
+<td align="center">2.4.0</td>
 <td align="left">
     <ul>
         <li>Added a new module: <a href="Nucleus.md">Nucleus</a>.</li>
         <li>Fixed issues where Elastika and Tube Unit did not persist AGC level or DC reject frequency. They were being reset to their default values every time a patch was loaded.</li>
         <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
+        <li>Tricorder: when first connected to a constant 0V input, immediately refresh the coordinate axes. Before this change, the display area stayed blank until the input voltage changed by more than 0.1V. This was confusing, because it looked like there is no input signal!</li>
     </ul>
 </td>
 </tr>

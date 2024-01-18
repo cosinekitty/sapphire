@@ -318,14 +318,16 @@ namespace Sapphire
                     float dz = zcurr - zprev;
                     float distance = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-                    if (distance > 0.1f)
+                    if (distance > 0.1f || pointCount == 0)
                     {
                         if (pointCount < TRAIL_LENGTH)
                         {
+                            // We are still filling up the list.
                             pointList[pointCount++] = p;
                         }
                         else
                         {
+                            // The list is full, so replace the oldest point with this new point.
                             pointList[nextPointIndex] = p;
                             nextPointIndex = (nextPointIndex + 1) % TRAIL_LENGTH;
                         }
@@ -335,16 +337,18 @@ namespace Sapphire
                         yprev = ycurr;
                         zprev = zcurr;
                     }
-                    else if (pointCount > 0)
+                    else    // pointCount > 0
                     {
                         // Instead of adding a new point, update the position of the most recently
                         // added point. This makes the animation much smoother.
                         if (pointCount < TRAIL_LENGTH)
                         {
+                            // We were still filling up the list.
                             pointList[pointCount-1] = p;
                         }
                         else
                         {
+                            // This list is full, so replace the oldest point with this new point.
                             int latestPointIndex = (nextPointIndex + (TRAIL_LENGTH - 1)) % TRAIL_LENGTH;
                             pointList[latestPointIndex] = p;
                         }
