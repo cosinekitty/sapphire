@@ -40,6 +40,7 @@ namespace Sapphire
         float speedLimit = 1000.0f;
         AutomaticGainLimiter agc;
         bool enableAgc = false;
+        int fixedOversample = 0;                // 0 = calculate oversample, >0 = specify oversampling count
         std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
 
         // DC reject state (consider moving into a separate class...)
@@ -183,11 +184,22 @@ namespace Sapphire
                 f.Reset();
             }
             crossfadeCounter = 0;
+            enableAutomaticOversample();
             setAgcEnabled(true);
             setDcRejectEnabled(true);
 
             // The caller is responsible for resetting particle states.
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
+        }
+
+        void enableFixedOversample(int n)
+        {
+            fixedOversample = std::max(1, n);
+        }
+
+        void enableAutomaticOversample()
+        {
+            fixedOversample = 0;
         }
 
         bool getAgcEnabled() const
@@ -239,8 +251,17 @@ namespace Sapphire
         void update(float dt, float halflife, float sampleRate, float gain)
         {
             // Use oversampling to keep the time increment within stability limits.
-            int n = static_cast<int>(std::ceil(dt / max_dt));
-            if (n < 1) n = 1;   // should never happen, but be careful
+            // Allow the caller to specify the exact oversampling rate, or we allow
+            // the caller to let us figure it out for them (variable performance though).
+            int n = fixedOversample;
+            if (n < 1)
+            {
+                // Automatic adjustment of oversampling is enabled.
+                n = static_cast<int>(std::ceil(dt / max_dt));
+                if (n < 1) n = 1;   // should never happen, but be careful
+            }
+
+            // Iterate the model over each oversampled step.
             const double et = dt / n;
             const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
             for (int i = 0; i < n; ++i)

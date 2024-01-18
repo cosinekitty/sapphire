@@ -90,7 +90,7 @@ namespace Sapphire
                 configInput(Y_INPUT, "Y");
                 configInput(Z_INPUT, "Z");
 
-                configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
+                configParam(SPEED_KNOB_PARAM, -6, +6, 0, "Speed");
                 configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
                 configParam(MAGNET_KNOB_PARAM, -1, 1, 0, "Magnetic coupling");
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
@@ -156,6 +156,7 @@ namespace Sapphire
                 params[DC_REJECT_BUTTON_PARAM].setValue(1.0f);
 
                 engine.initialize();
+                engine.enableFixedOversample(1);        // for smooth changes as SPEED knob is changed
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
@@ -235,8 +236,8 @@ namespace Sapphire
 
             float getSpeedFactor()
             {
-                float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -7, +7);
-                float factor = std::pow(2.0f, knob);
+                float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -6, +6);
+                float factor = std::pow(2.0f, knob-1 /* -7..+5 is a better range */);
                 return factor;
             }
 
