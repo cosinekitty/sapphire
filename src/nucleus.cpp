@@ -26,7 +26,7 @@ namespace Sapphire
             IN_DRIVE_ATTEN_PARAM,
             OUT_LEVEL_ATTEN_PARAM,
 
-            DC_REJECT_BUTTON_PARAM,
+            AUDIO_MODE_BUTTON_PARAM,
 
             AGC_LEVEL_PARAM,
 
@@ -71,7 +71,7 @@ namespace Sapphire
 
         enum LightId
         {
-            DC_REJECT_BUTTON_LIGHT,
+            AUDIO_MODE_BUTTON_LIGHT,
 
             LIGHTS_LEN
         };
@@ -121,7 +121,7 @@ namespace Sapphire
                 configOutput(Y4_OUTPUT, "Y4");
                 configOutput(Z4_OUTPUT, "Z4");
 
-                configButton(DC_REJECT_BUTTON_PARAM, "DC reject");
+                configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
 
                 agcLevelQuantity = configParam<AgcLevelQuantity>(
                     AGC_LEVEL_PARAM,
@@ -153,7 +153,7 @@ namespace Sapphire
 
             void initialize()
             {
-                params[DC_REJECT_BUTTON_PARAM].setValue(1.0f);
+                params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
 
                 engine.initialize();
                 engine.enableFixedOversample(1);        // for smooth changes as SPEED knob is changed
@@ -179,9 +179,9 @@ namespace Sapphire
                 }
             }
 
-            bool isEnabledDcReject() const
+            bool isEnabledAudioMode() const
             {
-                return params[DC_REJECT_BUTTON_PARAM].value > 0.5f;
+                return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override
@@ -272,9 +272,9 @@ namespace Sapphire
                 // This order is required because engine.update() uses the AGC to moderate its outputs.
                 reflectAgcSlider();
 
-                // Allow the user to toggle the DC reject option at any time.
+                // Allow the user to toggle the audio/cv option at any time.
                 // This will trigger an anti-click crossfade when needed.
-                engine.setDcRejectEnabled(isEnabledDcReject());
+                engine.setDcRejectEnabled(isEnabledAudioMode());
 
                 // Run the simulation for one time step.
                 // Adjust the time step by the `speed` parameter,
@@ -284,8 +284,8 @@ namespace Sapphire
                 // the actual output stream (not simulated physical time).
                 engine.update(speed * args.sampleTime, halflife, args.sampleRate, gain);
 
-                // Let the DC reject pushbutton light reflect its button state.
-                lights[DC_REJECT_BUTTON_LIGHT].setBrightness(isEnabledDcReject() ? 1.0f : 0.0f);
+                // Let the audio/cv toggle pushbutton light reflect its button state.
+                lights[AUDIO_MODE_BUTTON_LIGHT].setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
 
                 // Report all output voltages to VCV Rack.
 
@@ -411,8 +411,8 @@ namespace Sapphire
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
 
-                auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, DC_REJECT_BUTTON_PARAM, DC_REJECT_BUTTON_LIGHT);
-                addReloadableParam(toggle, "dc_reject_button");
+                auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
+                addReloadableParam(toggle, "audio_mode_button");
 
                 reloadPanel();
             }
