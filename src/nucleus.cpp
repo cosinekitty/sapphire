@@ -12,6 +12,8 @@ namespace Sapphire
     {
         const std::size_t NUM_PARTICLES = 5;
 
+        const float OUTPUT_EXPONENT = 6;
+
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -94,7 +96,7 @@ namespace Sapphire
                 configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
                 configParam(MAGNET_KNOB_PARAM, -1, 1, 0, "Magnetic coupling");
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
-                configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
+                configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20*OUTPUT_EXPONENT);
 
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configParam(DECAY_ATTEN_PARAM, -1, 1, 0, "Decay attenuverter", "%", 0, 100);
@@ -224,14 +226,14 @@ namespace Sapphire
             {
                 float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT, 0, 2);
                 // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB) channels
-                return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
+                return std::pow(knob, 4.0f);
             }
 
             float getOutputLevel()
             {
                 float knob = getControlValue(OUT_LEVEL_KNOB_PARAM, OUT_LEVEL_ATTEN_PARAM, OUT_LEVEL_CV_INPUT, 0, 2);
-                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
-                return std::pow(Clamp(knob, 0.0f, 2.0f), 4.0f);
+                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+36 dB)
+                return std::pow(knob, OUTPUT_EXPONENT);
             }
 
             float getSpeedFactor()
