@@ -2,6 +2,7 @@
 #include "sapphire_widget.hpp"
 #include "nucleus_engine.hpp"
 #include "nucleus_init.hpp"
+#include "tricorder.hpp"
 
 // Nucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -13,6 +14,8 @@ namespace Sapphire
         const std::size_t NUM_PARTICLES = 5;
 
         const float OUTPUT_EXPONENT = 6;
+        const float INPUT_EXPONENT = 4;
+        const float INPUT_SCALE = 0.015f;
 
         enum ParamId
         {
@@ -83,9 +86,13 @@ namespace Sapphire
             NucleusEngine engine{NUM_PARTICLES};
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
+            int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
+            Tricorder::Message tricorderMessage[2];
 
             NucleusModule()
             {
+                rightExpander.producerMessage = &tricorderMessage[0];
+                rightExpander.consumerMessage = &tricorderMessage[1];
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configInput(X_INPUT, "X");
@@ -95,7 +102,7 @@ namespace Sapphire
                 configParam(SPEED_KNOB_PARAM, -6, +6, 0, "Speed");
                 configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
                 configParam(MAGNET_KNOB_PARAM, -1, 1, 0, "Magnetic coupling");
-                configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
+                configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20*INPUT_EXPONENT);
                 configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20*OUTPUT_EXPONENT);
 
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
@@ -142,6 +149,7 @@ namespace Sapphire
                 json_t* root = json_object();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
+                json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
 
@@ -150,7 +158,17 @@ namespace Sapphire
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
+
                 agcLevelQuantity->load(root, "agcLevel");
+
+                tricorderOutputIndex = 1;   // fallback
+                json_t *tri = json_object_get(root, "tricorderOutputIndex");
+                if (json_is_integer(tri))
+                {
+                    int index = json_integer_value(tri);
+                    if (index > 0 && index < static_cast<int>(NUM_PARTICLES))
+                        tricorderOutputIndex = index;
+                }
             }
 
             void initialize()
@@ -165,6 +183,7 @@ namespace Sapphire
 
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
+                tricorderOutputIndex = 1;
             }
 
             void reflectAgcSlider()
@@ -225,8 +244,8 @@ namespace Sapphire
             float getInputDrive()
             {
                 float knob = getControlValue(IN_DRIVE_KNOB_PARAM, IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT, 0, 2);
-                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB) channels
-                return std::pow(knob, 4.0f);
+                // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
+                return INPUT_SCALE * std::pow(knob, INPUT_EXPONENT);
             }
 
             float getOutputLevel()
@@ -306,6 +325,13 @@ namespace Sapphire
                 outputs[X4_OUTPUT].setVoltage(engine.output(4, 0));
                 outputs[Y4_OUTPUT].setVoltage(engine.output(4, 1));
                 outputs[Z4_OUTPUT].setVoltage(engine.output(4, 2));
+
+                // Pass along the selected output to Tricorder, if attached to the right side...
+                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(rightExpander.producerMessage);
+                msg.x = engine.output(tricorderOutputIndex, 0);
+                msg.y = engine.output(tricorderOutputIndex, 1);
+                msg.z = engine.output(tricorderOutputIndex, 2);
+                rightExpander.requestMessageFlip();
             }
         };
 

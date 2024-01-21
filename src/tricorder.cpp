@@ -264,6 +264,7 @@ namespace Sapphire
                 return
                     module->model == modelFrolic ||
                     module->model == modelGlee ||
+                    module->model == modelNucleus ||
                     module->model == modelTin ||
                     module->model == modelTricorder;
             }
