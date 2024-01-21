@@ -51,13 +51,11 @@ namespace Sapphire
         struct GleeModule : Module
         {
             Aizawa circuit;
-            Tricorder::Message tricorderMessage[2];
+            Tricorder::Communicator communicator;
 
             GleeModule()
+                : communicator(*this)
             {
-                rightExpander.producerMessage = &tricorderMessage[0];
-                rightExpander.consumerMessage = &tricorderMessage[1];
-
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configOutput(X_OUTPUT, "X");
@@ -111,12 +109,7 @@ namespace Sapphire
                 outputs[X_OUTPUT].setVoltage(circuit.vx());
                 outputs[Y_OUTPUT].setVoltage(circuit.vy());
                 outputs[Z_OUTPUT].setVoltage(circuit.vz());
-
-                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(rightExpander.producerMessage);
-                msg.x = circuit.vx();
-                msg.y = circuit.vy();
-                msg.z = circuit.vz();
-                rightExpander.requestMessageFlip();
+                communicator.sendVector(circuit.vx(), circuit.vy(), circuit.vz());
             }
         };
 

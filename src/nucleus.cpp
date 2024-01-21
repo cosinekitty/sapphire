@@ -87,12 +87,11 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
-            Tricorder::Message tricorderMessage[2];
+            Tricorder::Communicator communicator;
 
             NucleusModule()
+                : communicator(*this)
             {
-                rightExpander.producerMessage = &tricorderMessage[0];
-                rightExpander.consumerMessage = &tricorderMessage[1];
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configInput(X_INPUT, "X");
@@ -327,11 +326,10 @@ namespace Sapphire
                 outputs[Z4_OUTPUT].setVoltage(engine.output(4, 2));
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
-                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(rightExpander.producerMessage);
-                msg.x = engine.output(tricorderOutputIndex, 0);
-                msg.y = engine.output(tricorderOutputIndex, 1);
-                msg.z = engine.output(tricorderOutputIndex, 2);
-                rightExpander.requestMessageFlip();
+                float x = engine.output(tricorderOutputIndex, 0);
+                float y = engine.output(tricorderOutputIndex, 1);
+                float z = engine.output(tricorderOutputIndex, 2);
+                communicator.sendVector(x, y, z);
             }
         };
 

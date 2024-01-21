@@ -35,12 +35,11 @@ namespace Sapphire
 
         struct TinModule : Module
         {
-            Tricorder::Message tricorderMessage[2];
+            Tricorder::Communicator communicator;
 
             TinModule()
+                : communicator(*this)
             {
-                rightExpander.producerMessage = &tricorderMessage[0];
-                rightExpander.consumerMessage = &tricorderMessage[1];
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(X_INPUT, "X");
                 configInput(Y_INPUT, "Y");
@@ -60,11 +59,10 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(rightExpander.producerMessage);
-                msg.x = inputs[X_INPUT].getVoltageSum();
-                msg.y = inputs[Y_INPUT].getVoltageSum();
-                msg.z = inputs[Z_INPUT].getVoltageSum();
-                rightExpander.requestMessageFlip();
+                float x = inputs[X_INPUT].getVoltageSum();
+                float y = inputs[Y_INPUT].getVoltageSum();
+                float z = inputs[Z_INPUT].getVoltageSum();
+                communicator.sendVector(x, y, z);
             }
 
             json_t* dataToJson() override

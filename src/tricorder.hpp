@@ -44,5 +44,27 @@ namespace Sapphire
                 (0 == memcmp(message->header.signature, "Tcdr", 4)) &&
                 (message->header.version >= 1);
         }
+
+        struct Communicator     // allows two-way message traffic between Tricorder and an adjacent module
+        {
+            Message buffer[2];
+            Module& parentModule;
+
+            explicit Communicator(Module& module)
+                : parentModule(module)
+            {
+                module.rightExpander.producerMessage = &buffer[0];
+                module.rightExpander.consumerMessage = &buffer[1];
+            }
+
+            void sendVector(float x, float y, float z)
+            {
+                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
+                msg.x = x;
+                msg.y = y;
+                msg.z = z;
+                parentModule.rightExpander.requestMessageFlip();
+            }
+        };
     }
 }
