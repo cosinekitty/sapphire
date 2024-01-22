@@ -197,6 +197,11 @@ def GenerateNucleusPanel() -> int:
     dxVarNameText = 1.0         # half the width of the labels ("X", "Y", "Z"); used for centering.
     yInVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
     yOutVarNames = yOutTop - yCushion
+    xPortGridCenter = xmid + 12.0
+    xOutLeft = xPortGridCenter - dxPort
+
+    # Write a C++ header file that contains bounding rectangles for the 4 output rows.
+    # This script remains the Single Source Of Truth for how the panel design is laid out.
     with open('../src/nucleus_panel.hpp', 'wt') as headerFile:
         headerFile.write('// nucleus_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n')
         headerFile.write('#pragma once\n')
@@ -204,18 +209,24 @@ def GenerateNucleusPanel() -> int:
         headerFile.write('{\n')
         headerFile.write('    namespace Nucleus\n')
         headerFile.write('    {\n')
-        headerFile.write('        const float PanelDyOut = {:0.16g};\n'.format(dyOut))
+        headerFile.write('        namespace Panel\n')
+        headerFile.write('        {\n')
+        headerFile.write('            const float DxOut = {:9.3f}f;    // horizontal distance between output port columns.\n'.format(dxPort))
+        headerFile.write('            const float DyOut = {:9.3f}f;    // vertical distance between output port rows.\n'.format(dyOut))
+        headerFile.write('            const float X1Out = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
+        headerFile.write('            const float Y1Out = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
+        headerFile.write('        }\n')
         headerFile.write('    }\n')
         headerFile.write('}\n')
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(controls)
         xInputCenter = xmid - 12.0
-        xPortGridCenter = xmid + 12.0
         xInPos = xInputCenter - dxPort
-        xOutPos = xPortGridCenter - dxPort
+        xOutPos = xOutLeft
         for varname in ['x', 'y', 'z']:
             pl.append(ControlTextPath(font, varname.upper(), xInPos - dxVarNameText, yInVarNames))
             pl.append(ControlTextPath(font, varname.upper(), xOutPos - dxVarNameText, yOutVarNames))

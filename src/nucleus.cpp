@@ -463,6 +463,48 @@ namespace Sapphire
                     }
                 }
             }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                SapphireReloadableModuleWidget::drawLayer(args, layer);
+
+                if (layer == 1 && nucleusModule != nullptr)
+                {
+                    nvgSave(args.vg);
+                    Rect b = box.zeroPos();
+                    nvgScissor(args.vg, RECT_ARGS(b));
+                    // If Tricorder is currently graphing output from Nucleus,
+                    // highlight the currently selected output row.
+                    if (nucleusModule->isTricorderConnected)
+                    {
+                        drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
+                    }
+                    nvgResetScissor(args.vg);
+                    nvgRestore(args.vg);
+                }
+            }
+
+            void drawOutputRowSelectionBox(NVGcontext *vg, int row)
+            {
+                using namespace Panel;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_YELLOW);
+                nvgFillColor(vg, SCHEME_YELLOW);
+                nvgStrokeWidth(vg, 1.0f);
+                nvgLineCap(vg, NVG_ROUND);
+                const float x1 = X1Out - DxOut/2;
+                const float y1 = Y1Out - DyOut/2 + (row-1)*DyOut;
+                const float x2 = x1 + 3*DxOut;
+                const float y2 = y1 + DyOut;
+                nvgMoveTo(vg, mm2px(x1), mm2px(y1));
+                nvgLineTo(vg, mm2px(x2), mm2px(y1));
+                nvgLineTo(vg, mm2px(x2), mm2px(y2));
+                nvgLineTo(vg, mm2px(x1), mm2px(y2));
+                nvgClosePath(vg);
+                //nvgFill(vg);
+                nvgStroke(vg);
+            }
         };
     }
 }
