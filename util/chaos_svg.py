@@ -197,6 +197,16 @@ def GenerateNucleusPanel() -> int:
     dxVarNameText = 1.0         # half the width of the labels ("X", "Y", "Z"); used for centering.
     yInVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
     yOutVarNames = yOutTop - yCushion
+    with open('../src/nucleus_panel.hpp', 'wt') as headerFile:
+        headerFile.write('// nucleus_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n')
+        headerFile.write('#pragma once\n')
+        headerFile.write('namespace Sapphire\n')
+        headerFile.write('{\n')
+        headerFile.write('    namespace Nucleus\n')
+        headerFile.write('    {\n')
+        headerFile.write('        const float PanelDyOut = {:0.16g};\n'.format(dyOut))
+        headerFile.write('    }\n')
+        headerFile.write('}\n')
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))

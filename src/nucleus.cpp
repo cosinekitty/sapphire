@@ -2,6 +2,7 @@
 #include "sapphire_widget.hpp"
 #include "nucleus_engine.hpp"
 #include "nucleus_init.hpp"
+#include "nucleus_panel.hpp"
 #include "tricorder.hpp"
 
 // Nucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
@@ -331,6 +332,7 @@ namespace Sapphire
                 float y = engine.output(tricorderOutputIndex, 1);
                 float z = engine.output(tricorderOutputIndex, 2);
 
+                // As we send the vector, we also make note of whether Tricorder is receiving our messages.
                 isTricorderConnected = communicator.sendVector(x, y, z);
             }
         };
