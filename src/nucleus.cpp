@@ -393,6 +393,7 @@ namespace Sapphire
             NucleusModule *nucleusModule;
             NucleusWarningLightWidget* warningLight{};
             int hoverOutputIndex{};
+            bool ownsMouse{};
 
             explicit NucleusWidget(NucleusModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/nucleus.svg"))
@@ -478,7 +479,8 @@ namespace Sapphire
                     // highlight the currently selected output row.
                     if (nucleusModule->isTricorderConnected)
                     {
-                        drawOutputRowSelectionBox(args.vg, hoverOutputIndex);
+                        if (ownsMouse)
+                            drawOutputRowSelectionBox(args.vg, hoverOutputIndex);
                         //drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
                     }
                     nvgResetScissor(args.vg);
@@ -537,6 +539,18 @@ namespace Sapphire
                         break;
                     }
                 }
+            }
+
+            void onEnter(const EnterEvent& e) override
+            {
+                ownsMouse = true;
+                SapphireReloadableModuleWidget::onEnter(e);
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                ownsMouse = false;
+                SapphireReloadableModuleWidget::onLeave(e);
             }
         };
     }
