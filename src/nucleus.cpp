@@ -480,8 +480,9 @@ namespace Sapphire
                     if (nucleusModule->isTricorderConnected)
                     {
                         if (ownsMouse)
-                            drawOutputRowSelectionBox(args.vg, hoverOutputIndex);
-                        //drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
+                            drawOutputRowCursor(args.vg, hoverOutputIndex);
+
+                        drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
                     }
                     nvgResetScissor(args.vg);
                     nvgRestore(args.vg);
@@ -501,7 +502,57 @@ namespace Sapphire
                 return r;
             }
 
+            Rect mouseTargetBoundingBox(int row) const
+            {
+                Rect box = outputRowBoundingBox(row);
+
+                // Allow mouse activity to work in the rightmost 1/4 of the box.
+                box.size.x /= 4;
+                box.pos.x += 3 * box.size.x;
+
+                return box;
+            }
+
             void drawOutputRowSelectionBox(NVGcontext *vg, int row)
+            {
+                if (row < 1 || row >= static_cast<int>(NUM_PARTICLES))
+                    return;     // ignore invalid requests
+
+                Rect box = outputRowBoundingBox(row);
+
+                // Draw a rightward-facing arrow that fits inside the bounding box.
+                const float A = 0.90 * box.size.x;       // fraction rightward where the arrowhead begins
+                const float H = 0.40 * box.size.y;       // fraction of vertical distance for skinny side of arrow
+                const float G = 0.10 * box.size.y;       // fraction of vertical margin above and below the arrow corners
+                const float V = 0.80 * box.size.x;       // fraction of horizontal distance to the left of the arrow
+                const float W = 0.01 * box.size.x;       // fraction of horizontal distance to the right of the arrow
+
+                const float x1 = box.pos.x + V;
+                const float x2 = box.pos.x + A;
+                const float x3 = box.pos.x + box.size.x - W;
+
+                const float y1 = box.pos.y + G;
+                const float yc = box.pos.y + box.size.y/2;
+                const float y2 = yc - H/2;
+                const float y3 = yc + H/2;
+                const float y4 = box.pos.y + box.size.y - G;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_PURPLE);
+                nvgFillColor(vg, nvgRGBA(0x80, 0x20, 0x20, 0x40));
+                nvgMoveTo(vg, x1, y2);
+                nvgLineTo(vg, x2, y2);
+                nvgLineTo(vg, x2, y1);
+                nvgLineTo(vg, x3, yc);
+                nvgLineTo(vg, x2, y4);
+                nvgLineTo(vg, x2, y3);
+                nvgLineTo(vg, x1, y3);
+                nvgClosePath(vg);
+                nvgStroke(vg);
+                nvgFill(vg);
+            }
+
+            void drawOutputRowCursor(NVGcontext *vg, int row)
             {
                 using namespace Panel;
 
@@ -520,7 +571,6 @@ namespace Sapphire
                 nvgLineTo(vg, box.pos.x + box.size.x, box.pos.y + box.size.y);
                 nvgLineTo(vg, box.pos.x, box.pos.y + box.size.y);
                 nvgClosePath(vg);
-                //nvgFill(vg);
                 nvgStroke(vg);
             }
 
@@ -532,7 +582,7 @@ namespace Sapphire
                 hoverOutputIndex = 0;   // indicate none match
                 for (int row = 1; row < static_cast<int>(NUM_PARTICLES); ++row)
                 {
-                    Rect box = outputRowBoundingBox(row);
+                    Rect box = mouseTargetBoundingBox(row);
                     if (box.contains(e.pos))
                     {
                         hoverOutputIndex = row;     // found a matching row!
@@ -551,6 +601,29 @@ namespace Sapphire
             {
                 ownsMouse = false;
                 SapphireReloadableModuleWidget::onLeave(e);
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                SapphireReloadableModuleWidget::onButton(e);
+
+                if (nucleusModule == nullptr)
+                    return;
+
+                if (!nucleusModule->isTricorderConnected)
+                    return;
+
+                // See if the mouse click lands inside any of the mouse bounding boxes.
+                for (int row = 1; row < static_cast<int>(NUM_PARTICLES); ++row)
+                {
+                    Rect box = mouseTargetBoundingBox(row);
+                    if (box.contains(e.pos))
+                    {
+                        // Select the new output row.
+                        nucleusModule->tricorderOutputIndex = row;
+                        break;
+                    }
+                }
             }
         };
     }
