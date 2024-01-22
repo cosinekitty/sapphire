@@ -27,13 +27,27 @@ namespace Sapphire
             float x{};
             float y{};
             float z{};
+            char flag{};
 
             // Add any future fields here. Do not change anything above this line.
             // Update the version number as needed in the constructor call below.
 
             Message()
-                : header(1, sizeof(Message))
+                : header(2, sizeof(Message))
                 {}
+
+            void setVector(float _x, float _y, float _z)
+            {
+                x = _x;
+                y = _y;
+                z = _z;
+                flag = 'v';
+            }
+
+            void setReceipt()
+            {
+                flag = 'r';
+            }
         };
 
         inline bool IsValidMessage(const Message *message)
@@ -42,7 +56,17 @@ namespace Sapphire
                 (message != nullptr) &&
                 (message->header.size >= sizeof(Message)) &&
                 (0 == memcmp(message->header.signature, "Tcdr", 4)) &&
-                (message->header.version >= 1);
+                (message->header.version >= 2);
+        }
+
+        inline bool IsVectorMessage(const Message *message)
+        {
+            return IsValidMessage(message) && (message->flag == 'v');
+        }
+
+        inline bool IsReturnReceiptMessage(const Message *message)
+        {
+            return IsValidMessage(message) && (message->flag == 'r');
         }
 
         struct Communicator     // allows two-way message traffic between Tricorder and an adjacent module
@@ -57,13 +81,15 @@ namespace Sapphire
                 module.rightExpander.consumerMessage = &buffer[1];
             }
 
-            void sendVector(float x, float y, float z)
+            bool sendVector(float x, float y, float z)
             {
-                Tricorder::Message& msg = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
-                msg.x = x;
-                msg.y = y;
-                msg.z = z;
+                Tricorder::Message& prod = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
+                prod.setVector(x, y, z);
+
                 parentModule.rightExpander.requestMessageFlip();
+
+                Tricorder::Message* cons = static_cast<Tricorder::Message*>(parentModule.rightExpander.consumerMessage);
+                return IsReturnReceiptMessage(cons);    // did our previous message (if any) receive a return receipt?
             }
         };
     }

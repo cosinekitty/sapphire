@@ -258,23 +258,21 @@ namespace Sapphire
 
             static bool isCompatibleModule(const Module *module)
             {
-                if (module == nullptr)
-                    return false;
-
-                return
+                return (module != nullptr) && (
                     module->model == modelFrolic ||
                     module->model == modelGlee ||
                     module->model == modelNucleus ||
                     module->model == modelTin ||
-                    module->model == modelTricorder;
+                    module->model == modelTricorder
+                );
             }
 
-            const Message* inboundMessage() const
+            Message* inboundVectorMessage() const
             {
                 if (isCompatibleModule(leftExpander.module))
                 {
-                    const Message* message = static_cast<const Message *>(leftExpander.module->rightExpander.consumerMessage);
-                    if (IsValidMessage(message))
+                    Message* message = static_cast<Message *>(leftExpander.module->rightExpander.consumerMessage);
+                    if (IsVectorMessage(message))
                         return message;
                 }
 
@@ -290,7 +288,7 @@ namespace Sapphire
             {
                 // Is a compatible module connected to the left?
                 // If so, receive a triplet of voltages from it and put them in the buffer.
-                const Message *msg = inboundMessage();
+                Message *msg = inboundVectorMessage();
                 if (msg == nullptr)
                 {
                     // There is no compatible module flush to the left of Tricorder.
@@ -306,9 +304,7 @@ namespace Sapphire
 
                     // Daisy chain this inbound message from the left to any chained module on the right.
                     Message& daisy = *static_cast<Message*>(rightExpander.producerMessage);
-                    daisy.x = xcurr;
-                    daisy.y = ycurr;
-                    daisy.z = zcurr;
+                    daisy.setVector(xcurr, ycurr, zcurr);
                     rightExpander.requestMessageFlip();
 
                     // Only insert new points if the position has changed significantly
@@ -354,6 +350,10 @@ namespace Sapphire
                             pointList[latestPointIndex] = p;
                         }
                     }
+
+                    // Confirm to the sender that we received the message.
+                    // This allows the sending module to know it is connected to Tricorder.
+                    msg->setReceipt();
                 }
             }
 

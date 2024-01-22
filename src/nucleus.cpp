@@ -86,6 +86,7 @@ namespace Sapphire
             NucleusEngine engine{NUM_PARTICLES};
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
+            bool isTricorderConnected{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
 
@@ -329,7 +330,8 @@ namespace Sapphire
                 float x = engine.output(tricorderOutputIndex, 0);
                 float y = engine.output(tricorderOutputIndex, 1);
                 float z = engine.output(tricorderOutputIndex, 2);
-                communicator.sendVector(x, y, z);
+
+                isTricorderConnected = communicator.sendVector(x, y, z);
             }
         };
 
