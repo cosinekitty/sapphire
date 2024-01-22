@@ -493,7 +493,7 @@ namespace Sapphire
                 Rect r;
                 r.pos.x = mm2px(X1Out - DxOut/2);
                 r.pos.y = mm2px(Y1Out - DyOut/2 + (row-1)*DyOut);
-                r.size.x = mm2px(3*DxOut);
+                r.size.x = mm2px(DxTotal);
                 r.size.y = mm2px(DyOut);
 
                 return r;

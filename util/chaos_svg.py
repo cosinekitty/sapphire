@@ -199,10 +199,13 @@ def GenerateNucleusPanel() -> int:
     yOutVarNames = yOutTop - yCushion
     xPortGridCenter = xmid + 12.0
     xOutLeft = xPortGridCenter - dxPort
+    dxRightMargin = 1.0
+    dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
-    with open('../src/nucleus_panel.hpp', 'wt') as headerFile:
+    headerFileName = '../src/nucleus_panel.hpp'
+    with open(headerFileName, 'wt') as headerFile:
         headerFile.write('// nucleus_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n')
         headerFile.write('#pragma once\n')
         headerFile.write('namespace Sapphire\n')
@@ -211,13 +214,15 @@ def GenerateNucleusPanel() -> int:
         headerFile.write('    {\n')
         headerFile.write('        namespace Panel\n')
         headerFile.write('        {\n')
-        headerFile.write('            const float DxOut = {:9.3f}f;    // horizontal distance between output port columns.\n'.format(dxPort))
-        headerFile.write('            const float DyOut = {:9.3f}f;    // vertical distance between output port rows.\n'.format(dyOut))
-        headerFile.write('            const float X1Out = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
-        headerFile.write('            const float Y1Out = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
+        headerFile.write('            const float DxOut   = {:9.3f}f;    // horizontal distance between output port columns.\n'.format(dxPort))
+        headerFile.write('            const float DyOut   = {:9.3f}f;    // vertical distance between output port rows.\n'.format(dyOut))
+        headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
+        headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
+        headerFile.write('            const float DxTotal = {:9.3f}f;    // total horizontal space to allocate to each bounding box.\n'.format(dxTotal))
         headerFile.write('        }\n')
         headerFile.write('    }\n')
         headerFile.write('}\n')
+        Print('Wrote: ' + headerFileName)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
