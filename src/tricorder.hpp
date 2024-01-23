@@ -36,17 +36,22 @@ namespace Sapphire
                 : header(2, sizeof(Message))
                 {}
 
-            void setVector(float _x, float _y, float _z)
+            void setVector(float _x, float _y, float _z, float reset)
             {
                 x = _x;
                 y = _y;
                 z = _z;
-                flag = 'v';
+                flag = reset ? 'V' : 'v';
             }
 
             void setReceipt()
             {
                 flag = 'r';
+            }
+
+            bool isResetRequested() const
+            {
+                return flag == 'V';
             }
         };
 
@@ -61,7 +66,7 @@ namespace Sapphire
 
         inline bool IsVectorMessage(const Message *message)
         {
-            return IsValidMessage(message) && (message->flag == 'v');
+            return IsValidMessage(message) && (message->flag == 'v' || message->flag == 'V');
         }
 
         inline bool IsReturnReceiptMessage(const Message *message)
@@ -81,10 +86,10 @@ namespace Sapphire
                 module.rightExpander.consumerMessage = &buffer[1];
             }
 
-            bool sendVector(float x, float y, float z)
+            bool sendVector(float x, float y, float z, bool reset)
             {
                 Tricorder::Message& prod = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
-                prod.setVector(x, y, z);
+                prod.setVector(x, y, z, reset);
 
                 parentModule.rightExpander.requestMessageFlip();
 

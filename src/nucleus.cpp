@@ -90,6 +90,7 @@ namespace Sapphire
             bool isTricorderConnected{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
+            bool resetTricorder{};
 
             NucleusModule()
                 : communicator(*this)
@@ -162,6 +163,7 @@ namespace Sapphire
 
                 agcLevelQuantity->load(root, "agcLevel");
 
+                resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
                 json_t *tri = json_object_get(root, "tricorderOutputIndex");
                 if (json_is_integer(tri))
@@ -185,6 +187,19 @@ namespace Sapphire
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
+                resetTricorder = true;
+            }
+
+            void setOutputRow(int row)
+            {
+                if (row < 1 || row >= static_cast<int>(NUM_PARTICLES))
+                    return;     // ignore invalid requests
+
+                if (tricorderOutputIndex != row)
+                {
+                    tricorderOutputIndex = row;     // remember the selected row
+                    resetTricorder = true;          // tell Tricorder to start over with a new graph
+                }
             }
 
             void reflectAgcSlider()
@@ -333,7 +348,9 @@ namespace Sapphire
                 float z = engine.output(tricorderOutputIndex, 2);
 
                 // As we send the vector, we also make note of whether Tricorder is receiving our messages.
-                isTricorderConnected = communicator.sendVector(x, y, z);
+                bool reset = resetTricorder;
+                resetTricorder = false;
+                isTricorderConnected = communicator.sendVector(x, y, z, reset);
             }
         };
 
@@ -620,7 +637,7 @@ namespace Sapphire
                     if (box.contains(e.pos))
                     {
                         // Select the new output row.
-                        nucleusModule->tricorderOutputIndex = row;
+                        nucleusModule->setOutputRow(row);
                         break;
                     }
                 }

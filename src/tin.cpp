@@ -62,7 +62,8 @@ namespace Sapphire
                 float x = inputs[X_INPUT].getVoltageSum();
                 float y = inputs[Y_INPUT].getVoltageSum();
                 float z = inputs[Z_INPUT].getVoltageSum();
-                communicator.sendVector(x, y, z);
+                bool reset = false;     // FIXFIXFIX: add a reset trigger to Tin
+                communicator.sendVector(x, y, z, reset);
             }
 
             json_t* dataToJson() override

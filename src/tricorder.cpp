@@ -297,6 +297,13 @@ namespace Sapphire
                 }
                 else
                 {
+                    if (msg->isResetRequested())
+                    {
+                        // The sender is telling us that it would be a good idea to start over
+                        // with an empty trail.
+                        resetPointList();
+                    }
+
                     // Sanity check the values fed to us from the other module.
                     xcurr = filter(msg->x);
                     ycurr = filter(msg->y);
@@ -304,7 +311,7 @@ namespace Sapphire
 
                     // Daisy chain this inbound message from the left to any chained module on the right.
                     Message& daisy = *static_cast<Message*>(rightExpander.producerMessage);
-                    daisy.setVector(xcurr, ycurr, zcurr);
+                    daisy.setVector(xcurr, ycurr, zcurr, msg->isResetRequested());
                     rightExpander.requestMessageFlip();
 
                     // Only insert new points if the position has changed significantly

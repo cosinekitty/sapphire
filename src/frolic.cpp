@@ -109,7 +109,7 @@ namespace Sapphire
                 outputs[X_OUTPUT].setVoltage(circuit.vx());
                 outputs[Y_OUTPUT].setVoltage(circuit.vy());
                 outputs[Z_OUTPUT].setVoltage(circuit.vz());
-                communicator.sendVector(circuit.vx(), circuit.vy(), circuit.vz());
+                communicator.sendVector(circuit.vx(), circuit.vy(), circuit.vz(), false);
             }
         };
 
