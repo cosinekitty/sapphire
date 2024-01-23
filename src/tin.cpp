@@ -19,6 +19,7 @@ namespace Sapphire
             X_INPUT,
             Y_INPUT,
             Z_INPUT,
+            CLEAR_TRIGGER_INPUT,
 
             INPUTS_LEN
         };
@@ -36,6 +37,7 @@ namespace Sapphire
         struct TinModule : Module
         {
             Tricorder::Communicator communicator;
+            GateTriggerHelper resetTrigger;
 
             TinModule()
                 : communicator(*this)
@@ -44,11 +46,13 @@ namespace Sapphire
                 configInput(X_INPUT, "X");
                 configInput(Y_INPUT, "Y");
                 configInput(Z_INPUT, "Z");
+                configInput(CLEAR_TRIGGER_INPUT, "Clear display trigger");
                 initialize();
             }
 
             void initialize()
             {
+                resetTrigger.initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -62,7 +66,7 @@ namespace Sapphire
                 float x = inputs[X_INPUT].getVoltageSum();
                 float y = inputs[Y_INPUT].getVoltageSum();
                 float z = inputs[Z_INPUT].getVoltageSum();
-                bool reset = false;     // FIXFIXFIX: add a reset trigger to Tin
+                bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
                 communicator.sendVector(x, y, z, reset);
             }
 
@@ -88,6 +92,7 @@ namespace Sapphire
                 addSapphireInput(X_INPUT, "x_input");
                 addSapphireInput(Y_INPUT, "y_input");
                 addSapphireInput(Z_INPUT, "z_input");
+                addSapphireInput(CLEAR_TRIGGER_INPUT, "clear_trigger_input");
                 reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }
         };

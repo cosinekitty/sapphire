@@ -212,4 +212,38 @@ namespace Sapphire
             Widget::step();
         }
     };
+
+    class GateTriggerHelper     // mediates gate/trigger behavior from an input port
+    {
+    private:
+        float prevVoltage{};
+        bool gate{};
+        bool trigger{};
+
+    public:
+        void initialize()
+        {
+            prevVoltage = 0;
+            gate = false;
+            trigger = false;
+        }
+
+        bool updateGate(float voltage)
+        {
+            if (prevVoltage < 1.0f && voltage >= 1.0f)
+                gate = true;
+            else if (prevVoltage >= 0.1 && voltage < 0.1)
+                gate = false;
+            prevVoltage = voltage;
+            return gate;
+        }
+
+        bool updateTrigger(float voltage)
+        {
+            bool prevGate = gate;
+            updateGate(voltage);
+            trigger = gate && !prevGate;
+            return trigger;
+        }
+    };
 }

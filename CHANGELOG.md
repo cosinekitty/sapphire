@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">18 Jan 2024</td>
+<td align="center">23 Jan 2024</td>
 <td align="center">2.4.0</td>
 <td align="left">
     <ul>
@@ -17,6 +17,7 @@
         <li>Fixed issues where Elastika and Tube Unit did not persist AGC level or DC reject frequency. They were being reset to their default values every time a patch was loaded.</li>
         <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
         <li>Tricorder: when first connected to a constant 0V input, immediately refresh the coordinate axes. Before this change, the display area stayed blank until the input voltage changed by more than 0.1V. This was confusing, because it looked like there is no input signal!</li>
+        <li>Tin: added a trigger input port that clears the Tricorder display.</li>
     </ul>
 </td>
 </tr>

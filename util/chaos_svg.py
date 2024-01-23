@@ -137,28 +137,37 @@ def GenerateTinPanel() -> int:
     xmid = panel.mmWidth/2
     inputPortY1 = 30.0
     inputPortDY = 10.0
+    inputPortY2 = 110.0
     xPortLabel = xmid + 5.2
-    yPortLabel = inputPortY1 - 2.4
+    yInPortLabel = inputPortY1 - 2.4
     xInLabel = xmid - 1.9
     yInLabel = inputPortY1 - 10.5
     inGradY1 = yInLabel - 1.5
-    inGradY2 = yPortLabel + 2*inputPortDY + 10.0
+    inGradY2 = yInPortLabel + 2*inputPortDY + 10.0
     controls = ControlLayer()
+    xTriggerPortLabel = xmid - 5.3
+    yTriggerPortLabel = inputPortY2 - 10.0
+    inGradY3 = yTriggerPortLabel - 1.5
+    inGradY4 = inGradY3 + 10.0
     defs = Element('defs')
     pl.append(defs)
     defs.append(Gradient(inGradY1, inGradY2, '#a06de4', '#4f8df2', 'gradient_in'))
+    defs.append(Gradient(inGradY3, inGradY4, '#3068ff', '#4f8df2', 'gradient_trigger'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'tin'))
         pl.append(CenteredGemstone(panel))
         pl.append(ControlGroupArt('tin', 'in_art', panel, inGradY1, inGradY2, 'gradient_in'))
-        pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*inputPortDY, 'port_label_x'))
-        pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*inputPortDY, 'port_label_y'))
-        pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*inputPortDY, 'port_label_z'))
+        pl.append(ControlGroupArt('tin', 'trig_art', panel, inGradY3, inGradY4, 'gradient_trigger'))
+        pl.append(ControlTextPath(font, 'X',  xPortLabel, yInPortLabel + 0*inputPortDY, 'port_label_x'))
+        pl.append(ControlTextPath(font, 'Y',  xPortLabel, yInPortLabel + 1*inputPortDY, 'port_label_y'))
+        pl.append(ControlTextPath(font, 'Z',  xPortLabel, yInPortLabel + 2*inputPortDY, 'port_label_z'))
         controls.append(Component('x_input', xmid, inputPortY1 + 0*inputPortDY))
         controls.append(Component('y_input', xmid, inputPortY1 + 1*inputPortDY))
         controls.append(Component('z_input', xmid, inputPortY1 + 2*inputPortDY))
+        controls.append(Component('clear_trigger_input', xmid, inputPortY2))
         pl.append(ControlTextPath(font, 'IN', xInLabel, yInLabel, 'in_label'))
+        pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'trigger_label'))
     pl.append(controls)
     panel.append(pl)
     return Save(panel, svgFileName)
