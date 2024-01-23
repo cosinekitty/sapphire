@@ -14,7 +14,7 @@ namespace Sapphire
     {
         const std::size_t NUM_PARTICLES = 5;
 
-        const float OUTPUT_EXPONENT = 6;
+        const float OUTPUT_EXPONENT = 10;
         const float INPUT_EXPONENT = 4;
         const float INPUT_SCALE = 0.015f;
 
