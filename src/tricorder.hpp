@@ -36,7 +36,7 @@ namespace Sapphire
                 : header(2, sizeof(Message))
                 {}
 
-            void setVector(float _x, float _y, float _z, float reset)
+            void setVector(float _x, float _y, float _z, bool reset)
             {
                 x = _x;
                 y = _y;
