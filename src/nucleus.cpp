@@ -489,9 +489,6 @@ namespace Sapphire
 
                 if (layer == 1 && nucleusModule != nullptr)
                 {
-                    nvgSave(args.vg);
-                    Rect b = box.zeroPos();
-                    nvgScissor(args.vg, RECT_ARGS(b));
                     // If Tricorder is currently graphing output from Nucleus,
                     // highlight the currently selected output row.
                     if (nucleusModule->isTricorderConnected)
@@ -501,8 +498,6 @@ namespace Sapphire
 
                         drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
                     }
-                    nvgResetScissor(args.vg);
-                    nvgRestore(args.vg);
                 }
             }
 
