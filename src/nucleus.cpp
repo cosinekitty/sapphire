@@ -553,8 +553,8 @@ namespace Sapphire
                 const float y4 = box.pos.y + box.size.y - G;
 
                 nvgBeginPath(vg);
-                nvgStrokeColor(vg, SCHEME_PURPLE);
-                nvgFillColor(vg, nvgRGBA(0x80, 0x20, 0x20, 0x40));
+                nvgStrokeColor(vg, SCHEME_BLACK);
+                nvgFillColor(vg, nvgRGBA(0xd0, 0xa0, 0x20, 0xe0));
                 nvgMoveTo(vg, x1, y2);
                 nvgLineTo(vg, x2, y2);
                 nvgLineTo(vg, x2, y1);
