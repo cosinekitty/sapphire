@@ -1051,12 +1051,6 @@ namespace Sapphire
             }
         };
 
-        const int MOUSE_STATIONARY_FADING = 200;
-        const int MOUSE_STATIONARY_VANISH = MOUSE_STATIONARY_FADING + 50;
-
-        const int MOUSE_ABSENT_FADING = 5;
-        const int MOUSE_ABSENT_VANISH = MOUSE_ABSENT_FADING + 25;
-
         struct TricorderDisplay : OpaqueWidget
         {
             TricorderModule* module;
