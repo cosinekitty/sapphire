@@ -253,6 +253,13 @@ def GenerateNucleusPanel() -> int:
             xInPos += dxPort
             xOutPos += dxPort
 
+        pl.append(ControlTextPath(font, 'A', xInputCenter - dxPort - 8.5, yIn - 2.5))
+        xpos = xOutPos - 46.0
+        ypos = yOutTop - 2.5
+        for row in range(0, nOutputParticles):
+            pl.append(ControlTextPath(font, 'BCDE'[row], xpos, ypos))
+            ypos += dyOut
+
         yKnobRow1 = 25.0
         yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)

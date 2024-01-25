@@ -97,9 +97,9 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                configInput(X_INPUT, "X");
-                configInput(Y_INPUT, "Y");
-                configInput(Z_INPUT, "Z");
+                configInput(X_INPUT, "AX");
+                configInput(Y_INPUT, "AY");
+                configInput(Z_INPUT, "AZ");
 
                 configParam(SPEED_KNOB_PARAM, -6, +6, 0, "Speed");
                 configParam(DECAY_KNOB_PARAM, 0, 1, 0.5, "Decay");
@@ -119,18 +119,18 @@ namespace Sapphire
                 configInput(IN_DRIVE_CV_INPUT, "Input level CV");
                 configInput(OUT_LEVEL_CV_INPUT, "Output level CV");
 
-                configOutput(X1_OUTPUT, "X1");
-                configOutput(Y1_OUTPUT, "Y1");
-                configOutput(Z1_OUTPUT, "Z1");
-                configOutput(X2_OUTPUT, "X2");
-                configOutput(Y2_OUTPUT, "Y2");
-                configOutput(Z2_OUTPUT, "Z2");
-                configOutput(X3_OUTPUT, "X3");
-                configOutput(Y3_OUTPUT, "Y3");
-                configOutput(Z3_OUTPUT, "Z3");
-                configOutput(X4_OUTPUT, "X4");
-                configOutput(Y4_OUTPUT, "Y4");
-                configOutput(Z4_OUTPUT, "Z4");
+                configOutput(X1_OUTPUT, "BX");
+                configOutput(Y1_OUTPUT, "BY");
+                configOutput(Z1_OUTPUT, "BZ");
+                configOutput(X2_OUTPUT, "CX");
+                configOutput(Y2_OUTPUT, "CY");
+                configOutput(Z2_OUTPUT, "CZ");
+                configOutput(X3_OUTPUT, "DX");
+                configOutput(Y3_OUTPUT, "DY");
+                configOutput(Z3_OUTPUT, "DZ");
+                configOutput(X4_OUTPUT, "EX");
+                configOutput(Y4_OUTPUT, "EY");
+                configOutput(Z4_OUTPUT, "EZ");
 
                 configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
 
