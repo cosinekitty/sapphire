@@ -47,6 +47,212 @@ namespace Sapphire
         const float NUMERIC_Y_LEFT    = 0.40f * DISPLAY_MM_WIDTH;
         const float NUMERIC_Z_LEFT    = 0.70f * DISPLAY_MM_WIDTH;
 
+        enum class MousePosition
+        {
+            Absent,         // the mouse is not inside a button nor inside the display rectangle
+            InDisplay,      // the mouse is inside the display after enough step() ticks
+            InButton,       // the mouse is inside a button after enough step() ticks
+        };
+
+
+        class MouseStateManager     // helps "denoise" state transitions for mouse ownership
+        {
+        private:
+            MousePosition currPos = MousePosition::Absent;
+            MousePosition nextPos = MousePosition::Absent;
+            unsigned count = 0;
+            const unsigned threshold = 10;       // how many step() calls before we consider mouse ownership changed?
+
+        public:
+            MousePosition position() const
+            {
+                return currPos;
+            }
+
+            void step()
+            {
+                // Debounce changes in state, so that we ignore a series of rapid changes.
+                if (nextPos != currPos)
+                {
+                    if (count < threshold)
+                    {
+                        ++count;
+                    }
+                    else
+                    {
+                        count = 0;
+                        currPos = nextPos;
+                    }
+                }
+            }
+
+            void requestNextPos(MousePosition pos)
+            {
+                if (pos != currPos)
+                {
+                    nextPos = pos;
+                    count = 0;
+                }
+            }
+
+            void onEnterDisplayArea()
+            {
+                requestNextPos(MousePosition::InDisplay);
+            }
+
+            void onLeaveDisplayArea()
+            {
+                // We might be "leaving" the display area right before (or after?)
+                // entering one of the buttons.
+                // Ignore leaving if we just entered a button.
+                if (nextPos != MousePosition::InButton)
+                {
+                    requestNextPos(MousePosition::Absent);
+                }
+            }
+
+            void onEnterButton()
+            {
+                requestNextPos(MousePosition::InButton);
+            }
+
+            void onLeaveButton()
+            {
+                if (nextPos != MousePosition::InDisplay)
+                {
+                    requestNextPos(MousePosition::Absent);
+                }
+            }
+        };
+
+
+        class ButtonFader    // manages when Tricorder display buttons are hidden/waxing/opaque/fading
+        {
+        private:
+            bool fading = true;
+            unsigned count = 0;
+            unsigned loThreshold = 0;
+            unsigned hiThreshold = 1;
+            unsigned stillCount = 0;
+            const unsigned stillLoThresh = 100;
+            const unsigned stillHiThresh = 200;
+            MouseStateManager mstate;
+
+        public:
+            void step()
+            {
+                const MousePosition prevPosition = mstate.position();
+                mstate.step();
+                const MousePosition currPosition = mstate.position();
+
+                if (currPosition == prevPosition)
+                {
+                    // We are still in the same state.
+                    // Some states have faders that require sliding a value over time.
+                    if (count < hiThreshold)
+                        ++count;
+                }
+                else
+                {
+                    // The state just changed. What do we need to (re-)initialize?
+                    switch (currPosition)
+                    {
+                    case MousePosition::InDisplay:
+                        // If we were just inside the InButton state, stay fully visible.
+                        // Otherwise, prepare to fade in.
+                        loThreshold = 20;
+                        hiThreshold = 60;
+                        fading = false;
+                        if (prevPosition == MousePosition::InButton)
+                            count = hiThreshold;
+                        else
+                            count = 0;
+                        break;
+
+                    case MousePosition::InButton:
+                        // Go instantly to the in-button state.
+                        count = 1;
+                        loThreshold = 0;
+                        hiThreshold = 1;
+                        fading = false;
+                        break;
+
+                    case MousePosition::Absent:
+                    default:
+                        // Elvis has left the building. Begin fading out immediately.
+                        count = 0;
+                        loThreshold = 0;
+                        hiThreshold = 50;
+                        fading = true;
+                        break;
+                    }
+                }
+            }
+
+            void onMouseStill()
+            {
+                if (mstate.position() == MousePosition::InDisplay)
+                {
+                    if (stillCount < stillHiThresh)
+                        ++stillCount;
+                }
+                else
+                    stillCount = 0;
+            }
+
+            void onMouseMove()
+            {
+                // Any time the mouse moves, cancel any fading that occurred due to being stationary for too long.
+                stillCount = 0;
+            }
+
+            float fade() const
+            {
+                float factor;
+
+                // Check for too much mouse stillness while inside the display area (but outside all buttons).
+                if (mstate.position() == MousePosition::InDisplay)
+                    if (stillCount >= stillLoThresh && stillHiThresh > stillLoThresh)
+                        return 1 - static_cast<float>(stillCount - stillLoThresh) / (stillHiThresh - stillLoThresh);
+
+                if (count >= loThreshold && hiThreshold > loThreshold)
+                    factor = static_cast<float>(count - loThreshold) / (hiThreshold - loThreshold);
+                else
+                    factor = 0;
+
+                if (fading)
+                    factor = 1 - factor;
+
+                return factor;
+            }
+
+            bool areButtonsVisible() const
+            {
+                return fade() > 0;
+            }
+
+            void onEnterDisplayArea()
+            {
+                mstate.onEnterDisplayArea();
+            }
+
+            void onLeaveDisplayArea()
+            {
+                mstate.onLeaveDisplayArea();
+            }
+
+            void onEnterButton()
+            {
+                mstate.onEnterButton();
+            }
+
+            void onLeaveButton()
+            {
+                mstate.onLeaveButton();
+            }
+        };
+
+
         struct Point
         {
             float x;
@@ -504,6 +710,8 @@ namespace Sapphire
         bool AxesAreVisible(const TricorderDisplay&);
         bool NumbersAreVisible(const TricorderDisplay& display);
         void AdjustZoom(const TricorderDisplay&, int adjust);
+        void OnEnterDisplayButton(TricorderDisplay&);
+        void OnLeaveDisplayButton(TricorderDisplay&);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
@@ -536,7 +744,7 @@ namespace Sapphire
             {
                 if (layer==1 && isButtonVisible())
                 {
-                    fade = ButtonFade(display);     // call once and cache for re-use by all the line() calls
+                    fade = ButtonFade(display);
                     NVGcolor color = nvgRGB(0x70, 0x58, 0x13);
                     color.a = (ownsMouse ? 1.0f : 0.2f) * fade;
                     math::Rect r = box.zeroPos();
@@ -563,11 +771,13 @@ namespace Sapphire
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
+                OnEnterDisplayButton(display);
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 ownsMouse = false;
+                OnLeaveDisplayButton(display);
             }
 
             void onButton(const ButtonEvent& e) override
@@ -854,8 +1064,7 @@ namespace Sapphire
             std::vector<TricorderButton*> buttonList;
             bool ownsMouse = false;
             bool isDragging = false;
-            int mouseStationaryCount = 0;
-            int mouseAbsentCount = MOUSE_ABSENT_VANISH;
+            ButtonFader buttonFader;
             Vec hoverMousePos;      // valid only when ownsMouse is true
             std::string fontPath;
             float xprev{};
@@ -886,6 +1095,16 @@ namespace Sapphire
                 addChild(button);
                 buttonList.push_back(button);
                 return button;
+            }
+
+            bool areButtonsVisible() const
+            {
+                return buttonFader.areButtonsVisible();
+            }
+
+            float buttonFade() const
+            {
+                return buttonFader.fade();
             }
 
             void draw(const DrawArgs& args) override
@@ -1243,28 +1462,13 @@ namespace Sapphire
                 return mm2px(Vec(sx, sy));
             }
 
-            bool isMouseInsideDisplay() const
-            {
-                if (ownsMouse)
-                    return true;
-
-                for (const TricorderButton* button : buttonList)
-                    if (button->ownsMouse)
-                        return true;
-
-                return false;
-            }
-
             void step() override
             {
                 if (module == nullptr || module->bypassing)
                     return;
 
                 module->stepOrientation();
-
-                if (!isMouseInsideDisplay())
-                    if (mouseAbsentCount < MOUSE_ABSENT_VANISH)
-                        ++mouseAbsentCount;
+                buttonFader.step();
             }
 
             void onHover(const HoverEvent& e) override
@@ -1274,14 +1478,13 @@ namespace Sapphire
                     if (hoverMousePos.equals(e.pos))
                     {
                         // The mouse is not moving.
-                        if (mouseStationaryCount <= MOUSE_STATIONARY_VANISH)
-                            ++mouseStationaryCount;
+                        buttonFader.onMouseStill();
                     }
                     else
                     {
                         // The mouse is moving.
                         hoverMousePos = e.pos;
-                        mouseStationaryCount = 0;
+                        buttonFader.onMouseMove();
                     }
                 }
                 OpaqueWidget::onHover(e);
@@ -1303,14 +1506,23 @@ namespace Sapphire
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
-                mouseAbsentCount = 0;
-                mouseStationaryCount = 0;
+                buttonFader.onEnterDisplayArea();
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 ownsMouse = false;
-                mouseAbsentCount = 0;
+                buttonFader.onLeaveDisplayArea();
+            }
+
+            void onEnterButton()
+            {
+                buttonFader.onEnterButton();
+            }
+
+            void onLeaveButton()
+            {
+                buttonFader.onLeaveButton();
             }
 
             void onDragStart(const DragStartEvent& e) override
@@ -1370,58 +1582,25 @@ namespace Sapphire
             if (display.isDragging)
                 return false;
 
-            if (display.ownsMouse)
-            {
-                // Hide the buttons when the mouse has remained stationary for too long.
-                if (display.mouseStationaryCount > MOUSE_STATIONARY_VANISH)
-                    return false;
-
-                // Otherwise, because the mouse is inside the parent display, show the buttons.
-                return true;
-            }
-
-            for (const TricorderButton* button : display.buttonList)
-                if (button->ownsMouse)
-                    return true;
-
-            // The mouse is completely outside the control area.
-            // There is a brief time where we fade out the buttons before making them disappear.
-            if (display.mouseAbsentCount < MOUSE_ABSENT_VANISH)
-                return true;
-
-            return false;
+            return display.areButtonsVisible();
         }
 
 
         float ButtonFade(const TricorderDisplay& display)
         {
-            // When the mouse has remained stationary for a while, begin to fade
-            // out the buttons, instead of making them vanish instantly.
-            // This function calculates a value from 0 (hidden) to 1 (fully visible).
-            if (display.ownsMouse)
-            {
-                if (display.mouseStationaryCount >= MOUSE_STATIONARY_VANISH)
-                    return 0;
+            return display.buttonFade();
+        }
 
-                if (display.mouseStationaryCount > MOUSE_STATIONARY_FADING)
-                {
-                    float numer = display.mouseStationaryCount - MOUSE_STATIONARY_FADING;
-                    float denom = MOUSE_STATIONARY_VANISH - MOUSE_STATIONARY_FADING;
-                    return 1 - (numer/denom);
-                }
-            }
 
-            if (display.mouseAbsentCount >= MOUSE_ABSENT_FADING)
-            {
-                if (display.mouseAbsentCount >= MOUSE_ABSENT_VANISH)
-                    return 0;
+        void OnEnterDisplayButton(TricorderDisplay& display)
+        {
+            display.onEnterButton();
+        }
 
-                float numer = display.mouseAbsentCount - MOUSE_ABSENT_FADING;
-                float denom = MOUSE_ABSENT_VANISH - MOUSE_ABSENT_FADING;
-                return 1 - (numer/denom);
-            }
 
-            return 1;
+        void OnLeaveDisplayButton(TricorderDisplay& display)
+        {
+            display.onLeaveButton();
         }
 
 
