@@ -61,7 +61,7 @@ namespace Sapphire
             MousePosition currPos = MousePosition::Absent;
             MousePosition nextPos = MousePosition::Absent;
             unsigned count = 0;
-            const unsigned threshold = 10;       // how many step() calls before we consider mouse ownership changed?
+            const unsigned threshold = 3;       // how many step() calls before we consider mouse ownership changed?
 
         public:
             MousePosition position() const
