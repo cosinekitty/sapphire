@@ -88,7 +88,7 @@ namespace Sapphire
 
             void requestNextPos(MousePosition pos)
             {
-                if (pos != currPos)
+                if (pos != nextPos)
                 {
                     nextPos = pos;
                     count = 0;
@@ -102,13 +102,7 @@ namespace Sapphire
 
             void onLeaveDisplayArea()
             {
-                // We might be "leaving" the display area right before (or after?)
-                // entering one of the buttons.
-                // Ignore leaving if we just entered a button.
-                if (nextPos != MousePosition::InButton)
-                {
-                    requestNextPos(MousePosition::Absent);
-                }
+                requestNextPos(MousePosition::Absent);
             }
 
             void onEnterButton()
@@ -118,10 +112,7 @@ namespace Sapphire
 
             void onLeaveButton()
             {
-                if (nextPos != MousePosition::InDisplay)
-                {
-                    requestNextPos(MousePosition::Absent);
-                }
+                requestNextPos(MousePosition::Absent);
             }
         };
 
@@ -134,8 +125,8 @@ namespace Sapphire
             unsigned loThreshold = 0;
             unsigned hiThreshold = 1;
             unsigned stillCount = 0;
-            const unsigned stillLoThresh = 100;
-            const unsigned stillHiThresh = 200;
+            const unsigned stillLoThresh = 200;
+            const unsigned stillHiThresh = 400;
             MouseStateManager mstate;
 
         public:
@@ -163,10 +154,7 @@ namespace Sapphire
                         loThreshold = 20;
                         hiThreshold = 60;
                         fading = false;
-                        if (prevPosition == MousePosition::InButton)
-                            count = hiThreshold;
-                        else
-                            count = 0;
+                        count = (prevPosition == MousePosition::InButton) ? hiThreshold : 0;
                         break;
 
                     case MousePosition::InButton:
