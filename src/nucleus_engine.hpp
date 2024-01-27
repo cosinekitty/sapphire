@@ -36,7 +36,7 @@ namespace Sapphire
         const float max_dt = 0.0005f;
         std::vector<Particle> curr;
         std::vector<Particle> next;
-        float magneticCoupling{};
+        float magneticCoupling = 0.0f;
         float speedLimit = 1000.0f;
         AutomaticGainLimiter agc;
         bool enableAgc = false;
@@ -45,7 +45,7 @@ namespace Sapphire
 
         // DC reject state (consider moving into a separate class...)
         bool enableDcReject = false;
-        const int crossfadeLimit = 200;
+        const int crossfadeLimit = 1000;
         int crossfadeCounter{};
         float mixFilt{};
         std::vector<NucleusDcRejectFilter> filterArray;     // 3 filters per particle: (x, y, z)
@@ -184,7 +184,7 @@ namespace Sapphire
                 f.Reset();
             }
             crossfadeCounter = 0;
-            enableAutomaticOversample();
+            enableFixedOversample(1);
             setAgcEnabled(true);
             setDcRejectEnabled(true);
 

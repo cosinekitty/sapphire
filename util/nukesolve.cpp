@@ -110,8 +110,12 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 {
     using namespace Sapphire;
 
-    float dt = 0.001f;
-    float halflife = 0.0001f;
+    engine.setMagneticCoupling(0.0f);
+
+    const float sampleRate = 44100;
+    float dt = 1 / sampleRate;
+    float halflife = std::sqrt(0.1);
+    float speed = 0.5f;
 
     const int n = static_cast<int>(engine.numParticles());
     int iter = 0;
@@ -134,7 +138,7 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
             break;
 
         // Update the simulation.
-        engine.update(dt, halflife, 44100, 1);
+        engine.update(speed * dt, halflife, sampleRate, 1);
 
         // Break out of the loop as soon as we believe we have converged.
         // We do this when all the particles are moving very slowly.
