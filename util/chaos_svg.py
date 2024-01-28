@@ -181,7 +181,16 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
     controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
     pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
-
+    # Draw a pair of connector lines:
+    # (1) from knob to attenuverter
+    # (2) from knob to CV input
+    t = ''
+    t += Move(x, y)
+    t += Line(x - dxControlGroup, y + dyControlGroup)
+    t += 'z '
+    t += Line(x + dxControlGroup, y + dyControlGroup)
+    t += 'z'
+    pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText:float=-6.0, dyText:float=-9.0) -> None:
     controls.append(Component(symbol, x, y))
