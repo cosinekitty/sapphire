@@ -187,9 +187,9 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     t = ''
     t += Move(x, y)
     t += Line(x - dxControlGroup, y + dyControlGroup)
-    t += 'z '
+    t += ClosePath()
     t += Line(x + dxControlGroup, y + dyControlGroup)
-    t += 'z'
+    t += ClosePath()
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText:float=-6.0, dyText:float=-9.0) -> None:

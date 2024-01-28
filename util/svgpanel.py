@@ -70,6 +70,10 @@ def Line(x:float, y:float) -> str:
     return 'L {:0.2f},{:0.2f} '.format(x, y)
 
 
+def ClosePath() -> str:
+    return 'z '
+
+
 def _FormatMillimeters(x: float) -> str:
     return '{:0.6g}'.format(x)
 

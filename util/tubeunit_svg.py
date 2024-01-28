@@ -56,7 +56,7 @@ def GenerateMainPanel() -> int:
             t += Line(sx + xdir*PentDx3, sy)
             t += Line(sx + xdir*PentDx2, sy + PentDy)
             t += Line(sx - xdir*PentDx1, sy + PentDy )
-            t += 'z '
+            t += ClosePath()
         pl.append(Element('path').setAttrib('style', style).setAttrib('d', t))
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
