@@ -42,6 +42,8 @@ namespace Sapphire
         bool enableAgc = false;
         int fixedOversample = 0;                // 0 = calculate oversample, >0 = specify oversampling count
         std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
+        int fadeInCounter = 0;
+        const int fadeInLimit = 4000;
 
         // DC reject state (consider moving into a separate class...)
         bool enableDcReject = false;
@@ -184,6 +186,7 @@ namespace Sapphire
                 f.Reset();
             }
             crossfadeCounter = 0;
+            fadeInCounter = 0;
             enableFixedOversample(1);
             setAgcEnabled(true);
             setDcRejectEnabled(true);
@@ -277,6 +280,13 @@ namespace Sapphire
 
                 if (crossfadeCounter > 0)
                     --crossfadeCounter;
+            }
+
+            // Prevent clicks during initial "settling" by applying a linear fade-in after each reset.
+            if (fadeInCounter < fadeInLimit)
+            {
+                gain *= static_cast<double>(fadeInCounter) / static_cast<double>(fadeInLimit);
+                ++fadeInCounter;
             }
 
             // Copy outputs, and apply optional DC rejection.

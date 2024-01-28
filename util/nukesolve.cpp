@@ -112,7 +112,7 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 
     engine.setMagneticCoupling(0.0f);
 
-    const float sampleRate = 44100;
+    const float sampleRate = 48000;
     float dt = 1 / sampleRate;
     float halflife = std::sqrt(0.1);
     float speed = 0.5f;

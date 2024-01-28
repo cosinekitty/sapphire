@@ -179,7 +179,6 @@ namespace Sapphire
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
 
                 engine.initialize();
-                engine.enableFixedOversample(1);        // for smooth changes as SPEED knob is changed
                 int rc = SetMinimumEnergy(engine);
                 if (rc != 0)
                     WARN("SetMinimumEnergy returned error %d", rc);
