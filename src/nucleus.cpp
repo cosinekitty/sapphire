@@ -179,10 +179,7 @@ namespace Sapphire
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
 
                 engine.initialize();
-                int rc = SetMinimumEnergy(engine);
-                if (rc != 0)
-                    WARN("SetMinimumEnergy returned error %d", rc);
-
+                SetMinimumEnergy(engine);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;

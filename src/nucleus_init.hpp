@@ -3,10 +3,8 @@
 #include "nucleus_engine.hpp"
 namespace Sapphire
 {
-    inline int SetMinimumEnergy(NucleusEngine& engine)
+    inline void SetMinimumEnergy(NucleusEngine& engine)
     {
-        const int n = static_cast<int>(engine.numParticles());
-        if (n != 5) return 777;
 
         Particle& p0 = engine.particle(0);
         p0.vel = PhysicsVector::zero();
@@ -43,6 +41,5 @@ namespace Sapphire
         p4.pos[2] = 0.03169500455260277;
         p4.pos[3] = 0;
 
-        return 0;
     }
 }

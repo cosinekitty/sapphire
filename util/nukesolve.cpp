@@ -70,6 +70,11 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     using namespace Sapphire;
 
     const int n = static_cast<int>(engine.numParticles());
+    if (n != 5)
+    {
+        printf("nukesolve.cpp: Expected 5 particles but found %d.\n", n);
+        return 1;
+    }
 
     FILE *outfile = fopen(outHeaderFileName, "wt");
     if (outfile == nullptr)
@@ -83,10 +88,8 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     fprintf(outfile, "#include \"nucleus_engine.hpp\"\n");
     fprintf(outfile, "namespace Sapphire\n");
     fprintf(outfile, "{\n");
-    fprintf(outfile, "    inline int SetMinimumEnergy(NucleusEngine& engine)\n");
+    fprintf(outfile, "    inline void SetMinimumEnergy(NucleusEngine& engine)\n");
     fprintf(outfile, "    {\n");
-    fprintf(outfile, "        const int n = static_cast<int>(engine.numParticles());\n");
-    fprintf(outfile, "        if (n != %d) return 777;\n", n);
     for (int i = 0; i < n; ++i)
     {
         fprintf(outfile, "\n");
@@ -97,7 +100,6 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
             fprintf(outfile, "        p%d.pos[%d] = %0.16lg;\n", i, k, p.pos[k]);
     }
     fprintf(outfile, "\n");
-    fprintf(outfile, "        return 0;\n");
     fprintf(outfile, "    }\n");
     fprintf(outfile, "}\n");
     fclose(outfile);
