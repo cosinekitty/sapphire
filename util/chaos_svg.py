@@ -209,7 +209,8 @@ def GenerateNucleusPanel() -> int:
     xPortGridCenter = xmid + 12.0
     xOutLeft = xPortGridCenter - dxPort
     dxRightMargin = 1.0
-    dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin
+    dxLeft = 4.0
+    dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin + dxLeft
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
@@ -228,6 +229,7 @@ def GenerateNucleusPanel() -> int:
         headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
         headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
         headerFile.write('            const float DxTotal = {:9.3f}f;    // total horizontal space to allocate to each bounding box.\n'.format(dxTotal))
+        headerFile.write('            const float DxLeft  = {:9.3f}f;    // extra space reserved on the left for BCDE.\n'.format(dxLeft))
         headerFile.write('        }\n')
         headerFile.write('    }\n')
         headerFile.write('}\n')

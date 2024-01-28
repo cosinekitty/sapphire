@@ -505,7 +505,7 @@ namespace Sapphire
                 using namespace Panel;
 
                 Rect r;
-                r.pos.x = mm2px(X1Out - DxOut/2);
+                r.pos.x = mm2px(X1Out - DxOut/2 - DxLeft);
                 r.pos.y = mm2px(Y1Out - DyOut/2 + (row-1)*DyOut);
                 r.size.x = mm2px(DxTotal);
                 r.size.y = mm2px(DyOut);
@@ -572,15 +572,22 @@ namespace Sapphire
 
                 Rect box = outputRowBoundingBox(row);
 
+                const float radius = box.size.x / 20;
+
                 nvgBeginPath(vg);
                 nvgStrokeColor(vg, SCHEME_YELLOW);
                 nvgFillColor(vg, SCHEME_YELLOW);
                 nvgStrokeWidth(vg, 1.0f);
                 nvgLineCap(vg, NVG_ROUND);
-                nvgMoveTo(vg, box.pos.x, box.pos.y);
-                nvgLineTo(vg, box.pos.x + box.size.x, box.pos.y);
-                nvgLineTo(vg, box.pos.x + box.size.x, box.pos.y + box.size.y);
-                nvgLineTo(vg, box.pos.x, box.pos.y + box.size.y);
+                nvgMoveTo(vg, box.pos.x + radius, box.pos.y);
+                nvgLineTo(vg, box.pos.x + (box.size.x - radius), box.pos.y);
+                nvgArcTo(vg, box.pos.x + box.size.x, box.pos.y, box.pos.x + box.size.x, box.pos.y + (box.size.y - radius), radius);
+                nvgLineTo(vg, box.pos.x + box.size.x, box.pos.y + (box.size.y - radius));
+                nvgArcTo(vg, box.pos.x + box.size.x, box.pos.y + box.size.y, box.pos.x + (box.size.x - radius), box.pos.y + box.size.y, radius);
+                nvgLineTo(vg, box.pos.x + (box.size.x - radius), box.pos.y + box.size.y);
+                nvgArcTo(vg, box.pos.x, box.pos.y + box.size.y, box.pos.x, box.pos.y + (box.size.y - radius), radius);
+                nvgLineTo(vg, box.pos.x, box.pos.y + radius);
+                nvgArcTo(vg, box.pos.x, box.pos.y, box.pos.x + radius, box.pos.y, radius);
                 nvgClosePath(vg);
                 nvgStroke(vg);
             }
