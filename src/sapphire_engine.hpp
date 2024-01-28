@@ -157,7 +157,15 @@ namespace Sapphire
         float fc {20.0f};
 
     public:
-        void Reset() { xprev = yprev = 0; }
+        void Snap(value_t xDcLevel)
+        {
+            // Put the filter into the exact state of having been
+            // fed a constant value `xDcLevel` for an infinite amount of time.
+            // This causes the filter to instantly "settle" at xDcLevel.
+            yprev = xprev = xDcLevel;
+        }
+
+        void Reset() { Snap(0); }
         void SetCutoffFrequency(float cutoffFrequencyHz) { fc = cutoffFrequencyHz; }
 
         void Update(value_t x, float sampleRateHz)
@@ -168,7 +176,7 @@ namespace Sapphire
         }
 
         value_t HiPass() const { return xprev - yprev; }
-        value_t LoPass() const { return yprev; };
+        value_t LoPass() const { return yprev; }
     };
 
 
@@ -208,6 +216,32 @@ namespace Sapphire
             for (int i=0; i < LAYERS; ++i)
             {
                 stage[i].Update(y, sampleRateHz);
+                y = stage[i].HiPass();
+            }
+            return y;
+        }
+
+        // The "Snap[Lo|Hi]Pass" functions allow restarting a simulation that was
+        // already in progress, without encountering a popping artifact from the sudden
+        // change in particle positions.
+
+        value_t SnapLoPass(value_t x)
+        {
+            value_t y = x;
+            for (int i=0; i < LAYERS; ++i)
+            {
+                stage[i].Snap(y);
+                y = stage[i].LoPass();
+            }
+            return y;
+        }
+
+        value_t SnapHiPass(value_t x)
+        {
+            value_t y = x;
+            for (int i=0; i < LAYERS; ++i)
+            {
+                stage[i].Snap(y);
                 y = stage[i].HiPass();
             }
             return y;

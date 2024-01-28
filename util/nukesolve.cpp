@@ -114,12 +114,12 @@ static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine)
 
     const float sampleRate = 48000;
     float dt = 1 / sampleRate;
-    float halflife = std::sqrt(0.1);
+    float halflife = 0.1;
     float speed = 0.5f;
 
     const int n = static_cast<int>(engine.numParticles());
     int iter = 0;
-    const float tolerance = 4.0e-5;
+    const float tolerance = 5.0e-7;
     float score = 999;
     for(;;)
     {

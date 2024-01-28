@@ -8,7 +8,7 @@
 
 #include <cstdio>
 
-int main()
+static int TestLoHi()
 {
     using filter_t = Sapphire::LoHiPassFilter<double>;
     const int SAMPLE_RATE = 44100;
@@ -27,4 +27,31 @@ int main()
     }
 
     return 0;
+}
+
+
+static int TestSnap()
+{
+    using filter_t = Sapphire::StagedFilter<double, 3>;
+
+    // Confirm we can completely reject a step function by "snapping" to it.
+    filter_t filter;
+
+    const float sampleRate = 48000;
+    const double xStep = 1.0;
+    filter.SnapHiPass(xStep);
+    double y = filter.UpdateHiPass(xStep, sampleRate);
+    printf("TestSnap: y = %0.16lg\n", y);
+    if (std::abs(y) > 1.0e-16)
+    {
+        printf("EXCESSIVE SNAP ERROR\n");
+        return 1;
+    }
+    return 0;
+}
+
+
+int main()
+{
+    return TestLoHi() || TestSnap();
 }

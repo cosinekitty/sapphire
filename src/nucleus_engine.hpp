@@ -42,15 +42,14 @@ namespace Sapphire
         bool enableAgc = false;
         int fixedOversample = 0;                // 0 = calculate oversample, >0 = specify oversampling count
         std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
-        int fadeInCounter = 0;
-        const int fadeInLimit = 4000;
 
         // DC reject state (consider moving into a separate class...)
         bool enableDcReject = false;
-        const int crossfadeLimit = 1000;
+        const int crossfadeLimit = 8000;
         int crossfadeCounter{};
         float mixFilt{};
         std::vector<NucleusDcRejectFilter> filterArray;     // 3 filters per particle: (x, y, z)
+        bool filtersNeedReset = false;
 
         void calculateForces(std::vector<Particle>& array)
         {
@@ -162,7 +161,8 @@ namespace Sapphire
             if (mixFilt > 0)
             {
                 // DC rejection is enabled, or we are crossfading.
-                float y = filterArray.at(3*i + k).UpdateHiPass(x, sampleRate);
+                NucleusDcRejectFilter& filt = filterArray.at(3*i + k);
+                float y = filtersNeedReset ? filt.SnapHiPass(x) : filt.UpdateHiPass(x, sampleRate);
                 return (1-mixFilt)*x + mixFilt*y;
             }
             return x;
@@ -186,10 +186,10 @@ namespace Sapphire
                 f.Reset();
             }
             crossfadeCounter = 0;
-            fadeInCounter = 0;
             enableFixedOversample(1);
             setAgcEnabled(true);
             setDcRejectEnabled(true);
+            filtersNeedReset = true;     // anti-click measure: eliminate step function being fed through filters!
 
             // The caller is responsible for resetting particle states.
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
@@ -243,6 +243,11 @@ namespace Sapphire
                 // Trigger a cross-fade, to prevent clicking in audio streams.
                 enableDcReject = enable;
                 crossfadeCounter = crossfadeLimit;
+
+                // Force resetting filters when we process the first input sample.
+                // This will make them "snap" to the initial DC state.
+                if (enable)
+                    filtersNeedReset = true;
             }
         }
 
@@ -282,13 +287,6 @@ namespace Sapphire
                     --crossfadeCounter;
             }
 
-            // Prevent clicks during initial "settling" by applying a linear fade-in after each reset.
-            if (fadeInCounter < fadeInLimit)
-            {
-                gain *= static_cast<double>(fadeInCounter) / static_cast<double>(fadeInLimit);
-                ++fadeInCounter;
-            }
-
             // Copy outputs, and apply optional DC rejection.
             // For a couple hundred samples after toggling the DC rejection option,
             // there is a linear crossfade between the raw signal and the filtered
@@ -300,6 +298,9 @@ namespace Sapphire
                 for (int k = 0; k < 3; ++k)
                     output(i, k) = gain * filter(sampleRate, i, k, p.pos[k]);
             }
+
+            if (mixFilt > 0)
+                filtersNeedReset = false;       // the `filter` function has finished resetting all the filters by now
 
             if (enableAgc)
                 agc.process(sampleRate, outputBuffer);
