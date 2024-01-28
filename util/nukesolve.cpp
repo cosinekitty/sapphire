@@ -92,14 +92,14 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     fprintf(outfile, "    {\n");
     for (int i = 0; i < n; ++i)
     {
-        fprintf(outfile, "\n");
+        if (i > 0)
+            fprintf(outfile, "\n");
         const Particle& p = engine.particle(i);
         fprintf(outfile, "        Particle& p%d = engine.particle(%d);\n", i, i);
         fprintf(outfile, "        p%d.vel = PhysicsVector::zero();\n", i);
         for (int k = 0; k < 4; ++k)
             fprintf(outfile, "        p%d.pos[%d] = %0.16lg;\n", i, k, p.pos[k]);
     }
-    fprintf(outfile, "\n");
     fprintf(outfile, "    }\n");
     fprintf(outfile, "}\n");
     fclose(outfile);

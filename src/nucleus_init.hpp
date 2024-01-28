@@ -5,7 +5,6 @@ namespace Sapphire
 {
     inline void SetMinimumEnergy(NucleusEngine& engine)
     {
-
         Particle& p0 = engine.particle(0);
         p0.vel = PhysicsVector::zero();
         p0.pos[0] = 0;
@@ -40,6 +39,5 @@ namespace Sapphire
         p4.pos[1] = 0.5429291725158691;
         p4.pos[2] = 0.03169500455260277;
         p4.pos[3] = 0;
-
     }
 }
