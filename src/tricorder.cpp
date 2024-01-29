@@ -551,10 +551,6 @@ namespace Sapphire
                             pointList[latestPointIndex] = p;
                         }
                     }
-
-                    // Confirm to the sender that we received the message.
-                    // This allows the sending module to know it is connected to Tricorder.
-                    msg->setReceipt();
                 }
             }
 

@@ -44,11 +44,6 @@ namespace Sapphire
                 flag = reset ? 'V' : 'v';
             }
 
-            void setReceipt()
-            {
-                flag = 'r';
-            }
-
             bool isResetRequested() const
             {
                 return flag == 'V';
@@ -69,11 +64,6 @@ namespace Sapphire
             return IsValidMessage(message) && (message->flag == 'v' || message->flag == 'V');
         }
 
-        inline bool IsReturnReceiptMessage(const Message *message)
-        {
-            return IsValidMessage(message) && (message->flag == 'r');
-        }
-
         struct Communicator     // allows two-way message traffic between Tricorder and an adjacent module
         {
             Message buffer[2];
@@ -86,15 +76,28 @@ namespace Sapphire
                 module.rightExpander.consumerMessage = &buffer[1];
             }
 
-            bool sendVector(float x, float y, float z, bool reset)
+            void sendVector(float x, float y, float z, bool reset)
             {
                 Tricorder::Message& prod = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
                 prod.setVector(x, y, z, reset);
 
                 parentModule.rightExpander.requestMessageFlip();
+            }
 
-                Tricorder::Message* cons = static_cast<Tricorder::Message*>(parentModule.rightExpander.consumerMessage);
-                return IsReturnReceiptMessage(cons);    // did our previous message (if any) receive a return receipt?
+            bool isVectorReceiverConnectedOnRight() const
+            {
+                if (parentModule.rightExpander.module != nullptr)
+                {
+                    Model *rm = parentModule.rightExpander.module->model;
+                    if (rm != nullptr)      // weird thought: what if modelTricorder is null!
+                    {
+                        return (
+                            (rm == modelTricorder)
+                            // Add "||" with more models here, if/when their modules can receive vector streams.
+                        );
+                    }
+                }
+                return false;
             }
         };
     }

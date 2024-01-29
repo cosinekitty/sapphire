@@ -87,7 +87,6 @@ namespace Sapphire
             NucleusEngine engine{NUM_PARTICLES};
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
-            int tricorderConnectCount{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
             bool resetTricorder{};
@@ -346,10 +345,7 @@ namespace Sapphire
                 // As we send the vector, we also make note of whether Tricorder is receiving our messages.
                 bool reset = resetTricorder;
                 resetTricorder = false;
-                if (communicator.sendVector(x, y, z, reset))
-                    tricorderConnectCount = 10;         // Tricorder successfully processed the previous vector message
-                else if (tricorderConnectCount > 0)
-                    --tricorderConnectCount;            // Tricorder might be gone... keep trying for a little while
+                communicator.sendVector(x, y, z, reset);
             }
         };
 
@@ -482,21 +478,24 @@ namespace Sapphire
                 }
             }
 
+            bool isVectorReceiverConnectedOnRight() const
+            {
+                return nucleusModule && nucleusModule->communicator.isVectorReceiverConnectedOnRight();
+            }
+
             void drawLayer(const DrawArgs& args, int layer) override
             {
+                // Allow everything underneath to draw first.
                 SapphireReloadableModuleWidget::drawLayer(args, layer);
 
-                if (layer == 1 && nucleusModule != nullptr)
+                if (layer == 1 && isVectorReceiverConnectedOnRight())
                 {
-                    // If Tricorder is currently graphing output from Nucleus,
-                    // highlight the currently selected output row.
-                    if (nucleusModule->tricorderConnectCount > 0)
-                    {
-                        if (ownsMouse)
-                            drawOutputRowCursor(args.vg, hoverOutputIndex);
+                    // Draw luminous output selectors on top of the base layers.
 
-                        drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
-                    }
+                    if (ownsMouse)
+                        drawOutputRowCursor(args.vg, hoverOutputIndex);
+
+                    drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
                 }
             }
 
@@ -628,7 +627,7 @@ namespace Sapphire
                 if (nucleusModule == nullptr)
                     return;
 
-                if (0 == nucleusModule->tricorderConnectCount)
+                if (!isVectorReceiverConnectedOnRight())
                     return;
 
                 // See if the mouse click lands inside any of the mouse bounding boxes.
