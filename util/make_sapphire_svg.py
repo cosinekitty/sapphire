@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   chaos_svg.py  -  Don Cross <cosinekitty@gmail.com>
+#   make_sapphire_svg.py  -  Don Cross <cosinekitty@gmail.com>
 #
 #   Generates the SVG panel design for Sapphire Frolic.
 #
@@ -10,7 +10,7 @@ from sapphire import *
 
 
 def Print(message:str) -> int:
-    print('chaos_svg.py:', message)
+    print('make_sapphire_svg.py:', message)
     return 0
 
 
