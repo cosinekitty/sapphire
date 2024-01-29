@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 #
-#   make_sapphire_svg.py  -  Don Cross <cosinekitty@gmail.com>
+#   make_sapphire_svg.py
+#   Don Cross <cosinekitty@gmail.com>
+#   https://github.com/cosinekitty/sapphire
 #
-#   Generates the SVG panel design for Sapphire Frolic.
+#   Generates panel artwork svg files for all Sapphire modules
+#   except for the oldest three: Moots, Elastika, and Tube Unit.
+#   Combining panel generation for multiple modules into one
+#   script makes it easier to maintain a common style across modules.
 #
 import sys
 from svgpanel import *
