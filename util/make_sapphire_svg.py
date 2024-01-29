@@ -238,7 +238,7 @@ def GenerateNucleusPanel() -> int:
     dxPort = 12.5               # horizontal distance between X, Y, Z columns.
     yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
     yCushion = 9.0              # vertical space above input ports to put labels ("X", "Y", "Z").
-    yOutTop = 84.0              # vertical position of the top row of output ports.
+    yOutTop = 86.0              # vertical position of the top row of output ports.
     yOutBottom = 112.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
@@ -280,7 +280,9 @@ def GenerateNucleusPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
-        pl.append(RectangularBubble(5.0, 11.2, 72.0, 31.0, 5.0, FillStyle('#edc598', 0.4), 'controls_bubble'))
+        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, 5.0, FillStyle('#edc598', 0.4), 'controls_bubble'))
+        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, 5.0, FillStyle('#edc598', 0.4), 'input_bubble'))
+        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, 5.0, FillStyle('#edc598', 0.4), 'output_bubble'))
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
