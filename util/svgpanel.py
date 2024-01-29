@@ -70,6 +70,12 @@ def Line(x:float, y:float) -> str:
     return 'L {:0.2f},{:0.2f} '.format(x, y)
 
 
+def Arc(r:float, x:float, y:float, sweep:int) -> str:
+    """Draw a circular arc from the current point to (x, y) in an SVG path."""
+    # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#arcs
+    # A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+    return 'A {0:g} {0:g} 0 0 {3:d} {1:g} {2:g} '.format(r, x, y, sweep)
+
 def ClosePath() -> str:
     return 'z '
 

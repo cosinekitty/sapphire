@@ -197,9 +197,34 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     t += ClosePath()
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
+
 def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText:float=-6.0, dyText:float=-9.0) -> None:
     controls.append(Component(symbol, x, y))
     pl.append(ControlTextPath(font, label, x + dxText, y + dyText))
+
+
+def RectangularBubble(x1:float, y1:float, dx:float, dy:float, radius:float, style:str, id:str = '') -> Path:
+    x2 = x1 + dx
+    y2 = y1 + dy
+    x1r = x1 + radius
+    x2r = x2 - radius
+    y1r = y1 + radius
+    y2r = y2 - radius
+    p = ''
+    p += Move(x1, y1r)
+    p += Arc(radius, x1r, y1, 1)
+    p += Line(x2r, y1)
+    p += Arc(radius, x2, y1r, 1)
+    p += Line(x2, y2r)
+    p += Arc(radius, x2r, y2, 1)
+    p += Line(x1r, y2)
+    p += Arc(radius, x1, y2r, 1)
+    p += ClosePath()
+    return Path(p, style, id)
+
+
+def FillStyle(color:str, opacity:float = 1.0) -> str:
+    return 'fill:{:s};fill-opacity:{:g};stroke:none;'.format(color, opacity)
 
 
 def GenerateNucleusPanel() -> int:
@@ -225,6 +250,8 @@ def GenerateNucleusPanel() -> int:
     dxRightMargin = 1.0
     dxLeft = 4.0
     dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin + dxLeft
+    yKnobRow1 = 25.0
+    yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
@@ -253,6 +280,7 @@ def GenerateNucleusPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
+        pl.append(RectangularBubble(5.0, 11.2, 72.0, 31.0, 5.0, FillStyle('#edc598', 0.4), 'controls_bubble'))
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
@@ -276,8 +304,6 @@ def GenerateNucleusPanel() -> int:
             pl.append(ControlTextPath(font, 'BCDE'[row], xpos, ypos))
             ypos += dyOut
 
-        yKnobRow1 = 25.0
-        yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
