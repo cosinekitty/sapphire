@@ -280,6 +280,7 @@ def GenerateNucleusPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
+        # Rectangular bubbles are background patterns that visually group related controls/ports.
         pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, 5.0, FillStyle('#edc598', 0.4), 'controls_bubble'))
         pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, 5.0, FillStyle('#edc598', 0.4), 'input_bubble'))
         pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, 5.0, FillStyle('#edc598', 0.4), 'output_bubble'))
@@ -287,7 +288,7 @@ def GenerateNucleusPanel() -> int:
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
         xOutPos = xOutLeft
-        for varname in ['x', 'y', 'z']:
+        for varname in 'xyz':
             pl.append(ControlTextPath(font, varname.upper(), xInPos - dxVarNameText, yInVarNames))
             pl.append(ControlTextPath(font, varname.upper(), xOutPos - dxVarNameText, yOutVarNames))
             varlabel = Component(varname + '_input', xInPos, yIn)
@@ -302,8 +303,8 @@ def GenerateNucleusPanel() -> int:
         pl.append(ControlTextPath(font, 'A', xInputCenter - dxPort - 8.5, yIn - 2.5))
         xpos = xOutPos - 46.0
         ypos = yOutTop - 2.5
-        for row in range(0, nOutputParticles):
-            pl.append(ControlTextPath(font, 'BCDE'[row], xpos, ypos))
+        for label in 'BCDE':
+            pl.append(ControlTextPath(font, label, xpos, ypos))
             ypos += dyOut
 
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
