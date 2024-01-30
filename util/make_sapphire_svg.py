@@ -227,10 +227,20 @@ def FillStyle(color:str, opacity:float = 1.0) -> str:
     return 'fill:{:s};fill-opacity:{:g};stroke:none;'.format(color, opacity)
 
 
+def GradientStyle(gradientId:str) -> str:
+    return 'fill:url(#' + gradientId + ');fill-opacity:1;stroke:none'
+
+
 def GenerateNucleusPanel() -> int:
     svgFileName = '../res/nucleus.svg'
     PANEL_WIDTH = 16
     panel = Panel(PANEL_WIDTH)
+    defs = Element('defs')
+    defs.append(LinearGradient('gradient_0', 50.0,  0.0,  0.0, 0.0, '#906be8', '#b242bd'))
+    defs.append(LinearGradient('gradient_1', 60.0,  0.0,  0.0, 0.0, '#6d96d6', '#3372d4'))
+    defs.append(LinearGradient('gradient_2',  0.0,  0.0, 60.0, 0.0, '#986de4', '#4373e6'))
+    defs.append(LinearGradient('gradient_3', 60.0,  0.0,  0.0, 0.0, '#3d81a0', '#26abbf'))
+    panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     controls = ControlLayer()
@@ -281,9 +291,9 @@ def GenerateNucleusPanel() -> int:
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
-        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, 5.0, FillStyle('#edc598', 0.4), 'controls_bubble'))
-        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, 5.0, FillStyle('#edc598', 0.4), 'input_bubble'))
-        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, 5.0, FillStyle('#edc598', 0.4), 'output_bubble'))
+        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, 5.0, GradientStyle('gradient_0'), 'controls_bubble'))
+        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, 5.0, GradientStyle('gradient_1'), 'input_bubble'))
+        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, 5.0, GradientStyle('gradient_2'), 'output_bubble'))
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
