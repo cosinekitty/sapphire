@@ -247,7 +247,7 @@ def GenerateNucleusPanel() -> int:
     yOutVarNames = yOutTop - yCushion
     xPortGridCenter = xmid + 12.0
     xOutLeft = xPortGridCenter - dxPort
-    dxRightMargin = 1.0
+    dxRightMargin = 5.0
     dxLeft = 4.0
     dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin + dxLeft
     yKnobRow1 = 25.0

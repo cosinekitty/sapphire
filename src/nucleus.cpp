@@ -531,10 +531,10 @@ namespace Sapphire
                 Rect box = outputRowBoundingBox(row);
 
                 // Draw a rightward-facing arrow that fits inside the bounding box.
-                const float A = 0.90 * box.size.x;       // fraction rightward where the arrowhead begins
+                const float A = 0.91 * box.size.x;       // fraction rightward where the arrowhead begins
                 const float H = 0.40 * box.size.y;       // fraction of vertical distance for skinny side of arrow
                 const float G = 0.10 * box.size.y;       // fraction of vertical margin above and below the arrow corners
-                const float V = 0.80 * box.size.x;       // fraction of horizontal distance to the left of the arrow
+                const float V = 0.86 * box.size.x;       // fraction of horizontal distance to the left of the arrow
                 const float W = 0.01 * box.size.x;       // fraction of horizontal distance to the right of the arrow
 
                 const float x1 = box.pos.x + V;
