@@ -309,7 +309,7 @@ def GenerateNucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
-        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 18.5, yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 21.0, yIn - 2.5, 1.5)
         AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
         AddButton(pl, controls, font, 'audio_mode_button', 'AUDIO', xmid - 24.0, yOutLevel - 20.0, -5.5)
     return Save(panel, svgFileName)
