@@ -227,8 +227,8 @@ def FillStyle(color:str, opacity:float = 1.0) -> str:
     return 'fill:{:s};fill-opacity:{:g};stroke:none;'.format(color, opacity)
 
 
-def GradientStyle(gradientId:str, opacity:float = 1.0) -> str:
-    return 'fill:url(#{:s});fill-opacity:{:g};stroke:none'.format(gradientId, opacity)
+def GradientStyle(gradientId:str, opacity:float) -> str:
+    return 'fill:url(#{:s});opacity:{:g};stroke:none'.format(gradientId, opacity)
 
 
 def GenerateNucleusPanel() -> int:
@@ -236,9 +236,9 @@ def GenerateNucleusPanel() -> int:
     PANEL_WIDTH = 16
     panel = Panel(PANEL_WIDTH)
     defs = Element('defs')
-    defs.append(LinearGradient('gradient_0',  0.0,  0.0, panel.mmWidth, 0.0, '#906be8', '#b242bd'))
-    defs.append(LinearGradient('gradient_1',  0.0,  0.0, panel.mmWidth, 0.0, '#6d96d6', '#3372d4'))
-    defs.append(LinearGradient('gradient_3',  0.0,  0.0, panel.mmWidth, 0.0, '#3d81a0', '#26abbf'))
+    defs.append(LinearGradient('gradient_controls',  0.0,  0.0, panel.mmWidth, 0.0, SAPPHIRE_PANEL_COLOR, '#b242bd'))
+    defs.append(LinearGradient('gradient_input',  0.0,  0.0, panel.mmWidth, 0.0, '#3068ff', SAPPHIRE_PANEL_COLOR))
+    defs.append(LinearGradient('gradient_output',  0.0,  0.0, panel.mmWidth, 0.0, SAPPHIRE_PANEL_COLOR, '#b9818b'))
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
@@ -291,9 +291,9 @@ def GenerateNucleusPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
         bubbleRadius = 6.0
-        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, bubbleRadius, GradientStyle('gradient_0'), 'controls_bubble'))
-        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, bubbleRadius, GradientStyle('gradient_1'), 'input_bubble'))
-        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, bubbleRadius, GradientStyle('gradient_3', 0.5), 'output_bubble'))
+        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, bubbleRadius, GradientStyle('gradient_controls', 0.5), 'controls_bubble'))
+        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
+        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
