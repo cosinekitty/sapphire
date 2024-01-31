@@ -291,9 +291,9 @@ def GenerateNucleusPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
         bubbleRadius = 6.0
-        pl.append(RectangularBubble(5.0, 12.0, 72.0, 30.0, bubbleRadius, GradientStyle('gradient_controls', 0.5), 'controls_bubble'))
-        pl.append(RectangularBubble(5.0, 44.0, 72.0, 28.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
-        pl.append(RectangularBubble(5.0, 74.0, 72.0, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
+        pl.append(RectangularBubble(5.0, 12.0, 72.0, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
+        pl.append(RectangularBubble(5.0, 43.0, 72.0, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
+        pl.append(RectangularBubble(5.0, 73.0, 72.0, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
