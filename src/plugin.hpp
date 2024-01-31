@@ -147,8 +147,8 @@ namespace Sapphire
     };
 
 
-    const float AGC_LEVEL_MIN = 5.0f;
-    const float AGC_LEVEL_DEFAULT = 8.5f;
+    const float AGC_LEVEL_MIN = 1.0f;
+    const float AGC_LEVEL_DEFAULT = 4.0f;
     const float AGC_LEVEL_MAX = 10.0f;
     const float AGC_DISABLE_MIN = 10.1f;
     const float AGC_DISABLE_MAX = 10.2f;

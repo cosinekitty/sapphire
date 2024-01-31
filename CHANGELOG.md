@@ -18,6 +18,7 @@
         <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
         <li>Tricorder: when first connected to a constant 0V input, immediately refresh the coordinate axes. Before this change, the display area stayed blank until the input voltage changed by more than 0.1V. This was confusing, because it looked like there is no input signal!</li>
         <li>Tin: added a trigger input port that clears the Tricorder display.</li>
+        <li>The modules that include an Automatic Gain Limiter (Elastika, Tube Unit, Nucleus) now allow the limiter to go as low as 1V, and the default has been changed from 8.5V to 4V. Backward compatibility is preserved: existing patches will still contain their original AGC settings, without any behavior changes.</li>
     </ul>
 </td>
 </tr>
