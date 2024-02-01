@@ -258,7 +258,7 @@ def GenerateNucleusPanel() -> int:
     xmid = panel.mmWidth / 2
     dxPort = 12.5               # horizontal distance between X, Y, Z columns.
     yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
-    yCushion = 9.0              # vertical space above input ports to put labels ("X", "Y", "Z").
+    yCushion = 7.5              # vertical space above input ports to put labels ("X", "Y", "Z").
     yOutTop = 86.0              # vertical position of the top row of output ports.
     yOutBottom = 112.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
