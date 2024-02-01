@@ -334,7 +334,9 @@ def GenerateNucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 21.0, yIn - 2.5, 1.5)
         AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
 
-        # Add toggle button with alternating text labels AUDIO and CONTROL
+        # Add toggle button with alternating text labels AUDIO and CONTROL.
+        # We do this by creating two extra SVG files that contain one word each.
+        # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
         xButton = xmid - 24.0
         yButton = yOutLevel - 20.0
         controls.append(Component('audio_mode_button', xButton, yButton))
