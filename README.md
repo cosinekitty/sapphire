@@ -50,6 +50,17 @@ Read the complete <a href="Moots.md">Sapphire Moots documentation</a>.
 
 ---
 
+## Nucleus
+
+A simulation of five particles obeying alternative laws of physics.
+The output can be used for control voltages or audio signals.
+
+Read the complete <a href="Nucleus.md">Sapphire Nucleus documentation</a>.
+
+<a href="Nucleus.md"><img src="images/nucleus.png" /></a>
+
+---
+
 ## Tin
 
 An alterative input module for feeding data into Tricorder.
