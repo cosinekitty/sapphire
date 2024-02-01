@@ -337,10 +337,10 @@ def GenerateNucleusPanel() -> int:
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
         xButton = xmid - 24.0
-        yButton = yOutLevel - 20.0
+        yButton = yOutLevel - 19.5
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
-        yText = yButton - 6.0
+        yText = yButton - 6.5
         SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/nucleus_label_audio.svg',   xText, yText)
         SaveLabelLayer(PANEL_WIDTH, 'CONTROL', '../res/nucleus_label_control.svg', xText, yText)
     return Save(panel, svgFileName)
