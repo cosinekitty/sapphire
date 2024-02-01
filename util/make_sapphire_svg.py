@@ -263,7 +263,6 @@ def GenerateNucleusPanel() -> int:
     yOutBottom = 112.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
-    dxVarNameText = 1.0         # half the width of the labels ("X", "Y", "Z"); used for centering.
     yInVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
     yOutVarNames = yOutTop - yCushion
     xPortGridCenter = xmid + 12.0
@@ -310,8 +309,8 @@ def GenerateNucleusPanel() -> int:
         xInPos = xInputCenter - dxPort
         xOutPos = xOutLeft
         for varname in 'xyz':
-            pl.append(ControlTextPath(font, varname.upper(), xInPos - dxVarNameText, yInVarNames))
-            pl.append(ControlTextPath(font, varname.upper(), xOutPos - dxVarNameText, yOutVarNames))
+            pl.append(CenteredControlTextPath(font, varname.upper(), xInPos , yInVarNames))
+            pl.append(CenteredControlTextPath(font, varname.upper(), xOutPos, yOutVarNames))
             varlabel = Component(varname + '_input', xInPos, yIn)
             controls.append(varlabel)
             ypos = yOutTop
