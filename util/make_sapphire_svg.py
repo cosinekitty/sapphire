@@ -198,9 +198,16 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
-def AddButton(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText:float=-6.0, dyText:float=-9.0) -> None:
-    controls.append(Component(symbol, x, y))
-    pl.append(ControlTextPath(font, label, x + dxText, y + dyText))
+def SaveLabelLayer(hpWidth:int, text:str, outSvgFileName:str, xCenter:float, yCenter:float) -> int:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        panel = Panel(hpWidth)
+        group = Element('g', 'labels')
+        group.setAttrib('style', CONTROL_LABEL_STYLE)
+        panel.append(group)
+        ti = TextItem(text, font, CONTROL_LABEL_POINTS)
+        (w, h) = ti.measure()
+        group.append(TextPath(ti, xCenter - w/2, yCenter - h/2))
+        return Save(panel, outSvgFileName)
 
 
 def RectangularBubble(x1:float, y1:float, dx:float, dy:float, radius:float, style:str, id:str = '') -> Path:
@@ -322,7 +329,15 @@ def GenerateNucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 21.0, yIn - 2.5, 1.5)
         AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
-        AddButton(pl, controls, font, 'audio_mode_button', 'AUDIO', xmid - 24.0, yOutLevel - 20.0, -5.5)
+
+        # Add toggle button with alternating text labels AUDIO and CONTROL
+        xButton = xmid - 24.0
+        yButton = yOutLevel - 20.0
+        controls.append(Component('audio_mode_button', xButton, yButton))
+        xText = xButton
+        yText = yButton - 6.0
+        SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/nucleus_label_audio.svg',   xText, yText)
+        SaveLabelLayer(PANEL_WIDTH, 'CONTROL', '../res/nucleus_label_control.svg', xText, yText)
     return Save(panel, svgFileName)
 
 

@@ -406,12 +406,23 @@ namespace Sapphire
             NucleusWarningLightWidget* warningLight{};
             int hoverOutputIndex{};
             bool ownsMouse{};
+            SvgOverlay* audioLabel;
+            SvgOverlay* controlLabel;
 
             explicit NucleusWidget(NucleusModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/nucleus.svg"))
                 , nucleusModule(module)
+                , audioLabel(SvgOverlay::Load("res/nucleus_label_audio.svg"))
+                , controlLabel(SvgOverlay::Load("res/nucleus_label_control.svg"))
             {
                 setModule(module);
+                addChild(audioLabel);
+                addChild(controlLabel);
+
+                // Leave "AUDIO" visible, but hide the overlapping "CONTROL".
+                // Later, if the button is turned off, we will flip the
+                // visibility states and show "CONTROL" instead.
+                controlLabel->hide();
 
                 addSapphireInput(X_INPUT, "x_input");
                 addSapphireInput(Y_INPUT, "y_input");
@@ -641,6 +652,22 @@ namespace Sapphire
                         break;
                     }
                 }
+            }
+
+            void step() override
+            {
+                if (nucleusModule != nullptr)
+                {
+                    // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
+                    bool audio = nucleusModule->isEnabledAudioMode();
+                    if (audio != audioLabel->isVisible())
+                    {
+                        // Toggle which of the two labels is showing.
+                        audioLabel->setVisible(audio);
+                        controlLabel->setVisible(!audio);
+                    }
+                }
+                SapphireReloadableModuleWidget::step();
             }
         };
     }
