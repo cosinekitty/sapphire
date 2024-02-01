@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="81.28mm" height="128.50mm" viewBox="0 0 81.28 128.50">
     <defs>
-        <linearGradient id="gradient_controls" x1="5" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+        <linearGradient id="gradient_controls" x1="11" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" style="stop-color:#4f8df2;stop-opacity:1;" />
             <stop offset="1" style="stop-color:#b242bd;stop-opacity:1;" />
         </linearGradient>
-        <linearGradient id="gradient_input" x1="5" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+        <linearGradient id="gradient_input" x1="11" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" style="stop-color:#3068ff;stop-opacity:1;" />
             <stop offset="1" style="stop-color:#4f8df2;stop-opacity:1;" />
         </linearGradient>
-        <linearGradient id="gradient_output" x1="5" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+        <linearGradient id="gradient_output" x1="11" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" style="stop-color:#4f8df2;stop-opacity:1;" />
             <stop offset="1" style="stop-color:#b9818b;stop-opacity:1;" />
         </linearGradient>

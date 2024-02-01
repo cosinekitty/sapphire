@@ -245,9 +245,12 @@ def GenerateNucleusPanel() -> int:
     defs = Element('defs')
     xBubbleLeft = 5.0
     xBubbleRight = 72.0
-    defs.append(LinearGradient('gradient_controls', xBubbleLeft,  0.0, xBubbleRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b242bd'))
-    defs.append(LinearGradient('gradient_input',    xBubbleLeft,  0.0, xBubbleRight, 0.0, '#3068ff', SAPPHIRE_PANEL_COLOR))
-    defs.append(LinearGradient('gradient_output',   xBubbleLeft,  0.0, xBubbleRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b9818b'))
+    bubbleRadius = 6.0
+    xSerpentLeft = xBubbleLeft + bubbleRadius
+    xSerpentRight = xBubbleRight - bubbleRadius
+    defs.append(LinearGradient('gradient_controls', xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b242bd'))
+    defs.append(LinearGradient('gradient_input',    xSerpentLeft,  0.0, xSerpentRight, 0.0, '#3068ff', SAPPHIRE_PANEL_COLOR))
+    defs.append(LinearGradient('gradient_output',   xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b9818b'))
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
@@ -299,7 +302,6 @@ def GenerateNucleusPanel() -> int:
         pl.append(ModelNamePath(panel, font, 'nucleus'))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
-        bubbleRadius = 6.0
         pl.append(RectangularBubble(xBubbleLeft, 12.0, xBubbleRight, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 43.0, xBubbleRight, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
