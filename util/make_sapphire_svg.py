@@ -327,16 +327,19 @@ def GenerateNucleusPanel() -> int:
             pl.append(ControlTextPath(font, label, xpos, ypos))
             ypos += dyOut
 
-        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid - 25.0, yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'decay', 'DECAY', xmid, yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'magnet', 'MAGNET', xmid + 25.0, yKnobRow1, 7.0)
-        AddControlGroup(pl, controls, font, 'in_drive',  'IN',  xmid + 21.0, yIn - 2.5, 1.5)
-        AddControlGroup(pl, controls, font, 'out_level', 'OUT', xmid - 24.0, yOutLevel, 3.5)
+        dxKnob = 25.0
+        xKnobLeft  = xmid - dxKnob
+        xKnobRight = xmid + dxKnob
+        AddControlGroup(pl, controls, font, 'speed',    'SPEED',  xKnobLeft,    yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,         yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight,   yKnobRow1, 7.0)
+        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xKnobRight,   yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'out_level','OUT',    xKnobLeft,    yOutLevel, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
-        xButton = xmid - 24.0
+        xButton = xKnobLeft
         yButton = yOutLevel - 19.5
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
