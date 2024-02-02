@@ -321,7 +321,7 @@ def GenerateNucleusPanel() -> int:
             xOutPos += dxPort
 
         pl.append(ControlTextPath(font, 'A', xInputCenter - dxPort - 8.5, yIn - 2.5))
-        xpos = xOutPos - 46.0
+        xpos = xmid
         ypos = yOutTop - 2.5
         for label in 'BCDE':
             pl.append(ControlTextPath(font, label, xpos, ypos))
