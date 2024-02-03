@@ -243,8 +243,8 @@ def GenerateNucleusPanel() -> int:
     PANEL_WIDTH = 16
     panel = Panel(PANEL_WIDTH)
     defs = Element('defs')
-    xBubbleLeft = 5.0
-    xBubbleRight = 72.0
+    xBubbleLeft = 4.0
+    xBubbleRight = 73.2
     bubbleRadius = 6.0
     xSerpentLeft = xBubbleLeft + bubbleRadius
     xSerpentRight = xBubbleRight - bubbleRadius
@@ -265,10 +265,9 @@ def GenerateNucleusPanel() -> int:
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
     yInVarNames = yIn - yCushion  # vertical positions of the labels "X", "Y", "Z".
     yOutVarNames = yOutTop - yCushion
-    xPortGridCenter = xmid + 12.0
-    xOutLeft = xPortGridCenter - dxPort
-    dxRightMargin = 5.0
-    dxLeft = 4.0
+    xOutLeft = xmid
+    dxRightMargin = 4.0
+    dxLeft = 5.0
     dxTotal = panel.mmWidth - xOutLeft + dxPort/2 - dxRightMargin + dxLeft
     yKnobRow1 = 25.0
     yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
@@ -307,21 +306,23 @@ def GenerateNucleusPanel() -> int:
         pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
-        xOutPos = xOutLeft
+        xOutPos = xmid
         for varname in 'xyz':
             pl.append(CenteredControlTextPath(font, varname.upper(), xInPos , yInVarNames))
             pl.append(CenteredControlTextPath(font, varname.upper(), xOutPos, yOutVarNames))
+            # Input row A
             varlabel = Component(varname + '_input', xInPos, yIn)
             controls.append(varlabel)
             ypos = yOutTop
             for i in range(1, 1+nOutputParticles):
+                # Output rows BCDE
                 controls.append(Component(varname + str(i) + '_output', xOutPos, ypos))
                 ypos += dyOut
             xInPos += dxPort
             xOutPos += dxPort
 
         pl.append(ControlTextPath(font, 'A', xInputCenter - dxPort - 8.5, yIn - 2.5))
-        xpos = xmid
+        xpos = xmid - 9.0
         ypos = yOutTop - 2.5
         for label in 'BCDE':
             pl.append(ControlTextPath(font, label, xpos, ypos))
