@@ -526,11 +526,10 @@ namespace Sapphire
             Rect mouseTargetBoundingBox(int row) const
             {
                 Rect box = outputRowBoundingBox(row);
-
-                // Allow mouse activity to work in the rightmost 1/4 of the box.
-                box.size.x /= 4;
-                box.pos.x += 3 * box.size.x;
-
+                const float frac = 0.15;
+                const float dx = box.size.x;
+                box.size.x *= frac;
+                box.pos.x += dx * (1 - frac);
                 return box;
             }
 
