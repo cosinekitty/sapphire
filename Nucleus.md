@@ -4,7 +4,7 @@
 
 Nucleus is a 3D vector synthesizer that can be used
 for generating complex control voltages or audio signals.
-Nucleus is a simulation based on a few imaginary physical laws.
+It is based on a simulation using a few imaginary physical laws.
 In the simulation, there are five particles moving in 3D space.
 The particles are labeled A, B, C, D, E.
 The particles interact with each other via forces, as discussed below.
