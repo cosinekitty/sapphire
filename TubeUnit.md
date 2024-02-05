@@ -145,7 +145,7 @@ Tube Unit includes an output limiter that uses automatic gain control
 to keep the output voltages within a reasonable range.
 
 The limiter can be enabled or disabled. When enabled,
-it can be set to any threshold level between 5V and 10V.
+it can be set to any threshold level between 1V and 10V.
 When the limiter is enabled, it will adapt automatically
 to output voltages higher than its threshold by quickly
 reducing output gain. If the volume gets quieter than
@@ -154,10 +154,9 @@ back to a maximum of unity gain (0 dB).
 This means the limiter never makes the output louder
 than it would be if the limiter were disabled.
 
-By default, the limiter is enabled and is configured
-for an 8.5V threshold.
+By default, the limiter is enabled and is configured for a 4V threshold.
 Using Tube Unit's right-click context menu, you can slide
-the limiter threshold left or right anywhere from 5V to 10V.
+the limiter threshold left or right anywhere from 1V to 10V.
 
 If you move the slider all the way to the right, it will
 turn the limiter OFF.
