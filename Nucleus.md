@@ -21,9 +21,9 @@ The output of Nucleus is the 3D position of all the other particles B, C, D, E.
 Let us call the combination of a large parameter knob, a small attenuverter knob,
 and a CV input port a *control group*. Nucleus includes the following control groups:
 
-* **SPEED**: Adjusts the rate at which time flows in the simulation. The knob range is &minus;6&ndash;+6. Each unit on this scale represents a factor of two. For example, adjusting SPEED from +3 to +4 makes the simulation run twice as fast. Lower values of SPEED produce very low frequency output that can be used for control voltages. Higher values can produce audible frequencies.
+* **SPEED**: Adjusts the rate at which time flows in the simulation. The knob range is &minus;6&nbsp;...&nbsp;+6. Each unit on this scale represents a factor of two. For example, adjusting SPEED from +3 to +4 makes the simulation run twice as fast. Lower values of SPEED produce very low frequency output that can be used for control voltages. Higher values can produce audible frequencies.
 * **DECAY**: Adjusts friction in the system that causes vibrations to die out. Higher values of DECAY cause more reverberant sounds, which can sometimes lead to unwanted strong oscillations. Lower values cause energy to die out quickly, resulting in more percussive sounds or less reverberant filtering of the input.
-* **MAGNET**: Adjusts the relative strength of the magnetic force with respect to the attractive and repulsive forces. The range of values is &minus;1&ndash;+1. The default value is 0, which means there is no magnetic force at all. Positive and negative values have similar effects, but in opposite directions.
+* **MAGNET**: Adjusts the relative strength of the magnetic force with respect to the attractive and repulsive forces. The range of values is &minus;1&nbsp;...&nbsp;+1. The default value is 0, which means there is no magnetic force at all. Positive and negative values have similar effects, but in opposite directions of space.
 * **IN**: Adjusts the strength of the vector input A. This is a drive setting. If the IN knob is turned all the way down, the input has no effect.
 * **OUT**: Adjusts the level of the output vectors B, C, D, E. This control works in cooperation with the [output limiter](#output-limiter).
 
@@ -70,10 +70,10 @@ $$
 
 where
 
-* $\overrightarrow F_{ij}$ is the force of particle $j$ acting on particle $i$. By Newton's laws, this is also the negative of the force of particle $i$ actiing on particle $j$.
+* $\overrightarrow F_{ij}$ is the force of particle $j$ acting on particle $i$. By Newton's laws, this is also the negative of the force of particle $i$ acting on particle $j$.
 * $\overrightarrow R$ is the relative difference in position between the two particles: $\overrightarrow R = \overrightarrow r_j - \overrightarrow r_i$.
-* $R = | \overrightarrow R |$ is the distance between particles $i$ and $j$.
-* $\mu$ is the *coupling coefficient* that expresses how strong the magnetic force is relative to the repulsive and attractive forces. This value is controlled by the MAGNET knob.
+* $R = | \overrightarrow R |$ is the scalar distance between particles $i$ and $j$.
+* $\mu$ is the *magnetic coupling coefficient* that expresses how strong the magnetic force is relative to the repulsive and attractive forces. This value is controlled by the MAGNET knob.
 
 The three inputs for Particle A's position vector are amplitude-controled by the IN level control group.
 
