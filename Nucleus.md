@@ -146,6 +146,22 @@ will toggle whether the warning light turns on
 when the limiter is active. The warning light option
 defaults to being enabled.
 
+### Graphing output using Tricorder
+If you place a [Tricorder](Tricorder.md) module immediately to the right of a Nucleus module,
+Tricorder will start graphing one of the output vectors B, C, D, or E.
+By default, Tricorder graphs output B:
+
+<img src="images/nucleus_tricorder.png"/>
+
+You can change which particle's position vector is graphed by hovering the mouse over
+the area to the right of the Z output port for the desired row:
+
+<img src="images/nucleus_output_hover.png"/>
+
+When you see the yellow box surround your desired output row, click there.
+Nucleus will change which output it sends to Tricorder, as reflected by moving the yellow arrow there:
+
+<img src="images/nucleus_output_select.png"/>
 
 ### Treatment of polyphonic inputs
 
