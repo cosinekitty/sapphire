@@ -16,9 +16,14 @@ The output of Nucleus is the 3D position of all the other particles B, C, D, E.
 
 ### Demo videos
 
+Here is a video to help get started with Sapphire Nucleus. It shows a basic
+audio setup, how to connect the cables, and how to set the controls on Nucleus.
+
+[![Sapphire Nucleus - getting started](https://img.youtube.com/vi/weNNJJABpok/0.jpg)](https://www.youtube.com/watch?v=weNNJJABpok)
+
 Sapphire Nucleus can be used with feedback to create chaotic/glitchy sounds:
 
-[![Sapphire glitch](https://img.youtube.com/vi/Wq1-Jhx948g/0.jpg)](https://www.youtube.com/watch?v=Wq1-Jhx948g)
+[![Sapphire Nucleus glitch](https://img.youtube.com/vi/Wq1-Jhx948g/0.jpg)](https://www.youtube.com/watch?v=Wq1-Jhx948g)
 
 ### Control groups
 
