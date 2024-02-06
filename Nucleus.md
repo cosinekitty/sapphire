@@ -74,6 +74,14 @@ where
 * $\overrightarrow R$ is the relative difference in position between the two particles: $\overrightarrow R = \overrightarrow r_j - \overrightarrow r_i$.
 * $R = | \overrightarrow R |$ is the scalar distance between particles $i$ and $j$.
 * $\mu$ is the *magnetic coupling coefficient* that expresses how strong the magnetic force is relative to the repulsive and attractive forces. This value is controlled by the MAGNET knob.
+* $\overrightarrow V$ is the *effective velocity* difference between the two particles. The direction of the velocity vector is left as-is, but its magnitude is conditioned using a bicubic limiter to improve stability of the simulation. The bicubic formula used by Nucleus is:
+
+$$
+y = \frac {4 x^3} {27 L^2}
+$$
+
+where $y$ is the effective speed, $x$ is the raw speed, and $L$ is the maximum allowed value
+of the effective speed. When $|x| \gt \frac{3}{2} L$, the value of $y$ is clamped to $\pm L$.
 
 The three inputs for Particle A's position vector are amplitude-controled by the IN level control group.
 
