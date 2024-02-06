@@ -16,6 +16,10 @@ The output of Nucleus is the 3D position of all the other particles B, C, D, E.
 
 ### Demo videos
 
+Sapphire Nucleus can be used with feedback to create chaotic/glitchy sounds:
+
+[![Sapphire glitch](https://img.youtube.com/vi/Wq1-Jhx948g/0.jpg)](https://www.youtube.com/watch?v=Wq1-Jhx948g)
+
 ### Control groups
 
 Let us call the combination of a large parameter knob, a small attenuverter knob,
