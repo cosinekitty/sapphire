@@ -25,6 +25,11 @@ Sapphire Nucleus can be used with feedback to create chaotic/glitchy sounds:
 
 [![Sapphire Nucleus glitch](https://img.youtube.com/vi/Wq1-Jhx948g/0.jpg)](https://www.youtube.com/watch?v=Wq1-Jhx948g)
 
+The next example is a haunted house soundtrack generator. This time I used two Nuclei, one as a low frequency CV generator, the other as an instrument voice in duet with [Bogaudio FM-OP](https://library.vcvrack.com/Bogaudio/Bogaudio-FMOp). The original idea for Nucleus was as a low frequency CV generator with lots of outputs that are frequency-compatible but different from each other, and all potentially chaotic.
+
+[![Sapphire Nucleus haunted house](https://img.youtube.com/vi/a5142lSOYIQ/0.jpg)](https://www.youtube.com/watch?v=a5142lSOYIQ)
+
+
 ### Control groups
 
 Let us call the combination of a large parameter knob, a small attenuverter knob,
