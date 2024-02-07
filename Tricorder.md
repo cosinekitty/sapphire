@@ -40,6 +40,7 @@ allow rotating the animation in four different directions.
 * The 123 button toggles whether the voltage values are displayed as numbers at the bottom of the display.
 * The + and &minus; buttons zoom in and out.
 * The home button in the upper left corner resets the default orientation and zoom level.
+* The button with empty square brackets `[]` can be pressed to clear the existing path on the display. After clicking this button, Tricorder will start over with any new vector data that are fed to it.
 
 You can also click anywhere in the middle of the display, hold down the left mouse button,
 and drag to reorient the display. This stops any automatic rotation that was in progress.

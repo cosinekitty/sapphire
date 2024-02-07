@@ -696,6 +696,7 @@ namespace Sapphire
         void AdjustZoom(const TricorderDisplay&, int adjust);
         void OnEnterDisplayButton(TricorderDisplay&);
         void OnLeaveDisplayButton(TricorderDisplay&);
+        void ClearPath(TricorderDisplay&);
 
         struct TricorderButton : OpaqueWidget       // a mouse click target that appears when hovering over the TricorderDisplay
         {
@@ -1035,6 +1036,33 @@ namespace Sapphire
             }
         };
 
+        struct TricorderButton_ClearPath : TricorderButton
+        {
+            explicit TricorderButton_ClearPath(TricorderDisplay& _display)
+                : TricorderButton(_display, BUTTON_LEFTCENTER, BUTTON_TOP)
+                {}
+
+            void onButtonClick() override
+            {
+                ClearPath(display);
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                TricorderButton::drawLayer(args, layer);
+                if (layer==1 && isButtonVisible())
+                {
+                    // Empty square brackets: []
+                    line(args, 0.2, 0.2, 0.3, 0.2);
+                    line(args, 0.2, 0.2, 0.2, 0.8);
+                    line(args, 0.2, 0.8, 0.3, 0.8);
+                    line(args, 0.8, 0.2, 0.7, 0.2);
+                    line(args, 0.8, 0.2, 0.8, 0.8);
+                    line(args, 0.8, 0.8, 0.7, 0.8);
+                }
+            }
+        };
+
         struct TricorderDisplay : OpaqueWidget
         {
             TricorderModule* module;
@@ -1065,6 +1093,7 @@ namespace Sapphire
                 addButton(new TricorderButton_Home(*this));
                 addButton(new TricorderButton_ZoomIn(*this));
                 addButton(new TricorderButton_ZoomOut(*this));
+                addButton(new TricorderButton_ClearPath(*this));
             }
 
             template <typename button_t>
@@ -1626,6 +1655,13 @@ namespace Sapphire
         {
             if (display.module != nullptr)
                 display.module->adjustZoom(adjust);
+        }
+
+
+        void ClearPath(TricorderDisplay& display)
+        {
+            if (display.module != nullptr)
+                display.module->resetPointList();
         }
 
 
