@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">11 Feb 2024</td>
+<td align="center">2.4.1</td>
+<td align="left">
+    <ul>
+        <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">7 Feb 2024</td>
 <td align="center">2.4.0</td>
 <td align="left">

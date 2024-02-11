@@ -2,6 +2,7 @@
 #include "sapphire_widget.hpp"
 #include "nucleus_engine.hpp"
 #include "nucleus_init.hpp"
+#include "nucleus_reset.hpp"
 #include "nucleus_panel.hpp"
 #include "tricorder.hpp"
 
@@ -85,11 +86,13 @@ namespace Sapphire
         struct NucleusModule : Module
         {
             NucleusEngine engine{NUM_PARTICLES};
+            CrashChecker crashChecker;
             AgcLevelQuantity *agcLevelQuantity{};
             bool enableLimiterWarning = true;
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
             bool resetTricorder{};
+            int recoveryCountdown = 0;
 
             NucleusModule()
                 : communicator(*this)
@@ -316,6 +319,29 @@ namespace Sapphire
                 // the actual output stream (not simulated physical time).
                 engine.update(speed * args.sampleTime, halflife, args.sampleRate, gain);
 
+#if 0
+                // Use this code to verify correct functioning of the recovery countdown / CODE BLUE logic.
+                static int evil;
+                if (++evil == 100000)
+                {
+                    evil = 0;
+                    engine.particle(4).pos[0] = NAN;
+                }
+#endif
+
+                // Look for NAN/infinite outputs, and reset the engine as needed (every 10K samples, that is).
+                if (crashChecker.check(engine))
+                {
+                    // We just "rebooted" the engine due to invalid output.
+                    // Make the output knob glow "code blue" for a little while.
+                    recoveryCountdown = static_cast<int>(args.sampleRate);
+                }
+                else
+                {
+                    if (recoveryCountdown > 0)
+                        --recoveryCountdown;
+                }
+
                 // Let the audio/cv toggle pushbutton light reflect its button state.
                 lights[AUDIO_MODE_BUTTON_LIGHT].setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
 
@@ -390,10 +416,22 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
-                    // Update the warning light state dynamically.
-                    // Turn on the warning when the AGC is limiting the output.
-                    double distortion = nucleusModule ? nucleusModule->engine.getAgcDistortion() : 0.0;
-                    color = warningColor(distortion);
+                    if (nucleusModule != nullptr)
+                    {
+                        // Update the warning light state dynamically.
+                        if (nucleusModule->recoveryCountdown > 0)
+                        {
+                            // The Nucleus engine just "rebooted" due to non-finite output.
+                            // Show a CODE BLUE knob.
+                            color = nvgRGBA(0xff, 0x00, 0xff, 0xb0);
+                        }
+                        else
+                        {
+                            // Turn on the warning when the AGC is limiting the output.
+                            double distortion = nucleusModule->engine.getAgcDistortion();
+                            color = warningColor(distortion);
+                        }
+                    }
                 }
                 LightWidget::drawLayer(args, layer);
             }

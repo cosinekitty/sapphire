@@ -26,6 +26,13 @@ namespace Sapphire
         PhysicsVector vel;
         PhysicsVector force;
         float mass = 1.0e-3f;
+
+        bool isFinite() const
+        {
+            // We don't check `force` because it is a temporary part of the calculation.
+            // Any problems in `force` will show up in `pos` and `vel`.
+            return pos.isFinite3d() && vel.isFinite3d();
+        }
     };
 
     using NucleusDcRejectFilter = StagedFilter<float, 3>;
@@ -190,6 +197,20 @@ namespace Sapphire
             setAgcEnabled(true);
             setDcRejectEnabled(true);
             filtersNeedReset = true;     // anti-click measure: eliminate step function being fed through filters!
+
+            // The caller is responsible for resetting particle states.
+            // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
+        }
+
+        void resetAfterCrash()      // called when infinite/NAN output is detected, to pop back into the finite world
+        {
+            filtersNeedReset = true;
+            agc.initialize();
+
+            const int n = static_cast<int>(numParticles());
+            for (int i = 0; i < n; ++i)
+                for (int k = 0; k < 3; ++k)
+                    output(i, k) = 0;
 
             // The caller is responsible for resetting particle states.
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.

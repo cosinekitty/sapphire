@@ -59,6 +59,12 @@ namespace Sapphire
         float& operator[](int i) { return s[i]; }
         const float& operator[](int i) const { return s[i]; }
         static PhysicsVector zero() { return PhysicsVector{}; }
+
+        bool isFinite3d() const
+        {
+            // Check for finite 3D vector, optimized by ignoring the fourth component that we don't care about.
+            return std::isfinite(s[0]) && std::isfinite(s[1]) && std::isfinite(s[2]);
+        }
     };
 
     inline PhysicsVector operator + (const PhysicsVector& a, const PhysicsVector& b)
