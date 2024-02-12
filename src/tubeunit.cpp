@@ -77,7 +77,6 @@ namespace Sapphire
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity = nullptr;
-            bool enableLimiterWarning = true;
             bool isInvertedVentPort = false;
             int numActiveChannels = 0;
             const int outputVerifyInterval = 11000;

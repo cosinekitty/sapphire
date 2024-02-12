@@ -78,7 +78,6 @@ namespace Sapphire
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
-            bool enableLimiterWarning = true;
 
             ElastikaModule()
             {
