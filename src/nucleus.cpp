@@ -82,12 +82,11 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct NucleusModule : Module
+        struct NucleusModule : AutomaticLimiterModule
         {
             NucleusEngine engine{NUM_PARTICLES};
             CrashChecker crashChecker;
             AgcLevelQuantity *agcLevelQuantity{};
-            bool enableLimiterWarning = true;
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
             bool resetTricorder{};
@@ -145,6 +144,16 @@ namespace Sapphire
                 agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
 
                 initialize();
+            }
+
+            double getAgcDistortion() const override
+            {
+                return engine.getAgcDistortion();
+            }
+
+            bool isRecoveringFromNan() const override
+            {
+                return recoveryCountdown > 0;
             }
 
             json_t* dataToJson() override
@@ -364,67 +373,10 @@ namespace Sapphire
         };
 
 
-        class NucleusWarningLightWidget : public LightWidget
-        {
-        private:
-            NucleusModule *nucleusModule;
-
-            static int colorComponent(double scale, int lo, int hi)
-            {
-                return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
-            }
-
-            NVGcolor warningColor()
-            {
-                if (nucleusModule == nullptr)
-                    return nvgRGBA(0, 0, 0, 0);
-
-                if (nucleusModule->recoveryCountdown > 0)
-                {
-                    // The Nucleus engine just "rebooted" due to non-finite output.
-                    // Inflict an obnoxiously bright pink OUTPUT knob glow on the user!
-                    return nvgRGBA(0xff, 0x00, 0xff, 0xb0);
-                }
-
-                double distortion = nucleusModule->engine.getAgcDistortion();
-                if (!nucleusModule->enableLimiterWarning || distortion <= 0.0)
-                    return nvgRGBA(0, 0, 0, 0);     // no warning light
-
-                double decibels = 20.0 * std::log10(1.0 + distortion);
-                double scale = clamp(decibels / 24.0);
-
-                int red   = colorComponent(scale, 0x90, 0xff);
-                int green = colorComponent(scale, 0x20, 0x50);
-                int blue  = 0x00;
-                int alpha = 0x70;
-
-                return nvgRGBA(red, green, blue, alpha);
-            }
-
-        public:
-            explicit NucleusWarningLightWidget(NucleusModule *module)
-                : nucleusModule(module)
-            {
-                borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
-                bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
-            }
-
-            void drawLayer(const DrawArgs& args, int layer) override
-            {
-                if (layer == 1)
-                {
-                    // Update the warning light state dynamically.
-                    color = warningColor();
-                }
-                LightWidget::drawLayer(args, layer);
-            }
-        };
-
-
         struct NucleusWidget : SapphireReloadableModuleWidget
         {
             NucleusModule *nucleusModule;
-            NucleusWarningLightWidget* warningLight{};
+            WarningLightWidget* warningLight{};
             int hoverOutputIndex{};
             bool ownsMouse{};
             SvgOverlay* audioLabel;
@@ -470,7 +422,7 @@ namespace Sapphire
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
                 auto levelKnob = addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
-                warningLight = new NucleusWarningLightWidget(module);
+                warningLight = new WarningLightWidget(module);
                 warningLight->box.pos  = Vec(0.0f, 0.0f);
                 warningLight->box.size = levelKnob->box.size;
                 levelKnob->addChild(warningLight);

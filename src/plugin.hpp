@@ -213,6 +213,7 @@ namespace Sapphire
         }
     };
 
+
     class GateTriggerHelper     // mediates gate/trigger behavior from an input port
     {
     private:
@@ -232,7 +233,7 @@ namespace Sapphire
         {
             if (prevVoltage < 1.0f && voltage >= 1.0f)
                 gate = true;
-            else if (prevVoltage >= 0.1 && voltage < 0.1)
+            else if (prevVoltage >= 0.1f && voltage < 0.1f)
                 gate = false;
             prevVoltage = voltage;
             return gate;
@@ -244,6 +245,67 @@ namespace Sapphire
             updateGate(voltage);
             trigger = gate && !prevGate;
             return trigger;
+        }
+    };
+
+
+    struct AutomaticLimiterModule : public Module   // a Sapphire module with a warning light on the OUTPUT knob
+    {
+        bool enableLimiterWarning = true;
+
+        virtual double getAgcDistortion() const = 0;
+        virtual bool isRecoveringFromNan() const = 0;
+
+        virtual NVGcolor getWarningColor()
+        {
+            if (isRecoveringFromNan())
+            {
+                // The module is recovering from non-finite (NAN/infinite) output.
+                // Inflict an obnoxiously bright pink OUTPUT knob glow on the user!
+                return nvgRGBA(0xff, 0x00, 0xff, 0xb0);
+            }
+
+            const double distortion = getAgcDistortion();
+            if (!enableLimiterWarning || distortion <= 0.0)
+                return nvgRGBA(0, 0, 0, 0);     // no warning light
+
+            double decibels = 20.0 * std::log10(1.0 + distortion);
+            double scale = clamp(decibels / 24.0);
+
+            int red   = colorComponent(scale, 0x90, 0xff);
+            int green = colorComponent(scale, 0x20, 0x50);
+            int blue  = 0x00;
+            int alpha = 0x70;
+
+            return nvgRGBA(red, green, blue, alpha);
+        }
+
+        static int colorComponent(double scale, int lo, int hi)
+        {
+            return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+        }
+    };
+
+
+    class WarningLightWidget : public LightWidget
+    {
+    private:
+        AutomaticLimiterModule *alModule;
+
+    public:
+        explicit WarningLightWidget(AutomaticLimiterModule *_alModule)
+            : alModule(_alModule)
+        {
+            borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
+            bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+        }
+
+        void drawLayer(const DrawArgs& args, int layer) override
+        {
+            if (layer == 1)
+                color = alModule ? alModule->getWarningColor() : nvgRGBA(0, 0, 0, 0);
+
+            LightWidget::drawLayer(args, layer);
         }
     };
 }
