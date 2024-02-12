@@ -14,6 +14,8 @@
 <td align="left">
     <ul>
         <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>
+        <li>Elastika, Nucleus, and Tube Unit now auto-reset if infinite/NAN output is detected, and indicate the problem by turning the OUTPUT level knob bright pink for 1 second, every time it happens.</li>
+        <li>Frolic and Glee now provide an additional polyphonic output with the entire vector represented as a 3-channel port.</li>
     </ul>
 </td>
 </tr>

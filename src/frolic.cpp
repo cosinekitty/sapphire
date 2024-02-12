@@ -38,6 +38,7 @@ namespace Sapphire
             X_OUTPUT,
             Y_OUTPUT,
             Z_OUTPUT,
+            POLY_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -61,6 +62,7 @@ namespace Sapphire
                 configOutput(X_OUTPUT, "X");
                 configOutput(Y_OUTPUT, "Y");
                 configOutput(Z_OUTPUT, "Z");
+                configOutput(POLY_OUTPUT, "Polyphonic (X, Y, Z)");
 
                 configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
                 configParam(CHAOS_KNOB_PARAM, -1, +1, 0, "Chaos");
@@ -109,6 +111,10 @@ namespace Sapphire
                 outputs[X_OUTPUT].setVoltage(circuit.vx());
                 outputs[Y_OUTPUT].setVoltage(circuit.vy());
                 outputs[Z_OUTPUT].setVoltage(circuit.vz());
+                outputs[POLY_OUTPUT].setChannels(3);
+                outputs[POLY_OUTPUT].setVoltage(circuit.vx(), 0);
+                outputs[POLY_OUTPUT].setVoltage(circuit.vy(), 1);
+                outputs[POLY_OUTPUT].setVoltage(circuit.vz(), 2);
                 communicator.sendVector(circuit.vx(), circuit.vy(), circuit.vz(), false);
             }
         };
@@ -124,6 +130,7 @@ namespace Sapphire
                 addSapphireOutput(X_OUTPUT, "x_output");
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
+                addSapphireOutput(POLY_OUTPUT, "p_output");
 
                 addKnob(SPEED_KNOB_PARAM, "speed_knob");
                 addKnob(CHAOS_KNOB_PARAM, "chaos_knob");

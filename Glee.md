@@ -30,6 +30,13 @@ of a particle into a velocity vector that points in the direction
 the particle must move. No matter where the particle is, Glee calculates
 its velocity vector and uses it to update the particle's position vector.
 
+### Outputs
+
+The outputs are available in two different forms, for convenience:
+
+1. Three separate monophonic output ports for X, Y, and Z respectively.
+2. A polyphonic port P that represents the vector (X, Y, Z) using 3 channels.
+
 ### Knobs
 
 **SPEED**: This knob allows varying how fast the simulation runs.

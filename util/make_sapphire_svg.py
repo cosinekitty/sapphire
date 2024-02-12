@@ -76,14 +76,15 @@ def GenerateChaosPanel(name: str) -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
-        outputPortY1 = 91.5
-        outputPortDY = 10.0
+        outputPortY1 = 88.0
+        outputPortDY =  9.0
         xmid = panel.mmWidth / 2
         controls.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
         controls.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
         controls.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
-        ySpeedKnob = 28.0
-        yChaosKnob = 60.0
+        controls.append(Component('p_output', xmid, outputPortY1 + 3*outputPortDY))
+        ySpeedKnob = 26.0
+        yChaosKnob = 57.0
         dxControlGroup = 5.0
         dyControlGroup = 11.0
         dyControlText = -11.6
@@ -119,6 +120,7 @@ def GenerateChaosPanel(name: str) -> int:
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*outputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*outputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*outputPortDY, 'port_label_z'))
+        pl.append(ControlTextPath(font, 'P',  xPortLabel, yPortLabel + 3*outputPortDY, 'port_label_p'))
     return Save(panel, svgFileName)
 
 
