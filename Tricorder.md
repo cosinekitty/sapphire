@@ -10,6 +10,10 @@ for [Frolic](Frolic.md) and [Glee](Glee.md), but it also allows graphing
 any three input voltages you want, using [Tin](Tin.md)
 instead of Frolic to the left of Tricorder.
 
+You can also send output from any of the four output vectors
+from [Nucleus](Nucleus.md) into Tricorder, and a Tricoder will
+chain output to another Tricorder connected to its right.
+
 In general, Tricorder is useful for visually understanding the behavior
 of Frolic, Glee, or any other 3D system of voltages.
 Tricorder also could be a fun decoration for your patch.
