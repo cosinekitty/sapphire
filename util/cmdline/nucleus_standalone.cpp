@@ -22,8 +22,7 @@ int main()
     const int SETTLE_SECONDS = 1;
     const int SETTLE_SAMPLES = SAMPLE_RATE * SETTLE_SECONDS;
 
-    const size_t NUM_PARTICLES = 5;
-    NucleusEngine engine{NUM_PARTICLES};
+    NucleusEngine engine{5};
     SetMinimumEnergy(engine);
     const float speed = pow(2.0f, 5.0f - 1);
     engine.setMagneticCoupling(0.21 * 0.09);
@@ -81,67 +80,3 @@ int main()
 
     return 0;
 }
-
-/*
-
-{
-  "plugin": "CosineKitty-Sapphire",
-  "model": "Nucleus",
-  "version": "2.4.1",
-  "params": [
-    {
-      "value": 5.0,
-      "id": 0
-    },
-    {
-      "value": 0.92349445819854736,
-      "id": 1
-    },
-    {
-      "value": 0.20915652811527252,
-      "id": 2
-    },
-    {
-      "value": 1.0481926202774048,
-      "id": 3
-    },
-    {
-      "value": 1.3204823732376099,
-      "id": 4
-    },
-    {
-      "value": 0.0,
-      "id": 5
-    },
-    {
-      "value": 0.0,
-      "id": 6
-    },
-    {
-      "value": 0.0,
-      "id": 7
-    },
-    {
-      "value": 0.0,
-      "id": 8
-    },
-    {
-      "value": 0.0,
-      "id": 9
-    },
-    {
-      "value": 1.0,
-      "id": 10
-    },
-    {
-      "value": 4.0,
-      "id": 11
-    }
-  ],
-  "data": {
-    "limiterWarningLight": true,
-    "agcLevel": 4.0,
-    "tricorderOutputIndex": 1
-  }
-}
-*/

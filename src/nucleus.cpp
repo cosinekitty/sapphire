@@ -13,8 +13,7 @@ namespace Sapphire
 {
     namespace Nucleus
     {
-        const std::size_t NUM_PARTICLES = 5;
-
+        const int NUM_PARTICLES = 5;
         const float OUTPUT_EXPONENT = 10;
         const float INPUT_EXPONENT = 4;
         const float INPUT_SCALE = 0.015f;
@@ -171,7 +170,7 @@ namespace Sapphire
                 if (json_is_integer(tri))
                 {
                     int index = json_integer_value(tri);
-                    if (index > 0 && index < static_cast<int>(NUM_PARTICLES))
+                    if (index > 0 && index < NUM_PARTICLES)
                         tricorderOutputIndex = index;
                 }
             }
@@ -190,7 +189,7 @@ namespace Sapphire
 
             void setOutputRow(int row)
             {
-                if (row < 1 || row >= static_cast<int>(NUM_PARTICLES))
+                if (row < 1 || row >= NUM_PARTICLES)
                     return;     // ignore invalid requests
 
                 if (tricorderOutputIndex != row)
@@ -319,16 +318,6 @@ namespace Sapphire
                 // the actual output stream (not simulated physical time).
                 engine.update(speed * args.sampleTime, halflife, args.sampleRate, gain);
 
-#if 0
-                // Use this code to verify correct functioning of the recovery countdown / CODE BLUE logic.
-                static int evil;
-                if (++evil == 100000)
-                {
-                    evil = 0;
-                    engine.particle(4).pos[0] = NAN;
-                }
-#endif
-
                 // Look for NAN/infinite outputs, and reset the engine as needed (every 10K samples, that is).
                 if (crashChecker.check(engine))
                 {
@@ -336,10 +325,11 @@ namespace Sapphire
                     // Make the output knob glow "code blue" for a little while.
                     recoveryCountdown = static_cast<int>(args.sampleRate);
                 }
-                else
+                else if (recoveryCountdown > 0)
                 {
-                    if (recoveryCountdown > 0)
-                        --recoveryCountdown;
+                    // We have reset the engine in the last second or so,
+                    // so we keep the output knob bright pink until recoveryCountdown hits zero.
+                    --recoveryCountdown;
                 }
 
                 // Let the audio/cv toggle pushbutton light reflect its button state.
@@ -367,8 +357,6 @@ namespace Sapphire
                 float x = engine.output(tricorderOutputIndex, 0);
                 float y = engine.output(tricorderOutputIndex, 1);
                 float z = engine.output(tricorderOutputIndex, 2);
-
-                // As we send the vector, we also make note of whether Tricorder is receiving our messages.
                 bool reset = resetTricorder;
                 resetTricorder = false;
                 communicator.sendVector(x, y, z, reset);
@@ -386,11 +374,20 @@ namespace Sapphire
                 return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
             }
 
-            NVGcolor warningColor(double distortion)
+            NVGcolor warningColor()
             {
-                bool enableWarning = nucleusModule && nucleusModule->enableLimiterWarning;
+                if (nucleusModule == nullptr)
+                    return nvgRGBA(0, 0, 0, 0);
 
-                if (!enableWarning || distortion <= 0.0)
+                if (nucleusModule->recoveryCountdown > 0)
+                {
+                    // The Nucleus engine just "rebooted" due to non-finite output.
+                    // Inflict an obnoxiously bright pink OUTPUT knob glow on the user!
+                    return nvgRGBA(0xff, 0x00, 0xff, 0xb0);
+                }
+
+                double distortion = nucleusModule->engine.getAgcDistortion();
+                if (!nucleusModule->enableLimiterWarning || distortion <= 0.0)
                     return nvgRGBA(0, 0, 0, 0);     // no warning light
 
                 double decibels = 20.0 * std::log10(1.0 + distortion);
@@ -416,22 +413,8 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
-                    if (nucleusModule != nullptr)
-                    {
-                        // Update the warning light state dynamically.
-                        if (nucleusModule->recoveryCountdown > 0)
-                        {
-                            // The Nucleus engine just "rebooted" due to non-finite output.
-                            // Show a CODE BLUE knob.
-                            color = nvgRGBA(0xff, 0x00, 0xff, 0xb0);
-                        }
-                        else
-                        {
-                            // Turn on the warning when the AGC is limiting the output.
-                            double distortion = nucleusModule->engine.getAgcDistortion();
-                            color = warningColor(distortion);
-                        }
-                    }
+                    // Update the warning light state dynamically.
+                    color = warningColor();
                 }
                 LightWidget::drawLayer(args, layer);
             }
@@ -573,7 +556,7 @@ namespace Sapphire
 
             void drawOutputRowSelectionBox(NVGcontext *vg, int row)
             {
-                if (row < 1 || row >= static_cast<int>(NUM_PARTICLES))
+                if (row < 1 || row >= NUM_PARTICLES)
                     return;     // ignore invalid requests
 
                 Rect box = outputRowBoundingBox(row);
@@ -614,7 +597,7 @@ namespace Sapphire
             {
                 using namespace Panel;
 
-                if (row < 1 || row >= static_cast<int>(NUM_PARTICLES))
+                if (row < 1 || row >= NUM_PARTICLES)
                     return;     // ignore invalid requests
 
                 Rect box = outputRowBoundingBox(row);
@@ -645,7 +628,7 @@ namespace Sapphire
 
                 // Check to see if the mouse cursor is within any of the bounding rectangles.
                 hoverOutputIndex = 0;   // indicate none match
-                for (int row = 1; row < static_cast<int>(NUM_PARTICLES); ++row)
+                for (int row = 1; row < NUM_PARTICLES; ++row)
                 {
                     Rect box = mouseTargetBoundingBox(row);
                     if (box.contains(e.pos))
@@ -679,7 +662,7 @@ namespace Sapphire
                     return;
 
                 // See if the mouse click lands inside any of the mouse bounding boxes.
-                for (int row = 1; row < static_cast<int>(NUM_PARTICLES); ++row)
+                for (int row = 1; row < NUM_PARTICLES; ++row)
                 {
                     Rect box = mouseTargetBoundingBox(row);
                     if (box.contains(e.pos))
