@@ -33,6 +33,7 @@ namespace Sapphire
             PARAMS_LEN
         };
 
+
         enum InputId
         {
             FRICTION_CV_INPUT,
@@ -48,12 +49,14 @@ namespace Sapphire
             INPUTS_LEN
         };
 
+
         enum OutputId
         {
             AUDIO_LEFT_OUTPUT,
             AUDIO_RIGHT_OUTPUT,
             OUTPUTS_LEN
         };
+
 
         enum LightId
         {
@@ -66,7 +69,8 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct ElastikaModule : Module
+
+        struct ElastikaModule : AutomaticLimiterModule
         {
             ElastikaEngine engine;
             DcRejectQuantity *dcRejectQuantity = nullptr;
@@ -159,6 +163,11 @@ namespace Sapphire
                 slewer.enable(true);
                 params[POWER_TOGGLE_PARAM].setValue(1.0f);
                 enableLimiterWarning = true;
+            }
+
+            double getAgcDistortion() const override
+            {
+                return engine.getAgcDistortion();
             }
 
             void onReset(const ResetEvent& e) override
@@ -331,63 +340,13 @@ namespace Sapphire
         };
 
 
-        class ElastikaWarningLightWidget : public LightWidget
-        {
-        private:
-            ElastikaModule *elastikaModule;
-
-            static int colorComponent(double scale, int lo, int hi)
-            {
-                return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
-            }
-
-            NVGcolor warningColor(double distortion)
-            {
-                bool enableWarning = elastikaModule && elastikaModule->enableLimiterWarning;
-
-                if (!enableWarning || distortion <= 0.0)
-                    return nvgRGBA(0, 0, 0, 0);     // no warning light
-
-                double decibels = 20.0 * std::log10(1.0 + distortion);
-                double scale = clamp(decibels / 24.0);
-
-                int red   = colorComponent(scale, 0x90, 0xff);
-                int green = colorComponent(scale, 0x20, 0x50);
-                int blue  = 0x00;
-                int alpha = 0x70;
-
-                return nvgRGBA(red, green, blue, alpha);
-            }
-
-        public:
-            explicit ElastikaWarningLightWidget(ElastikaModule *module)
-                : elastikaModule(module)
-            {
-                borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
-                bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
-            }
-
-            void drawLayer(const DrawArgs& args, int layer) override
-            {
-                if (layer == 1)
-                {
-                    // Update the warning light state dynamically.
-                    // Turn on the warning when the AGC is limiting the output.
-                    double distortion = elastikaModule ? elastikaModule->engine.getAgcDistortion() : 0.0;
-                    color = warningColor(distortion);
-                }
-                LightWidget::drawLayer(args, layer);
-            }
-        };
-
-
         using SliderType = VCVLightSlider<YellowLight>;
 
 
         struct ElastikaWidget : SapphireReloadableModuleWidget
         {
             ElastikaModule *elastikaModule;
-            ElastikaWarningLightWidget *warningLight = nullptr;
+            WarningLightWidget *warningLight = nullptr;
 
             explicit ElastikaWidget(ElastikaModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/elastika.svg"))
@@ -417,7 +376,7 @@ namespace Sapphire
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
-                warningLight = new ElastikaWarningLightWidget(module);
+                warningLight = new WarningLightWidget(module);
                 warningLight->box.pos  = Vec(0.0f, 0.0f);
                 warningLight->box.size = levelKnob->box.size;
                 levelKnob->addChild(warningLight);

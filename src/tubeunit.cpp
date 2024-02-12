@@ -73,7 +73,7 @@ namespace Sapphire
 
         extern const std::vector<ControlGroup> tubeUnitControls;
 
-        struct TubeUnitModule : Module
+        struct TubeUnitModule : AutomaticLimiterModule
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity = nullptr;
@@ -275,72 +275,18 @@ namespace Sapphire
                 }
             }
 
-            float getAgcDistortion()
+            double getAgcDistortion() const override
             {
                 // Return the maximum distortion from the engines that are actively producing output.
-                float maxDistortion = 0.0f;
+                double distortion = 0;
                 for (int c = 0; c < numActiveChannels; ++c)
-                {
-                    float distortion = engine[c].getAgcDistortion();
-                    if (distortion > maxDistortion)
-                        maxDistortion = distortion;
-                }
-                return maxDistortion;
+                    distortion = std::max(distortion, engine[c].getAgcDistortion());
+                return distortion;
             }
 
             bool hasAudioInput()
             {
                 return inputs[AUDIO_LEFT_INPUT].getChannels() + inputs[AUDIO_RIGHT_INPUT].getChannels() > 0;
-            }
-        };
-
-
-        class TubeUnitWarningLightWidget : public LightWidget
-        {
-        private:
-            TubeUnitModule *tubeUnitModule;
-
-            static int colorComponent(double scale, int lo, int hi)
-            {
-                return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
-            }
-
-            NVGcolor warningColor(double distortion)
-            {
-                bool enableWarning = tubeUnitModule && tubeUnitModule->enableLimiterWarning;
-
-                if (!enableWarning || distortion <= 0.0)
-                    return nvgRGBA(0, 0, 0, 0);     // no warning light
-
-                double decibels = 20.0 * std::log10(1.0 + distortion);
-                double scale = clamp(decibels / 24.0);
-
-                int red   = colorComponent(scale, 0x90, 0xff);
-                int green = colorComponent(scale, 0x20, 0x50);
-                int blue  = 0x00;
-                int alpha = 0x70;
-
-                return nvgRGBA(red, green, blue, alpha);
-            }
-
-        public:
-            explicit TubeUnitWarningLightWidget(TubeUnitModule *module)
-                : tubeUnitModule(module)
-            {
-                borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
-                bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
-            }
-
-            void drawLayer(const DrawArgs& args, int layer) override
-            {
-                if (layer == 1)
-                {
-                    // Update the warning light state dynamically.
-                    // Turn on the warning when the AGC is limiting the output.
-                    double distortion = tubeUnitModule ? tubeUnitModule->getAgcDistortion() : 0.0;
-                    color = warningColor(distortion);
-                }
-                LightWidget::drawLayer(args, layer);
             }
         };
 
@@ -354,7 +300,7 @@ namespace Sapphire
         struct TubeUnitWidget : ModuleWidget
         {
             TubeUnitModule *tubeUnitModule;
-            TubeUnitWarningLightWidget *warningLight = nullptr;
+            WarningLightWidget *warningLight = nullptr;
             SvgOverlay *ventLabel = nullptr;
             SvgOverlay *sealLabel = nullptr;
             SvgOverlay *audioEmphasis = nullptr;
@@ -410,7 +356,7 @@ namespace Sapphire
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when one or more of the 16 limiters are distoring the output.
-                warningLight = new TubeUnitWarningLightWidget(module);
+                warningLight = new WarningLightWidget(module);
                 warningLight->box.pos  = Vec(0.0f, 0.0f);
                 warningLight->box.size = levelKnob->box.size;
                 levelKnob->addChild(warningLight);

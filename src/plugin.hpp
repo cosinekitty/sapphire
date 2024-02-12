@@ -252,13 +252,13 @@ namespace Sapphire
     struct AutomaticLimiterModule : public Module   // a Sapphire module with a warning light on the OUTPUT knob
     {
         bool enableLimiterWarning = true;
+        int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
 
         virtual double getAgcDistortion() const = 0;
-        virtual bool isRecoveringFromNan() const = 0;
 
         virtual NVGcolor getWarningColor()
         {
-            if (isRecoveringFromNan())
+            if (recoveryCountdown > 0)
             {
                 // The module is recovering from non-finite (NAN/infinite) output.
                 // Inflict an obnoxiously bright pink OUTPUT knob glow on the user!

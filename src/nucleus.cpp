@@ -90,7 +90,6 @@ namespace Sapphire
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             Tricorder::Communicator communicator;
             bool resetTricorder{};
-            int recoveryCountdown = 0;
 
             NucleusModule()
                 : communicator(*this)
@@ -149,11 +148,6 @@ namespace Sapphire
             double getAgcDistortion() const override
             {
                 return engine.getAgcDistortion();
-            }
-
-            bool isRecoveringFromNan() const override
-            {
-                return recoveryCountdown > 0;
             }
 
             json_t* dataToJson() override
