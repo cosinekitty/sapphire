@@ -325,7 +325,17 @@ namespace Sapphire
                 float leftIn = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
                 float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
                 float sample[2];
-                engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+                bool finite = engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+                if (finite)
+                {
+                    if (recoveryCountdown > 0)
+                        --recoveryCountdown;
+                }
+                else
+                {
+                    // Turn on the bright pink panic light on the OUTPUT level knob for 1 second.
+                    recoveryCountdown = static_cast<int>(args.sampleRate);
+                }
 
                 // Scale ElastikaEngine's dimensionless amplitude to a +5.0V amplitude.
                 sample[0] *= 5.0;

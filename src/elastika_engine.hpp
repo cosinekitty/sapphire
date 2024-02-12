@@ -375,7 +375,7 @@ namespace Sapphire
             return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
         }
 
-        void process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
+        bool process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
         {
             // Feed audio stimulus into the mesh.
             PhysicsVector leftInputDir = Interpolate(inTilt, mp.leftInputDir1, mp.leftInputDir2);
@@ -418,8 +418,11 @@ namespace Sapphire
                 {
                     quiet();
                     leftOut = rightOut = 0.0f;
+                    return false;   // non-finite output detected
                 }
             }
+
+            return true;    // output is OK
         }
     };
 }

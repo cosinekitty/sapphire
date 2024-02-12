@@ -6,7 +6,7 @@ namespace Sapphire
 {
     namespace Nucleus
     {
-        class CrashChecker
+        class CrashChecker      // helps detect and recover from non-finite simulation outputs
         {
         private:
             const int interval = 10000;
