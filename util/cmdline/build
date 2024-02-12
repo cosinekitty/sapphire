@@ -20,4 +20,7 @@ g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elastika -D NO_R
 g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/tubeunit -D NO_RACK_DEPENDENCY \
     tubeunit_standalone.cpp || exit 1
 
+g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/nucleus -D NO_RACK_DEPENDENCY \
+    nucleus_standalone.cpp || exit 1
+
 exit 0
