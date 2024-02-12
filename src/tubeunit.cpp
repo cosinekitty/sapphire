@@ -80,6 +80,8 @@ namespace Sapphire
             bool enableLimiterWarning = true;
             bool isInvertedVentPort = false;
             int numActiveChannels = 0;
+            const int outputVerifyInterval = 11000;
+            int outputVerifyCounter = 0;
 
             const ControlGroup *cgLookup[INPUTS_LEN] {};
 
@@ -127,6 +129,7 @@ namespace Sapphire
                 numActiveChannels = 0;
                 enableLimiterWarning = true;
                 isInvertedVentPort = false;
+                outputVerifyCounter = 0;
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     engine[c].initialize();
@@ -231,6 +234,14 @@ namespace Sapphire
                 float leftIn = 0.0f;
                 float rightIn = 0.0f;
 
+                bool allEnginesHaveFiniteOutput = true;
+                bool timeForOutputCheck = false;
+                if (++outputVerifyCounter >= outputVerifyInterval)
+                {
+                    outputVerifyCounter = 0;
+                    timeForOutputCheck = true;
+                }
+
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     updateQuiet(c);
@@ -253,10 +264,31 @@ namespace Sapphire
                     float leftOut, rightOut;
                     engine[c].process(leftOut, rightOut, leftIn, rightIn);
 
+                    if (timeForOutputCheck)
+                    {
+                        if (!std::isfinite(leftOut) || !std::isfinite(rightOut))
+                        {
+                            // Output is no longer finite for this engine (it is NAN or infinite).
+                            allEnginesHaveFiniteOutput = false;
+
+                            // Clear the bad outputs.
+                            leftOut = rightOut = 0;
+
+                            // Turn on the bright pink panic light on the OUTPUT level knob for 1 second.
+                            recoveryCountdown = static_cast<int>(args.sampleRate);
+
+                            // Reset this engine, which hopefully fixes its output issues.
+                            engine[c].initialize();
+                        }
+                    }
+
                     // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * leftOut,  c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * rightOut, c);
                 }
+
+                if (allEnginesHaveFiniteOutput && recoveryCountdown > 0)
+                    --recoveryCountdown;
             }
 
             void reflectAgcSlider()
