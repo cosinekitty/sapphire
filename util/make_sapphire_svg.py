@@ -136,9 +136,9 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateTinPanel() -> int:
+def GenerateTinToutPanel(name: str) -> int:
     PANEL_WIDTH = 4
-    svgFileName = '../res/tin.svg'
+    svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     xmid = panel.mmWidth/2
@@ -162,10 +162,10 @@ def GenerateTinPanel() -> int:
     defs.append(Gradient(inGradY3, inGradY4, '#3068ff', '#4f8df2', 'gradient_trigger'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, 'tin'))
+        pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        pl.append(ControlGroupArt('tin', 'in_art', panel, inGradY1, inGradY2, 'gradient_in'))
-        pl.append(ControlGroupArt('tin', 'trig_art', panel, inGradY3, inGradY4, 'gradient_trigger'))
+        pl.append(ControlGroupArt(name, 'in_art', panel, inGradY1, inGradY2, 'gradient_in'))
+        pl.append(ControlGroupArt(name, 'trig_art', panel, inGradY3, inGradY4, 'gradient_trigger'))
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yInPortLabel + 0*inputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yInPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yInPortLabel + 2*inputPortDY, 'port_label_z'))
@@ -359,7 +359,8 @@ if __name__ == '__main__':
         GenerateChaosPanel('frolic') or
         GenerateChaosPanel('glee') or
         GenerateTricorderPanel() or
-        GenerateTinPanel() or
+        GenerateTinToutPanel('tin') or
+        GenerateTinToutPanel('tout') or
         GenerateNucleusPanel() or
         Print('SUCCESS')
     )
