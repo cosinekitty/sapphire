@@ -1,6 +1,7 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
 #include "elastika_engine.hpp"
+#include "tricorder.hpp"
 
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -78,8 +79,11 @@ namespace Sapphire
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
+            Tricorder::Communicator communicator;
+            bool outputVectorSelectRight = false;
 
             ElastikaModule()
+                : communicator(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -162,6 +166,7 @@ namespace Sapphire
                 slewer.enable(true);
                 params[POWER_TOGGLE_PARAM].setValue(1.0f);
                 enableLimiterWarning = true;
+                outputVectorSelectRight = false;
             }
 
             double getAgcDistortion() const override
@@ -179,6 +184,7 @@ namespace Sapphire
             {
                 json_t* root = json_object();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+                json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
                 dcRejectQuantity->save(root, "dcRejectFrequency");
                 return root;
@@ -189,6 +195,11 @@ namespace Sapphire
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
+
+                // Which stereo output (left, right) do we use for sending a vector to Tricorder?
+                json_t *selectFlag = json_object_get(root, "outputVectorSelectRight");
+                outputVectorSelectRight = (0 != json_integer_value(selectFlag));
+
                 agcLevelQuantity->load(root, "agcLevel");
                 dcRejectQuantity->load(root, "dcRejectFrequency");
             }
@@ -345,6 +356,9 @@ namespace Sapphire
 
                 outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
                 outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
+
+                PhysicsVector v = engine.getOutputVector(outputVectorSelectRight);
+                communicator.sendVector(v[0], v[1], v[2], false);
             }
         };
 
@@ -443,9 +457,12 @@ namespace Sapphire
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                         menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
 
-                        // Add an option to enable/disable the warning slider.
+                        // Add an option to enable/disable the warning light on the OUTPUT level knob.
                         menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &elastikaModule->enableLimiterWarning));
                     }
+
+                    // Add an option to select left/right output ball as the vector to send to Tricorder.
+                    menu->addChild(createBoolPtrMenuItem<bool>("Send right output as vector to Tricorder", "", &elastikaModule->outputVectorSelectRight));
                 }
             }
         };

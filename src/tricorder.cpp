@@ -453,6 +453,7 @@ namespace Sapphire
             static bool isCompatibleModule(const Module *module)
             {
                 return (module != nullptr) && (
+                    module->model == modelElastika ||
                     module->model == modelFrolic ||
                     module->model == modelGlee ||
                     module->model == modelNucleus ||

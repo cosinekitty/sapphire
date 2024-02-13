@@ -7,6 +7,8 @@
 
 namespace Sapphire
 {
+    const float BallPositionFactor = 6000;      // how much to scale voltages based on ball displacements [V/m]
+
     struct Spring
     {
         int ballIndex1;         // 0-based index into Mesh::ballList
@@ -207,10 +209,15 @@ namespace Sapphire
             {}
 
         // Extract audio from the mesh
-        float Extract(const PhysicsMesh& mesh, const PhysicsVector& direction)
+        float Extract(const PhysicsMesh& mesh, const PhysicsVector& direction) const
         {
             PhysicsVector movement = mesh.GetBallDisplacement(ballIndex);
             return Dot(movement, direction);
+        }
+
+        PhysicsVector VectorDisplacement(const PhysicsMesh& mesh) const
+        {
+            return BallPositionFactor * mesh.GetBallDisplacement(ballIndex);
         }
     };
 
@@ -423,6 +430,15 @@ namespace Sapphire
             }
 
             return true;    // output is OK
+        }
+
+        PhysicsVector getOutputVector(bool right) const
+        {
+            float scalar = gain;
+            if (enableAgc)
+                scalar /= agc.getFollower();
+            const MeshOutput& output = *((right & 1) ? &rightOutput : &leftOutput);
+            return scalar * output.VectorDisplacement(mesh);
         }
     };
 }

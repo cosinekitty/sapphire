@@ -249,11 +249,10 @@ namespace Sapphire
         mp.rightInputDir1 = (spacing / peakVoltage) * PhysicsVector( 0.0f,  0.0f, 1.0f, 0);
         mp.rightInputDir2 = (spacing / peakVoltage) * PhysicsVector(-0.7f, +0.7f, 0.0f, 0);
 
-        const float pos_factor = 6000.0;
-        mp.leftOutputDir1  = pos_factor * PhysicsVector(0,  0, +1,  0);
-        mp.leftOutputDir2  = pos_factor * PhysicsVector(0, -1,  0,  0);
-        mp.rightOutputDir1 = pos_factor * PhysicsVector(0,  0, +1,  0);
-        mp.rightOutputDir2 = pos_factor * PhysicsVector(0, +1,  0,  0);
+        mp.leftOutputDir1  = BallPositionFactor * PhysicsVector(0,  0, +1,  0);
+        mp.leftOutputDir2  = BallPositionFactor * PhysicsVector(0, -1,  0,  0);
+        mp.rightOutputDir1 = BallPositionFactor * PhysicsVector(0,  0, +1,  0);
+        mp.rightOutputDir2 = BallPositionFactor * PhysicsVector(0, +1,  0,  0);
 
         assert(mesh.IsAnchor(mp.leftInputBallIndex));
         assert(mesh.IsAnchor(mp.rightInputBallIndex));
