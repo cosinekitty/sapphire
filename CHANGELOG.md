@@ -9,13 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">11 Feb 2024</td>
+<td align="center">13 Feb 2024</td>
 <td align="center">2.4.1</td>
 <td align="left">
     <ul>
         <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>
         <li>Elastika, Nucleus, and Tube Unit now auto-reset if infinite/NAN output is detected, and indicate the problem by turning the OUTPUT level knob bright pink for 1 second, every time it happens.</li>
         <li>Frolic and Glee now provide an additional polyphonic output with the entire vector represented as a 3-channel port.</li>
+        <li>Tin now provides an additional polyphonic input to feed in a 3-channel (X, Y, Z) input vector.</li>
     </ul>
 </td>
 </tr>
