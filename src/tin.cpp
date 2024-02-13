@@ -20,6 +20,7 @@ namespace Sapphire
             Y_INPUT,
             Z_INPUT,
             CLEAR_TRIGGER_INPUT,
+            POLY_INPUT,
 
             INPUTS_LEN
         };
@@ -46,6 +47,7 @@ namespace Sapphire
                 configInput(X_INPUT, "X");
                 configInput(Y_INPUT, "Y");
                 configInput(Z_INPUT, "Z");
+                configInput(POLY_INPUT, "Polyphonic (X, Y, Z)");
                 configInput(CLEAR_TRIGGER_INPUT, "Clear display trigger");
                 initialize();
             }
@@ -63,9 +65,19 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                // We allow input from the monophonic X, Y, and Z inputs.
+                // We also allow input from the polyphonic P input.
+                // To make either/both work, add voltages together.
+
                 float x = inputs[X_INPUT].getVoltageSum();
                 float y = inputs[Y_INPUT].getVoltageSum();
                 float z = inputs[Z_INPUT].getVoltageSum();
+
+                int nc = inputs[POLY_INPUT].channels;
+                if (0 < nc) x += inputs[POLY_INPUT].getVoltage(0);
+                if (1 < nc) y += inputs[POLY_INPUT].getVoltage(1);
+                if (2 < nc) z += inputs[POLY_INPUT].getVoltage(2);
+
                 bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
                 communicator.sendVector(x, y, z, reset);
             }
@@ -92,6 +104,7 @@ namespace Sapphire
                 addSapphireInput(X_INPUT, "x_input");
                 addSapphireInput(Y_INPUT, "y_input");
                 addSapphireInput(Z_INPUT, "z_input");
+                addSapphireInput(POLY_INPUT, "p_input");
                 addSapphireInput(CLEAR_TRIGGER_INPUT, "clear_trigger_input");
                 reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }
