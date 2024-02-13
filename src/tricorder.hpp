@@ -92,7 +92,8 @@ namespace Sapphire
                     if (rm != nullptr)      // weird thought: what if modelTricorder is null!
                     {
                         return (
-                            (rm == modelTricorder)
+                            (rm == modelTricorder) ||
+                            (rm == modelTout)
                             // Add "||" with more models here, if/when their modules can receive vector streams.
                         );
                     }

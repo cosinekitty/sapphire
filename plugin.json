@@ -85,6 +85,15 @@
       ]
     },
     {
+      "slug": "Tout",
+      "name": "Tout",
+      "description": "Receives vectors from the left just like Tricorder does, then outputs them to ports.",
+      "tags": [
+        "Expander",
+        "Utility"
+      ]
+    },
+    {
       "slug": "Nucleus",
       "name": "Nucleus",
       "description": "Simulation of a cloud of particles with mutually attractive, repulsive, and orthogonal forces.",

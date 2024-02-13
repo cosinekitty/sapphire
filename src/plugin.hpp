@@ -16,6 +16,7 @@ extern Model* modelGlee;
 extern Model* modelMoots;
 extern Model* modelNucleus;
 extern Model* modelTin;
+extern Model* modelTout;
 extern Model* modelTricorder;
 extern Model* modelTubeUnit;
 

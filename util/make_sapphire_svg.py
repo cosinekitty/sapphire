@@ -136,7 +136,7 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateTinToutPanel(name: str) -> int:
+def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -145,9 +145,8 @@ def GenerateTinToutPanel(name: str) -> int:
     inputPortY1 = 30.0
     inputPortDY = 10.0
     inputPortY2 = 110.0
-    xPortLabel = xmid + 5.2
+    xPortLabel = xmid + dxCoordLabel
     yInPortLabel = inputPortY1 - 2.4
-    xInLabel = xmid - 1.9
     yInLabel = inputPortY1 - 10.5
     inGradY1 = yInLabel - 1.5
     inGradY2 = yInPortLabel + 2*inputPortDY + 10.0
@@ -170,12 +169,12 @@ def GenerateTinToutPanel(name: str) -> int:
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yInPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yInPortLabel + 2*inputPortDY, 'port_label_z'))
         pl.append(ControlTextPath(font, 'P',  xPortLabel, yInPortLabel + 3*inputPortDY, 'port_label_p'))
-        controls.append(Component('x_input', xmid, inputPortY1 + 0*inputPortDY))
-        controls.append(Component('y_input', xmid, inputPortY1 + 1*inputPortDY))
-        controls.append(Component('z_input', xmid, inputPortY1 + 2*inputPortDY))
-        controls.append(Component('p_input', xmid, inputPortY1 + 3*inputPortDY))
-        controls.append(Component('clear_trigger_input', xmid, inputPortY2))
-        pl.append(ControlTextPath(font, 'IN', xInLabel, yInLabel, 'in_label'))
+        controls.append(Component('x_' + dir, xmid, inputPortY1 + 0*inputPortDY))
+        controls.append(Component('y_' + dir, xmid, inputPortY1 + 1*inputPortDY))
+        controls.append(Component('z_' + dir, xmid, inputPortY1 + 2*inputPortDY))
+        controls.append(Component('p_' + dir, xmid, inputPortY1 + 3*inputPortDY))
+        controls.append(Component('clear_trigger_' + dir, xmid, inputPortY2))
+        pl.append(CenteredControlTextPath(font, inOutLabel, xmid, yInLabel + 2.5, 'inout_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'trigger_label'))
     pl.append(controls)
     panel.append(pl)
@@ -359,8 +358,8 @@ if __name__ == '__main__':
         GenerateChaosPanel('frolic') or
         GenerateChaosPanel('glee') or
         GenerateTricorderPanel() or
-        GenerateTinToutPanel('tin') or
-        GenerateTinToutPanel('tout') or
+        GenerateTinToutPanel('tin',  'input',  'IN',  +5.2) or
+        GenerateTinToutPanel('tout', 'output', 'OUT', -7.1) or
         GenerateNucleusPanel() or
         Print('SUCCESS')
     )

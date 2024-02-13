@@ -17,6 +17,7 @@ void init(Plugin* p)
     p->addModel(modelMoots);
     p->addModel(modelNucleus);
     p->addModel(modelTin);
+    p->addModel(modelTout);
     p->addModel(modelTricorder);
     p->addModel(modelTubeUnit);
 }
