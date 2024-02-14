@@ -215,19 +215,17 @@ namespace Sapphire
     };
 
 
-    class GateTriggerHelper     // mediates gate/trigger behavior from an input port
+    class GateTriggerReceiver
     {
     private:
         float prevVoltage{};
         bool gate{};
-        bool trigger{};
 
     public:
         void initialize()
         {
             prevVoltage = 0;
             gate = false;
-            trigger = false;
         }
 
         bool updateGate(float voltage)
@@ -244,8 +242,7 @@ namespace Sapphire
         {
             bool prevGate = gate;
             updateGate(voltage);
-            trigger = gate && !prevGate;
-            return trigger;
+            return gate && !prevGate;   // a trigger occurs on the rising edge of a gate
         }
     };
 

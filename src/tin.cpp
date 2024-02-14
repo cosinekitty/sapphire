@@ -38,7 +38,7 @@ namespace Sapphire
         struct TinModule : Module
         {
             Tricorder::VectorSender vectorSender;
-            GateTriggerHelper resetTrigger;
+            GateTriggerReceiver resetTrigger;
 
             TinModule()
                 : vectorSender(*this)
