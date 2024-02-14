@@ -39,7 +39,7 @@ namespace Sapphire
         {
             Tricorder::VectorReceiver vectorReceiver;
             Tricorder::VectorSender vectorSender;
-            GateTriggerHelper resetTrigger;
+            TriggerSender triggerSender;
 
             ToutModule()
                 : vectorReceiver(*this)
@@ -56,7 +56,7 @@ namespace Sapphire
 
             void initialize()
             {
-                resetTrigger.initialize();
+                triggerSender.initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -97,8 +97,8 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(y, 1);
                 outputs[POLY_OUTPUT].setVoltage(z, 2);
 
-                // FIXFIXFIX: The trigger logic needs to hold the pulse high for about 1 millisecond.
-                outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(clear ? 10.0f : 0.0f);
+                float triggerVoltage = triggerSender.process(args.sampleTime, clear);
+                outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(triggerVoltage);
 
                 // Mirror the input to any module on the right.
                 vectorSender.sendVector(x, y, z, clear);

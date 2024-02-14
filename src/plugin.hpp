@@ -250,6 +250,39 @@ namespace Sapphire
     };
 
 
+    class TriggerSender
+    {
+    private:
+        const float duration = 0.001f;  // a trigger should last at least one millisecond
+        float elapsed = 0;
+        bool isFiring = false;
+
+    public:
+        void initialize()
+        {
+            elapsed = 0;
+            isFiring = false;
+        }
+
+        float process(float dt, bool fire)
+        {
+            if (fire)
+            {
+                elapsed = 0;
+                isFiring = true;
+            }
+            if (isFiring)
+            {
+                if (elapsed >= duration)
+                    isFiring = false;
+                elapsed += dt;
+                return 10;
+            }
+            return 0;
+        }
+    };
+
+
     struct AutomaticLimiterModule : public Module   // a Sapphire module with a warning light on the OUTPUT knob
     {
         bool enableLimiterWarning = true;
