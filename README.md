@@ -71,6 +71,16 @@ Read the complete <a href="Tin.md">Sapphire Tin documentation</a>.
 
 ---
 
+## Tout
+
+A utility for extracting vector data from Tricorder as output ports.
+
+Read the complete <a href="Tout.md">Sapphire Tout documentation</a>.
+
+<a href="Tout.md"><img src="images/tout.png" /></a>
+
+---
+
 ## Tricorder
 
 A 3D oscilloscope designed for Frolic, Glee, and Tin.
