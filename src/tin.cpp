@@ -37,11 +37,11 @@ namespace Sapphire
 
         struct TinModule : Module
         {
-            Tricorder::Communicator communicator;
+            Tricorder::VectorSender vectorSender;
             GateTriggerHelper resetTrigger;
 
             TinModule()
-                : communicator(*this)
+                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(X_INPUT, "X");
@@ -79,7 +79,7 @@ namespace Sapphire
                 if (2 < nc) z += inputs[POLY_INPUT].getVoltage(2);
 
                 bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
-                communicator.sendVector(x, y, z, reset);
+                vectorSender.sendVector(x, y, z, reset);
             }
 
             json_t* dataToJson() override

@@ -37,11 +37,13 @@ namespace Sapphire
 
         struct ToutModule : Module
         {
-            Tricorder::Communicator communicator;
+            Tricorder::VectorReceiver vectorReceiver;
+            Tricorder::VectorSender vectorSender;
             GateTriggerHelper resetTrigger;
 
             ToutModule()
-                : communicator(*this)
+                : vectorReceiver(*this)
+                , vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configOutput(X_OUTPUT, "X");
@@ -65,16 +67,41 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-#if 0
+                using namespace Sapphire::Tricorder;
+
                 // Start with default values for (x, y, z).
                 float x = 0;
                 float y = 0;
                 float z = 0;
                 bool clear = false;
-#endif
 
                 // If a Tricoder-compatible vector sender exists to the left side,
                 // receive a vector from it.
+                Message* message = vectorReceiver.inboundVectorMessage();
+                if (message != nullptr)
+                {
+                    x = message->x;
+                    y = message->y;
+                    z = message->z;
+                    clear = message->isResetRequested();
+                }
+
+                // Apply these values to the output ports.
+
+                outputs[X_OUTPUT].setVoltage(x);
+                outputs[Y_OUTPUT].setVoltage(y);
+                outputs[Z_OUTPUT].setVoltage(z);
+
+                outputs[POLY_OUTPUT].setChannels(3);
+                outputs[POLY_OUTPUT].setVoltage(x, 0);
+                outputs[POLY_OUTPUT].setVoltage(y, 1);
+                outputs[POLY_OUTPUT].setVoltage(z, 2);
+
+                // FIXFIXFIX: The trigger logic needs to hold the pulse high for about 1 millisecond.
+                outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(clear ? 10.0f : 0.0f);
+
+                // Mirror the input to any module on the right.
+                vectorSender.sendVector(x, y, z, clear);
             }
 
             json_t* dataToJson() override

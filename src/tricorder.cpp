@@ -373,12 +373,13 @@ namespace Sapphire
             RotationMatrix orientation;
             const float defaultVoltageScale = 5.0f;
             float voltageScale{};
-            Message daisyChainMessage[2];    // relays inputs to another module to the right
+            VectorReceiver vectorReceiver;
+            VectorSender vectorSender;
 
             TricorderModule()
+                : vectorReceiver(*this)
+                , vectorSender(*this)
             {
-                rightExpander.producerMessage = &daisyChainMessage[0];
-                rightExpander.consumerMessage = &daisyChainMessage[1];
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 initialize();
@@ -450,30 +451,6 @@ namespace Sapphire
                 bypassing = false;
             }
 
-            static bool isCompatibleModule(const Module *module)
-            {
-                return (module != nullptr) && (
-                    module->model == modelElastika ||
-                    module->model == modelFrolic ||
-                    module->model == modelGlee ||
-                    module->model == modelNucleus ||
-                    module->model == modelTin ||
-                    module->model == modelTricorder
-                );
-            }
-
-            Message* inboundVectorMessage() const
-            {
-                if (isCompatibleModule(leftExpander.module))
-                {
-                    Message* message = static_cast<Message *>(leftExpander.module->rightExpander.consumerMessage);
-                    if (IsVectorMessage(message))
-                        return message;
-                }
-
-                return nullptr;
-            }
-
             static inline float filter(float v)
             {
                 return std::isfinite(v) ? v : 0;
@@ -483,7 +460,7 @@ namespace Sapphire
             {
                 // Is a compatible module connected to the left?
                 // If so, receive a triplet of voltages from it and put them in the buffer.
-                Message *msg = inboundVectorMessage();
+                Message *msg = vectorReceiver.inboundVectorMessage();
                 if (msg == nullptr)
                 {
                     // There is no compatible module flush to the left of Tricorder.
@@ -505,9 +482,7 @@ namespace Sapphire
                     zcurr = filter(msg->z);
 
                     // Daisy chain this inbound message from the left to any chained module on the right.
-                    Message& daisy = *static_cast<Message*>(rightExpander.producerMessage);
-                    daisy.setVector(xcurr, ycurr, zcurr, msg->isResetRequested());
-                    rightExpander.requestMessageFlip();
+                    vectorSender.sendVector(xcurr, ycurr, zcurr, msg->isResetRequested());
 
                     // Only insert new points if the position has changed significantly
                     // or a sufficient amount of time has passed.

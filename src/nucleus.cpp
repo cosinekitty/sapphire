@@ -88,11 +88,11 @@ namespace Sapphire
             CrashChecker crashChecker;
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
-            Tricorder::Communicator communicator;
+            Tricorder::VectorSender vectorSender;
             bool resetTricorder{};
 
             NucleusModule()
-                : communicator(*this)
+                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -362,7 +362,7 @@ namespace Sapphire
                 float z = engine.output(tricorderOutputIndex, 2);
                 bool reset = resetTricorder;
                 resetTricorder = false;
-                communicator.sendVector(x, y, z, reset);
+                vectorSender.sendVector(x, y, z, reset);
             }
         };
 
@@ -458,7 +458,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return nucleusModule && nucleusModule->communicator.isVectorReceiverConnectedOnRight();
+                return nucleusModule && nucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override

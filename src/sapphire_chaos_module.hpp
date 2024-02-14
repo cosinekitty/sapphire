@@ -54,10 +54,10 @@ namespace Sapphire
         struct ChaosModule : Module
         {
             circuit_t circuit;
-            Tricorder::Communicator communicator;
+            Tricorder::VectorSender vectorSender;
 
             ChaosModule()
-                : communicator(*this)
+                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -117,7 +117,7 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(circuit.vx(), 0);
                 outputs[POLY_OUTPUT].setVoltage(circuit.vy(), 1);
                 outputs[POLY_OUTPUT].setVoltage(circuit.vz(), 2);
-                communicator.sendVector(circuit.vx(), circuit.vy(), circuit.vz(), false);
+                vectorSender.sendVector(circuit.vx(), circuit.vy(), circuit.vz(), false);
             }
         };
 

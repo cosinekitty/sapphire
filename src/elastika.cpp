@@ -79,11 +79,11 @@ namespace Sapphire
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
-            Tricorder::Communicator communicator;
+            Tricorder::VectorSender vectorSender;
             bool outputVectorSelectRight = false;
 
             ElastikaModule()
-                : communicator(*this)
+                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -358,7 +358,7 @@ namespace Sapphire
                 outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
 
                 PhysicsVector v = engine.getOutputVector(outputVectorSelectRight);
-                communicator.sendVector(v[0], v[1], v[2], false);
+                vectorSender.sendVector(v[0], v[1], v[2], false);
             }
         };
 

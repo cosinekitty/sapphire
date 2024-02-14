@@ -64,12 +64,12 @@ namespace Sapphire
             return IsValidMessage(message) && (message->flag == 'v' || message->flag == 'V');
         }
 
-        struct Communicator     // allows two-way message traffic between Tricorder and an adjacent module
+        struct VectorSender     // allows another module to send vectors into Tricorder/Tout from the left side
         {
             Message buffer[2];
             Module& parentModule;
 
-            explicit Communicator(Module& module)
+            explicit VectorSender(Module& module)
                 : parentModule(module)
             {
                 module.rightExpander.producerMessage = &buffer[0];
@@ -80,7 +80,6 @@ namespace Sapphire
             {
                 Tricorder::Message& prod = *static_cast<Tricorder::Message*>(parentModule.rightExpander.producerMessage);
                 prod.setVector(x, y, z, reset);
-
                 parentModule.rightExpander.requestMessageFlip();
             }
 
@@ -99,6 +98,50 @@ namespace Sapphire
                     }
                 }
                 return false;
+            }
+        };
+
+
+        struct VectorReceiver   // shared code for Tricorder and Tout to receive vectors from a module on the left
+        {
+            Message buffer[2];
+            Module& parentModule;
+
+            explicit VectorReceiver(Module& module)
+                : parentModule(module)
+            {
+                module.leftExpander.producerMessage = &buffer[0];
+                module.leftExpander.consumerMessage = &buffer[1];
+            }
+
+            bool isVectorSenderConnectedOnLeft() const
+            {
+                return isCompatibleModule(parentModule.leftExpander.module);
+            }
+
+            Message* inboundVectorMessage() const
+            {
+                const Module* lm = parentModule.leftExpander.module;
+                if (isCompatibleModule(lm))
+                {
+                    Message* message = static_cast<Message *>(lm->rightExpander.consumerMessage);
+                    if (IsVectorMessage(message))
+                        return message;
+                }
+                return nullptr;
+            }
+
+            static bool isCompatibleModule(const Module* module)
+            {
+                return (module != nullptr) && (
+                    module->model == modelElastika ||
+                    module->model == modelFrolic ||
+                    module->model == modelGlee ||
+                    module->model == modelNucleus ||
+                    module->model == modelTin ||
+                    module->model == modelTout ||
+                    module->model == modelTricorder
+                );
             }
         };
     }
