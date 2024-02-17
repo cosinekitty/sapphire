@@ -82,9 +82,13 @@ namespace Sapphire
                 for (int i = 0; i < NumOutputs; ++i)
                 {
                     Output& op = outputs[NOISE_OUTPUTS + i];
-                    op.setChannels(dimensions);
-                    for (int d = 0; d < dimensions; ++d)
-                        op.setVoltage(rand.next(), d);
+                    // Reduce CPU overhead by generating noise to connected output ports only.
+                    if (op.isConnected())
+                    {
+                        op.setChannels(dimensions);
+                        for (int d = 0; d < dimensions; ++d)
+                            op.setVoltage(rand.next(), d);
+                    }
                 }
             }
         };
