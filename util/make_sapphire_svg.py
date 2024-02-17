@@ -360,14 +360,18 @@ def GenerateHissPanel() -> int:
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+    defs = Element('defs')
+    pl.append(defs)
     controls = ControlLayer()
     pl.append(controls)
     xmid = panel.mmWidth / 2
-    ytop = 16.0
+    ytop = 18.0
     ybottom = 112.0
     dyOut = (ybottom - ytop) / (numOutputs - 1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        defs.append(Gradient(ytop - 7.0, panel.mmHeight - 15.0, '#1058ef', SAPPHIRE_PANEL_COLOR, 'gradient_hiss'))
+        pl.append(ControlGroupArt('hiss', 'hiss_art', panel, ytop - 7.0, panel.mmHeight - 15.0, 'gradient_hiss'))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'hiss'))
         yout = ytop
