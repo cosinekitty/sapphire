@@ -76,7 +76,7 @@ namespace Sapphire
                     CHANNEL_COUNT_PARAM,
                     0.5f,
                     16.5f,
-                    3,
+                    DefaultDimensions,
                     "Output channels"
                 );
 
