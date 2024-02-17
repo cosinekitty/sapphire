@@ -14,6 +14,7 @@ extern Plugin* pluginInstance;
 extern Model* modelElastika;
 extern Model* modelFrolic;
 extern Model* modelGlee;
+extern Model* modelHiss;
 extern Model* modelMoots;
 extern Model* modelNucleus;
 extern Model* modelTin;

@@ -20,6 +20,7 @@ void init(Plugin* p)
     p->addModel(modelElastika);
     p->addModel(modelFrolic);
     p->addModel(modelGlee);
+    p->addModel(modelHiss);
     p->addModel(modelMoots);
     p->addModel(modelNucleus);
     p->addModel(modelTin);

@@ -353,6 +353,31 @@ def GenerateNucleusPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateHissPanel() -> int:
+    numOutputs = 10      # Keep in sync with src/hiss.cpp ! Sapphire::Hiss::NumOutputs
+    svgFileName = '../res/hiss.svg'
+    PANEL_WIDTH = 3
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    controls = ControlLayer()
+    pl.append(controls)
+    xmid = panel.mmWidth / 2
+    ytop = 16.0
+    ybottom = 112.0
+    dyOut = (ybottom - ytop) / (numOutputs - 1)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, 'hiss'))
+        yout = ytop
+        for i in range(numOutputs):
+            name = 'random_output_{:d}'.format(i + 1)
+            controls.append(Component(name, xmid, yout))
+            yout += dyOut
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -361,5 +386,6 @@ if __name__ == '__main__':
         GenerateTinToutPanel('tin',  'input',  'IN',  +5.2) or
         GenerateTinToutPanel('tout', 'output', 'OUT', -7.1) or
         GenerateNucleusPanel() or
+        GenerateHissPanel() or
         Print('SUCCESS')
     )
