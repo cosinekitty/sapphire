@@ -39,6 +39,16 @@ Read the complete <a href="Glee.md">Sapphire Glee documentation</a>.
 
 ---
 
+## Hiss
+
+A random vector generator whose outputs point in all directions of an N-dimensional space with equal probability. Useful for generating vector noise input to physics simulations like Nucleus.
+
+Read the complete <a href="Hiss.md">Sapphire Hiss documentation</a>.
+
+<a href="Hiss.md"><img src="images/hiss.png"/></a>
+
+---
+
 ## Moots
 
 Simulates plugging/unplugging cables,
