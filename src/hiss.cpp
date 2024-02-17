@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_random.hpp"
 
 // Sapphire Hiss for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -33,9 +34,11 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+
         struct HissModule : Module
         {
             int dimensions = DefaultDimensions;     // 1..16 : how many dimensions (channels) each output port provides
+            RandomVectorGenerator rand;
 
             HissModule()
             {
@@ -81,10 +84,7 @@ namespace Sapphire
                     Output& op = outputs[NOISE_OUTPUTS + i];
                     op.setChannels(dimensions);
                     for (int d = 0; d < dimensions; ++d)
-                    {
-                        float v = 0;    // FIXFIXFIX - put Box-Muller values here!
-                        op.setVoltage(v, d);
-                    }
+                        op.setVoltage(rand.next(), d);
                 }
             }
         };
