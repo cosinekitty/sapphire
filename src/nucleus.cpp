@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
+#include "nucleus_shared.hpp"
 #include "nucleus_engine.hpp"
 #include "nucleus_init.hpp"
 #include "nucleus_reset.hpp"
@@ -13,11 +14,6 @@ namespace Sapphire
 {
     namespace Nucleus
     {
-        const int NUM_PARTICLES = 5;
-        const float OUTPUT_EXPONENT = 10;
-        const float INPUT_EXPONENT = 4;
-        const float INPUT_SCALE = 0.015f;
-
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -325,7 +321,7 @@ namespace Sapphire
                 if (crashChecker.check(engine))
                 {
                     // We just "rebooted" the engine due to invalid output.
-                    // Make the output knob glow "code blue" for a little while.
+                    // Make the output knob glow bright pink for a little while.
                     recoveryCountdown = static_cast<int>(args.sampleRate);
                 }
                 else if (recoveryCountdown > 0)
@@ -640,4 +636,7 @@ namespace Sapphire
 }
 
 
-Model* modelNucleus = createModel<Sapphire::Nucleus::NucleusModule, Sapphire::Nucleus::NucleusWidget>("Nucleus");
+Model* modelNucleus = createSapphireModel<Sapphire::Nucleus::NucleusModule, Sapphire::Nucleus::NucleusWidget>(
+    "Nucleus",
+    Sapphire::VectorRole::Sender
+);

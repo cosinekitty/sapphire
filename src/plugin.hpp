@@ -1,5 +1,6 @@
 #pragma once
 #include <rack.hpp>
+#include <vector>
 
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -339,4 +340,70 @@ namespace Sapphire
             LightWidget::drawLayer(args, layer);
         }
     };
+
+    enum class VectorRole
+    {
+        None,
+        Sender,
+        Receiver,
+        SenderAndReceiver,
+    };
+
+    struct ModelInfo
+    {
+        static ModelInfo *front;
+        ModelInfo *next = nullptr;
+        rack::plugin::Model* model;
+        VectorRole vectorRole;
+
+        ModelInfo(rack::plugin::Model* _model, VectorRole _vectorRole)
+            : model(_model)
+            , vectorRole(_vectorRole)
+        {
+        }
+
+        static void insert(Model *_model, VectorRole _vectorRole)
+        {
+            ModelInfo *info = new ModelInfo(_model, _vectorRole);
+            info->next = front;
+            front = info;
+        }
+
+        static ModelInfo* search(const Model *model)
+        {
+            if (model != nullptr)
+                for (ModelInfo *info = front; info != nullptr; info = info->next)
+                    if (info->model == model)
+                        return info;
+
+            return nullptr;
+        }
+
+        static bool canReceiveVectors(const Model* model)
+        {
+            ModelInfo* info = search(model);
+            if (info == nullptr)
+                return false;
+
+            return (info->vectorRole == VectorRole::Receiver) || (info->vectorRole == VectorRole::SenderAndReceiver);
+        }
+
+        static bool canSendVectors(const Model* model)
+        {
+            ModelInfo* info = search(model);
+            if (info == nullptr)
+                return false;
+
+            return (info->vectorRole == VectorRole::Sender) || (info->vectorRole == VectorRole::SenderAndReceiver);
+        }
+    };
+}
+
+// Keep this in the global namespace, not inside "Sapphire".
+template <class TModule, class TModuleWidget>
+rack::plugin::Model* createSapphireModel(std::string slug, Sapphire::VectorRole vectorRole)
+{
+    Model *model = rack::createModel<TModule, TModuleWidget>(slug);
+    Sapphire::ModelInfo::insert(model, vectorRole);
+    return model;
 }

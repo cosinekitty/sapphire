@@ -469,4 +469,7 @@ namespace Sapphire
     }
 }
 
-Model* modelElastika = createModel<Sapphire::Elastika::ElastikaModule, Sapphire::Elastika::ElastikaWidget>("Elastika");
+Model* modelElastika = createSapphireModel<Sapphire::Elastika::ElastikaModule, Sapphire::Elastika::ElastikaWidget>(
+    "Elastika",
+    Sapphire::VectorRole::Sender
+);

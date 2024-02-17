@@ -88,18 +88,41 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     fprintf(outfile, "#include \"nucleus_engine.hpp\"\n");
     fprintf(outfile, "namespace Sapphire\n");
     fprintf(outfile, "{\n");
-    fprintf(outfile, "    inline void SetMinimumEnergy(NucleusEngine& engine)\n");
+    fprintf(outfile, "    namespace Nucleus\n");
     fprintf(outfile, "    {\n");
+    fprintf(outfile, "        inline Particle MinimumEnergyParticle(int particleIndex)\n");
+    fprintf(outfile, "        {\n");
+    fprintf(outfile, "            Particle p;\n");
+    fprintf(outfile, "            switch (particleIndex)\n");
+    fprintf(outfile, "            {\n");
+    for (int i = 0; i < n; ++i)
+    {
+        const Particle& p = engine.particle(i);
+        fprintf(outfile, "            case %d:\n", i);
+        for (int k = 0; k < 4; ++k)
+            fprintf(outfile, "                p.pos[%d] = %0.16lg;\n", k, p.pos[k]);
+        fprintf(outfile, "                break;\n");
+    }
+    fprintf(outfile, "            default:\n");
+    fprintf(outfile, "                throw std::invalid_argument(std::string(\"Invalid particle index\") + std::to_string(particleIndex) + \" passed into Sapphire::Nucleus::MinimumEnergyParticle()\");\n");
+    fprintf(outfile, "            }\n");
+    fprintf(outfile, "            return p;\n");
+    fprintf(outfile, "        }\n");
+    fprintf(outfile, "\n");
+    fprintf(outfile, "\n");
+    fprintf(outfile, "        inline void SetMinimumEnergy(NucleusEngine& engine)\n");
+    fprintf(outfile, "        {\n");
     for (int i = 0; i < n; ++i)
     {
         if (i > 0)
             fprintf(outfile, "\n");
         const Particle& p = engine.particle(i);
-        fprintf(outfile, "        Particle& p%d = engine.particle(%d);\n", i, i);
-        fprintf(outfile, "        p%d.vel = PhysicsVector::zero();\n", i);
+        fprintf(outfile, "            Particle& p%d = engine.particle(%d);\n", i, i);
+        fprintf(outfile, "            p%d.vel = PhysicsVector::zero();\n", i);
         for (int k = 0; k < 4; ++k)
-            fprintf(outfile, "        p%d.pos[%d] = %0.16lg;\n", i, k, p.pos[k]);
+            fprintf(outfile, "            p%d.pos[%d] = %0.16lg;\n", i, k, p.pos[k]);
     }
+    fprintf(outfile, "        }\n");
     fprintf(outfile, "    }\n");
     fprintf(outfile, "}\n");
     fclose(outfile);

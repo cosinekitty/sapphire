@@ -3,41 +3,86 @@
 #include "nucleus_engine.hpp"
 namespace Sapphire
 {
-    inline void SetMinimumEnergy(NucleusEngine& engine)
+    namespace Nucleus
     {
-        Particle& p0 = engine.particle(0);
-        p0.vel = PhysicsVector::zero();
-        p0.pos[0] = 0;
-        p0.pos[1] = 0;
-        p0.pos[2] = 0;
-        p0.pos[3] = 0;
+        inline Particle MinimumEnergyParticle(int particleIndex)
+        {
+            Particle p;
+            switch (particleIndex)
+            {
+            case 0:
+                p.pos[0] = 0;
+                p.pos[1] = 0;
+                p.pos[2] = 0;
+                p.pos[3] = 0;
+                break;
+            case 1:
+                p.pos[0] = -1.050816059112549;
+                p.pos[1] = -0.273479551076889;
+                p.pos[2] = 0.1543504893779755;
+                p.pos[3] = 0;
+                break;
+            case 2:
+                p.pos[0] = -0.4834366738796234;
+                p.pos[1] = -0.5983120203018188;
+                p.pos[2] = -0.4547337293624878;
+                p.pos[3] = 0;
+                break;
+            case 3:
+                p.pos[0] = -0.7377388477325439;
+                p.pos[1] = 0.1904145479202271;
+                p.pos[2] = -0.7888692021369934;
+                p.pos[3] = 0;
+                break;
+            case 4:
+                p.pos[0] = -0.7090007066726685;
+                p.pos[1] = 0.5429291725158691;
+                p.pos[2] = 0.03169500455260277;
+                p.pos[3] = 0;
+                break;
+            default:
+                throw std::invalid_argument(std::string("Invalid particle index") + std::to_string(particleIndex) + " passed into Sapphire::Nucleus::MinimumEnergyParticle()");
+            }
+            return p;
+        }
 
-        Particle& p1 = engine.particle(1);
-        p1.vel = PhysicsVector::zero();
-        p1.pos[0] = -1.050816059112549;
-        p1.pos[1] = -0.273479551076889;
-        p1.pos[2] = 0.1543504893779755;
-        p1.pos[3] = 0;
 
-        Particle& p2 = engine.particle(2);
-        p2.vel = PhysicsVector::zero();
-        p2.pos[0] = -0.4834366738796234;
-        p2.pos[1] = -0.5983120203018188;
-        p2.pos[2] = -0.4547337293624878;
-        p2.pos[3] = 0;
+        inline void SetMinimumEnergy(NucleusEngine& engine)
+        {
+            Particle& p0 = engine.particle(0);
+            p0.vel = PhysicsVector::zero();
+            p0.pos[0] = 0;
+            p0.pos[1] = 0;
+            p0.pos[2] = 0;
+            p0.pos[3] = 0;
 
-        Particle& p3 = engine.particle(3);
-        p3.vel = PhysicsVector::zero();
-        p3.pos[0] = -0.7377388477325439;
-        p3.pos[1] = 0.1904145479202271;
-        p3.pos[2] = -0.7888692021369934;
-        p3.pos[3] = 0;
+            Particle& p1 = engine.particle(1);
+            p1.vel = PhysicsVector::zero();
+            p1.pos[0] = -1.050816059112549;
+            p1.pos[1] = -0.273479551076889;
+            p1.pos[2] = 0.1543504893779755;
+            p1.pos[3] = 0;
 
-        Particle& p4 = engine.particle(4);
-        p4.vel = PhysicsVector::zero();
-        p4.pos[0] = -0.7090007066726685;
-        p4.pos[1] = 0.5429291725158691;
-        p4.pos[2] = 0.03169500455260277;
-        p4.pos[3] = 0;
+            Particle& p2 = engine.particle(2);
+            p2.vel = PhysicsVector::zero();
+            p2.pos[0] = -0.4834366738796234;
+            p2.pos[1] = -0.5983120203018188;
+            p2.pos[2] = -0.4547337293624878;
+            p2.pos[3] = 0;
+
+            Particle& p3 = engine.particle(3);
+            p3.vel = PhysicsVector::zero();
+            p3.pos[0] = -0.7377388477325439;
+            p3.pos[1] = 0.1904145479202271;
+            p3.pos[2] = -0.7888692021369934;
+            p3.pos[3] = 0;
+
+            Particle& p4 = engine.particle(4);
+            p4.vel = PhysicsVector::zero();
+            p4.pos[0] = -0.7090007066726685;
+            p4.pos[1] = 0.5429291725158691;
+            p4.pos[2] = 0.03169500455260277;
+            p4.pos[3] = 0;
+        }
     }
 }

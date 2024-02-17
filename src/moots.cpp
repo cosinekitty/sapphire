@@ -291,4 +291,7 @@ namespace Sapphire
     }
 }
 
-Model* modelMoots = createModel<Sapphire::Moots::MootsModule, Sapphire::Moots::MootsWidget>("Moots");
+Model* modelMoots = createSapphireModel<Sapphire::Moots::MootsModule, Sapphire::Moots::MootsWidget>(
+    "Moots",
+    Sapphire::VectorRole::None
+);

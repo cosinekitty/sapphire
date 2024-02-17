@@ -23,7 +23,7 @@ int main()
     const int SETTLE_SAMPLES = SAMPLE_RATE * SETTLE_SECONDS;
 
     NucleusEngine engine{5};
-    SetMinimumEnergy(engine);
+    Nucleus::SetMinimumEnergy(engine);
     const float speed = pow(2.0f, 5.0f - 1);
     engine.setMagneticCoupling(0.21 * 0.09);
     engine.setDcRejectEnabled(true);

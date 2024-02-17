@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstring>
 #include <cinttypes>
+#include "plugin.hpp"
 
 namespace Sapphire
 {
@@ -69,6 +70,11 @@ namespace Sapphire
             Message buffer[2];
             Module& parentModule;
 
+            static bool isVectorReceiver(const Module* module)
+            {
+                return (module != nullptr) && ModelInfo::canReceiveVectors(module->model);
+            }
+
             explicit VectorSender(Module& module)
                 : parentModule(module)
             {
@@ -85,19 +91,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                if (parentModule.rightExpander.module != nullptr)
-                {
-                    Model *rm = parentModule.rightExpander.module->model;
-                    if (rm != nullptr)      // weird thought: what if modelTricorder is null!
-                    {
-                        return (
-                            (rm == modelTricorder) ||
-                            (rm == modelTout)
-                            // Add "||" with more models here, if/when their modules can receive vector streams.
-                        );
-                    }
-                }
-                return false;
+                return isVectorReceiver(parentModule.rightExpander.module);
             }
         };
 
@@ -106,6 +100,11 @@ namespace Sapphire
         {
             Message buffer[2];
             Module& parentModule;
+
+            static bool isVectorSender(const Module* module)
+            {
+                return (module != nullptr) && ModelInfo::canSendVectors(module->model);
+            }
 
             explicit VectorReceiver(Module& module)
                 : parentModule(module)
@@ -116,32 +115,19 @@ namespace Sapphire
 
             bool isVectorSenderConnectedOnLeft() const
             {
-                return isCompatibleModule(parentModule.leftExpander.module);
+                return isVectorSender(parentModule.leftExpander.module);
             }
 
             Message* inboundVectorMessage() const
             {
                 const Module* lm = parentModule.leftExpander.module;
-                if (isCompatibleModule(lm))
+                if (isVectorSender(lm))
                 {
                     Message* message = static_cast<Message *>(lm->rightExpander.consumerMessage);
                     if (IsVectorMessage(message))
                         return message;
                 }
                 return nullptr;
-            }
-
-            static bool isCompatibleModule(const Module* module)
-            {
-                return (module != nullptr) && (
-                    module->model == modelElastika ||
-                    module->model == modelFrolic ||
-                    module->model == modelGlee ||
-                    module->model == modelNucleus ||
-                    module->model == modelTin ||
-                    module->model == modelTout ||
-                    module->model == modelTricorder
-                );
             }
         };
     }

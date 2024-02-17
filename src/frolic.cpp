@@ -15,4 +15,7 @@ namespace Sapphire
     };
 }
 
-Model* modelFrolic = createModel<Sapphire::FrolicModule, Sapphire::FrolicWidget>("Frolic");
+Model* modelFrolic = createSapphireModel<Sapphire::FrolicModule, Sapphire::FrolicWidget>(
+    "Frolic",
+    Sapphire::VectorRole::Sender
+);

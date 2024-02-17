@@ -134,4 +134,7 @@ namespace Sapphire
     }
 }
 
-Model* modelTout = createModel<Sapphire::TricorderOutput::ToutModule, Sapphire::TricorderOutput::ToutWidget>("Tout");
+Model* modelTout = createSapphireModel<Sapphire::TricorderOutput::ToutModule, Sapphire::TricorderOutput::ToutWidget>(
+    "Tout",
+    Sapphire::VectorRole::SenderAndReceiver
+);

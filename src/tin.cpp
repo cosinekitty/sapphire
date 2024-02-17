@@ -112,4 +112,7 @@ namespace Sapphire
     }
 }
 
-Model* modelTin = createModel<Sapphire::TricorderInput::TinModule, Sapphire::TricorderInput::TinWidget>("Tin");
+Model* modelTin = createSapphireModel<Sapphire::TricorderInput::TinModule, Sapphire::TricorderInput::TinWidget>(
+    "Tin",
+    Sapphire::VectorRole::Sender
+);
