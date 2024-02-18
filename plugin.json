@@ -75,6 +75,17 @@
       ]
     },
     {
+      "slug": "Polynucleus",
+      "name": "Polynucleus",
+      "description": "Simulation of a cloud of particles with mutually attractive, repulsive, and orthogonal forces.",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Filter",
+        "Reverb"
+      ]
+    },
+    {
       "slug": "Tin",
       "name": "Tin",
       "description": "Feeds arbitrary input signals into Tricorder.",

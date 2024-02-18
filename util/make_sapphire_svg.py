@@ -247,7 +247,8 @@ def GradientStyle(gradientId:str, opacity:float) -> str:
 
 
 def GenerateNucleusPanel() -> int:
-    svgFileName = '../res/nucleus.svg'
+    name = 'nucleus'
+    svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
     panel = Panel(PANEL_WIDTH)
     defs = Element('defs')
@@ -256,7 +257,7 @@ def GenerateNucleusPanel() -> int:
     bubbleRadius = 6.0
     xSerpentLeft = xBubbleLeft + bubbleRadius
     xSerpentRight = xBubbleRight - bubbleRadius
-    defs.append(LinearGradient('gradient_controls', xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b242bd'))
+    defs.append(LinearGradient('gradient_controls', xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, SAPPHIRE_PURPLE_COLOR))
     defs.append(LinearGradient('gradient_input',    xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR))
     defs.append(LinearGradient('gradient_output',   xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, SAPPHIRE_SALMON_COLOR))
     panel.append(defs)
@@ -282,9 +283,9 @@ def GenerateNucleusPanel() -> int:
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
-    headerFileName = '../src/nucleus_panel.hpp'
+    headerFileName = '../src/{}_panel.hpp'.format(name)
     with open(headerFileName, 'wt') as headerFile:
-        headerFile.write('// nucleus_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n')
+        headerFile.write('// {}_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n'.format(name))
         headerFile.write('#pragma once\n')
         headerFile.write('namespace Sapphire\n')
         headerFile.write('{\n')
@@ -305,7 +306,7 @@ def GenerateNucleusPanel() -> int:
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, 'nucleus'))
+        pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
         pl.append(RectangularBubble(xBubbleLeft, 12.0, xBubbleRight, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
@@ -353,9 +354,114 @@ def GenerateNucleusPanel() -> int:
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
         yText = yButton - 6.5
-        SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/nucleus_label_audio.svg',   xText, yText)
-        SaveLabelLayer(PANEL_WIDTH, 'CONTROL', '../res/nucleus_label_control.svg', xText, yText)
+        SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/{}_label_audio.svg'.format(name),   xText, yText)
+        SaveLabelLayer(PANEL_WIDTH, 'CONTROL', '../res/{}_label_control.svg'.format(name), xText, yText)
     return Save(panel, svgFileName)
+
+
+def GeneratePolynucleusPanel() -> int:
+    name = 'polynucleus'
+    svgFileName = '../res/{}.svg'.format(name)
+    PANEL_WIDTH = 16
+    panel = Panel(PANEL_WIDTH)
+    defs = Element('defs')
+    xBubbleLeft = 4.0
+    xBubbleRight = 73.2
+    bubbleRadius = 6.0
+    xSerpentLeft = xBubbleLeft + bubbleRadius
+    xSerpentRight = xBubbleRight - bubbleRadius
+    defs.append(LinearGradient('gradient_controls', xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, SAPPHIRE_PURPLE_COLOR))
+    defs.append(LinearGradient('gradient_input',    xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR))
+    defs.append(LinearGradient('gradient_output',   xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, SAPPHIRE_SALMON_COLOR))
+    panel.append(defs)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    controls = ControlLayer()
+    xmid = panel.mmWidth / 2
+    dxPort = 0.0                # not really needed, kept in C++ code generator for symmetry with Nucleus.
+    yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
+    yOutTop = 86.0              # vertical position of the top row of output ports.
+    yOutBottom = 112.0          # vertical position of the bottom row of output ports.
+    nOutputParticles = 4        # how many particles are used for output.
+    dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
+    xOutLeft = xmid
+    dxRightMargin = 4.0
+    dxLeft = 5.0
+    dxTotal = panel.mmWidth - xOutLeft - dxRightMargin + dxLeft
+    yKnobRow1 = 25.0
+    yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
+
+    # Write a C++ header file that contains bounding rectangles for the 4 output rows.
+    # This script remains the Single Source Of Truth for how the panel design is laid out.
+    headerFileName = '../src/{}_panel.hpp'.format(name)
+    with open(headerFileName, 'wt') as headerFile:
+        headerFile.write('// {}_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n'.format(name))
+        headerFile.write('#pragma once\n')
+        headerFile.write('namespace Sapphire\n')
+        headerFile.write('{\n')
+        headerFile.write('    namespace Polynucleus\n')
+        headerFile.write('    {\n')
+        headerFile.write('        namespace Panel\n')
+        headerFile.write('        {\n')
+        headerFile.write('            const float DxOut   = {:9.3f}f;    // (not really needed - compatibility with Nucleus).\n'.format(dxPort))
+        headerFile.write('            const float DyOut   = {:9.3f}f;    // vertical distance between output port rows.\n'.format(dyOut))
+        headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
+        headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
+        headerFile.write('            const float DxTotal = {:9.3f}f;    // total horizontal space to allocate to each bounding box.\n'.format(dxTotal))
+        headerFile.write('            const float DxLeft  = {:9.3f}f;    // extra space reserved on the left for BCDE.\n'.format(dxLeft))
+        headerFile.write('        }\n')
+        headerFile.write('    }\n')
+        headerFile.write('}\n')
+        Print('Wrote: ' + headerFileName)
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(SapphireInsignia(panel, font))
+        # Rectangular bubbles are background patterns that visually group related controls/ports.
+        pl.append(RectangularBubble(xBubbleLeft, 12.0, xBubbleRight, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
+        pl.append(RectangularBubble(xBubbleLeft, 43.0, xBubbleRight, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
+        pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
+        pl.append(controls)
+        xInputCenter = xmid - 12.0
+        xInPos = xInputCenter
+        xOutPos = xmid
+
+        controls.append(Component('a_input', xInPos, yIn))
+        ypos = yOutTop
+        for i in range(nOutputParticles):
+            # Output rows BCDE
+            controls.append(Component('bcde'[i] + '_output', xOutPos, ypos))
+            ypos += dyOut
+
+        pl.append(ControlTextPath(font, 'A', xInputCenter - 8.5, yIn - 2.5))
+        xpos = xmid - 9.0
+        ypos = yOutTop - 2.5
+        for label in 'BCDE':
+            pl.append(ControlTextPath(font, label, xpos, ypos))
+            ypos += dyOut
+
+        dxKnob = 25.0
+        xKnobLeft  = xmid - dxKnob
+        xKnobRight = xmid + dxKnob
+        AddControlGroup(pl, controls, font, 'speed',    'SPEED',  xKnobLeft,    yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,         yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight,   yKnobRow1, 7.0)
+        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xKnobRight,   yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'out_level','OUT',    xKnobLeft,    yOutLevel, 3.5)
+
+        # Add toggle button with alternating text labels AUDIO and CONTROL.
+        # We do this by creating two extra SVG files that contain one word each.
+        # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
+        xButton = xKnobLeft
+        yButton = yOutLevel - 19.5
+        controls.append(Component('audio_mode_button', xButton, yButton))
+        xText = xButton
+        yText = yButton - 6.5
+        SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/{}_label_audio.svg'.format(name),   xText, yText)
+        SaveLabelLayer(PANEL_WIDTH, 'CONTROL', '../res/{}_label_control.svg'.format(name), xText, yText)
+    return Save(panel, svgFileName)
+
 
 
 def GenerateHissPanel() -> int:
@@ -395,6 +501,7 @@ if __name__ == '__main__':
         GenerateTinToutPanel('tin',  'input',  'IN',  +5.2) or
         GenerateTinToutPanel('tout', 'output', 'OUT', -7.1) or
         GenerateNucleusPanel() or
+        GeneratePolynucleusPanel() or
         GenerateHissPanel() or
         Print('SUCCESS')
     )
