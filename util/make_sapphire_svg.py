@@ -389,7 +389,7 @@ def GeneratePolynucleusPanel() -> int:
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
     xOutLeft = xKnobRight - 5.0
     dxLeft = 5.0
-    dxTotal = 20.0
+    dxTotal = 21.5
     dxLabel = 7.0
     yKnobRow1 = 25.0
     yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 6.0

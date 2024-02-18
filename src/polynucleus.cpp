@@ -450,7 +450,7 @@ namespace Sapphire
             Rect mouseTargetBoundingBox(int row) const
             {
                 Rect box = outputRowBoundingBox(row);
-                const float frac = 0.15;
+                const float frac = 0.29;
                 const float dx = box.size.x;
                 box.size.x *= frac;
                 box.pos.x += dx * (1 - frac);
@@ -467,10 +467,10 @@ namespace Sapphire
                 Rect box = outputRowBoundingBox(row);
 
                 // Draw a rightward-facing arrow that fits inside the bounding box.
-                const float A = 0.89 * box.size.x;       // fraction rightward where the arrowhead begins
+                const float A = 0.80 * box.size.x;       // fraction rightward where the arrowhead begins
                 const float H = 0.38 * box.size.y;       // fraction of vertical distance for skinny side of arrow
                 const float G = 0.10 * box.size.y;       // fraction of vertical margin above and below the arrow corners
-                const float V = 0.85 * box.size.x;       // fraction of horizontal distance to the left of the arrow
+                const float V = 0.71 * box.size.x;       // fraction of horizontal distance to the left of the arrow
                 const float W = 0.02 * box.size.x;       // fraction of horizontal distance to the right of the arrow
 
                 const float x1 = box.pos.x + V;
