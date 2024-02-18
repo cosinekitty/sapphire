@@ -378,18 +378,21 @@ def GeneratePolynucleusPanel() -> int:
     panel.append(pl)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
+    dxKnob = 25.0
+    xKnobLeft  = xmid - dxKnob
+    xKnobRight = xmid + dxKnob
     dxPort = 0.0                # not really needed, kept in C++ code generator for symmetry with Nucleus.
     yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
-    yOutTop = 86.0              # vertical position of the top row of output ports.
-    yOutBottom = 112.0          # vertical position of the bottom row of output ports.
+    yOutTop = 81.0              # vertical position of the top row of output ports.
+    yOutBottom = 110.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
     dyOut = (yOutBottom - yOutTop) / (nOutputParticles - 1)     # vertical space between output rows.
-    xOutLeft = xmid
-    dxRightMargin = 4.0
+    xOutLeft = xKnobRight - 5.0
     dxLeft = 5.0
-    dxTotal = panel.mmWidth - xOutLeft - dxRightMargin + dxLeft
+    dxTotal = 20.0
+    dxLabel = 7.0
     yKnobRow1 = 25.0
-    yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 4.0
+    yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 6.0
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
@@ -403,10 +406,10 @@ def GeneratePolynucleusPanel() -> int:
         headerFile.write('    {\n')
         headerFile.write('        namespace Panel\n')
         headerFile.write('        {\n')
-        headerFile.write('            const float DxOut   = {:9.3f}f;    // (not really needed - compatibility with Nucleus).\n'.format(dxPort))
-        headerFile.write('            const float DyOut   = {:9.3f}f;    // vertical distance between output port rows.\n'.format(dyOut))
-        headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of upper left output port\'s center.\n'.format(xOutLeft))
-        headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of upper left output port\'s center.\n'.format(yOutTop))
+        headerFile.write('            const float DxOut   = {:9.3f}f;    // FIXFIXFIX - is this still needed?\n'.format(dxPort))
+        headerFile.write('            const float DyOut   = {:9.3f}f;    // vertical distance between output ports.\n'.format(dyOut))
+        headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of output port\'s center.\n'.format(xOutLeft))
+        headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of output port\'s center.\n'.format(yOutTop))
         headerFile.write('            const float DxTotal = {:9.3f}f;    // total horizontal space to allocate to each bounding box.\n'.format(dxTotal))
         headerFile.write('            const float DxLeft  = {:9.3f}f;    // extra space reserved on the left for BCDE.\n'.format(dxLeft))
         headerFile.write('        }\n')
@@ -423,38 +426,29 @@ def GeneratePolynucleusPanel() -> int:
         pl.append(RectangularBubble(xBubbleLeft, 43.0, xBubbleRight, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
         pl.append(controls)
-        xInputCenter = xmid - 12.0
-        xInPos = xInputCenter
-        xOutPos = xmid
 
-        controls.append(Component('a_input', xInPos, yIn))
+        # Create label + input port for particle A.
+        controls.append(Component('a_input', xKnobLeft, yIn))
+        pl.append(CenteredControlTextPath(font, 'A', xKnobLeft + dxLabel, yIn))
+
+        # Create labels + output ports for particles BCDE.
         ypos = yOutTop
-        for i in range(nOutputParticles):
-            # Output rows BCDE
-            controls.append(Component('bcde'[i] + '_output', xOutPos, ypos))
-            ypos += dyOut
-
-        pl.append(ControlTextPath(font, 'A', xInputCenter - 8.5, yIn - 2.5))
-        xpos = xmid - 9.0
-        ypos = yOutTop - 2.5
         for label in 'BCDE':
-            pl.append(ControlTextPath(font, label, xpos, ypos))
+            controls.append(Component(label.lower() + '_output', xKnobRight, ypos))
+            pl.append(CenteredControlTextPath(font, label, xKnobRight - dxLabel, ypos))
             ypos += dyOut
 
-        dxKnob = 25.0
-        xKnobLeft  = xmid - dxKnob
-        xKnobRight = xmid + dxKnob
-        AddControlGroup(pl, controls, font, 'speed',    'SPEED',  xKnobLeft,    yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,         yKnobRow1, 5.5)
-        AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight,   yKnobRow1, 7.0)
-        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xKnobRight,   yIn - 2.5, 1.5)
-        AddControlGroup(pl, controls, font, 'out_level','OUT',    xKnobLeft,    yOutLevel, 3.5)
+        AddControlGroup(pl, controls, font, 'speed',    'SPEED',  xKnobLeft,  yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,       yKnobRow1, 5.5)
+        AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
+        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yOutLevel, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
-        xButton = xKnobLeft
-        yButton = yOutLevel - 19.5
+        xButton = xmid
+        yButton = yOutLevel - 18.5
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
         yText = yButton - 6.5
