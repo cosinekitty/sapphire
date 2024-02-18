@@ -6,6 +6,10 @@ SAPPHIRE_FONT_FILENAME = 'Quicksand-Light.ttf'
 
 SAPPHIRE_PANEL_COLOR  = '#4f8df2'
 SAPPHIRE_BORDER_COLOR = '#5021d4'
+SAPPHIRE_AZURE_COLOR = '#3068ff'
+SAPPHIRE_MAGENTA_COLOR = '#a06de4'
+SAPPHIRE_SALMON_COLOR = '#b9818b'
+SAPPHIRE_TEAL_COLOR = '#29aab4'
 
 MODEL_NAME_POINTS   = 22.0
 MODEL_NAME_STYLE    = 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel'

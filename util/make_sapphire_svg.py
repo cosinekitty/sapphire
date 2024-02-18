@@ -96,12 +96,12 @@ def GenerateChaosPanel(name: str) -> int:
         yPortLabel = outputPortY1 - 2.4
         outGradY1 = yOutLabel - 1.5
         outGradY2 = yPortLabel + 2*outputPortDY + 10.0
-        defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, '#3068ff', '#4f8df2', 'gradient_blue'))
-        defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, '#a06de4', '#4f8df2', 'gradient_purple'))
-        defs.append(Gradient(outGradY1, outGradY2, '#29aab4', '#4f8df2', 'gradient_tan'))
+        defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
+        defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
+        defs.append(Gradient(outGradY1, outGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
         pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
-        pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_tan'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_out'))
         controls.append(Component('speed_knob', xmid, ySpeedKnob))
         controls.append(Component('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
         controls.append(Component('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
@@ -156,11 +156,15 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
-def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) -> int:
+def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    defs = Element('defs')
+    pl.append(defs)
+    controls = ControlLayer()
     xmid = panel.mmWidth/2
     inputPortY1 = 25.0
     inputPortDY = 10.0
@@ -168,23 +172,24 @@ def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) 
     xPortLabel = xmid + dxCoordLabel
     yInPortLabel = inputPortY1 - 2.4
     yInLabel = inputPortY1 - 10.5
-    inGradY1 = yInLabel - 1.5
-    inGradY2 = yInPortLabel + 2*inputPortDY + 10.0
-    controls = ControlLayer()
+    ioPortsGradY1 = yInLabel - 1.5
+    ioPortsGradY2 = yInPortLabel + 2*inputPortDY + 10.0
     xTriggerPortLabel = xmid - 5.3
     yTriggerPortLabel = inputPortY2 - 10.0
-    inGradY3 = yTriggerPortLabel - 1.5
-    inGradY4 = inGradY3 + 10.0
-    defs = Element('defs')
-    pl.append(defs)
-    defs.append(Gradient(inGradY1, inGradY2, '#a06de4', '#4f8df2', 'gradient_in'))
-    defs.append(Gradient(inGradY3, inGradY4, '#3068ff', '#4f8df2', 'gradient_trigger'))
+    clearGradY1 = yTriggerPortLabel - 1.5
+    clearGradY2 = clearGradY1 + 10.0
+    levelGradY1 = 62.0
+    levelGradY2 = 90.0
+    defs.append(Gradient(ioPortsGradY1, ioPortsGradY2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_io'))
+    defs.append(Gradient(levelGradY1, levelGradY2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_level'))
+    defs.append(Gradient(clearGradY1, clearGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_clear'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        pl.append(ControlGroupArt(name, 'in_art', panel, inGradY1, inGradY2, 'gradient_in'))
-        pl.append(ControlGroupArt(name, 'trig_art', panel, inGradY3, inGradY4, 'gradient_trigger'))
+        pl.append(ControlGroupArt(name, 'in_art', panel, ioPortsGradY1, ioPortsGradY2, 'gradient_io'))
+        pl.append(ControlGroupArt(name, 'in_art', panel, levelGradY1, levelGradY2, 'gradient_level'))
+        pl.append(ControlGroupArt(name, 'trig_art', panel, clearGradY1, clearGradY2, 'gradient_clear'))
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yInPortLabel + 0*inputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yInPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yInPortLabel + 2*inputPortDY, 'port_label_z'))
@@ -195,10 +200,9 @@ def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) 
         controls.append(Component('p_' + dir, xmid, inputPortY1 + 3*inputPortDY))
         controls.append(Component('clear_trigger_' + dir, xmid, inputPortY2))
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xmid, 75.0, 5.5)
-        pl.append(CenteredControlTextPath(font, inOutLabel, xmid, yInLabel + 2.5, 'inout_label'))
-        pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'trigger_label'))
-    pl.append(controls)
-    panel.append(pl)
+        pl.append(CenteredControlTextPath(font, ioLabel, xmid, yInLabel + 2.5, 'io_label'))
+        pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'clear_label'))
+    pl.append(controls)     # controls go LAST so that they end up on top of everything else
     return Save(panel, svgFileName)
 
 
@@ -253,8 +257,8 @@ def GenerateNucleusPanel() -> int:
     xSerpentLeft = xBubbleLeft + bubbleRadius
     xSerpentRight = xBubbleRight - bubbleRadius
     defs.append(LinearGradient('gradient_controls', xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b242bd'))
-    defs.append(LinearGradient('gradient_input',    xSerpentLeft,  0.0, xSerpentRight, 0.0, '#3068ff', SAPPHIRE_PANEL_COLOR))
-    defs.append(LinearGradient('gradient_output',   xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, '#b9818b'))
+    defs.append(LinearGradient('gradient_input',    xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR))
+    defs.append(LinearGradient('gradient_output',   xSerpentLeft,  0.0, xSerpentRight, 0.0, SAPPHIRE_PANEL_COLOR, SAPPHIRE_SALMON_COLOR))
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
