@@ -432,7 +432,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return nucleusModule && nucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
+                return (nucleusModule != nullptr) && nucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -575,21 +575,18 @@ namespace Sapphire
             {
                 SapphireReloadableModuleWidget::onButton(e);
 
-                if (nucleusModule == nullptr)
-                    return;
-
-                if (!isVectorReceiverConnectedOnRight())
-                    return;
-
-                // See if the mouse click lands inside any of the mouse bounding boxes.
-                for (int row = 1; row < NUM_PARTICLES; ++row)
+                if (isVectorReceiverConnectedOnRight())
                 {
-                    Rect box = mouseTargetBoundingBox(row);
-                    if (box.contains(e.pos))
+                    // See if the mouse click lands inside any of the mouse bounding boxes.
+                    for (int row = 1; row < NUM_PARTICLES; ++row)
                     {
-                        // Select the new output row.
-                        nucleusModule->setOutputRow(row);
-                        break;
+                        Rect box = mouseTargetBoundingBox(row);
+                        if (box.contains(e.pos))
+                        {
+                            // Select the new output row.
+                            nucleusModule->setOutputRow(row);
+                            break;
+                        }
                     }
                 }
             }

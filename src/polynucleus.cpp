@@ -336,7 +336,7 @@ namespace Sapphire
 
         struct PolynucleusWidget : SapphireReloadableModuleWidget
         {
-            PolynucleusModule *nucleusModule;
+            PolynucleusModule *polynucleusModule;
             WarningLightWidget* warningLight{};
             int hoverOutputIndex{};
             bool ownsMouse{};
@@ -345,7 +345,7 @@ namespace Sapphire
 
             explicit PolynucleusWidget(PolynucleusModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/polynucleus.svg"))
-                , nucleusModule(module)
+                , polynucleusModule(module)
                 , audioLabel(SvgOverlay::Load("res/polynucleus_label_audio.svg"))
                 , controlLabel(SvgOverlay::Load("res/polynucleus_label_control.svg"))
             {
@@ -398,24 +398,24 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (nucleusModule != nullptr)
+                if (polynucleusModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
 
-                    if (nucleusModule->agcLevelQuantity)
+                    if (polynucleusModule->agcLevelQuantity)
                     {
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
+                        menu->addChild(new AgcLevelSlider(polynucleusModule->agcLevelQuantity));
 
                         // Add an option to enable/disable the warning slider.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &nucleusModule->enableLimiterWarning));
+                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &polynucleusModule->enableLimiterWarning));
                     }
                 }
             }
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return nucleusModule && nucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
+                return (polynucleusModule != nullptr) && polynucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -430,7 +430,7 @@ namespace Sapphire
                     if (ownsMouse)
                         drawOutputRowCursor(args.vg, hoverOutputIndex);
 
-                    drawOutputRowSelectionBox(args.vg, nucleusModule->tricorderOutputIndex);
+                    drawOutputRowSelectionBox(args.vg, polynucleusModule->tricorderOutputIndex);
                 }
             }
 
@@ -565,31 +565,28 @@ namespace Sapphire
 
                 SapphireReloadableModuleWidget::onButton(e);
 
-                if (nucleusModule == nullptr)
-                    return;
-
-                if (!isVectorReceiverConnectedOnRight())
-                    return;
-
-                // See if the mouse click lands inside any of the mouse bounding boxes.
-                for (int row = 1; row < NUM_PARTICLES; ++row)
+                if ((polynucleusModule != nullptr) && isVectorReceiverConnectedOnRight())
                 {
-                    Rect box = mouseTargetBoundingBox(row);
-                    if (box.contains(e.pos))
+                    // See if the mouse click lands inside any of the mouse bounding boxes.
+                    for (int row = 1; row < NUM_PARTICLES; ++row)
                     {
-                        // Select the new output row.
-                        nucleusModule->setOutputRow(row);
-                        break;
+                        Rect box = mouseTargetBoundingBox(row);
+                        if (box.contains(e.pos))
+                        {
+                            // Select the new output row.
+                            polynucleusModule->setOutputRow(row);
+                            break;
+                        }
                     }
                 }
             }
 
             void step() override
             {
-                if (nucleusModule != nullptr)
+                if (polynucleusModule != nullptr)
                 {
                     // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
-                    bool audio = nucleusModule->isEnabledAudioMode();
+                    bool audio = polynucleusModule->isEnabledAudioMode();
                     if (audio != audioLabel->isVisible())
                     {
                         // Toggle which of the two labels is showing.
