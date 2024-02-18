@@ -212,28 +212,6 @@ namespace Sapphire
                 slewer.setRampLength(newRampLength);
             }
 
-            float getControlValue(
-                ParamId sliderId,
-                ParamId attenuId,
-                InputId cvInputId,
-                float minSlider = 0.0f,
-                float maxSlider = 1.0f)
-            {
-                float slider = params[sliderId].getValue();
-                if (inputs[cvInputId].isConnected())
-                {
-                    float attenu = params[attenuId].getValue();
-                    float cv = inputs[cvInputId].getVoltageSum();
-                    // When the attenuverter is set to 100%, and the cv is +5V, we want
-                    // to swing a slider that is all the way down (minSlider)
-                    // to act like it is all the way up (maxSlider).
-                    // Thus we allow the complete range of control for any CV whose
-                    // range is [-5, +5] volts.
-                    slider += attenu * (cv / 5.0) * (maxSlider - minSlider);
-                }
-                return slider;
-            }
-
             void reflectAgcSlider()
             {
                 // Check for changes to the automatic gain control: its level, and whether enabled/disabled.

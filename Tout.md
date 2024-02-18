@@ -10,3 +10,5 @@ You can place Tout immediately to the right of a Tricorder to receive a copy of 
 Outputs are provided individually as monophonic X, Y, and Z ports.
 
 They are also available together as a single 3-channel polyphonic (X, Y, Z) signal on the P port.
+
+You can adjust the amplitude of the output vectors using the LEVEL knob, attenuverter, and CV input.

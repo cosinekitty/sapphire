@@ -60,7 +60,7 @@ namespace Sapphire
             }
         };
 
-        struct HissModule : Module
+        struct HissModule : SapphireModule
         {
             RandomVectorGenerator rand;
             ChannelCountQuantity *channelCountQuantity{};

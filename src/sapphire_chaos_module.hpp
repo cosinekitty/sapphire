@@ -51,7 +51,7 @@ namespace Sapphire
         };
 
         template <typename circuit_t>
-        struct ChaosModule : Module
+        struct ChaosModule : SapphireModule
         {
             circuit_t circuit;
             Tricorder::VectorSender vectorSender;
@@ -87,20 +87,6 @@ namespace Sapphire
             {
                 Module::onReset(e);
                 initialize();
-            }
-
-            float getControlValue(ParamId paramId, ParamId attenId, InputId inputId, float minValue, float maxValue)
-            {
-                float slider = params[paramId].getValue();
-                float cv = inputs[inputId].getVoltageSum();
-                // When the attenuverter is set to 100%, and the cv is +5V, we want
-                // to swing a slider that is all the way down (minSlider)
-                // to act like it is all the way up (maxSlider).
-                // Thus we allow the complete range of control for any CV whose
-                // range is [-5, +5] volts.
-                float attenu = params[attenId].getValue();
-                slider += attenu*(cv / 5)*(maxValue - minValue);
-                return Clamp(slider, minValue, maxValue);
             }
 
             void process(const ProcessArgs& args) override

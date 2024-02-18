@@ -351,7 +351,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct TricorderModule : Module
+        struct TricorderModule : SapphireModule
         {
             PointList pointList;
             int pointCount{};

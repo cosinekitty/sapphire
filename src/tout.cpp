@@ -11,11 +11,16 @@ namespace Sapphire
     {
         enum ParamId
         {
+            LEVEL_PARAM,
+            LEVEL_ATTEN,
+
             PARAMS_LEN
         };
 
         enum InputId
         {
+            LEVEL_INPUT,
+
             INPUTS_LEN
         };
 
@@ -35,7 +40,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct ToutModule : Module
+        struct ToutModule : SapphireModule
         {
             Tricorder::VectorReceiver vectorReceiver;
             Tricorder::VectorSender vectorSender;
@@ -51,6 +56,9 @@ namespace Sapphire
                 configOutput(Z_OUTPUT, "Z");
                 configOutput(POLY_OUTPUT, "Polyphonic (X, Y, Z)");
                 configOutput(CLEAR_TRIGGER_OUTPUT, "Clear display trigger");
+                configParam(LEVEL_PARAM, 0, 2, 1, "Level", " dB", -10, 80);
+                configParam(LEVEL_ATTEN, -1, +1, 0, "Level attenuverter", "%", 0, 100);
+                configInput(LEVEL_INPUT, "Level CV");
                 initialize();
             }
 
@@ -86,6 +94,14 @@ namespace Sapphire
                     clear = message->isResetRequested();
                 }
 
+                // Adjust levels using the LEVEL control group.
+                float slider = getControlValue(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_INPUT, 0, +2);
+                float slider2 = slider * slider;
+                float gain = slider2 * slider2;     // gain = slider^4
+                x *= gain;
+                y *= gain;
+                z *= gain;
+
                 // Apply these values to the output ports.
 
                 outputs[X_OUTPUT].setVoltage(x);
@@ -100,7 +116,7 @@ namespace Sapphire
                 float triggerVoltage = triggerSender.process(args.sampleTime, clear);
                 outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(triggerVoltage);
 
-                // Mirror the input to any module on the right.
+                // Mirror the level-adjusted input to any module on the right.
                 vectorSender.sendVector(x, y, z, clear);
             }
 
@@ -128,6 +144,9 @@ namespace Sapphire
                 addSapphireOutput(Z_OUTPUT, "z_output");
                 addSapphireOutput(POLY_OUTPUT, "p_output");
                 addSapphireOutput(CLEAR_TRIGGER_OUTPUT, "clear_trigger_output");
+                addKnob(LEVEL_PARAM, "level_knob");
+                addAttenuverter(LEVEL_ATTEN, "level_atten");
+                addSapphireInput(LEVEL_INPUT, "level_cv");
                 reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }
         };

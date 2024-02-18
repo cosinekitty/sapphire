@@ -53,7 +53,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct MootsModule : Module
+        struct MootsModule : SapphireModule
         {
             static const int NUM_CONTROLLERS = 5;
             static_assert(NUM_CONTROLLERS == PARAMS_LEN,   "Incorrect number of entries in `enum ParamId`");

@@ -19,6 +19,7 @@
         <li>Elastika, Nucleus, and Tube Unit now auto-reset if infinite/NAN output is detected, and indicate the problem by turning the OUTPUT level knob bright pink for 1 second, every time it happens.</li>
         <li>Frolic and Glee now provide an additional polyphonic output with the entire vector represented as a 3-channel port.</li>
         <li>Tin now provides an additional polyphonic input to feed in a 3-channel (X, Y, Z) input vector.</li>
+        <li>Tin and Tout now have a LEVEL knob, attenuverter, and CV input. This allows them to adjust the magnitude of vectors that flow through them.</li>
     </ul>
 </td>
 </tr>

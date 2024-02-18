@@ -19,11 +19,11 @@ You can also provide a polyphonic input to the P port. Ideally, the input cable 
 If both monophonic and polyphonic inputs are provided, the respective values are added together to get effective X, Y, and Z inputs:
 
 ```
-x = sum(X) + P[0]
-y = sum(Y) + P[1]
-z = sum(Z) + P[2]
+x = (sum(X) + P[0]) * level
+y = (sum(Y) + P[1]) * level
+z = (sum(Z) + P[2]) * level
 ```
 
-where `sum(X)` represents the sum of all the channel voltages of the cable connected to the X port, `P[0]` represents the voltage of channel 0 on the P port, if it exists, and so on.
+where `sum(X)` represents the sum of all the channel voltages of the cable connected to the X port, `P[0]` represents the voltage of channel 0 on the P port, if it exists, and `level` is the effective dB gain of the LEVEL knob, attenuverter, and CV input.
 
-The CLEAR input is a trigger that tells Tricorder to clear the screen. After clearing the screen Tricorder starts accumulating and graphing data again as soon as it's available.
+The CLEAR input is a trigger that tells any connected Tricorder to clear the screen. After clearing the screen Tricorder starts accumulating and graphing data again as soon as it's available.

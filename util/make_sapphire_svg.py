@@ -136,13 +136,33 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float) -> None:
+    dxControlGroup = 5.0
+    dyControlGroup = 11.0
+    dyControlText = -11.6
+    controls.append(Component(symbol + '_knob', x, y))
+    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
+    pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
+    # Draw a pair of connector lines:
+    # (1) from knob to attenuverter
+    # (2) from knob to CV input
+    t = ''
+    t += Move(x, y)
+    t += Line(x - dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    t += Line(x + dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    pl.append(Path(t, CONNECTOR_LINE_STYLE))
+
+
 def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     xmid = panel.mmWidth/2
-    inputPortY1 = 30.0
+    inputPortY1 = 25.0
     inputPortDY = 10.0
     inputPortY2 = 110.0
     xPortLabel = xmid + dxCoordLabel
@@ -174,31 +194,12 @@ def GenerateTinToutPanel(name:str, dir:str, inOutLabel:str, dxCoordLabel:float) 
         controls.append(Component('z_' + dir, xmid, inputPortY1 + 2*inputPortDY))
         controls.append(Component('p_' + dir, xmid, inputPortY1 + 3*inputPortDY))
         controls.append(Component('clear_trigger_' + dir, xmid, inputPortY2))
+        AddControlGroup(pl, controls, font, 'level', 'LEVEL', xmid, 75.0, 5.5)
         pl.append(CenteredControlTextPath(font, inOutLabel, xmid, yInLabel + 2.5, 'inout_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'trigger_label'))
     pl.append(controls)
     panel.append(pl)
     return Save(panel, svgFileName)
-
-
-def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float) -> None:
-    dxControlGroup = 5.0
-    dyControlGroup = 11.0
-    dyControlText = -11.6
-    controls.append(Component(symbol + '_knob', x, y))
-    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
-    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
-    pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
-    # Draw a pair of connector lines:
-    # (1) from knob to attenuverter
-    # (2) from knob to CV input
-    t = ''
-    t += Move(x, y)
-    t += Line(x - dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    t += Line(x + dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
 def SaveLabelLayer(hpWidth:int, text:str, outSvgFileName:str, xCenter:float, yCenter:float) -> int:

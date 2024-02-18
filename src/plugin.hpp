@@ -282,7 +282,25 @@ namespace Sapphire
     };
 
 
-    struct AutomaticLimiterModule : public Module   // a Sapphire module with a warning light on the OUTPUT knob
+    struct SapphireModule : public Module
+    {
+        float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
+        {
+            float slider = params[paramId].getValue();
+            float cv = inputs[inputId].getVoltageSum();
+            // When the attenuverter is set to 100%, and the cv is +5V, we want
+            // to swing a slider that is all the way down (minSlider)
+            // to act like it is all the way up (maxSlider).
+            // Thus we allow the complete range of control for any CV whose
+            // range is [-5, +5] volts.
+            float attenu = params[attenId].getValue();
+            slider += attenu*(cv / 5)*(maxValue - minValue);
+            return clamp(slider, minValue, maxValue);
+        }
+    };
+
+
+    struct AutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
     {
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
