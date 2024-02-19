@@ -13,6 +13,7 @@
 <td align="center">2.4.1</td>
 <td align="left">
     <ul>
+        <li>Added new module <a href="Polynucleus.md">Polynucleus</a>. This module is the same as <a href="Nucleus.md">Nucleus</a>, only with 3-channel polyphonic ports instead of triplets of monophonic ports.</li>
         <li>Added new module <a href="Tout.md">Tout</a>. This module can be placed to the right of a Tricoder to provide the vector that Tricorder is graphing as voltages on output ports. Tout is the inverse of <a href="Tin.md">Tin</a>.</li>
         <li>Added new module <a href="Hiss.md">Hiss</a> for generating unbiased vectors in an N-dimensional space.</li>
         <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>

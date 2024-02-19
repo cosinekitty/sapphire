@@ -14,6 +14,9 @@ three voltages AX, AY, AZ.
 
 The output of Nucleus is the 3D position of all the other particles B, C, D, E.
 
+See also: [Polynucleus](Polynucleus.md), a version of Nucleus more tailored
+for vector-oriented workflows.
+
 ### Demo videos
 
 Here is a video to help get started with Sapphire Nucleus. It shows a basic
