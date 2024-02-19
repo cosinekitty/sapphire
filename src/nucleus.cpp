@@ -183,6 +183,12 @@ namespace Sapphire
                 resetTricorder = true;
             }
 
+            void resetSimulation()
+            {
+                engine.resetAfterCrash();
+                SetMinimumEnergy(engine);
+            }
+
             void setOutputRow(int row)
             {
                 if (row < 1 || row >= NUM_PARTICLES)
@@ -416,14 +422,18 @@ namespace Sapphire
                 {
                     menu->addChild(new MenuSeparator);
 
-                    if (nucleusModule->agcLevelQuantity)
-                    {
-                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
+                    // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
+                    menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
 
-                        // Add an option to enable/disable the warning slider.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &nucleusModule->enableLimiterWarning));
-                    }
+                    // Add an option to enable/disable the warning slider.
+                    menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &nucleusModule->enableLimiterWarning));
+
+                    // Add an action to reset the simulation to its low energy state.
+                    menu->addChild(createMenuItem(
+                        "Reset simulation",
+                        "",
+                        [=]{ nucleusModule->resetSimulation(); }
+                    ));
                 }
             }
 
