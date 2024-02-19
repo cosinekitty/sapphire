@@ -9,10 +9,13 @@ Tricorder was designed specifically as an expander module
 for [Frolic](Frolic.md) and [Glee](Glee.md), but it also allows graphing
 any three input voltages you want, using [Tin](Tin.md)
 instead of Frolic to the left of Tricorder.
+[Nucleus](Nucleus.md) and [Polynucleus](Polynucleus.md) also
+allow the user to select any of the 4 output particles to
+be graphed by Tricorder.
 
-You can also send output from any of the four output vectors
-from [Nucleus](Nucleus.md) into Tricorder, and a Tricoder will
-chain output to another Tricorder connected to its right.
+Tricorder sends any vector it receives from the left to the module on its right.
+Thus you can form chains of vector streams through multiple compatible
+Sapphire modules.
 
 In general, Tricorder is useful for visually understanding the behavior
 of Frolic, Glee, or any other 3D system of voltages.

@@ -2,6 +2,8 @@
 
 ![Tin](images/tin.png)
 
+Tin is the inverse of [Tout](Tout.md).
+
 The name Tin stands for "Tricorder INput". Tin is an auxiliary input module for [Tricorder](Tricorder.md).
 It allows you to feed any 3 voltages you want to be graphed in 3D space by Tricorder.
 

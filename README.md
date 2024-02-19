@@ -11,7 +11,7 @@ The latest release of the Sapphire plugin is available in the
 A complex sound generator that simulates the physics of a
 hexagonal mesh of balls and springs.
 
-Read the complete <a href="Elastika.md">Sapphire Elastika documentation</a>.
+<a href="Elastika.md">Sapphire Elastika documentation</a>
 
 <a href="Elastika.md"><img src="images/elastika.png" /></a>
 
@@ -22,7 +22,7 @@ Read the complete <a href="Elastika.md">Sapphire Elastika documentation</a>.
 A low-frequency and ultra-low-frequency chaotic oscillator
 for generating 3 simultaneous smooth but unpredictable voltages.
 
-Read the complete <a href="Frolic.md">Sapphire Frolic documentation</a>.
+<a href="Frolic.md">Sapphire Frolic documentation</a>
 
 <a href="Frolic.md"><img src="images/frolic.png"/></a>
 
@@ -33,7 +33,7 @@ Read the complete <a href="Frolic.md">Sapphire Frolic documentation</a>.
 Another low-frequency and ultra-low-frequency chaotic oscillator
 for generating 3 simultaneous smooth but unpredictable voltages.
 
-Read the complete <a href="Glee.md">Sapphire Glee documentation</a>.
+<a href="Glee.md">Sapphire Glee documentation</a>
 
 <a href="Glee.md"><img src="images/glee.png"/></a>
 
@@ -43,7 +43,7 @@ Read the complete <a href="Glee.md">Sapphire Glee documentation</a>.
 
 A random vector generator whose outputs point in all directions of an N-dimensional space with equal probability. Useful for generating vector noise input to physics simulations like Nucleus.
 
-Read the complete <a href="Hiss.md">Sapphire Hiss documentation</a>.
+<a href="Hiss.md">Sapphire Hiss documentation</a>
 
 <a href="Hiss.md"><img src="images/hiss.png"/></a>
 
@@ -54,7 +54,7 @@ Read the complete <a href="Hiss.md">Sapphire Hiss documentation</a>.
 Simulates plugging/unplugging cables,
 which is sometimes different from setting their voltages to 0.
 
-Read the complete <a href="Moots.md">Sapphire Moots documentation</a>.
+<a href="Moots.md">Sapphire Moots documentation</a>
 
 <a href="Moots.md"><img src="images/moots.png" /></a>
 
@@ -65,7 +65,7 @@ Read the complete <a href="Moots.md">Sapphire Moots documentation</a>.
 A simulation of five particles obeying alternative laws of physics.
 The output can be used for control voltages or audio signals.
 
-Read the complete <a href="Nucleus.md">Sapphire Nucleus documentation</a>.
+<a href="Nucleus.md">Sapphire Nucleus documentation</a>
 
 <a href="Nucleus.md"><img src="images/nucleus.png" /></a>
 
@@ -75,7 +75,8 @@ Read the complete <a href="Nucleus.md">Sapphire Nucleus documentation</a>.
 
 Just like Nucleus, only with a single polyphonic port
 for each particle instead of 3 monophonic ports.
-Read the complete <a href="Polynucleus.md">Sapphire Polynucleus documentation</a>.
+
+<a href="Polynucleus.md">Sapphire Polynucleus documentation</a>
 
 <a href="Polynucleus.md"><img src="images/polynucleus.png" /></a>
 
@@ -85,7 +86,7 @@ Read the complete <a href="Polynucleus.md">Sapphire Polynucleus documentation</a
 
 An alterative input module for feeding data into Tricorder.
 
-Read the complete <a href="Tin.md">Sapphire Tin documentation</a>.
+<a href="Tin.md">Sapphire Tin documentation</a>
 
 <a href="Tin.md"><img src="images/tin.png" /></a>
 
@@ -95,7 +96,7 @@ Read the complete <a href="Tin.md">Sapphire Tin documentation</a>.
 
 A utility for extracting vector data from Tricorder as output ports.
 
-Read the complete <a href="Tout.md">Sapphire Tout documentation</a>.
+<a href="Tout.md">Sapphire Tout documentation</a>
 
 <a href="Tout.md"><img src="images/tout.png" /></a>
 
@@ -103,9 +104,9 @@ Read the complete <a href="Tout.md">Sapphire Tout documentation</a>.
 
 ## Tricorder
 
-A 3D oscilloscope designed for Frolic, Glee, and Tin.
+A 3D oscilloscope designed for Frolic, Glee, and other 3D signals.
 
-Read the complete <a href="Tricorder.md">Sapphire Tricorder documentation</a>.
+<a href="Tricorder.md">Sapphire Tricorder documentation</a>
 
 <a href="Tricorder.md"><img src="images/tricorder.png" /></a>
 
@@ -115,7 +116,7 @@ Read the complete <a href="Tricorder.md">Sapphire Tricorder documentation</a>.
 
 A complex tubular waveguide synthesizer.
 
-Read the complete <a href="TubeUnit.md">Sapphire Tube Unit documentation</a>.
+<a href="TubeUnit.md">Sapphire Tube Unit documentation</a>
 
 <a href="TubeUnit.md"><img src="images/tubeunit.png" /></a>
 
