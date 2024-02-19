@@ -1,6 +1,5 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
-#include "tricorder.hpp"
 
 // Tin (tricorder input module) for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -41,11 +40,9 @@ namespace Sapphire
 
         struct TinModule : SapphireModule
         {
-            Tricorder::VectorSender vectorSender;
             GateTriggerReceiver resetTrigger;
 
             TinModule()
-                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(X_INPUT, "X");

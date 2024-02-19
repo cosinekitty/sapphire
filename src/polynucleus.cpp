@@ -5,7 +5,6 @@
 #include "nucleus_init.hpp"
 #include "nucleus_reset.hpp"
 #include "polynucleus_panel.hpp"
-#include "tricorder.hpp"
 
 // Polynucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -71,11 +70,9 @@ namespace Sapphire
             Nucleus::CrashChecker crashChecker;
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
-            Tricorder::VectorSender vectorSender;
             bool resetTricorder{};
 
             PolynucleusModule()
-                : vectorSender(*this)
             {
                 using namespace Nucleus;
 
@@ -415,7 +412,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (polynucleusModule != nullptr) && polynucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
+                return (polynucleusModule != nullptr) && polynucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override

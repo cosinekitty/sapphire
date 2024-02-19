@@ -1,6 +1,5 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
-#include "tricorder.hpp"
 
 // Tout (tricorder output module) for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -42,13 +41,9 @@ namespace Sapphire
 
         struct ToutModule : SapphireModule
         {
-            Tricorder::VectorReceiver vectorReceiver;
-            Tricorder::VectorSender vectorSender;
             TriggerSender triggerSender;
 
             ToutModule()
-                : vectorReceiver(*this)
-                , vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configOutput(X_OUTPUT, "X");

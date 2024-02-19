@@ -1,7 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
 #include "elastika_engine.hpp"
-#include "tricorder.hpp"
 
 // Sapphire Elastika for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -79,11 +78,9 @@ namespace Sapphire
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
-            Tricorder::VectorSender vectorSender;
             bool outputVectorSelectRight = false;
 
             ElastikaModule()
-                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

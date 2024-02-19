@@ -5,7 +5,6 @@
 #include "nucleus_init.hpp"
 #include "nucleus_reset.hpp"
 #include "nucleus_panel.hpp"
-#include "tricorder.hpp"
 
 // Nucleus for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -84,11 +83,9 @@ namespace Sapphire
             CrashChecker crashChecker;
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
-            Tricorder::VectorSender vectorSender;
             bool resetTricorder{};
 
             NucleusModule()
-                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -432,7 +429,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (nucleusModule != nullptr) && nucleusModule->vectorSender.isVectorReceiverConnectedOnRight();
+                return (nucleusModule != nullptr) && nucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override

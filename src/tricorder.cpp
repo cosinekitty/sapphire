@@ -2,7 +2,6 @@
 #include <vector>
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
-#include "tricorder.hpp"
 
 // Tricorder for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -373,12 +372,8 @@ namespace Sapphire
             RotationMatrix orientation;
             const float defaultVoltageScale = 5.0f;
             float voltageScale{};
-            VectorReceiver vectorReceiver;
-            VectorSender vectorSender;
 
             TricorderModule()
-                : vectorReceiver(*this)
-                , vectorSender(*this)
             {
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);

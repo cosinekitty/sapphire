@@ -3,7 +3,6 @@
 #include "sapphire_widget.hpp"
 #include "sapphire_simd.hpp"
 #include "chaos.hpp"
-#include "tricorder.hpp"
 
 // Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -54,10 +53,8 @@ namespace Sapphire
         struct ChaosModule : SapphireModule
         {
             circuit_t circuit;
-            Tricorder::VectorSender vectorSender;
 
             ChaosModule()
-                : vectorSender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
