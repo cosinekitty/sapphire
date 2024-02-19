@@ -392,6 +392,7 @@ def GeneratePolynucleusPanel() -> int:
     dxTotal = 21.5
     dxLabel = 7.0
     yKnobRow1 = 25.0
+    yKnobRow2 = yIn - 2.5
     yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 6.0
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
@@ -441,7 +442,8 @@ def GeneratePolynucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'speed',    'SPEED',  xKnobLeft,  yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,       yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
-        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yIn - 2.5, 1.5)
+        AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yKnobRow2, 1.5)
+        AddControlGroup(pl, controls, font, 'spread',   'SPREAD', xKnobRight, yKnobRow2, 7.0)
         AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yOutLevel, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.

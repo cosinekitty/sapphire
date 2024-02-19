@@ -20,12 +20,16 @@ namespace Sapphire
             MAGNET_KNOB_PARAM,
             IN_DRIVE_KNOB_PARAM,
             OUT_LEVEL_KNOB_PARAM,
+            SPREAD_KNOB_PARAM,
+            RESERVED_KNOB_PARAM,
 
             SPEED_ATTEN_PARAM,
             DECAY_ATTEN_PARAM,
             MAGNET_ATTEN_PARAM,
             IN_DRIVE_ATTEN_PARAM,
             OUT_LEVEL_ATTEN_PARAM,
+            SPREAD_ATTEN_PARAM,
+            RESERVED_ATTEN_PARAM,
 
             AUDIO_MODE_BUTTON_PARAM,
 
@@ -43,6 +47,8 @@ namespace Sapphire
             MAGNET_CV_INPUT,
             IN_DRIVE_CV_INPUT,
             OUT_LEVEL_CV_INPUT,
+            SPREAD_CV_INPUT,
+            RESERVED_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -85,18 +91,21 @@ namespace Sapphire
                 configParam(MAGNET_KNOB_PARAM, -1, 1, 0, "Magnetic coupling");
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20*INPUT_EXPONENT);
                 configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20*OUTPUT_EXPONENT);
+                configParam(SPREAD_KNOB_PARAM, -1, +1, 0, "Mass spread");
 
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configParam(DECAY_ATTEN_PARAM, -1, 1, 0, "Decay attenuverter", "%", 0, 100);
                 configParam(MAGNET_ATTEN_PARAM, -1, 1, 0, "Magnetic coupling attenuverter", "%", 0, 100);
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
+                configParam(SPREAD_ATTEN_PARAM, -1, 1, 0, "Mass spread attenuverter", "%", 0, 100);
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
                 configInput(MAGNET_CV_INPUT, "Magnetic coupling CV");
                 configInput(IN_DRIVE_CV_INPUT, "Input level CV");
                 configInput(OUT_LEVEL_CV_INPUT, "Output level CV");
+                configInput(SPREAD_CV_INPUT, "Mass spread CV");
 
                 configOutput(B_OUTPUT, "Particle B");
                 configOutput(C_OUTPUT, "Particle C");
@@ -251,6 +260,12 @@ namespace Sapphire
                 return knob * scale;
             }
 
+            float getMassSpread()
+            {
+                float knob = getControlValue(SPREAD_KNOB_PARAM, SPREAD_ATTEN_PARAM, SPREAD_CV_INPUT, -1, +1);
+                return knob;
+            }
+
             void process(const ProcessArgs& args) override
             {
                 // Get current control settings.
@@ -259,8 +274,10 @@ namespace Sapphire
                 const float halflife = getHalfLife();
                 const float speed = getSpeedFactor();
                 const float magnet = getMagneticCoupling();
+                const float spread = getMassSpread();
 
                 engine.setMagneticCoupling(magnet);
+                engine.setMassSpread(spread);
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
@@ -372,6 +389,7 @@ namespace Sapphire
                 addKnob(DECAY_KNOB_PARAM, "decay_knob");
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
+                addKnob(SPREAD_KNOB_PARAM, "spread_knob");
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
@@ -386,12 +404,14 @@ namespace Sapphire
                 addSapphireInput(MAGNET_CV_INPUT, "magnet_cv");
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
+                addSapphireInput(SPREAD_CV_INPUT, "spread_cv");
 
                 addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
                 addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
                 addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+                addAttenuverter(SPREAD_ATTEN_PARAM, "spread_atten");
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");

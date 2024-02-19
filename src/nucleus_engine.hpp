@@ -49,6 +49,8 @@ namespace Sapphire
         bool enableAgc = false;
         int fixedOversample = 0;                // 0 = calculate oversample, >0 = specify oversampling count
         std::vector<float> outputBuffer;        // allows feeding output data through the Automatic Gain Limiter.
+        float spread = 0;
+        const float spreadScale = 0.60f;
 
         // DC reject state (consider moving into a separate class...)
         bool enableDcReject = false;
@@ -106,6 +108,24 @@ namespace Sapphire
             }
         }
 
+        float effectiveParticleMass(int index) const
+        {
+            const Particle& p = curr.at(index);
+            float mass = p.mass;
+
+            // The user is allowed to adjust the spread of particle masses.
+            // Be careful about weird particle counts, though.
+            const float denom = numParticles() - 1;
+            if (denom > 0.5f)
+            {
+                // Calculate a number that ranges from -1 (at index 0) to +1 (at index n-1).
+                float factor = 2*(index / denom) - 1;
+                mass += mass * spreadScale * spread * factor;
+            }
+
+            return mass;
+        }
+
         void extrapolate(float dt)
         {
             const int n = static_cast<int>(numParticles());
@@ -116,7 +136,7 @@ namespace Sapphire
                 Particle& p2 = next.at(i);
 
                 // F = m*a  ==>  a = F/m.
-                PhysicsVector acc = p1.force / p1.mass;
+                PhysicsVector acc = p1.force / effectiveParticleMass(i);
 
                 // Estimate the net velocity change over the interval.
                 PhysicsVector dV = dt * acc;
@@ -196,6 +216,7 @@ namespace Sapphire
             enableFixedOversample(1);
             setAgcEnabled(true);
             setDcRejectEnabled(true);
+            setMassSpread(0.0f);
             filtersNeedReset = true;     // anti-click measure: eliminate step function being fed through filters!
 
             // The caller is responsible for resetting particle states.
@@ -245,6 +266,16 @@ namespace Sapphire
         void setAgcLevel(float level)
         {
             agc.setCeiling(level);
+        }
+
+        float getMassSpread() const
+        {
+            return spread;
+        }
+
+        void setMassSpread(float s)
+        {
+            spread = Clamp(s, -1.0f, +1.0f);
         }
 
         double getAgcDistortion() const     // returns 0 when no distortion, or a positive value correlated with AGC distortion
