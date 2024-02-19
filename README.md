@@ -71,6 +71,16 @@ Read the complete <a href="Nucleus.md">Sapphire Nucleus documentation</a>.
 
 ---
 
+## Polynucleus
+
+Just like Nucleus, only with a single polyphonic port
+for each particle instead of 3 monophonic ports.
+Read the complete <a href="Polynucleus.md">Sapphire Polynucleus documentation</a>.
+
+<a href="Polynucleus.md"><img src="images/polynucleus.png" /></a>
+
+---
+
 ## Tin
 
 An alterative input module for feeding data into Tricorder.
