@@ -2,7 +2,7 @@
 
 ## Installation
 The latest release of the Sapphire plugin is available in the
-[VCV Rack Library](https://library.vcvrack.com/?brand=Sapphire).
+[VCV Rack Library](https://library.vcvrack.com/CosineKitty-Sapphire).
 
 ---
 
