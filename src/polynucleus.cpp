@@ -21,7 +21,7 @@ namespace Sapphire
             IN_DRIVE_KNOB_PARAM,
             OUT_LEVEL_KNOB_PARAM,
             SPREAD_KNOB_PARAM,
-            RESERVED_KNOB_PARAM,
+            MIX_KNOB_PARAM,
 
             SPEED_ATTEN_PARAM,
             DECAY_ATTEN_PARAM,
@@ -29,7 +29,7 @@ namespace Sapphire
             IN_DRIVE_ATTEN_PARAM,
             OUT_LEVEL_ATTEN_PARAM,
             SPREAD_ATTEN_PARAM,
-            RESERVED_ATTEN_PARAM,
+            MIX_ATTEN_PARAM,
 
             AUDIO_MODE_BUTTON_PARAM,
 
@@ -48,7 +48,7 @@ namespace Sapphire
             IN_DRIVE_CV_INPUT,
             OUT_LEVEL_CV_INPUT,
             SPREAD_CV_INPUT,
-            RESERVED_CV_INPUT,
+            MIX_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -92,7 +92,7 @@ namespace Sapphire
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20*INPUT_EXPONENT);
                 configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20*OUTPUT_EXPONENT);
                 configParam(SPREAD_KNOB_PARAM, -1, +1, 0, "Mass spread");
-                configParam(RESERVED_KNOB_PARAM, -1, +1, 0, "Reserved");
+                configParam(MIX_KNOB_PARAM, -1, 1, 0, "Mix");
 
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configParam(DECAY_ATTEN_PARAM, -1, 1, 0, "Decay attenuverter", "%", 0, 100);
@@ -100,7 +100,7 @@ namespace Sapphire
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
                 configParam(SPREAD_ATTEN_PARAM, -1, 1, 0, "Mass spread attenuverter", "%", 0, 100);
-                configParam(RESERVED_ATTEN_PARAM, -1, 1, 0, "Reserved attenuverter", "%", 0, 100);
+                configParam(MIX_ATTEN_PARAM, -1, 1, 0, "Mix attenuverter", "%", 0, 100);
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -108,7 +108,7 @@ namespace Sapphire
                 configInput(IN_DRIVE_CV_INPUT, "Input level CV");
                 configInput(OUT_LEVEL_CV_INPUT, "Output level CV");
                 configInput(SPREAD_CV_INPUT, "Mass spread CV");
-                configInput(RESERVED_CV_INPUT, "Reserved CV");
+                configInput(MIX_CV_INPUT, "Mix CV");
 
                 configOutput(B_OUTPUT, "Particle B");
                 configOutput(C_OUTPUT, "Particle C");
@@ -269,6 +269,12 @@ namespace Sapphire
                 return knob;
             }
 
+            float getMix()
+            {
+                float knob = getControlValue(MIX_KNOB_PARAM, MIX_ATTEN_PARAM, MIX_CV_INPUT, -1, +1);
+                return knob;
+            }
+
             void process(const ProcessArgs& args) override
             {
                 // Get current control settings.
@@ -278,6 +284,9 @@ namespace Sapphire
                 const float speed = getSpeedFactor();
                 const float magnet = getMagneticCoupling();
                 const float spread = getMassSpread();
+                const float mix = getMix();   // an as-yet undefined parameter
+
+                (void)mix;     // Yes, C++ compiler, I know I'm not using it yet!
 
                 engine.setMagneticCoupling(magnet);
                 engine.setMassSpread(spread);
@@ -347,12 +356,12 @@ namespace Sapphire
                 outputs[E_OUTPUT].setVoltage(engine.output(4, 2), 2);
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
-                float x = engine.output(tricorderOutputIndex, 0);
-                float y = engine.output(tricorderOutputIndex, 1);
-                float z = engine.output(tricorderOutputIndex, 2);
+                float tx = engine.output(tricorderOutputIndex, 0);
+                float ty = engine.output(tricorderOutputIndex, 1);
+                float tz = engine.output(tricorderOutputIndex, 2);
                 bool reset = resetTricorder;
                 resetTricorder = false;
-                vectorSender.sendVector(x, y, z, reset);
+                vectorSender.sendVector(tx, ty, tz, reset);
             }
         };
 
@@ -393,7 +402,7 @@ namespace Sapphire
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
                 addKnob(SPREAD_KNOB_PARAM, "spread_knob");
-                addKnob(RESERVED_KNOB_PARAM, "reserved_knob");
+                addKnob(MIX_KNOB_PARAM, "mix_knob");
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
@@ -409,7 +418,7 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
                 addSapphireInput(SPREAD_CV_INPUT, "spread_cv");
-                addSapphireInput(RESERVED_CV_INPUT, "reserved_cv");
+                addSapphireInput(MIX_CV_INPUT, "mix_cv");
 
                 addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
                 addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
@@ -417,7 +426,7 @@ namespace Sapphire
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
                 addAttenuverter(SPREAD_ATTEN_PARAM, "spread_atten");
-                addAttenuverter(RESERVED_ATTEN_PARAM, "reserved_atten");
+                addAttenuverter(MIX_ATTEN_PARAM, "mix_atten");
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");

@@ -393,7 +393,7 @@ def GeneratePolynucleusPanel() -> int:
     dxLabel = 7.0
     yKnobRow1 = 25.0
     yKnobRow2 = yIn - 2.5
-    yOutLevel = yOutTop + (yOutBottom-yOutTop)/2 + 6.0
+    yKnobRow3 = yOutTop + (yOutBottom-yOutTop)/2 + 6.0
 
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
@@ -444,14 +444,14 @@ def GeneratePolynucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yKnobRow2, 1.5)
         AddControlGroup(pl, controls, font, 'spread',   'SPREAD', xKnobRight, yKnobRow2, 7.0)
-        AddControlGroup(pl, controls, font, 'reserved', 'CHEESE', xKnobLeft,  yOutLevel, 6.5)
-        AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yOutLevel, 3.5)
+        AddControlGroup(pl, controls, font, 'mix',      'MIX',    xKnobLeft,  yKnobRow3, 3.5)
+        AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yKnobRow3, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
         xButton = xmid
-        yButton = yOutLevel - 18.5
+        yButton = yKnobRow3 - 18.5
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
         yText = yButton - 6.5
