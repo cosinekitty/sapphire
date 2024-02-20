@@ -444,6 +444,7 @@ def GeneratePolynucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yKnobRow2, 1.5)
         AddControlGroup(pl, controls, font, 'spread',   'SPREAD', xKnobRight, yKnobRow2, 7.0)
+        AddControlGroup(pl, controls, font, 'reserved', 'CHEESE', xKnobLeft,  yOutLevel, 6.5)
         AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yOutLevel, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.

@@ -92,6 +92,7 @@ namespace Sapphire
                 configParam(IN_DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 20*INPUT_EXPONENT);
                 configParam(OUT_LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 20*OUTPUT_EXPONENT);
                 configParam(SPREAD_KNOB_PARAM, -1, +1, 0, "Mass spread");
+                configParam(RESERVED_KNOB_PARAM, -1, +1, 0, "Reserved");
 
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configParam(DECAY_ATTEN_PARAM, -1, 1, 0, "Decay attenuverter", "%", 0, 100);
@@ -99,6 +100,7 @@ namespace Sapphire
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
                 configParam(SPREAD_ATTEN_PARAM, -1, 1, 0, "Mass spread attenuverter", "%", 0, 100);
+                configParam(RESERVED_ATTEN_PARAM, -1, 1, 0, "Reserved attenuverter", "%", 0, 100);
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -106,6 +108,7 @@ namespace Sapphire
                 configInput(IN_DRIVE_CV_INPUT, "Input level CV");
                 configInput(OUT_LEVEL_CV_INPUT, "Output level CV");
                 configInput(SPREAD_CV_INPUT, "Mass spread CV");
+                configInput(RESERVED_CV_INPUT, "Reserved CV");
 
                 configOutput(B_OUTPUT, "Particle B");
                 configOutput(C_OUTPUT, "Particle C");
@@ -390,6 +393,7 @@ namespace Sapphire
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
                 addKnob(SPREAD_KNOB_PARAM, "spread_knob");
+                addKnob(RESERVED_KNOB_PARAM, "reserved_knob");
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
@@ -405,6 +409,7 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
                 addSapphireInput(SPREAD_CV_INPUT, "spread_cv");
+                addSapphireInput(RESERVED_CV_INPUT, "reserved_cv");
 
                 addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
                 addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
@@ -412,6 +417,7 @@ namespace Sapphire
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
                 addAttenuverter(SPREAD_ATTEN_PARAM, "spread_atten");
+                addAttenuverter(RESERVED_ATTEN_PARAM, "reserved_atten");
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");
