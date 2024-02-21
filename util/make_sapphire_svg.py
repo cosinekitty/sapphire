@@ -443,9 +443,9 @@ def GeneratePolynucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,       yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yKnobRow2, 1.5)
-        AddControlGroup(pl, controls, font, 'spread',   'SPREAD', xKnobRight, yKnobRow2, 7.0)
-        AddControlGroup(pl, controls, font, 'mix',      'MIX',    xKnobLeft,  yKnobRow3, 3.5)
-        AddControlGroup(pl, controls, font, 'out_level','OUT',    xmid,       yKnobRow3, 3.5)
+        AddControlGroup(pl, controls, font, 'spin',     'SPIN',   xKnobLeft,  yKnobRow3, 3.7)
+        AddControlGroup(pl, controls, font, 'visc',     'VISC',   xmid,       yKnobRow3, 3.7)
+        AddControlGroup(pl, controls, font, 'out_level','OUT',    xKnobRight, yKnobRow2, 3.5)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
