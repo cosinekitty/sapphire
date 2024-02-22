@@ -1,5 +1,7 @@
 // polynucleus_panel.hpp - AUTO-GENERATED; DO NOT EDIT.
 #pragma once
+#define POLYNUCLEUS_ENABLE_EXTRA_CONTROLS 0
+
 namespace Sapphire
 {
     namespace Polynucleus

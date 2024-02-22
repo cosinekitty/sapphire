@@ -99,8 +99,11 @@ namespace Sapphire
                 configParam(MAGNET_ATTEN_PARAM, -1, 1, 0, "Magnetic coupling attenuverter", "%", 0, 100);
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
+
+#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
                 configParam(VISC_ATTEN_PARAM, -1, 1, 0, "Aether viscosity attenuverter", "%", 0, 100);
                 configParam(SPIN_ATTEN_PARAM, -1, 1, 0, "Aether rotation attenuverter", "%", 0, 100);
+#endif
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -400,8 +403,10 @@ namespace Sapphire
                 addKnob(DECAY_KNOB_PARAM, "decay_knob");
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
+#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
                 addKnob(VISC_KNOB_PARAM, "visc_knob");
                 addKnob(SPIN_KNOB_PARAM, "spin_knob");
+#endif
 
                 // Superimpose a warning light on the output level knob.
                 // We turn the warning light on when the limiter is distoring the output.
@@ -416,16 +421,22 @@ namespace Sapphire
                 addSapphireInput(MAGNET_CV_INPUT, "magnet_cv");
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
+
+#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
                 addSapphireInput(VISC_CV_INPUT, "visc_cv");
                 addSapphireInput(SPIN_CV_INPUT, "spin_cv");
+#endif
 
                 addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
                 addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
                 addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
                 addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+
+#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
                 addAttenuverter(VISC_ATTEN_PARAM, "visc_atten");
                 addAttenuverter(SPIN_ATTEN_PARAM, "spin_atten");
+#endif
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");

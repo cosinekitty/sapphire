@@ -395,12 +395,15 @@ def GeneratePolynucleusPanel() -> int:
     yKnobRow2 = yIn - 2.5
     yKnobRow3 = yOutTop + (yOutBottom-yOutTop)/2 + 6.0
 
+    ENABLE_EXTRA_CONTROLS = False
+
     # Write a C++ header file that contains bounding rectangles for the 4 output rows.
     # This script remains the Single Source Of Truth for how the panel design is laid out.
     headerFileName = '../src/{}_panel.hpp'.format(name)
     with open(headerFileName, 'wt') as headerFile:
         headerFile.write('// {}_panel.hpp - AUTO-GENERATED; DO NOT EDIT.\n'.format(name))
         headerFile.write('#pragma once\n')
+        headerFile.write('#define POLYNUCLEUS_ENABLE_EXTRA_CONTROLS {:d}\n\n'.format(int(ENABLE_EXTRA_CONTROLS)))
         headerFile.write('namespace Sapphire\n')
         headerFile.write('{\n')
         headerFile.write('    namespace Polynucleus\n')
@@ -443,9 +446,10 @@ def GeneratePolynucleusPanel() -> int:
         AddControlGroup(pl, controls, font, 'decay',    'DECAY',  xmid,       yKnobRow1, 5.5)
         AddControlGroup(pl, controls, font, 'magnet',   'MAGNET', xKnobRight, yKnobRow1, 7.0)
         AddControlGroup(pl, controls, font, 'in_drive', 'IN',     xmid,       yKnobRow2, 1.5)
-        AddControlGroup(pl, controls, font, 'spin',     'SPIN',   xKnobLeft,  yKnobRow3, 3.7)
-        AddControlGroup(pl, controls, font, 'visc',     'VISC',   xmid,       yKnobRow3, 3.7)
         AddControlGroup(pl, controls, font, 'out_level','OUT',    xKnobRight, yKnobRow2, 3.5)
+        if ENABLE_EXTRA_CONTROLS:
+            AddControlGroup(pl, controls, font, 'spin',     'SPIN',   xKnobLeft,  yKnobRow3, 3.7)
+            AddControlGroup(pl, controls, font, 'visc',     'VISC',   xmid,       yKnobRow3, 3.7)
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
