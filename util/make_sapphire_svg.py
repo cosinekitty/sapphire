@@ -382,7 +382,8 @@ def GeneratePolynucleusPanel() -> int:
     xKnobLeft  = xmid - dxKnob
     xKnobRight = xmid + dxKnob
     dxPort = 0.0                # not really needed, kept in C++ code generator for symmetry with Nucleus.
-    yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
+    yIn = 58.0
+    yInPort = yIn - 8.0         # vertical position of center of Particle A input port
     yOutTop = 81.0              # vertical position of the top row of output ports.
     yOutBottom = 110.0          # vertical position of the bottom row of output ports.
     nOutputParticles = 4        # how many particles are used for output.
@@ -432,8 +433,8 @@ def GeneratePolynucleusPanel() -> int:
         pl.append(controls)
 
         # Create label + input port for particle A.
-        controls.append(Component('a_input', xKnobLeft, yIn))
-        pl.append(CenteredControlTextPath(font, 'A', xKnobLeft + dxLabel, yIn))
+        controls.append(Component('a_input', xKnobLeft, yInPort))
+        pl.append(CenteredControlTextPath(font, 'A', xKnobLeft + dxLabel, yInPort))
 
         # Create labels + output ports for particles BCDE.
         ypos = yOutTop
@@ -454,8 +455,8 @@ def GeneratePolynucleusPanel() -> int:
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
-        xButton = xmid
-        yButton = yKnobRow3 - 18.5
+        xButton = xKnobLeft
+        yButton = yIn + 8.0
         controls.append(Component('audio_mode_button', xButton, yButton))
         xText = xButton
         yText = yButton - 6.5
