@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">17 Feb 2024</td>
+<td align="center">22 Feb 2024</td>
 <td align="center">2.4.1</td>
 <td align="left">
     <ul>
@@ -17,6 +17,7 @@
         <li>Added new module <a href="Tout.md">Tout</a>. This module can be placed to the right of a Tricoder to provide the vector that Tricorder is graphing as voltages on output ports. Tout is the inverse of <a href="Tin.md">Tin</a>.</li>
         <li>Added new module <a href="Hiss.md">Hiss</a> for generating unbiased vectors in an N-dimensional space.</li>
         <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>
+        <li>Added a "reset simulation" command in the right-click menu that allows you to manually bring the particles to a halt. This can be handy when the simulation gets out of control in a way that does not trigger the NAN auto-reset mentioned above.</li>
         <li>Elastika, Nucleus, and Tube Unit now auto-reset if infinite/NAN output is detected, and indicate the problem by turning the OUTPUT level knob bright pink for 1 second, every time it happens.</li>
         <li>Frolic and Glee now provide an additional polyphonic output with the entire vector represented as a 3-channel port.</li>
         <li>Tin now provides an additional polyphonic input to feed in a 3-channel (X, Y, Z) input vector.</li>
