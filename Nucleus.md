@@ -32,6 +32,10 @@ The next example is a haunted house soundtrack generator. This time I used two N
 
 [![Sapphire Nucleus haunted house](https://img.youtube.com/vi/a5142lSOYIQ/0.jpg)](https://www.youtube.com/watch?v=a5142lSOYIQ)
 
+In the following video, [Alphagem-O](https://community.vcvrack.com/u/alphagem-o/summary) demos making seven different sound effects using Nucleus:
+
+[![Sounds from the Nucleus](https://img.youtube.com/vi/HGY_f4sdTuE/0.jpg)](https://www.youtube.com/watch?v=HGY_f4sdTuE)
+
 
 ### Control groups
 
