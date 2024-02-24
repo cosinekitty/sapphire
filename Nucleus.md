@@ -78,7 +78,7 @@ The particles are labeled A, B, C, D, and E. Particle A is the input particle.
 Nucleus feeds three inputs labeled AX, AY, and AX. These three voltages specify
 the position of Particle A at each moment in time.
 
-By forcing Particle A's position, the other particles experience resulting forces
+By controlling Particle A's position, the other particles experience varying forces
 that cause them to move and interact with each other. The output positions of
 the particles B, C, D, E yield four vectors that have three dimensions each,
 for a total of 12 output voltages.
@@ -91,10 +91,10 @@ $$
 
 where
 
-* $\overrightarrow F_{ij}$ is the force of particle $j$ acting on particle $i$. By Newton's laws, this is also the negative of the force of particle $i$ acting on particle $j$.
+* $\overrightarrow F_{ij}$ is the force of particle $j \in \lbrace \mathrm A, \mathrm B, \mathrm C, \mathrm D, \mathrm E \rbrace$ acting on particle $i \in \lbrace \mathrm A, \mathrm B, \mathrm C, \mathrm D, \mathrm E \rbrace$ where $i \ne j$. By Newton's laws, this force is equally strong but opposite in direction to the force of particle $i$ acting on particle $j$. That is, $\overrightarrow F_{ij} = -\overrightarrow F_{ji}$ for all pairs of distinct particles. This force symmetry is required for a realistic and stable simulation; otherwise, it is possible for the particles to explode in all directions!
 * $\overrightarrow R$ is the relative difference in position between the two particles: $\overrightarrow R = \overrightarrow r_j - \overrightarrow r_i$.
 * $R = | \overrightarrow R |$ is the scalar distance between particles $i$ and $j$.
-* $\mu$ is the *magnetic coupling coefficient* that expresses how strong the magnetic force is relative to the repulsive and attractive forces. This value is controlled by the MAGNET knob.
+* $\mu$ is the *magnetic coupling coefficient* that expresses how strong the magnetic force is relative to the repulsive and attractive forces. The value of $\mu$ is controlled by the MAGNET knob. The allowed range is $-1 \le \mu \le +1$. Negative values reverse the direction of the magnetic field compared to positive values.
 * $\overrightarrow V$ is the *effective velocity* difference between the two particles. The direction of the velocity vector is left as-is, but its magnitude is conditioned using a bicubic limiter to improve stability of the simulation. The bicubic formula used by Nucleus is:
 
 $$
@@ -108,6 +108,12 @@ The three inputs for Particle A's position vector are amplitude-controled by the
 
 The outputs are amplitude-controled by the OUT level control group.
 They are also optionally fed through a DC-reject filter when <a href="#mode-button-audiocontrol">AUDIO mode</a> is enabled.
+
+For developers interested in more details, the
+[C++ class `NucleusEngine`](https://github.com/cosinekitty/sapphire/blob/main/src/nucleus_engine.hpp)
+shows exactly how the Nucleus DSP engine works.
+Incidentally, it is possible to use the Nucleus engine in your own projects outside of VCV Rack.
+The engine class is designed to not have any dependencies on VCV Rack.
 
 ### Context menu
 
