@@ -66,6 +66,7 @@ namespace Sapphire
             ChannelCountQuantity *channelCountQuantity{};
 
             HissModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

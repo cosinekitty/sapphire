@@ -55,6 +55,7 @@ namespace Sapphire
             circuit_t circuit;
 
             ChaosModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -121,8 +122,8 @@ namespace Sapphire
                 addKnob(SPEED_KNOB_PARAM, "speed_knob");
                 addKnob(CHAOS_KNOB_PARAM, "chaos_knob");
 
-                addAttenuverter(SPEED_ATTEN, "speed_atten");
-                addAttenuverter(CHAOS_ATTEN, "chaos_atten");
+                addSapphireAttenuverter(SPEED_ATTEN, "speed_atten");
+                addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");

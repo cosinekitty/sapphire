@@ -44,6 +44,7 @@ namespace Sapphire
             TriggerSender triggerSender;
 
             ToutModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configOutput(X_OUTPUT, "X");
@@ -140,7 +141,7 @@ namespace Sapphire
                 addSapphireOutput(POLY_OUTPUT, "p_output");
                 addSapphireOutput(CLEAR_TRIGGER_OUTPUT, "clear_trigger_output");
                 addKnob(LEVEL_PARAM, "level_knob");
-                addAttenuverter(LEVEL_ATTEN, "level_atten");
+                addSapphireAttenuverter(LEVEL_ATTEN, "level_atten");
                 addSapphireInput(LEVEL_INPUT, "level_cv");
                 reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }

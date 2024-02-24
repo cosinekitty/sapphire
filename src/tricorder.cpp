@@ -374,6 +374,7 @@ namespace Sapphire
             float voltageScale{};
 
             TricorderModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);

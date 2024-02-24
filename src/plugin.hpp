@@ -466,14 +466,19 @@ namespace Sapphire
     };
 
 
+    const float AttenuverterLowSensitivityDenom = 10;
+
+
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
+        std::vector<uint8_t> isParamLowSensitive;
 
-        SapphireModule()
+        SapphireModule(std::size_t nparams)
             : vectorSender(*this)
             , vectorReceiver(*this)
+            , isParamLowSensitive(nparams)
             {}
 
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
@@ -486,8 +491,15 @@ namespace Sapphire
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
             float attenu = params[attenId].getValue();
+            if (isParamLowSensitive.at(paramId))
+                attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
             return clamp(slider, minValue, maxValue);
+        }
+
+        uint8_t *lowSensitiveFlag(int paramId)
+        {
+            return &isParamLowSensitive.at(paramId);
         }
 
         bool isVectorReceiverConnectedOnRight() const
@@ -506,6 +518,10 @@ namespace Sapphire
     {
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
+
+        AutomaticLimiterModule(std::size_t nparams)
+            : SapphireModule(nparams)
+            {}
 
         virtual double getAgcDistortion() const = 0;
 

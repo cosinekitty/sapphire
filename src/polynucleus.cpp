@@ -79,6 +79,7 @@ namespace Sapphire
             bool resetTricorder{};
 
             PolynucleusModule()
+                : AutomaticLimiterModule(PARAMS_LEN)
             {
                 using namespace Nucleus;
 
@@ -427,15 +428,15 @@ namespace Sapphire
                 addSapphireInput(SPIN_CV_INPUT, "spin_cv");
 #endif
 
-                addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
-                addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
-                addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
-                addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
-                addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+                addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
+                addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
+                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
+                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
+                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
 
 #if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
-                addAttenuverter(VISC_ATTEN_PARAM, "visc_atten");
-                addAttenuverter(SPIN_ATTEN_PARAM, "spin_atten");
+                addSapphireAttenuverter(VISC_ATTEN_PARAM, "visc_atten");
+                addSapphireAttenuverter(SPIN_ATTEN_PARAM, "spin_atten");
 #endif
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
