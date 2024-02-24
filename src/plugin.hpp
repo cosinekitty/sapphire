@@ -475,7 +475,7 @@ namespace Sapphire
         Tricorder::VectorReceiver vectorReceiver;
         std::vector<uint8_t> isParamLowSensitive;
 
-        SapphireModule(std::size_t nparams)
+        explicit SapphireModule(std::size_t nparams)
             : vectorSender(*this)
             , vectorReceiver(*this)
             , isParamLowSensitive(nparams)
@@ -519,7 +519,7 @@ namespace Sapphire
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
 
-        AutomaticLimiterModule(std::size_t nparams)
+        explicit AutomaticLimiterModule(std::size_t nparams)
             : SapphireModule(nparams)
             {}
 
