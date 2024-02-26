@@ -23,6 +23,26 @@ namespace Sapphire
             if (lowSensitivityMode != nullptr)
                 menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
         }
+
+        void drawLayer(const DrawArgs& args, int layer) override
+        {
+            Trimpot::drawLayer(args, layer);
+
+            if (layer == 1)
+            {
+                if ((lowSensitivityMode != nullptr) && *lowSensitivityMode)
+                {
+                    // Draw a small dot on top of the knob to indicate that it is in low-sensitivity mode.
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, SCHEME_RED);
+                    nvgFillColor(args.vg, SCHEME_ORANGE);
+                    const float dotRadius = 3.5f;
+                    nvgCircle(args.vg, box.size.x / 2, box.size.y / 2, dotRadius);
+                    nvgStroke(args.vg);
+                    nvgFill(args.vg);
+                }
+            }
+        }
     };
 
 

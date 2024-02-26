@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">26 Feb 2024</td>
+<td align="center">2.4.2</td>
+<td align="left">
+    <ul>
+        <li>Added a [low sensitivity](LowSensitivityAttenuverterKnobs.md) option to attenuverter knobs. Sometimes the adjustments were so tiny to get a desired affect that it was awkward to get it right. Low sensitivity mode allows you to more easily explore those delicate parameters!</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">22 Feb 2024</td>
 <td align="center">2.4.1</td>
 <td align="left">
