@@ -13,13 +13,6 @@ namespace Sapphire
         struct TricorderWidget;
         struct TricorderDisplay;
 
-        static int Polarity(float x)
-        {
-            if (x < 0) return -1;
-            if (x > 0) return +1;
-            return 0;
-        }
-
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
         const int PANEL_HP_WIDTH = 25;
@@ -45,6 +38,9 @@ namespace Sapphire
         const float NUMERIC_X_LEFT    = 0.10f * DISPLAY_MM_WIDTH;
         const float NUMERIC_Y_LEFT    = 0.40f * DISPLAY_MM_WIDTH;
         const float NUMERIC_Z_LEFT    = 0.70f * DISPLAY_MM_WIDTH;
+
+        const float MIN_RPM = 1;
+        const float MAX_RPM = 60;
 
         enum class MousePosition
         {
@@ -362,11 +358,11 @@ namespace Sapphire
             float ycurr{};
             float zcurr{};
             bool bypassing = false;
-            const float rotationSpeed = 0.003;
+            float rotationSpeedRpm{};
             float yRotationRadians{};
             float xRotationRadians{};
-            float yRadiansPerStep{};
-            float xRadiansPerStep{};
+            int londir{};
+            int latdir{};
             bool axesAreVisible{};
             bool numbersAreVisible{};
             RotationMatrix orientation;
@@ -394,6 +390,7 @@ namespace Sapphire
                 numbersAreVisible = false;
                 resetPointList();
                 resetPerspective();
+                setRotationSpeed();
                 selectRotationMode(-1, 0);
             }
 
@@ -526,10 +523,25 @@ namespace Sapphire
                 }
             }
 
+            void setRotationSpeed(float rpm = 2)
+            {
+                rotationSpeedRpm = clamp(rpm, MIN_RPM, MAX_RPM);
+            }
+
+            float getRotationRadiansPerStep() const
+            {
+                // Convert the desired rotation speed expressed in revolutions per minute (RPM)
+                // into radians per step. The step interval is itself variable.
+                float stepsPerMinute = 60 * rack::settings::frameRateLimit;
+                float radiansPerMinute = (2 * M_PI) * rotationSpeedRpm;
+                float radiansPerStep = radiansPerMinute / stepsPerMinute;
+                return radiansPerStep;
+            }
+
             void selectRotationMode(int longitudeDirection, int latitudeDirection)
             {
-                yRadiansPerStep = rotationSpeed * longitudeDirection;
-                xRadiansPerStep = rotationSpeed * latitudeDirection;
+                londir = longitudeDirection;
+                latdir = latitudeDirection;
             }
 
             void updateOrientation(float latChange, float lonChange)
@@ -543,7 +555,8 @@ namespace Sapphire
 
             void stepOrientation()
             {
-                updateOrientation(xRadiansPerStep, yRadiansPerStep);
+                float rotationRadiansPerStep = getRotationRadiansPerStep();
+                updateOrientation(latdir * rotationRadiansPerStep, londir * rotationRadiansPerStep);
             }
 
             json_t* dataToJson() override
@@ -553,8 +566,8 @@ namespace Sapphire
 
                 // Save the current auto-rotation state.
                 json_t* rotmode = json_array();
-                json_array_append_new(rotmode, json_integer(Polarity(xRadiansPerStep)));
-                json_array_append_new(rotmode, json_integer(Polarity(yRadiansPerStep)));
+                json_array_append_new(rotmode, json_integer(latdir));
+                json_array_append_new(rotmode, json_integer(londir));
                 json_object_set_new(root, "rotation", rotmode);
 
                 // Save the current angles of rotation about the x-axis and y-axis.
@@ -562,6 +575,9 @@ namespace Sapphire
                 json_array_append_new(orient, json_real(xRotationRadians));
                 json_array_append_new(orient, json_real(yRotationRadians));
                 json_object_set_new(root, "orientation", orient);
+
+                // Save the user-selected rotation speed expressed in RPM.
+                json_object_set_new(root, "rotationSpeedRpm", json_real(rotationSpeedRpm));
 
                 // Save the XYZ axes visibility state.
                 json_object_set_new(root, "axesVisible", json_boolean(axesAreVisible));
@@ -584,6 +600,13 @@ namespace Sapphire
                     int latdir = json_integer_value(json_array_get(rotmode, 0));
                     int londir = json_integer_value(json_array_get(rotmode, 1));
                     selectRotationMode(londir, latdir);
+                }
+
+                json_t* rpm = json_object_get(root, "rotationSpeedRpm");
+                if (json_is_number(rpm))
+                {
+                    double speed = json_number_value(rpm);
+                    setRotationSpeed(static_cast<float>(speed));
                 }
 
                 json_t* orient = json_object_get(root, "orientation");
