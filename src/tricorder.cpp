@@ -548,8 +548,8 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
                 // Save display settings into the json object.
+                json_t* root = SapphireModule::dataToJson();
 
                 // Save the current auto-rotation state.
                 json_t* rotmode = json_array();
@@ -575,6 +575,8 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
+                SapphireModule::dataFromJson(root);
+
                 // Restore display settings from the json object.
                 json_t *rotmode = json_object_get(root, "rotation");
                 if (json_is_array(rotmode) && json_array_size(rotmode) == 2)

@@ -115,18 +115,6 @@ namespace Sapphire
                 // Mirror the level-adjusted input to any module on the right.
                 vectorSender.sendVector(x, y, z, clear);
             }
-
-            json_t* dataToJson() override
-            {
-                // No state to save yet, but keep the option open for later.
-                // For now, create an empty object "{}".
-                return json_object();
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                // No state to load yet
-            }
         };
 
         struct ToutWidget : SapphireReloadableModuleWidget

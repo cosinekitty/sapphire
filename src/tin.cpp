@@ -95,19 +95,8 @@ namespace Sapphire
                 bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
                 vectorSender.sendVector(x, y, z, reset);
             }
-
-            json_t* dataToJson() override
-            {
-                // No state to save yet, but keep the option open for later.
-                // For now, create an empty object "{}".
-                return json_object();
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                // No state to load yet
-            }
         };
+
 
         struct TinWidget : SapphireReloadableModuleWidget
         {

@@ -178,7 +178,7 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 // Persist the audio slewing checkbox states.
-                json_t* root = json_object();
+                json_t* root = SapphireModule::dataToJson();
                 json_t* flagList = json_array();
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
@@ -190,6 +190,8 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
+                SapphireModule::dataFromJson(root);
+
                 // Load the checkbox states for the audio slewers.
                 json_t* flagList = json_object_get(root, "slew");
                 if (json_is_array(flagList) && json_array_size(flagList) == NUM_CONTROLLERS)

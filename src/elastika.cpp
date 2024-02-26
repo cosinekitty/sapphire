@@ -70,7 +70,7 @@ namespace Sapphire
         };
 
 
-        struct ElastikaModule : AutomaticLimiterModule
+        struct ElastikaModule : SapphireAutomaticLimiterModule
         {
             ElastikaEngine engine;
             DcRejectQuantity *dcRejectQuantity = nullptr;
@@ -81,7 +81,7 @@ namespace Sapphire
             bool outputVectorSelectRight = false;
 
             ElastikaModule()
-                : AutomaticLimiterModule(PARAMS_LEN)
+                : SapphireAutomaticLimiterModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -180,7 +180,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
+                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
@@ -190,6 +190,8 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
+                SapphireAutomaticLimiterModule::dataFromJson(root);
+
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);

@@ -470,7 +470,17 @@ namespace Sapphire
 
     struct SapphireParamInfo
     {
-        bool isLowSensitive = false;
+        bool isLowSensitive{};
+
+        SapphireParamInfo()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            isLowSensitive = false;
+        }
     };
 
     struct SapphireModule : public Module
@@ -520,15 +530,63 @@ namespace Sapphire
         {
             return vectorReceiver.isVectorSenderConnectedOnLeft();
         }
+
+        json_t* dataToJson() override
+        {
+            json_t* root = json_object();
+
+            // We have to save/restore the attenuverter sensitivity settings.
+            // Represent the settings by saving a list of all the integer attenuverter
+            // IDs that have low sensitivity enabled.
+            const int nparams = static_cast<int>(paramInfo.size());
+            json_t* list = json_array();
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                if (isLowSensitive(attenId))
+                    json_array_append(list, json_integer(attenId));
+
+            json_object_set_new(root, "lowSensitivityAttenuverters", list);
+
+            return root;
+        }
+
+        void dataFromJson(json_t* root) override
+        {
+            // Restore attenuverter low-sensitivity settings.
+            // If the attenuverter ID is in the list, low-sensitivity is enabled.
+            // If the attenuverter ID is absent from the list, low-sensitivity is disabled.
+            // Therefore, we need to set the flag true/false in either case.
+            // Strategy: re-initialize paramInfo, then if possible, come back
+            // and set the low sensitivity flags to true for the knobs that need it.
+            // This way, we at least clear out the state even if something is wrong the the JSON.
+            const int nparams = static_cast<int>(paramInfo.size());
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                paramInfo.at(attenId).initialize();
+
+            json_t* list = json_object_get(root, "lowSensitivityAttenuverters");
+            if (list != nullptr)
+            {
+                std::size_t listLength = static_cast<int>(json_array_size(list));
+                for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
+                {
+                    json_t *item = json_array_get(list, listIndex);
+                    if (json_is_integer(item))
+                    {
+                        int attenId = static_cast<int>(json_integer_value(item));
+                        if (attenId >= 0 && attenId < nparams)
+                            paramInfo.at(attenId).isLowSensitive = true;
+                    }
+                }
+            }
+        }
     };
 
 
-    struct AutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
+    struct SapphireAutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
     {
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
 
-        explicit AutomaticLimiterModule(std::size_t nparams)
+        explicit SapphireAutomaticLimiterModule(std::size_t nparams)
             : SapphireModule(nparams)
             {}
 
@@ -568,10 +626,10 @@ namespace Sapphire
     class WarningLightWidget : public LightWidget
     {
     private:
-        AutomaticLimiterModule *alModule;
+        SapphireAutomaticLimiterModule *alModule;
 
     public:
-        explicit WarningLightWidget(AutomaticLimiterModule *_alModule)
+        explicit WarningLightWidget(SapphireAutomaticLimiterModule *_alModule)
             : alModule(_alModule)
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border

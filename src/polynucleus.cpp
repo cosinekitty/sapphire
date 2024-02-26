@@ -70,7 +70,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct PolynucleusModule : AutomaticLimiterModule
+        struct PolynucleusModule : SapphireAutomaticLimiterModule
         {
             NucleusEngine engine{Nucleus::NUM_PARTICLES};
             Nucleus::CrashChecker crashChecker;
@@ -79,7 +79,7 @@ namespace Sapphire
             bool resetTricorder{};
 
             PolynucleusModule()
-                : AutomaticLimiterModule(PARAMS_LEN)
+                : SapphireAutomaticLimiterModule(PARAMS_LEN)
             {
                 using namespace Nucleus;
 
@@ -140,7 +140,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
+                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
@@ -150,6 +150,8 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 using namespace Nucleus;
+
+                SapphireAutomaticLimiterModule::dataFromJson(root);
 
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
