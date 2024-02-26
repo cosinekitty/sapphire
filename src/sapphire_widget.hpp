@@ -44,7 +44,7 @@ namespace Sapphire
             addReloadableOutput(port, svgId);
         }
 
-        void addSapphireAttenuverter(int attenId, const char *svgId)
+        void addSapphireAttenuverter(int attenId, const std::string& svgId)
         {
             SapphireAttenuverterKnob *knob = createParamCentered<SapphireAttenuverterKnob>(Vec{}, module, attenId);
             SapphireModule* sapphireModule = dynamic_cast<SapphireModule*>(module);
