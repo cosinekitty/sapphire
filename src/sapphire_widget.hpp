@@ -15,15 +15,16 @@ namespace Sapphire
 {
     struct SapphireAttenuverterKnob : Trimpot
     {
-        uint8_t* lowSensitivityMode = nullptr;
+        bool* lowSensitivityMode = nullptr;
 
         void appendContextMenu(ui::Menu* menu) override
         {
             Trimpot::appendContextMenu(menu);
             if (lowSensitivityMode != nullptr)
-                menu->addChild(createBoolPtrMenuItem<uint8_t>("Reduce knob sensitivity (10X)", "", lowSensitivityMode));
+                menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
         }
     };
+
 
     struct SapphireReloadableModuleWidget : ReloadableModuleWidget
     {

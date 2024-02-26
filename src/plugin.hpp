@@ -468,17 +468,21 @@ namespace Sapphire
 
     const float AttenuverterLowSensitivityDenom = 10;
 
+    struct SapphireParamInfo
+    {
+        bool isLowSensitive = false;
+    };
 
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
-        std::vector<uint8_t> isParamLowSensitive;
+        std::vector<SapphireParamInfo> paramInfo;
 
         explicit SapphireModule(std::size_t nparams)
             : vectorSender(*this)
             , vectorReceiver(*this)
-            , isParamLowSensitive(nparams)
+            , paramInfo(nparams)
             {}
 
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
@@ -491,15 +495,20 @@ namespace Sapphire
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
             float attenu = params[attenId].getValue();
-            if (isParamLowSensitive.at(paramId))
+            if (isLowSensitive(paramId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
             return clamp(slider, minValue, maxValue);
         }
 
-        uint8_t *lowSensitiveFlag(int paramId)
+        bool isLowSensitive(int paramId) const
         {
-            return &isParamLowSensitive.at(paramId);
+            return paramInfo.at(paramId).isLowSensitive;
+        }
+
+        bool *lowSensitiveFlag(int paramId)
+        {
+            return &paramInfo.at(paramId).isLowSensitive;
         }
 
         bool isVectorReceiverConnectedOnRight() const
@@ -578,6 +587,7 @@ namespace Sapphire
         }
     };
 }
+
 
 // Keep this in the global namespace, not inside "Sapphire".
 template <class TModule, class TModuleWidget>
