@@ -495,7 +495,7 @@ namespace Sapphire
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
             float attenu = params[attenId].getValue();
-            if (isLowSensitive(paramId))
+            if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
             return clamp(slider, minValue, maxValue);
