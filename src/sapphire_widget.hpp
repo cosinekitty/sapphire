@@ -44,24 +44,28 @@ namespace Sapphire
             addReloadableOutput(port, svgId);
         }
 
+        SapphireModule* getSapphireModule() const
+        {
+            if (module == nullptr)
+                return nullptr;
+
+            SapphireModule* sapphireModule = dynamic_cast<SapphireModule*>(module);
+
+            // Crash immediately to assist debugging if the module exists but is not a Sapphire module.
+            // This means I likely started coding a new module but forgot to make it derive from SapphireModule.
+            if (sapphireModule == nullptr)
+                throw std::logic_error("Invalid usage of a non-Sapphire module.");
+
+            return sapphireModule;
+        }
+
         void addSapphireAttenuverter(int attenId, const std::string& svgId)
         {
             SapphireAttenuverterKnob *knob = createParamCentered<SapphireAttenuverterKnob>(Vec{}, module, attenId);
-            SapphireModule* sapphireModule = dynamic_cast<SapphireModule*>(module);
+            SapphireModule* sapphireModule = getSapphireModule();
 
-            // If module is null, it means this widget was created for display purposes only.
-            // If module does not derive from SapphireModule, we don't know how to access the boolean flag we need.
-            // In either of those unwanted cases, sapphireModule will be null.
             if (sapphireModule != nullptr)
-            {
-                // The knob has a context menu. Inside that menu, we provide a
-                // toggle option for low sensitivity mode.
-                // When this widget is connected to a module, and that module
-                // derives from SapphireModule, we have access to the location
-                // of the low-sensitivity flag. We can toggle it any time and the attenuverter
-                // behavior (and its knob's appearance) will change immediately.
                 knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
-            }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
             addReloadableParam(knob, svgId);
