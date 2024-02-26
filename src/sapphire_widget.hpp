@@ -44,9 +44,9 @@ namespace Sapphire
             addReloadableOutput(port, svgId);
         }
 
-        void addSapphireAttenuverter(int paramId, const char *svgId)
+        void addSapphireAttenuverter(int attenId, const char *svgId)
         {
-            SapphireAttenuverterKnob *knob = createParamCentered<SapphireAttenuverterKnob>(Vec{}, module, paramId);
+            SapphireAttenuverterKnob *knob = createParamCentered<SapphireAttenuverterKnob>(Vec{}, module, attenId);
             SapphireModule* sapphireModule = dynamic_cast<SapphireModule*>(module);
 
             // If module is null, it means this widget was created for display purposes only.
@@ -60,7 +60,7 @@ namespace Sapphire
                 // derives from SapphireModule, we have access to the location
                 // of the low-sensitivity flag. We can toggle it any time and the attenuverter
                 // behavior (and its knob's appearance) will change immediately.
-                knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(paramId);
+                knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
             }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.

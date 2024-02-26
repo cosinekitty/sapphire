@@ -511,14 +511,14 @@ namespace Sapphire
             return clamp(slider, minValue, maxValue);
         }
 
-        bool isLowSensitive(int paramId) const
+        bool isLowSensitive(int attenId) const
         {
-            return paramInfo.at(paramId).isLowSensitive;
+            return paramInfo.at(attenId).isLowSensitive;
         }
 
-        bool *lowSensitiveFlag(int paramId)
+        bool *lowSensitiveFlag(int attenId)
         {
-            return &paramInfo.at(paramId).isLowSensitive;
+            return &paramInfo.at(attenId).isLowSensitive;
         }
 
         bool isVectorReceiverConnectedOnRight() const
