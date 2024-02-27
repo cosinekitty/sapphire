@@ -39,8 +39,9 @@ namespace Sapphire
         const float NUMERIC_Y_LEFT    = 0.40f * DISPLAY_MM_WIDTH;
         const float NUMERIC_Z_LEFT    = 0.70f * DISPLAY_MM_WIDTH;
 
-        const float MIN_RPM = 1;
-        const float MAX_RPM = 60;
+        const float MIN_RPM = 0.01;
+        const float MAX_RPM = 100;
+        const float DEFAULT_RPM = std::sqrt(MIN_RPM * MAX_RPM);
 
         enum class MousePosition
         {
@@ -328,6 +329,8 @@ namespace Sapphire
 
         enum ParamId
         {
+            ROTATION_SPEED_PARAM,
+
             PARAMS_LEN
         };
 
@@ -346,6 +349,36 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+        struct RotationSpeedQuantity : SapphireQuantity
+        {
+            void setDisplayValue(float displayValue) override
+            {
+                // Inverse function of getDisplayValue().
+                // Given the RPM range [MIN_RPM, MAX_RPM], map onto the
+                // logarithmic range [-1, +1].
+                // displayValue = MIN_RPM * std::pow(MAX_RPM/MIN_RPM, (value + 1)/2)
+                // Solve for value:
+                // log(displayValue / MIN_RPM)/log(MAX_RPM/MIN_RPM) = (value + 1)/2
+                // value = 2*log(displayValue / MIN_RPM)/log(MAX_RPM/MIN_RPM) - 1
+                float v = 2*std::log(displayValue / MIN_RPM)/std::log(MAX_RPM / MIN_RPM) - 1;
+                setValue(v);
+            }
+
+            float getDisplayValue() override
+            {
+                // The knob's raw range is [-1, +1].
+                // We map this to an exponential range from [MIN_RPM, MAX_RPM].
+                float v = getValue();
+                return MIN_RPM * std::pow(MAX_RPM/MIN_RPM, (v+1)/2);
+            }
+
+            std::string getDisplayValueString() override
+            {
+                float rpm = getDisplayValue();
+                return rack::string::f("%0.2f RPM", rpm);
+            }
+        };
+
         struct TricorderModule : SapphireModule
         {
             PointList pointList;
@@ -358,7 +391,7 @@ namespace Sapphire
             float ycurr{};
             float zcurr{};
             bool bypassing = false;
-            float rotationSpeedRpm{};
+            RotationSpeedQuantity* rotationSpeedQuantity{};
             float yRotationRadians{};
             float xRotationRadians{};
             int londir{};
@@ -374,7 +407,20 @@ namespace Sapphire
             {
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                makeRotationQuantity();
                 initialize();
+            }
+
+            void makeRotationQuantity()
+            {
+                rotationSpeedQuantity = configParam<RotationSpeedQuantity>(
+                    ROTATION_SPEED_PARAM,
+                    -1,
+                    +1,
+                    0,
+                    "Rotation speed"
+                );
+                rotationSpeedQuantity->value = 0;
             }
 
             void resetPointList()
@@ -523,9 +569,9 @@ namespace Sapphire
                 }
             }
 
-            void setRotationSpeed(float rpm = 2)
+            void setRotationSpeed(float rpm = DEFAULT_RPM)
             {
-                rotationSpeedRpm = clamp(rpm, MIN_RPM, MAX_RPM);
+                rotationSpeedQuantity->setDisplayValue(clamp(rpm, MIN_RPM, MAX_RPM));
             }
 
             float getRotationRadiansPerStep() const
@@ -533,7 +579,7 @@ namespace Sapphire
                 // Convert the desired rotation speed expressed in revolutions per minute (RPM)
                 // into radians per step. The step interval is itself variable.
                 float stepsPerMinute = 60 * rack::settings::frameRateLimit;
-                float radiansPerMinute = (2 * M_PI) * rotationSpeedRpm;
+                float radiansPerMinute = (2 * M_PI) * rotationSpeedQuantity->getDisplayValue();
                 float radiansPerStep = radiansPerMinute / stepsPerMinute;
                 return radiansPerStep;
             }
@@ -577,7 +623,7 @@ namespace Sapphire
                 json_object_set_new(root, "orientation", orient);
 
                 // Save the user-selected rotation speed expressed in RPM.
-                json_object_set_new(root, "rotationSpeedRpm", json_real(rotationSpeedRpm));
+                json_object_set_new(root, "rotationSpeedRpm", json_real(rotationSpeedQuantity->getDisplayValue()));
 
                 // Save the XYZ axes visibility state.
                 json_object_set_new(root, "axesVisible", json_boolean(axesAreVisible));
@@ -1662,10 +1708,23 @@ namespace Sapphire
         }
 
 
+        struct RotationSpeedSlider : ui::Slider
+        {
+            explicit RotationSpeedSlider(SapphireQuantity *_quantity)
+            {
+                quantity = _quantity;
+                box.size.x = 200.0f;
+            }
+        };
+
+
         struct TricorderWidget : SapphireReloadableModuleWidget
         {
+            TricorderModule* tricorderModule{};
+
             explicit TricorderWidget(TricorderModule *module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/tricorder.svg"))
+                , tricorderModule(module)
             {
                 setModule(module);
 
@@ -1673,6 +1732,15 @@ namespace Sapphire
                 reloadPanel();
 
                 addChild(new TricorderDisplay(module));
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (tricorderModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(new RotationSpeedSlider(tricorderModule->rotationSpeedQuantity));
+                }
             }
         };
     }

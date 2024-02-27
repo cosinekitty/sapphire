@@ -275,7 +275,7 @@ namespace Sapphire
 
         void setValue(float newValue) override
         {
-            float clamped = math::clamp(newValue, getMinValue(), getMaxValue());
+            float clamped = rack::math::clamp(newValue, getMinValue(), getMaxValue());
             if (clamped != value)
             {
                 changed = true;
