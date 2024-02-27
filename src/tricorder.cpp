@@ -401,6 +401,7 @@ namespace Sapphire
             RotationMatrix orientation;
             const float defaultVoltageScale = 5.0f;
             float voltageScale{};
+            mutable Stopwatch stopwatch;    // used for directly measuring actual VCV Rack frame rates
 
             TricorderModule()
                 : SapphireModule(PARAMS_LEN)
@@ -438,6 +439,7 @@ namespace Sapphire
                 resetPerspective();
                 setRotationSpeed();
                 selectRotationMode(-1, 0);
+                stopwatch.reset();
             }
 
             void resetPerspective()
@@ -578,7 +580,13 @@ namespace Sapphire
             {
                 // Convert the desired rotation speed expressed in revolutions per minute (RPM)
                 // into radians per step. The step interval is itself variable.
-                float stepsPerMinute = 60 * rack::settings::frameRateLimit;
+                // We measure real time to calculate how many steps per minute are actually ocurring.
+                // This number will change over time as computer loading varies.
+                double secondsPerStep = stopwatch.restart();
+                if (secondsPerStep <= 0)
+                    return 0;   // it's OK to halt rotation a frame or two, until we know how fast it should be going.
+
+                float stepsPerMinute = 60 / secondsPerStep;
                 float radiansPerMinute = (2 * M_PI) * rotationSpeedQuantity->getDisplayValue();
                 float radiansPerStep = radiansPerMinute / stepsPerMinute;
                 return radiansPerStep;

@@ -644,6 +644,59 @@ namespace Sapphire
             LightWidget::drawLayer(args, layer);
         }
     };
+
+
+    class Stopwatch     // Similar to the System.Diagnostics.Stopwatch class in C#
+    {
+    private:
+        bool running = false;
+        double initialTime = 0;
+        double totalSeconds = 0;
+
+    public:
+        void reset()
+        {
+            running = false;
+            initialTime = 0;
+            totalSeconds = 0;
+        }
+
+        void start()
+        {
+            if (!running)       // ignore redundant calls
+            {
+                running = true;
+                initialTime = rack::system::getTime();
+                totalSeconds = 0;
+            }
+        }
+
+        double stop()
+        {
+            if (running)        // ignore redundant calls
+            {
+                running = false;
+                totalSeconds += rack::system::getTime() - initialTime;
+                initialTime = 0;
+            }
+            return totalSeconds;
+        }
+
+        double elapsedSeconds() const
+        {
+            double elapsed = totalSeconds;
+            if (running)
+                elapsed += rack::system::getTime() - initialTime;
+            return elapsed;
+        }
+
+        double restart()
+        {
+            double elapsed = stop();
+            start();
+            return elapsed;
+        }
+    };
 }
 
 
