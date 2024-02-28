@@ -67,8 +67,7 @@ And here is another video without talking, just showing me play around with Frol
 
 As mentioned above, you can use the double-chevron buttons to make the graph rotate automatically.
 By default Tricorder spins at 1 revolution per minute (RPM).
-However, you can change the speed by right-clicking at the top of the panel
-to bring up the context menu as seen here:
+However, you can change the speed by right-clicking to bring up the context menu as seen here:
 
 ![Tricorder context menu](images/tricorder_menu.png)
 
