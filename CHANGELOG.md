@@ -9,12 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">27 Feb 2024</td>
+<td align="center">28 Feb 2024</td>
 <td align="center">2.4.2</td>
 <td align="left">
     <ul>
         <li>Added a <a href="LowSensitivityAttenuverterKnobs.md">low sensitivity</a> option to attenuverter knobs. Sometimes the adjustments were so tiny to get a desired affect that it was awkward to get it right. Low sensitivity mode allows you to more easily explore those delicate parameters!</li>
-        <li>Tricorder now allows you to manually adjust its rotation speed using the right-click context menu. You can select any rotation speed from 0.01 RPM to 100 RPM. Also, the axis rotation animation is now a lot smoother than before.</li>
+        <li>Tricorder's animation is much smoother now. I compensated for jitter caused by VCV Rack calling my animation update function at irregular time intervals.</li>
+        <li>Tricorder now allows you to manually adjust its rotation speed using the right-click context menu. You can select any rotation speed from 0.01 RPM to 100 RPM.</li>
+        <li>Tricorder: Fixed [Issue #40](https://github.com/cosinekitty/sapphire/issues/40): now you can right-click on the display area and the context menu will appear. Before, you had to click on the top of the panel to get the context menu to appear.</li>
     </ul>
 </td>
 </tr>
