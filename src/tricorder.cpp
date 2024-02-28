@@ -651,9 +651,9 @@ namespace Sapphire
                 json_t *rotmode = json_object_get(root, "rotation");
                 if (json_is_array(rotmode) && json_array_size(rotmode) == 2)
                 {
-                    int latdir = json_integer_value(json_array_get(rotmode, 0));
-                    int londir = json_integer_value(json_array_get(rotmode, 1));
-                    selectRotationMode(londir, latdir);
+                    int initLatDir = json_integer_value(json_array_get(rotmode, 0));
+                    int initLonDir = json_integer_value(json_array_get(rotmode, 1));
+                    selectRotationMode(initLonDir, initLatDir);
                 }
 
                 json_t* rpm = json_object_get(root, "rotationSpeedRpm");
