@@ -77,7 +77,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct NucleusModule : AutomaticLimiterModule
+        struct NucleusModule : SapphireAutomaticLimiterModule
         {
             NucleusEngine engine{NUM_PARTICLES};
             CrashChecker crashChecker;
@@ -86,6 +86,7 @@ namespace Sapphire
             bool resetTricorder{};
 
             NucleusModule()
+                : SapphireAutomaticLimiterModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -145,7 +146,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
+                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
@@ -154,6 +155,8 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
+                SapphireAutomaticLimiterModule::dataFromJson(root);
+
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
@@ -404,11 +407,11 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
 
-                addAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
-                addAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
-                addAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
-                addAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
-                addAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+                addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
+                addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
+                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
+                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
+                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");

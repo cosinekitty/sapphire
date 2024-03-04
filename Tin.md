@@ -29,3 +29,6 @@ z = (sum(Z) + P[2]) * level
 where `sum(X)` represents the sum of all the channel voltages of the cable connected to the X port, `P[0]` represents the voltage of channel 0 on the P port, if it exists, and `level` is the effective dB gain of the LEVEL knob, attenuverter, and CV input.
 
 The CLEAR input is a trigger that tells any connected Tricorder to clear the screen. After clearing the screen Tricorder starts accumulating and graphing data again as soon as it's available.
+
+The LEVEL attenuverter knob supports a [low sensitivity option](LowSensitivityAttenuverterKnobs.md),
+which is often helpful for making CV control easier to adjust.

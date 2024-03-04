@@ -55,11 +55,21 @@ If you want to restart rotation, click one of the double-chevron buttons.
 
 ## Sample videos
 
-Here is a video that explains all the controls in more detail:
+Here is a video that explains the controls in more detail:
 
 [![Tricorder and Frolic demo](https://img.youtube.com/vi/A8WPdp5dvfQ/0.jpg)](https://www.youtube.com/watch?v=A8WPdp5dvfQ)
 
 And here is another video without talking, just showing me play around with Frolic and Tricorder:
 
-
 [![Tricorder and Frolic playing](https://img.youtube.com/vi/fHcIxpdeKFI/0.jpg)](https://www.youtube.com/watch?v=fHcIxpdeKFI)
+
+### Rotation Speed
+
+As mentioned above, you can use the double-chevron buttons to make the graph rotate automatically.
+By default Tricorder spins at 1 revolution per minute (RPM).
+However, you can change the speed by right-clicking to bring up the context menu as seen here:
+
+![Tricorder context menu](images/tricorder_menu.png)
+
+By sliding the "Rotation speed" bar left or right, you can adjust the rotation speed from 0.01&nbsp;RPM to 100&nbsp;RPM.
+

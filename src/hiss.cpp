@@ -66,6 +66,7 @@ namespace Sapphire
             ChannelCountQuantity *channelCountQuantity{};
 
             HissModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -101,13 +102,14 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
+                json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "channels", json_integer(dimensions()));
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
+                SapphireModule::dataFromJson(root);
                 json_t* channels = json_object_get(root, "channels");
                 if (json_is_integer(channels))
                 {

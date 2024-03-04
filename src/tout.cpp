@@ -44,6 +44,7 @@ namespace Sapphire
             TriggerSender triggerSender;
 
             ToutModule()
+                : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configOutput(X_OUTPUT, "X");
@@ -114,18 +115,6 @@ namespace Sapphire
                 // Mirror the level-adjusted input to any module on the right.
                 vectorSender.sendVector(x, y, z, clear);
             }
-
-            json_t* dataToJson() override
-            {
-                // No state to save yet, but keep the option open for later.
-                // For now, create an empty object "{}".
-                return json_object();
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                // No state to load yet
-            }
         };
 
         struct ToutWidget : SapphireReloadableModuleWidget
@@ -140,7 +129,7 @@ namespace Sapphire
                 addSapphireOutput(POLY_OUTPUT, "p_output");
                 addSapphireOutput(CLEAR_TRIGGER_OUTPUT, "clear_trigger_output");
                 addKnob(LEVEL_PARAM, "level_knob");
-                addAttenuverter(LEVEL_ATTEN, "level_atten");
+                addSapphireAttenuverter(LEVEL_ATTEN, "level_atten");
                 addSapphireInput(LEVEL_INPUT, "level_cv");
                 reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }

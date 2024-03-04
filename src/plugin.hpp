@@ -275,7 +275,7 @@ namespace Sapphire
 
         void setValue(float newValue) override
         {
-            float clamped = math::clamp(newValue, getMinValue(), getMaxValue());
+            float clamped = rack::math::clamp(newValue, getMinValue(), getMaxValue());
             if (clamped != value)
             {
                 changed = true;
@@ -466,14 +466,33 @@ namespace Sapphire
     };
 
 
+    const float AttenuverterLowSensitivityDenom = 10;
+
+    struct SapphireParamInfo
+    {
+        bool isLowSensitive{};
+
+        SapphireParamInfo()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            isLowSensitive = false;
+        }
+    };
+
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
+        std::vector<SapphireParamInfo> paramInfo;
 
-        SapphireModule()
+        explicit SapphireModule(std::size_t nparams)
             : vectorSender(*this)
             , vectorReceiver(*this)
+            , paramInfo(nparams)
             {}
 
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
@@ -486,8 +505,20 @@ namespace Sapphire
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
             float attenu = params[attenId].getValue();
+            if (isLowSensitive(attenId))
+                attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
             return clamp(slider, minValue, maxValue);
+        }
+
+        bool isLowSensitive(int attenId) const
+        {
+            return paramInfo.at(attenId).isLowSensitive;
+        }
+
+        bool *lowSensitiveFlag(int attenId)
+        {
+            return &paramInfo.at(attenId).isLowSensitive;
         }
 
         bool isVectorReceiverConnectedOnRight() const
@@ -499,13 +530,65 @@ namespace Sapphire
         {
             return vectorReceiver.isVectorSenderConnectedOnLeft();
         }
+
+        json_t* dataToJson() override
+        {
+            json_t* root = json_object();
+
+            // We have to save/restore the attenuverter sensitivity settings.
+            // Represent the settings by saving a list of all the integer attenuverter
+            // IDs that have low sensitivity enabled.
+            const int nparams = static_cast<int>(paramInfo.size());
+            json_t* list = json_array();
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                if (isLowSensitive(attenId))
+                    json_array_append(list, json_integer(attenId));
+
+            json_object_set_new(root, "lowSensitivityAttenuverters", list);
+
+            return root;
+        }
+
+        void dataFromJson(json_t* root) override
+        {
+            // Restore attenuverter low-sensitivity settings.
+            // If the attenuverter ID is in the list, low-sensitivity is enabled.
+            // If the attenuverter ID is absent from the list, low-sensitivity is disabled.
+            // Therefore, we need to set the flag true/false in either case.
+            // Strategy: re-initialize paramInfo, then if possible, come back
+            // and set the low sensitivity flags to true for the knobs that need it.
+            // This way, we at least clear out the state even if something is wrong the the JSON.
+            const int nparams = static_cast<int>(paramInfo.size());
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                paramInfo.at(attenId).initialize();
+
+            json_t* list = json_object_get(root, "lowSensitivityAttenuverters");
+            if (list != nullptr)
+            {
+                std::size_t listLength = static_cast<int>(json_array_size(list));
+                for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
+                {
+                    json_t *item = json_array_get(list, listIndex);
+                    if (json_is_integer(item))
+                    {
+                        int attenId = static_cast<int>(json_integer_value(item));
+                        if (attenId >= 0 && attenId < nparams)
+                            paramInfo.at(attenId).isLowSensitive = true;
+                    }
+                }
+            }
+        }
     };
 
 
-    struct AutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
+    struct SapphireAutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
     {
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
+
+        explicit SapphireAutomaticLimiterModule(std::size_t nparams)
+            : SapphireModule(nparams)
+            {}
 
         virtual double getAgcDistortion() const = 0;
 
@@ -543,10 +626,10 @@ namespace Sapphire
     class WarningLightWidget : public LightWidget
     {
     private:
-        AutomaticLimiterModule *alModule;
+        SapphireAutomaticLimiterModule *alModule;
 
     public:
-        explicit WarningLightWidget(AutomaticLimiterModule *_alModule)
+        explicit WarningLightWidget(SapphireAutomaticLimiterModule *_alModule)
             : alModule(_alModule)
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
@@ -561,7 +644,61 @@ namespace Sapphire
             LightWidget::drawLayer(args, layer);
         }
     };
+
+
+    class Stopwatch     // Similar to the System.Diagnostics.Stopwatch class in C#
+    {
+    private:
+        bool running = false;
+        double initialTime = 0;
+        double totalSeconds = 0;
+
+    public:
+        void reset()
+        {
+            running = false;
+            initialTime = 0;
+            totalSeconds = 0;
+        }
+
+        void start()
+        {
+            if (!running)       // ignore redundant calls
+            {
+                running = true;
+                initialTime = rack::system::getTime();
+                totalSeconds = 0;
+            }
+        }
+
+        double stop()
+        {
+            if (running)        // ignore redundant calls
+            {
+                running = false;
+                totalSeconds += rack::system::getTime() - initialTime;
+                initialTime = 0;
+            }
+            return totalSeconds;
+        }
+
+        double elapsedSeconds() const
+        {
+            double elapsed = totalSeconds;
+            if (running)
+                elapsed += rack::system::getTime() - initialTime;
+            return elapsed;
+        }
+
+        double restart()
+        {
+            double elapsed = stop();
+            start();
+            return elapsed;
+        }
+    };
 }
+
 
 // Keep this in the global namespace, not inside "Sapphire".
 template <class TModule, class TModuleWidget>

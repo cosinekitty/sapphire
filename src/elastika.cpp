@@ -70,7 +70,7 @@ namespace Sapphire
         };
 
 
-        struct ElastikaModule : AutomaticLimiterModule
+        struct ElastikaModule : SapphireAutomaticLimiterModule
         {
             ElastikaEngine engine;
             DcRejectQuantity *dcRejectQuantity = nullptr;
@@ -81,6 +81,7 @@ namespace Sapphire
             bool outputVectorSelectRight = false;
 
             ElastikaModule()
+                : SapphireAutomaticLimiterModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -179,7 +180,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = json_object();
+                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
@@ -189,6 +190,8 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
+                SapphireAutomaticLimiterModule::dataFromJson(root);
+
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
@@ -323,8 +326,8 @@ namespace Sapphire
                 }
 
                 // Scale ElastikaEngine's dimensionless amplitude to a +5.0V amplitude.
-                sample[0] *= 5.0;
-                sample[1] *= 5.0;
+                sample[0] *= 5;
+                sample[1] *= 5;
 
                 // Filter the audio through the slewer to prevent clicks during power transitions.
                 slewer.process(sample, 2);
@@ -339,7 +342,6 @@ namespace Sapphire
 
 
         using SliderType = VCVLightSlider<YellowLight>;
-
 
         struct ElastikaWidget : SapphireReloadableModuleWidget
         {
@@ -360,13 +362,13 @@ namespace Sapphire
                 addSlider(MASS_SLIDER_PARAM, MASS_LIGHT, "mass_slider");
 
                 // Attenuverters
-                addAttenuverter(FRICTION_ATTEN_PARAM, "fric_atten");
-                addAttenuverter(STIFFNESS_ATTEN_PARAM, "stif_atten");
-                addAttenuverter(SPAN_ATTEN_PARAM, "span_atten");
-                addAttenuverter(CURL_ATTEN_PARAM, "curl_atten");
-                addAttenuverter(MASS_ATTEN_PARAM, "mass_atten");
-                addAttenuverter(INPUT_TILT_ATTEN_PARAM, "input_tilt_atten");
-                addAttenuverter(OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten");
+                addSapphireAttenuverter(FRICTION_ATTEN_PARAM, "fric_atten");
+                addSapphireAttenuverter(STIFFNESS_ATTEN_PARAM, "stif_atten");
+                addSapphireAttenuverter(SPAN_ATTEN_PARAM, "span_atten");
+                addSapphireAttenuverter(CURL_ATTEN_PARAM, "curl_atten");
+                addSapphireAttenuverter(MASS_ATTEN_PARAM, "mass_atten");
+                addSapphireAttenuverter(INPUT_TILT_ATTEN_PARAM, "input_tilt_atten");
+                addSapphireAttenuverter(OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten");
 
                 // Drive and Level knobs
                 addKnob(DRIVE_KNOB_PARAM, "drive_knob");

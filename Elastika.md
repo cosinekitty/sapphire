@@ -95,6 +95,9 @@ whose masses are varied by the MASS slider as described below.
 The following controls have sliders for manual control, along with
 attenuverters and control voltage (CV) inputs for enabling automation.
 
+All attenuverter knobs in Elastika support a [low sensitivity option](LowSensitivityAttenuverterKnobs.md),
+which is often helpful for making CV control easier to adjust.
+
 * **FRIC**: the friction force that slows down vibration in the simulation.
   Low friction is similar to increased reverb. The higher the FRIC
   setting, the shorter the vibration lasts before coming to a halt.

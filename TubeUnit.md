@@ -67,6 +67,9 @@ Tube Unit's panel includes 8 *control groups*, each consisting of a large manual
 control knob, a small attenuverter knob, and a control voltage (CV) port. A pentagon
 with a colored background delimits each control group.
 
+All attenuverter knobs in Tube Unit support a [low sensitivity option](LowSensitivityAttenuverterKnobs.md),
+which is often helpful for making CV control easier to adjust.
+
 * **AIRFLOW**: Controls the rate at which air is forced into the spheroid chamber.
 It is analogous to how hard a trumpet player blows into a trumpet.
 * **VORTEX**: Introduces an angular rotation in the circular polarization of air entering the tube.

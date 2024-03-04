@@ -48,6 +48,10 @@ and a CV input port a *control group*. Nucleus includes the following control gr
 * **IN**: Adjusts the strength of the vector input A. This is a drive setting. If the IN knob is turned all the way down, the input has no effect.
 * **OUT**: Adjusts the level of the output vectors B, C, D, E. This control works in cooperation with the [output limiter](#output-limiter).
 
+All attenuverter knobs in Nucleus support a [low sensitivity option](LowSensitivityAttenuverterKnobs.md),
+which is often helpful for making CV control easier to adjust.
+
+
 ### Mode button (AUDIO/CONTROL)
 This button toggles between AUDIO mode and CONTROL mode. In AUDIO mode, the output vectors are filtered with a DC-reject highpass filter. This filter has a corner frequency of 30&nbsp;Hz. In CONTROL mode, the output vectors directly represent the raw position vectors in space, without any DC rejection applied.
 
