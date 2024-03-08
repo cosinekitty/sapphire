@@ -4,12 +4,6 @@
 // https://github.com/cosinekitty/sapphire
 
 
-namespace Sapphire
-{
-    ModelInfo *ModelInfo::front;
-}
-
-
 Plugin* pluginInstance;
 
 
