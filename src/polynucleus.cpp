@@ -188,6 +188,7 @@ namespace Sapphire
             {
                 engine.resetAfterCrash();
                 Nucleus::SetMinimumEnergy(engine);
+                resetTricorder = true;
             }
 
             void setOutputRow(int row)
