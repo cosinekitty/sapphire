@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -f output/*.wav
+rm -f output/*.wav output/*.txt
 
 echo "Building unit tests..."
 ./build || exit 1
@@ -10,6 +10,11 @@ echo "Running unit tests..."
 
 echo "Verifying output audio..."
 sha256sum -c audio_hash.txt || exit 1
+
+echo "Verifying granulizer output..."
+diff {output,correct}/granule_identity_fade.txt || exit 1
+diff {output,correct}/granule_identity_x.txt || exit 1
+diff {output,correct}/granule_identity_y.txt || exit 1
 
 echo "Unit tests: PASS"
 exit 0
