@@ -64,6 +64,8 @@ namespace Sapphire
             initialize();
         }
 
+        const std::vector<item_t>& crossfadeBuffer() const { return fade; }
+
         void initialize()
         {
             handler.initialize();

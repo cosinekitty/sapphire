@@ -687,27 +687,27 @@ public:
 };
 
 
-static int DumpBlock(
+static int Dump(
     const char *outFileName,
-    const std::vector<float>& block,
+    const std::vector<float>& buffer,
     int granuleSize)
 {
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
     {
-        printf("DumpBlock: cannot open output file: %s\n", outFileName);
+        printf("Dump: cannot open output file: %s\n", outFileName);
         return 1;
     }
 
-    const int n = static_cast<int>(block.size());
+    const int n = static_cast<int>(buffer.size());
     for (int i = 0; i < n; ++i)
     {
-        if (i>0 && i%granuleSize == 0)
+        if ((i > 0) && (granuleSize > 0) && (i % granuleSize == 0))
             fprintf(outfile, "\n");
-        fprintf(outfile, "[%6d] %12.6f\n", i, block[i]);
+        fprintf(outfile, "[%6d] %12.6f\n", i, buffer[i]);
     }
 
-    printf("DumpBlock: Wrote file %s\n", outFileName);
+    printf("Dump: Wrote file %s\n", outFileName);
     fclose(outfile);
     return 0;
 }
@@ -743,11 +743,9 @@ static int BlockProcessorTest_Identity()
 
     // Dump the output for analysis and verification...
 
-    if (DumpBlock("output/granule_identity_x.txt", xhist, GRANULE_SIZE))
-        return Fail("BlockProcessorTest_Identity", "Error dumping xhist to file.");
-
-    if (DumpBlock("output/granule_identity_y.txt", yhist, GRANULE_SIZE))
-        return Fail("BlockProcessorTest_Identity", "Error dumping yhist to file.");
+    if (Dump("output/granule_identity_x.txt", xhist, GRANULE_SIZE)) return 1;
+    if (Dump("output/granule_identity_y.txt", yhist, GRANULE_SIZE)) return 1;
+    if (Dump("output/granule_identity_fade.txt", gran.crossfadeBuffer(), 0)) return 1;
 
     // The output should be:
     // granule[0] = silence (all zero)
