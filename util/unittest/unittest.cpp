@@ -720,7 +720,7 @@ static int BlockProcessorTest_Identity()
     const float SAMPLERATE = 48000;
     const int GRANULE_SIZE = 8;
     //const int BLOCK_SIZE = 2 * GRANULE_SIZE;
-    //const float TOLERANCE = 0;
+    const float TOLERANCE = 0;
     IdentityBlockHandler ident;
     GranularProcessor<float> gran(GRANULE_SIZE, ident);
     RandomVectorGenerator r;
@@ -743,9 +743,20 @@ static int BlockProcessorTest_Identity()
 
     // Dump the output for analysis and verification...
 
+    const std::vector<float>& fade = gran.crossfadeBuffer();
+
     if (Dump("output/granule_identity_x.txt", xhist, GRANULE_SIZE)) return 1;
     if (Dump("output/granule_identity_y.txt", yhist, GRANULE_SIZE)) return 1;
-    if (Dump("output/granule_identity_fade.txt", gran.crossfadeBuffer(), 0)) return 1;
+    if (Dump("output/granule_identity_fade.txt", fade, 0)) return 1;
+
+    // Verify the fade buffer fades from 1 to 0 in a symmetric way.
+    for (int i = 0; i < GRANULE_SIZE / 2; ++i)
+    {
+        float sum = fade.at(i) + fade.at((GRANULE_SIZE-1) - i);
+        float diff = std::abs(sum - 1);
+        if (diff > TOLERANCE)
+            return Fail("BlockProcessorTest_Identity", std::string("Crossfade buffer error = ") + std::to_string(diff) + " at sample " + std::to_string(i));
+    }
 
     // The output should be:
     // granule[0] = silence (all zero)
