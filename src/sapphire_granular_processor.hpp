@@ -77,8 +77,6 @@ namespace Sapphire
             // Ask the block handler to process silence and retain the result.
             handler.onBlock(blockSize, inBlock.data(), currProcBlock.data());
 
-            // Get ready to put new input into inBlock.
-            // One block = two granules.
             // We start out with a block full of zeroes, so start in the block-full state.
             inputIndex = blockSize;
         }

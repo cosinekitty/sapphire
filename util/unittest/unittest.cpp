@@ -687,25 +687,74 @@ public:
 };
 
 
+static int DumpBlock(
+    const char *outFileName,
+    const std::vector<float>& block,
+    int granuleSize)
+{
+    FILE *outfile = fopen(outFileName, "wt");
+    if (outfile == nullptr)
+    {
+        printf("DumpBlock: cannot open output file: %s\n", outFileName);
+        return 1;
+    }
+
+    const int n = static_cast<int>(block.size());
+    for (int i = 0; i < n; ++i)
+    {
+        if (i>0 && i%granuleSize == 0)
+            fprintf(outfile, "\n");
+        fprintf(outfile, "[%6d] %12.6f\n", i, block[i]);
+    }
+
+    printf("DumpBlock: Wrote file %s\n", outFileName);
+    fclose(outfile);
+    return 0;
+}
+
+
 static int BlockProcessorTest_Identity()
 {
     using namespace Sapphire;
 
     const float SAMPLERATE = 48000;
-    const int BLOCKSIZE = 2048;
+    const int GRANULE_SIZE = 8;
+    //const int BLOCK_SIZE = 2 * GRANULE_SIZE;
+    //const float TOLERANCE = 0;
     IdentityBlockHandler ident;
-    GranularProcessor<float> bp(BLOCKSIZE, ident);
+    GranularProcessor<float> gran(GRANULE_SIZE, ident);
     RandomVectorGenerator r;
+    std::vector<float> xhist;
     std::vector<float> yhist;
 
-    // Generate random values in the range [-1, +1].
-    // Feed in a full block's worth of them.
-    for (int i = 0; i < BLOCKSIZE; ++i)
+    // Generate random values from a normal distribution.
+    // After feeding 3 granules of random data, we should have
+    // created 2 input blocks that are processed to produce 2 procblocks.
+    // The next granule we read should be the overlapping part of those two procblocks
+    // crossfaded back to the original input, but delayed by 2 granules (1 block).
+
+    for (int i = 0; i < 4*GRANULE_SIZE; ++i)
     {
         float x = r.next();
-        float y = bp.process(x, SAMPLERATE);
+        xhist.push_back(x);
+        float y = gran.process(x, SAMPLERATE);
         yhist.push_back(y);
     }
+
+    // Dump the output for analysis and verification...
+
+    if (DumpBlock("output/granule_identity_x.txt", xhist, GRANULE_SIZE))
+        return Fail("BlockProcessorTest_Identity", "Error dumping xhist to file.");
+
+    if (DumpBlock("output/granule_identity_y.txt", yhist, GRANULE_SIZE))
+        return Fail("BlockProcessorTest_Identity", "Error dumping yhist to file.");
+
+    // The output should be:
+    // granule[0] = silence (all zero)
+    // granule[1] = noise fading in from silence
+    // granule[2] = identical to noise in the first input granule
+    // ...
+
 
     return Pass("BlockProcessorTest_Identity");
 }
