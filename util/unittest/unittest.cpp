@@ -694,7 +694,7 @@ static int BlockProcessorTest_Identity()
     const float SAMPLERATE = 48000;
     const int BLOCKSIZE = 2048;
     IdentityBlockHandler ident;
-    BlockProcessor<float> bp(BLOCKSIZE, ident);
+    GranularProcessor<float> bp(BLOCKSIZE, ident);
     RandomVectorGenerator r;
     std::vector<float> yhist;
 

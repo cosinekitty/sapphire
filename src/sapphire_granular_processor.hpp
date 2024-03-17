@@ -21,7 +21,7 @@ namespace Sapphire
 
 
     template <typename item_t>
-    class BlockProcessor
+    class GranularProcessor
     {
     private:
         const int granuleSize;
@@ -51,7 +51,7 @@ namespace Sapphire
         }
 
     public:
-        BlockProcessor(int _granuleSize, BlockHandler<item_t>& blockHandler)
+        GranularProcessor(int _granuleSize, BlockHandler<item_t>& blockHandler)
             : granuleSize(validateGranuleSize(_granuleSize))
             , blockSize(2 * _granuleSize)
             , handler(blockHandler)
@@ -75,19 +75,17 @@ namespace Sapphire
 
             // Don't assume that processed silence is also silence.
             // Ask the block handler to process silence and retain the result.
-            handler.onBlock(blockSize, inBlock.data(), prevProcBlock.data());
             handler.onBlock(blockSize, inBlock.data(), currProcBlock.data());
 
             // Get ready to put new input into inBlock.
             // One block = two granules.
-            // We start at the halfway point (beginning of the second granule in the block).
-            inputIndex = granuleSize;
+            // We start out with a block full of zeroes, so start in the block-full state.
+            inputIndex = blockSize;
         }
 
         item_t process(item_t x, float sampleRateHz)
         {
-            inBlock.at(inputIndex) = x;
-            if (++inputIndex == blockSize)
+            if (inputIndex == blockSize)
             {
                 // The input block is full, so it is time to process it.
                 // We are now done with the previous processed block ("procblock").
@@ -107,12 +105,20 @@ namespace Sapphire
                 inputIndex = granuleSize;
             }
 
+            // Write the input value to the input block.
+            inBlock.at(inputIndex) = x;
+
             // Crossfade a sample from the previous procblock and the current procblock.
             int pastIndex = inputIndex - granuleSize;
             float f = fade.at(pastIndex);
             float y1 = prevProcBlock.at(pastIndex);
             float y2 = currProcBlock.at(inputIndex);
-            return f*y1 + (1-f)*y2;
+            float y = f*y1 + (1-f)*y2;
+
+            // Update index for the next iteration.
+            ++inputIndex;
+
+            return y;
         }
     };
 }
