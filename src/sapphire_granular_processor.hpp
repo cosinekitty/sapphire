@@ -99,7 +99,7 @@ namespace Sapphire
                 // We want to iteratively fill up the second granule in the input block.
                 // Move the second input granule into the first.
                 for (int i = 0; i < granuleSize; ++i)
-                    inBlock[i] = inBlock[granuleSize + i];
+                    inBlock.at(i) = inBlock.at(granuleSize + i);
 
                 // Point at the first sample to be filled in the second granule.
                 inputIndex = granuleSize;
@@ -109,11 +109,10 @@ namespace Sapphire
             inBlock.at(inputIndex) = x;
 
             // Crossfade a sample from the previous procblock and the current procblock.
-            int pastIndex = inputIndex - granuleSize;
-            float f = fade.at(pastIndex);
-            float y1 = prevProcBlock.at(pastIndex);
-            float y2 = currProcBlock.at(inputIndex);
-            float y = f*y1 + (1-f)*y2;
+            item_t f = fade.at(inputIndex - granuleSize);
+            item_t y1 = prevProcBlock.at(inputIndex);
+            item_t y2 = currProcBlock.at(inputIndex - granuleSize);
+            item_t y = f*y1 + (1-f)*y2;
 
             // Update index for the next iteration.
             ++inputIndex;
