@@ -2,6 +2,8 @@
 #include <cstring>
 #include <random>
 #include "sapphire_engine.hpp"
+#include "sapphire_random.hpp"
+#include "sapphire_granular_processor.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
 
@@ -26,6 +28,7 @@ struct UnitTest
 };
 
 static int AutoGainControl();
+static int BlockProcessorTest();
 static int ChaosTest();
 static int ReadWave();
 static int AutoScale();
@@ -37,6 +40,7 @@ static int QuadraticTest();
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
+    { "block",      BlockProcessorTest },
     { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
@@ -666,3 +670,50 @@ static int ChaosTest()
         Pass("ChaosTest");
 }
 
+
+class IdentityBlockHandler : public Sapphire::BlockHandler<float>
+{
+public:
+    void initialize() override
+    {
+        // Nothing to do.
+    }
+
+    void onBlock(int length, const float* inBlock, float* outBlock) override
+    {
+        for (int i = 0; i < length; ++i)
+            outBlock[i] = inBlock[i];
+    }
+};
+
+
+static int BlockProcessorTest_Identity()
+{
+    using namespace Sapphire;
+
+    const float SAMPLERATE = 48000;
+    const int BLOCKSIZE = 2048;
+    IdentityBlockHandler ident;
+    BlockProcessor<float> bp(BLOCKSIZE, ident);
+    RandomVectorGenerator r;
+    std::vector<float> yhist;
+
+    // Generate random values in the range [-1, +1].
+    // Feed in a full block's worth of them.
+    for (int i = 0; i < BLOCKSIZE; ++i)
+    {
+        float x = r.next();
+        float y = bp.process(x, SAMPLERATE);
+        yhist.push_back(y);
+    }
+
+    return Pass("BlockProcessorTest_Identity");
+}
+
+
+static int BlockProcessorTest()
+{
+    return
+        BlockProcessorTest_Identity() ||
+        Pass("BlockProcessorTest");
+}
