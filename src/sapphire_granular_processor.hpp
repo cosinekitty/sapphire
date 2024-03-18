@@ -24,27 +24,30 @@ namespace Sapphire
     class FourierFilter : public BlockHandler<item_t>
     {
     private:
-        const int granuleExponent;
-        const int granuleSize;
+        const int blockExponent;
+        const int blockSize;
         std::vector<item_t> inSpectrumBuffer;
         std::vector<item_t> outSpectrumBuffer;
 
-        static int validateGranuleExponent(int g)
+        static int validateBlockExponent(int e)
         {
             const int minExponent = 1;
             const int maxExponent = 30;
-            if (g < minExponent || g > maxExponent)
-                throw std::invalid_argument(std::string("FFT granule exponent must be an integer ") + std::to_string(minExponent) + ".." + std::to_string(maxExponent) + ".");
-            return g;
+            if (e < minExponent || e > maxExponent)
+                throw std::invalid_argument(std::string("FFT block-size exponent must be an integer ") + std::to_string(minExponent) + ".." + std::to_string(maxExponent) + ".");
+            return e;
         }
 
     public:
-        FourierFilter(int _granuleExponent)
-            : granuleExponent(validateGranuleExponent(_granuleExponent))
-            , granuleSize(1 << _granuleExponent)
-            , inSpectrumBuffer(1 << _granuleExponent)
-            , outSpectrumBuffer(1 << _granuleExponent)
+        FourierFilter(int _blockExponent)
+            : blockExponent(validateBlockExponent(_blockExponent))
+            , blockSize(1 << _blockExponent)
+            , inSpectrumBuffer(1 << _blockExponent)
+            , outSpectrumBuffer(1 << _blockExponent)
             {}
+
+        int getBlockSize() const { return blockSize; }
+        int getGranuleSize() const { return blockSize / 2; }
 
         virtual void onSpectrum(int length, const item_t* inSpectrum, item_t* outSpectrum) = 0;
 
@@ -159,5 +162,15 @@ namespace Sapphire
 
             return y;
         }
+    };
+
+
+    template <typename item_t>
+    class FourierProcessor : public GranularProcessor<item_t>
+    {
+    public:
+        FourierProcessor(FourierFilter<float>& _filter)
+            : GranularProcessor<item_t>(_filter.getGranuleSize(), _filter)
+            {}
     };
 }

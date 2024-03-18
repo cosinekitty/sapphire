@@ -897,13 +897,9 @@ public:
 
 static int GranuleTest_FFT_Bandpass()
 {
-    // FIXFIXFIX: FFT filter should be given exponent for a BLOCK = 2*GRANULE, not a GRANULE.
-    // All of this is tricky, and there should be a single source of truth. Therefore,
-    // provide some kind of helper function to set both block exponent and granule size?
-    const int GRANULE_EXPONENT = 14;
-    const int GRANULE_SIZE = 1 << GRANULE_EXPONENT;    // 16K = 2^14
-    BandpassFilter fourier{GRANULE_EXPONENT};
-    Sapphire::GranularProcessor<float> gran{GRANULE_SIZE, fourier};
+    const int BLOCK_EXPONENT = 14;      // because we want block size 16K = 2^14
+    BandpassFilter fourier{BLOCK_EXPONENT};
+    Sapphire::FourierProcessor<float> proc{fourier};
     return Pass("GranuleTest_FFT_Bandpass");
 }
 
