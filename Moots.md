@@ -16,20 +16,28 @@ but differs in the following ways:
   controls instead of the 10 that VCV Mutes has.
 
 * Each Moots control has a push-button like VCV Mutes does,
-  but it also has a gate input that allows replacing the button with
-  a control voltage.
+  but it also has a control port that allows replacing the button with
+  a control voltage: either a gate or a trigger.
 
-When there is no cable connected to a gate input,
+When there is no cable connected to the control port,
 the manual push-button takes control.
-But when there is a cable connected to a control's gate,
-the control connects the input to the output when the
-gate voltage is +1.0 volts or higher. When the gate voltage
-drops below +0.1 volts, the output cable acts like it is
-unplugged.
+But when there is a cable connected to the control port,
+the control connects the input using either gate logic or
+trigger logic, depending on the option "Use triggers for control"
+in the right-click context menu (see [Moots Configuration](#moots-configuration)).
 
-To help filter signal jitter, the state stays the same
+In **gate mode**, the input connects to the output when the
+control voltage is +1.0 volts or higher. When the control voltage
+drops below +0.1 volts, the output cable acts like it is
+unplugged. To help filter signal jitter, the state stays the same
 when the gate voltage is between +0.1V and +1.0V.
 In other words, Schmitt trigger logic is applied.
+
+In **trigger mode**, a trigger alternately toggles the state between
+connected and disconnected. The same levels apply: a trigger fires
+when voltage ascends through +1.0 volts. The trigger will not
+fire again until the voltage descends through +0.1 volts and back
+up through +1.0 volts again.
 
 A polyphonic cable connected to a gate has all
 of its channel voltages added together, and the +0.1V/+1.0V rules

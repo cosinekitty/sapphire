@@ -9,6 +9,17 @@
 </tr>
 
 <tr valign="top">
+<td align="center">18 Mar 2024</td>
+<td align="center">2.4.3</td>
+<td align="left">
+    <ul>
+        <li>Moots: added right-click menu option to toggle between the control port using a gate signal (default) or a trigger-toggle signal.</li>
+    </ul>
+</td>
+</tr>
+
+
+<tr valign="top">
 <td align="center">3 Mar 2024</td>
 <td align="center">2.4.2</td>
 <td align="left">
