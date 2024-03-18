@@ -876,8 +876,34 @@ static int GranuleTest_Reverse()
 }
 
 
+class BandpassFilter : public Sapphire::FourierFilter<float>
+{
+public:
+    BandpassFilter(int granuleExponent)
+        : Sapphire::FourierFilter<float>(granuleExponent)
+        {}
+
+    void initialize() override
+    {
+    }
+
+    void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) override
+    {
+        for (int i = 0; i < length; ++i)
+            outSpectrum[i] = inSpectrum[i];     // FIXFIXFIX: simple identity function, not actual bandpass yet
+    }
+};
+
+
 static int GranuleTest_FFT_Bandpass()
 {
+    // FIXFIXFIX: FFT filter should be given exponent for a BLOCK = 2*GRANULE, not a GRANULE.
+    // All of this is tricky, and there should be a single source of truth. Therefore,
+    // provide some kind of helper function to set both block exponent and granule size?
+    const int GRANULE_EXPONENT = 14;
+    const int GRANULE_SIZE = 1 << GRANULE_EXPONENT;    // 16K = 2^14
+    BandpassFilter fourier{GRANULE_EXPONENT};
+    Sapphire::GranularProcessor<float> gran{GRANULE_SIZE, fourier};
     return Pass("GranuleTest_FFT_Bandpass");
 }
 
