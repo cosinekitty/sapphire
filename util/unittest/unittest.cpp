@@ -7,6 +7,9 @@
 #include "wavefile.hpp"
 #include "chaos.hpp"
 
+const char *MyVoiceFileName = "input/genesis.wav";
+
+
 static int Fail(const std::string name, const std::string message)
 {
     fprintf(stderr, "%s: FAIL - %s\n", name.c_str(), message.c_str());
@@ -278,7 +281,7 @@ static int AutoGainControl()
 
 static int ReadWave()
 {
-    const char *inFileName = "input/genesis.wav";
+    const char *inFileName = MyVoiceFileName;
     const char *outFileName = "output/genesis.wav";
 
     WaveFileReader inwave;
@@ -751,7 +754,6 @@ static int GranuleTest_Identity()
 
     const float SAMPLERATE = 48000;
     const int GRANULE_SIZE = 8;
-    //const int BLOCK_SIZE = 2 * GRANULE_SIZE;
     const float TOLERANCE = 0;
     IdentityBlockHandler ident;
     GranularProcessor<float> gran(GRANULE_SIZE, ident);
@@ -808,9 +810,76 @@ static int GranuleTest_Identity()
 }
 
 
+static int GranuleTest_Reverse()
+{
+    class ReverseBlockHandler : public Sapphire::BlockHandler<float>
+    {
+    public:
+        void initialize() override
+        {
+            // Nothing to do.
+        }
+
+        void onBlock(int length, const float* inBlock, float* outBlock) override
+        {
+            for (int i = 0; i < length; ++i)
+                outBlock[i] = inBlock[(length-1)-i];
+        }
+    };
+
+    const int GRANULE_SIZE = 6000;
+    ReverseBlockHandler reverser;
+    Sapphire::GranularProcessor<float> gran{GRANULE_SIZE, reverser};
+
+    const char *inFileName = MyVoiceFileName;
+    const char *outFileName = "output/granular_reverse_genesis.wav";
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("GranuleTest_Reverse", std::string("Could not open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+    if (sampleRate != 44100 || channels != 2)
+    {
+        fprintf(stderr, "GranuleTest_Reverse: FAIL - Expected 44100 Hz stereo, but found %d Hz, %d channels.\n", sampleRate, channels);
+        return 1;
+    }
+
+    WaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("GranuleTest_Reverse", std::string("Could not open output file: ") + outFileName);
+
+    std::vector<float> buffer;
+    buffer.resize(GRANULE_SIZE);
+
+    for(;;)
+    {
+        size_t received = inwave.Read(buffer.data(), GRANULE_SIZE);
+        for (size_t i = 0; i < received; ++i)
+            buffer[i] = gran.process(buffer[i], sampleRate);
+        outwave.WriteSamples(buffer.data(), received);
+        if (received < GRANULE_SIZE)
+            break;
+    }
+
+    // Write 2 extra granules worth of silence at the end,
+    // to force out the end of our signal.
+    // Every granulized signal ends up delayed by 2 granules worth of time.
+    for (int i = 0; i < 2*GRANULE_SIZE; ++i)
+    {
+        float x = 0;
+        float y = gran.process(x, sampleRate);
+        outwave.WriteSamples(&y, 1);
+    }
+    return Pass("ReadWave");
+}
+
+
 static int GranuleTest()
 {
     return
         GranuleTest_Identity() ||
+        GranuleTest_Reverse() ||
         Pass("GranuleTest");
 }
