@@ -872,7 +872,13 @@ static int GranuleTest_Reverse()
         float y = gran.process(x, sampleRate);
         outwave.WriteSamples(&y, 1);
     }
-    return Pass("ReadWave");
+    return Pass("GranuleTest_Reverse");
+}
+
+
+static int GranuleTest_FFT_Bandpass()
+{
+    return Pass("GranuleTest_FFT_Bandpass");
 }
 
 
@@ -881,5 +887,6 @@ static int GranuleTest()
     return
         GranuleTest_Identity() ||
         GranuleTest_Reverse() ||
+        GranuleTest_FFT_Bandpass() ||
         Pass("GranuleTest");
 }
