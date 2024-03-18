@@ -28,7 +28,7 @@ struct UnitTest
 };
 
 static int AutoGainControl();
-static int BlockProcessorTest();
+static int GranuleTest();
 static int ChaosTest();
 static int ReadWave();
 static int AutoScale();
@@ -40,7 +40,7 @@ static int QuadraticTest();
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
-    { "block",      BlockProcessorTest },
+    { "granule",    GranuleTest },
     { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
@@ -713,7 +713,39 @@ static int Dump(
 }
 
 
-static int BlockProcessorTest_Identity()
+static int VerifyZeroGranule(const std::vector<float>& yhist, int granuleIndex, int granuleSize)
+{
+    int offset = granuleSize * granuleIndex;
+    for (int i = 0; i < granuleSize; ++i)
+        if (yhist.at(i + offset) != 0)
+            return Fail("VerifyZeroGranule", "Value is not zero");
+
+    return 0;
+}
+
+
+static int VerifySameGranule(
+    const std::vector<float>& yhist,
+    int yIndex,
+    const std::vector<float>& xhist,
+    int xIndex,
+    int granuleSize)
+{
+    const float TOLERANCE = 1.0e-6;
+    int yOffset = yIndex * granuleSize;
+    int xOffset = xIndex * granuleSize;
+    for (int i = 0; i < granuleSize; ++i)
+    {
+        float delta = yhist.at(yOffset + i) - xhist.at(xOffset + i);
+        float diff = std::abs(delta);
+        if (diff > TOLERANCE)
+            return Fail("VerifySameGranule", std::string("EXCESSIVE delta = ") + std::to_string(delta));
+    }
+    return 0;
+}
+
+
+static int GranuleTest_Identity()
 {
     using namespace Sapphire;
 
@@ -733,7 +765,7 @@ static int BlockProcessorTest_Identity()
     // The next granule we read should be the overlapping part of those two procblocks
     // crossfaded back to the original input, but delayed by 2 granules (1 block).
 
-    for (int i = 0; i < 4*GRANULE_SIZE; ++i)
+    for (int i = 0; i < 5*GRANULE_SIZE; ++i)
     {
         float x = r.next();
         xhist.push_back(x);
@@ -755,23 +787,30 @@ static int BlockProcessorTest_Identity()
         float sum = fade.at(i) + fade.at((GRANULE_SIZE-1) - i);
         float diff = std::abs(sum - 1);
         if (diff > TOLERANCE)
-            return Fail("BlockProcessorTest_Identity", std::string("Crossfade buffer error = ") + std::to_string(diff) + " at sample " + std::to_string(i));
+            return Fail("GranuleTest_Identity", std::string("Crossfade buffer error = ") + std::to_string(diff) + " at sample " + std::to_string(i));
     }
 
     // The output should be:
     // granule[0] = silence (all zero)
-    // granule[1] = noise fading in from silence
-    // granule[2] = identical to noise in the first input granule
+    // granule[1] = silence (all zero)
+    // granule[2] = input[0]
+    // granule[3] = input[1]
+    // granule[4] = input[2]
     // ...
 
+    if (VerifyZeroGranule(yhist, 0, GRANULE_SIZE)) return 1;
+    if (VerifyZeroGranule(yhist, 1, GRANULE_SIZE)) return 1;
+    if (VerifySameGranule(yhist, 2, xhist, 0, GRANULE_SIZE)) return 1;
+    if (VerifySameGranule(yhist, 3, xhist, 1, GRANULE_SIZE)) return 1;
+    if (VerifySameGranule(yhist, 4, xhist, 2, GRANULE_SIZE)) return 1;
 
-    return Pass("BlockProcessorTest_Identity");
+    return Pass("GranuleTest_Identity");
 }
 
 
-static int BlockProcessorTest()
+static int GranuleTest()
 {
     return
-        BlockProcessorTest_Identity() ||
-        Pass("BlockProcessorTest");
+        GranuleTest_Identity() ||
+        Pass("GranuleTest");
 }

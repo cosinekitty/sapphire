@@ -26,7 +26,7 @@ namespace Sapphire
     private:
         const int granuleSize;
         const int blockSize;
-        int inputIndex{};
+        int index{};
         BlockHandler<item_t>& handler;
         std::vector<item_t> inBlock;
         std::vector<item_t> prevProcBlock;
@@ -73,22 +73,22 @@ namespace Sapphire
             // Assume negative times contain silence stretching back infinitely into the past.
             // Fill the input block with silence.
             for (int i = 0; i < blockSize; ++i)
+            {
                 inBlock[i] = 0;
+                prevProcBlock[i] = 0;
+                currProcBlock[i] = 0;
+            }
 
-            // Don't assume that processed silence is also silence.
-            // Ask the block handler to process silence and retain the result.
-            handler.onBlock(blockSize, inBlock.data(), currProcBlock.data());
-
-            // We start out with a block full of zeroes, so start in the block-full state.
-            inputIndex = blockSize;
+            // Start the input exactly one granule after the initial block of zeroes.
+            index = granuleSize;
         }
 
         item_t process(item_t x, float sampleRateHz)
         {
-            if (inputIndex == blockSize)
+            if (index == blockSize)
             {
                 // The input block is full, so it is time to process it.
-                // We are now done with the previous processed block ("procblock").
+                // We are now done with the previous processed block.
                 // Swap blocks, because the second half of the current procblock
                 // has data we still need to fademix for future samples.
                 std::swap(prevProcBlock, currProcBlock);
@@ -102,20 +102,20 @@ namespace Sapphire
                     inBlock.at(i) = inBlock.at(granuleSize + i);
 
                 // Point at the first sample to be filled in the second granule.
-                inputIndex = granuleSize;
+                index = granuleSize;
             }
 
             // Write the input value to the input block.
-            inBlock.at(inputIndex) = x;
+            inBlock.at(index) = x;
 
             // Crossfade a sample from the previous procblock and the current procblock.
-            item_t f = fade.at(inputIndex - granuleSize);
-            item_t y1 = prevProcBlock.at(inputIndex);
-            item_t y2 = currProcBlock.at(inputIndex - granuleSize);
+            item_t f = fade.at(index - granuleSize);
+            item_t y1 = prevProcBlock.at(index);
+            item_t y2 = currProcBlock.at(index - granuleSize);
             item_t y = f*y1 + (1-f)*y2;
 
             // Update index for the next iteration.
-            ++inputIndex;
+            ++index;
 
             return y;
         }
