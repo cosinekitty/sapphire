@@ -406,29 +406,44 @@ namespace Sapphire
     private:
         float prevVoltage{};
         bool gate{};
+        bool trigger{};
 
     public:
+        bool isGateActive() const { return gate; }
+        bool isTriggerActive() const { return trigger; }
+
         void initialize()
         {
             prevVoltage = 0;
             gate = false;
+            trigger = false;
+        }
+
+        void update(float voltage)
+        {
+            trigger = false;
+            if (prevVoltage < 1.0f && voltage >= 1.0f)
+            {
+                trigger = !gate;
+                gate = true;
+            }
+            else if (prevVoltage >= 0.1f && voltage < 0.1f)
+            {
+                gate = false;
+            }
+            prevVoltage = voltage;
         }
 
         bool updateGate(float voltage)
         {
-            if (prevVoltage < 1.0f && voltage >= 1.0f)
-                gate = true;
-            else if (prevVoltage >= 0.1f && voltage < 0.1f)
-                gate = false;
-            prevVoltage = voltage;
+            update(voltage);
             return gate;
         }
 
         bool updateTrigger(float voltage)
         {
-            bool prevGate = gate;
-            updateGate(voltage);
-            return gate && !prevGate;   // a trigger occurs on the rising edge of a gate
+            update(voltage);
+            return trigger;
         }
     };
 

@@ -25,11 +25,11 @@ namespace Sapphire
             INAUDIO3_INPUT,
             INAUDIO4_INPUT,
             INAUDIO5_INPUT,
-            INGATE1_INPUT,
-            INGATE2_INPUT,
-            INGATE3_INPUT,
-            INGATE4_INPUT,
-            INGATE5_INPUT,
+            CONTROL1_INPUT,
+            CONTROL2_INPUT,
+            CONTROL3_INPUT,
+            CONTROL4_INPUT,
+            CONTROL5_INPUT,
             INPUTS_LEN
         };
 
@@ -53,6 +53,12 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+        enum class ControlMode
+        {
+            Gate,
+            Trigger,
+        };
+
         struct MootsModule : SapphireModule
         {
             static const int NUM_CONTROLLERS = 5;
@@ -61,7 +67,9 @@ namespace Sapphire
             static_assert(NUM_CONTROLLERS == OUTPUTS_LEN,  "Incorrect number of entries in `enum OutputId`");
             static_assert(NUM_CONTROLLERS == LIGHTS_LEN,   "Incorrect number of entries in `enum LightId`");
 
-            bool isGateActive[NUM_CONTROLLERS];
+            ControlMode controlMode = ControlMode::Gate;
+            bool isActive[NUM_CONTROLLERS]{};
+            GateTriggerReceiver controlReceiver[NUM_CONTROLLERS];
             Slewer slewer[NUM_CONTROLLERS];
 
             MootsModule()
@@ -79,11 +87,11 @@ namespace Sapphire
                 configInput(INAUDIO3_INPUT, "Signal 3");
                 configInput(INAUDIO4_INPUT, "Signal 4");
                 configInput(INAUDIO5_INPUT, "Signal 5");
-                configInput(INGATE1_INPUT, "Gate 1");
-                configInput(INGATE2_INPUT, "Gate 2");
-                configInput(INGATE3_INPUT, "Gate 3");
-                configInput(INGATE4_INPUT, "Gate 4");
-                configInput(INGATE5_INPUT, "Gate 5");
+                configInput(CONTROL1_INPUT, "Control 1");
+                configInput(CONTROL2_INPUT, "Control 2");
+                configInput(CONTROL3_INPUT, "Control 3");
+                configInput(CONTROL4_INPUT, "Control 4");
+                configInput(CONTROL5_INPUT, "Control 5");
                 configOutput(OUTAUDIO1_OUTPUT, "Signal 1");
                 configOutput(OUTAUDIO2_OUTPUT, "Signal 2");
                 configOutput(OUTAUDIO3_OUTPUT, "Signal 3");
@@ -96,9 +104,11 @@ namespace Sapphire
 
             void initialize()
             {
+                controlMode = ControlMode::Gate;
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
                 {
-                    isGateActive[i] = false;
+                    isActive[i] = false;
+                    controlReceiver[i].initialize();
                     slewer[i].reset();
                 }
             }
@@ -125,42 +135,38 @@ namespace Sapphire
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
                 {
-                    auto & gate = inputs[INGATE1_INPUT + i];
+                    auto & control = inputs[CONTROL1_INPUT + i];
 
-                    if (gate.isConnected())
+                    if (control.isConnected())
                     {
-                        // If the gate input is connected, use its polyphonic voltage sum
-                        // to control whether the output is enabled or disabled.
-                        // Debounce the signal using hysteresis like a Schmitt trigger would.
-                        // See: https://vcvrack.com/manual/VoltageStandards#Triggers-and-Gates
-                        const float gv = gate.getVoltageSum();
-                        if (isGateActive[i])
+                        const float gv = control.getVoltageSum();
+                        controlReceiver[i].update(gv);
+                        if (controlMode == ControlMode::Gate)
                         {
-                            if (gv <= 0.1f)
-                                isGateActive[i] = false;
+                            isActive[i] = controlReceiver[i].isGateActive();
                         }
-                        else
+                        else    // trigger mode
                         {
-                            if (gv >= 1.0f)
-                                isGateActive[i] = true;
+                            if (controlReceiver[i].isTriggerActive())
+                                isActive[i] = !isActive[i];
                         }
                     }
                     else
                     {
-                        // When no gate input is connected, allow the manual pushbutton take control.
-                        isGateActive[i] = (params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f);
+                        // When no control input is connected, allow the manual pushbutton take control.
+                        isActive[i] = (params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f);
                     }
 
                     // When a controller is turned on, make the push-button light bright,
-                    // whether it's active because of the push-button or a gate voltage.
+                    // whether it's active because of the push-button or a control voltage.
                     // When a controller is turned off, use a very dim light, but not
                     // complete darkness. Some users like turning room brightness
                     // down very low, yet they still want to see where all 5 buttons are.
-                    lights[MOOTLIGHT1 + i].setBrightness(isGateActive[i] ? 1.0f : 0.03f);
+                    lights[MOOTLIGHT1 + i].setBrightness(isActive[i] ? 1.0f : 0.03f);
 
                     auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
 
-                    if (slewer[i].update(isGateActive[i]))
+                    if (slewer[i].update(isActive[i]))
                     {
                         auto & inp = inputs[INAUDIO1_INPUT + i];
                         inp.readVoltages(volts);
@@ -175,6 +181,29 @@ namespace Sapphire
                 }
             }
 
+            static const char *FormatControl(ControlMode mode)
+            {
+                switch (mode)
+                {
+                case ControlMode::Trigger:
+                    return "trigger";
+
+                case ControlMode::Gate:
+                default:
+                    return "gate";
+                }
+            }
+
+            static ControlMode ParseControl(const char *text)
+            {
+                if (text != nullptr)
+                {
+                    if (!strcmp(text, "trigger"))
+                        return ControlMode::Trigger;
+                }
+                return ControlMode::Gate;
+            }
+
             json_t* dataToJson() override
             {
                 // Persist the audio slewing checkbox states.
@@ -185,6 +214,7 @@ namespace Sapphire
                     json_array_append_new(flagList, json_boolean(slewer[i].isEnabled()));
 
                 json_object_set_new(root, "slew", flagList);
+                json_object_set_new(root, "controlMode", json_string(FormatControl(controlMode)));
                 return root;
             }
 
@@ -209,6 +239,10 @@ namespace Sapphire
                         }
                     }
                 }
+
+                json_t* cmode = json_object_get(root, "controlMode");
+                const char *text = json_string_value(cmode);
+                controlMode = ParseControl(text);
             }
 
             void onBypass(const BypassEvent& e) override
@@ -249,11 +283,11 @@ namespace Sapphire
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  81.75)), module, INAUDIO4_INPUT));
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50, 103.25)), module, INAUDIO5_INPUT));
 
-                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  25.25)), module, INGATE1_INPUT));
-                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  46.75)), module, INGATE2_INPUT));
-                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  68.25)), module, INGATE3_INPUT));
-                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  89.75)), module, INGATE4_INPUT));
-                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05, 111.25)), module, INGATE5_INPUT));
+                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  25.25)), module, CONTROL1_INPUT));
+                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  46.75)), module, CONTROL2_INPUT));
+                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  68.25)), module, CONTROL3_INPUT));
+                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05,  89.75)), module, CONTROL4_INPUT));
+                addInput(createInputCentered<SapphirePort>(mm2px(Vec(25.05, 111.25)), module, CONTROL5_INPUT));
 
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  17.25)), module, OUTAUDIO1_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  38.75)), module, OUTAUDIO2_OUTPUT));
@@ -264,13 +298,35 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                if (mootsModule == nullptr)
+                    return;
+
+                //---------------------------------------------------------------------------
+                // Gate/Trigger control mode toggle
+
                 menu->addChild(new MenuSeparator);
 
+                menu->addChild(createBoolMenuItem(
+                    "Use triggers for control",
+                    "",
+                    [=]()
+                    {
+                        return mootsModule->controlMode == ControlMode::Trigger;
+                    },
+                    [=](bool state)
+                    {
+                        mootsModule->controlMode = state ? ControlMode::Trigger : ControlMode::Gate;
+                    }
+                ));
+
+                //---------------------------------------------------------------------------
                 // Add the 5 menu items for anti-clicking ramping.
+
+                menu->addChild(new MenuSeparator);
 
                 for (int i = 0; i < MootsModule::NUM_CONTROLLERS; ++i)
                 {
-                    ui::MenuItem *item = createBoolMenuItem(
+                    menu->addChild(createBoolMenuItem(
                         "Anti-click ramping on #" + std::to_string(i+1),
                         "",
                         [=]()
@@ -281,13 +337,11 @@ namespace Sapphire
                         {
                             Slewer& s = mootsModule->slewer[i];
                             if (state)
-                                s.enable(mootsModule->isGateActive[i]);
+                                s.enable(mootsModule->isActive[i]);
                             else
                                 s.reset();
                         }
-                    );
-
-                    menu->addChild(item);
+                    ));
                 }
             }
         };
