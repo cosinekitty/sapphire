@@ -23,7 +23,6 @@ jobs:
         platform: [win-x64, lin-x64]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
       - uses: actions/cache@v3
         id: plugin-version-cache
         with:
@@ -48,12 +47,9 @@ jobs:
       matrix:
         platform: [x64, arm64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
       - uses: actions/cache@v3
         id: plugin-version-cache
         with:
