@@ -180,7 +180,7 @@ namespace Sapphire
     class FourierProcessor : public GranularProcessor<float>
     {
     public:
-        FourierProcessor(FourierFilter& _filter)
+        explicit FourierProcessor(FourierFilter& _filter)
             : GranularProcessor<float>(_filter.getGranuleSize(), _filter)
             {}
     };
