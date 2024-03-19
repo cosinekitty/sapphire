@@ -41,6 +41,8 @@ namespace Sapphire
             return e;
         }
 
+        static float* allocAlignedBuffer(int blockSize);
+
     public:
         explicit FourierFilter(int _blockExponent);
         virtual ~FourierFilter();
