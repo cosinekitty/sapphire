@@ -883,10 +883,6 @@ public:
         : Sapphire::FourierFilter(granuleExponent)
         {}
 
-    void initialize() override
-    {
-    }
-
     void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) override
     {
         for (int i = 0; i < length; ++i)

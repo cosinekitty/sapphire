@@ -9,6 +9,8 @@ fi
 g++ -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include -I../../external \
     unittest.cpp    \
     ../../src/sapphire_granular_processor.cpp \
+    ../../external/pffft.c \
+    ../../external/fftpack.c \
     || exit 1
 
 exit 0

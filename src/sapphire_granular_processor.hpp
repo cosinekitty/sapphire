@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "pffft.h"
 
 namespace Sapphire
 {
@@ -29,17 +30,19 @@ namespace Sapphire
         const int blockSize;
         std::vector<float> inSpectrumBuffer;
         std::vector<float> outSpectrumBuffer;
+        std::vector<float> workBlock;
+        PFFFT_Setup *fft = nullptr;
 
         static int validateBlockExponent(int e)
         {
-            const int minExponent = 1;
-            const int maxExponent = 30;
+            const int minExponent = 5;      // pffft requirement for real-valued transforms: must be multiple of 32
+            const int maxExponent = 30;     // yikes! one gigasample!
             if (e < minExponent || e > maxExponent)
                 throw std::invalid_argument(std::string("FFT block-size exponent must be an integer ") + std::to_string(minExponent) + ".." + std::to_string(maxExponent) + ".");
             return e;
         }
 
-        static void transform(
+        void transform(
             int direction,      // +1 = forward, -1 = backward
             int blockSize,
             const float *inBlock,
@@ -51,12 +54,15 @@ namespace Sapphire
             , blockSize(1 << _blockExponent)
             , inSpectrumBuffer(1 << _blockExponent)
             , outSpectrumBuffer(1 << _blockExponent)
+            , workBlock(1 << _blockExponent)
             {}
 
         int getBlockSize() const { return blockSize; }
         int getGranuleSize() const { return blockSize / 2; }
 
         virtual void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) = 0;
+
+        void initialize() override;
 
         void onBlock(int length, const float* inBlock, float* outBlock) override
         {
