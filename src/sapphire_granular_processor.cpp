@@ -5,6 +5,7 @@
 */
 
 #include "sapphire_granular_processor.hpp"
+#include "pffft.h"
 
 namespace Sapphire
 {
@@ -33,7 +34,7 @@ namespace Sapphire
 
     FourierFilter::~FourierFilter()
     {
-        pffft_destroy_setup(fft);
+        pffft_destroy_setup(static_cast<PFFFT_Setup*>(fft));
         pffft_aligned_free(workBlock);
         pffft_aligned_free(outSpectrumBuffer);
         pffft_aligned_free(inSpectrumBuffer);
@@ -41,12 +42,12 @@ namespace Sapphire
 
     void FourierFilter::forwardTransform(const float *inBlock, float *outBlock)
     {
-        pffft_transform_ordered(fft, inBlock, outBlock, workBlock, PFFFT_FORWARD);
+        pffft_transform_ordered(static_cast<PFFFT_Setup*>(fft), inBlock, outBlock, workBlock, PFFFT_FORWARD);
     }
 
     void FourierFilter::reverseTransform(const float *inBlock, float *outBlock)
     {
-        pffft_transform_ordered(fft, inBlock, outBlock, workBlock, PFFFT_BACKWARD);
+        pffft_transform_ordered(static_cast<PFFFT_Setup*>(fft), inBlock, outBlock, workBlock, PFFFT_BACKWARD);
 
         // pffft.h says: "Transforms are not scaled: PFFFT_BACKWARD(PFFFT_FORWARD(x)) = N*x."
         // So we normalize here by dividing by the block size.

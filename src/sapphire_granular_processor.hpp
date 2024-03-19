@@ -10,8 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "pffft.h"
-
 namespace Sapphire
 {
     template <typename item_t>
@@ -32,7 +30,7 @@ namespace Sapphire
         float* inSpectrumBuffer = nullptr;
         float* outSpectrumBuffer = nullptr;
         float* workBlock = nullptr;
-        PFFFT_Setup *fft = nullptr;
+        void* fft = nullptr;        // really PFFFT_Setup*, but we avoid dragging in the jungle just to get a banana
 
         static int validateBlockExponent(int e)
         {
