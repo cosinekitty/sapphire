@@ -4,10 +4,11 @@
 
     A generalized granular processing framework.
 */
-
 #pragma once
-#include <stdexcept>
 #include <cmath>
+#include <stdexcept>
+#include <vector>
+
 
 namespace Sapphire
 {
@@ -20,14 +21,13 @@ namespace Sapphire
     };
 
 
-    template <typename item_t>
-    class FourierFilter : public BlockHandler<item_t>
+    class FourierFilter : public BlockHandler<float>
     {
     private:
         const int blockExponent;
         const int blockSize;
-        std::vector<item_t> inSpectrumBuffer;
-        std::vector<item_t> outSpectrumBuffer;
+        std::vector<float> inSpectrumBuffer;
+        std::vector<float> outSpectrumBuffer;
 
         static int validateBlockExponent(int e)
         {
@@ -37,6 +37,12 @@ namespace Sapphire
                 throw std::invalid_argument(std::string("FFT block-size exponent must be an integer ") + std::to_string(minExponent) + ".." + std::to_string(maxExponent) + ".");
             return e;
         }
+
+        static void transform(
+            int direction,      // +1 = forward, -1 = backward
+            int blockSize,
+            const float *inBlock,
+            float *outBlock);
 
     public:
         FourierFilter(int _blockExponent)
@@ -49,24 +55,21 @@ namespace Sapphire
         int getBlockSize() const { return blockSize; }
         int getGranuleSize() const { return blockSize / 2; }
 
-        virtual void onSpectrum(int length, const item_t* inSpectrum, item_t* outSpectrum) = 0;
+        virtual void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) = 0;
 
-        void onBlock(int length, const item_t* inBlock, item_t* outBlock) override
+        void onBlock(int length, const float* inBlock, float* outBlock) override
         {
             if (length != blockSize)
                 throw std::invalid_argument("Incorrect block length sent to FourierFilter.");
 
-            // FIXFIXFIX: spectrum := FFT(inBlock)
-            for (int i = 0; i < blockSize; ++i)
-            {
-                inSpectrumBuffer.at(i) = 0;
-                outBlock[i] = inBlock[i];       // !!!! HACK HACK HACK !!!! fake to make the test pass
-            }
+            // inSpectrumBuffer := FFT(inBlock)
+            transform(+1, blockSize, inBlock, inSpectrumBuffer.data());
 
             // use callback to mutate spectrum
             onSpectrum(length, inSpectrumBuffer.data(), outSpectrumBuffer.data());
 
-            // FIXFIXFIX: outBlock := IFFT(spectrum)
+            // outBlock := IFFT(outSpectrumBuffer)
+            transform(-1, blockSize, outSpectrumBuffer.data(), outBlock);
         }
     };
 
@@ -173,12 +176,11 @@ namespace Sapphire
     };
 
 
-    template <typename item_t>
-    class FourierProcessor : public GranularProcessor<item_t>
+    class FourierProcessor : public GranularProcessor<float>
     {
     public:
-        FourierProcessor(FourierFilter<float>& _filter)
-            : GranularProcessor<item_t>(_filter.getGranuleSize(), _filter)
+        FourierProcessor(FourierFilter& _filter)
+            : GranularProcessor<float>(_filter.getGranuleSize(), _filter)
             {}
     };
 }

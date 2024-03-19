@@ -876,11 +876,11 @@ static int GranuleTest_Reverse()
 }
 
 
-class IdentitySpectrumFilter : public Sapphire::FourierFilter<float>
+class IdentitySpectrumFilter : public Sapphire::FourierFilter
 {
 public:
     IdentitySpectrumFilter(int granuleExponent)
-        : Sapphire::FourierFilter<float>(granuleExponent)
+        : Sapphire::FourierFilter(granuleExponent)
         {}
 
     void initialize() override
@@ -900,7 +900,7 @@ static int GranuleTest_FFT_Identity()
     const int SAMPLE_RATE = 44100;
     const int BLOCK_EXPONENT = 14;      // because we want block size 16K = 2^14
     IdentitySpectrumFilter ident{BLOCK_EXPONENT};
-    Sapphire::FourierProcessor<float> proc{ident};
+    Sapphire::FourierProcessor proc{ident};
 
     const int blockSize = ident.getBlockSize();
 
