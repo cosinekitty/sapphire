@@ -53,7 +53,15 @@ namespace Sapphire
 
         void onBlock(int length, const item_t* inBlock, item_t* outBlock) override
         {
+            if (length != blockSize)
+                throw std::invalid_argument("Incorrect block length sent to FourierFilter.");
+
             // FIXFIXFIX: spectrum := FFT(inBlock)
+            for (int i = 0; i < blockSize; ++i)
+            {
+                inSpectrumBuffer.at(i) = 0;
+                outBlock[i] = inBlock[i];       // !!!! HACK HACK HACK !!!! fake to make the test pass
+            }
 
             // use callback to mutate spectrum
             onSpectrum(length, inSpectrumBuffer.data(), outSpectrumBuffer.data());

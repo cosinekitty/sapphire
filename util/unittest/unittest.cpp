@@ -876,10 +876,10 @@ static int GranuleTest_Reverse()
 }
 
 
-class BandpassFilter : public Sapphire::FourierFilter<float>
+class IdentitySpectrumFilter : public Sapphire::FourierFilter<float>
 {
 public:
-    BandpassFilter(int granuleExponent)
+    IdentitySpectrumFilter(int granuleExponent)
         : Sapphire::FourierFilter<float>(granuleExponent)
         {}
 
@@ -895,12 +895,55 @@ public:
 };
 
 
-static int GranuleTest_FFT_Bandpass()
+static int GranuleTest_FFT_Identity()
 {
+    const int SAMPLE_RATE = 44100;
     const int BLOCK_EXPONENT = 14;      // because we want block size 16K = 2^14
-    BandpassFilter fourier{BLOCK_EXPONENT};
-    Sapphire::FourierProcessor<float> proc{fourier};
-    return Pass("GranuleTest_FFT_Bandpass");
+    IdentitySpectrumFilter ident{BLOCK_EXPONENT};
+    Sapphire::FourierProcessor<float> proc{ident};
+
+    const int blockSize = ident.getBlockSize();
+
+    std::vector<float> xhist;
+    std::vector<float> yhist;
+
+    Sapphire::RandomVectorGenerator r;
+    const int blockCount = 10;
+    for (int block = 0; block < blockCount; ++block)
+    {
+        for (int sample = 0; sample < blockSize; ++sample)
+        {
+            // Feed 10 blocks of random data through.
+            // The resulting final 9 blocks should match the original first 9 blocks.
+            // So only keep the first 9 input blocks and the last 9 output blocks.
+            float x = r.next();
+            if (block != blockCount-1)       // keep all but the last block of input data
+                xhist.push_back(x);
+
+            float y = proc.process(x, SAMPLE_RATE);
+            if (block != 0)                  // keep all but the first block of output data
+                yhist.push_back(y);
+        }
+    }
+
+    // The input and output blocks should be identical.
+    const int n = static_cast<int>(xhist.size());
+    const int expected = blockSize * (blockCount-1);
+    if (n != expected)
+        return Fail("GranuleTest_FFT_Identity", std::string("incorrect xhist size: ") + std::to_string(n) + ", expected: " + std::to_string(expected));
+
+    if (static_cast<int>(yhist.size()) != n)
+        return Fail("GranuleTest_FFT_Identity", "incorrect yhist size.");
+
+    for (int i = 0; i < n; ++i)
+    {
+        float delta = xhist.at(i) - yhist.at(i);
+        float diff = std::abs(delta);
+        if (diff > 1.0e-6)
+            return Fail("GranuleTest_FFT_Identity", std::string("excessive discrepancy ") + std::to_string(delta));
+    }
+
+    return Pass("GranuleTest_FFT_Identity");
 }
 
 
@@ -909,6 +952,6 @@ static int GranuleTest()
     return
         GranuleTest_Identity() ||
         GranuleTest_Reverse() ||
-        GranuleTest_FFT_Bandpass() ||
+        GranuleTest_FFT_Identity() ||
         Pass("GranuleTest");
 }
