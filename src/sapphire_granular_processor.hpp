@@ -18,8 +18,9 @@ namespace Sapphire
     class BlockHandler
     {
     public:
+        virtual ~BlockHandler() {}
         virtual void initialize() = 0;
-        virtual void onBlock(int length, const item_t* inBlock, item_t* outBlock) = 0;
+        virtual void onBlock(float sampleRateHz, int length, const item_t* inBlock, item_t* outBlock) = 0;
     };
 
 
@@ -28,9 +29,9 @@ namespace Sapphire
     private:
         const int blockExponent;
         const int blockSize;
-        std::vector<float> inSpectrumBuffer;
-        std::vector<float> outSpectrumBuffer;
-        std::vector<float> workBlock;
+        float* inSpectrumBuffer = nullptr;
+        float* outSpectrumBuffer = nullptr;
+        float* workBlock = nullptr;
         PFFFT_Setup *fft = nullptr;
 
         static int validateBlockExponent(int e)
@@ -42,41 +43,32 @@ namespace Sapphire
             return e;
         }
 
-        void transform(
-            int direction,      // +1 = forward, -1 = backward
-            int blockSize,
-            const float *inBlock,
-            float *outBlock);
-
     public:
-        FourierFilter(int _blockExponent)
-            : blockExponent(validateBlockExponent(_blockExponent))
-            , blockSize(1 << _blockExponent)
-            , inSpectrumBuffer(1 << _blockExponent)
-            , outSpectrumBuffer(1 << _blockExponent)
-            , workBlock(1 << _blockExponent)
-            {}
+        explicit FourierFilter(int _blockExponent);
+        virtual ~FourierFilter();
 
         int getBlockSize() const { return blockSize; }
         int getGranuleSize() const { return blockSize / 2; }
+        void forwardTransform(const float *inBlock, float *outBlock);
+        void reverseTransform(const float *inBlock, float *outBlock);
 
-        virtual void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) = 0;
+        virtual void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) = 0;
 
-        void initialize() override;
+        void initialize() override {}
 
-        void onBlock(int length, const float* inBlock, float* outBlock) override
+        void onBlock(float sampleRateHz, int length, const float* inBlock, float* outBlock) override
         {
             if (length != blockSize)
                 throw std::invalid_argument("Incorrect block length sent to FourierFilter.");
 
             // inSpectrumBuffer := FFT(inBlock)
-            transform(+1, blockSize, inBlock, inSpectrumBuffer.data());
+            forwardTransform(inBlock, inSpectrumBuffer);
 
             // use callback to mutate spectrum
-            onSpectrum(length, inSpectrumBuffer.data(), outSpectrumBuffer.data());
+            onSpectrum(sampleRateHz, length, inSpectrumBuffer, outSpectrumBuffer);
 
             // outBlock := IFFT(outSpectrumBuffer)
-            transform(-1, blockSize, outSpectrumBuffer.data(), outBlock);
+            reverseTransform(outSpectrumBuffer, outBlock);
         }
     };
 
@@ -155,7 +147,7 @@ namespace Sapphire
                 std::swap(prevProcBlock, currProcBlock);
 
                 // Allow the handler to transform the input block into the current procblock.
-                handler.onBlock(blockSize, inBlock.data(), currProcBlock.data());
+                handler.onBlock(sampleRateHz, blockSize, inBlock.data(), currProcBlock.data());
 
                 // We want to iteratively fill up the second granule in the input block.
                 // Move the second input granule into the first.

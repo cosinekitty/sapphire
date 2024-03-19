@@ -682,7 +682,7 @@ public:
         // Nothing to do.
     }
 
-    void onBlock(int length, const float* inBlock, float* outBlock) override
+    void onBlock(float sampleRateHz, int length, const float* inBlock, float* outBlock) override
     {
         for (int i = 0; i < length; ++i)
             outBlock[i] = inBlock[i];
@@ -820,7 +820,7 @@ static int GranuleTest_Reverse()
             // Nothing to do.
         }
 
-        void onBlock(int length, const float* inBlock, float* outBlock) override
+        void onBlock(float sampleRateHz, int length, const float* inBlock, float* outBlock) override
         {
             for (int i = 0; i < length; ++i)
                 outBlock[i] = inBlock[(length-1)-i];
@@ -879,14 +879,14 @@ static int GranuleTest_Reverse()
 class IdentitySpectrumFilter : public Sapphire::FourierFilter
 {
 public:
-    IdentitySpectrumFilter(int granuleExponent)
-        : Sapphire::FourierFilter(granuleExponent)
+    IdentitySpectrumFilter(int blockExponent)
+        : Sapphire::FourierFilter(blockExponent)
         {}
 
-    void onSpectrum(int length, const float* inSpectrum, float* outSpectrum) override
+    void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
     {
         for (int i = 0; i < length; ++i)
-            outSpectrum[i] = inSpectrum[i];     // FIXFIXFIX: simple identity function, not actual bandpass yet
+            outSpectrum[i] = inSpectrum[i];
     }
 };
 
@@ -931,13 +931,17 @@ static int GranuleTest_FFT_Identity()
     if (static_cast<int>(yhist.size()) != n)
         return Fail("GranuleTest_FFT_Identity", "incorrect yhist size.");
 
+    float maxdiff = 0;
     for (int i = 0; i < n; ++i)
     {
         float delta = xhist.at(i) - yhist.at(i);
         float diff = std::abs(delta);
+        maxdiff = std::max(maxdiff, diff);
         if (diff > 1.0e-6)
             return Fail("GranuleTest_FFT_Identity", std::string("excessive discrepancy ") + std::to_string(delta));
     }
+
+    printf("GranuleTest_FFT_Identity: maxdiff = %g\n", maxdiff);
 
     return Pass("GranuleTest_FFT_Identity");
 }
