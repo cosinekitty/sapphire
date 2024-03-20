@@ -947,11 +947,79 @@ static int GranuleTest_FFT_Identity()
 }
 
 
+class TelephoneFilter : public Sapphire::FourierFilter
+{
+public:
+    TelephoneFilter(int blockExponent)
+        : Sapphire::FourierFilter(blockExponent)
+        {}
+
+    void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
+    {
+        for (int i = 0; i < length; i += 2)
+        {
+            float f = frequency(sampleRateHz, i);
+            if (f >= 300 && f <= 3000)
+            {
+                outSpectrum[i+0] = inSpectrum[i+0];
+                outSpectrum[i+1] = inSpectrum[i+1];
+            }
+            else
+            {
+                outSpectrum[i+0] = 0;
+                outSpectrum[i+1] = 0;
+            }
+        }
+    }
+};
+
+
+static int GranuleTest_FFT_Telephone()
+{
+    const int BLOCK_EXPONENT = 14;
+    TelephoneFilter filter{BLOCK_EXPONENT};
+    Sapphire::FourierProcessor proc{filter};
+
+    const int blockSize = filter.getBlockSize();
+
+    const char *inFileName = MyVoiceFileName;
+    const char *outFileName = "output/telephone_genesis.wav";
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("GranuleTest_FFT_Telephone", std::string("Could not open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+
+    WaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("GranuleTest_FFT_Telephone", std::string("Could not open output file: ") + outFileName);
+
+    std::vector<float> buffer;
+    buffer.resize(blockSize);
+
+    for(;;)
+    {
+        size_t received = inwave.Read(buffer.data(), blockSize);
+        for (size_t i = 0; i < received; ++i)
+            buffer[i] = proc.process(buffer[i], sampleRate);
+        outwave.WriteSamples(buffer.data(), received);
+        if (static_cast<int>(received) < blockSize)
+            break;
+    }
+
+    return Pass("GranuleTest_FFT_Telephone");
+}
+
+
+
 static int GranuleTest()
 {
     return
         GranuleTest_Identity() ||
         GranuleTest_Reverse() ||
         GranuleTest_FFT_Identity() ||
+        GranuleTest_FFT_Telephone() ||
         Pass("GranuleTest");
 }

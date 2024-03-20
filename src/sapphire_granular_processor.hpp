@@ -56,6 +56,13 @@ namespace Sapphire
 
         void initialize() override {}
 
+        inline float frequency(float sampleRateHz, int index) const
+        {
+            int bin = index / 2;    // integer division, rounding down to get FFT frequency bin
+            // Returns Nyquist frequency sampleRateHz/2 when index=blockSize-1.
+            return (sampleRateHz * bin) / (blockSize - 2);
+        }
+
         void onBlock(float sampleRateHz, int length, const float* inBlock, float* outBlock) override
         {
             if (length != blockSize)
