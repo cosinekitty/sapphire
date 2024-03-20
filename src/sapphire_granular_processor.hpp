@@ -80,6 +80,39 @@ namespace Sapphire
     };
 
 
+    class BrickWallFilter : public FourierFilter
+    {
+    private:
+        float loFrequencyHz;
+        float hiFrequencyHz;
+
+    public:
+        BrickWallFilter(int blockExponent, float _loFrequencyHz, float _hiFrequencyHz)
+            : Sapphire::FourierFilter(blockExponent)
+            , loFrequencyHz(_loFrequencyHz)
+            , hiFrequencyHz(_hiFrequencyHz)
+            {}
+
+        void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
+        {
+            for (int i = 0; i < length; i += 2)
+            {
+                float f = frequency(sampleRateHz, i);
+                if (f >= loFrequencyHz && f <= hiFrequencyHz)
+                {
+                    outSpectrum[i+0] = inSpectrum[i+0];
+                    outSpectrum[i+1] = inSpectrum[i+1];
+                }
+                else
+                {
+                    outSpectrum[i+0] = 0;
+                    outSpectrum[i+1] = 0;
+                }
+            }
+        }
+    };
+
+
     template <typename item_t>
     class GranularProcessor
     {

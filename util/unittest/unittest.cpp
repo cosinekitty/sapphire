@@ -947,37 +947,10 @@ static int GranuleTest_FFT_Identity()
 }
 
 
-class TelephoneFilter : public Sapphire::FourierFilter
-{
-public:
-    TelephoneFilter(int blockExponent)
-        : Sapphire::FourierFilter(blockExponent)
-        {}
-
-    void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
-    {
-        for (int i = 0; i < length; i += 2)
-        {
-            float f = frequency(sampleRateHz, i);
-            if (f >= 300 && f <= 3000)
-            {
-                outSpectrum[i+0] = inSpectrum[i+0];
-                outSpectrum[i+1] = inSpectrum[i+1];
-            }
-            else
-            {
-                outSpectrum[i+0] = 0;
-                outSpectrum[i+1] = 0;
-            }
-        }
-    }
-};
-
-
 static int GranuleTest_FFT_Telephone()
 {
     const int BLOCK_EXPONENT = 14;
-    TelephoneFilter filter{BLOCK_EXPONENT};
+    Sapphire::BrickWallFilter filter{BLOCK_EXPONENT, 300, 3000};
     Sapphire::FourierProcessor proc{filter};
 
     const int blockSize = filter.getBlockSize();
