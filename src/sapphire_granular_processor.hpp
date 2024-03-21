@@ -157,6 +157,8 @@ namespace Sapphire
             initialize();
         }
 
+        int getGranuleSize() const { return granuleSize; }
+        int getBlockSize() const { return blockSize; }
         const std::vector<item_t>& crossfadeBuffer() const { return fade; }
 
         void initialize()
