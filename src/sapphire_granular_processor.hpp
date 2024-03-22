@@ -290,7 +290,7 @@ namespace Sapphire
         ArrayProcessor()
             {}
 
-        ArrayProcessor(std::initializer_list< SingleChannelProcessor<item_t> * > _procList)
+        explicit ArrayProcessor(std::initializer_list< SingleChannelProcessor<item_t> * > _procList)
             : procList(_procList)
             {}
 
