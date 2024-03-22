@@ -9,7 +9,6 @@
 
 const char *MyVoiceFileName = "input/genesis.wav";
 
-
 static int Fail(const std::string name, const std::string message)
 {
     fprintf(stderr, "%s: FAIL - %s\n", name.c_str(), message.c_str());
@@ -771,7 +770,7 @@ static int GranuleTest_Identity()
     {
         float x = r.next();
         xhist.push_back(x);
-        float y = gran.process(x, SAMPLERATE);
+        float y = gran.process(SAMPLERATE, x);
         yhist.push_back(y);
     }
 
@@ -857,7 +856,7 @@ static int GranuleTest_Reverse()
     {
         size_t received = inwave.Read(buffer.data(), GRANULE_SIZE);
         for (size_t i = 0; i < received; ++i)
-            buffer[i] = gran.process(buffer[i], sampleRate);
+            buffer[i] = gran.process(sampleRate, buffer[i]);
         outwave.WriteSamples(buffer.data(), received);
         if (received < GRANULE_SIZE)
             break;
@@ -869,7 +868,7 @@ static int GranuleTest_Reverse()
     for (int i = 0; i < 2*GRANULE_SIZE; ++i)
     {
         float x = 0;
-        float y = gran.process(x, sampleRate);
+        float y = gran.process(sampleRate, x);
         outwave.WriteSamples(&y, 1);
     }
     return Pass("GranuleTest_Reverse");
@@ -916,7 +915,7 @@ static int GranuleTest_FFT_Identity()
             if (block != blockCount-1)       // keep all but the last block of input data
                 xhist.push_back(x);
 
-            float y = proc.process(x, SAMPLE_RATE);
+            float y = proc.process(SAMPLE_RATE, x);
             if (block != 0)                  // keep all but the first block of output data
                 yhist.push_back(y);
         }
@@ -947,42 +946,78 @@ static int GranuleTest_FFT_Identity()
 }
 
 
-static int GranuleTest_FFT_Telephone()
+
+static int TestProcessor(
+    const std::string caller,
+    Sapphire::MultiChannelProcessor<float>& proc,
+    const char *inFileName,
+    const char *outFileName)
 {
-    const int BLOCK_EXPONENT = 14;
-    Sapphire::BrickWallFilter filter{BLOCK_EXPONENT, 300, 3000};
-    Sapphire::FourierProcessor proc{filter};
-
-    const int blockSize = filter.getBlockSize();
-
-    const char *inFileName = MyVoiceFileName;
-    const char *outFileName = "output/telephone_genesis.wav";
+    const int maxChannels = 16;
 
     WaveFileReader inwave;
     if (!inwave.Open(inFileName))
-        return Fail("GranuleTest_FFT_Telephone", std::string("Could not open input file: ") + inFileName);
+        return Fail(caller, std::string("Could not open input file: ") + inFileName);
 
     int sampleRate = inwave.SampleRate();
     int channels = inwave.Channels();
+
+    if (channels < 1 || channels > maxChannels)
+        return Fail(caller, std::string("Unsupported number of channels ") + std::to_string(channels) + " in file " + inFileName);
 
     WaveFileWriter outwave;
     if (!outwave.Open(outFileName, sampleRate, channels))
         return Fail("GranuleTest_FFT_Telephone", std::string("Could not open output file: ") + outFileName);
 
+    const int bufferSize = channels * 0x1000;
     std::vector<float> buffer;
-    buffer.resize(blockSize);
+    buffer.resize(bufferSize);
 
+    Sapphire::Frame<float> inFrame;
+    Sapphire::Frame<float> outFrame;
     for(;;)
     {
-        size_t received = inwave.Read(buffer.data(), blockSize);
-        for (size_t i = 0; i < received; ++i)
-            buffer[i] = proc.process(buffer[i], sampleRate);
+        int received = static_cast<int>(inwave.Read(buffer.data(), bufferSize));
+
+        // Don't tolerate partial frame reads in this unit test!
+        if (received % channels != 0)
+            return Fail(caller, "Did not read a whole number of frames.");
+
+        // Load samples into the input frame.
+        inFrame.length = channels;
+        for (int i = 0; i + channels <= received; i += channels)
+        {
+            for (int c = 0; c < channels; ++c)
+                inFrame.data[c] = buffer[i+c];
+
+            // Process the samples and store the result to the output frame.
+            proc.process(sampleRate, inFrame, outFrame);
+
+            if (outFrame.length != channels)
+                return Fail(caller, "Output frame had incorrect number of channels.");
+
+            // Replace input samples with output samples in `buffer`.
+            for (int c = 0; c < channels; ++c)
+                buffer[i+c] = outFrame.data[c];
+        }
+
         outwave.WriteSamples(buffer.data(), received);
-        if (static_cast<int>(received) < blockSize)
+        if (static_cast<int>(received) < bufferSize)
             break;
     }
 
-    return Pass("GranuleTest_FFT_Telephone");
+    return Pass(caller);
+}
+
+
+static int GranuleTest_FFT_Telephone()
+{
+    const int BLOCK_EXPONENT = 14;
+    Sapphire::BrickWallFilter filter{BLOCK_EXPONENT, 300, 3000};
+    Sapphire::FourierProcessor procLeft{filter};
+    Sapphire::FourierProcessor procRight{filter};
+    Sapphire::ArrayProcessor<float> procStereo { &procLeft, &procRight };
+    return TestProcessor("GranuleTest_FFT_Telephone", procStereo, MyVoiceFileName, "output/telephone_genesis.wav");
 }
 
 

@@ -112,9 +112,20 @@ namespace Sapphire
         }
     };
 
+    //--------------------------------------------------------------------------------------
 
     template <typename item_t>
-    class GranularProcessor
+    class SingleChannelProcessor
+    {
+    public:
+        virtual void initialize() = 0;
+        virtual item_t process(float sampleRateHz, item_t x) = 0;
+    };
+
+    //--------------------------------------------------------------------------------------
+
+    template <typename item_t>
+    class GranularProcessor : public SingleChannelProcessor<item_t>
     {
     private:
         const int granuleSize;
@@ -161,7 +172,7 @@ namespace Sapphire
         int getBlockSize() const { return blockSize; }
         const std::vector<item_t>& crossfadeBuffer() const { return fade; }
 
-        void initialize()
+        void initialize() override
         {
             handler.initialize();
 
@@ -178,7 +189,7 @@ namespace Sapphire
             index = granuleSize;
         }
 
-        item_t process(item_t x, float sampleRateHz)
+        item_t process(float sampleRateHz, item_t x) override
         {
             if (index == blockSize)
             {
@@ -216,12 +227,97 @@ namespace Sapphire
         }
     };
 
-
     class FourierProcessor : public GranularProcessor<float>
     {
     public:
         explicit FourierProcessor(FourierFilter& _filter)
             : GranularProcessor<float>(_filter.getGranuleSize(), _filter)
             {}
+    };
+
+    //--------------------------------------------------------------------------------------
+
+    const int MaxFrameChannels = 32;    // wider than VCV Rack to allow things like multiplication of 3x3 matrices.
+
+    template <typename item_t>
+    struct Frame
+    {
+        int length = 0;
+        item_t data[MaxFrameChannels];
+
+        bool isValid() const
+        {
+            return length >= 0 && length <= MaxFrameChannels;
+        }
+
+        void validate() const
+        {
+            if (!isValid())
+                throw std::runtime_error("Invalid Sapphire::Frame.");
+        }
+
+        void append(item_t x)
+        {
+            validate();
+            if (length == MaxFrameChannels)
+                throw std::runtime_error("Attempt to overfill Sapphire::Frame.");
+            data[length++] = x;
+        }
+    };
+
+
+    template <typename item_t>
+    class MultiChannelProcessor
+    {
+    public:
+        virtual void initialize() = 0;
+        virtual void process(float sampleRateHz, const Frame<item_t>& inFrame, Frame<item_t>& outFrame) = 0;
+    };
+
+
+    template <typename item_t>
+    class ArrayProcessor : public MultiChannelProcessor<item_t>
+    {
+    private:
+        std::vector< SingleChannelProcessor<item_t> *> procList;
+
+    public:
+        ArrayProcessor()
+            {}
+
+        ArrayProcessor(std::initializer_list< SingleChannelProcessor<item_t> * > _procList)
+            : procList(_procList)
+            {}
+
+        void append(SingleChannelProcessor<item_t> *proc)
+        {
+            procList.push_back(proc);
+        }
+
+        int numChannels() const
+        {
+            return static_cast<int>(procList.size());
+        }
+
+        void initialize() override
+        {
+            for (auto p : procList)
+                p->initialize();
+        }
+
+        void process(float sampleRateHz, const Frame<item_t>& inFrame, Frame<item_t>& outFrame) override
+        {
+            inFrame.validate();
+
+            // Flexibility over strictness: don't be so picky about channel counts matching.
+            // Sometimes we create a processor before we know how many channels the input will have.
+            // Sometimes the number of channels can even change (polyphonic cables).
+            // If the frame has fewer channels than we have processors, use only the processors we need.
+            // If the frame has more channels than we have processors, clip to our processor count.
+            outFrame.length = std::min(numChannels(), inFrame.length);
+
+            for (int c = 0; c < outFrame.length; ++c)
+                outFrame.data[c] = procList[c]->process(sampleRateHz, inFrame.data[c]);
+        }
     };
 }
