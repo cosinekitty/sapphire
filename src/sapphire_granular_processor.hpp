@@ -154,25 +154,7 @@ namespace Sapphire
             return granuleSize;
         }
 
-    public:
-        GranularProcessor(int _granuleSize, BlockHandler<item_t>& blockHandler)
-            : granuleSize(validateGranuleSize(_granuleSize))
-            , blockSize(2 * _granuleSize)
-            , handler(blockHandler)
-            , inBlock(2 * _granuleSize)
-            , prevProcBlock(2 * _granuleSize)
-            , currProcBlock(2 * _granuleSize)
-            , fade(_granuleSize)
-        {
-            calculateFadeFunction();
-            initialize();
-        }
-
-        int getGranuleSize() const { return granuleSize; }
-        int getBlockSize() const { return blockSize; }
-        const std::vector<item_t>& crossfadeBuffer() const { return fade; }
-
-        void initialize() override
+        void gpinit()       // nonvirtual function, so we can call from constructor
         {
             handler.initialize();
 
@@ -187,6 +169,29 @@ namespace Sapphire
 
             // Start the input exactly one granule after the initial block of zeroes.
             index = granuleSize;
+        }
+
+    public:
+        GranularProcessor(int _granuleSize, BlockHandler<item_t>& blockHandler)
+            : granuleSize(validateGranuleSize(_granuleSize))
+            , blockSize(2 * _granuleSize)
+            , handler(blockHandler)
+            , inBlock(2 * _granuleSize)
+            , prevProcBlock(2 * _granuleSize)
+            , currProcBlock(2 * _granuleSize)
+            , fade(_granuleSize)
+        {
+            calculateFadeFunction();
+            gpinit();
+        }
+
+        int getGranuleSize() const { return granuleSize; }
+        int getBlockSize() const { return blockSize; }
+        const std::vector<item_t>& crossfadeBuffer() const { return fade; }
+
+        void initialize() override
+        {
+            gpinit();
         }
 
         item_t process(float sampleRateHz, item_t x) override
