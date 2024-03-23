@@ -118,22 +118,29 @@ namespace Sapphire
     class DispersionFilter : public FourierFilter
     {
     private:
-        RandomVectorGenerator rand;
-        const float phaseDevRadians;
+        std::vector<float> dispersion;
 
     public:
         DispersionFilter(int blockExponent, float phaseStandardDeviationInDegrees)
             : FourierFilter(blockExponent)
-            , phaseDevRadians(phaseStandardDeviationInDegrees * (M_PI / 180))
-            {}
+        {
+            const float phaseDevRadians = phaseStandardDeviationInDegrees * (M_PI / 180);
+            RandomVectorGenerator rand;
+            const int n = getBlockSize();
+            for (int i = 0; i < n; i += 2)
+            {
+                float angle = phaseDevRadians * rand.next();
+                dispersion.push_back(std::cos(angle));
+                dispersion.push_back(std::sin(angle));
+            }
+        }
 
         void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
         {
             for (int i = 2; i < length; i += 2)     // skip over DC component at [0] and [1]
             {
-                float angle = phaseDevRadians * rand.next();
-                float c = std::cos(angle);
-                float s = std::sin(angle);
+                float c = dispersion[i+0];
+                float s = dispersion[i+1];
                 float x = inSpectrum[i+0];
                 float y = inSpectrum[i+1];
                 outSpectrum[i+0] = c*x - s*y;
