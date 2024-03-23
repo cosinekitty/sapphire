@@ -965,7 +965,7 @@ static int TestProcessor(
     if (channels < 1 || channels > maxChannels)
         return Fail(caller, std::string("Unsupported number of channels ") + std::to_string(channels) + " in file " + inFileName);
 
-    WaveFileWriter outwave;
+    ScaledWaveFileWriter outwave;
     if (!outwave.Open(outFileName, sampleRate, channels))
         return Fail("GranuleTest_FFT_Telephone", std::string("Could not open output file: ") + outFileName);
 
@@ -1006,6 +1006,21 @@ static int TestProcessor(
             break;
     }
 
+    // Push a couple of seconds of silence through the filter just to flush any residue...
+
+    const float TailFlushSeconds = 3;
+    float extraTime = 0;
+
+    for (int c = 0; c < channels; ++c)
+        inFrame.data[c] = 0;
+
+    while (extraTime < TailFlushSeconds)
+    {
+        proc.process(sampleRate, inFrame, outFrame);
+        outwave.WriteSamples(outFrame.data, outFrame.length);
+        extraTime += 1.0f / sampleRate;
+    }
+
     return Pass(caller);
 }
 
@@ -1021,6 +1036,17 @@ static int GranuleTest_FFT_Telephone()
 }
 
 
+static int GranuleTest_FFT_Dispersion()
+{
+    const int BLOCK_EXPONENT = 16;
+    const float dispersionAngleDegrees = 60.0;
+    Sapphire::DispersionFilter filter{BLOCK_EXPONENT, dispersionAngleDegrees};
+    Sapphire::FourierProcessor procLeft{filter};
+    Sapphire::FourierProcessor procRight{filter};
+    Sapphire::ArrayProcessor<float> procStereo { &procLeft, &procRight };
+    return TestProcessor("GranuleTest_FFT_Dispersion", procStereo, MyVoiceFileName, "output/disperse_genesis.wav");
+}
+
 
 static int GranuleTest()
 {
@@ -1029,5 +1055,6 @@ static int GranuleTest()
         GranuleTest_Reverse() ||
         GranuleTest_FFT_Identity() ||
         GranuleTest_FFT_Telephone() ||
+        GranuleTest_FFT_Dispersion() ||
         Pass("GranuleTest");
 }

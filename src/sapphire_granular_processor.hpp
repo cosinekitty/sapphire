@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "sapphire_random.hpp"
+
 namespace Sapphire
 {
     template <typename item_t>
@@ -88,7 +90,7 @@ namespace Sapphire
 
     public:
         BrickWallFilter(int blockExponent, float _loFrequencyHz, float _hiFrequencyHz)
-            : Sapphire::FourierFilter(blockExponent)
+            : FourierFilter(blockExponent)
             , loFrequencyHz(_loFrequencyHz)
             , hiFrequencyHz(_hiFrequencyHz)
             {}
@@ -108,6 +110,34 @@ namespace Sapphire
                     outSpectrum[i+0] = 0;
                     outSpectrum[i+1] = 0;
                 }
+            }
+        }
+    };
+
+
+    class DispersionFilter : public FourierFilter
+    {
+    private:
+        RandomVectorGenerator rand;
+        const float phaseDevRadians;
+
+    public:
+        DispersionFilter(int blockExponent, float phaseStandardDeviationInDegrees)
+            : FourierFilter(blockExponent)
+            , phaseDevRadians(phaseStandardDeviationInDegrees * (M_PI / 180))
+            {}
+
+        void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
+        {
+            for (int i = 2; i < length; i += 2)     // skip over DC component at [0] and [1]
+            {
+                float angle = phaseDevRadians * rand.next();
+                float c = std::cos(angle);
+                float s = std::sin(angle);
+                float x = inSpectrum[i+0];
+                float y = inSpectrum[i+1];
+                outSpectrum[i+0] = c*x - s*y;
+                outSpectrum[i+1] = s*x + c*y;
             }
         }
     };
