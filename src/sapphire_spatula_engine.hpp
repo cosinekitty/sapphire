@@ -43,6 +43,26 @@ namespace Sapphire
             int indexLo = 0;
             int indexHi = -1;
 
+            void halfCurve(int peakIndex, int valleyIndex)
+            {
+                if (valleyIndex == peakIndex)
+                {
+                    // Avoid division by zero.
+                    curve.at(peakIndex) = 0;
+                }
+                else
+                {
+                    int delta = (valleyIndex > peakIndex) ? +1 : -1;
+                    for (int index = peakIndex; index != valleyIndex + delta; index += delta)
+                    {
+                        // curve(peakIndex) = 1, curve(valleyIndex) = 0.
+                        // when x=peakIndex, angle=0; when x=valleyIndex, angle=pi
+                        float fraction = static_cast<float>(index - peakIndex) / (valleyIndex - peakIndex);
+                        curve.at(index) = (1 + std::cos(M_PI * fraction)) / 2;
+                    }
+                }
+            }
+
         public:
             explicit SpectrumWindow(int _blockSize, float _freqLoHz, float _freqCenterHz, float _freqHiHz)
                 : freqLoHz(_freqLoHz)
@@ -86,12 +106,14 @@ namespace Sapphire
                     // Must update the sample rate before calling indexForFrequency().
                     sampleRate = newSampleRate;
 
+                    indexLo = indexForFrequency(freqLoHz);
+                    const int indexCenter = indexForFrequency(freqCenterHz);
+                    indexHi = indexForFrequency(freqHiHz);
+
                     // Calculate two cosine curves, but with different frequencies
                     // to match the different width frequency ranges [lo, center] and [center, hi].
-
-                    indexLo = indexForFrequency(freqLoHz);
-                    //int indexCenter = indexForFrequency(freqCenterHz);
-                    indexHi = indexForFrequency(freqHiHz);
+                    halfCurve(indexCenter, indexLo);
+                    halfCurve(indexCenter, indexHi);
                 }
             }
 

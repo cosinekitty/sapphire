@@ -16,6 +16,7 @@ echo "Verifying granulizer output..."
 diff {output,correct}/granule_identity_fade.txt || exit 1
 diff {output,correct}/granule_identity_x.txt || exit 1
 diff {output,correct}/granule_identity_y.txt || exit 1
+diff {output,correct}/spatula_spectrum_window.txt || exit 1
 
 echo "Unit tests: PASS"
 exit 0

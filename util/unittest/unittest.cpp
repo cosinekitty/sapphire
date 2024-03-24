@@ -1097,7 +1097,6 @@ static int Spatula_SpectrumWindow(
     if (indexHi != expectedHi)
         return Fail(name, string("Expected indexHi=") + to_string(expectedHi));
 
-
     const char *outFileName = "output/spatula_spectrum_window.txt";
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
