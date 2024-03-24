@@ -1063,31 +1063,62 @@ static int GranuleTest()
 }
 
 
-static int Spatula_SpectrumWindow()
+static int Spatula_SpectrumWindow(
+    float freqLoHz,
+    float freqCenterHz,
+    float freqHiHz,
+    int expectedLo,
+    int expectedHi)
 {
     using namespace std;
+    using namespace Sapphire::Spatula;
+
+    string name = string("Spatula_SpectrumWindow(lo=");
+    name += to_string(static_cast<int>(freqLoHz));
+    name += ", center=";
+    name += to_string(static_cast<int>(freqCenterHz));
+    name += ", hi=";
+    name += to_string(static_cast<int>(freqHiHz));
+    name += ")";
+
+    // FIXFIXFIX: call with all 5 bands we actually care about, not just 316 Hz center.
+    // FIXFIXFIX: test with more than one sample rate (how about all in VCV Rack AUDIO module?).
 
     const float sampleRateHz = 48000;
     const int blockExponent = 14;
     const int blockSize = 1 << blockExponent;
-    Sapphire::Spatula::SpectrumWindow window(blockSize, 100, 316, 1000);
+    SpectrumWindow window(blockSize, freqLoHz, freqCenterHz, freqHiHz);
     window.setSampleRate(sampleRateHz);
     int indexLo, indexHi;
     window.getIndexRange(indexLo, indexHi);
-    printf("Spatula_SpectrumWindow: indexLo=%d, indexHi=%d\n", indexLo, indexHi);
-    const int expectedLo = 68;
-    const int expectedHi = 682;
+    printf("%s: indexLo=%d, indexHi=%d\n", name.c_str(), indexLo, indexHi);
     if (indexLo != expectedLo)
-        return Fail("Spatula_SpectrumWindow", string("Expected indexLo=") + to_string(expectedLo));
+        return Fail(name, string("Expected indexLo=") + to_string(expectedLo));
     if (indexHi != expectedHi)
-        return Fail("Spatula_SpectrumWindow", string("Expected indexHi=") + to_string(expectedHi));
-    return Pass("Spatula_SpectrumWindow");
+        return Fail(name, string("Expected indexHi=") + to_string(expectedHi));
+
+
+    const char *outFileName = "output/spatula_spectrum_window.txt";
+    FILE *outfile = fopen(outFileName, "wt");
+    if (outfile == nullptr)
+        return Fail(name, string("Cannot open output file: ") + string(outFileName));
+
+    for (int index = indexLo; index <= indexHi; ++index)
+    {
+        float y = window.getCurve(index);
+        fprintf(outfile, "%6d %10.6f\n", index, y);
+    }
+
+    fclose(outfile);
+    outfile = nullptr;
+
+    return Pass(name);
 }
 
 
 static int SpatulaTest()
 {
     return
-        Spatula_SpectrumWindow() ||
+        Spatula_SpectrumWindow(100, 316, 1000, 68, 682) ||
         Pass("SpatulaTest");
 }
