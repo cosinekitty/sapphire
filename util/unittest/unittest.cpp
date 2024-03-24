@@ -1063,7 +1063,27 @@ static int GranuleTest()
 }
 
 
+static int Spatula_SpectrumWindow()
+{
+    const float sampleRateHz = 48000;
+    const int blockExponent = 14;
+    const int blockSize = 1 << blockExponent;
+    Sapphire::Spatula::SpectrumWindow window(blockSize, 100, 316, 1000);
+    window.setSampleRate(sampleRateHz);
+    int indexLo, indexHi;
+    window.getIndexRange(indexLo, indexHi);
+    printf("Spatula_SpectrumWindow: indexLo=%d, indexHi=%d\n", indexLo, indexHi);
+    if (indexLo != 68)
+        return Fail("Spatula_SpectrumWindow", "Expected indexLo=68");
+    if (indexHi != 682)
+        return Fail("Spatula_SpectrumWindow", "Expected indexHi=682");
+    return Pass("Spatula_SpectrumWindow");
+}
+
+
 static int SpatulaTest()
 {
-    return Pass("SpatulaTest");
+    return
+        Spatula_SpectrumWindow() ||
+        Pass("SpatulaTest");
 }
