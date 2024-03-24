@@ -4,6 +4,7 @@
 #include "sapphire_engine.hpp"
 #include "sapphire_random.hpp"
 #include "sapphire_granular_processor.hpp"
+#include "sapphire_spatula_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
 
@@ -38,6 +39,7 @@ static int DelayLineTest();
 static int InterpolatorTest();
 static int TaperTest();
 static int QuadraticTest();
+static int SpatulaTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -49,6 +51,7 @@ static const UnitTest CommandTable[] =
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
+    { "spatula",    SpatulaTest },
     { "taper",      TaperTest },
     { nullptr,  nullptr }
 };
@@ -1057,4 +1060,10 @@ static int GranuleTest()
         GranuleTest_FFT_Telephone() ||
         GranuleTest_FFT_Dispersion() ||
         Pass("GranuleTest");
+}
+
+
+static int SpatulaTest()
+{
+    return Pass("SpatulaTest");
 }
