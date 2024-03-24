@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <algorithm>
 #include <vector>
 #include "sapphire_granular_processor.hpp"
@@ -7,12 +8,36 @@ namespace Sapphire
 {
     namespace Spatula
     {
+        // We must have 4 samples in the block to have a DC component and a Nyquist
+        // component that are distinct, while allowing even pairs (real, imag)
+        // in the resulting FFT spectrum.
+        const int MinBlockSize = 4;
+
+        // Require blocks to be reasonably small, for use in realtime audio systems like VCV Rack.
+        const int MaxBlockSize = (1 << 20);     // 1 MB
+
+        inline bool IsValidBlockSize(int b)
+        {
+            return (b >= MinBlockSize) && (b <= MaxBlockSize) && ((b & 1) == 0);
+        }
+
+        inline int ValidateBlockSize(int b)
+        {
+            using namespace std;
+
+            if (!IsValidBlockSize(b))
+                throw invalid_argument(string("Invalid block size for Spatula: ") + to_string(b));
+
+            return b;
+        }
+
         class SpectrumWindow
         {
         private:
             const float freqLoHz;
             const float freqCenterHz;
             const float freqHiHz;
+            const int blockSize;
             std::vector<float> curve;
             float sampleRate = 0;
             int indexLo = 0;
@@ -23,16 +48,17 @@ namespace Sapphire
                 : freqLoHz(_freqLoHz)
                 , freqCenterHz(_freqCenterHz)
                 , freqHiHz(_freqHiHz)
+                , blockSize(ValidateBlockSize(_blockSize))
             {
-                curve.resize(_blockSize);
+                curve.resize(blockSize);
             }
 
             int getBlockSize() const
             {
-                return static_cast<int>(curve.size());
+                return blockSize;
             }
 
-            int indexForFrequency(float freqHz)
+            int indexForFrequency(float freqHz) const
             {
                 // The FFT outputs a complex number (real, imag) for each frequency up to the Nyquist frequency.
                 // spectrum[0], spectrum[1] ==> 0 Hz
@@ -49,6 +75,7 @@ namespace Sapphire
 
                 // Clamp to make sure we don't go outside valid memory bounds.
                 index = std::max(0, std::min(getBlockSize()-2, index));
+
                 return index;
             }
 

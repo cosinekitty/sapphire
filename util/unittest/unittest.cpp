@@ -1065,6 +1065,8 @@ static int GranuleTest()
 
 static int Spatula_SpectrumWindow()
 {
+    using namespace std;
+
     const float sampleRateHz = 48000;
     const int blockExponent = 14;
     const int blockSize = 1 << blockExponent;
@@ -1076,9 +1078,9 @@ static int Spatula_SpectrumWindow()
     const int expectedLo = 68;
     const int expectedHi = 682;
     if (indexLo != expectedLo)
-        return Fail("Spatula_SpectrumWindow", std::string("Expected indexLo=") + std::to_string(expectedLo));
+        return Fail("Spatula_SpectrumWindow", string("Expected indexLo=") + to_string(expectedLo));
     if (indexHi != expectedHi)
-        return Fail("Spatula_SpectrumWindow", std::string("Expected indexHi=") + std::to_string(expectedHi));
+        return Fail("Spatula_SpectrumWindow", string("Expected indexHi=") + to_string(expectedHi));
     return Pass("Spatula_SpectrumWindow");
 }
 
