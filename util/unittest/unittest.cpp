@@ -1064,6 +1064,7 @@ static int GranuleTest()
 
 
 static int Spatula_SpectrumWindow(
+    const char *outFileName,
     float freqLoHz,
     float freqCenterHz,
     float freqHiHz,
@@ -1097,7 +1098,6 @@ static int Spatula_SpectrumWindow(
     if (indexHi != expectedHi)
         return Fail(name, string("Expected indexHi=") + to_string(expectedHi));
 
-    const char *outFileName = "output/spatula_spectrum_window.txt";
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
         return Fail(name, string("Cannot open output file: ") + string(outFileName));
@@ -1118,6 +1118,6 @@ static int Spatula_SpectrumWindow(
 static int SpatulaTest()
 {
     return
-        Spatula_SpectrumWindow(100, 316, 1000, 68, 682) ||
+        Spatula_SpectrumWindow("output/spatula_spectrum_window.txt", 100, 316, 1000, 68, 682) ||
         Pass("SpatulaTest");
 }
