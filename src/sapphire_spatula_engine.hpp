@@ -43,10 +43,12 @@ namespace Sapphire
                 const float hzPerSpectrumPair = sampleRate / getBlockSize();
 
                 // Divide the desired frequency by the bandwidth of each spectrum pair
-                // to obtain the spectrum pair index. Round to the nearest value,
-                // then down to even integer (real part of pair), and finally clamp.
-                int index = static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
-                index = std::max(0, std::min(getBlockSize()-2, index & ~1));
+                // to obtain the spectrum pair index. Multiply by 2 to ensure landing
+                // on the front of a (real, imag) pair.
+                int index = 2 * static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
+
+                // Clamp to make sure we don't go outside valid memory bounds.
+                index = std::max(0, std::min(getBlockSize()-2, index));
                 return index;
             }
 
@@ -54,14 +56,15 @@ namespace Sapphire
             {
                 if (newSampleRate != sampleRate)
                 {
+                    // Must update the sample rate before calling indexForFrequency().
+                    sampleRate = newSampleRate;
+
                     // Calculate two cosine curves, but with different frequencies
                     // to match the different width frequency ranges [lo, center] and [center, hi].
 
                     indexLo = indexForFrequency(freqLoHz);
                     //int indexCenter = indexForFrequency(freqCenterHz);
                     indexHi = indexForFrequency(freqHiHz);
-
-                    sampleRate = newSampleRate;
                 }
             }
 

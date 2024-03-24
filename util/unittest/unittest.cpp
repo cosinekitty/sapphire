@@ -1073,10 +1073,12 @@ static int Spatula_SpectrumWindow()
     int indexLo, indexHi;
     window.getIndexRange(indexLo, indexHi);
     printf("Spatula_SpectrumWindow: indexLo=%d, indexHi=%d\n", indexLo, indexHi);
-    if (indexLo != 68)
-        return Fail("Spatula_SpectrumWindow", "Expected indexLo=68");
-    if (indexHi != 682)
-        return Fail("Spatula_SpectrumWindow", "Expected indexHi=682");
+    const int expectedLo = 68;
+    const int expectedHi = 682;
+    if (indexLo != expectedLo)
+        return Fail("Spatula_SpectrumWindow", std::string("Expected indexLo=") + std::to_string(expectedLo));
+    if (indexHi != expectedHi)
+        return Fail("Spatula_SpectrumWindow", std::string("Expected indexHi=") + std::to_string(expectedHi));
     return Pass("Spatula_SpectrumWindow");
 }
 
