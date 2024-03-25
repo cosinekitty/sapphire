@@ -1,6 +1,7 @@
 #pragma once
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <memory>
 #include <vector>
 #include "sapphire_granular_processor.hpp"
 
@@ -200,8 +201,6 @@ namespace Sapphire
             {
             }
 
-            virtual ~ChannelProcessor() {}
-
             void initialize() override
             {
                 granulizer.initialize();
@@ -222,7 +221,7 @@ namespace Sapphire
         class FrameProcessor : public MultiChannelProcessor<float>
         {
         private:
-            ChannelProcessor *channelProcArray[MaxFrameChannels] {};
+            std::unique_ptr<ChannelProcessor> channelProcArray[MaxFrameChannels];
 
         public:
             using frame_t = Frame<float>;
@@ -230,16 +229,7 @@ namespace Sapphire
             explicit FrameProcessor(int _blockExponent)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    channelProcArray[c] = new ChannelProcessor(_blockExponent);
-            }
-
-            virtual ~FrameProcessor()
-            {
-                for (int c = 0; c < MaxFrameChannels; ++c)
-                {
-                    delete channelProcArray[c];
-                    channelProcArray[c] = nullptr;
-                }
+                    channelProcArray[c] = std::make_unique<ChannelProcessor>(_blockExponent);
             }
 
             void initialize() override
