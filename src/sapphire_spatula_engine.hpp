@@ -206,7 +206,7 @@ namespace Sapphire
                 granulizer.initialize();
             }
 
-            void setSampleRate(float sampleRateHz)
+            void setSampleRate(float sampleRateHz) override
             {
                 filter.setSampleRate(sampleRateHz);
             }
