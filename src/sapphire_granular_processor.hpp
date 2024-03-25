@@ -57,29 +57,15 @@ namespace Sapphire
             allocateBuffers();
         }
 
-        FourierFilter(const FourierFilter& other)
-            : blockExponent(other.blockExponent)
-            , blockSize(other.blockSize)
-        {
-            allocateBuffers();
-        }
-
         virtual ~FourierFilter()
         {
             freeBuffers();
         }
 
-        FourierFilter& operator = (const FourierFilter& other)
-        {
-            if (other.blockExponent != blockExponent)
-            {
-                freeBuffers();
-                blockExponent = other.blockExponent;
-                blockSize = other.blockSize;
-                allocateBuffers();
-            }
-            return *this;
-        }
+        // Prevent copying and assigning FourierFilter objects.
+        // This eliminates areas of complexity regarding alloc/free of pffft buffers.
+        FourierFilter(const FourierFilter& other) = delete;
+        FourierFilter& operator = (const FourierFilter& other) = delete;
 
         int getBlockSize() const { return blockSize; }
         int getGranuleSize() const { return blockSize / 2; }
