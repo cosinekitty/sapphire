@@ -976,6 +976,9 @@ static int TestProcessor(
     std::vector<float> buffer;
     buffer.resize(bufferSize);
 
+    proc.initialize();
+    proc.setSampleRate(sampleRate);
+
     Sapphire::Frame<float> inFrame;
     Sapphire::Frame<float> outFrame;
     for(;;)
@@ -1115,9 +1118,18 @@ static int Spatula_SpectrumWindow(
 }
 
 
+static int Spatula_EngineTest()
+{
+    const int blockExponent = 14;
+    Sapphire::Spatula::FrameProcessor engine(blockExponent);
+    return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
+}
+
+
 static int SpatulaTest()
 {
     return
         Spatula_SpectrumWindow("output/spatula_spectrum_window.txt", 100, 316, 1000, 68, 682) ||
+        Spatula_EngineTest() ||
         Pass("SpatulaTest");
 }

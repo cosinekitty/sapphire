@@ -52,13 +52,16 @@ namespace Sapphire
                 }
                 else
                 {
-                    int delta = (valleyIndex > peakIndex) ? +1 : -1;
+                    if (1 & (peakIndex - valleyIndex))
+                        throw std::logic_error("peakIndex and valleyIndex must have an even difference.");
+
+                    int delta = (valleyIndex > peakIndex) ? +2 : -2;
                     for (int index = peakIndex; index != valleyIndex + delta; index += delta)
                     {
                         // curve(peakIndex) = 1, curve(valleyIndex) = 0.
                         // when x=peakIndex, angle=0; when x=valleyIndex, angle=pi
                         float fraction = static_cast<float>(index - peakIndex) / (valleyIndex - peakIndex);
-                        curve.at(index) = (1 + std::cos(M_PI * fraction)) / 2;
+                        curve.at(index) = curve.at(index+1) = (1 + std::cos(M_PI * fraction)) / 2;
                     }
                 }
             }
@@ -129,6 +132,134 @@ namespace Sapphire
                     return 0;
 
                 return curve.at(index);
+            }
+        };
+
+
+        class BandMixer : public FourierFilter
+        {
+        private:
+            std::vector<SpectrumWindow> windowList;
+
+            void addFrequencyBand(float freqLo, float freqCenter, float freqHi)
+            {
+                const int blockSize = getBlockSize();
+                windowList.push_back(SpectrumWindow(blockSize, freqLo, freqCenter, freqHi));
+            }
+
+        public:
+            explicit BandMixer(int _blockExponent)
+                : FourierFilter(_blockExponent)
+            {
+                const float R = std::sqrt(10.0f);
+
+                addFrequencyBand(0, 100, 100*R);
+                addFrequencyBand(100, 100*R, 1000);
+                addFrequencyBand(100*R, 1000, 1000*R);
+                addFrequencyBand(1000, 1000*R, 10000);
+                addFrequencyBand(1000*R, 10000, 20000);
+            }
+
+            void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
+            {
+                for (int index = 0; index < length; ++index)
+                    outSpectrum[index] = 0;
+
+                for (const SpectrumWindow& window : windowList)
+                {
+                    int indexLo, indexHi;
+                    window.getIndexRange(indexLo, indexHi);
+                    for (int index = indexLo; index <= indexHi; ++index)
+                    {
+                        float k = window.getCurve(index);
+                        outSpectrum[index] += k * inSpectrum[index];
+                    }
+                }
+            }
+
+            void setSampleRate(float sampleRateHz)
+            {
+                for (SpectrumWindow& window : windowList)
+                    window.setSampleRate(sampleRateHz);
+            }
+        };
+
+
+        class ChannelProcessor : public SingleChannelProcessor<float>       // create one per polyphonic input/output channel
+        {
+        private:
+            BandMixer filter;
+            FourierProcessor granulizer;
+            const int blockExponent = 14;
+            const int blockSize = 1 << blockExponent;
+
+        public:
+            explicit ChannelProcessor(int _blockExponent)
+                : filter(_blockExponent)
+                , granulizer(filter)
+            {
+            }
+
+            virtual ~ChannelProcessor() {}
+
+            void initialize() override
+            {
+                granulizer.initialize();
+            }
+
+            void setSampleRate(float sampleRateHz)
+            {
+                filter.setSampleRate(sampleRateHz);
+            }
+
+            float process(float sampleRateHz, float input) override
+            {
+                return granulizer.process(sampleRateHz, input);
+            }
+        };
+
+
+        class FrameProcessor : public MultiChannelProcessor<float>
+        {
+        private:
+            ChannelProcessor *channelProcArray[MaxFrameChannels] {};
+
+        public:
+            using frame_t = Frame<float>;
+
+            explicit FrameProcessor(int _blockExponent)
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                    channelProcArray[c] = new ChannelProcessor(_blockExponent);
+            }
+
+            virtual ~FrameProcessor()
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                {
+                    delete channelProcArray[c];
+                    channelProcArray[c] = nullptr;
+                }
+            }
+
+            void initialize() override
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                    channelProcArray[c]->initialize();
+            }
+
+            void setSampleRate(float sampleRateHz) override
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                    channelProcArray[c]->setSampleRate(sampleRateHz);
+            }
+
+            void process(float sampleRateHz, const frame_t& inFrame, frame_t& outFrame) override
+            {
+                inFrame.validate();
+                outFrame.length = inFrame.length;
+                for (int c = 0; c < inFrame.length; ++c)
+                    outFrame.data[c] = channelProcArray[c]->process(sampleRateHz, inFrame.data[c]);
             }
         };
     }

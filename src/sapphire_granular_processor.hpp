@@ -27,8 +27,8 @@ namespace Sapphire
     class FourierFilter : public BlockHandler<float>
     {
     private:
-        const int blockExponent;
-        const int blockSize;
+        int blockExponent;
+        int blockSize;
         float* inSpectrumBuffer = nullptr;
         float* outSpectrumBuffer = nullptr;
         float* workBlock = nullptr;
@@ -44,10 +44,42 @@ namespace Sapphire
         }
 
         static float* allocAlignedBuffer(int blockSize);
+        static void freeAlignedBuffer(float *&buffer);
+
+        void allocateBuffers();
+        void freeBuffers();
 
     public:
-        explicit FourierFilter(int _blockExponent);
-        virtual ~FourierFilter();
+        explicit FourierFilter(int _blockExponent)
+            : blockExponent(validateBlockExponent(_blockExponent))
+            , blockSize(1 << _blockExponent)
+        {
+            allocateBuffers();
+        }
+
+        FourierFilter(const FourierFilter& other)
+            : blockExponent(other.blockExponent)
+            , blockSize(other.blockSize)
+        {
+            allocateBuffers();
+        }
+
+        virtual ~FourierFilter()
+        {
+            freeBuffers();
+        }
+
+        FourierFilter& operator = (const FourierFilter& other)
+        {
+            if (other.blockExponent != blockExponent)
+            {
+                freeBuffers();
+                blockExponent = other.blockExponent;
+                blockSize = other.blockSize;
+                allocateBuffers();
+            }
+            return *this;
+        }
 
         int getBlockSize() const { return blockSize; }
         int getGranuleSize() const { return blockSize / 2; }
@@ -155,7 +187,9 @@ namespace Sapphire
     class SingleChannelProcessor
     {
     public:
+        virtual ~SingleChannelProcessor() {}
         virtual void initialize() = 0;
+        virtual void setSampleRate(float newSampleRateHz) = 0;
         virtual item_t process(float sampleRateHz, item_t x) = 0;
     };
 
@@ -231,6 +265,11 @@ namespace Sapphire
             gpinit();
         }
 
+        void setSampleRate(float newSampleRateHz) override
+        {
+            // do nothing
+        }
+
         item_t process(float sampleRateHz, item_t x) override
         {
             if (index == blockSize)
@@ -269,6 +308,7 @@ namespace Sapphire
         }
     };
 
+
     class FourierProcessor : public GranularProcessor<float>
     {
     public:
@@ -276,6 +316,7 @@ namespace Sapphire
             : GranularProcessor<float>(_filter.getGranuleSize(), _filter)
             {}
     };
+
 
     //--------------------------------------------------------------------------------------
 
@@ -312,7 +353,9 @@ namespace Sapphire
     class MultiChannelProcessor
     {
     public:
+        virtual ~MultiChannelProcessor() {}
         virtual void initialize() = 0;
+        virtual void setSampleRate(float newSampleRateHz) = 0;
         virtual void process(float sampleRateHz, const Frame<item_t>& inFrame, Frame<item_t>& outFrame) = 0;
     };
 
@@ -345,6 +388,12 @@ namespace Sapphire
         {
             for (auto p : procList)
                 p->initialize();
+        }
+
+        void setSampleRate(float sampleRateHz)
+        {
+            for (auto p : procList)
+                p->setSampleRate(sampleRateHz);
         }
 
         void process(float sampleRateHz, const Frame<item_t>& inFrame, Frame<item_t>& outFrame) override

@@ -9,9 +9,7 @@
 
 namespace Sapphire
 {
-    FourierFilter::FourierFilter(int _blockExponent)
-        : blockExponent(validateBlockExponent(_blockExponent))
-        , blockSize(1 << _blockExponent)
+    void FourierFilter::allocateBuffers()
     {
         inSpectrumBuffer = allocAlignedBuffer(blockSize);
         outSpectrumBuffer = allocAlignedBuffer(blockSize);
@@ -21,12 +19,18 @@ namespace Sapphire
             throw std::runtime_error("pffft_new_setup() returned null.");
     }
 
-    FourierFilter::~FourierFilter()
+    void FourierFilter::freeBuffers()
     {
-        pffft_destroy_setup(static_cast<PFFFT_Setup*>(fft));
-        pffft_aligned_free(workBlock);
-        pffft_aligned_free(outSpectrumBuffer);
-        pffft_aligned_free(inSpectrumBuffer);
+        if (fft != nullptr)
+        {
+            pffft_destroy_setup(static_cast<PFFFT_Setup*>(fft));
+            fft = nullptr;
+        }
+        freeAlignedBuffer(workBlock);
+        freeAlignedBuffer(outSpectrumBuffer);
+        freeAlignedBuffer(inSpectrumBuffer);
+        blockExponent = -1;
+        blockSize = -1;
     }
 
     float *FourierFilter::allocAlignedBuffer(int blockSize)
@@ -38,6 +42,15 @@ namespace Sapphire
         for (int i = 0; i < blockSize; ++i)
             buffer[i] = 0;
         return buffer;
+    }
+
+    void FourierFilter::freeAlignedBuffer(float*& buffer)
+    {
+        if (buffer != nullptr)
+        {
+            pffft_aligned_free(buffer);
+            buffer = nullptr;
+        }
     }
 
     void FourierFilter::forwardTransform(const float *inBlock, float *outBlock)
