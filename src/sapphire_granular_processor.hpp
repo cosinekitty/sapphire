@@ -390,7 +390,7 @@ namespace Sapphire
                 p->initialize();
         }
 
-        void setSampleRate(float sampleRateHz)
+        void setSampleRate(float sampleRateHz) override
         {
             for (auto p : procList)
                 p->setSampleRate(sampleRateHz);
