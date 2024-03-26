@@ -495,6 +495,29 @@ def GenerateHissPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateSpatulaPanel() -> int:
+    svgFileName = '../res/spatula.svg'
+    PANEL_WIDTH = 20
+    NUM_BANDS = 5
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    controls = ControlLayer()
+    pl.append(controls)
+    frequencyTable = ['100 Hz', '320 Hz', '1 kHz', '3.2 kHz', '10 kHz']
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, 'spatula'))
+        pl.append(SapphireInsignia(panel, font))
+
+        y = 30.0
+        for band in range(NUM_BANDS):
+            x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
+            AddControlGroup(pl, controls, font, 'level_{:d}'.format(band), frequencyTable[band], x, y, 5.0)
+
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -505,5 +528,6 @@ if __name__ == '__main__':
         GenerateNucleusPanel() or
         GeneratePolynucleusPanel() or
         GenerateHissPanel() or
+        GenerateSpatulaPanel() or
         Print('SUCCESS')
     )
