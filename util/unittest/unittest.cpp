@@ -1120,15 +1120,15 @@ static int Spatula_SpectrumWindow(
 
 static int Spatula_EngineTest()
 {
-    const int blockExponent = 14;
+    const int blockExponent = 16;
     Sapphire::Spatula::FrameProcessor engine(blockExponent);
-    engine.setBandAmplitude(0, 0);
-    engine.setBandAmplitude(1, 0);
+    engine.setBandAmplitude(0, 0.3);
+    engine.setBandAmplitude(1, 0.5);
     engine.setBandAmplitude(2, 1);
-    engine.setBandAmplitude(3, 0);
+    engine.setBandAmplitude(3, 0.4);
     engine.setBandAmplitude(4, 0);
 
-    engine.setBandDispersion(2, 15);
+    engine.setBandDispersion(2, 25);
 
     return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
 }

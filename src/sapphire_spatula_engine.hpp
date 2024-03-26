@@ -161,9 +161,10 @@ namespace Sapphire
                 {
                     dispersionAngle = dispersion;
                     RandomVectorGenerator r;
+                    const float radians = (M_PI / 180) * dispersion;
                     for (Complex& factor : factorList)
                     {
-                        float angle = dispersion * r.next();
+                        float angle = radians * r.next();
                         factor = Complex(std::cos(angle), std::sin(angle));
                     }
                 }
