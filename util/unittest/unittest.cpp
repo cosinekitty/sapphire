@@ -1137,7 +1137,7 @@ static int Spatula_EngineTest()
 static int SpatulaTest()
 {
     return
-        Spatula_SpectrumWindow("output/spatula_spectrum_window.txt", 100, 316, 1000, 68, 682) ||
+        Spatula_SpectrumWindow("output/spatula_spectrum_window.txt", 100, 316, 1000, 34, 341) ||
         Spatula_EngineTest() ||
         Pass("SpatulaTest");
 }

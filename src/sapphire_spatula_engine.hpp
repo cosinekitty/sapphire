@@ -35,14 +35,25 @@ namespace Sapphire
             return b;
         }
 
+        inline int ValidateIndex(int n, int i)
+        {
+            if (i < 0)
+                throw std::invalid_argument("Index is not allowed to be negative.");
+
+            if (i >= n)
+                throw std::invalid_argument("Index is not allowed to go beyond the end of the array.");
+
+            return i;
+        }
+
         class SpectrumWindow
         {
         private:
             const float freqLoHz;
             const float freqCenterHz;
             const float freqHiHz;
-            const int blockSize;
-            std::vector<float> curve;
+            const int spectrumLength;
+            std::vector<float> curve;    // indexed by [0..(blockSize/2)-1] : each spectrum line is a complex number
             float sampleRate = 0;
             int indexLo = 0;
             int indexHi = -1;
@@ -52,16 +63,15 @@ namespace Sapphire
                 if (valleyIndex == peakIndex)
                 {
                     // Avoid division by zero.
-                    curve.at(peakIndex) = 0;
+                    // Use mean value between [0, 1] to represent both endpoints as fairly as possible.
+                    curve.at(peakIndex) = 0.5f;
                 }
                 else
                 {
-                    if (1 & (peakIndex - valleyIndex))
-                        throw std::logic_error("peakIndex and valleyIndex must have an even difference.");
-
-                    int delta = (valleyIndex > peakIndex) ? +2 : -2;
+                    int delta = (valleyIndex > peakIndex) ? +1 : -1;
                     for (int index = peakIndex; index != valleyIndex + delta; index += delta)
                     {
+                        ValidateIndex(spectrumLength, index);
                         // curve(peakIndex) = 1, curve(valleyIndex) = 0.
                         // when x=peakIndex, angle=0; when x=valleyIndex, angle=pi
                         float fraction = static_cast<float>(index - peakIndex) / (valleyIndex - peakIndex);
@@ -75,35 +85,27 @@ namespace Sapphire
                 : freqLoHz(_freqLoHz)
                 , freqCenterHz(_freqCenterHz)
                 , freqHiHz(_freqHiHz)
-                , blockSize(ValidateBlockSize(_blockSize))
+                , spectrumLength(ValidateBlockSize(_blockSize) / 2)
             {
-                curve.resize(blockSize);
-            }
-
-            int getBlockSize() const
-            {
-                return blockSize;
+                curve.resize(spectrumLength);
             }
 
             int indexForFrequency(float freqHz) const
             {
                 // The FFT outputs a complex number (real, imag) for each frequency up to the Nyquist frequency.
-                // spectrum[0], spectrum[1] ==> 0 Hz
-                // spectrum[blockSize-2], spectrum[blockSize-1] ==> (samplingRate/2) Hz
-                // There are blockSize/2 complex numbers in the spectrum, with a maximum
-                // frequency of samplingRate/2. Dividing the two gives samplingRate/blockSize Hz
-                // per complex pair.
-                const float hzPerSpectrumPair = sampleRate / getBlockSize();
+                // The `curve` array has one entry per complex number; therefore it has length blockSize/2.
+                // spectrum[0] ==> 0 Hz
+                // spectrum[spectrumLength-1] ==> (samplingRate/2) Hz
+                const float hzPerSpectrumPair = sampleRate / (2 * spectrumLength);
 
                 // Divide the desired frequency by the bandwidth of each spectrum pair
-                // to obtain the spectrum pair index. Multiply by 2 to ensure landing
-                // on the front of a (real, imag) pair.
-                int index = 2 * static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
+                // to obtain the spectrum pair index.
+                int index = static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
 
                 // Clamp to make sure we don't go outside valid memory bounds.
-                index = std::max(0, std::min(getBlockSize()-2, index));
+                index = std::max(0, std::min(spectrumLength-1, index));
 
-                return index;
+                return ValidateIndex(spectrumLength, index);
             }
 
             void setSampleRate(float newSampleRate)
@@ -229,15 +231,17 @@ namespace Sapphire
 
                 for (const Band& band : bandList)
                 {
-                    int indexLo, indexHi;
-                    band.window.getIndexRange(indexLo, indexHi);
-                    for (int index = indexLo; index <= indexHi; index += 2)
+                    int spectrumIndexLo, spectrumIndexHi;
+                    band.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
+                    for (int spectrumIndex = spectrumIndexLo; spectrumIndex <= spectrumIndexHi; ++spectrumIndex)
                     {
-                        float k = band.amplitude * band.window.getCurve(index);
-                        Complex z(k * inSpectrum[index+0], k * inSpectrum[index+1]);
-                        z *= band.dispersion.getFactor(index / 2);
-                        outSpectrum[index+0] += z.real();
-                        outSpectrum[index+1] += z.imag();
+                        int realIndex = 2*spectrumIndex;
+                        int imagIndex = realIndex + 1;
+                        float k = band.amplitude * band.window.getCurve(spectrumIndex);
+                        Complex z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
+                        z *= band.dispersion.getFactor(spectrumIndex);
+                        outSpectrum[realIndex] += z.real();
+                        outSpectrum[imagIndex] += z.imag();
                     }
                 }
             }
