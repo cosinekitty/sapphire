@@ -137,15 +137,25 @@ namespace Sapphire
         };
 
 
+        struct Band
+        {
+            SpectrumWindow window;
+
+            Band(int blockSize, float freqLo, float freqCenter, float freqHi)
+                : window(blockSize, freqLo, freqCenter, freqHi)
+                {}
+        };
+
+
         class BandMixer : public FourierFilter
         {
         private:
-            std::vector<SpectrumWindow> windowList;
+            std::vector<Band> bandList;
 
             void addFrequencyBand(float freqLo, float freqCenter, float freqHi)
             {
                 const int blockSize = getBlockSize();
-                windowList.push_back(SpectrumWindow(blockSize, freqLo, freqCenter, freqHi));
+                bandList.push_back(Band(blockSize, freqLo, freqCenter, freqHi));
             }
 
         public:
@@ -154,6 +164,7 @@ namespace Sapphire
             {
                 const float R = std::sqrt(10.0f);
 
+                bandList.reserve(5);
                 addFrequencyBand(0, 100, 100*R);
                 addFrequencyBand(100, 100*R, 1000);
                 addFrequencyBand(100*R, 1000, 1000*R);
@@ -161,18 +172,28 @@ namespace Sapphire
                 addFrequencyBand(1000*R, 10000, 20000);
             }
 
+            int getBandCount() const
+            {
+                return static_cast<int>(bandList.size());
+            }
+
+            Band& band(int b)
+            {
+                return bandList.at(b);
+            }
+
             void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
             {
                 for (int index = 0; index < length; ++index)
                     outSpectrum[index] = 0;
 
-                for (const SpectrumWindow& window : windowList)
+                for (const Band& band : bandList)
                 {
                     int indexLo, indexHi;
-                    window.getIndexRange(indexLo, indexHi);
+                    band.window.getIndexRange(indexLo, indexHi);
                     for (int index = indexLo; index <= indexHi; ++index)
                     {
-                        float k = window.getCurve(index);
+                        float k = band.window.getCurve(index);
                         outSpectrum[index] += k * inSpectrum[index];
                     }
                 }
@@ -180,8 +201,8 @@ namespace Sapphire
 
             void setSampleRate(float sampleRateHz)
             {
-                for (SpectrumWindow& window : windowList)
-                    window.setSampleRate(sampleRateHz);
+                for (Band& band : bandList)
+                    band.window.setSampleRate(sampleRateHz);
             }
         };
 
@@ -214,6 +235,11 @@ namespace Sapphire
             float process(float sampleRateHz, float input) override
             {
                 return granulizer.process(sampleRateHz, input);
+            }
+
+            BandMixer& getBandMixer()
+            {
+                return filter;
             }
         };
 
@@ -250,6 +276,14 @@ namespace Sapphire
                 outFrame.length = inFrame.length;
                 for (int c = 0; c < inFrame.length; ++c)
                     outFrame.data[c] = channelProcArray[c]->process(sampleRateHz, inFrame.data[c]);
+            }
+
+            BandMixer& mixer(int c)
+            {
+                if (c < 0 || c >= MaxFrameChannels)
+                    throw std::invalid_argument("Channel index is invalid.");
+
+                return channelProcArray[c]->getBandMixer();
             }
         };
     }
