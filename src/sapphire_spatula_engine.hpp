@@ -140,6 +140,7 @@ namespace Sapphire
         struct Band
         {
             SpectrumWindow window;
+            float amplitude = 1;
 
             Band(int blockSize, float freqLo, float freqCenter, float freqHi)
                 : window(blockSize, freqLo, freqCenter, freqHi)
@@ -191,10 +192,13 @@ namespace Sapphire
                 {
                     int indexLo, indexHi;
                     band.window.getIndexRange(indexLo, indexHi);
-                    for (int index = indexLo; index <= indexHi; ++index)
+                    for (int index = indexLo; index <= indexHi; index += 2)
                     {
                         float k = band.window.getCurve(index);
-                        outSpectrum[index] += k * inSpectrum[index];
+                        float x = inSpectrum[index+0];      // real part
+                        float y = inSpectrum[index+1];      // imaginary part
+                        outSpectrum[index+0] += band.amplitude * k * x;
+                        outSpectrum[index+1] += band.amplitude * k * y;
                     }
                 }
             }
@@ -284,6 +288,12 @@ namespace Sapphire
                     throw std::invalid_argument("Channel index is invalid.");
 
                 return channelProcArray[c]->getBandMixer();
+            }
+
+            void setBandAmplitude(int band, float amp)
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                    channelProcArray[c]->getBandMixer().band(band).amplitude = amp;
             }
         };
     }

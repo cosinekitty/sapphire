@@ -1122,6 +1122,11 @@ static int Spatula_EngineTest()
 {
     const int blockExponent = 14;
     Sapphire::Spatula::FrameProcessor engine(blockExponent);
+    engine.setBandAmplitude(0, 0);
+    engine.setBandAmplitude(1, 0);
+    engine.setBandAmplitude(2, 1);
+    engine.setBandAmplitude(3, 0);
+    engine.setBandAmplitude(4, 0);
     return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
 }
 
