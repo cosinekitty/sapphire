@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cassert>
+#include <complex>
 #include <memory>
 #include <vector>
 #include "sapphire_granular_processor.hpp"
@@ -9,6 +10,8 @@ namespace Sapphire
 {
     namespace Spatula
     {
+        using Complex = std::complex<float>;
+
         // We must have 4 samples in the block to have a DC component and a Nyquist
         // component that are distinct, while allowing even pairs (real, imag)
         // in the resulting FFT spectrum.
@@ -137,13 +140,49 @@ namespace Sapphire
         };
 
 
+        class DispersionBuffer
+        {
+        private:
+            float dispersionAngle = 0;
+            std::vector<Complex> factorList;
+
+        public:
+            DispersionBuffer(int spectrumLength)
+            {
+                factorList.resize(spectrumLength);
+                setStandardDeviationAngle(0);
+            }
+
+            void setStandardDeviationAngle(float dispersion)
+            {
+                if (dispersionAngle != dispersion)
+                {
+                    dispersionAngle = dispersion;
+                    RandomVectorGenerator r;
+                    for (Complex& factor : factorList)
+                    {
+                        float angle = dispersion * r.next();
+                        factor = Complex(std::cos(angle), std::sin(angle));
+                    }
+                }
+            }
+
+            Complex getFactor(int spectrumIndex) const
+            {
+                return factorList.at(spectrumIndex);
+            }
+        };
+
+
         struct Band
         {
             SpectrumWindow window;
+            DispersionBuffer dispersion;
             float amplitude = 1;
 
             Band(int blockSize, float freqLo, float freqCenter, float freqHi)
                 : window(blockSize, freqLo, freqCenter, freqHi)
+                , dispersion(blockSize / 2)     // there are half as many complex frequency values as real samples
                 {}
         };
 
@@ -194,11 +233,11 @@ namespace Sapphire
                     band.window.getIndexRange(indexLo, indexHi);
                     for (int index = indexLo; index <= indexHi; index += 2)
                     {
-                        float k = band.window.getCurve(index);
-                        float x = inSpectrum[index+0];      // real part
-                        float y = inSpectrum[index+1];      // imaginary part
-                        outSpectrum[index+0] += band.amplitude * k * x;
-                        outSpectrum[index+1] += band.amplitude * k * y;
+                        float k = band.amplitude * band.window.getCurve(index);
+                        Complex z(k * inSpectrum[index+0], k * inSpectrum[index+1]);
+                        z *= band.dispersion.getFactor(index / 2);
+                        outSpectrum[index+0] += z.real();
+                        outSpectrum[index+1] += z.imag();
                     }
                 }
             }
@@ -294,6 +333,15 @@ namespace Sapphire
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
                     channelProcArray[c]->getBandMixer().band(band).amplitude = amp;
+            }
+
+            void setBandDispersion(int bandIndex, float dispersionStandardDeviationDegrees)
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.dispersion.setStandardDeviationAngle(dispersionStandardDeviationDegrees);
+                }
             }
         };
     }

@@ -1127,6 +1127,9 @@ static int Spatula_EngineTest()
     engine.setBandAmplitude(2, 1);
     engine.setBandAmplitude(3, 0);
     engine.setBandAmplitude(4, 0);
+
+    engine.setBandDispersion(2, 15);
+
     return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
 }
 
