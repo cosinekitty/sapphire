@@ -173,6 +173,7 @@ namespace Sapphire
     class SingleChannelProcessor
     {
     public:
+        virtual ~SingleChannelProcessor() {}
         virtual void initialize() = 0;
         virtual void setSampleRate(float newSampleRateHz) = 0;
         virtual item_t process(float sampleRateHz, item_t x) = 0;
@@ -338,6 +339,7 @@ namespace Sapphire
     class MultiChannelProcessor
     {
     public:
+        virtual ~MultiChannelProcessor() {}
         virtual void initialize() = 0;
         virtual void setSampleRate(float newSampleRateHz) = 0;
         virtual void process(float sampleRateHz, const Frame<item_t>& inFrame, Frame<item_t>& outFrame) = 0;
