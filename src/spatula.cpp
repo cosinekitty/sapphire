@@ -57,17 +57,20 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                auto &input = inputs[AUDIO_INPUT];
+                auto &output = outputs[AUDIO_OUTPUT];
+
                 FrameProcessor::frame_t inFrame;
-                inFrame.length = inputs[AUDIO_INPUT].getChannels();
+                inFrame.length = input.getChannels();
                 for (int c = 0; c < inFrame.length; ++c)
-                    inFrame.data[c] = inputs[AUDIO_INPUT].getVoltage(c);
+                    inFrame.data[c] = input.getVoltage(c);
 
                 FrameProcessor::frame_t outFrame;
                 engine.process(args.sampleRate, inFrame, outFrame);
 
-                outputs[AUDIO_OUTPUT].setChannels(inFrame.length);
+                output.setChannels(inFrame.length);
                 for (int c = 0; c < outFrame.length; ++c)
-                    outputs[AUDIO_OUTPUT].setVoltage(outFrame.data[c], c);
+                    output.setVoltage(outFrame.data[c], c);
             }
         };
 

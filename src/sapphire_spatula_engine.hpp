@@ -293,6 +293,7 @@ namespace Sapphire
         class FrameProcessor : public MultiChannelProcessor<float>
         {
         private:
+            float prevSampleRate = -1;
             std::unique_ptr<ChannelProcessor> channelProcArray[MaxFrameChannels];
 
         public:
@@ -308,16 +309,36 @@ namespace Sapphire
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
                     channelProcArray[c]->initialize();
+
+                // Force resetting sample rates in channelProcArray
+                // the next time setSampleRate is called.
+                prevSampleRate = -1;
             }
 
             void setSampleRate(float sampleRateHz) override
             {
+                // We don't optimize for sampleRateHz==prevSampleRate
+                // because there could be situations in which setting
+                // the sampling rate has some important side effects.
+                // This provides the opportunity for calling code to
+                // trigger sample rate notifications as often as needed.
+
                 for (int c = 0; c < MaxFrameChannels; ++c)
                     channelProcArray[c]->setSampleRate(sampleRateHz);
+
+                // However, we do provide an opportunity to optimize when it makes sense.
+                prevSampleRate = sampleRateHz;
             }
 
             void process(float sampleRateHz, const frame_t& inFrame, frame_t& outFrame) override
             {
+                // Optimize for very frequent calls, but relieve calling code
+                // from the burden of notifying us of changes to the sampling rate.
+                if (sampleRateHz != prevSampleRate)
+                    setSampleRate(sampleRateHz);
+
+                // Run each channel of inFrame through its respective channel processor.
+                // Store the resulting output channels in outFrame.
                 inFrame.validate();
                 outFrame.length = inFrame.length;
                 for (int c = 0; c < inFrame.length; ++c)
