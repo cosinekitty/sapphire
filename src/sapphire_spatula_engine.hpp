@@ -149,7 +149,7 @@ namespace Sapphire
             std::vector<Complex> factorList;
 
         public:
-            DispersionBuffer(int spectrumLength)
+            explicit DispersionBuffer(int spectrumLength)
             {
                 factorList.resize(spectrumLength);
                 setStandardDeviationAngle(0);
@@ -230,17 +230,17 @@ namespace Sapphire
                 for (int index = 0; index < length; ++index)
                     outSpectrum[index] = 0;
 
-                for (const Band& band : bandList)
+                for (const Band& b : bandList)
                 {
                     int spectrumIndexLo, spectrumIndexHi;
-                    band.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
+                    b.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
                     for (int spectrumIndex = spectrumIndexLo; spectrumIndex <= spectrumIndexHi; ++spectrumIndex)
                     {
                         int realIndex = 2*spectrumIndex;
                         int imagIndex = realIndex + 1;
-                        float k = band.amplitude * band.window.getCurve(spectrumIndex);
+                        float k = b.amplitude * b.window.getCurve(spectrumIndex);
                         Complex z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
-                        z *= band.dispersion.getFactor(spectrumIndex);
+                        z *= b.dispersion.getFactor(spectrumIndex);
                         outSpectrum[realIndex] += z.real();
                         outSpectrum[imagIndex] += z.imag();
                     }
@@ -249,8 +249,8 @@ namespace Sapphire
 
             void setSampleRate(float sampleRateHz)
             {
-                for (Band& band : bandList)
-                    band.window.setSampleRate(sampleRateHz);
+                for (Band& b : bandList)
+                    b.window.setSampleRate(sampleRateHz);
             }
         };
 
