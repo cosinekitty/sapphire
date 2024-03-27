@@ -83,6 +83,7 @@ namespace Sapphire
                 setModule(module);
                 addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(AUDIO_OUTPUT, "audio_output");
+                reloadPanel();
             }
         };
     }
