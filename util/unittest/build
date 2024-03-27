@@ -6,7 +6,7 @@ else
     OPTS="-O3"
 fi
 
-g++ -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include -I../../external \
+g++ -std=c++17 -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include -I../../external \
     unittest.cpp    \
     ../../src/sapphire_granular_processor.cpp \
     ../../external/pffft.c \
