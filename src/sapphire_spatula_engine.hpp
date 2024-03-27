@@ -3,6 +3,8 @@
 #include <cassert>
 #include <complex>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <vector>
 #include "sapphire_granular_processor.hpp"
 
@@ -27,10 +29,8 @@ namespace Sapphire
 
         inline int ValidateBlockSize(int b)
         {
-            using namespace std;
-
             if (!IsValidBlockSize(b))
-                throw invalid_argument(string("Invalid block size for Spatula: ") + to_string(b));
+                throw std::invalid_argument(std::string("Invalid block size for Spatula: ") + std::to_string(b));
 
             return b;
         }

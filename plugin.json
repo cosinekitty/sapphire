@@ -86,6 +86,16 @@
       ]
     },
     {
+      "slug": "Spatula",
+      "name": "Spatula",
+      "description": "A granular FFT-based audio effect filter.",
+      "tags": [
+        "Effect",
+        "Filter",
+        "Reverb"
+      ]
+    },
+    {
       "slug": "Tin",
       "name": "Tin",
       "description": "Feeds arbitrary input signals into Tricorder.",
