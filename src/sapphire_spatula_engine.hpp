@@ -260,8 +260,6 @@ namespace Sapphire
         private:
             BandMixer filter;
             FourierProcessor granulizer;
-            const int blockExponent = 14;
-            const int blockSize = 1 << blockExponent;
 
         public:
             explicit ChannelProcessor(int _blockExponent)
