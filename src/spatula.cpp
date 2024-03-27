@@ -46,7 +46,7 @@ namespace Sapphire
                 engine.initialize();
 
                 // FIXFIXFIX: wire these settings up to control groups!
-                engine.setBandDispersion(2, 15.0);
+                //engine.setBandDispersion(2, 30);
             }
 
             void onReset(const ResetEvent& e) override

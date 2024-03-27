@@ -145,7 +145,7 @@ namespace Sapphire
         class DispersionBuffer
         {
         private:
-            float dispersionAngle = 0;
+            float dispersionAngle = -1;     // force setStandardDeviationAngle(0) to work when called by ctor
             std::vector<Complex> factorList;
 
         public:
@@ -270,7 +270,7 @@ namespace Sapphire
 
             void initialize() override
             {
-                granulizer.initialize();
+                granulizer.initialize();    // will call filter.initialize() for us
             }
 
             void setSampleRate(float sampleRateHz) override
