@@ -182,11 +182,20 @@ namespace Sapphire
             SpectrumWindow window;
             DispersionBuffer dispersion;
             float amplitude = 1;
+            float pendingDispersionAngle{};
+            bool isDispersionAngleReady = false;
 
             Band(int blockSize, float freqLo, float freqCenter, float freqHi)
                 : window(blockSize, freqLo, freqCenter, freqHi)
                 , dispersion(blockSize / 2)     // there are half as many complex frequency values as real samples
                 {}
+
+            void setPendingDispersion(float dispersionStandardDeviationDegrees)
+            {
+                pendingDispersionAngle = dispersionStandardDeviationDegrees;
+                isDispersionAngleReady = true;
+                //band.dispersion.setStandardDeviationAngle(dispersionStandardDeviationDegrees);
+            }
         };
 
 
@@ -230,8 +239,14 @@ namespace Sapphire
                 for (int index = 0; index < length; ++index)
                     outSpectrum[index] = 0;
 
-                for (const Band& b : bandList)
+                for (Band& b : bandList)
                 {
+                    if (b.isDispersionAngleReady)
+                    {
+                        b.dispersion.setStandardDeviationAngle(b.pendingDispersionAngle);
+                        b.isDispersionAngleReady = false;
+                    }
+
                     int spectrumIndexLo, spectrumIndexHi;
                     b.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
                     for (int spectrumIndex = spectrumIndexLo; spectrumIndex <= spectrumIndexHi; ++spectrumIndex)
@@ -364,7 +379,7 @@ namespace Sapphire
                 for (int c = 0; c < MaxFrameChannels; ++c)
                 {
                     Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
-                    band.dispersion.setStandardDeviationAngle(dispersionStandardDeviationDegrees);
+                    band.setPendingDispersion(dispersionStandardDeviationDegrees);
                 }
             }
         };
