@@ -194,7 +194,6 @@ namespace Sapphire
             {
                 pendingDispersionAngle = dispersionStandardDeviationDegrees;
                 isDispersionAngleReady = true;
-                //band.dispersion.setStandardDeviationAngle(dispersionStandardDeviationDegrees);
             }
         };
 
