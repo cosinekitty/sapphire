@@ -90,5 +90,12 @@ namespace Sapphire
             // We need to put the knob on the screen whether this is a preview widget or a live module.
             addReloadableParam(knob, svgId);
         }
+
+        void addSapphireControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)
+        {
+            addKnob(knobId, name + "_knob");
+            addSapphireAttenuverter(attenId, name + "_atten");
+            addSapphireInput(cvInputId, name + "_cv");
+        }
     };
 }

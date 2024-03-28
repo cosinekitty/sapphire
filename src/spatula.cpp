@@ -7,15 +7,22 @@ namespace Sapphire
     namespace Spatula
     {
         const int BlockExponent = 14;       // 2^BlockExponent samples per block
+        const int BandCount = 5;            // the number of columns that each represent a frequency band
 
         enum ParamId
         {
+            ENUMS(LEVEL_KNOB_PARAM, BandCount),
+            ENUMS(LEVEL_ATTEN_PARAM, BandCount),
+            ENUMS(DISPERSION_KNOB_PARAM, BandCount),
+            ENUMS(DISPERSION_ATTEN_PARAM, BandCount),
             PARAMS_LEN
         };
 
         enum InputId
         {
             AUDIO_INPUT,
+            ENUMS(LEVEL_CV_INPUT, BandCount),
+            ENUMS(DISPERSION_CV_INPUT, BandCount),
             INPUTS_LEN
         };
 
@@ -37,16 +44,24 @@ namespace Sapphire
             SpatulaModule()
                 : SapphireModule(PARAMS_LEN)
             {
+                const float OUTPUT_EXPONENT = 10;
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                for (int b = 0; b < BandCount; ++b)
+                {
+                    configParam(LEVEL_KNOB_PARAM + b, 0, 2, 1, "Band level", " dB", -10, 20*OUTPUT_EXPONENT);
+                    configParam(LEVEL_ATTEN_PARAM + b, -1, 1, 0, "Band level attenuverter", "%", 0, 100);
+                    configInput(LEVEL_CV_INPUT + b, "Band level CV");
+
+                    configParam(DISPERSION_KNOB_PARAM + b, 0, 180, 0, "Dispersion", "°");
+                    configParam(DISPERSION_ATTEN_PARAM + b, -1, 1, 0, "Dispersion attenuverter", "%", 0, 100);
+                    configInput(DISPERSION_CV_INPUT + b, "Dispersion CV");
+                }
                 initialize();
             }
 
             void initialize()
             {
                 engine.initialize();
-
-                // FIXFIXFIX: wire these settings up to control groups!
-                //engine.setBandDispersion(2, 30);
             }
 
             void onReset(const ResetEvent& e) override
@@ -57,6 +72,15 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                for (int b = 0; b < BandCount; ++b)
+                {
+                    float level = getControlValue(LEVEL_KNOB_PARAM + b, LEVEL_ATTEN_PARAM + b, LEVEL_CV_INPUT + b, 0, 2);
+                    engine.setBandAmplitude(b, level);
+
+                    float dispersion = getControlValue(DISPERSION_KNOB_PARAM + b, DISPERSION_ATTEN_PARAM + b, DISPERSION_CV_INPUT + b, 0, 180);
+                    engine.setBandDispersion(b, dispersion);
+                }
+
                 auto &input = inputs[AUDIO_INPUT];
                 auto &output = outputs[AUDIO_OUTPUT];
 
@@ -83,9 +107,27 @@ namespace Sapphire
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/spatula.svg"))
                 , spatulaModule(module)
             {
+                using string = std::string;
+
                 setModule(module);
                 addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(AUDIO_OUTPUT, "audio_output");
+                for (int b = 0; b < BandCount; ++b)
+                {
+                    addSapphireControlGroup(
+                        string("level_") + std::to_string(b),
+                        LEVEL_KNOB_PARAM + b,
+                        LEVEL_ATTEN_PARAM + b,
+                        LEVEL_CV_INPUT + b
+                    );
+
+                    addSapphireControlGroup(
+                        string("dispersion_") + std::to_string(b),
+                        DISPERSION_KNOB_PARAM + b,
+                        DISPERSION_ATTEN_PARAM + b,
+                        DISPERSION_CV_INPUT + b
+                    );
+                }
                 reloadPanel();
             }
         };
