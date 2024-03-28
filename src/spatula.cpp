@@ -72,15 +72,17 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                for (int b = 0; b < BandCount; ++b)
+                if (engine.isFinalFrameBeforeBlockChange())
                 {
-                    float level = getControlValue(LEVEL_KNOB_PARAM + b, LEVEL_ATTEN_PARAM + b, LEVEL_CV_INPUT + b, 0, 2);
-                    engine.setBandAmplitude(b, level);
+                    for (int b = 0; b < BandCount; ++b)
+                    {
+                        float level = getControlValue(LEVEL_KNOB_PARAM + b, LEVEL_ATTEN_PARAM + b, LEVEL_CV_INPUT + b, 0, 2);
+                        engine.setBandAmplitude(b, level);
 
-                    float dispersion = getControlValue(DISPERSION_KNOB_PARAM + b, DISPERSION_ATTEN_PARAM + b, DISPERSION_CV_INPUT + b, 0, 180);
-                    engine.setBandDispersion(b, dispersion);
+                        float dispersion = getControlValue(DISPERSION_KNOB_PARAM + b, DISPERSION_ATTEN_PARAM + b, DISPERSION_CV_INPUT + b, 0, 180);
+                        engine.setBandDispersion(b, dispersion);
+                    }
                 }
-
                 auto &input = inputs[AUDIO_INPUT];
                 auto &output = outputs[AUDIO_OUTPUT];
 

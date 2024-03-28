@@ -301,6 +301,12 @@ namespace Sapphire
             {
                 return filter;
             }
+
+            bool isFinalFrameBeforeBlockChange() const
+            {
+                // Return true if the next frame to be processed will cause another block to be processed.
+                return granulizer.isFinalFrameBeforeBlockChange();
+            }
         };
 
 
@@ -327,6 +333,14 @@ namespace Sapphire
                 // Force resetting sample rates in channelProcArray
                 // the next time setSampleRate is called.
                 prevSampleRate = -1;
+            }
+
+            bool isFinalFrameBeforeBlockChange() const
+            {
+                // Return true if the next frame to be processed will cause another block to be processed.
+                // Assume that all channel processors stay in sync. Then the first channel processor
+                // can answer the question for all channel processors.
+                return channelProcArray[0] && channelProcArray[0]->isFinalFrameBeforeBlockChange();
             }
 
             void setSampleRate(float sampleRateHz) override

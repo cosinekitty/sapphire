@@ -292,7 +292,13 @@ namespace Sapphire
 
             return y;
         }
-    };
+
+        bool isFinalFrameBeforeBlockChange() const
+        {
+            // Return true if the next frame to be processed will cause another block to be processed.
+            return index == blockSize;
+        }
+};
 
 
     class FourierProcessor : public GranularProcessor<float>
