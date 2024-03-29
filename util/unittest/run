@@ -1,12 +1,13 @@
 #!/bin/bash
 
-rm -f output/*.wav
+NAME=$1
+[[ -z "${NAME}" ]] && NAME=all && rm -fv output/*.wav output/*.txt
 
 echo "Building unit tests..."
 ./build || exit 1
 
 echo "Running unit tests..."
-./unittest all || exit 1
+./unittest ${NAME} || exit 1
 
 echo "Verifying output audio..."
 sha256sum -c audio_hash.txt || exit 1

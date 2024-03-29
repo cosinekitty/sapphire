@@ -136,14 +136,17 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float) -> None:
+def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float = -1.0) -> None:
     dxControlGroup = 5.0
     dyControlGroup = 11.0
     dyControlText = -11.6
     controls.append(Component(symbol + '_knob', x, y))
     controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
     controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
-    pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
+    if dxText < 0.0:
+        pl.append(CenteredControlTextPath(font, label, x, y + dyControlText + 2.4))
+    else:
+        pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
     # Draw a pair of connector lines:
     # (1) from knob to attenuverter
     # (2) from knob to CV input

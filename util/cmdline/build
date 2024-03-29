@@ -9,18 +9,18 @@ else
     OPTS="-O3"
 fi
 
-g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -o bin/lohifilter -D NO_RACK_DEPENDENCY \
+g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -o bin/lohifilter -D NO_RACK_DEPENDENCY \
     lohifilter.cpp || exit 1
 
-g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elastika -D NO_RACK_DEPENDENCY \
+g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elastika -D NO_RACK_DEPENDENCY \
     elastika_standalone.cpp \
     ${SAPPHIRE_SRC}/mesh_hex.cpp \
     ${SAPPHIRE_SRC}/mesh_physics.cpp || exit 1
 
-g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/tubeunit -D NO_RACK_DEPENDENCY \
+g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/tubeunit -D NO_RACK_DEPENDENCY \
     tubeunit_standalone.cpp || exit 1
 
-g++ -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/nucleus -D NO_RACK_DEPENDENCY \
+g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/nucleus -D NO_RACK_DEPENDENCY \
     nucleus_standalone.cpp || exit 1
 
 exit 0

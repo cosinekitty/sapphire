@@ -19,5 +19,11 @@ DISTRIBUTABLES += res
 DISTRIBUTABLES += $(wildcard LICENSE*)
 DISTRIBUTABLES += $(wildcard presets)
 
+# Upgrade to C++17
+CXXFLAGS += -std=c++17
+
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
+
+# Remove C++11
+CXXFLAGS := $(filter-out -std=c++11,$(CXXFLAGS))

@@ -91,6 +91,56 @@ class Font:
         self.ttfont = TTFont(filename)
         self.glyphs = self.ttfont.getGlyphSet()
 
+        # The following were obtained by dumping ttfont to an xml file:
+        # font.ttfont.saveXML('t.xml')
+        # Then I looked at t.xml and discovered that many symbols have to be
+        # converted into a "glyph name" before finding the glyph!
+        self.glyphNameTable = {
+            '0': 'zero',
+            '1': 'one',
+            '2': 'two',
+            '3': 'three',
+            '4': 'four',
+            '5': 'five',
+            '6': 'six',
+            '7': 'seven',
+            '8': 'eight',
+            '9': 'nine',
+            ' ': 'space',
+            '!': 'exclam',
+            '"': 'quotedbl',
+            '#': 'numbersign',
+            '$': 'dollar',
+            '%': 'percent',
+            '&': 'ampersand',
+            "'": 'quotesingle',
+            '(': 'parenleft',
+            ')': 'parenright',
+            '*': 'asterisk',
+            '+': 'plus',
+            ',': 'comma',
+            '-': 'hyphen',
+            '.': 'period',
+            '/': 'slash',
+            ':': 'colon',
+            ';': 'semicolon',
+            '<': 'less',
+            '=': 'equal',
+            '>': 'greater',
+            '?': 'question',
+            '@': 'at',
+            '[': 'bracketleft',
+            ']': 'bracketright',
+            '\\': 'backslash',
+            '^': 'asciicircum',
+            '_': 'underscore',
+            '`': 'grave',
+            '{': 'braceleft',
+            '}': 'braceright',
+            '|': 'bar',
+            '~': 'asciitilde',
+        }
+
     def __enter__(self) -> 'Font':
         self.ttfont.__enter__()
         return self
@@ -107,14 +157,14 @@ class Font:
         y = ypos + mmPerUnit * (self.ttfont['head'].yMax + self.ttfont['head'].yMin/2)
         spen = SVGPathPen(self.glyphs, _FormatMillimeters)
         for ch in text:
-            if glyph := self.glyphs.get(ch):
+            gn = self.glyphNameTable.get(ch, ch)
+            if glyph := self.glyphs.get(gn):
                 tran = DecomposedTransform(translateX = x, translateY = y, scaleX = mmPerUnit, scaleY = -mmPerUnit).toTransform()
                 pen = TransformPen(spen, tran)
                 glyph.draw(pen)
                 x += mmPerUnit * glyph.width
             else:
-                # Use a "3-em space", which confusingly is one-third of an em wide.
-                x += mmPerEm / 3
+                raise Error('Unknown character [' + ch + '], glyph name: [' + gn + ']')
         return str(spen.getCommands())
 
     def measure(self, text:str, points:float) -> Tuple[float,float]:

@@ -120,7 +120,7 @@ namespace rack
             svgWidgetMap[svgid] = output;
         }
 
-        RoundLargeBlackKnob *addKnob(int paramId, const char *svgId)
+        RoundLargeBlackKnob *addKnob(int paramId, const std::string& svgId)
         {
             RoundLargeBlackKnob *knob = createParamCentered<RoundLargeBlackKnob>(Vec{}, module, paramId);
             addReloadableParam(knob, svgId);
