@@ -90,7 +90,7 @@ namespace Sapphire
                         // curve(peakIndex) = 1, curve(valleyIndex) = 0.
                         // when x=peakIndex, angle=0; when x=valleyIndex, angle=pi
                         float fraction = static_cast<float>(index - peakIndex) / (valleyIndex - peakIndex);
-                        curve.at(index) = curve.at(index+1) = (1 + std::cos(M_PI * fraction)) / 2;
+                        curve.at(index) = (1 + std::cos(M_PI * fraction)) / 2;
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace Sapphire
                 int index = static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
 
                 // Clamp to make sure we don't go outside valid memory bounds.
-                index = std::max(0, std::min(spectrumLength-1, index));
+                index = std::clamp(index, 0, spectrumLength-1);
 
                 return ValidateIndex(spectrumLength, index);
             }

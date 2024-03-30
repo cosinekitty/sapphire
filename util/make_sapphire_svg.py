@@ -515,7 +515,7 @@ def GenerateSpatulaPanel() -> int:
 
         # Add dispersion control groups.
         y = 23.0
-        dyRow = (50.0 - y)
+        dyRow = 50.0 - y
         for band in range(NUM_BANDS):
             x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
             AddControlGroup(pl, controls, font, 'dispersion_{:d}'.format(band), frequencyTable[band], x, y)
@@ -526,9 +526,15 @@ def GenerateSpatulaPanel() -> int:
             x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
             AddControlGroup(pl, controls, font, 'level_{:d}'.format(band), 'level', x, y)
 
+        # Add bandwidth control groups.
+        y += dyRow
+        for band in range(NUM_BANDS):
+            x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
+            AddControlGroup(pl, controls, font, 'bandwidth_{:d}'.format(band), 'bandwidth', x, y)
+
         # Add audio ports.
-        controls.append(Component('audio_input',  20.0, 80.0))
-        controls.append(Component('audio_output', 80.0, 80.0))
+        controls.append(Component('audio_input',  20.0, 100.0))
+        controls.append(Component('audio_output', 80.0, 100.0))
 
     return Save(panel, svgFileName)
 

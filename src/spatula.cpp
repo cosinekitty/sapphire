@@ -15,6 +15,8 @@ namespace Sapphire
             ENUMS(LEVEL_ATTEN_PARAM, BandCount),
             ENUMS(DISPERSION_KNOB_PARAM, BandCount),
             ENUMS(DISPERSION_ATTEN_PARAM, BandCount),
+            ENUMS(BANDWIDTH_KNOB_PARAM, BandCount),
+            ENUMS(BANDWIDTH_ATTEN_PARAM, BandCount),
             PARAMS_LEN
         };
 
@@ -23,6 +25,7 @@ namespace Sapphire
             AUDIO_INPUT,
             ENUMS(LEVEL_CV_INPUT, BandCount),
             ENUMS(DISPERSION_CV_INPUT, BandCount),
+            ENUMS(BANDWIDTH_CV_INPUT, BandCount),
             INPUTS_LEN
         };
 
@@ -55,6 +58,10 @@ namespace Sapphire
                     configParam(DISPERSION_KNOB_PARAM + b, 0, 180, 0, "Dispersion", "°");
                     configParam(DISPERSION_ATTEN_PARAM + b, -1, 1, 0, "Dispersion attenuverter", "%", 0, 100);
                     configInput(DISPERSION_CV_INPUT + b, "Dispersion CV");
+
+                    configParam(BANDWIDTH_KNOB_PARAM + b, MinBandwidth, MaxBandwidth, 0, "Bandwidth", "");
+                    configParam(BANDWIDTH_ATTEN_PARAM + b, -1, 1, 0, "Bandwidth attenuverter", "%", 0, 100);
+                    configInput(BANDWIDTH_CV_INPUT + b, "Bandwidth CV");
                 }
                 initialize();
             }
@@ -81,6 +88,9 @@ namespace Sapphire
 
                         float dispersion = getControlValue(DISPERSION_KNOB_PARAM + b, DISPERSION_ATTEN_PARAM + b, DISPERSION_CV_INPUT + b, 0, 180);
                         engine.setBandDispersion(b, dispersion);
+
+                        float bandwidth = getControlValue(BANDWIDTH_KNOB_PARAM + b, BANDWIDTH_ATTEN_PARAM + b, BANDWIDTH_CV_INPUT + b, MinBandwidth, MaxBandwidth);
+                        engine.setBandWidth(b, bandwidth);
                     }
                 }
                 auto &input = inputs[AUDIO_INPUT];
@@ -128,6 +138,13 @@ namespace Sapphire
                         DISPERSION_KNOB_PARAM + b,
                         DISPERSION_ATTEN_PARAM + b,
                         DISPERSION_CV_INPUT + b
+                    );
+
+                    addSapphireControlGroup(
+                        string("bandwidth_") + std::to_string(b),
+                        BANDWIDTH_KNOB_PARAM + b,
+                        BANDWIDTH_ATTEN_PARAM + b,
+                        BANDWIDTH_CV_INPUT + b
                     );
                 }
                 reloadPanel();
