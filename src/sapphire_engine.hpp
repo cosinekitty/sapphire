@@ -10,17 +10,6 @@
 
 namespace Sapphire
 {
-    inline size_t Clamp(size_t x, size_t minValue, size_t maxValue)
-    {
-        if (x < minValue)
-            return minValue;
-
-        if (x > maxValue)
-            return maxValue;
-
-        return x;
-    }
-
     template <typename real_t>
     real_t BicubicLimiter(real_t x, real_t yLimit)
     {
@@ -141,7 +130,7 @@ namespace Sapphire
             // Therefore we need to make sure the ratio count/rampLength
             // is bounded to the range [0, 1].
 
-            float gain = Clamp(static_cast<float>(count) / static_cast<float>(rampLength));
+            float gain = std::clamp(static_cast<float>(count) / static_cast<float>(rampLength), 0.0f, 1.0f);
 
             for (int c = 0; c < channels; ++c)
                 volts[c] *= gain;
@@ -443,7 +432,7 @@ namespace Sapphire
             // If the requested number of samples is invalid, clamp it to the valid range.
             // Essentially, we do the best we can, but exact pitch control is only possible
             // within certain bounds.
-            size_t nsamples = Clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
+            size_t nsamples = std::clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,

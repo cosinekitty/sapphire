@@ -100,7 +100,7 @@ namespace Sapphire
 
         void setRootFrequency(float rootFrequencyHz)
         {
-            rootFrequency = Clamp(rootFrequencyHz, 1.0f, 10000.0f);
+            rootFrequency = std::clamp(rootFrequencyHz, 1.0f, 10000.0f);
         }
 
         float getRootFrequency() const
@@ -110,7 +110,7 @@ namespace Sapphire
 
         void setAirflow(float airflowMassRate)
         {
-            airflow = Clamp(airflowMassRate, -1.0f, +10.0f);
+            airflow = std::clamp(airflowMassRate, -1.0f, +10.0f);
         }
 
         float getAirFlow() const
@@ -120,7 +120,7 @@ namespace Sapphire
 
         void setSpringConstant(float k)
         {
-            springConstant = Clamp(k, 1.0e-6f, 1.0e+6f);
+            springConstant = std::clamp(k, 1.0e-6f, 1.0e+6f);
         }
 
         float getSpringConstant() const
@@ -169,7 +169,7 @@ namespace Sapphire
 
         void setGain(float slider = 1.0f)       // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f) / 80.0f;
+            gain = std::pow(std::clamp(slider, 0.0f, 2.0f), 4.0f) / 80.0f;
         }
 
         float getBypassWidth() const
@@ -186,7 +186,7 @@ namespace Sapphire
         {
             // Dilate around the current center.
             float center = getBypassCenter();
-            float dilate = Clamp(width/2, 0.01f, stopper2 - stopper1);
+            float dilate = std::clamp(width/2, 0.01f, stopper2 - stopper1);
             bypass1 = center - dilate;
             bypass2 = center + dilate;
         }
@@ -194,7 +194,7 @@ namespace Sapphire
         void setBypassCenter(float center)
         {
             float dilate = getBypassWidth() / 2;
-            float clampedCenter = Clamp(center, stopper1, stopper2);
+            float clampedCenter = std::clamp(center, stopper1, stopper2);
             bypass1 = clampedCenter - dilate;
             bypass2 = clampedCenter + dilate;
         }
@@ -250,7 +250,7 @@ namespace Sapphire
 
             // Use the piston's current position to determine whether,
             // and how much, the bypass valve is open.
-            float bypassFraction = Clamp((pistonPosition.real() - bypass1)/(bypass2 - bypass1));
+            float bypassFraction = std::clamp((pistonPosition.real() - bypass1)/(bypass2 - bypass1), 0.0f, 1.0f);
 
             // The flow rate through the bypass is proportional to the pressure difference
             // across it, multiplied by the fraction it is currently open.
