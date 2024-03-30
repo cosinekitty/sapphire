@@ -1093,6 +1093,7 @@ static int Spatula_SpectrumWindow(
     const int blockSize = 1 << blockExponent;
     SpectrumWindow window(blockSize, freqLoHz, freqCenterHz, freqHiHz);
     window.setSampleRate(sampleRateHz);
+    window.updateCurve();
     int indexLo, indexHi;
     window.getIndexRange(indexLo, indexHi);
     printf("%s: indexLo=%d, indexHi=%d\n", name.c_str(), indexLo, indexHi);
@@ -1128,7 +1129,13 @@ static int Spatula_EngineTest()
     engine.setBandAmplitude(3, 0.4);
     engine.setBandAmplitude(4, 0);
 
-    engine.setBandDispersion(2, 25);
+    engine.setBandDispersion(2, 45);
+
+    engine.setBandWidth(0, 0.25f);
+    engine.setBandWidth(1, 0.25f);
+    engine.setBandWidth(2, 0.50f);
+    engine.setBandWidth(3, 0.25f);
+    engine.setBandWidth(4, 0.25f);
 
     return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
 }

@@ -14,15 +14,22 @@ namespace Sapphire
     {
         using Complex = std::complex<float>;
 
+        inline constexpr bool IsPowerOfTwo(int n)
+        {
+            return (n > 1) && (n & (n-1)) == 0;
+        }
+
         // We must have 4 samples in the block to have a DC component and a Nyquist
         // component that are distinct, while allowing even pairs (real, imag)
         // in the resulting FFT spectrum.
-        const int MinBlockSize = 4;
+        constexpr int MinBlockSize = 4;
+        static_assert(IsPowerOfTwo(MinBlockSize), "Minimum block size must be 2**N, where N is a positive integer.");
 
         // Require blocks to be reasonably small, for use in realtime audio systems like VCV Rack.
-        const int MaxBlockSize = (1 << 20);     // 1 MB
+        constexpr int MaxBlockSize = (1 << 20);     // 1 MB
+        static_assert(IsPowerOfTwo(MaxBlockSize), "Maximum block size must be 2**N, where N is a positive integer.");
 
-        inline bool IsValidBlockSize(int b)
+        inline constexpr bool IsValidBlockSize(int b)
         {
             return (b >= MinBlockSize) && (b <= MaxBlockSize) && ((b & 1) == 0);
         }
@@ -46,6 +53,12 @@ namespace Sapphire
             return i;
         }
 
+
+        constexpr float MinBandwidth = 0.02;
+        constexpr float MaxBandwidth = 4;
+        static_assert(MinBandwidth < MaxBandwidth, "Bandwidth range must be in ascending order.");
+
+
         class SpectrumWindow
         {
         private:
@@ -54,7 +67,9 @@ namespace Sapphire
             const float freqHiHz;
             const int spectrumLength;
             std::vector<float> curve;    // indexed by [0..(blockSize/2)-1] : each spectrum line is a complex number
+            bool isCurveDirty = true;
             float sampleRate = 0;
+            float bandwidth = 1;
             int indexLo = 0;
             int indexHi = -1;
 
@@ -80,16 +95,6 @@ namespace Sapphire
                 }
             }
 
-        public:
-            explicit SpectrumWindow(int _blockSize, float _freqLoHz, float _freqCenterHz, float _freqHiHz)
-                : freqLoHz(_freqLoHz)
-                , freqCenterHz(_freqCenterHz)
-                , freqHiHz(_freqHiHz)
-                , spectrumLength(ValidateBlockSize(_blockSize) / 2)
-            {
-                curve.resize(spectrumLength);
-            }
-
             int indexForFrequency(float freqHz) const
             {
                 // The FFT outputs a complex number (real, imag) for each frequency up to the Nyquist frequency.
@@ -100,6 +105,7 @@ namespace Sapphire
 
                 // Divide the desired frequency by the bandwidth of each spectrum pair
                 // to obtain the spectrum pair index.
+                // Multiply by the dimensionless parameter `bandwidth` to allow user-adjusted frequency bandwidths.
                 int index = static_cast<int>(std::round(freqHz / hzPerSpectrumPair));
 
                 // Clamp to make sure we don't go outside valid memory bounds.
@@ -108,22 +114,34 @@ namespace Sapphire
                 return ValidateIndex(spectrumLength, index);
             }
 
+        public:
+            explicit SpectrumWindow(int _blockSize, float _freqLoHz, float _freqCenterHz, float _freqHiHz)
+                : freqLoHz(_freqLoHz)
+                , freqCenterHz(_freqCenterHz)
+                , freqHiHz(_freqHiHz)
+                , spectrumLength(ValidateBlockSize(_blockSize) / 2)
+            {
+                curve.resize(spectrumLength);
+            }
+
             void setSampleRate(float newSampleRate)
             {
                 if (newSampleRate != sampleRate)
                 {
-                    // Must update the sample rate before calling indexForFrequency().
                     sampleRate = newSampleRate;
-
-                    indexLo = indexForFrequency(freqLoHz);
-                    const int indexCenter = indexForFrequency(freqCenterHz);
-                    indexHi = indexForFrequency(freqHiHz);
-
-                    // Calculate two cosine curves, but with different frequencies
-                    // to match the different width frequency ranges [lo, center] and [center, hi].
-                    halfCurve(indexCenter, indexLo);
-                    halfCurve(indexCenter, indexHi);
+                    isCurveDirty = true;
                 }
+            }
+
+            float setBandwidth(float newBandwidth = 1)
+            {
+                float b = std::clamp(newBandwidth, MinBandwidth, MaxBandwidth);
+                if (b != bandwidth)
+                {
+                    bandwidth = b;
+                    isCurveDirty = true;
+                }
+                return bandwidth;
             }
 
             void getIndexRange(int& spectrumIndexLo, int& spectrumIndexHi) const
@@ -137,7 +155,31 @@ namespace Sapphire
                 if (index < indexLo || index > indexHi)
                     return 0;
 
-                return curve.at(index);
+                // Compensate for wider/narrower bands by emphasizing each frequency bin inversely.
+                return curve.at(index) / bandwidth;
+            }
+
+            void updateCurve()
+            {
+                if (isCurveDirty)
+                {
+                    // Use the `bandwidth` parameter to adjust the low and high
+                    // frequencies relative to the center frequency.
+
+                    float f1 = freqCenterHz - bandwidth*(freqCenterHz - freqLoHz);
+                    float f2 = freqCenterHz + bandwidth*(freqHiHz - freqCenterHz);
+
+                    indexLo = indexForFrequency(f1);
+                    const int indexCenter = indexForFrequency(freqCenterHz);
+                    indexHi = indexForFrequency(f2);
+
+                    // Calculate two cosine curves, but with different frequencies
+                    // to match the different width frequency ranges [lo, center] and [center, hi].
+                    halfCurve(indexCenter, indexLo);
+                    halfCurve(indexCenter, indexHi);
+
+                    isCurveDirty = false;
+                }
             }
         };
 
@@ -246,6 +288,11 @@ namespace Sapphire
                         b.isDispersionAngleReady = false;
                     }
 
+                    // Lazy-update each band curve. This allows callers to mutate several parameters
+                    // that affect the band curves, without recalculating the curves each time.
+                    b.window.updateCurve();
+
+                    // Apply and accumulate the band curve's effect on the signal.
                     int spectrumIndexLo, spectrumIndexHi;
                     b.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
                     for (int spectrumIndex = spectrumIndexLo; spectrumIndex <= spectrumIndexHi; ++spectrumIndex)
@@ -393,6 +440,15 @@ namespace Sapphire
                 {
                     Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
                     band.setPendingDispersion(dispersionStandardDeviationDegrees);
+                }
+            }
+
+            void setBandWidth(int bandIndex, float bandwidth = 1)
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.window.setBandwidth(bandwidth);
                 }
             }
         };
