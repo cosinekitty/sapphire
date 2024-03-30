@@ -514,13 +514,14 @@ def GenerateSpatulaPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
 
         # Add dispersion control groups.
-        y = 30.0
+        y = 23.0
+        dyRow = (50.0 - y)
         for band in range(NUM_BANDS):
             x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
             AddControlGroup(pl, controls, font, 'dispersion_{:d}'.format(band), frequencyTable[band], x, y)
 
         # Add level control groups.
-        y = 60.0
+        y += dyRow
         for band in range(NUM_BANDS):
             x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
             AddControlGroup(pl, controls, font, 'level_{:d}'.format(band), 'level', x, y)
