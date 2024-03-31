@@ -499,15 +499,19 @@ def GenerateHissPanel() -> int:
 
 
 def GenerateSpatulaPanel() -> int:
-    svgFileName = '../res/spatula.svg'
     PANEL_WIDTH = 20
     NUM_BANDS = 5
+    svgFileName = '../res/spatula.svg'
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     controls = ControlLayer()
     pl.append(controls)
     frequencyTable = ['100 Hz', '320 Hz', '1 kHz', '3.2 kHz', '10 kHz']
+
+    def bandx(band: int) -> float:
+        return ((band + 0.5)/NUM_BANDS) * panel.mmWidth
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'spatula'))
@@ -517,24 +521,25 @@ def GenerateSpatulaPanel() -> int:
         y = 23.0
         dyRow = 50.0 - y
         for band in range(NUM_BANDS):
-            x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
+            x = bandx(band)
             AddControlGroup(pl, controls, font, 'dispersion_{:d}'.format(band), frequencyTable[band], x, y)
 
         # Add level control groups.
         y += dyRow
         for band in range(NUM_BANDS):
-            x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
+            x = bandx(band)
             AddControlGroup(pl, controls, font, 'level_{:d}'.format(band), 'level', x, y)
 
         # Add bandwidth control groups.
         y += dyRow
         for band in range(NUM_BANDS):
-            x = ((band+0.5)/NUM_BANDS)*panel.mmWidth
+            x = bandx(band)
             AddControlGroup(pl, controls, font, 'bandwidth_{:d}'.format(band), 'bandwidth', x, y)
 
         # Add audio ports.
-        controls.append(Component('audio_input',  20.0, 100.0))
-        controls.append(Component('audio_output', 80.0, 100.0))
+        yPort = 120.0
+        controls.append(Component('audio_input',  bandx(0), yPort))
+        controls.append(Component('audio_output', bandx(4), yPort))
 
     return Save(panel, svgFileName)
 
