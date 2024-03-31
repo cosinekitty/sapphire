@@ -12,7 +12,7 @@
 import sys
 from svgpanel import *
 from sapphire import *
-
+from typing import List
 
 def Print(message:str) -> int:
     print('make_sapphire_svg.py:', message)
@@ -517,24 +517,14 @@ def GenerateSpatulaPanel() -> int:
         pl.append(ModelNamePath(panel, font, 'spatula'))
         pl.append(SapphireInsignia(panel, font))
 
-        # Add dispersion control groups.
-        y = 23.0
-        dyRow = 50.0 - y
-        for band in range(NUM_BANDS):
-            x = bandx(band)
-            AddControlGroup(pl, controls, font, 'dispersion_{:d}'.format(band), frequencyTable[band], x, y)
+        x0 = 10.2
+        y0 = 23.0
+        dx = 20.3
+        dy = 27.0
 
-        # Add level control groups.
-        y += dyRow
-        for band in range(NUM_BANDS):
-            x = bandx(band)
-            AddControlGroup(pl, controls, font, 'level_{:d}'.format(band), 'level', x, y)
-
-        # Add bandwidth control groups.
-        y += dyRow
-        for band in range(NUM_BANDS):
-            x = bandx(band)
-            AddControlGroup(pl, controls, font, 'bandwidth_{:d}'.format(band), 'bandwidth', x, y)
+        rowSymbols: List[str] = ['0', '1', '2', '3', '4']
+        colSymbols: List[str] = ['level', 'dispersion', 'bandwidth']
+        AddFlatControlGrid(pl, controls, x0, y0, dx, dy, rowSymbols, colSymbols)
 
         # Add audio ports.
         yPort = 120.0

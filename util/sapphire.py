@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from svgpanel import *
+from typing import List
 
 SAPPHIRE_FONT_FILENAME = 'Quicksand-Light.ttf'
 
@@ -109,3 +110,42 @@ def CenteredGemstone(panel:Panel) -> SapphireGemstone:
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem
+
+
+def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
+    dxControlGroup = 5.0
+    dyControlGroup = 11.0
+    controls.append(Component(symbol + '_knob', x, y))
+    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
+    # Draw a pair of connector lines:
+    # (1) from knob to attenuverter
+    # (2) from knob to CV input
+    t = ''
+    t += Move(x, y)
+    t += Line(x - dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    t += Line(x + dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    pl.append(Path(t, CONNECTOR_LINE_STYLE))
+
+
+def AddFlatControlGrid(
+        pl: Element,
+        controls: ControlLayer,
+        x0: float,
+        y0: float,
+        dx: float,
+        dy: float,
+        rowSymbols: List[str],
+        columnSymbols: List[str],
+        id: str = 'control_grid') -> None:
+    grid = Element('g', id)
+    pl.append(grid)
+    x = x0
+    for col in columnSymbols:
+        y = y0
+        for row in rowSymbols:
+            AddFlatControlGroup(pl, controls, x, y, col + '_' + row)
+            y += dy
+        x += dx
