@@ -507,29 +507,38 @@ def GenerateSpatulaPanel() -> int:
     panel.append(pl)
     controls = ControlLayer()
     pl.append(controls)
-    frequencyTable = ['100 Hz', '320 Hz', '1 kHz', '3.2 kHz', '10 kHz']
-
-    def bandx(band: int) -> float:
-        return ((band + 0.5)/NUM_BANDS) * panel.mmWidth
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'spatula'))
         pl.append(SapphireInsignia(panel, font))
 
-        x0 = 18.0
-        y0 = 23.0
-        dx = 32.0
-        dy = 14.0
-
         rowSymbols: List[str] = ['0', '1', '2', '3', '4']
+
         colSymbols: List[str] = ['level', 'dispersion', 'bandwidth']
-        AddFlatControlGrid(pl, controls, x0, y0, dx, dy, rowSymbols, colSymbols)
+        nrows = len(rowSymbols)
+        if nrows != NUM_BANDS:
+            print('GenerateSpatulaPanel: expected {} rows but found {} in the rowSymbols list.'.format(NUM_BANDS, nrows))
+            return 1
+        ncols = len(colSymbols)
+
+        # Calculate alignment and spacing for rows and columns.
+        # Automatically adjust for changes in the number of parameters (ncols)
+        # and the panel width. This gives me freedom to quickly experiment during initial development
+        # with adding or removing parameters at will.
+        # Once I release the initial version to VCV Rack, parameters will be locked.
+
+        ypos = FencePost(23.0, 79.0, NUM_BANDS)
+
+        xMargin = 18.0
+        xpos = FencePost(xMargin, panel.mmWidth - xMargin, ncols)
+
+        AddFlatControlGrid(pl, controls, xpos.lowValue, ypos.lowValue, xpos.delta, ypos.delta, rowSymbols, colSymbols)
 
         # Add audio ports.
-        yPort = 120.0
-        controls.append(Component('audio_input',  bandx(0), yPort))
-        controls.append(Component('audio_output', bandx(4), yPort))
+        yPort = ypos.value(6)
+        controls.append(Component('audio_input',  xpos.lowValue, yPort))
+        controls.append(Component('audio_output', xpos.highValue, yPort))
 
     return Save(panel, svgFileName)
 

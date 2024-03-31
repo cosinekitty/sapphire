@@ -132,6 +132,18 @@ def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float,
         pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
+class FencePost:
+    '''Calculates the position of evenly aligned items on along a closed range of values.'''
+    def __init__(self, lowValue: float, highValue: float, nItems: int) -> None:
+        self.lowValue = lowValue
+        self.highValue = highValue
+        self.nItems = nItems
+        self.delta = (highValue - lowValue) / (nItems - 1)
+
+    def value(self, itemIndex: int) -> float:
+        return self.lowValue + (itemIndex * self.delta)
+
+
 def AddFlatControlGrid(
         pl: Element,
         controls: ControlLayer,
