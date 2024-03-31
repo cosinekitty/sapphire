@@ -147,19 +147,19 @@ class FencePost:
 def AddFlatControlGrid(
         pl: Element,
         controls: ControlLayer,
-        x0: float,
-        y0: float,
-        dx: float,
-        dy: float,
+        xpos: FencePost,
+        ypos: FencePost,
         rowSymbols: List[str],
         columnSymbols: List[str],
         id: str = 'control_grid') -> None:
     grid = Element('g', id)
     pl.append(grid)
-    x = x0
-    for col in columnSymbols:
-        y = y0
-        for row in rowSymbols:
-            AddFlatControlGroup(pl, controls, x, y, col + '_' + row)
-            y += dy
-        x += dx
+    xIndex = 0
+    for colSymbol in columnSymbols:
+        x = xpos.value(xIndex)
+        yIndex = 0
+        for rowSymbol in rowSymbols:
+            y = ypos.value(yIndex)
+            AddFlatControlGroup(pl, controls, x, y, colSymbol + '_' + rowSymbol)
+            yIndex += 1
+        xIndex += 1

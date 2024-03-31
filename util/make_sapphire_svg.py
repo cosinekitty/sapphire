@@ -533,7 +533,7 @@ def GenerateSpatulaPanel() -> int:
         xMargin = 18.0
         xpos = FencePost(xMargin, panel.mmWidth - xMargin, ncols)
 
-        AddFlatControlGrid(pl, controls, xpos.lowValue, ypos.lowValue, xpos.delta, ypos.delta, rowSymbols, colSymbols)
+        AddFlatControlGrid(pl, controls, xpos, ypos, rowSymbols, colSymbols)
 
         # Add audio ports.
         yPort = ypos.value(6)
