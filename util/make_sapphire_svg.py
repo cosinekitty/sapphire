@@ -513,14 +513,8 @@ def GenerateSpatulaPanel() -> int:
         pl.append(ModelNamePath(panel, font, 'spatula'))
         pl.append(SapphireInsignia(panel, font))
 
-        rowSymbols: List[str] = ['0', '1', '2', '3', '4']
-
+        rowSymbols: List[str] = [str((NUM_BANDS-1)-b) for b in range(NUM_BANDS)]
         colSymbols: List[str] = ['level', 'dispersion', 'bandwidth']
-        nrows = len(rowSymbols)
-        if nrows != NUM_BANDS:
-            print('GenerateSpatulaPanel: expected {} rows but found {} in the rowSymbols list.'.format(NUM_BANDS, nrows))
-            return 1
-        ncols = len(colSymbols)
 
         # Calculate alignment and spacing for rows and columns.
         # Automatically adjust for changes in the number of parameters (ncols)
@@ -531,7 +525,7 @@ def GenerateSpatulaPanel() -> int:
         ypos = FencePost(23.0, 79.0, NUM_BANDS)
 
         xMargin = 18.0
-        xpos = FencePost(xMargin, panel.mmWidth - xMargin, ncols)
+        xpos = FencePost(xMargin, panel.mmWidth - xMargin, len(colSymbols))
 
         AddFlatControlGrid(pl, controls, xpos, ypos, rowSymbols, colSymbols)
 

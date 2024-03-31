@@ -2,51 +2,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="101.60mm" height="128.50mm" viewBox="0 0 101.60 128.50">
     <g id="PanelLayer">
         <g id="ControlLayer" style="display:none;">
-            <circle id="level_0_cv" cx="10" cy="23" r="1" />
-            <circle id="level_0_atten" cx="18" cy="23" r="1" />
-            <circle id="level_0_knob" cx="26" cy="23" r="1" />
-            <circle id="level_1_cv" cx="10" cy="37" r="1" />
-            <circle id="level_1_atten" cx="18" cy="37" r="1" />
-            <circle id="level_1_knob" cx="26" cy="37" r="1" />
+            <circle id="level_4_cv" cx="10" cy="23" r="1" />
+            <circle id="level_4_atten" cx="18" cy="23" r="1" />
+            <circle id="level_4_knob" cx="26" cy="23" r="1" />
+            <circle id="level_3_cv" cx="10" cy="37" r="1" />
+            <circle id="level_3_atten" cx="18" cy="37" r="1" />
+            <circle id="level_3_knob" cx="26" cy="37" r="1" />
             <circle id="level_2_cv" cx="10" cy="51" r="1" />
             <circle id="level_2_atten" cx="18" cy="51" r="1" />
             <circle id="level_2_knob" cx="26" cy="51" r="1" />
-            <circle id="level_3_cv" cx="10" cy="65" r="1" />
-            <circle id="level_3_atten" cx="18" cy="65" r="1" />
-            <circle id="level_3_knob" cx="26" cy="65" r="1" />
-            <circle id="level_4_cv" cx="10" cy="79" r="1" />
-            <circle id="level_4_atten" cx="18" cy="79" r="1" />
-            <circle id="level_4_knob" cx="26" cy="79" r="1" />
-            <circle id="dispersion_0_cv" cx="42.8" cy="23" r="1" />
-            <circle id="dispersion_0_atten" cx="50.8" cy="23" r="1" />
-            <circle id="dispersion_0_knob" cx="58.8" cy="23" r="1" />
-            <circle id="dispersion_1_cv" cx="42.8" cy="37" r="1" />
-            <circle id="dispersion_1_atten" cx="50.8" cy="37" r="1" />
-            <circle id="dispersion_1_knob" cx="58.8" cy="37" r="1" />
+            <circle id="level_1_cv" cx="10" cy="65" r="1" />
+            <circle id="level_1_atten" cx="18" cy="65" r="1" />
+            <circle id="level_1_knob" cx="26" cy="65" r="1" />
+            <circle id="level_0_cv" cx="10" cy="79" r="1" />
+            <circle id="level_0_atten" cx="18" cy="79" r="1" />
+            <circle id="level_0_knob" cx="26" cy="79" r="1" />
+            <circle id="dispersion_4_cv" cx="42.8" cy="23" r="1" />
+            <circle id="dispersion_4_atten" cx="50.8" cy="23" r="1" />
+            <circle id="dispersion_4_knob" cx="58.8" cy="23" r="1" />
+            <circle id="dispersion_3_cv" cx="42.8" cy="37" r="1" />
+            <circle id="dispersion_3_atten" cx="50.8" cy="37" r="1" />
+            <circle id="dispersion_3_knob" cx="58.8" cy="37" r="1" />
             <circle id="dispersion_2_cv" cx="42.8" cy="51" r="1" />
             <circle id="dispersion_2_atten" cx="50.8" cy="51" r="1" />
             <circle id="dispersion_2_knob" cx="58.8" cy="51" r="1" />
-            <circle id="dispersion_3_cv" cx="42.8" cy="65" r="1" />
-            <circle id="dispersion_3_atten" cx="50.8" cy="65" r="1" />
-            <circle id="dispersion_3_knob" cx="58.8" cy="65" r="1" />
-            <circle id="dispersion_4_cv" cx="42.8" cy="79" r="1" />
-            <circle id="dispersion_4_atten" cx="50.8" cy="79" r="1" />
-            <circle id="dispersion_4_knob" cx="58.8" cy="79" r="1" />
-            <circle id="bandwidth_0_cv" cx="75.6" cy="23" r="1" />
-            <circle id="bandwidth_0_atten" cx="83.6" cy="23" r="1" />
-            <circle id="bandwidth_0_knob" cx="91.6" cy="23" r="1" />
-            <circle id="bandwidth_1_cv" cx="75.6" cy="37" r="1" />
-            <circle id="bandwidth_1_atten" cx="83.6" cy="37" r="1" />
-            <circle id="bandwidth_1_knob" cx="91.6" cy="37" r="1" />
+            <circle id="dispersion_1_cv" cx="42.8" cy="65" r="1" />
+            <circle id="dispersion_1_atten" cx="50.8" cy="65" r="1" />
+            <circle id="dispersion_1_knob" cx="58.8" cy="65" r="1" />
+            <circle id="dispersion_0_cv" cx="42.8" cy="79" r="1" />
+            <circle id="dispersion_0_atten" cx="50.8" cy="79" r="1" />
+            <circle id="dispersion_0_knob" cx="58.8" cy="79" r="1" />
+            <circle id="bandwidth_4_cv" cx="75.6" cy="23" r="1" />
+            <circle id="bandwidth_4_atten" cx="83.6" cy="23" r="1" />
+            <circle id="bandwidth_4_knob" cx="91.6" cy="23" r="1" />
+            <circle id="bandwidth_3_cv" cx="75.6" cy="37" r="1" />
+            <circle id="bandwidth_3_atten" cx="83.6" cy="37" r="1" />
+            <circle id="bandwidth_3_knob" cx="91.6" cy="37" r="1" />
             <circle id="bandwidth_2_cv" cx="75.6" cy="51" r="1" />
             <circle id="bandwidth_2_atten" cx="83.6" cy="51" r="1" />
             <circle id="bandwidth_2_knob" cx="91.6" cy="51" r="1" />
-            <circle id="bandwidth_3_cv" cx="75.6" cy="65" r="1" />
-            <circle id="bandwidth_3_atten" cx="83.6" cy="65" r="1" />
-            <circle id="bandwidth_3_knob" cx="91.6" cy="65" r="1" />
-            <circle id="bandwidth_4_cv" cx="75.6" cy="79" r="1" />
-            <circle id="bandwidth_4_atten" cx="83.6" cy="79" r="1" />
-            <circle id="bandwidth_4_knob" cx="91.6" cy="79" r="1" />
+            <circle id="bandwidth_1_cv" cx="75.6" cy="65" r="1" />
+            <circle id="bandwidth_1_atten" cx="83.6" cy="65" r="1" />
+            <circle id="bandwidth_1_knob" cx="91.6" cy="65" r="1" />
+            <circle id="bandwidth_0_cv" cx="75.6" cy="79" r="1" />
+            <circle id="bandwidth_0_atten" cx="83.6" cy="79" r="1" />
+            <circle id="bandwidth_0_knob" cx="91.6" cy="79" r="1" />
             <circle id="audio_input" cx="18" cy="107" r="1" />
             <circle id="audio_output" cx="83.6" cy="107" r="1" />
         </g>
