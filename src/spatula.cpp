@@ -126,21 +126,21 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_OUTPUT, "audio_output");
                 for (int b = 0; b < BandCount; ++b)
                 {
-                    addSapphireControlGroup(
+                    addSapphireFlatControlGroup(
                         string("level_") + std::to_string(b),
                         LEVEL_KNOB_PARAM + b,
                         LEVEL_ATTEN_PARAM + b,
                         LEVEL_CV_INPUT + b
                     );
 
-                    addSapphireControlGroup(
+                    addSapphireFlatControlGroup(
                         string("dispersion_") + std::to_string(b),
                         DISPERSION_KNOB_PARAM + b,
                         DISPERSION_ATTEN_PARAM + b,
                         DISPERSION_CV_INPUT + b
                     );
 
-                    addSapphireControlGroup(
+                    addSapphireFlatControlGroup(
                         string("bandwidth_") + std::to_string(b),
                         BANDWIDTH_KNOB_PARAM + b,
                         BANDWIDTH_ATTEN_PARAM + b,

@@ -97,5 +97,12 @@ namespace Sapphire
             addSapphireAttenuverter(attenId, name + "_atten");
             addSapphireInput(cvInputId, name + "_cv");
         }
+
+        void addSapphireFlatControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)
+        {
+            addSmallKnob(knobId, name + "_knob");
+            addSapphireAttenuverter(attenId, name + "_atten");
+            addSapphireInput(cvInputId, name + "_cv");
+        }
     };
 }
