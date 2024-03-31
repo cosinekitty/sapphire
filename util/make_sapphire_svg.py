@@ -517,10 +517,10 @@ def GenerateSpatulaPanel() -> int:
         pl.append(ModelNamePath(panel, font, 'spatula'))
         pl.append(SapphireInsignia(panel, font))
 
-        x0 = 10.2
+        x0 = 18.0
         y0 = 23.0
-        dx = 20.3
-        dy = 27.0
+        dx = 32.0
+        dy = 14.0
 
         rowSymbols: List[str] = ['0', '1', '2', '3', '4']
         colSymbols: List[str] = ['level', 'dispersion', 'bandwidth']

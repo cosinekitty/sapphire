@@ -113,21 +113,23 @@ def CenteredGemstone(panel:Panel) -> SapphireGemstone:
 
 
 def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
-    dxControlGroup = 5.0
-    dyControlGroup = 11.0
-    controls.append(Component(symbol + '_knob', x, y))
-    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
-    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
-    # Draw a pair of connector lines:
-    # (1) from knob to attenuverter
-    # (2) from knob to CV input
-    t = ''
-    t += Move(x, y)
-    t += Line(x - dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    t += Line(x + dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    pl.append(Path(t, CONNECTOR_LINE_STYLE))
+    dxControlGroup = 8.0
+    dyControlGroup = 0.0
+    controls.append(Component(symbol + '_cv', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_atten', x, y))
+    controls.append(Component(symbol + '_knob', x + dxControlGroup, y + dyControlGroup))
+    # FIXFIXFIX: add artwork like the following, but adapted for flat control groups.
+    if False:
+        # Draw a pair of connector lines:
+        # (1) from knob to attenuverter
+        # (2) from knob to CV input
+        t = ''
+        t += Move(x, y)
+        t += Line(x - dxControlGroup, y + dyControlGroup)
+        t += ClosePath()
+        t += Line(x + dxControlGroup, y + dyControlGroup)
+        t += ClosePath()
+        pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
 def AddFlatControlGrid(
