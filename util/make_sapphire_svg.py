@@ -499,7 +499,7 @@ def GenerateHissPanel() -> int:
 
 
 def GenerateSpatulaPanel() -> int:
-    PANEL_WIDTH = 20
+    PANEL_WIDTH = 25
     NUM_BANDS = 5
     svgFileName = '../res/spatula.svg'
     panel = Panel(PANEL_WIDTH)
@@ -514,7 +514,7 @@ def GenerateSpatulaPanel() -> int:
         pl.append(SapphireInsignia(panel, font))
 
         rowSymbols: List[str] = [str((NUM_BANDS-1)-b) for b in range(NUM_BANDS)]
-        colSymbols: List[str] = ['level', 'dispersion', 'bandwidth']
+        colSymbols: List[str] = ['center', 'level', 'dispersion', 'bandwidth']
 
         # Calculate alignment and spacing for rows and columns.
         # Automatically adjust for changes in the number of parameters (ncols)

@@ -58,7 +58,6 @@ namespace Sapphire
         constexpr float MaxBandwidth = 4;
         static_assert(MinBandwidth < MaxBandwidth, "Bandwidth range must be in ascending order.");
 
-
         struct IndexRange
         {
             int lo;
@@ -70,6 +69,20 @@ namespace Sapphire
                 {}
         };
 
+        constexpr float OctaveHalfRange = 1;
+
+        struct FrequencyBand
+        {
+            float lo;
+            float center;
+            float hi;
+
+            explicit FrequencyBand(float _lo, float _center, float _hi)
+                : lo(_hi)
+                , center(_center)
+                , hi(_hi)
+                {}
+        };
 
         class SpectrumWindow
         {
@@ -84,6 +97,10 @@ namespace Sapphire
             float bandwidth = 1;
             int indexLo = 0;
             int indexHi = -1;
+            float frequencyOffsetOctaves = 0;
+            float f1{};
+            float f2{};
+            float fc{};
 
             void halfCurve(int peakIndex, int valleyIndex)
             {
@@ -156,6 +173,22 @@ namespace Sapphire
                 return bandwidth;
             }
 
+            float setCenterFrequencyOffset(float newOffset = 0)
+            {
+                float offset = std::clamp(newOffset, -OctaveHalfRange, +OctaveHalfRange);
+                if (offset != frequencyOffsetOctaves)
+                {
+                    frequencyOffsetOctaves = offset;
+                    isCurveDirty = true;
+                }
+                return frequencyOffsetOctaves;
+            }
+
+            FrequencyBand getFrequencyBand() const
+            {
+                return FrequencyBand{f1, fc, f2};
+            }
+
             IndexRange getIndexRange() const
             {
                 return IndexRange{indexLo, indexHi};
@@ -174,14 +207,18 @@ namespace Sapphire
             {
                 if (isCurveDirty)
                 {
+                    // Adjust the center frequency based on octave adjustment.
+                    float factor = std::pow(2.0f, frequencyOffsetOctaves);
+
                     // Use the `bandwidth` parameter to adjust the low and high
                     // frequencies relative to the center frequency.
 
-                    float f1 = freqCenterHz - bandwidth*(freqCenterHz - freqLoHz);
-                    float f2 = freqCenterHz + bandwidth*(freqHiHz - freqCenterHz);
+                    f1 = factor * (freqCenterHz - bandwidth*(freqCenterHz - freqLoHz));
+                    fc = factor * freqCenterHz;
+                    f2 = factor * (freqCenterHz + bandwidth*(freqHiHz - freqCenterHz));
 
                     indexLo = indexForFrequency(f1);
-                    const int indexCenter = indexForFrequency(freqCenterHz);
+                    const int indexCenter = indexForFrequency(fc);
                     indexHi = indexForFrequency(f2);
 
                     // Calculate two cosine curves, but with different frequencies
@@ -268,6 +305,7 @@ namespace Sapphire
             {
                 const float R = std::sqrt(10.0f);
 
+                // FIXFIXFIX: frequency bands must be configurable!!!
                 bandList.reserve(5);
                 addFrequencyBand(0, 100, 100*R);
                 addFrequencyBand(100, 100*R, 1000);
@@ -459,6 +497,15 @@ namespace Sapphire
                 {
                     Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
                     band.window.setBandwidth(bandwidth);
+                }
+            }
+
+            void setCenterFrequencyOffset(int bandIndex, float octaves = 0)
+            {
+                for (int c = 0; c < MaxFrameChannels; ++c)
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.window.setCenterFrequencyOffset(octaves);
                 }
             }
         };

@@ -120,9 +120,6 @@ def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float,
     controls.append(Component(symbol + '_knob', x + dxControlGroup, y + dyControlGroup))
     # FIXFIXFIX: add artwork like the following, but adapted for flat control groups.
     if False:
-        # Draw a pair of connector lines:
-        # (1) from knob to attenuverter
-        # (2) from knob to CV input
         t = ''
         t += Move(x, y)
         t += Line(x - dxControlGroup, y + dyControlGroup)

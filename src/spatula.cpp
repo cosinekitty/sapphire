@@ -17,6 +17,8 @@ namespace Sapphire
             ENUMS(DISPERSION_ATTEN_PARAM, BandCount),
             ENUMS(BANDWIDTH_KNOB_PARAM, BandCount),
             ENUMS(BANDWIDTH_ATTEN_PARAM, BandCount),
+            ENUMS(CENTER_KNOB_PARAM, BandCount),
+            ENUMS(CENTER_ATTEN_PARAM, BandCount),
             PARAMS_LEN
         };
 
@@ -26,6 +28,7 @@ namespace Sapphire
             ENUMS(LEVEL_CV_INPUT, BandCount),
             ENUMS(DISPERSION_CV_INPUT, BandCount),
             ENUMS(BANDWIDTH_CV_INPUT, BandCount),
+            ENUMS(CENTER_CV_INPUT, BandCount),
             INPUTS_LEN
         };
 
@@ -40,6 +43,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+
         struct SpatulaModule : SapphireModule
         {
             FrameProcessor engine{BlockExponent};
@@ -51,6 +55,10 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 for (int b = 0; b < BandCount; ++b)
                 {
+                    configParam(CENTER_KNOB_PARAM + b, -OctaveHalfRange, +OctaveHalfRange, 0, "Center frequency offset", " octaves");
+                    configParam(CENTER_ATTEN_PARAM + b, -1, 1, 0, "Center frequency attenuverter", "%", 0, 100);
+                    configInput(CENTER_CV_INPUT + b, "Center frequency CV");
+
                     configParam(LEVEL_KNOB_PARAM + b, 0, 2, 1, "Band level", " dB", -10, 20*OUTPUT_EXPONENT);
                     configParam(LEVEL_ATTEN_PARAM + b, -1, 1, 0, "Band level attenuverter", "%", 0, 100);
                     configInput(LEVEL_CV_INPUT + b, "Band level CV");
@@ -91,6 +99,9 @@ namespace Sapphire
 
                         float bandwidth = getControlValue(BANDWIDTH_KNOB_PARAM + b, BANDWIDTH_ATTEN_PARAM + b, BANDWIDTH_CV_INPUT + b, MinBandwidth, MaxBandwidth);
                         engine.setBandWidth(b, bandwidth);
+
+                        float octaves = getControlValue(CENTER_KNOB_PARAM + b, CENTER_ATTEN_PARAM + b, CENTER_CV_INPUT + b, -OctaveHalfRange, +OctaveHalfRange);
+                        engine.setCenterFrequencyOffset(b, octaves);
                     }
                 }
                 auto &input = inputs[AUDIO_INPUT];
@@ -126,6 +137,13 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_OUTPUT, "audio_output");
                 for (int b = 0; b < BandCount; ++b)
                 {
+                    addSapphireFlatControlGroup(
+                        string("center_") + std::to_string(b),
+                        CENTER_KNOB_PARAM + b,
+                        CENTER_ATTEN_PARAM + b,
+                        CENTER_CV_INPUT + b
+                    );
+
                     addSapphireFlatControlGroup(
                         string("level_") + std::to_string(b),
                         LEVEL_KNOB_PARAM + b,
