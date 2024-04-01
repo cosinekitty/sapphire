@@ -1094,19 +1094,18 @@ static int Spatula_SpectrumWindow(
     SpectrumWindow window(blockSize, freqLoHz, freqCenterHz, freqHiHz);
     window.setSampleRate(sampleRateHz);
     window.updateCurve();
-    int indexLo, indexHi;
-    window.getIndexRange(indexLo, indexHi);
-    printf("%s: indexLo=%d, indexHi=%d\n", name.c_str(), indexLo, indexHi);
-    if (indexLo != expectedLo)
+    const IndexRange range = window.getIndexRange();
+    printf("%s: range.lo=%d, range.hi=%d\n", name.c_str(), range.lo, range.hi);
+    if (range.lo != expectedLo)
         return Fail(name, string("Expected indexLo=") + to_string(expectedLo));
-    if (indexHi != expectedHi)
+    if (range.hi != expectedHi)
         return Fail(name, string("Expected indexHi=") + to_string(expectedHi));
 
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
         return Fail(name, string("Cannot open output file: ") + string(outFileName));
 
-    for (int index = indexLo; index <= indexHi; ++index)
+    for (int index = range.lo; index <= range.hi; ++index)
     {
         float y = window.getCurve(index);
         fprintf(outfile, "%6d %10.6f\n", index, y);

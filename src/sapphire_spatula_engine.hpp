@@ -59,6 +59,18 @@ namespace Sapphire
         static_assert(MinBandwidth < MaxBandwidth, "Bandwidth range must be in ascending order.");
 
 
+        struct IndexRange
+        {
+            int lo;
+            int hi;
+
+            explicit IndexRange(int _lo, int _hi)
+                : lo(_lo)
+                , hi(_hi)
+                {}
+        };
+
+
         class SpectrumWindow
         {
         private:
@@ -144,10 +156,9 @@ namespace Sapphire
                 return bandwidth;
             }
 
-            void getIndexRange(int& spectrumIndexLo, int& spectrumIndexHi) const
+            IndexRange getIndexRange() const
             {
-                spectrumIndexLo = indexLo;
-                spectrumIndexHi = indexHi;
+                return IndexRange{indexLo, indexHi};
             }
 
             float getCurve(int index) const
@@ -293,9 +304,8 @@ namespace Sapphire
                     b.window.updateCurve();
 
                     // Apply and accumulate the band curve's effect on the signal.
-                    int spectrumIndexLo, spectrumIndexHi;
-                    b.window.getIndexRange(spectrumIndexLo, spectrumIndexHi);
-                    for (int spectrumIndex = spectrumIndexLo; spectrumIndex <= spectrumIndexHi; ++spectrumIndex)
+                    IndexRange range = b.window.getIndexRange();
+                    for (int spectrumIndex = range.lo; spectrumIndex <= range.hi; ++spectrumIndex)
                     {
                         int realIndex = 2*spectrumIndex;
                         int imagIndex = realIndex + 1;
