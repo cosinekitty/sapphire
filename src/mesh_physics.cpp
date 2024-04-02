@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <math.h>
 #include "sapphire_engine.hpp"
 #include "elastika_engine.hpp"
@@ -24,9 +25,9 @@ namespace Sapphire
 
     void PhysicsMesh::Quiet()
     {
-        const size_t nballs = currBallList.size();
+        const std::size_t nballs = currBallList.size();
         assert(nballs == originalPositions.size());
-        for (size_t i = 0; i < nballs; ++i)
+        for (std::size_t i = 0; i < nballs; ++i)
         {
             currBallList[i].pos = originalPositions.at(i);
             currBallList[i].vel = PhysicsVector::zero();
@@ -195,9 +196,9 @@ namespace Sapphire
 
     void PhysicsMesh::Copy(const BallList& source, BallList& target)
     {
-        const size_t nballs = source.size();
+        const std::size_t nballs = source.size();
         assert(nballs == target.size());
-        for (size_t i = 0; i < nballs; ++i)
+        for (std::size_t i = 0; i < nballs; ++i)
             target[i] = source[i];
     }
 }
