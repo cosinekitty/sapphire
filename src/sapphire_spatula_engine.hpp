@@ -6,14 +6,13 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "sapphire_simd.hpp"
 #include "sapphire_granular_processor.hpp"
 
 namespace Sapphire
 {
     namespace Spatula
     {
-        using Complex = std::complex<float>;
-
         inline constexpr bool IsPowerOfTwo(int n)
         {
             return (n > 1) && (n & (n-1)) == 0;
@@ -236,7 +235,7 @@ namespace Sapphire
         {
         private:
             float dispersionAngle = -1;     // force setStandardDeviationAngle(0) to work when called by ctor
-            std::vector<Complex> factorList;
+            std::vector<complex_t> factorList;
 
         public:
             explicit DispersionBuffer(int spectrumLength)
@@ -252,15 +251,15 @@ namespace Sapphire
                     dispersionAngle = dispersion;
                     RandomVectorGenerator r;
                     const float radians = (M_PI / 180) * dispersion;
-                    for (Complex& factor : factorList)
+                    for (complex_t& factor : factorList)
                     {
                         float angle = radians * r.next();
-                        factor = Complex(std::cos(angle), std::sin(angle));
+                        factor = complex_t(std::cos(angle), std::sin(angle));
                     }
                 }
             }
 
-            Complex getFactor(int spectrumIndex) const
+            complex_t getFactor(int spectrumIndex) const
             {
                 return factorList.at(spectrumIndex);
             }
@@ -348,7 +347,7 @@ namespace Sapphire
                         int realIndex = 2*spectrumIndex;
                         int imagIndex = realIndex + 1;
                         float k = b.amplitude * b.window.getCurve(spectrumIndex);
-                        Complex z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
+                        complex_t z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
                         z *= b.dispersion.getFactor(spectrumIndex);
                         outSpectrum[realIndex] += z.real();
                         outSpectrum[imagIndex] += z.imag();

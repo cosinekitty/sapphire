@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <complex>
 #include <vector>
 
 #ifdef NO_RACK_DEPENDENCY
@@ -21,6 +22,8 @@
 
 namespace Sapphire
 {
+    using complex_t = std::complex<float>;
+
     class PhysicsVector
     {
     public:

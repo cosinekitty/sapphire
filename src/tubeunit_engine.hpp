@@ -9,8 +9,6 @@
 
 namespace Sapphire
 {
-    using complex_t = std::complex<float>;
-
     const float TubeUnitDefaultRootFrequencyHz = 3.0f;
 
     class TubeUnitEngine
