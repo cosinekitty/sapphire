@@ -7,7 +7,7 @@ namespace Sapphire
 {
     namespace Bash
     {
-        const int BlockExponent = 11;       // 2^BlockExponent samples per block
+        const int BlockExponent = 14;       // 2^BlockExponent samples per block
 
         enum ParamId
         {
@@ -108,7 +108,7 @@ namespace Sapphire
                     float bandwidth = getChaosValue(WIDTH_KNOB_PARAM, WIDTH_CHAOS_PARAM, chaos1.vz(), MinBandwidth, MaxBandwidth);
                     engine.setBandWidth(bandwidth);
 
-                    float octaves = getControlValue(CENTER_KNOB_PARAM, CENTER_CHAOS_PARAM, chaos2.vx(), -OctaveHalfRange, +OctaveHalfRange);
+                    float octaves = getChaosValue(CENTER_KNOB_PARAM, CENTER_CHAOS_PARAM, chaos2.vx(), -OctaveHalfRange, +OctaveHalfRange);
                     engine.setCenterFrequencyOffset(octaves);
                 }
 
