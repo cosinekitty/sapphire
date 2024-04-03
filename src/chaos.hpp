@@ -202,5 +202,14 @@ namespace Sapphire
                 -1.46, +1.54,
                 -0.39, +1.86)
             {}
+
+        explicit Aizawa(float x0, float y0, float z0)
+            : ChaoticOscillator(
+                5.0e-04,
+                x0, y0, z0,
+                -1.51, +1.51,
+                -1.46, +1.54,
+                -0.39, +1.86)
+            {}
     };
 }

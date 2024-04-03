@@ -159,6 +159,19 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
+def AddChaosGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float) -> None:
+    dx = 5.0
+    dyLabel = -6.0
+    controls.append(Component(symbol + '_chaos', x - dx, y))
+    controls.append(Component(symbol + '_knob', x + dx, y))
+    pl.append(CenteredControlTextPath(font, label, x, y + dyLabel))
+    t = ''
+    t += Move(x - dx, y)
+    t += Line(x + dx, y)
+    t += ClosePath()
+    pl.append(Path(t, CONNECTOR_LINE_STYLE))
+
+
 def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
@@ -550,7 +563,28 @@ def GenerateBashPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'bash'))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('audio_input', xmid, 10.0))
+        controls.append(Component('audio_input', xmid, 15.0))
+
+        y = 32.0
+        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid, y)
+        y += 25.0
+
+        dy = 15.0
+        AddChaosGroup(pl, controls, font, 'level',      'LEVEL',   xmid, y)
+        y += dy
+
+        AddChaosGroup(pl, controls, font, 'center',     'CENTER',  xmid, y)
+        y += dy
+
+        AddChaosGroup(pl, controls, font, 'width',      'WIDTH',   xmid, y)
+        y += dy
+
+        AddChaosGroup(pl, controls, font, 'dispersion', 'DISPERS', xmid, y)
+
+        y += 12.0
+        dxOutPorts = 4.5
+        controls.append(Component('copy_output',  xmid - dxOutPorts, y))
+        controls.append(Component('audio_output', xmid + dxOutPorts, y))
     return Save(panel, svgFileName)
 
 

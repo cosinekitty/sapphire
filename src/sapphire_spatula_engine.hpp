@@ -304,7 +304,6 @@ namespace Sapphire
             {
                 const float R = std::sqrt(10.0f);
 
-                // FIXFIXFIX: frequency bands must be configurable!!!
                 bandList.reserve(5);
                 addFrequencyBand(0, 100, 100*R);
                 addFrequencyBand(100, 100*R, 1000);

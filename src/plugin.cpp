@@ -11,6 +11,7 @@ void init(Plugin* p)
 {
     pluginInstance = p;
 
+    p->addModel(modelBash);
     p->addModel(modelElastika);
     p->addModel(modelFrolic);
     p->addModel(modelGlee);

@@ -14,6 +14,15 @@
   "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/main/CHANGELOG.md",
   "modules": [
     {
+      "slug": "Bash",
+      "name": "Bash",
+      "description": "Generative granular bandpass filter with built-in multi-parameter chaotic modulation.",
+      "tags": [
+        "Effect",
+        "Filter"
+      ]
+    },
+    {
       "slug": "Elastika",
       "name": "Elastika",
       "description": "Filters audio through a simulated network of balls and springs.",

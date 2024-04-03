@@ -104,5 +104,11 @@ namespace Sapphire
             addSapphireAttenuverter(attenId, name + "_atten");
             addSapphireInput(cvInputId, name + "_cv");
         }
+
+        void addSapphireChaosGroup(const std::string& name, int chaosKnobId, int paramKnobId)
+        {
+            addSapphireAttenuverter(chaosKnobId, name + "_chaos");
+            addSmallKnob(paramKnobId, name + "_knob");
+        }
     };
 }
