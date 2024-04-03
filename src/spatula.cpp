@@ -73,7 +73,7 @@ namespace Sapphire
                     configParam(DISPERSION_ATTEN_PARAM + b, -1, 1, 0, "Dispersion attenuverter", "%", 0, 100);
                     configInput(DISPERSION_CV_INPUT + b, "Dispersion CV");
 
-                    configParam(BANDWIDTH_KNOB_PARAM + b, MinBandwidth, MaxBandwidth, 0, "Bandwidth", "");
+                    configParam(BANDWIDTH_KNOB_PARAM + b, MinBandwidth, MaxBandwidth, 1, "Bandwidth", "");
                     configParam(BANDWIDTH_ATTEN_PARAM + b, -1, 1, 0, "Bandwidth attenuverter", "%", 0, 100);
                     configInput(BANDWIDTH_CV_INPUT + b, "Bandwidth CV");
 
