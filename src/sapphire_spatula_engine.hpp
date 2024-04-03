@@ -1,14 +1,12 @@
 #pragma once
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <complex>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include "sapphire_simd.hpp"
-#include "sapphire_engine.hpp"
 #include "sapphire_granular_processor.hpp"
 
 namespace Sapphire
@@ -58,8 +56,6 @@ namespace Sapphire
         constexpr float MinBandwidth = 0.02;
         constexpr float MaxBandwidth = 4;
         static_assert(MinBandwidth < MaxBandwidth, "Bandwidth range must be in ascending order.");
-
-        const int MaxDelayMillis = 4000;
 
         struct IndexRange
         {
@@ -367,30 +363,22 @@ namespace Sapphire
         };
 
 
-        using spatula_delay_line_t = DelayLine<float, 1000000>;
-
-
         class ChannelProcessor : public SingleChannelProcessor<float>       // create one per polyphonic input/output channel
         {
         private:
             BandMixer filter;
             FourierProcessor granulizer;
-            spatula_delay_line_t delayLine;
-            float delayMillis = 0;
-            float delayFeedback = 0;
 
         public:
             explicit ChannelProcessor(int _blockExponent)
                 : filter(_blockExponent)
                 , granulizer(filter)
             {
-                delayLine.setLength(delayLine.getMaxLength());   // set maximum length; slide around as we read from the past
             }
 
             void initialize() override
             {
                 granulizer.initialize();    // will call filter.initialize() for us
-                delayLine.clear();
             }
 
             void setSampleRate(float sampleRateHz) override
@@ -400,12 +388,7 @@ namespace Sapphire
 
             float process(float sampleRateHz, float input) override
             {
-                float x = granulizer.process(sampleRateHz, input);
-                int rawDelaySamples = static_cast<int>(std::round(sampleRateHz * (delayMillis / 1000)));
-                int delaySamples = std::clamp(rawDelaySamples, 0, static_cast<int>(delayLine.getMaxLength()-1));
-                float y = x + (delayFeedback * delayLine.readBackward(delaySamples));
-                delayLine.write(y);
-                return y;
+                return granulizer.process(sampleRateHz, input);
             }
 
             BandMixer& getBandMixer()
@@ -417,18 +400,6 @@ namespace Sapphire
             {
                 // Return true if the next frame to be processed will cause another block to be processed.
                 return granulizer.isFinalFrameBeforeBlockChange();
-            }
-
-            float setDelay(float millis)
-            {
-                delayMillis = std::clamp(millis, 0.0f, static_cast<float>(MaxDelayMillis));
-                return delayMillis;
-            }
-
-            float setFeedback(float feedback)
-            {
-                delayFeedback = std::clamp(feedback, 0.0f, 1.0f);
-                return delayFeedback;
             }
         };
 
@@ -504,50 +475,37 @@ namespace Sapphire
                 return channelProcArray[c]->getBandMixer();
             }
 
-            Band& band(int bandIndex, int channelIndex)
-            {
-                return mixer(channelIndex).band(bandIndex);
-            }
-
-            SpectrumWindow& window(int bandIndex, int channelIndex)
-            {
-                return band(bandIndex, channelIndex).window;
-            }
-
-            void setBandAmplitude(int bandIndex, float amp)
+            void setBandAmplitude(int band, float amp)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    band(bandIndex, c).amplitude = amp;
+                    channelProcArray[c]->getBandMixer().band(band).amplitude = amp;
             }
 
             void setBandDispersion(int bandIndex, float dispersionStandardDeviationDegrees)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    band(bandIndex, c).setPendingDispersion(dispersionStandardDeviationDegrees);
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.setPendingDispersion(dispersionStandardDeviationDegrees);
+                }
             }
 
             void setBandWidth(int bandIndex, float bandwidth = 1)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    window(bandIndex, c).setBandwidth(bandwidth);
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.window.setBandwidth(bandwidth);
+                }
             }
 
             void setCenterFrequencyOffset(int bandIndex, float octaves = 0)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    window(bandIndex, c).setCenterFrequencyOffset(octaves);
-            }
-
-            void setDelay(int bandIndex, float delayMillis = 0)
-            {
-                for (int c = 0; c < MaxFrameChannels; ++c)
-                    channelProcArray[c]->setDelay(delayMillis);
-            }
-
-            void setFeedback(int bandIndex, float feedback = 0)
-            {
-                for (int c = 0; c < MaxFrameChannels; ++c)
-                    channelProcArray[c]->setFeedback(feedback);
+                {
+                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    band.window.setCenterFrequencyOffset(octaves);
+                }
             }
         };
     }

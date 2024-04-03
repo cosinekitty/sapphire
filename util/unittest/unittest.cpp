@@ -954,8 +954,7 @@ static int TestProcessor(
     const std::string caller,
     Sapphire::MultiChannelProcessor<float>& proc,
     const char *inFileName,
-    const char *outFileName,
-    const float tailFlushSeconds = 3)
+    const char *outFileName)
 {
     const int maxChannels = 16;
 
@@ -1015,14 +1014,17 @@ static int TestProcessor(
 
     // Push a couple of seconds of silence through the filter just to flush any residue...
 
+    const float TailFlushSeconds = 3;
+    float extraTime = 0;
+
     for (int c = 0; c < channels; ++c)
         inFrame.data[c] = 0;
 
-    const float dt = 1.0 / sampleRate;
-    for (float extraTime = 0; extraTime < tailFlushSeconds; extraTime += dt)
+    while (extraTime < TailFlushSeconds)
     {
         proc.process(sampleRate, inFrame, outFrame);
         outwave.WriteSamples(outFrame.data, outFrame.length);
+        extraTime += 1.0f / sampleRate;
     }
 
     return Pass(caller);
@@ -1134,45 +1136,7 @@ static int Spatula_EngineTest()
     engine.setBandWidth(3, 0.25f);
     engine.setBandWidth(4, 0.25f);
 
-    return TestProcessor(
-        "Spatula_EngineTest",
-        engine,
-        MyVoiceFileName,
-        "output/spatula_genesis.wav"
-    );
-}
-
-
-inline float bw(int chosenBand, int actualBand)
-{
-    return (actualBand == chosenBand) ? 1.0f : 0.0f;
-}
-
-
-static int Spatula_FeedbackTest()
-{
-    const int blockExponent = 16;
-    const int chosenBand = 1;
-    Sapphire::Spatula::FrameProcessor engine(blockExponent);
-    engine.setBandAmplitude(0, bw(chosenBand, 0));
-    engine.setBandAmplitude(1, bw(chosenBand, 1));
-    engine.setBandAmplitude(2, bw(chosenBand, 2));
-    engine.setBandAmplitude(3, bw(chosenBand, 3));
-    engine.setBandAmplitude(4, bw(chosenBand, 4));
-
-    engine.setBandDispersion(chosenBand, 5);
-    engine.setBandWidth(chosenBand, 1.7);
-    engine.setFeedback(chosenBand, 0.55);
-    engine.setDelay(chosenBand, 425);
-    engine.setCenterFrequencyOffset(-0.3);
-
-    return TestProcessor(
-        "Spatula_FeedbackTest",
-        engine,
-        MyVoiceFileName,
-        "output/feedback_genesis.wav",
-        6
-    );
+    return TestProcessor("Spatula_EngineTest", engine, MyVoiceFileName, "output/spatula_genesis.wav");
 }
 
 
@@ -1181,6 +1145,5 @@ static int SpatulaTest()
     return
         Spatula_SpectrumWindow("output/spatula_spectrum_window.txt", 100, 316, 1000, 34, 341) ||
         Spatula_EngineTest() ||
-        Spatula_FeedbackTest() ||
         Pass("SpatulaTest");
 }

@@ -19,10 +19,6 @@ namespace Sapphire
             ENUMS(BANDWIDTH_ATTEN_PARAM, BandCount),
             ENUMS(CENTER_KNOB_PARAM, BandCount),
             ENUMS(CENTER_ATTEN_PARAM, BandCount),
-            ENUMS(DELAY_KNOB_PARAM, BandCount),
-            ENUMS(DELAY_ATTEN_PARAM, BandCount),
-            ENUMS(FEEDBACK_KNOB_PARAM, BandCount),
-            ENUMS(FEEDBACK_ATTEN_PARAM, BandCount),
             PARAMS_LEN
         };
 
@@ -33,8 +29,6 @@ namespace Sapphire
             ENUMS(DISPERSION_CV_INPUT, BandCount),
             ENUMS(BANDWIDTH_CV_INPUT, BandCount),
             ENUMS(CENTER_CV_INPUT, BandCount),
-            ENUMS(DELAY_CV_INPUT, BandCount),
-            ENUMS(FEEDBACK_CV_INPUT, BandCount),
             INPUTS_LEN
         };
 
@@ -76,14 +70,6 @@ namespace Sapphire
                     configParam(BANDWIDTH_KNOB_PARAM + b, MinBandwidth, MaxBandwidth, 1, "Bandwidth", "");
                     configParam(BANDWIDTH_ATTEN_PARAM + b, -1, 1, 0, "Bandwidth attenuverter", "%", 0, 100);
                     configInput(BANDWIDTH_CV_INPUT + b, "Bandwidth CV");
-
-                    configParam(DELAY_KNOB_PARAM + b, 0, MaxDelayMillis, 0, "Delay", " ms");
-                    configParam(DELAY_ATTEN_PARAM + b, -1, 1, 0, "Delay attenuverter", "%", 0, 100);
-                    configInput(DELAY_CV_INPUT + b, "Delay CV");
-
-                    configParam(FEEDBACK_KNOB_PARAM + b, 0, 1, 0, "Feedback", "%", 0, 100);
-                    configParam(FEEDBACK_ATTEN_PARAM + b, -1, 1, 0, "Feedback attenuverter", "%", 0, 100);
-                    configInput(FEEDBACK_CV_INPUT + b, "Feedback CV");
                 }
                 initialize();
             }
@@ -118,17 +104,6 @@ namespace Sapphire
                         engine.setCenterFrequencyOffset(b, octaves);
                     }
                 }
-
-                // These parameters are not block-based, so they can be evaluated at any time.
-                for (int b = 0; b < BandCount; ++b)
-                {
-                    float delayMillis = getControlValue(DELAY_KNOB_PARAM + b, DELAY_ATTEN_PARAM + b, DELAY_CV_INPUT + b, 0, MaxDelayMillis);
-                    engine.setDelay(b, delayMillis);
-
-                    float feedback = getControlValue(FEEDBACK_KNOB_PARAM + b, FEEDBACK_ATTEN_PARAM + b, FEEDBACK_CV_INPUT + b, 0, 1);
-                    engine.setFeedback(b, feedback);
-                }
-
                 auto &input = inputs[AUDIO_INPUT];
                 auto &output = outputs[AUDIO_OUTPUT];
 
@@ -188,20 +163,6 @@ namespace Sapphire
                         BANDWIDTH_KNOB_PARAM + b,
                         BANDWIDTH_ATTEN_PARAM + b,
                         BANDWIDTH_CV_INPUT + b
-                    );
-
-                    addSapphireFlatControlGroup(
-                        string("delay_") + std::to_string(b),
-                        DELAY_KNOB_PARAM + b,
-                        DELAY_ATTEN_PARAM + b,
-                        DELAY_CV_INPUT + b
-                    );
-
-                    addSapphireFlatControlGroup(
-                        string("feedback_") + std::to_string(b),
-                        FEEDBACK_KNOB_PARAM + b,
-                        FEEDBACK_ATTEN_PARAM + b,
-                        FEEDBACK_CV_INPUT + b
                     );
                 }
                 reloadPanel();

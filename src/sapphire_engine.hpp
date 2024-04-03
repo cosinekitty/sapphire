@@ -378,15 +378,15 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, std::size_t bufsize = 10000>
+    template <typename item_t, size_t bufsize = 10000>
     class DelayLine
     {
     private:
         static_assert(bufsize > 1, "The buffer must have room for more than 1 sample.");
 
         std::vector<item_t> buffer;
-        std::size_t front = 1;               // postion where data is inserted
-        std::size_t back = 0;                // postion where data is removed
+        size_t front = 1;               // postion where data is inserted
+        size_t back = 0;                // postion where data is removed
 
     public:
         DelayLine()
@@ -394,7 +394,7 @@ namespace Sapphire
             buffer.resize(bufsize);
         }
 
-        item_t readForward(std::size_t offset) const
+        item_t readForward(size_t offset) const
         {
             // Access an item at an integer offset toward the future from the back of the delay line.
             if (offset >= bufsize)
@@ -402,7 +402,7 @@ namespace Sapphire
             return buffer.at((back + offset) % bufsize);
         }
 
-        item_t readBackward(std::size_t offset) const
+        item_t readBackward(size_t offset) const
         {
             // Access an item at an integer offset into the past from the front of the delay line.
             if (offset >= bufsize)
@@ -417,22 +417,22 @@ namespace Sapphire
             back = (back + 1) % bufsize;
         }
 
-        std::size_t getMaxLength() const
+        size_t getMaxLength() const
         {
             return bufsize - 1;
         }
 
-        std::size_t getLength() const
+        size_t getLength() const
         {
             return ((bufsize + front) - back) % bufsize;
         }
 
-        std::size_t setLength(std::size_t requestedSamples)
+        size_t setLength(size_t requestedSamples)
         {
             // If the requested number of samples is invalid, clamp it to the valid range.
             // Essentially, we do the best we can, but exact pitch control is only possible
             // within certain bounds.
-            std::size_t nsamples = std::clamp(requestedSamples, static_cast<std::size_t>(1), getMaxLength());
+            size_t nsamples = std::clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,
@@ -471,7 +471,7 @@ namespace Sapphire
     }
 
 
-    inline float SlowTaper(float x, std::size_t steps)
+    inline float SlowTaper(float x, size_t steps)
     {
         float sinc = Sinc(x);
         float taper = Blackman((x + (steps+1)) / (2*(steps+1)));
@@ -488,18 +488,18 @@ namespace Sapphire
     class InterpolatorTable
     {
     private:
-        const std::size_t steps;
-        const std::size_t nsegments;
+        const size_t steps;
+        const size_t nsegments;
         std::vector<float> table;
 
     public:
-        InterpolatorTable(std::size_t _steps, std::size_t _nsegments)
+        InterpolatorTable(size_t _steps, size_t _nsegments)
             : steps(_steps)
             , nsegments(_nsegments | 1)     // IMPORTANT: force `nsegments` to be an odd integer!
         {
             // Pre-calculate an interpolation table over the range x = [0, steps+1].
             table.resize(nsegments);
-            for (std::size_t i = 0; i < nsegments; ++i)
+            for (size_t i = 0; i < nsegments; ++i)
             {
                 float x = static_cast<float>(i * (steps+1)) / static_cast<float>(nsegments-1);
                 table[i] = SlowTaper(x, steps);
@@ -537,7 +537,7 @@ namespace Sapphire
             // All 3 indices must be in the range [0, nsegments-1].
 
             // Round to the nearest integer for the central index.
-            std::size_t imid = static_cast<std::size_t>(std::round(ir));
+            size_t imid = static_cast<size_t>(std::round(ir));
 
             // `di` = Fractional distance from the central index.
             float di = ir - static_cast<float>(imid);
@@ -576,18 +576,18 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, std::size_t steps>
+    template <typename item_t, size_t steps>
     class Interpolator
     {
     private:
         static const InterpolatorTable table;
-        static const std::size_t nsamples = 1 + 2*steps;
+        static const size_t nsamples = 1 + 2*steps;
         item_t buffer[nsamples] {};
 
     public:
         void write(int position, item_t value)
         {
-            std::size_t index = static_cast<std::size_t>(static_cast<int>(steps) + position);
+            size_t index = static_cast<size_t>(static_cast<int>(steps) + position);
             if (index >= nsamples)
                 throw std::range_error("Interpolator write position is out of bounds.");
             buffer[index] = value;
@@ -607,6 +607,6 @@ namespace Sapphire
         }
     };
 
-    template <typename item_t, std::size_t steps>
+    template <typename item_t, size_t steps>
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
 }

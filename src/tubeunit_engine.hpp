@@ -3,7 +3,6 @@
 // Sapphire tubular waveguide synth, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 
-#include <cstddef>
 #include <complex>
 
 #include "sapphire_engine.hpp"
@@ -221,9 +220,9 @@ namespace Sapphire
             // Add extra samples needed for the interpolator window, and round up to next higher integer.
             double roundTripSamples = (sampleRate / (2.0 * rootFrequency));
 
-            std::size_t nsamples = static_cast<std::size_t>(std::floor(roundTripSamples));
-            std::size_t smallerHalf = nsamples / 2;
-            std::size_t largerHalf = nsamples - smallerHalf;
+            size_t nsamples = static_cast<size_t>(std::floor(roundTripSamples));
+            size_t smallerHalf = nsamples / 2;
+            size_t largerHalf = nsamples - smallerHalf;
 
             if (largerHalf < windowSteps + 1)
                 throw std::logic_error("outbound delay line is not large enough for interpolation.");
