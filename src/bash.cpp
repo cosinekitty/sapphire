@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "sapphire_spatula_engine.hpp"
+#include "sapphire_bash_engine.hpp"
 #include "sapphire_widget.hpp"
 #include "chaos.hpp"
 
@@ -50,12 +50,27 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
                 configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
                 configParam(SPEED_ATTEN_PARAM, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configInput(SPEED_CV_INPUT, "Speed CV");
+
+                configParam(LEVEL_CHAOS_PARAM, -1, +1, 0, "Level chaos", "%", 0, 100);
+                configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Level", " dB", -10, 80);
+
+                configParam(CENTER_CHAOS_PARAM, -1, +1, 0, "Center frequency chaos", "%", 0, 100);
+                configParam(CENTER_KNOB_PARAM, -OctaveHalfRange, +OctaveHalfRange, 0, "Center frequency offset", " octaves");
+
+                configParam(WIDTH_CHAOS_PARAM, -1, +1, 0, "Bandwidth chaos", "%", 0, 100);
+                configParam(WIDTH_KNOB_PARAM, MinBandwidth, MaxBandwidth, 1, "Bandwidth", "");
+
+                configParam(DISPERSION_CHAOS_PARAM, -1, +1, 0, "Dispersion chaos", "%", 0, 100);
+                configParam(DISPERSION_KNOB_PARAM, 0, 180, 0, "Dispersion", "°");
+
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_OUTPUT, "Audio");
                 configOutput(COPY_OUTPUT, "Copy");
+
                 initialize();
             }
 

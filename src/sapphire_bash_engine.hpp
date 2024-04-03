@@ -11,7 +11,7 @@
 
 namespace Sapphire
 {
-    namespace Spatula
+    namespace Bash
     {
         inline constexpr bool IsPowerOfTwo(int n)
         {
@@ -53,6 +53,7 @@ namespace Sapphire
         }
 
 
+        constexpr float DefaultCenterFrequencyHz = 523.25113;     // 440*(2**(3/12)) = middle C
         constexpr float MinBandwidth = 0.1;
         constexpr float MaxBandwidth = 4;
         static_assert(MinBandwidth < MaxBandwidth, "Bandwidth range must be in ascending order.");
@@ -68,7 +69,7 @@ namespace Sapphire
                 {}
         };
 
-        constexpr float OctaveHalfRange = 1;
+        constexpr float OctaveHalfRange = 4;
 
         struct FrequencyBand
         {
