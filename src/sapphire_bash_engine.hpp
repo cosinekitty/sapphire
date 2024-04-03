@@ -290,37 +290,13 @@ namespace Sapphire
 
         class BandMixer : public FourierFilter
         {
-        private:
-            std::vector<Band> bandList;
-
-            void addFrequencyBand(float freqLo, float freqCenter, float freqHi)
-            {
-                const int blockSize = getBlockSize();
-                bandList.push_back(Band(blockSize, freqLo, freqCenter, freqHi));
-            }
-
         public:
+            Band band;
+
             explicit BandMixer(int _blockExponent)
                 : FourierFilter(_blockExponent)
+                , band(1 << _blockExponent, DefaultCenterFrequencyHz/2, DefaultCenterFrequencyHz, DefaultCenterFrequencyHz*2)
             {
-                const float R = std::sqrt(10.0f);
-
-                bandList.reserve(5);
-                addFrequencyBand(0, 100, 100*R);
-                addFrequencyBand(100, 100*R, 1000);
-                addFrequencyBand(100*R, 1000, 1000*R);
-                addFrequencyBand(1000, 1000*R, 10000);
-                addFrequencyBand(1000*R, 10000, 20000);
-            }
-
-            int getBandCount() const
-            {
-                return static_cast<int>(bandList.size());
-            }
-
-            Band& band(int b)
-            {
-                return bandList.at(b);
             }
 
             void onSpectrum(float sampleRateHz, int length, const float* inSpectrum, float* outSpectrum) override
@@ -328,37 +304,33 @@ namespace Sapphire
                 for (int index = 0; index < length; ++index)
                     outSpectrum[index] = 0;
 
-                for (Band& b : bandList)
+                if (band.isDispersionAngleReady)
                 {
-                    if (b.isDispersionAngleReady)
-                    {
-                        b.dispersion.setStandardDeviationAngle(b.pendingDispersionAngle);
-                        b.isDispersionAngleReady = false;
-                    }
+                    band.dispersion.setStandardDeviationAngle(band.pendingDispersionAngle);
+                    band.isDispersionAngleReady = false;
+                }
 
-                    // Lazy-update each band curve. This allows callers to mutate several parameters
-                    // that affect the band curves, without recalculating the curves each time.
-                    b.window.updateCurve();
+                // Lazy-update each band curve. This allows callers to mutate several parameters
+                // that affect the band curves, without recalculating the curves each time.
+                band.window.updateCurve();
 
-                    // Apply and accumulate the band curve's effect on the signal.
-                    IndexRange range = b.window.getIndexRange();
-                    for (int spectrumIndex = range.lo; spectrumIndex <= range.hi; ++spectrumIndex)
-                    {
-                        int realIndex = 2*spectrumIndex;
-                        int imagIndex = realIndex + 1;
-                        float k = b.amplitude * b.window.getCurve(spectrumIndex);
-                        complex_t z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
-                        z *= b.dispersion.getFactor(spectrumIndex);
-                        outSpectrum[realIndex] += z.real();
-                        outSpectrum[imagIndex] += z.imag();
-                    }
+                // Apply and accumulate the band curve's effect on the signal.
+                IndexRange range = band.window.getIndexRange();
+                for (int spectrumIndex = range.lo; spectrumIndex <= range.hi; ++spectrumIndex)
+                {
+                    int realIndex = 2*spectrumIndex;
+                    int imagIndex = realIndex + 1;
+                    float k = band.amplitude * band.window.getCurve(spectrumIndex);
+                    complex_t z(k * inSpectrum[realIndex], k * inSpectrum[imagIndex]);
+                    z *= band.dispersion.getFactor(spectrumIndex);
+                    outSpectrum[realIndex] += z.real();
+                    outSpectrum[imagIndex] += z.imag();
                 }
             }
 
             void setSampleRate(float sampleRateHz)
             {
-                for (Band& b : bandList)
-                    b.window.setSampleRate(sampleRateHz);
+                band.window.setSampleRate(sampleRateHz);
             }
         };
 
@@ -475,35 +447,35 @@ namespace Sapphire
                 return channelProcArray[c]->getBandMixer();
             }
 
-            void setBandAmplitude(int band, float amp)
+            void setBandAmplitude(float amp)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
-                    channelProcArray[c]->getBandMixer().band(band).amplitude = amp;
+                    channelProcArray[c]->getBandMixer().band.amplitude = amp;
             }
 
-            void setBandDispersion(int bandIndex, float dispersionStandardDeviationDegrees)
+            void setBandDispersion(float dispersionStandardDeviationDegrees)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
                 {
-                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    Band& band = channelProcArray[c]->getBandMixer().band;
                     band.setPendingDispersion(dispersionStandardDeviationDegrees);
                 }
             }
 
-            void setBandWidth(int bandIndex, float bandwidth = 1)
+            void setBandWidth(float bandwidth = 1)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
                 {
-                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    Band& band = channelProcArray[c]->getBandMixer().band;
                     band.window.setBandwidth(bandwidth);
                 }
             }
 
-            void setCenterFrequencyOffset(int bandIndex, float octaves = 0)
+            void setCenterFrequencyOffset(float octaves = 0)
             {
                 for (int c = 0; c < MaxFrameChannels; ++c)
                 {
-                    Band& band = channelProcArray[c]->getBandMixer().band(bandIndex);
+                    Band& band = channelProcArray[c]->getBandMixer().band;
                     band.window.setCenterFrequencyOffset(octaves);
                 }
             }

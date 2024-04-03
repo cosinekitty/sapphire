@@ -7,6 +7,8 @@ namespace Sapphire
 {
     namespace Bash
     {
+        const int BlockExponent = 11;       // 2^BlockExponent samples per block
+
         enum ParamId
         {
             SPEED_KNOB_PARAM,
@@ -45,6 +47,7 @@ namespace Sapphire
         {
             Aizawa chaos1 {+0.441, -0.782, -0.289};
             Aizawa chaos2 {-0.871, +0.248, +1.074};
+            FrameProcessor engine{BlockExponent};
 
             BashModule()
                 : SapphireModule(PARAMS_LEN)
@@ -65,7 +68,7 @@ namespace Sapphire
                 configParam(WIDTH_KNOB_PARAM, MinBandwidth, MaxBandwidth, 1, "Bandwidth", "");
 
                 configParam(DISPERSION_CHAOS_PARAM, -1, +1, 0, "Dispersion chaos", "%", 0, 100);
-                configParam(DISPERSION_KNOB_PARAM, 0, 180, 0, "Dispersion", "°");
+                configParam(DISPERSION_KNOB_PARAM, -90, +90, 0, "Dispersion", "°");
 
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_OUTPUT, "Audio");
@@ -94,6 +97,40 @@ namespace Sapphire
                 double dt = args.sampleTime * std::pow(2.0f, speed);
                 chaos1.update(dt * 0.987);
                 chaos2.update(dt);
+                if (engine.isFinalFrameBeforeBlockChange())
+                {
+                    float level = getChaosValue(LEVEL_KNOB_PARAM, LEVEL_CHAOS_PARAM, chaos1.vx(), 0, 2);
+                    engine.setBandAmplitude(level);
+
+                    float dispersion = getChaosValue(DISPERSION_KNOB_PARAM, DISPERSION_CHAOS_PARAM, chaos1.vy(), -90, +90);
+                    engine.setBandDispersion(dispersion);
+
+                    float bandwidth = getChaosValue(WIDTH_KNOB_PARAM, WIDTH_CHAOS_PARAM, chaos1.vz(), MinBandwidth, MaxBandwidth);
+                    engine.setBandWidth(bandwidth);
+
+                    float octaves = getControlValue(CENTER_KNOB_PARAM, CENTER_CHAOS_PARAM, chaos2.vx(), -OctaveHalfRange, +OctaveHalfRange);
+                    engine.setCenterFrequencyOffset(octaves);
+                }
+
+                auto &input = inputs[AUDIO_INPUT];
+                auto &output = outputs[AUDIO_OUTPUT];
+                auto &copy = outputs[COPY_OUTPUT];
+
+                FrameProcessor::frame_t inFrame;
+                inFrame.length = input.getChannels();
+                for (int c = 0; c < inFrame.length; ++c)
+                    inFrame.data[c] = input.getVoltage(c);
+
+                FrameProcessor::frame_t outFrame;
+                engine.process(args.sampleRate, inFrame, outFrame);
+
+                output.setChannels(inFrame.length);
+                copy.setChannels(inFrame.length);
+                for (int c = 0; c < outFrame.length; ++c)
+                {
+                    output.setVoltage(outFrame.data[c], c);
+                    copy.setVoltage(inFrame.data[c], c); // FIXFIXFIX: feed through delay line to sync with output
+                }
             }
         };
 

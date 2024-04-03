@@ -528,6 +528,21 @@ namespace Sapphire
             return clamp(slider, minValue, maxValue);
         }
 
+        float getChaosValue(int paramId, int chaosId, float cv, float minValue = 0, float maxValue = 1)
+        {
+            float slider = params[paramId].getValue();
+            // When the attenuverter is set to 100%, and the cv is +5V, we want
+            // to swing a slider that is all the way down (minSlider)
+            // to act like it is all the way up (maxSlider).
+            // Thus we allow the complete range of control for any CV whose
+            // range is [-5, +5] volts.
+            float attenu = params[chaosId].getValue();
+            if (isLowSensitive(chaosId))
+                attenu /= AttenuverterLowSensitivityDenom;
+            slider += attenu*(cv / 5)*(maxValue - minValue);
+            return clamp(slider, minValue, maxValue);
+        }
+
         bool isLowSensitive(int attenId) const
         {
             return paramInfo.at(attenId).isLowSensitive;
