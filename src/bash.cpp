@@ -68,7 +68,7 @@ namespace Sapphire
                 configParam(WIDTH_KNOB_PARAM, MinBandwidth, MaxBandwidth, 1, "Bandwidth", "");
 
                 configParam(DISPERSION_CHAOS_PARAM, -1, +1, 0, "Dispersion chaos", "%", 0, 100);
-                configParam(DISPERSION_KNOB_PARAM, -90, +90, 0, "Dispersion", "°");
+                configParam(DISPERSION_KNOB_PARAM, -180, +180, 0, "Dispersion", "°");
 
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_OUTPUT, "Audio");
@@ -102,7 +102,7 @@ namespace Sapphire
                     float level = getChaosValue(LEVEL_KNOB_PARAM, LEVEL_CHAOS_PARAM, chaos1.vx(), 0, 2);
                     engine.setBandAmplitude(level);
 
-                    float dispersion = getChaosValue(DISPERSION_KNOB_PARAM, DISPERSION_CHAOS_PARAM, chaos1.vy(), -90, +90);
+                    float dispersion = getChaosValue(DISPERSION_KNOB_PARAM, DISPERSION_CHAOS_PARAM, chaos1.vy(), -180, +180);
                     engine.setBandDispersion(dispersion);
 
                     float bandwidth = getChaosValue(WIDTH_KNOB_PARAM, WIDTH_CHAOS_PARAM, chaos1.vz(), MinBandwidth, MaxBandwidth);
