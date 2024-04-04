@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstddef>
 #include <cassert>
 #include <algorithm>
 #include <vector>
@@ -10,17 +11,6 @@
 
 namespace Sapphire
 {
-    inline size_t Clamp(size_t x, size_t minValue, size_t maxValue)
-    {
-        if (x < minValue)
-            return minValue;
-
-        if (x > maxValue)
-            return maxValue;
-
-        return x;
-    }
-
     template <typename real_t>
     real_t BicubicLimiter(real_t x, real_t yLimit)
     {
@@ -141,7 +131,7 @@ namespace Sapphire
             // Therefore we need to make sure the ratio count/rampLength
             // is bounded to the range [0, 1].
 
-            float gain = Clamp(static_cast<float>(count) / static_cast<float>(rampLength));
+            float gain = std::clamp(static_cast<float>(count) / static_cast<float>(rampLength), 0.0f, 1.0f);
 
             for (int c = 0; c < channels; ++c)
                 volts[c] *= gain;
@@ -389,15 +379,15 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, size_t bufsize = 10000>
+    template <typename item_t, std::size_t bufsize = 10000>
     class DelayLine
     {
     private:
         static_assert(bufsize > 1, "The buffer must have room for more than 1 sample.");
 
         std::vector<item_t> buffer;
-        size_t front = 1;               // postion where data is inserted
-        size_t back = 0;                // postion where data is removed
+        std::size_t front = 1;               // postion where data is inserted
+        std::size_t back = 0;                // postion where data is removed
 
     public:
         DelayLine()
@@ -405,7 +395,7 @@ namespace Sapphire
             buffer.resize(bufsize);
         }
 
-        item_t readForward(size_t offset) const
+        item_t readForward(std::size_t offset) const
         {
             // Access an item at an integer offset toward the future from the back of the delay line.
             if (offset >= bufsize)
@@ -413,7 +403,7 @@ namespace Sapphire
             return buffer.at((back + offset) % bufsize);
         }
 
-        item_t readBackward(size_t offset) const
+        item_t readBackward(std::size_t offset) const
         {
             // Access an item at an integer offset into the past from the front of the delay line.
             if (offset >= bufsize)
@@ -428,22 +418,22 @@ namespace Sapphire
             back = (back + 1) % bufsize;
         }
 
-        size_t getMaxLength() const
+        std::size_t getMaxLength() const
         {
             return bufsize - 1;
         }
 
-        size_t getLength() const
+        std::size_t getLength() const
         {
             return ((bufsize + front) - back) % bufsize;
         }
 
-        size_t setLength(size_t requestedSamples)
+        std::size_t setLength(std::size_t requestedSamples)
         {
             // If the requested number of samples is invalid, clamp it to the valid range.
             // Essentially, we do the best we can, but exact pitch control is only possible
             // within certain bounds.
-            size_t nsamples = Clamp(requestedSamples, static_cast<size_t>(1), getMaxLength());
+            std::size_t nsamples = std::clamp(requestedSamples, static_cast<std::size_t>(1), getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,
@@ -482,7 +472,7 @@ namespace Sapphire
     }
 
 
-    inline float SlowTaper(float x, size_t steps)
+    inline float SlowTaper(float x, std::size_t steps)
     {
         float sinc = Sinc(x);
         float taper = Blackman((x + (steps+1)) / (2*(steps+1)));
@@ -499,18 +489,18 @@ namespace Sapphire
     class InterpolatorTable
     {
     private:
-        const size_t steps;
-        const size_t nsegments;
+        const std::size_t steps;
+        const std::size_t nsegments;
         std::vector<float> table;
 
     public:
-        InterpolatorTable(size_t _steps, size_t _nsegments)
+        InterpolatorTable(std::size_t _steps, std::size_t _nsegments)
             : steps(_steps)
             , nsegments(_nsegments | 1)     // IMPORTANT: force `nsegments` to be an odd integer!
         {
             // Pre-calculate an interpolation table over the range x = [0, steps+1].
             table.resize(nsegments);
-            for (size_t i = 0; i < nsegments; ++i)
+            for (std::size_t i = 0; i < nsegments; ++i)
             {
                 float x = static_cast<float>(i * (steps+1)) / static_cast<float>(nsegments-1);
                 table[i] = SlowTaper(x, steps);
@@ -548,7 +538,7 @@ namespace Sapphire
             // All 3 indices must be in the range [0, nsegments-1].
 
             // Round to the nearest integer for the central index.
-            size_t imid = static_cast<size_t>(std::round(ir));
+            std::size_t imid = static_cast<std::size_t>(std::round(ir));
 
             // `di` = Fractional distance from the central index.
             float di = ir - static_cast<float>(imid);
@@ -587,18 +577,18 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, size_t steps>
+    template <typename item_t, std::size_t steps>
     class Interpolator
     {
     private:
         static const InterpolatorTable table;
-        static const size_t nsamples = 1 + 2*steps;
+        static const std::size_t nsamples = 1 + 2*steps;
         item_t buffer[nsamples] {};
 
     public:
         void write(int position, item_t value)
         {
-            size_t index = static_cast<size_t>(static_cast<int>(steps) + position);
+            std::size_t index = static_cast<std::size_t>(static_cast<int>(steps) + position);
             if (index >= nsamples)
                 throw std::range_error("Interpolator write position is out of bounds.");
             buffer[index] = value;
@@ -618,6 +608,6 @@ namespace Sapphire
         }
     };
 
-    template <typename item_t, size_t steps>
+    template <typename item_t, std::size_t steps>
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
 }

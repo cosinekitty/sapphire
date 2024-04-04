@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <complex>
 #include <vector>
 
 #ifdef NO_RACK_DEPENDENCY
@@ -21,16 +22,7 @@
 
 namespace Sapphire
 {
-    inline float Clamp(float x, float minValue = 0.0f, float maxValue = 1.0f)
-    {
-        if (x < minValue)
-            return minValue;
-
-        if (x > maxValue)
-            return maxValue;
-
-        return x;
-    }
+    using complex_t = std::complex<float>;
 
     class PhysicsVector
     {

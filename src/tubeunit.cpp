@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "plugin.hpp"
 #include "tubeunit_engine.hpp"
 
@@ -193,7 +194,7 @@ namespace Sapphire
                     float attenu = params[cg.attenId].getValue();
                     slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
                 }
-                return Clamp(slider, cg.minValue, cg.maxValue);
+                return std::clamp(slider, cg.minValue, cg.maxValue);
             }
 
             void updateQuiet(int c)

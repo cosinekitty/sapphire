@@ -5,7 +5,7 @@
 */
 
 #pragma once
-
+#include <algorithm>
 #include "sapphire_engine.hpp"
 
 namespace Sapphire
@@ -260,7 +260,7 @@ namespace Sapphire
 
         void setAetherSpin(float s = 0)
         {
-            aetherSpin = Clamp(s, -1.0f, +1.0f);
+            aetherSpin = std::clamp(s, -1.0f, +1.0f);
         }
 
         float getAetherVisc() const
@@ -270,7 +270,7 @@ namespace Sapphire
 
         void setAetherVisc(float v = 0)
         {
-            aetherVisc = Clamp(v, 0.0f, +1.0f);
+            aetherVisc = std::clamp(v, 0.0f, +1.0f);
         }
 
         double getAgcDistortion() const     // returns 0 when no distortion, or a positive value correlated with AGC distortion

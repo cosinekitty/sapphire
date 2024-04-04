@@ -1,9 +1,9 @@
 #pragma once
+#include <algorithm>
+#include "sapphire_engine.hpp"
 
 // Sapphire mesh physics engine, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
-
-#include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
@@ -306,24 +306,24 @@ namespace Sapphire
 
         void setFriction(float slider = 0.5f)
         {
-            halfLife = frictionMap.Evaluate(Clamp(slider));
+            halfLife = frictionMap.Evaluate(std::clamp(slider, 0.0f, 1.0f));
         }
 
         void setSpan(float slider = 0.5f)
         {
-            float restLength = spanMap.Evaluate(Clamp(slider));
+            float restLength = spanMap.Evaluate(std::clamp(slider, 0.0f, 1.0f));
             mesh.SetRestLength(restLength);
         }
 
         void setStiffness(float slider = 0.5f)
         {
-            float stiffness = stiffnessMap.Evaluate(Clamp(slider));
+            float stiffness = stiffnessMap.Evaluate(std::clamp(slider, 0.0f, 1.0f));
             mesh.SetStiffness(stiffness);
         }
 
         void setCurl(float slider = 0.0f)
         {
-            float curl = curlMap.Evaluate(Clamp(slider, -1.0f, +1.0f));
+            float curl = curlMap.Evaluate(std::clamp(slider, -1.0f, +1.0f));
             if (curl >= 0.0f)
                 mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
             else
@@ -334,27 +334,27 @@ namespace Sapphire
         {
             Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
             Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
-            lmBall.mass = rmBall.mass = 1.0e-6 * massMap.Evaluate(Clamp(slider, -1.0f, +1.0f));
+            lmBall.mass = rmBall.mass = 1.0e-6 * massMap.Evaluate(std::clamp(slider, -1.0f, +1.0f));
         }
 
         void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            drive = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f);
+            drive = std::pow(std::clamp(slider, 0.0f, 2.0f), 4.0f);
         }
 
         void setGain(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            gain = std::pow(Clamp(slider, 0.0f, 2.0f), 4.0f);
+            gain = std::pow(std::clamp(slider, 0.0f, 2.0f), 4.0f);
         }
 
         void setInputTilt(float slider = 0.5f)
         {
-            inTilt = Clamp(slider);
+            inTilt = std::clamp(slider, 0.0f, 1.0f);
         }
 
         void setOutputTilt(float slider = 0.5f)
         {
-            outTilt = Clamp(slider);
+            outTilt = std::clamp(slider, 0.0f, 1.0f);
         }
 
         bool getAgcEnabled() const { return enableAgc; }
