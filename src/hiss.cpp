@@ -41,7 +41,7 @@ namespace Sapphire
             int getDesiredChannelCount() const
             {
                 int n = static_cast<int>(std::round(value));
-                return clamp(n, 1, 16);
+                return std::clamp(n, 1, 16);
             }
 
             std::string getDisplayValueString() override

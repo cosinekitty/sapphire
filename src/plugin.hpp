@@ -275,7 +275,7 @@ namespace Sapphire
 
         void setValue(float newValue) override
         {
-            float clamped = rack::math::clamp(newValue, getMinValue(), getMaxValue());
+            float clamped = std::clamp(newValue, getMinValue(), getMaxValue());
             if (clamped != value)
             {
                 changed = true;
@@ -344,7 +344,7 @@ namespace Sapphire
     struct AgcLevelQuantity : SapphireQuantity
     {
         bool isAgcEnabled() const { return value < AGC_DISABLE_MIN; }
-        float clampedAgc() const { return clamp(value, AGC_LEVEL_MIN, AGC_LEVEL_MAX); }
+        float clampedAgc() const { return std::clamp(value, AGC_LEVEL_MIN, AGC_LEVEL_MAX); }
 
         std::string getDisplayValueString() override
         {
@@ -523,7 +523,22 @@ namespace Sapphire
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
-            return clamp(slider, minValue, maxValue);
+            return std::clamp(slider, minValue, maxValue);
+        }
+
+        float getChaosValue(int paramId, int chaosId, float cv, float minValue = 0, float maxValue = 1)
+        {
+            float slider = params[paramId].getValue();
+            // When the attenuverter is set to 100%, and the cv is +5V, we want
+            // to swing a slider that is all the way down (minSlider)
+            // to act like it is all the way up (maxSlider).
+            // Thus we allow the complete range of control for any CV whose
+            // range is [-5, +5] volts.
+            float attenu = params[chaosId].getValue();
+            if (isLowSensitive(chaosId))
+                attenu /= AttenuverterLowSensitivityDenom;
+            slider += attenu*(cv / 5)*(maxValue - minValue);
+            return std::clamp(slider, minValue, maxValue);
         }
 
         bool isLowSensitive(int attenId) const
@@ -621,7 +636,7 @@ namespace Sapphire
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
             double decibels = 20.0 * std::log10(1.0 + distortion);
-            double scale = clamp(decibels / 24.0);
+            double scale = std::clamp(decibels / 24.0, 0.0, 1.0);
 
             int red   = colorComponent(scale, 0x90, 0xff);
             int green = colorComponent(scale, 0x20, 0x50);
@@ -633,7 +648,7 @@ namespace Sapphire
 
         static int colorComponent(double scale, int lo, int hi)
         {
-            return clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+            return std::clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
         }
     };
 
