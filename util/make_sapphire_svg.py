@@ -498,6 +498,33 @@ def GenerateHissPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateSlewPanel(name: str) -> int:
+    PANEL_WIDTH = 4
+    svgFileName = '../res/{}.svg'.format(name)
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    controls = ControlLayer()
+    pl.append(controls)
+    xmid = panel.mmWidth / 2
+    ySpeedKnob = 26.0
+    yViscKnob = 57.0
+    yTargetInputPort = 80.0
+    ySlewOutputPort = 100.0
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid, ySpeedKnob)
+        AddControlGroup(pl, controls, font, 'viscosity', 'VISC', xmid, yViscKnob)
+        controls.append(Component('target_input', xmid, yTargetInputPort))
+        controls.append(Component('slew_output', xmid, ySlewOutputPort))
+    return Save(panel, svgFileName)
+
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -508,5 +535,6 @@ if __name__ == '__main__':
         GenerateNucleusPanel() or
         GeneratePolynucleusPanel() or
         GenerateHissPanel() or
+        GenerateSlewPanel('slew') or
         Print('SUCCESS')
     )
