@@ -159,6 +159,19 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
+def AddCaptionedPort(
+        pl: Element,
+        controls: ControlLayer,
+        font: Font,
+        xPort: float,
+        yPort: float,
+        symbol: str,
+        caption: str,
+        dyText: float = -6.5) -> None:
+    controls.append(Component(symbol, xPort, yPort))
+    pl.append(CenteredControlTextPath(font, caption, xPort, yPort + dyText))
+
+
 def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
@@ -511,18 +524,17 @@ def GenerateSlewPanel(name: str) -> int:
     xmid = panel.mmWidth / 2
     ySpeedKnob = 26.0
     yViscKnob = 57.0
-    yTargetInputPort = 80.0
-    ySlewOutputPort = 100.0
+    nPorts = 2
+    yPorts = FencePost(96.0, 112.0, nPorts)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid, ySpeedKnob)
         AddControlGroup(pl, controls, font, 'viscosity', 'VISC', xmid, yViscKnob)
-        controls.append(Component('target_input', xmid, yTargetInputPort))
-        controls.append(Component('slew_output', xmid, ySlewOutputPort))
+        AddCaptionedPort(pl, controls, font, xmid, yPorts.value(0), 'target_input', 'IN')
+        AddCaptionedPort(pl, controls, font, xmid, yPorts.value(1), 'slew_output', 'OUT')
     return Save(panel, svgFileName)
-
 
 
 if __name__ == '__main__':

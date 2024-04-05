@@ -18,6 +18,7 @@ extern Model* modelHiss;
 extern Model* modelMoots;
 extern Model* modelNucleus;
 extern Model* modelPolynucleus;
+extern Model* modelSlew;
 extern Model* modelTin;
 extern Model* modelTout;
 extern Model* modelTricorder;

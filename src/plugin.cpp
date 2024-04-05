@@ -18,6 +18,7 @@ void init(Plugin* p)
     p->addModel(modelMoots);
     p->addModel(modelNucleus);
     p->addModel(modelPolynucleus);
+    p->addModel(modelSlew);
     p->addModel(modelTin);
     p->addModel(modelTout);
     p->addModel(modelTricorder);

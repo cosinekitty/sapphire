@@ -86,6 +86,16 @@
       ]
     },
     {
+      "slug": "Slew",
+      "name": "Slew",
+      "description": "An inertial slew limiter. Idea by Joe Sayer.",
+      "tags": [
+        "Slew limiter",
+        "Physical modeling",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "Tin",
       "name": "Tin",
       "description": "Feeds arbitrary input signals into Tricorder.",
