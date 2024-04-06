@@ -1,6 +1,7 @@
 #pragma once
 #include <rack.hpp>
 #include <vector>
+#include <algorithm>
 
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -608,6 +609,21 @@ namespace Sapphire
                     }
                 }
             }
+        }
+
+        int numOutputChannels(int numInputs)
+        {
+            int nc = 0;
+            for (int i = 0; i < numInputs; ++i)
+                nc = std::max(nc, inputs[i].getChannels());
+            return nc;
+        }
+
+        void nextChannelInputVoltage(float& voltage, int inputId, int channel)
+        {
+            rack::engine::Input& input = inputs[inputId];
+            if (channel < input.getChannels())
+                voltage = input.getVoltage(channel);
         }
     };
 

@@ -1,4 +1,3 @@
-#include <algorithm>
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
 
@@ -74,19 +73,9 @@ namespace Sapphire
                 initialize();
             }
 
-            void nextChannelInputVoltage(float& v, rack::engine::Input& input, int c)
-            {
-                if (c < input.getChannels())
-                    v = input.getVoltage(c);
-            }
-
             void process(const ProcessArgs& args) override
             {
-                // Find the largest channel count of all input cables.
-                // This becomes the number of output channels.
-                int nc = inputs[TARGET_INPUT].getChannels();
-                nc = std::max(nc, inputs[SPEED_CV_INPUT].getChannels());
-                nc = std::max(nc, inputs[VISCOSITY_CV_INPUT].getChannels());
+                const int nc = numOutputChannels(INPUTS_LEN);
                 outputs[SLEW_OUTPUT].setChannels(nc);
 
                 float vTarget = 0;
@@ -94,9 +83,9 @@ namespace Sapphire
                 float cvViscosity = 0;
                 for (int c = 0; c < nc; ++c)
                 {
-                    nextChannelInputVoltage(vTarget, inputs[TARGET_INPUT], c);
-                    nextChannelInputVoltage(cvSpeed, inputs[SPEED_CV_INPUT], c);
-                    nextChannelInputVoltage(cvViscosity, inputs[VISCOSITY_CV_INPUT], c);
+                    nextChannelInputVoltage(vTarget, TARGET_INPUT, c);
+                    nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
+                    nextChannelInputVoltage(cvViscosity, VISCOSITY_CV_INPUT, c);
                     float vSlewOutput = vTarget;        // FIXFIXFIX: replace with slewing wizardry
                     outputs[SLEW_OUTPUT].setVoltage(vSlewOutput, c);
                 }
