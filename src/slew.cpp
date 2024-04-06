@@ -93,7 +93,8 @@ namespace Sapphire
                     nextChannelInputVoltage(cvViscosity, VISCOSITY_CV_INPUT, c);
                     float speed = cvGetControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, cvSpeed, MinSpeed, MaxSpeed);
                     float viscosity = cvGetControlValue(VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, cvViscosity, MinViscosity, MaxViscosity);
-                    float vSlewOutput = engine[c].process(args.sampleRate, vTarget, speed, viscosity);
+                    float dt = args.sampleTime * std::pow(2.0f, speed);
+                    float vSlewOutput = engine[c].process(dt, vTarget, viscosity);
                     outputs[SLEW_OUTPUT].setVoltage(vSlewOutput, c);
                 }
             }
