@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_slew_engine.hpp"
 
 // Sapphire Slew for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>.
 // Inertial slew limiter idea by Joe Sayer <joesayeruk@gmail.com>.
@@ -44,6 +45,8 @@ namespace Sapphire
 
         struct SlewModule : SapphireModule
         {
+            Slew::Engine engine[PORT_MAX_CHANNELS];
+
             SlewModule()
                 : SapphireModule(PARAMS_LEN)
             {
@@ -52,11 +55,11 @@ namespace Sapphire
                 configInput(TARGET_INPUT, "Target");
                 configOutput(SLEW_OUTPUT, "Slew");
 
-                configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
+                configParam(SPEED_KNOB_PARAM, MinSpeed, MaxSpeed, DefaultSpeed, "Speed");
                 configParam(SPEED_ATTEN_PARAM, -1, +1, 0, "Speed attenuverter", "%", 0, 100);
                 configInput(SPEED_CV_INPUT, "Speed CV");
 
-                configParam(VISCOSITY_KNOB_PARAM, 0, 1, 0.5, "Viscosity");
+                configParam(VISCOSITY_KNOB_PARAM, MinViscosity, MaxViscosity, DefaultViscosity, "Viscosity");
                 configParam(VISCOSITY_ATTEN_PARAM, -1, +1, 0, "Viscosity attenuverter", "%", 0, 100);
                 configInput(VISCOSITY_CV_INPUT, "Viscosity CV");
 
@@ -65,6 +68,8 @@ namespace Sapphire
 
             void initialize()
             {
+                for (int i = 0; i < PORT_MAX_CHANNELS; ++i)
+                    engine[i].initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -86,7 +91,9 @@ namespace Sapphire
                     nextChannelInputVoltage(vTarget, TARGET_INPUT, c);
                     nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
                     nextChannelInputVoltage(cvViscosity, VISCOSITY_CV_INPUT, c);
-                    float vSlewOutput = vTarget;        // FIXFIXFIX: replace with slewing wizardry
+                    float speed = cvGetControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, cvSpeed, MinSpeed, MaxSpeed);
+                    float viscosity = cvGetControlValue(VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, cvViscosity, MinViscosity, MaxViscosity);
+                    float vSlewOutput = engine[c].process(args.sampleRate, vTarget, speed, viscosity);
                     outputs[SLEW_OUTPUT].setVoltage(vSlewOutput, c);
                 }
             }
