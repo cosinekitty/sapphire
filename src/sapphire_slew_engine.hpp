@@ -33,7 +33,8 @@ namespace Sapphire
         class Engine
         {
         private:
-            const float max_dt = 0.001;    // decrease as needed for stability
+            const float speedFactor = 100;
+            const float max_dt = -1;
             ParticleState particle;
 
             static ParticleState extrapolate(ParticleState state, float acc, float dt, float friction)
@@ -71,7 +72,7 @@ namespace Sapphire
             float process(float dt, float targetPos, float viscosity)
             {
                 const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
-                const double et = dt / n;
+                const double et = speedFactor * (dt / n);
                 const float halflife = getHalfLife(viscosity);
                 const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
                 for (int i = 0; i < n; ++i)

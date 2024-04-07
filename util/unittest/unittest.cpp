@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <random>
+#include "sapphire_slew_engine.hpp"
 #include "sapphire_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
@@ -17,7 +19,7 @@ static int Pass(const std::string name)
     return 0;
 }
 
-using UnitTestFunction = int (*) ();
+using UnitTestFunction = std::function<int()>;
 
 struct UnitTest
 {
@@ -33,6 +35,7 @@ static int DelayLineTest();
 static int InterpolatorTest();
 static int TaperTest();
 static int QuadraticTest();
+static int SlewEngineTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -43,6 +46,7 @@ static const UnitTest CommandTable[] =
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
+    { "slew",       SlewEngineTest },
     { "taper",      TaperTest },
     { nullptr,  nullptr }
 };
@@ -574,7 +578,6 @@ static int QuadraticTest()
     return Pass("QuadraticTest");
 }
 
-
 static int CheckLimits(const Sapphire::ChaoticOscillator& osc)
 {
     double x = osc.vx();
@@ -666,3 +669,40 @@ static int ChaosTest()
         Pass("ChaosTest");
 }
 
+
+static int SlewEngineViscosity(float viscosity, const char *outFileName)
+{
+    FILE *outfile = fopen(outFileName, "wt");
+    if (outfile == nullptr)
+        return Fail("SlewEngineViscosity", std::string("Cannot open output file: ") + outFileName);
+
+    // Feed a unit step function (0 at negative times, 1 afterward)
+    // through the Sapphire Slew Engine. Record the results for analysis.
+    Sapphire::Slew::Engine engine;
+
+    const float sampleRateHz = 48000;
+    const float dt = 1/sampleRateHz;
+    const int nsamples = static_cast<int>(sampleRateHz/4);
+
+    float t = 0;
+    for (int sample = 0; sample < nsamples; ++sample, t += dt)
+    {
+        float y = engine.process(dt, 1, viscosity);
+        fprintf(outfile, "%6d  %10.6f  %10.6f\n", sample, t, y);
+    }
+
+    fclose(outfile);
+    return 0;
+}
+
+
+static int SlewEngineTest()
+{
+    using namespace Sapphire::Slew;
+    return
+        SlewEngineViscosity(DefaultViscosity, "output/slew_step_visc_def.txt") ||
+        SlewEngineViscosity(MinViscosity,     "output/slew_step_visc_min.txt") ||
+        SlewEngineViscosity(MaxViscosity,     "output/slew_step_visc_max.txt") ||
+        Pass("SlewEngineTest")
+    ;
+}
