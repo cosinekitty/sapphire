@@ -65,8 +65,8 @@ namespace Sapphire
 
             state_vector_t update(float dt, accel_function_t accel)
             {
-                // This Runge-Kutta method is adapted from a Microsoft Copilot conversation:
-                // https://copilot.microsoft.com/sl/gb6qoDZ1ELQ
+                // For derivation, see the (RK4) equation (20) in:
+                // https://web.mit.edu/10.001/Web/Course_Notes/Differential_Equations_Notes/node5.html
                 state_vector_t k1 = derivative(state.r              , state.v,               accel);
                 state_vector_t k2 = derivative(state.r + (dt/2)*k1.r, state.v + (dt/2)*k1.v, accel);
                 state_vector_t k3 = derivative(state.r + (dt/2)*k2.r, state.v + (dt/2)*k2.v, accel);
