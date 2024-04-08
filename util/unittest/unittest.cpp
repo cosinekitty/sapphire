@@ -711,9 +711,38 @@ static int SlewEngineTest()
 }
 
 
+class EarthGravityFunction
+{
+public:
+    using vec_t = Sapphire::PhysicsVector;
+
+    vec_t operator() (vec_t r, vec_t v) const       // satisfies Sapphire::Integrator::AccelerationFunction
+    {
+        const float R = 6.371e+6;       // radius of the Earth in [m]
+        const float gSurface = 9.8;     // surface gravity in [m/s^2]
+        float ratio = Sapphire::Magnitude(r) / R;
+        if (ratio < 1)
+            return ratio * gSurface;
+
+        return gSurface / (ratio * ratio);
+    }
+};
+
+
 static int IntegratorTest()
 {
-    Sapphire::Integrator::Engine<float> engine;
-    engine.initialize();
+    using vec_t = Sapphire::PhysicsVector;
+    using integrator_t = Sapphire::Integrator::Engine<vec_t>;
+    using state_t = Sapphire::Integrator::StateVector<vec_t>;
+
+    const float dt = 100.0;
+
+    integrator_t engine;
+    state_t p1;
+    p1.r = vec_t{1.0e+7, 0, 0, 0};
+    p1.v = vec_t{0, 1000, 0, 0};
+    engine.setState(p1);
+    state_t p2 = engine.update(dt, EarthGravityFunction{});
+    printf("IntegratorTest: r=(%g, %g, %g), v=(%g, %g, %g)\n", p2.r[0], p2.r[1], p2.r[2], p2.v[0], p2.v[1], p2.v[2]);
     return Pass("IntegratorTest");
 }
