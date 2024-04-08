@@ -1,4 +1,5 @@
 #pragma once
+#include "sapphire_integrator.hpp"
 
 namespace Sapphire
 {
@@ -12,62 +13,34 @@ namespace Sapphire
         const float MaxViscosity = +1;
         const float DefViscosity = 0;
 
-        struct ParticleState
-        {
-            float pos;
-            float vel;
-
-            ParticleState()
-                : pos(0)
-                , vel(0)
-                {}
-
-            explicit ParticleState(float _pos, float _vel)
-                : pos(_pos)
-                , vel(_vel)
-                {}
-        };
-
-
-        inline ParticleState derivative(float pos, float vel, float m, float mu, float k)
-        {
-            return ParticleState {
-                vel,                    // already known: derivative of position = velocity
-                -(mu*vel + k*pos)/m     // acceleration = force / mass
-            };
-        }
-
 
         class Engine
         {
         private:
+            using integrator_t = Sapphire::Integrator::Engine<float>;
+            using state_vector_t = integrator_t::state_vector_t;
+
             const float m = 0.001;      // mass of the particle in [kg]
             const float max_dt = -1;
-            ParticleState particle;
+            integrator_t integrator;
 
-            void step(float dt, float targetPos, float mu, float k)
-            {
-                // This Runge-Kutta simulation is adapted from a Microsoft Copilot conversation:
-                // https://copilot.microsoft.com/sl/gb6qoDZ1ELQ
-                float pos = particle.pos - targetPos;
-                float vel = particle.vel;
-                ParticleState k1 = derivative(pos, vel, m, mu, k);
-                ParticleState k2 = derivative(pos + dt/2*k1.pos, vel + dt/2*k1.vel, m, mu, k);
-                ParticleState k3 = derivative(pos + dt/2*k2.pos, vel + dt/2*k2.vel, m, mu, k);
-                ParticleState k4 = derivative(pos + dt*k3.pos,   vel + dt*k3.vel,   m, mu, k);
-                float dx = (dt/6)*(k1.pos + 2*k2.pos + 2*k3.pos + k4.pos);
-                float dv = (dt/6)*(k1.vel + 2*k2.vel + 2*k3.vel + k4.vel);
-                particle.pos += dx;
-                particle.vel += dv;
-            }
+            // Working variables for scratchpad use.
+            float mu{};     // damping constant
+            float k{};      // spring stiffness
+            float r0{};     // target position
 
         public:
             void initialize()
             {
-                particle = ParticleState{};
+                integrator.setState(state_vector_t{});
             }
 
-            ParticleState process(float dt, float targetPos, float viscosity)
+            float operator() (float r, float v) const   // for supporting Integrator::AccelerationFunction
+            {
+                return -(mu*v + k*(r - r0))/m;
+            }
+
+            state_vector_t process(float dt, float targetPos, float viscosity)
             {
                 // `targetPos` is the position the particle is being pulled toward by the spring.
 
@@ -84,13 +57,16 @@ namespace Sapphire
                 const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
                 float zeta = std::max(0.0f, factor*viscosity + 1);
                 const float tau = 0.003;     // time constant in seconds
-                float k = m / (tau*tau);    // spring constant in [N/m] = [kg/s^2]
-                float mu = 2 * (m/tau) * zeta;
 
+                // We are passing parameters to our operator() callback in a sneaky way.
+                // This is what I call a hillbilly closure.
+                k = m / (tau*tau);
+                mu = 2 * (m/tau) * zeta;
+                r0 = targetPos;
                 for (int i = 0; i < n; ++i)
-                    step(et, targetPos, mu, k);
+                    integrator.update(et, *this);
 
-                return particle;
+                return integrator.getState();
             }
         };
     }
