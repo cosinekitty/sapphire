@@ -81,11 +81,9 @@ namespace Sapphire
                 const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
                 const double et = dt / n;
 
-                // double zeta = mu / (2*sqrt(m*k));  // damping ratio
-                // mu = 2*sqrt(m*k)*zeta
                 const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
                 float zeta = std::max(0.0f, factor*viscosity + 1);
-                const float tau = 0.01;     // time constant in seconds
+                const float tau = 0.003;     // time constant in seconds
                 float k = m / (tau*tau);    // spring constant in [N/m] = [kg/s^2]
                 float mu = 2 * (m/tau) * zeta;
 

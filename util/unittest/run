@@ -12,5 +12,10 @@ echo "Running unit tests..."
 echo "Verifying output audio..."
 sha256sum -c audio_hash.txt || exit 1
 
+for kind in def min max; do
+    echo "Verifying slew output: $kind"
+    diff {correct,output}/slew_step_visc_${kind}.txt || exit 1
+done
+
 echo "Unit tests: PASS"
 exit 0
