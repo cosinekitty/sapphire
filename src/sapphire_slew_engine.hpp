@@ -6,12 +6,12 @@ namespace Sapphire
     namespace Slew
     {
         const float MinSpeed = -7;
-        const float DefSpeed = 0;
+        const float DefSpeed =  0;
         const float MaxSpeed = +7;
 
         const float MinViscosity = -1;
+        const float DefViscosity =  0;
         const float MaxViscosity = +1;
-        const float DefViscosity = 0;
 
         class Engine
         {
@@ -45,14 +45,13 @@ namespace Sapphire
                 const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
                 float zeta = std::max(0.0f, factor*viscosity + 1);
                 const float tau = 0.003;     // time constant in seconds
-                const float m = 0.001;      // mass of the particle in [kg]
-                const float k   = m / (tau*tau);
-                const float mu  = 2 * (m/tau) * zeta;
+                const float k_over_m = 1 / (tau*tau);
+                const float mu_over_m  = (2*zeta) / tau;
                 const float r0  = targetPos;
 
-                auto accel = [m, mu, k, r0] (float r, float v) -> float
+                auto accel = [mu_over_m, k_over_m, r0] (float r, float v) -> float
                 {
-                    return -(mu*v + k*(r - r0))/m;
+                    return -(mu_over_m*v + k_over_m*(r - r0));
                 };
 
                 for (int i = 0; i < n; ++i)
