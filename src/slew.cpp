@@ -94,8 +94,8 @@ namespace Sapphire
                     float speed = cvGetControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, cvSpeed, MinSpeed, MaxSpeed);
                     float viscosity = cvGetControlValue(VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, cvViscosity, MinViscosity, MaxViscosity);
                     float dt = args.sampleTime * std::pow(2.0f, speed);
-                    ParticleState particle = engine[c].process(dt, vTarget, viscosity);
-                    outputs[SLEW_OUTPUT].setVoltage(particle.pos, c);
+                    auto particle = engine[c].process(dt, vTarget, viscosity);
+                    outputs[SLEW_OUTPUT].setVoltage(particle.r, c);
                 }
             }
         };
