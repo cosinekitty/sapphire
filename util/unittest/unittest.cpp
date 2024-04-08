@@ -2,6 +2,7 @@
 #include <cstring>
 #include <functional>
 #include <random>
+#include "sapphire_integrator.hpp"
 #include "sapphire_slew_engine.hpp"
 #include "sapphire_engine.hpp"
 #include "wavefile.hpp"
@@ -442,12 +443,6 @@ static int DelayLineTest()
 }
 
 
-static int IntegratorTest()
-{
-    return Pass("IntegratorTest");
-}
-
-
 static int InterpolatorTest()
 {
     using namespace Sapphire;
@@ -713,4 +708,12 @@ static int SlewEngineTest()
         SlewEngineViscosity(MaxViscosity, "output/slew_step_visc_max.txt") ||
         Pass("SlewEngineTest")
     ;
+}
+
+
+static int IntegratorTest()
+{
+    Sapphire::Integrator::Engine<float> engine;
+    engine.initialize();
+    return Pass("IntegratorTest");
 }
