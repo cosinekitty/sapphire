@@ -13,31 +13,19 @@ namespace Sapphire
         const float MaxViscosity = +1;
         const float DefViscosity = 0;
 
-
         class Engine
         {
         private:
             using integrator_t = Sapphire::Integrator::Engine<float>;
             using state_vector_t = integrator_t::state_vector_t;
 
-            const float m = 0.001;      // mass of the particle in [kg]
             const float max_dt = -1;
             integrator_t integrator;
-
-            // Working variables for scratchpad use.
-            float mu{};     // damping constant
-            float k{};      // spring stiffness
-            float r0{};     // target position
 
         public:
             void initialize()
             {
                 integrator.setState(state_vector_t{0, 0});
-            }
-
-            float operator() (float r, float v) const   // for supporting Integrator::AccelerationFunction
-            {
-                return -(mu*v + k*(r - r0))/m;
             }
 
             state_vector_t process(float dt, float targetPos, float viscosity)
@@ -57,14 +45,18 @@ namespace Sapphire
                 const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
                 float zeta = std::max(0.0f, factor*viscosity + 1);
                 const float tau = 0.003;     // time constant in seconds
+                const float m = 0.001;      // mass of the particle in [kg]
+                const float k   = m / (tau*tau);
+                const float mu  = 2 * (m/tau) * zeta;
+                const float r0  = targetPos;
 
-                // We are passing parameters to our operator() callback in a sneaky way.
-                // This is what I call a hillbilly closure.
-                k = m / (tau*tau);
-                mu = 2 * (m/tau) * zeta;
-                r0 = targetPos;
+                auto accel = [m, mu, k, r0](float r, float v)
+                {
+                    return -(mu*v + k*(r - r0))/m;
+                };
+
                 for (int i = 0; i < n; ++i)
-                    integrator.update(et, *this);
+                    integrator.update(et, accel);
 
                 return integrator.getState();
             }
