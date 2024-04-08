@@ -5,13 +5,12 @@ namespace Sapphire
     namespace Slew
     {
         const float MinSpeed = -7;
-        const float DefaultSpeed = 0;
+        const float DefSpeed = 0;
         const float MaxSpeed = +7;
 
-        const float MinViscosity = 0;
-        const float MaxViscosity = 1;
-        const float DefaultViscosity = 0.5;
-
+        const float MinViscosity = -1;
+        const float MaxViscosity = +1;
+        const float DefViscosity = 0;
 
         struct ParticleState
         {
@@ -30,53 +29,67 @@ namespace Sapphire
         };
 
 
+        inline ParticleState derivative(float pos, float vel, float mass, float damp, float spring)
+        {
+            return ParticleState {
+                vel,
+                (damp/mass)*vel - (spring/mass)*pos
+            };
+        }
+
+
         class Engine
         {
         private:
-            const float speedFactor = 100;
+            const float m = 0.001;      // mass of the particle in [kg]
             const float max_dt = -1;
             ParticleState particle;
 
-            static ParticleState extrapolate(ParticleState state, float acc, float dt, float friction)
+            void step(float dt, float targetPos, float mu, float k)
             {
-                float dv = dt * acc;
-                float v2 = state.vel + dv;       // final velocity
-                float vm = state.vel + dv/2;     // mean velocity over the interval
-                return ParticleState(state.pos + dt*vm, v2*friction);
-            }
-
-            void step(float dt, float targetPos, float friction)
-            {
-                float acc1 = dt*(targetPos - particle.pos);      // Hooke's Law for spring force F = ma = kx
-                ParticleState midpoint = extrapolate(particle, acc1, dt / 2, friction);
-
-                float acc2 = dt*(targetPos - midpoint.pos);     // approximate the mean acceleration over the interval
-                particle = extrapolate(particle, acc2, dt, friction);
-            }
-
-            float getHalfLife(float viscosity)
-            {
-                const int minExp = -1;
-                const int maxExp = +2;
-                const float exponent = maxExp - viscosity*(minExp - maxExp);
-                return std::pow(10.0f, exponent);
+                // This Runge-Kutta simulation is adapted from a Microsoft Copilot conversation:
+                // https://copilot.microsoft.com/sl/gb6qoDZ1ELQ
+                float pos = particle.pos - targetPos;
+                float vel = particle.vel;
+                ParticleState k1 = derivative(pos, particle.vel, m, mu, k);
+                ParticleState k2 = derivative(pos + dt/2*k1.pos, vel + dt/2*k1.vel, m, mu, k);
+                ParticleState k3 = derivative(pos + dt/2*k2.pos, vel + dt/2*k2.vel, m, mu, k);
+                ParticleState k4 = derivative(pos + dt*k3.pos,   vel + dt*k3.vel,   m, mu, k);
+                particle.pos += (dt/6)*(k1.pos + 2*k2.pos + 2*k3.pos + k4.pos);
+                particle.vel += (dt/6)*(k1.vel + 2*k2.vel + 2*k3.vel + k4.vel);
             }
 
         public:
             void initialize()
             {
-                particle.pos = 0;
-                particle.vel = 0;
+                particle = ParticleState{};
             }
 
             float process(float dt, float targetPos, float viscosity)
             {
+                // `targetPos` is the position the particle is being pulled toward by the spring.
+
+                // `viscosity` is a knob value that goes from -1 to +1, with a default value of 0.
+                // So it can mean whatever we want.
+                // In this case, we want it to mean that the default (0) indicates critical damping.
+                // -1 should be nearly frictionless and oscillating for a long time after an impulse.
+                // +1 should be deeply damped, where it takes forever to reach a new step level.
+
+                // Determine how much oversampling we need for reliable stability and accuracy.
                 const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
-                const double et = speedFactor * (dt / n);
-                const float halflife = getHalfLife(viscosity);
-                const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
+                const double et = dt / n;
+
+                // double zeta = mu / (2*sqrt(m*k));  // damping ratio
+                // mu = 2*sqrt(m*k)*zeta
+                const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
+                float zeta = std::max(0.0f, factor*viscosity + 1);
+                const float tau = 0.1;      // time constant in seconds
+                float k = m / (tau*tau);    // spring constant in [N/m] = [kg/s^2]
+                float mu = 2 * std::sqrt(m*k) * zeta;
+
                 for (int i = 0; i < n; ++i)
-                    step(et, targetPos, friction);
+                    step(et, targetPos, mu, k);
+
                 return particle.pos;
             }
         };

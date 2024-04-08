@@ -55,11 +55,11 @@ namespace Sapphire
                 configInput(TARGET_INPUT, "Target");
                 configOutput(SLEW_OUTPUT, "Slew");
 
-                configParam(SPEED_KNOB_PARAM, MinSpeed, MaxSpeed, DefaultSpeed, "Speed");
+                configParam(SPEED_KNOB_PARAM, MinSpeed, MaxSpeed, DefSpeed, "Speed");
                 configParam(SPEED_ATTEN_PARAM, -1, +1, 0, "Speed attenuverter", "%", 0, 100);
                 configInput(SPEED_CV_INPUT, "Speed CV");
 
-                configParam(VISCOSITY_KNOB_PARAM, MinViscosity, MaxViscosity, DefaultViscosity, "Viscosity");
+                configParam(VISCOSITY_KNOB_PARAM, MinViscosity, MaxViscosity, DefViscosity, "Viscosity");
                 configParam(VISCOSITY_ATTEN_PARAM, -1, +1, 0, "Viscosity attenuverter", "%", 0, 100);
                 configInput(VISCOSITY_CV_INPUT, "Viscosity CV");
 

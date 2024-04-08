@@ -700,9 +700,9 @@ static int SlewEngineTest()
 {
     using namespace Sapphire::Slew;
     return
-        SlewEngineViscosity(DefaultViscosity, "output/slew_step_visc_def.txt") ||
-        SlewEngineViscosity(MinViscosity,     "output/slew_step_visc_min.txt") ||
-        SlewEngineViscosity(MaxViscosity,     "output/slew_step_visc_max.txt") ||
+        SlewEngineViscosity(DefViscosity, "output/slew_step_visc_def.txt") ||
+        SlewEngineViscosity(MinViscosity, "output/slew_step_visc_min.txt") ||
+        SlewEngineViscosity(MaxViscosity, "output/slew_step_visc_max.txt") ||
         Pass("SlewEngineTest")
     ;
 }
