@@ -87,7 +87,7 @@ namespace Sapphire
                 float zeta = std::max(0.0f, factor*viscosity + 1);
                 const float tau = 0.01;     // time constant in seconds
                 float k = m / (tau*tau);    // spring constant in [N/m] = [kg/s^2]
-                float mu = 2 * std::sqrt(m*k) * zeta;
+                float mu = 2 * (m/tau) * zeta;
 
                 for (int i = 0; i < n; ++i)
                     step(et, targetPos, mu, k);
