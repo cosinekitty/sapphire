@@ -687,8 +687,8 @@ static int SlewEngineViscosity(float viscosity, const char *outFileName)
     float t = 0;
     for (int sample = 0; sample < nsamples; ++sample, t += dt)
     {
-        float y = engine.process(dt, 1, viscosity);
-        fprintf(outfile, "%6d  %10.6f  %10.6f\n", sample, t, y);
+        Sapphire::Slew::ParticleState state = engine.process(dt, 1, viscosity);
+        fprintf(outfile, "%6d  %10.6f  %10.6f  %10.6f\n", sample, t, state.pos, state.vel);
     }
 
     fclose(outfile);

@@ -51,12 +51,14 @@ namespace Sapphire
                 // https://copilot.microsoft.com/sl/gb6qoDZ1ELQ
                 float pos = particle.pos - targetPos;
                 float vel = particle.vel;
-                ParticleState k1 = derivative(pos, particle.vel, m, mu, k);
+                ParticleState k1 = derivative(pos, vel, m, mu, k);
                 ParticleState k2 = derivative(pos + dt/2*k1.pos, vel + dt/2*k1.vel, m, mu, k);
                 ParticleState k3 = derivative(pos + dt/2*k2.pos, vel + dt/2*k2.vel, m, mu, k);
                 ParticleState k4 = derivative(pos + dt*k3.pos,   vel + dt*k3.vel,   m, mu, k);
-                particle.pos += (dt/6)*(k1.pos + 2*k2.pos + 2*k3.pos + k4.pos);
-                particle.vel += (dt/6)*(k1.vel + 2*k2.vel + 2*k3.vel + k4.vel);
+                float dx = (dt/6)*(k1.pos + 2*k2.pos + 2*k3.pos + k4.pos);
+                float dv = (dt/6)*(k1.vel + 2*k2.vel + 2*k3.vel + k4.vel);
+                particle.pos += dx;
+                particle.vel += dv;
             }
 
         public:
@@ -65,7 +67,7 @@ namespace Sapphire
                 particle = ParticleState{};
             }
 
-            float process(float dt, float targetPos, float viscosity)
+            ParticleState process(float dt, float targetPos, float viscosity)
             {
                 // `targetPos` is the position the particle is being pulled toward by the spring.
 
@@ -83,14 +85,14 @@ namespace Sapphire
                 // mu = 2*sqrt(m*k)*zeta
                 const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
                 float zeta = std::max(0.0f, factor*viscosity + 1);
-                const float tau = 0.1;      // time constant in seconds
+                const float tau = 0.01;     // time constant in seconds
                 float k = m / (tau*tau);    // spring constant in [N/m] = [kg/s^2]
                 float mu = 2 * std::sqrt(m*k) * zeta;
 
                 for (int i = 0; i < n; ++i)
                     step(et, targetPos, mu, k);
 
-                return particle.pos;
+                return particle;
             }
         };
     }
