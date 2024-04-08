@@ -33,6 +33,7 @@ static int ReadWave();
 static int AutoScale();
 static int DelayLineTest();
 static int InterpolatorTest();
+static int IntegratorTest();
 static int TaperTest();
 static int QuadraticTest();
 static int SlewEngineTest();
@@ -43,6 +44,7 @@ static const UnitTest CommandTable[] =
     { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
+    { "numint",     IntegratorTest },
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
@@ -437,6 +439,12 @@ static int DelayLineTest()
         return Fail("DelayLineTest", "delay.getLength() != m after delay.setLength(m+1) -- clamp failure.");
 
     return Pass("DelayLineTest");
+}
+
+
+static int IntegratorTest()
+{
+    return Pass("IntegratorTest");
 }
 
 
