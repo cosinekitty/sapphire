@@ -32,7 +32,7 @@ namespace Sapphire
         public:
             void initialize()
             {
-                integrator.setState(state_vector_t{});
+                integrator.setState(state_vector_t{0, 0});
             }
 
             float operator() (float r, float v) const   // for supporting Integrator::AccelerationFunction

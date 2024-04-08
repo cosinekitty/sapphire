@@ -13,8 +13,18 @@ namespace Sapphire
         template <typename value_t>
         struct StateVector
         {
-            value_t r{};      // position, or any function of time r(t)
-            value_t v{};      // velocity, or v(t) = r'(t) = dr/dt
+            value_t r;      // position, or any function of time r(t)
+            value_t v;      // velocity, or v(t) = r'(t) = dr/dt
+
+            StateVector()
+                : r(0)
+                , v(0)
+                {}
+
+            explicit StateVector(value_t r0, value_t v0)
+                : r(r0)
+                , v(v0)
+                {}
         };
 
         // An acceleration function is a very general concept.
@@ -39,10 +49,7 @@ namespace Sapphire
 
             state_vector_t derivative(value_t r, value_t v, accel_function_t accel) const
             {
-                state_vector_t deriv;
-                deriv.r = v;
-                deriv.v = accel(r, v);
-                return deriv;
+                return state_vector_t{v, accel(r, v)};
             }
 
         public:
@@ -60,7 +67,7 @@ namespace Sapphire
             {
                 // This Runge-Kutta method is adapted from a Microsoft Copilot conversation:
                 // https://copilot.microsoft.com/sl/gb6qoDZ1ELQ
-                state_vector_t k1 = derivative(state.r, state.v, accel);
+                state_vector_t k1 = derivative(state.r              , state.v,               accel);
                 state_vector_t k2 = derivative(state.r + (dt/2)*k1.r, state.v + (dt/2)*k1.v, accel);
                 state_vector_t k3 = derivative(state.r + (dt/2)*k2.r, state.v + (dt/2)*k2.v, accel);
                 state_vector_t k4 = derivative(state.r + (dt  )*k3.r, state.v + (dt  )*k3.v, accel);
