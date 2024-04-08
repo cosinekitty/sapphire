@@ -29,11 +29,11 @@ namespace Sapphire
         };
 
 
-        inline ParticleState derivative(float pos, float vel, float mass, float damp, float spring)
+        inline ParticleState derivative(float pos, float vel, float m, float mu, float k)
         {
             return ParticleState {
-                vel,
-                (damp/mass)*vel - (spring/mass)*pos
+                vel,                    // already known: derivative of position = velocity
+                -(mu*vel + k*pos)/m     // acceleration = force / mass
             };
         }
 
