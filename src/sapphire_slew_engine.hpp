@@ -50,7 +50,7 @@ namespace Sapphire
                 const float mu  = 2 * (m/tau) * zeta;
                 const float r0  = targetPos;
 
-                auto accel = [m, mu, k, r0](float r, float v)
+                auto accel = [m, mu, k, r0] (float r, float v) -> float
                 {
                     return -(mu*v + k*(r - r0))/m;
                 };
