@@ -524,8 +524,8 @@ def GenerateSlewPanel(name: str) -> int:
     xmid = panel.mmWidth / 2
     ySpeedKnob = 26.0
     yViscKnob = 57.0
-    nPorts = 2
-    yPorts = FencePost(96.0, 112.0, nPorts)
+    nPorts = 3  # must match number of calls to AddCaptionedPort below
+    yPorts = FencePost(86.0, 114.0, nPorts)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -534,6 +534,7 @@ def GenerateSlewPanel(name: str) -> int:
         AddControlGroup(pl, controls, font, 'viscosity', 'VISC', xmid, yViscKnob)
         AddCaptionedPort(pl, controls, font, xmid, yPorts.value(0), 'target_input', 'IN')
         AddCaptionedPort(pl, controls, font, xmid, yPorts.value(1), 'slew_output', 'OUT')
+        AddCaptionedPort(pl, controls, font, xmid, yPorts.value(2), 'velocity_output', 'VEL')
     return Save(panel, svgFileName)
 
 

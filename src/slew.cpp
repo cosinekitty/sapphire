@@ -33,6 +33,7 @@ namespace Sapphire
         enum OutputId
         {
             SLEW_OUTPUT,
+            VELOCITY_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -54,6 +55,7 @@ namespace Sapphire
 
                 configInput(TARGET_INPUT, "Target");
                 configOutput(SLEW_OUTPUT, "Slew");
+                configOutput(VELOCITY_OUTPUT, "Velocity");
 
                 configParam(SPEED_KNOB_PARAM, MinSpeed, MaxSpeed, DefSpeed, "Speed");
                 configParam(SPEED_ATTEN_PARAM, -1, +1, 0, "Speed attenuverter", "%", 0, 100);
@@ -80,8 +82,10 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                const float VELOCITY_DENOM = 1000;      // velocity signals get very hot because they are [m/s]
                 const int nc = numOutputChannels(INPUTS_LEN);
                 outputs[SLEW_OUTPUT].setChannels(nc);
+                outputs[VELOCITY_OUTPUT].setChannels(nc);
 
                 float vTarget = 0;
                 float cvSpeed = 0;
@@ -96,6 +100,7 @@ namespace Sapphire
                     float dt = args.sampleTime * std::pow(2.0f, speed);
                     auto particle = engine[c].process(dt, vTarget, viscosity);
                     outputs[SLEW_OUTPUT].setVoltage(particle.r, c);
+                    outputs[VELOCITY_OUTPUT].setVoltage(particle.v / VELOCITY_DENOM, c);
                 }
             }
         };
@@ -109,6 +114,7 @@ namespace Sapphire
                 setModule(module);
                 addSapphireInput(TARGET_INPUT, "target_input");
                 addSapphireOutput(SLEW_OUTPUT, "slew_output");
+                addSapphireOutput(VELOCITY_OUTPUT, "velocity_output");
                 addSapphireControlGroup("speed", SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT);
                 addSapphireControlGroup("viscosity", VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, VISCOSITY_CV_INPUT);
                 reloadPanel();
