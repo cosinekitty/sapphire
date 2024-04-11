@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 namespace Sapphire
 {
@@ -126,8 +127,7 @@ namespace Sapphire
 
         void setKnob(double k)
         {
-            // Enforce keeping the knob in the range [-1, 1].
-            knob = std::max(-1.0, std::min(+1.0, k));
+            knob = std::clamp(k, -1.0, +1.0);
         }
 
         // Scaled values...

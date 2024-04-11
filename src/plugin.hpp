@@ -1,6 +1,7 @@
 #pragma once
 #include <rack.hpp>
 #include <vector>
+#include <algorithm>
 
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -510,10 +511,9 @@ namespace Sapphire
             , paramInfo(nparams)
             {}
 
-        float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
+        float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
             float slider = params[paramId].getValue();
-            float cv = inputs[inputId].getVoltageSum();
             // When the attenuverter is set to 100%, and the cv is +5V, we want
             // to swing a slider that is all the way down (minSlider)
             // to act like it is all the way up (maxSlider).
@@ -526,19 +526,10 @@ namespace Sapphire
             return std::clamp(slider, minValue, maxValue);
         }
 
-        float getChaosValue(int paramId, int chaosId, float cv, float minValue = 0, float maxValue = 1)
+        float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
-            float slider = params[paramId].getValue();
-            // When the attenuverter is set to 100%, and the cv is +5V, we want
-            // to swing a slider that is all the way down (minSlider)
-            // to act like it is all the way up (maxSlider).
-            // Thus we allow the complete range of control for any CV whose
-            // range is [-5, +5] volts.
-            float attenu = params[chaosId].getValue();
-            if (isLowSensitive(chaosId))
-                attenu /= AttenuverterLowSensitivityDenom;
-            slider += attenu*(cv / 5)*(maxValue - minValue);
-            return std::clamp(slider, minValue, maxValue);
+            float cv = inputs[inputId].getVoltageSum();
+            return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
         bool isLowSensitive(int attenId) const
@@ -607,6 +598,21 @@ namespace Sapphire
                     }
                 }
             }
+        }
+
+        int numOutputChannels(int numInputs)
+        {
+            int nc = 0;
+            for (int i = 0; i < numInputs; ++i)
+                nc = std::max(nc, inputs[i].getChannels());
+            return nc;
+        }
+
+        void nextChannelInputVoltage(float& voltage, int inputId, int channel)
+        {
+            rack::engine::Input& input = inputs[inputId];
+            if (channel < input.getChannels())
+                voltage = input.getVoltage(channel);
         }
     };
 
