@@ -21,7 +21,7 @@ namespace Sapphire
                 , v(0)
                 {}
 
-            explicit StateVector(value_t r0, value_t v0)
+            explicit StateVector(const value_t& r0, const value_t& v0)
                 : r(r0)
                 , v(v0)
                 {}
@@ -34,7 +34,7 @@ namespace Sapphire
         // Or value_t could represent the position of N particles in a grid!
         // An entire mesh could be computed this way.
         template <typename value_t>
-        using AccelerationFunction = std::function<value_t(value_t /*position*/, value_t /*velocity*/)>;
+        using AccelerationFunction = std::function<value_t(const value_t& /*position*/, const value_t& /*velocity*/)>;
 
 
         template <typename value_t>
@@ -47,7 +47,7 @@ namespace Sapphire
         private:
             state_vector_t state{};
 
-            state_vector_t derivative(value_t r, value_t v, accel_function_t accel) const
+            state_vector_t derivative(const value_t& r, const value_t& v, accel_function_t accel) const
             {
                 return state_vector_t{v, accel(r, v)};
             }
