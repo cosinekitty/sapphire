@@ -57,11 +57,11 @@ namespace Sapphire
                 configOutput(SLEW_OUTPUT, "Slew");
                 configOutput(VELOCITY_OUTPUT, "Velocity");
 
-                configParam(SPEED_KNOB_PARAM, MinSpeed, MaxSpeed, DefSpeed, "Speed");
+                configParam(SPEED_KNOB_PARAM, MinSpeedKnob, MaxSpeedKnob, DefSpeedKnob, "Speed");
                 configParam(SPEED_ATTEN_PARAM, -1, +1, 0, "Speed attenuverter", "%", 0, 100);
                 configInput(SPEED_CV_INPUT, "Speed CV");
 
-                configParam(VISCOSITY_KNOB_PARAM, MinViscosity, MaxViscosity, DefViscosity, "Viscosity");
+                configParam(VISCOSITY_KNOB_PARAM, MinViscosityKnob, MaxViscosityKnob, DefViscosityKnob, "Viscosity");
                 configParam(VISCOSITY_ATTEN_PARAM, -1, +1, 0, "Viscosity attenuverter", "%", 0, 100);
                 configInput(VISCOSITY_CV_INPUT, "Viscosity CV");
 
@@ -95,8 +95,8 @@ namespace Sapphire
                     nextChannelInputVoltage(vTarget, TARGET_INPUT, c);
                     nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
                     nextChannelInputVoltage(cvViscosity, VISCOSITY_CV_INPUT, c);
-                    float speed = cvGetControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, cvSpeed, MinSpeed, MaxSpeed);
-                    float viscosity = cvGetControlValue(VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, cvViscosity, MinViscosity, MaxViscosity);
+                    float speed = cvGetControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, cvSpeed, MinSpeedKnob, MaxSpeedKnob);
+                    float viscosity = cvGetControlValue(VISCOSITY_KNOB_PARAM, VISCOSITY_ATTEN_PARAM, cvViscosity, MinViscosityKnob, MaxViscosityKnob);
                     float dt = args.sampleTime * std::pow(2.0f, speed);
                     auto particle = engine[c].process(dt, vTarget, viscosity);
                     outputs[SLEW_OUTPUT].setVoltage(particle.r, c);

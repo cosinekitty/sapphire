@@ -5,13 +5,13 @@ namespace Sapphire
 {
     namespace Slew
     {
-        const float MinSpeed = -7;
-        const float DefSpeed =  0;
-        const float MaxSpeed = +7;
+        const float MinSpeedKnob = -7;
+        const float DefSpeedKnob =  0;
+        const float MaxSpeedKnob = +7;
 
-        const float MinViscosity = -1;
-        const float DefViscosity =  0;
-        const float MaxViscosity = +1;
+        const float MinViscosityKnob = -1;
+        const float DefViscosityKnob =  0;
+        const float MaxViscosityKnob = +1;
 
         class Engine
         {
