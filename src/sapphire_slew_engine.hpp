@@ -22,28 +22,38 @@ namespace Sapphire
             const float max_dt = -1;
             integrator_t integrator;
 
+            const float P = 0.1;
+            const float Q = 2.0;
+            const float A = std::log(Q) - std::log(P);
+            const float B = std::log(P);
+
+            inline float Zeta(float viscosityKnob)
+            {
+                // `viscosityKnob` is a knob value that goes from -1 to +1, with a default value of 0.
+                // We want the following fixed points:
+                //      Zeta(0) = P
+                //      Zeta(1) = Q
+                // Modeling this as an exponential function exp(A*x + B), where x = viscosityKnob,
+                // we derive:
+                //      A = ln(Q) - ln(P)
+                //      B = ln(P)
+                return std::exp(A*viscosityKnob + B);
+            }
+
         public:
             void initialize()
             {
                 integrator.setState(state_vector_t{0, 0});
             }
 
-            state_vector_t process(float dt, float targetPos, float viscosity)
+            state_vector_t process(float dt, float targetPos, float viscosityKnob)
             {
                 // `targetPos` is the position the particle is being pulled toward by the spring.
-
-                // `viscosity` is a knob value that goes from -1 to +1, with a default value of 0.
-                // So it can mean whatever we want.
-                // In this case, we want it to mean that the default (0) indicates critical damping.
-                // -1 should be nearly frictionless and oscillating for a long time after an impulse.
-                // +1 should be deeply damped, where it takes forever to reach a new step level.
-
                 // Determine how much oversampling we need for reliable stability and accuracy.
                 const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
                 const double et = dt / n;
 
-                const float factor = 1;     // FIXFIXFIX: what should this be, to convert knob to zeta?
-                float zeta = std::max(0.0f, factor*viscosity + 1);
+                float zeta = Zeta(viscosityKnob);
                 const float tau = 0.003;     // time constant in seconds
                 const float k_over_m = 1 / (tau*tau);
                 const float mu_over_m  = (2*zeta) / tau;
