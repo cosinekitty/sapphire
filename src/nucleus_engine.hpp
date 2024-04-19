@@ -35,7 +35,10 @@ namespace Sapphire
         }
     };
 
+
     using NucleusDcRejectFilter = StagedFilter<float, 3>;
+    const float DefaultCornerFrequencyHz = 30;
+
 
     class NucleusEngine
     {
@@ -195,6 +198,7 @@ namespace Sapphire
             enableFixedOversample(1);
             setAgcEnabled(true);
             setDcRejectEnabled(true);
+            setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
             setAetherSpin();
             setAetherVisc();
             filtersNeedReset = true;     // anti-click measure: eliminate step function being fed through filters!
@@ -203,7 +207,7 @@ namespace Sapphire
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
         }
 
-        void setCutoffFrequency(float cutoffFrequencyHz)
+        void setDcRejectCornerFrequency(float cutoffFrequencyHz)
         {
             for (NucleusDcRejectFilter& f : filterArray)
                 f.SetCutoffFrequency(cutoffFrequencyHz);

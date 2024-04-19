@@ -112,11 +112,11 @@ namespace Sapphire
                     DC_REJECT_PARAM,
                     DC_REJECT_MIN_FREQ,
                     DC_REJECT_MAX_FREQ,
-                    DC_REJECT_DEFAULT_FREQ,
+                    DefaultCornerFrequencyHz,
                     "DC reject cutoff",
                     " Hz"
                 );
-                dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
+                dcRejectQuantity->setValue(DefaultCornerFrequencyHz);
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -191,10 +191,10 @@ namespace Sapphire
             void initialize()
             {
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
-                dcRejectQuantity->initialize();
                 engine.initialize();
-                engine.setCutoffFrequency(dcRejectQuantity->value);
+                dcRejectQuantity->value = DefaultCornerFrequencyHz;
                 dcRejectQuantity->changed = false;
+                engine.setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
                 SetMinimumEnergy(engine);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
@@ -294,7 +294,7 @@ namespace Sapphire
 
                 if (dcRejectQuantity->changed)
                 {
-                    engine.setCutoffFrequency(dcRejectQuantity->value);
+                    engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
                     dcRejectQuantity->changed = false;
                 }
 
