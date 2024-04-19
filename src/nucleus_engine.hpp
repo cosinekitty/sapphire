@@ -191,11 +191,6 @@ namespace Sapphire
 
         void initialize()
         {
-            for (NucleusDcRejectFilter& f : filterArray)
-            {
-                f.SetCutoffFrequency(30);
-                f.Reset();
-            }
             crossfadeCounter = 0;
             enableFixedOversample(1);
             setAgcEnabled(true);
@@ -206,6 +201,12 @@ namespace Sapphire
 
             // The caller is responsible for resetting particle states.
             // For example, the caller might want to call SetMinimumEnergy(engine) after calling this function.
+        }
+
+        void setCutoffFrequency(float cutoffFrequencyHz)
+        {
+            for (NucleusDcRejectFilter& f : filterArray)
+                f.SetCutoffFrequency(cutoffFrequencyHz);
         }
 
         void resetAfterCrash()      // called when infinite/NAN output is detected, to pop back into the finite world

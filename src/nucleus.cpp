@@ -30,6 +30,7 @@ namespace Sapphire
             AUDIO_MODE_BUTTON_PARAM,
 
             AGC_LEVEL_PARAM,
+            DC_REJECT_PARAM,
 
             PARAMS_LEN
         };
@@ -84,6 +85,7 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             bool resetTricorder{};
+            DcRejectQuantity *dcRejectQuantity{};
 
             NucleusModule()
                 : SapphireAutomaticLimiterModule(PARAMS_LEN)
@@ -105,6 +107,16 @@ namespace Sapphire
                 configParam(MAGNET_ATTEN_PARAM, -1, 1, 0, "Magnetic coupling attenuverter", "%", 0, 100);
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
+
+                dcRejectQuantity = configParam<DcRejectQuantity>(
+                    DC_REJECT_PARAM,
+                    DC_REJECT_MIN_FREQ,
+                    DC_REJECT_MAX_FREQ,
+                    DC_REJECT_DEFAULT_FREQ,
+                    "DC reject cutoff",
+                    " Hz"
+                );
+                dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -149,6 +161,7 @@ namespace Sapphire
                 json_t* root = SapphireAutomaticLimiterModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
+                dcRejectQuantity->save(root, "dcRejectFrequency");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
@@ -162,6 +175,7 @@ namespace Sapphire
                 enableLimiterWarning = !json_is_false(warningFlag);
 
                 agcLevelQuantity->load(root, "agcLevel");
+                dcRejectQuantity->load(root, "dcRejectFrequency");
 
                 resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
@@ -177,8 +191,10 @@ namespace Sapphire
             void initialize()
             {
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
-
+                dcRejectQuantity->initialize();
                 engine.initialize();
+                engine.setCutoffFrequency(dcRejectQuantity->value);
+                dcRejectQuantity->changed = false;
                 SetMinimumEnergy(engine);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
@@ -275,6 +291,12 @@ namespace Sapphire
                 const float magnet = getMagneticCoupling();
 
                 engine.setMagneticCoupling(magnet);
+
+                if (dcRejectQuantity->changed)
+                {
+                    engine.setCutoffFrequency(dcRejectQuantity->value);
+                    dcRejectQuantity->changed = false;
+                }
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
@@ -424,6 +446,8 @@ namespace Sapphire
                 if (nucleusModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
+
+                    menu->addChild(new DcRejectSlider(nucleusModule->dcRejectQuantity));
 
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
