@@ -53,7 +53,12 @@ which is often helpful for making CV control easier to adjust.
 
 
 ### Mode button (AUDIO/CONTROL)
-This button toggles between AUDIO mode and CONTROL mode. In AUDIO mode, the output vectors are filtered with a DC-reject highpass filter. This filter has a corner frequency of 30&nbsp;Hz. In CONTROL mode, the output vectors directly represent the raw position vectors in space, without any DC rejection applied.
+<a name="audio_mode"></a>
+This button toggles between AUDIO mode and CONTROL mode.
+In AUDIO mode, the output vectors are filtered with a DC-reject highpass filter.
+This filter has a cutoff frequency of 30&nbsp;Hz.
+In CONTROL mode, the output vectors directly represent the raw position vectors in space,
+without any DC rejection applied.
 
 In AUDIO mode, the word "AUDIO" appears above the button, and the button lights up:
 
@@ -125,7 +130,20 @@ Nucleus's context menu looks like this:
 
 <img src="images/nucleus_context_menu.png"/>
 
-It includes a couple of options for an output limiter, as described below.
+It includes a couple of options for a DC reject filter and an output limiter, as described below.
+
+### DC Reject Cutoff
+
+In [AUDIO mode](#audio_mode), Nucleus sends its outputs through a DC reject filter.
+This is a high-pass filter with a default cutoff frequency of 30&nbsp;Hz.
+You can use the &quot;DC reject cutoff&quot; slider to adjust the cutoff
+frequency to any value from 20&nbsp;Hz to 400&nbsp;Hz. This adjustment
+can help mitigate excessive bass rumble and bring more focus to midrange
+and treble frequencies.
+
+When AUDIO mode is disabled, the slider is still present but it has
+no effect, because the output is sent directly from the Nucleus engine
+to the output ports.
 
 ### Output limiter
 

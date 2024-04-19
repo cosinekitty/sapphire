@@ -9,6 +9,17 @@
 </tr>
 
 <tr valign="top">
+<td align="center">19 Apr 2024</td>
+<td align="center">2.4.4</td>
+<td align="left">
+    <ul>
+        <li>Nucleus and Polynucleus: added a right-click slider for adjusting the DC reject filter's corner frequency. Before this change, both modules had a fixed corner frequency of 30&nbsp;Hz. This is still
+        the default frequency, but now the right-click menu allows you to change the corner frequency to any value from 20&nbsp;Hz to 400&nbsp;Hz.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">18 Mar 2024</td>
 <td align="center">2.4.3</td>
 <td align="left">
