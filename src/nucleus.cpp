@@ -192,10 +192,10 @@ namespace Sapphire
             {
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
                 engine.initialize();
+                SetMinimumEnergy(engine);
                 dcRejectQuantity->value = DefaultCornerFrequencyHz;
                 dcRejectQuantity->changed = false;
                 engine.setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
-                SetMinimumEnergy(engine);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
@@ -447,6 +447,7 @@ namespace Sapphire
                 {
                     menu->addChild(new MenuSeparator);
 
+                    // Add slider to adjust the DC reject filter's corner frequency.
                     menu->addChild(new DcRejectSlider(nucleusModule->dcRejectQuantity));
 
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
