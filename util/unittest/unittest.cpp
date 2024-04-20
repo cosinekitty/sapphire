@@ -712,9 +712,56 @@ static int AllpassFloatImpulse()
 }
 
 
+static int AllpassChain(const char *inFileName, const char *outFileName)
+{
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("AllpassChain", std::string("Could not open input file: ") + inFileName);
+
+    int sampleRate = inwave.SampleRate();
+    int channels = inwave.Channels();
+    if (channels != 2)
+        return Fail("AllpassChain", "expected stereo audio");
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("AllpassChain", std::string("Could not open output file: ") + outFileName);
+
+    using filter_t = Sapphire::AllpassFilter<float, float>;
+    filter_t fl[4];
+    filter_t fr[4];
+
+    const float gain = 0.985;
+    float y[2] {};
+    while (2 == inwave.Read(y, channels))
+    {
+        // Dattorro-like diffuser chain...
+
+        // Left channel
+
+        y[0] = fl[0].process(y[0], gain, 141);
+        y[0] = fl[1].process(y[0], gain, 107);
+        y[0] = fl[2].process(y[0], gain, 379);
+        y[0] = fl[3].process(y[0], gain, 277);
+
+        // Right channel
+
+        y[1] = fl[0].process(y[1], gain, 141);
+        y[1] = fl[1].process(y[1], gain, 107);
+        y[1] = fl[2].process(y[1], gain, 379);
+        y[1] = fl[3].process(y[1], gain, 277);
+
+        outwave.WriteSamples(y, channels);
+    }
+
+    return Pass("AllpassChain");
+}
+
+
 static int AllpassFilterTest()
 {
     return
         AllpassFloatImpulse() ||
+        AllpassChain("input/genesis.wav", "output/allpass_genesis.wav") ||
         Pass("AllpassFilterTest");
 }
