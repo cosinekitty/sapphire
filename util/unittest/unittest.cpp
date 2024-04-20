@@ -26,6 +26,7 @@ struct UnitTest
 };
 
 static int AutoGainControl();
+static int AllpassFilterTest();
 static int ChaosTest();
 static int ReadWave();
 static int AutoScale();
@@ -37,6 +38,7 @@ static int QuadraticTest();
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
+    { "allpass",    AllpassFilterTest },
     { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
     { "interp",     InterpolatorTest },
@@ -666,3 +668,53 @@ static int ChaosTest()
         Pass("ChaosTest");
 }
 
+
+static int AllpassFloatImpulse()
+{
+    Sapphire::AllpassFilter<float, float> filter;
+
+    // Feed a small amount of silence through the filter,
+    // followed by a single impulse. Then let it settle.
+    // Write audio output to a WAV file.
+
+    const char *outFileName = "output/allpass_impulse.wav";
+    const int sampleRate = 48000;
+    const int channels = 1;
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("AllpassFloatImpulse", std::string("Could not open output file: ") + outFileName);
+
+    float y;
+    const float gain = 0.97;
+    const float delaySamples = 451;
+    const float silenceSeconds = 0.25;
+    const int silenceSamples = static_cast<int>(sampleRate * silenceSeconds);
+    for (int s = 0; s < silenceSamples; ++s)
+    {
+        y = filter.process(0, gain, delaySamples);
+        outwave.WriteSample(y);
+    }
+
+    y = filter.process(1, gain, delaySamples);
+    // do NOT write this sample, because it is very loud. It helps hear the response...
+
+    const float settleSeconds = 3.0;
+    const int settleSamples = static_cast<int>(sampleRate * settleSeconds);
+    for (int s = 0; s < settleSamples; ++s)
+    {
+        y = filter.process(0, gain, delaySamples);
+        outwave.WriteSample(y);
+    }
+
+    outwave.Close();
+    return Pass("AllpassFloatImpulse");
+}
+
+
+static int AllpassFilterTest()
+{
+    return
+        AllpassFloatImpulse() ||
+        Pass("AllpassFilterTest");
+}

@@ -608,6 +608,27 @@ namespace Sapphire
         }
     };
 
+
     template <typename item_t, std::size_t steps>
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
+
+
+    template <typename item_t, typename scalar_t>
+    class AllpassFilter
+    {
+    public:
+        item_t process(const item_t& input, scalar_t gain, float delayFractionalSamples)
+        {
+            // FIXFIXFIX: Use sinc-interpolator to enable fractional samples!
+            int nDelaySamples = static_cast<int>(delayFractionalSamples);
+            item_t d = delay.readBackward(nDelaySamples);
+            item_t s = input + gain*d;
+            item_t y = d - gain*s;
+            delay.write(s);
+            return y;
+        }
+
+    private:
+        DelayLine<item_t> delay;
+    };
 }

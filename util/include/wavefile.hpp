@@ -218,6 +218,11 @@ public:
 
     }
 
+    void WriteSample(float sample)
+    {
+        WriteSamples(&sample, 1);
+    }
+
     void Close()
     {
         if (tempFile)
