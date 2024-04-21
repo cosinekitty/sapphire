@@ -15,9 +15,13 @@ by [myself](https://github.com/cosinekitty) and others. In these videos there is
 
 ---
 
-### Sapphire Glee demo by [Don Cross](https://github.com/cosinekitty)
-[![Sapphire Glee demo](https://img.youtube.com/vi/_WKCedswvZU/0.jpg)](https://www.youtube.com/watch?v=_WKCedswvZU)
+### "Neutron Funk" by Don Cross
+[![Neutron Funk](https://img.youtube.com/vi/iP3CiAtaS-w/0.jpg)](https://www.youtube.com/watch?v=iP3CiAtaS-w)
 
+---
+
+### Sapphire Glee demo by Don Cross
+[![Sapphire Glee demo](https://img.youtube.com/vi/_WKCedswvZU/0.jpg)](https://www.youtube.com/watch?v=_WKCedswvZU)
 
 <!--
     Use the following template for each video.
