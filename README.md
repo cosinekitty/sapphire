@@ -4,6 +4,10 @@
 The latest release of the Sapphire plugin is available in the
 [VCV Rack Library](https://library.vcvrack.com/CosineKitty-Sapphire).
 
+## Video gallery
+Videos of [VCV Rack patches using Sapphire modules](VideoGallery.md) by myself and others.
+No talking, just patching and listening.
+
 ---
 
 ## Elastika
