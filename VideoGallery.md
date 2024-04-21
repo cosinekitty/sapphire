@@ -1,13 +1,7 @@
 ## Example videos using Sapphire modules for VCV Rack
 
 Here are some videos of patches that include [Sapphire](README.md) modules,
-by [myself](https://github.com/cosinekitty) and others.
-
-In these videos there is no talking, just patches playing.
-
-Sapphire is available as a [free plugin for VCV Rack 2](https://library.vcvrack.com/CosineKitty-Sapphire).
-
-Sapphire [source code is available](https://github.com/cosinekitty/sapphire) under the terms of [this license](LICENSE).
+by [myself](https://github.com/cosinekitty) and others. In these videos there is no talking, just patches playing.
 
 ---
 
@@ -42,3 +36,11 @@ in each of the following documentation pages:
 * [Elastika](Elastika.md)
 * [Nucleus](Nucleus.md)
 * [Tube Unit](TubeUnit.md)
+
+---
+
+## Availability
+
+Sapphire is available as a [free plugin for VCV Rack 2](https://library.vcvrack.com/CosineKitty-Sapphire).
+
+[Source code is openly available](https://github.com/cosinekitty/sapphire) under the terms of the GPLv3+ [license](LICENSE).
