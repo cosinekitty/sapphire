@@ -8,6 +8,8 @@ The latest release of the Sapphire plugin is available in the
 Videos of [VCV Rack patches using Sapphire modules](VideoGallery.md) by myself and others.
 No talking, just patching and listening.
 
+[![Video gallery](https://img.youtube.com/vi/iNxV1i8zwNY/0.jpg)](VideoGallery.md)
+
 ---
 
 ## Elastika
