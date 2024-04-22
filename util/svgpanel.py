@@ -222,6 +222,7 @@ class TextItem:
 class Element:
     """An XML element inside an SVG file."""
     def __init__(self, tag:str, id:str = '', children: Optional[List['Element']] = None) -> None:
+        self.literal: Optional[et.Element] = None
         self.tag = tag
         self.attrib: Dict[str, str] = {}
         self.children: List[Element] = children or []
@@ -243,7 +244,7 @@ class Element:
         return self
 
     def xml(self) -> et.Element:
-        """Convert this element to XML text."""
+        """Convert this element to XML."""
         if 'id' in self.attrib:
             # When the element has an id, put it first. Take advantage of Python's
             # ability to preserve insertion order in a dictionary.
@@ -257,6 +258,18 @@ class Element:
         for child in self.children:
             elem.append(child.xml())
         return elem
+
+
+class LiteralXml(Element):
+    """For supporting legacy SVG that was generated in InkScape."""
+    def __init__(self, panelXmlText:str, id:str = ''):
+        super().__init__('g', id)
+        self.literal = et.fromstring(panelXmlText)
+
+    def xml(self) -> et.Element:
+        if self.literal is None:
+            raise Error('Internal error: missing ElementTree instance.')
+        return self.literal
 
 
 class Path(Element):
