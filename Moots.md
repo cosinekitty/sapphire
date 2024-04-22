@@ -85,6 +85,11 @@ The right-click context menu for Moots looks like this:
 
 ![Moots menu options](images/moots_menu.png)
 
+When enabled, the "Use triggers for control" option changes all the Moots
+control input ports from gate mode to trigger mode (see notes about these above)
+and the panel displays the word TRIGGER. When disabled, the inputs are in
+gate mode and the panel displays the word GATE.
+
 The menu contains "Anti-click ramping" options for all five controls.
 Anti-click ramping, when enabled, causes the corresponding control to
 fade the polyphonic voltages down to zero before disconnecting a cable,
