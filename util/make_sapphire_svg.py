@@ -453,6 +453,11 @@ def GeneratePolynucleusPanel() -> int:
             AddControlGroup(pl, controls, font, 'spin',     'SPIN',   xKnobLeft,  yKnobRow3, 3.7)
             AddControlGroup(pl, controls, font, 'visc',     'VISC',   xmid,       yKnobRow3, 3.7)
 
+        xButton = xKnobLeft
+        yButton = yOutTop + 3*dyOut
+        controls.append(Component('clear_button', xButton, yButton))
+        pl.append(CenteredControlTextPath(font, 'CLEAR', xButton, yButton - 6.5))
+
         # Add toggle button with alternating text labels AUDIO and CONTROL.
         # We do this by creating two extra SVG files that contain one word each.
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
