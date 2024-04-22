@@ -563,20 +563,26 @@ MootsPanelLayerXml = r'''
 </g>
 '''
 
+MOOTS_PANEL_WIDTH = 10
+
 
 def GenerateMootsPanel() -> int:
     svgFileName = '../res/moots.svg'
-    PANEL_WIDTH = 10
-    panel = Panel(PANEL_WIDTH)
+    panel = Panel(MOOTS_PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    controls = ControlLayer()
-    pl.append(controls)
+    #controls = ControlLayer()
+    #pl.append(controls)
     pl.append(LiteralXml(MootsPanelLayerXml))
-    xmid = panel.mmWidth / 2
-    yControlLabel = 74.5
+    return Save(panel, svgFileName)
+
+
+def GenerateMootsLabel(svgFileName:str, text:str) -> int:
+    panel = Panel(MOOTS_PANEL_WIDTH)
+    x = panel.mmWidth / 2
+    y = 74.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(CenteredControlTextPath(font, "CONTROL", xmid, yControlLabel, pointSize = 8.0))
+        panel.append(CenteredControlTextPath(font, text, x, y, pointSize = 8.0))
     return Save(panel, svgFileName)
 
 
@@ -591,5 +597,7 @@ if __name__ == '__main__':
         GeneratePolynucleusPanel() or
         GenerateHissPanel() or
         GenerateMootsPanel() or
+        GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
+        GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
         Print('SUCCESS')
     )
