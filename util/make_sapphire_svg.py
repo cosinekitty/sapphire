@@ -384,7 +384,6 @@ def GeneratePolynucleusPanel() -> int:
     dxKnob = 25.0
     xKnobLeft  = xmid - dxKnob
     xKnobRight = xmid + dxKnob
-    dxPort = 0.0                # not really needed, kept in C++ code generator for symmetry with Nucleus.
     yIn = 58.0
     yInPort = yIn - 8.0         # vertical position of center of Particle A input port
     yOutTop = 81.0              # vertical position of the top row of output ports.
@@ -414,7 +413,6 @@ def GeneratePolynucleusPanel() -> int:
         headerFile.write('    {\n')
         headerFile.write('        namespace Panel\n')
         headerFile.write('        {\n')
-        headerFile.write('            const float DxOut   = {:9.3f}f;    // FIXFIXFIX - is this still needed?\n'.format(dxPort))
         headerFile.write('            const float DyOut   = {:9.3f}f;    // vertical distance between output ports.\n'.format(dyOut))
         headerFile.write('            const float X1Out   = {:9.3f}f;    // x-coord of output port\'s center.\n'.format(xOutLeft))
         headerFile.write('            const float Y1Out   = {:9.3f}f;    // y-coord of output port\'s center.\n'.format(yOutTop))

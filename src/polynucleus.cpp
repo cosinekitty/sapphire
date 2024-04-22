@@ -521,7 +521,7 @@ namespace Sapphire
                 using namespace Panel;
 
                 Rect r;
-                r.pos.x = mm2px(X1Out - DxOut/2 - DxLeft);
+                r.pos.x = mm2px(X1Out - DxLeft);
                 r.pos.y = mm2px(Y1Out - DyOut/2 + (row-1)*DyOut);
                 r.size.x = mm2px(DxTotal);
                 r.size.y = mm2px(DyOut);
