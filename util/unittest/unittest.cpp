@@ -737,19 +737,22 @@ static int AllpassChain(const char *inFileName, const char *outFileName)
     {
         // Dattorro-like diffuser chain...
 
+        const float dattorroSampleRate = 29761.0;
+        const float ratio = sampleRate / dattorroSampleRate;
+
         // Left channel
 
-        y[0] = fl[0].process(y[0], gain, 141);
-        y[0] = fl[1].process(y[0], gain, 107);
-        y[0] = fl[2].process(y[0], gain, 379);
-        y[0] = fl[3].process(y[0], gain, 277);
+        y[0] = fl[0].process(y[0], gain, 141 * ratio);
+        y[0] = fl[1].process(y[0], gain, 107 * ratio);
+        y[0] = fl[2].process(y[0], gain, 379 * ratio);
+        y[0] = fl[3].process(y[0], gain, 277 * ratio);
 
         // Right channel
 
-        y[1] = fl[0].process(y[1], gain, 141);
-        y[1] = fl[1].process(y[1], gain, 107);
-        y[1] = fl[2].process(y[1], gain, 379);
-        y[1] = fl[3].process(y[1], gain, 277);
+        y[1] = fr[0].process(y[1], gain, 141 * ratio);
+        y[1] = fr[1].process(y[1], gain, 107 * ratio);
+        y[1] = fr[2].process(y[1], gain, 379 * ratio);
+        y[1] = fr[3].process(y[1], gain, 277 * ratio);
 
         outwave.WriteSamples(y, channels);
     }
