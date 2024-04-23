@@ -379,7 +379,10 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, std::size_t bufsize = 10000>
+    const std::size_t DelayLineDefaultBufferSize = 10000;
+
+
+    template <typename item_t, std::size_t bufsize = DelayLineDefaultBufferSize>
     class DelayLine
     {
     private:
@@ -613,22 +616,48 @@ namespace Sapphire
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
 
 
+    template <typename item_t, std::size_t bufsize = DelayLineDefaultBufferSize>
+    class FractionalDelayLine
+    {
+    public:
+        using delay_line_t = DelayLine<item_t, bufsize>;
+        delay_line_t discrete;
+
+        item_t readBackward(float fractionalSamples) const
+        {
+            if (fractionalSamples < 0)
+                throw std::range_error("Fractional offset is not allowed to be negative.");
+
+            // Round to the nearest non-negative integer sample offset into the past.
+            std::size_t offset = static_cast<std::size_t>(round(fractionalSamples));
+
+            const int windowSteps = 5;
+            Interpolator<item_t, windowSteps> interp;
+
+            // Load 2*5+1 = 11 samples, centered at the given offset,
+            // into the interpolator.
+            for (int n = -windowSteps; n <= +windowSteps; ++n)
+                interp.write(n, discrete.readBackward(offset+n));
+
+            return interp.read(fractionalSamples - static_cast<float>(offset));
+        }
+    };
+
+
     template <typename item_t, typename scalar_t>
     class AllpassFilter
     {
     public:
         item_t process(const item_t& input, scalar_t gain, float delayFractionalSamples)
         {
-            // FIXFIXFIX: Use sinc-interpolator to enable fractional samples!
-            int nDelaySamples = static_cast<int>(delayFractionalSamples);
-            item_t d = delay.readBackward(nDelaySamples);
+            item_t d = delay.readBackward(delayFractionalSamples);
             item_t s = input + gain*d;
             item_t y = d - gain*s;
-            delay.write(s);
+            delay.discrete.write(s);
             return y;
         }
 
     private:
-        DelayLine<item_t> delay;
+        FractionalDelayLine<item_t> delay;
     };
 }
