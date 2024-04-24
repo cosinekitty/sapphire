@@ -206,6 +206,12 @@ namespace Sapphire
                 resetTricorder = true;
             }
 
+            void onReset(const ResetEvent& e) override
+            {
+                Module::onReset(e);
+                initialize();
+            }
+
             void resetSimulation()
             {
                 engine.resetAfterCrash();
@@ -249,12 +255,6 @@ namespace Sapphire
             bool isClearButtonPressed() const
             {
                 return params[CLEAR_BUTTON_PARAM].value > 0.5f;
-            }
-
-            void onReset(const ResetEvent& e) override
-            {
-                Module::onReset(e);
-                initialize();
             }
 
             float getHalfLife()

@@ -14,6 +14,14 @@
   "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/main/CHANGELOG.md",
   "modules": [
     {
+      "slug": "Allpass",
+      "name": "Allpass",
+      "description": "Filters audio through a phase-distortion allpass filter.",
+      "tags": [
+        "Filter"
+      ]
+    },
+    {
       "slug": "Elastika",
       "name": "Elastika",
       "description": "Filters audio through a simulated network of balls and springs.",

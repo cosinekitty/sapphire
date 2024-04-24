@@ -589,6 +589,27 @@ def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateAllpassPanel() -> int:
+    PANEL_WIDTH = 5
+    name = 'allpass'
+    svgFileName = '../res/{}.svg'.format(name)
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    controls = ControlLayer()
+    pl.append(controls)
+    xmid = panel.mmWidth / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+        controls.append(Component('audio_input', xmid, 20.0))
+        controls.append(Component('audio_output', xmid, 105.0))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -602,5 +623,6 @@ if __name__ == '__main__':
         GenerateMootsPanel() or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
+        GenerateAllpassPanel() or
         Print('SUCCESS')
     )
