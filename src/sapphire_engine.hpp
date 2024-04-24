@@ -644,7 +644,7 @@ namespace Sapphire
     };
 
 
-    template <typename item_t, typename scalar_t>
+    template <typename item_t, typename scalar_t, std::size_t bufsize = DelayLineDefaultBufferSize>
     class AllpassFilter
     {
     public:
@@ -658,6 +658,6 @@ namespace Sapphire
         }
 
     private:
-        FractionalDelayLine<item_t> delay;
+        FractionalDelayLine<item_t, bufsize> delay;
     };
 }
