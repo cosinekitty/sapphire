@@ -623,6 +623,11 @@ namespace Sapphire
         using delay_line_t = DelayLine<item_t, bufsize>;
         delay_line_t discrete;
 
+        void clear()
+        {
+            discrete.clear();
+        }
+
         item_t readBackward(float fractionalSamples) const
         {
             if (fractionalSamples < 0)
@@ -655,6 +660,11 @@ namespace Sapphire
             item_t y = d - gain*s;
             delay.discrete.write(s);
             return y;
+        }
+
+        void clear()
+        {
+            delay.clear();
         }
 
     private:
