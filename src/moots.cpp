@@ -264,12 +264,21 @@ namespace Sapphire
         struct MootsWidget : ModuleWidget
         {
             MootsModule* mootsModule;
+            SvgOverlay* gateLabel{};
+            SvgOverlay* triggerLabel{};
 
             explicit MootsWidget(MootsModule* module)
                 : mootsModule(module)
             {
                 setModule(module);
                 setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
+
+                gateLabel = SvgOverlay::Load("res/moots_label_gate.svg");
+                addChild(gateLabel);
+
+                triggerLabel = SvgOverlay::Load("res/moots_label_trigger.svg");
+                triggerLabel->hide();
+                addChild(triggerLabel);
 
                 addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  17.25)), module, TOGGLEBUTTON1_PARAM, MOOTLIGHT1));
                 addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  38.75)), module, TOGGLEBUTTON2_PARAM, MOOTLIGHT2));
@@ -343,6 +352,21 @@ namespace Sapphire
                         }
                     ));
                 }
+            }
+
+            void step() override
+            {
+                if (mootsModule && gateLabel && triggerLabel)
+                {
+                    // Toggle between showing "GATE" or "TRIGGER" depending on the toggle state.
+                    bool showGate = (mootsModule->controlMode == ControlMode::Gate);
+                    if (gateLabel->isVisible() != showGate)
+                    {
+                        gateLabel->setVisible(showGate);
+                        triggerLabel->setVisible(!showGate);
+                    }
+                }
+                ModuleWidget::step();
             }
         };
     }

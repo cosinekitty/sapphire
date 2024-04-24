@@ -9,12 +9,13 @@
 </tr>
 
 <tr valign="top">
-<td align="center">19 Apr 2024</td>
+<td align="center">22 Apr 2024</td>
 <td align="center">2.4.4</td>
 <td align="left">
     <ul>
-        <li>Nucleus and Polynucleus: added a right-click slider for adjusting the DC reject filter's corner frequency. Before this change, both modules had a fixed corner frequency of 30&nbsp;Hz. This is still
-        the default frequency, but now the right-click menu allows you to change the corner frequency to any value from 20&nbsp;Hz to 400&nbsp;Hz.</li>
+        <li>Nucleus and Polynucleus: added a right-click slider for adjusting the DC reject filter's corner frequency. Before this change, both modules had a fixed corner frequency of 30&nbsp;Hz. This is still the default frequency, but now the right-click menu allows you to change the corner frequency to any value from 20&nbsp;Hz to 400&nbsp;Hz.</li>
+        <li>Polynucleus: added a CLEAR button that resets the simulation, just like the right-click menu option does.</li>
+        <li>Moots: Fixed cosmetic issue <a href="https://github.com/cosinekitty/sapphire/issues/45">#45</a>: when the user changes from gate mode to trigger mode, the text GATE on the panel now changes to TRIGGER.</li>
     </ul>
 </td>
 </tr>

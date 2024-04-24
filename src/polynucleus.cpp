@@ -36,6 +36,8 @@ namespace Sapphire
             AGC_LEVEL_PARAM,
             DC_REJECT_PARAM,
 
+            CLEAR_BUTTON_PARAM,
+
             PARAMS_LEN
         };
 
@@ -67,6 +69,7 @@ namespace Sapphire
         enum LightId
         {
             AUDIO_MODE_BUTTON_LIGHT,
+            CLEAR_BUTTON_LIGHT,
 
             LIGHTS_LEN
         };
@@ -132,6 +135,7 @@ namespace Sapphire
                 configOutput(E_OUTPUT, "Particle E");
 
                 configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
+                configButton(CLEAR_BUTTON_PARAM, "Brings the simulation back to its quiet initial state");
 
                 agcLevelQuantity = configParam<AgcLevelQuantity>(
                     AGC_LEVEL_PARAM,
@@ -189,6 +193,7 @@ namespace Sapphire
                 using namespace Nucleus;
 
                 params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
+                params[CLEAR_BUTTON_PARAM].setValue(0.0f);
 
                 engine.initialize();
                 SetMinimumEnergy(engine);
@@ -239,6 +244,11 @@ namespace Sapphire
             bool isEnabledAudioMode() const
             {
                 return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
+            }
+
+            bool isClearButtonPressed() const
+            {
+                return params[CLEAR_BUTTON_PARAM].value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override
@@ -301,6 +311,10 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                lights[CLEAR_BUTTON_LIGHT].setBrightness(isClearButtonPressed() ? 1.0f : 0.0f);
+                if (isClearButtonPressed())
+                    resetSimulation();      // keep resetting as long as button is held down
+
                 // Get current control settings.
                 const float drive = getInputDrive();
                 const float gain = getOutputLevel();
@@ -465,8 +479,11 @@ namespace Sapphire
                 addSapphireAttenuverter(SPIN_ATTEN_PARAM, "spin_atten");
 #endif
 
-                auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
-                addReloadableParam(toggle, "audio_mode_button");
+                auto audioModeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
+                addReloadableParam(audioModeButton, "audio_mode_button");
+
+                auto clearButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT);
+                addReloadableParam(clearButton, "clear_button");
 
                 reloadPanel();
             }
@@ -521,7 +538,7 @@ namespace Sapphire
                 using namespace Panel;
 
                 Rect r;
-                r.pos.x = mm2px(X1Out - DxOut/2 - DxLeft);
+                r.pos.x = mm2px(X1Out - DxLeft);
                 r.pos.y = mm2px(Y1Out - DyOut/2 + (row-1)*DyOut);
                 r.size.x = mm2px(DxTotal);
                 r.size.y = mm2px(DyOut);

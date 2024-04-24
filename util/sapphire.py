@@ -39,8 +39,8 @@ def ControlTextPath(font:Font, text:str, xpos:float, ypos:float, id:str = '') ->
     tp.setAttrib('style', CONTROL_LABEL_STYLE)
     return tp
 
-def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, id:str = '') -> TextPath:
-    ti = TextItem(text, font, CONTROL_LABEL_POINTS)
+def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, id:str = '', pointSize:float = CONTROL_LABEL_POINTS) -> TextPath:
+    ti = TextItem(text, font, pointSize)
     tp = ti.toPath(xcenter, ycenter, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE, id)
     return tp
 
