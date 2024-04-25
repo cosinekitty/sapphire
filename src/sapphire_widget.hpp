@@ -91,11 +91,11 @@ namespace Sapphire
             addReloadableParam(knob, svgId);
         }
 
-        void addSapphireControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)
+        void addSapphireControlGroup(const std::string& symbolPrefix, int knobId, int attenId, int cvInputId)
         {
-            addKnob(knobId, name + "_knob");
-            addSapphireAttenuverter(attenId, name + "_atten");
-            addSapphireInput(cvInputId, name + "_cv");
+            addKnob(knobId, symbolPrefix + "_knob");
+            addSapphireAttenuverter(attenId, symbolPrefix + "_atten");
+            addSapphireInput(cvInputId, symbolPrefix + "_cv");
         }
     };
 }

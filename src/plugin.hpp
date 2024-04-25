@@ -615,6 +615,11 @@ namespace Sapphire
             if (channel < input.getChannels())
                 voltage = input.getVoltage(channel);
         }
+
+        ParamQuantity* configAttenuverter(int attenId, const std::string& name)
+        {
+            return configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+        }
     };
 
 
