@@ -35,7 +35,7 @@ namespace Sapphire
 
         struct AllpassModule : SapphireModule
         {
-            using filter_t = AllpassFilter<float, float>;
+            using filter_t = AllpassFilter<float, float, 1000000>;
             filter_t filter[PORT_MAX_CHANNELS];
 
             AllpassModule()
