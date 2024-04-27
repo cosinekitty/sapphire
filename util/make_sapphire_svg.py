@@ -607,7 +607,8 @@ def GenerateAllpassPanel() -> int:
         pl.append(ModelNamePath(panel, font, name))
         controls.append(Component('audio_input', xmid, 20.0))
         controls.append(Component('audio_output', xmid, 110.0))
-        AddControlGroup(pl, controls, font, 'delay', 'DELAY', xmid, 45.0)
+        AddControlGroup(pl, controls, font, 'delay', 'DELAY', xmid, 40.0)
+        AddControlGroup(pl, controls, font, 'gain', 'GAIN', xmid, 70.0)
     return Save(panel, svgFileName)
 
 

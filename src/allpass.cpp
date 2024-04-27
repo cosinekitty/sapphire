@@ -11,6 +11,8 @@ namespace Sapphire
         {
             DELAY_KNOB_PARAM,
             DELAY_ATTEN_PARAM,
+            GAIN_KNOB_PARAM,
+            GAIN_ATTEN_PARAM,
             PARAMS_LEN
         };
 
@@ -18,6 +20,7 @@ namespace Sapphire
         {
             AUDIO_INPUT,
             DELAY_CV_INPUT,
+            GAIN_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -42,9 +45,15 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
                 configParam(DELAY_KNOB_PARAM, 0, 1, 0.5, "Delay");
                 configAttenuverter(DELAY_ATTEN_PARAM, "Delay");
                 configInput(DELAY_CV_INPUT, "Delay");
+
+                configParam(GAIN_KNOB_PARAM, 0, 1, 0.5, "Gain");
+                configAttenuverter(GAIN_ATTEN_PARAM, "Gain");
+                configInput(GAIN_CV_INPUT, "Gain");
+
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_OUTPUT, "Audio");
                 configBypass(AUDIO_INPUT, AUDIO_OUTPUT);
@@ -74,15 +83,18 @@ namespace Sapphire
             {
                 const int nc = numOutputChannels(INPUTS_LEN);
                 outputs[AUDIO_OUTPUT].setChannels(nc);
-                float gain = 0.995;
                 float inAudioSample = 0;
                 float cvDelay = 0;
+                float cvGain = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     nextChannelInputVoltage(inAudioSample, AUDIO_INPUT, c);
                     nextChannelInputVoltage(cvDelay, DELAY_CV_INPUT, c);
+                    nextChannelInputVoltage(cvGain, GAIN_CV_INPUT, c);
                     float delayKnob = cvGetControlValue(DELAY_KNOB_PARAM, DELAY_ATTEN_PARAM, cvDelay, 0, 1);
+                    float gainKnob = cvGetControlValue(GAIN_KNOB_PARAM, GAIN_ATTEN_PARAM, cvGain, 0, 1);
                     float delayFractionalSamples = args.sampleRate * delaySecondsFromKnob(delayKnob);
+                    float gain = 0.999999f - 0.1f*(1-gainKnob);
                     float y = filter[c].process(inAudioSample, gain, delayFractionalSamples);
                     outputs[AUDIO_OUTPUT].setVoltage(y, c);
                 }
@@ -99,6 +111,7 @@ namespace Sapphire
                 addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(AUDIO_OUTPUT, "audio_output");
                 addSapphireControlGroup("delay", DELAY_KNOB_PARAM, DELAY_ATTEN_PARAM, DELAY_CV_INPUT);
+                addSapphireControlGroup("gain", GAIN_KNOB_PARAM, GAIN_ATTEN_PARAM, GAIN_CV_INPUT);
                 reloadPanel();
             }
         };
