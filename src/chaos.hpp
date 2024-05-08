@@ -127,7 +127,11 @@ namespace Sapphire
 
         void setKnob(double k)
         {
-            knob = std::clamp(k, -1.0, +1.0);
+            // Some C++ compilers get confused in template type rules.
+            // Create explicitly `double` values to help those compilers out!
+            const double minKnob = -1.0;
+            const double maxKnob = +1.0;
+            knob = std::clamp(k, minKnob, maxKnob);
         }
 
         // Scaled values...

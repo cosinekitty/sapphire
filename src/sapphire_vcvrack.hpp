@@ -620,7 +620,11 @@ namespace Sapphire
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
             double decibels = 20.0 * std::log10(1.0 + distortion);
-            double scale = std::clamp(decibels / 24.0, 0.0, 1.0);
+            // Some C++ compilers get confused in template type rules.
+            // Create explicitly `double` values to help those compilers out!
+            const double minScale = 0.0;
+            const double maxScale = 1.0;
+            double scale = std::clamp(decibels / 24.0, minScale, maxScale);
 
             int red   = colorComponent(scale, 0x90, 0xff);
             int green = colorComponent(scale, 0x20, 0x50);
