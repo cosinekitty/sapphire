@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <vector>
-#include "plugin.hpp"
+#include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 
 // Tricorder for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>

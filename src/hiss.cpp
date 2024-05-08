@@ -1,4 +1,4 @@
-#include "plugin.hpp"
+#include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_random.hpp"
 

@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "plugin.hpp"
+#include "sapphire_vcvrack.hpp"
 #include "tubeunit_engine.hpp"
 
 // Sapphire Tube Unit for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>

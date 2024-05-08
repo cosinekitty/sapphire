@@ -1,4 +1,4 @@
-#include "plugin.hpp"
+#include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 
 // Tout (tricorder output module) for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
