@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">11 May 2024</td>
+<td align="center">2.4.5</td>
+<td align="left">
+    <ul>
+        <li>The following Sapphire modules already supported <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters attenuverter knobs</a>: Elastika, Nucleus, Polynucleus. Now, in addition to being able to right-click and toggle each attenuverter's sensitivity one at a time, you can right-click on any of the above modules to toggle all of its attenuverters.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">22 Apr 2024</td>
 <td align="center">2.4.4</td>
 <td align="left">

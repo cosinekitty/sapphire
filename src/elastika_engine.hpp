@@ -437,7 +437,7 @@ namespace Sapphire
             float scalar = gain;
             if (enableAgc)
                 scalar /= agc.getFollower();
-            const MeshOutput& output = *((right & 1) ? &rightOutput : &leftOutput);
+            const MeshOutput& output = *(right ? &rightOutput : &leftOutput);
             return scalar * output.VectorDisplacement(mesh);
         }
     };

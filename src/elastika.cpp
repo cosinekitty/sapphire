@@ -440,6 +440,9 @@ namespace Sapphire
 
                     // Add an option to select left/right output ball as the vector to send to Tricorder.
                     menu->addChild(createBoolPtrMenuItem<bool>("Send right output as vector to Tricorder", "", &elastikaModule->outputVectorSelectRight));
+
+                    // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
+                    menu->addChild(elastikaModule->createToggleAllSensitivityMenuItem());
                 }
             }
         };

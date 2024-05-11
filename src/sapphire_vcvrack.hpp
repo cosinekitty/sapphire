@@ -464,6 +464,7 @@ namespace Sapphire
 
     struct SapphireParamInfo
     {
+        bool isAttenuverter = false;
         bool isLowSensitive{};
 
         SapphireParamInfo()
@@ -510,6 +511,18 @@ namespace Sapphire
             return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
+        void defineAttenuverterId(int attenId)
+        {
+            // We need to know which parameter IDs are actually for attenuverter knobs.
+            // This is a hook for passing in that information.
+            paramInfo.at(attenId).isAttenuverter = true;
+        }
+
+        bool isAttenuverter(int paramId) const
+        {
+            return paramInfo.at(paramId).isAttenuverter;
+        }
+
         bool isLowSensitive(int attenId) const
         {
             return paramInfo.at(attenId).isLowSensitive;
@@ -518,6 +531,34 @@ namespace Sapphire
         bool *lowSensitiveFlag(int attenId)
         {
             return &paramInfo.at(attenId).isLowSensitive;
+        }
+
+        void toggleAllSensitivity()
+        {
+            // Find all attenuverter knobs and toggle their low-sensitivity state together.
+            const int nparams = static_cast<int>(paramInfo.size());
+            int countEnabled = 0;
+            int countDisabled = 0;
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (isAttenuverter(paramId))
+                    isLowSensitive(paramId) ? ++countEnabled : ++countDisabled;
+
+            // Let the knobs "vote". If a supermajority are enabled,
+            // then we turn them all off.
+            // Otherwise we turn them all on.
+            const bool toggle = (countEnabled <= countDisabled);
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (isAttenuverter(paramId))
+                    *lowSensitiveFlag(paramId) = toggle;
+        }
+
+        MenuItem* createToggleAllSensitivityMenuItem()
+        {
+            return createMenuItem(
+                "Toggle sensitivity on all attenuverters",
+                "",
+                [this]{ toggleAllSensitivity(); }
+            );
         }
 
         bool isVectorReceiverConnectedOnRight() const
@@ -571,7 +612,7 @@ namespace Sapphire
                     if (json_is_integer(item))
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
-                        if (attenId >= 0 && attenId < nparams)
+                        if (attenId >= 0 && attenId < nparams && isAttenuverter(attenId))
                             paramInfo.at(attenId).isLowSensitive = true;
                     }
                 }

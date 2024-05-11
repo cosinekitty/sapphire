@@ -509,6 +509,9 @@ namespace Sapphire
                         "",
                         [=]{ polynucleusModule->resetSimulation(); }
                     ));
+
+                    // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
+                    menu->addChild(polynucleusModule->createToggleAllSensitivityMenuItem());
                 }
             }
 

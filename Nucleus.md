@@ -130,8 +130,6 @@ Nucleus's context menu looks like this:
 
 <img src="images/nucleus_context_menu.png"/>
 
-It includes a couple of options for a DC reject filter and an output limiter, as described below.
-
 ### DC Reject Cutoff
 
 In [AUDIO mode](#audio_mode), Nucleus sends its outputs through a DC reject filter.
@@ -202,6 +200,10 @@ for this in the right-click context menu labeled
 will toggle whether the warning light turns on
 when the limiter is active. The warning light option
 defaults to being enabled.
+
+### Toggle sensitivity on all attenuverters
+
+See [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 
 ### Graphing output using Tricorder
 If you place a [Tricorder](Tricorder.md) module immediately to the right of a Nucleus module,

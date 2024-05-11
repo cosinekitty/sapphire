@@ -85,7 +85,13 @@ namespace Sapphire
             SapphireModule* sapphireModule = getSapphireModule();
 
             if (sapphireModule != nullptr)
+            {
+                // Restore the persisted sensitivity state we loaded from JSON (or false if none).
                 knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
+
+                // Let the sensitivity toggler know this ID belongs to an attenuverter knob.
+                sapphireModule->defineAttenuverterId(attenId);
+            }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
             addReloadableParam(knob, svgId);

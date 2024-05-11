@@ -36,3 +36,19 @@ to indicate that low sensitivity mode is active.
 Now the knob setting will operate at 1/10 of its usual sensitivity.
 You can turn low-sensitivity back off by repeating the procedure
 with the context menu.
+
+## Toggle all knobs
+
+In Elastika, Nucleus, and Polynucleus, in addition to toggling the
+attenuverter knobs one at a time, you can right-click on the module
+itself to find an option titled "Toggle sensitivity on all attenuverters".
+
+For example, you can see it in the context menu for Elastika:
+
+![Elastika context menu](images/elastika_menu.png)
+
+Every time you click on this menu item, it will either turn all
+the attenuverters to low-sensitivity mode, or all to normal mode.
+It decides by letting the existing attenuverters "vote" for their
+collective opposite: if more than half of the attenuverters are enabled,
+the menu item will disable them all. Otherwise, all will be enabled.

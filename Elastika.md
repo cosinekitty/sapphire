@@ -186,10 +186,6 @@ Elastika's context menu looks like this:
 
 ![Elastika context menu](./images/elastika_menu.png)
 
-This menu includes two sliders that allow you to adjust
-output audio tone and voltage levels. The next two
-sections explain these settings in detail.
-
 ### DC rejection cutoff frequency
 
 Elastika includes an internal DC rejection filter on both audio outputs.
@@ -232,7 +228,7 @@ is controlled by some external module, such as a mixer with a very low setting.
 Most of the time, it's a good idea to leave the limiter enabled,
 to avoid extremely loud sounds and clipping distortion.
 
-### Limiter distortion warning light
+### Limiter warning light
 
 When Elastika's limiter is enabled, and the output
 level is so high that the limiter is actively working
@@ -260,6 +256,16 @@ for this in the right-click context menu labeled
 will toggle whether the warning light turns on
 when the limiter is active. The warning light option
 defaults to being enabled.
+
+### Send right output as vector to Tricorder
+
+If a [Tricorder](Tricorder.md) is placed immediately to the right of Elastika,
+it will receive the 3D coordinates of either the left or right output particle.
+This menu item selects the right ball when checked, or the left ball when unchecked.
+
+### Toggle sensitivity on all attenuverters
+
+See [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 
 ### Power button and gate
 
