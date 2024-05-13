@@ -127,10 +127,12 @@ namespace Sapphire
 
         void setKnob(double k)
         {
-            // Some C++ compilers get confused in template type rules.
-            // Create explicitly `double` values to help those compilers out!
-            const double minKnob = -1.0;
-            const double maxKnob = +1.0;
+            // On Cardinal builds, one of the environments uses a compiler
+            // option to convert `double` constants to `float`.
+            // This causes a compiler error calling std::clamp()
+            // unless we "lock in" the types.
+            const double minKnob = -1;
+            const double maxKnob = +1;
             knob = std::clamp(k, minKnob, maxKnob);
         }
 

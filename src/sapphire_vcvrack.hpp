@@ -651,10 +651,12 @@ namespace Sapphire
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
             double decibels = 20.0 * std::log10(1.0 + distortion);
-            // Some C++ compilers get confused in template type rules.
-            // Create explicitly `double` values to help those compilers out!
-            const double minScale = 0.0;
-            const double maxScale = 1.0;
+            // On Cardinal builds, one of the environments uses a compiler
+            // option to convert `double` constants to `float`.
+            // This causes a compiler error calling std::clamp()
+            // unless we "lock in" the types.
+            const double minScale = 0;
+            const double maxScale = 1;
             double scale = std::clamp(decibels / 24.0, minScale, maxScale);
 
             int red   = colorComponent(scale, 0x90, 0xff);
