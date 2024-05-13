@@ -465,17 +465,7 @@ namespace Sapphire
     struct SapphireParamInfo
     {
         bool isAttenuverter = false;
-        bool isLowSensitive{};
-
-        SapphireParamInfo()
-        {
-            initialize();
-        }
-
-        void initialize()
-        {
-            isLowSensitive = false;
-        }
+        bool isLowSensitive = false;
     };
 
     struct SapphireModule : public Module
@@ -600,7 +590,7 @@ namespace Sapphire
             // This way, we at least clear out the state even if something is wrong the the JSON.
             const int nparams = static_cast<int>(paramInfo.size());
             for (int attenId = 0; attenId < nparams; ++attenId)
-                paramInfo.at(attenId).initialize();
+                paramInfo.at(attenId).isLowSensitive = false;
 
             json_t* list = json_object_get(root, "lowSensitivityAttenuverters");
             if (list != nullptr)
@@ -612,7 +602,7 @@ namespace Sapphire
                     if (json_is_integer(item))
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
-                        if (attenId >= 0 && attenId < nparams && isAttenuverter(attenId))
+                        if (attenId >= 0 && attenId < nparams)
                             paramInfo.at(attenId).isLowSensitive = true;
                     }
                 }
