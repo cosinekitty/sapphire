@@ -25,19 +25,65 @@ namespace Sapphire
             uint32_t fpd;
             double lastRef[7];
             double thunder;
-            double aA[9700];
-            double aB[6000];
-            double aC[2320];
-            double aD[940];
-            double aE[15220];
-            double aF[8460];
-            double aG[4540];
-            double aH[3200];
-            double aI[6480];
-            double aJ[3660];
-            double aK[1720];
-            double aL[680];
-            double aM[3111];
+            std::vector<double> aA;
+            std::vector<double> aB;
+            std::vector<double> aC;
+            std::vector<double> aD;
+            std::vector<double> aE;
+            std::vector<double> aF;
+            std::vector<double> aG;
+            std::vector<double> aH;
+            std::vector<double> aI;
+            std::vector<double> aJ;
+            std::vector<double> aK;
+            std::vector<double> aL;
+            std::vector<double> aM;
+
+            ChannelState()
+            {
+                aA.resize(9700);
+                aB.resize(6000);
+                aC.resize(2320);
+                aD.resize(940);
+                aE.resize(15220);
+                aF.resize(8460);
+                aG.resize(4540);
+                aH.resize(3200);
+                aI.resize(6480);
+                aJ.resize(3660);
+                aK.resize(1720);
+                aL.resize(680);
+                aM.resize(3111);
+            }
+
+            void clear()
+            {
+                iirA = iirB = 0;
+                feedbackA = feedbackB = feedbackC = feedbackD = 0;
+                fpd = 0;
+                for (int i = 0; i < 7; ++i)
+                    lastRef[i] = 0;
+                thunder = 0;
+                clear(aA);
+                clear(aB);
+                clear(aC);
+                clear(aD);
+                clear(aE);
+                clear(aF);
+                clear(aG);
+                clear(aH);
+                clear(aI);
+                clear(aJ);
+                clear(aK);
+                clear(aL);
+                clear(aM);
+            }
+
+            static void clear(std::vector<double>& vec)
+            {
+                for (double& x : vec)
+                    x = 0;
+            }
         };
 
 
@@ -117,8 +163,8 @@ namespace Sapphire
 
             void clear()
             {
-                memset(&L, 0, sizeof(ChannelState));
-                memset(&R, 0, sizeof(ChannelState));
+                L.clear();
+                R.clear();
                 memset(&S, 0, sizeof(SharedState));
             }
 
@@ -129,8 +175,7 @@ namespace Sapphire
                 int cycleEnd = std::floor(overallscale);
                 if (cycleEnd < 1) cycleEnd = 1;
                 if (cycleEnd > 4) cycleEnd = 4;
-                //this is going to be 2 for 88.1 or 96k, 3 for silly people, 4 for 176 or 192k
-                if (S.cycle > cycleEnd-1) S.cycle = cycleEnd-1; //sanity check
+                if (S.cycle > cycleEnd-1) S.cycle = cycleEnd-1;
 
                 double regen = 0.0625+((1.0-parm.A)*0.0625);
                 double attenuate = (1.0 - (regen / 0.125))*1.333;
