@@ -2,6 +2,7 @@
 #include <cstring>
 #include <random>
 #include "sapphire_engine.hpp"
+#include "galaxy_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
 
@@ -33,12 +34,14 @@ static int DelayLineTest();
 static int InterpolatorTest();
 static int TaperTest();
 static int QuadraticTest();
+static int GalaxyTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl },
     { "chaos",      ChaosTest },
     { "delay",      DelayLineTest },
+    { "galaxy",     GalaxyTest },
     { "interp",     InterpolatorTest },
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
@@ -666,3 +669,33 @@ static int ChaosTest()
         Pass("ChaosTest");
 }
 
+
+static int GalaxyTest()
+{
+    const char *inFileName = "input/genesis.wav";
+    const char *outFileName = "output/galaxy_genesis.wav";
+    const int sampleRate = 44100;
+    const int channels = 2;
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("GalaxyTest", std::string("Could not open input file: ") + inFileName);
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("GalaxyTest", std::string("Could not open output file: ") + outFileName);
+
+    Sapphire::Galaxy::Engine engine;
+    float inFrame[channels]{};
+    float outFrame[channels]{};
+
+    while (inwave.Read(inFrame, channels) == channels)
+    {
+        engine.process(inFrame[0], inFrame[1], outFrame[0], outFrame[1]);
+        outwave.WriteSamples(outFrame, channels);
+    }
+
+    outwave.Close();
+    inwave.Close();
+    return Pass("GalaxyTest");
+}
