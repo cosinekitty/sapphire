@@ -304,8 +304,8 @@ namespace Sapphire
                     }
                     S.cycle = 0;
                 }
-                inputSampleL = L.iirB = (L.iirB*(1.0-lowpass))+(L.lastRef[S.cycle]*lowpass);
-                inputSampleR = R.iirB = (R.iirB*(1.0-lowpass))+(R.lastRef[S.cycle]*lowpass);
+                inputSampleL = L.iirB = (L.iirB*(1-lowpass))+(L.lastRef[S.cycle]*lowpass);
+                inputSampleR = R.iirB = (R.iirB*(1-lowpass))+(R.lastRef[S.cycle]*lowpass);
                 if (wet < 1.0)
                 {
                     inputSampleL = (inputSampleL * wet) + (drySampleL * (1-wet));
