@@ -146,14 +146,8 @@ namespace Sapphire
                 interpolML += (channel[0].aM[workingML+1-((workingML+1 > shared.delayM)?shared.delayM+1:0)] * ((offsetML-std::floor(offsetML))) );
                 double interpolMR = (channel[1].aM[workingMR-((workingMR > shared.delayM)?shared.delayM+1:0)] * (1-(offsetMR-floor(offsetMR))));
                 interpolMR += (channel[1].aM[workingMR+1-((workingMR+1 > shared.delayM)?shared.delayM+1:0)] * ((offsetMR-floor(offsetMR))) );
-                inputSampleL = interpolML;
-                inputSampleR = interpolMR;
-                //predelay that applies vibrato
-                //want vibrato speed AND depth like in MatrixVerb
-
-                inputSampleL = channel[0].iirA = (channel[0].iirA*(1.0-lowpass))+(inputSampleL*lowpass);
-                inputSampleR = channel[1].iirA = (channel[1].iirA*(1.0-lowpass))+(inputSampleR*lowpass);
-                //initial filter
+                inputSampleL = channel[0].iirA = (channel[0].iirA*(1.0-lowpass))+(interpolML*lowpass);
+                inputSampleR = channel[1].iirA = (channel[1].iirA*(1.0-lowpass))+(interpolMR*lowpass);
 
                 if (++shared.cycle == cycleEnd)
                 {
@@ -276,19 +270,9 @@ namespace Sapphire
                         channel[1].lastRef[0] = inputSampleR;
                     }
                     shared.cycle = 0; //reset
-                    inputSampleL = channel[0].lastRef[shared.cycle];
-                    inputSampleR = channel[1].lastRef[shared.cycle];
                 }
-                else
-                {
-                    inputSampleL = channel[0].lastRef[shared.cycle];
-                    inputSampleR = channel[1].lastRef[shared.cycle];
-                    //we are going through our references now
-                }
-
-                inputSampleL = channel[0].iirB = (channel[0].iirB*(1.0-lowpass))+(inputSampleL*lowpass);
-                inputSampleR = channel[1].iirB = (channel[1].iirB*(1.0-lowpass))+(inputSampleR*lowpass);
-                //end filter
+                inputSampleL = channel[0].iirB = (channel[0].iirB*(1.0-lowpass))+(channel[0].lastRef[shared.cycle]*lowpass);
+                inputSampleR = channel[1].iirB = (channel[1].iirB*(1.0-lowpass))+(channel[1].lastRef[shared.cycle]*lowpass);
 
                 if (wet < 1.0)
                 {
