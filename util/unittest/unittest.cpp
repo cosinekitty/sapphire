@@ -686,12 +686,27 @@ static int GalaxyTest()
         return Fail("GalaxyTest", std::string("Could not open output file: ") + outFileName);
 
     Sapphire::Galaxy::Engine engine;
+    Sapphire::Galaxy::ReverbParameters& parms = engine.parameters();
+    parms.A = 0.5;
+    parms.B = 0.5;
+    parms.C = 0.5;
+    parms.D = 0.5;
+    parms.E = 0.5;
+
     float inFrame[channels]{};
     float outFrame[channels]{};
 
     while (inwave.Read(inFrame, channels) == channels)
     {
-        engine.process(inFrame[0], inFrame[1], outFrame[0], outFrame[1]);
+        engine.process(sampleRate, inFrame[0], inFrame[1], outFrame[0], outFrame[1]);
+        outwave.WriteSamples(outFrame, channels);
+    }
+
+    const int flushSeconds = 6;
+    const int flushFrames = sampleRate * flushSeconds;
+    for (int frame = 0; frame < flushFrames; ++frame)
+    {
+        engine.process(sampleRate, 0, 0, outFrame[0], outFrame[1]);
         outwave.WriteSamples(outFrame, channels);
     }
 
