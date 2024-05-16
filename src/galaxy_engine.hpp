@@ -41,25 +41,42 @@ namespace Sapphire
         };
 
 
+        struct DelayState
+        {
+            int count;
+            int delay;
+
+            void advance()
+            {
+                ++count;
+                if (count < 0 || count > delay)
+                    count = 0;
+            }
+
+            int offset(int length) const
+            {
+                return (length > delay) ? (delay + 1) : 0;
+            }
+
+            int reverse(int length) const
+            {
+                return length - offset(length);
+            }
+
+            int tail() const
+            {
+                return reverse(count);
+            }
+        };
+
+
         struct SharedState
         {
             double depthM;
             double vibM;
             double oldfpd;
             int cycle;
-            int countA, delayA;
-            int countB, delayB;
-            int countC, delayC;
-            int countD, delayD;
-            int countE, delayE;
-            int countF, delayF;
-            int countG, delayG;
-            int countH, delayH;
-            int countI, delayI;
-            int countJ, delayJ;
-            int countK, delayK;
-            int countL, delayL;
-            int countM, delayM;
+            DelayState A, B, C, D, E, F, G, H, I, J, K, L, M;
         };
 
 
@@ -105,7 +122,6 @@ namespace Sapphire
                 memset(&S, 0, sizeof(SharedState));
             }
 
-
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
                 const double overallscale = sampleRateHz / 44100;
@@ -123,19 +139,19 @@ namespace Sapphire
                 double size = (parm.D*1.77)+0.1;
                 double wet = 1.0-(pow(1.0-parm.E,3));
 
-                S.delayI = 3407.0*size;
-                S.delayJ = 1823.0*size;
-                S.delayK = 859.0*size;
-                S.delayL = 331.0*size;
-                S.delayA = 4801.0*size;
-                S.delayB = 2909.0*size;
-                S.delayC = 1153.0*size;
-                S.delayD = 461.0*size;
-                S.delayE = 7607.0*size;
-                S.delayF = 4217.0*size;
-                S.delayG = 2269.0*size;
-                S.delayH = 1597.0*size;
-                S.delayM = 256;
+                S.A.delay = 4801.0*size;
+                S.B.delay = 2909.0*size;
+                S.C.delay = 1153.0*size;
+                S.D.delay = 461.0*size;
+                S.E.delay = 7607.0*size;
+                S.F.delay = 4217.0*size;
+                S.G.delay = 2269.0*size;
+                S.H.delay = 1597.0*size;
+                S.I.delay = 3407.0*size;
+                S.J.delay = 1823.0*size;
+                S.K.delay = 859.0*size;
+                S.L.delay = 331.0*size;
+                S.M.delay = 256;
 
                 if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
@@ -149,91 +165,91 @@ namespace Sapphire
                     S.oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                L.aM[S.countM] = inputSampleL * attenuate;
-                R.aM[S.countM] = inputSampleR * attenuate;
-                S.countM++; if (S.countM < 0 || S.countM > S.delayM) S.countM = 0;
+                L.aM[S.M.count] = inputSampleL * attenuate;
+                R.aM[S.M.count] = inputSampleR * attenuate;
+                S.M.advance();
 
                 double offsetML = (std::sin(S.vibM)+1.0)*127;
                 double offsetMR = (std::sin(S.vibM+M_PI_2)+1.0)*127;
-                int workingML = S.countM + offsetML;
-                int workingMR = S.countM + offsetMR;
-                double interpolML = (L.aM[workingML-((workingML > S.delayM)?S.delayM+1:0)] * (1-(offsetML-std::floor(offsetML))));
-                interpolML += (L.aM[workingML+1-((workingML+1 > S.delayM)?S.delayM+1:0)] * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (R.aM[workingMR-((workingMR > S.delayM)?S.delayM+1:0)] * (1-(offsetMR-floor(offsetMR))));
-                interpolMR += (R.aM[workingMR+1-((workingMR+1 > S.delayM)?S.delayM+1:0)] * ((offsetMR-floor(offsetMR))) );
-                inputSampleL = L.iirA = (L.iirA*(1.0-lowpass))+(interpolML*lowpass);
-                inputSampleR = R.iirA = (R.iirA*(1.0-lowpass))+(interpolMR*lowpass);
+                int workingML = S.M.count + offsetML;
+                int workingMR = S.M.count + offsetMR;
+                double interpolML = (L.aM[S.M.reverse(workingML)] * (1-(offsetML-std::floor(offsetML))));
+                interpolML += (L.aM[S.M.reverse(workingML+1)] * ((offsetML-std::floor(offsetML))) );
+                double interpolMR = (R.aM[S.M.reverse(workingMR)] * (1-(offsetMR-floor(offsetMR))));
+                interpolMR += (R.aM[S.M.reverse(workingMR+1)] * ((offsetMR-floor(offsetMR))) );
+                inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
+                inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
 
                 if (++S.cycle == cycleEnd)
                 {
-                    L.aI[S.countI] = inputSampleL + (L.feedbackA * regen);
-                    L.aJ[S.countJ] = inputSampleL + (L.feedbackB * regen);
-                    L.aK[S.countK] = inputSampleL + (L.feedbackC * regen);
-                    L.aL[S.countL] = inputSampleL + (L.feedbackD * regen);
-                    R.aI[S.countI] = inputSampleR + (R.feedbackA * regen);
-                    R.aJ[S.countJ] = inputSampleR + (R.feedbackB * regen);
-                    R.aK[S.countK] = inputSampleR + (R.feedbackC * regen);
-                    R.aL[S.countL] = inputSampleR + (R.feedbackD * regen);
+                    L.aI[S.I.count] = inputSampleL + (L.feedbackA * regen);
+                    L.aJ[S.J.count] = inputSampleL + (L.feedbackB * regen);
+                    L.aK[S.K.count] = inputSampleL + (L.feedbackC * regen);
+                    L.aL[S.L.count] = inputSampleL + (L.feedbackD * regen);
+                    R.aI[S.I.count] = inputSampleR + (R.feedbackA * regen);
+                    R.aJ[S.J.count] = inputSampleR + (R.feedbackB * regen);
+                    R.aK[S.K.count] = inputSampleR + (R.feedbackC * regen);
+                    R.aL[S.L.count] = inputSampleR + (R.feedbackD * regen);
 
-                    S.countI++; if (S.countI < 0 || S.countI > S.delayI) S.countI = 0;
-                    S.countJ++; if (S.countJ < 0 || S.countJ > S.delayJ) S.countJ = 0;
-                    S.countK++; if (S.countK < 0 || S.countK > S.delayK) S.countK = 0;
-                    S.countL++; if (S.countL < 0 || S.countL > S.delayL) S.countL = 0;
+                    S.I.advance();
+                    S.J.advance();
+                    S.K.advance();
+                    S.L.advance();
 
-                    double outIL = L.aI[S.countI-((S.countI > S.delayI)?S.delayI+1:0)];
-                    double outJL = L.aJ[S.countJ-((S.countJ > S.delayJ)?S.delayJ+1:0)];
-                    double outKL = L.aK[S.countK-((S.countK > S.delayK)?S.delayK+1:0)];
-                    double outLL = L.aL[S.countL-((S.countL > S.delayL)?S.delayL+1:0)];
-                    double outIR = R.aI[S.countI-((S.countI > S.delayI)?S.delayI+1:0)];
-                    double outJR = R.aJ[S.countJ-((S.countJ > S.delayJ)?S.delayJ+1:0)];
-                    double outKR = R.aK[S.countK-((S.countK > S.delayK)?S.delayK+1:0)];
-                    double outLR = R.aL[S.countL-((S.countL > S.delayL)?S.delayL+1:0)];
+                    double outIL = L.aI[S.I.tail()];
+                    double outJL = L.aJ[S.J.tail()];
+                    double outKL = L.aK[S.K.tail()];
+                    double outLL = L.aL[S.L.tail()];
+                    double outIR = R.aI[S.I.tail()];
+                    double outJR = R.aJ[S.J.tail()];
+                    double outKR = R.aK[S.K.tail()];
+                    double outLR = R.aL[S.L.tail()];
 
-                    L.aA[S.countA] = (outIL - (outJL + outKL + outLL));
-                    L.aB[S.countB] = (outJL - (outIL + outKL + outLL));
-                    L.aC[S.countC] = (outKL - (outIL + outJL + outLL));
-                    L.aD[S.countD] = (outLL - (outIL + outJL + outKL));
-                    R.aA[S.countA] = (outIR - (outJR + outKR + outLR));
-                    R.aB[S.countB] = (outJR - (outIR + outKR + outLR));
-                    R.aC[S.countC] = (outKR - (outIR + outJR + outLR));
-                    R.aD[S.countD] = (outLR - (outIR + outJR + outKR));
+                    L.aA[S.A.count] = (outIL - (outJL + outKL + outLL));
+                    L.aB[S.B.count] = (outJL - (outIL + outKL + outLL));
+                    L.aC[S.C.count] = (outKL - (outIL + outJL + outLL));
+                    L.aD[S.D.count] = (outLL - (outIL + outJL + outKL));
+                    R.aA[S.A.count] = (outIR - (outJR + outKR + outLR));
+                    R.aB[S.B.count] = (outJR - (outIR + outKR + outLR));
+                    R.aC[S.C.count] = (outKR - (outIR + outJR + outLR));
+                    R.aD[S.D.count] = (outLR - (outIR + outJR + outKR));
 
-                    S.countA++; if (S.countA < 0 || S.countA > S.delayA) S.countA = 0;
-                    S.countB++; if (S.countB < 0 || S.countB > S.delayB) S.countB = 0;
-                    S.countC++; if (S.countC < 0 || S.countC > S.delayC) S.countC = 0;
-                    S.countD++; if (S.countD < 0 || S.countD > S.delayD) S.countD = 0;
+                    S.A.advance();
+                    S.B.advance();
+                    S.C.advance();
+                    S.D.advance();
 
-                    double outAL = L.aA[S.countA-((S.countA > S.delayA)?S.delayA+1:0)];
-                    double outBL = L.aB[S.countB-((S.countB > S.delayB)?S.delayB+1:0)];
-                    double outCL = L.aC[S.countC-((S.countC > S.delayC)?S.delayC+1:0)];
-                    double outDL = L.aD[S.countD-((S.countD > S.delayD)?S.delayD+1:0)];
-                    double outAR = R.aA[S.countA-((S.countA > S.delayA)?S.delayA+1:0)];
-                    double outBR = R.aB[S.countB-((S.countB > S.delayB)?S.delayB+1:0)];
-                    double outCR = R.aC[S.countC-((S.countC > S.delayC)?S.delayC+1:0)];
-                    double outDR = R.aD[S.countD-((S.countD > S.delayD)?S.delayD+1:0)];
+                    double outAL = L.aA[S.A.tail()];
+                    double outBL = L.aB[S.B.tail()];
+                    double outCL = L.aC[S.C.tail()];
+                    double outDL = L.aD[S.D.tail()];
+                    double outAR = R.aA[S.A.tail()];
+                    double outBR = R.aB[S.B.tail()];
+                    double outCR = R.aC[S.C.tail()];
+                    double outDR = R.aD[S.D.tail()];
 
-                    L.aE[S.countE] = (outAL - (outBL + outCL + outDL));
-                    L.aF[S.countF] = (outBL - (outAL + outCL + outDL));
-                    L.aG[S.countG] = (outCL - (outAL + outBL + outDL));
-                    L.aH[S.countH] = (outDL - (outAL + outBL + outCL));
-                    R.aE[S.countE] = (outAR - (outBR + outCR + outDR));
-                    R.aF[S.countF] = (outBR - (outAR + outCR + outDR));
-                    R.aG[S.countG] = (outCR - (outAR + outBR + outDR));
-                    R.aH[S.countH] = (outDR - (outAR + outBR + outCR));
+                    L.aE[S.E.count] = (outAL - (outBL + outCL + outDL));
+                    L.aF[S.F.count] = (outBL - (outAL + outCL + outDL));
+                    L.aG[S.G.count] = (outCL - (outAL + outBL + outDL));
+                    L.aH[S.H.count] = (outDL - (outAL + outBL + outCL));
+                    R.aE[S.E.count] = (outAR - (outBR + outCR + outDR));
+                    R.aF[S.F.count] = (outBR - (outAR + outCR + outDR));
+                    R.aG[S.G.count] = (outCR - (outAR + outBR + outDR));
+                    R.aH[S.H.count] = (outDR - (outAR + outBR + outCR));
 
-                    S.countE++; if (S.countE < 0 || S.countE > S.delayE) S.countE = 0;
-                    S.countF++; if (S.countF < 0 || S.countF > S.delayF) S.countF = 0;
-                    S.countG++; if (S.countG < 0 || S.countG > S.delayG) S.countG = 0;
-                    S.countH++; if (S.countH < 0 || S.countH > S.delayH) S.countH = 0;
+                    S.E.advance();
+                    S.F.advance();
+                    S.G.advance();
+                    S.H.advance();
 
-                    double outEL = L.aE[S.countE-((S.countE > S.delayE)?S.delayE+1:0)];
-                    double outFL = L.aF[S.countF-((S.countF > S.delayF)?S.delayF+1:0)];
-                    double outGL = L.aG[S.countG-((S.countG > S.delayG)?S.delayG+1:0)];
-                    double outHL = L.aH[S.countH-((S.countH > S.delayH)?S.delayH+1:0)];
-                    double outER = R.aE[S.countE-((S.countE > S.delayE)?S.delayE+1:0)];
-                    double outFR = R.aF[S.countF-((S.countF > S.delayF)?S.delayF+1:0)];
-                    double outGR = R.aG[S.countG-((S.countG > S.delayG)?S.delayG+1:0)];
-                    double outHR = R.aH[S.countH-((S.countH > S.delayH)?S.delayH+1:0)];
+                    double outEL = L.aE[S.E.tail()];
+                    double outFL = L.aF[S.F.tail()];
+                    double outGL = L.aG[S.G.tail()];
+                    double outHL = L.aH[S.H.tail()];
+                    double outER = R.aE[S.E.tail()];
+                    double outFR = R.aF[S.F.tail()];
+                    double outGR = R.aG[S.G.tail()];
+                    double outHR = R.aH[S.H.tail()];
 
                     L.feedbackA = (outEL - (outFL + outGL + outHL));
                     L.feedbackB = (outFL - (outEL + outGL + outHL));
