@@ -210,91 +210,91 @@ namespace Sapphire
                     S.oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                L.aM[S.M.count] = inputSampleL * attenuate;
-                R.aM[S.M.count] = inputSampleR * attenuate;
+                L.aM.at(S.M.count) = inputSampleL * attenuate;
+                R.aM.at(S.M.count) = inputSampleR * attenuate;
                 S.M.advance();
 
                 double offsetML = (std::sin(S.vibM)+1.0)*127;
                 double offsetMR = (std::sin(S.vibM+M_PI_2)+1.0)*127;
                 int workingML = S.M.count + offsetML;
                 int workingMR = S.M.count + offsetMR;
-                double interpolML = (L.aM[S.M.reverse(workingML)] * (1-(offsetML-std::floor(offsetML))));
-                interpolML += (L.aM[S.M.reverse(workingML+1)] * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (R.aM[S.M.reverse(workingMR)] * (1-(offsetMR-floor(offsetMR))));
-                interpolMR += (R.aM[S.M.reverse(workingMR+1)] * ((offsetMR-floor(offsetMR))) );
+                double interpolML = (L.aM.at(S.M.reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
+                interpolML += (L.aM.at(S.M.reverse(workingML+1)) * ((offsetML-std::floor(offsetML))) );
+                double interpolMR = (R.aM.at(S.M.reverse(workingMR)) * (1-(offsetMR-floor(offsetMR))));
+                interpolMR += (R.aM.at(S.M.reverse(workingMR+1)) * ((offsetMR-floor(offsetMR))));
                 inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
                 inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
 
                 if (++S.cycle == cycleEnd)
                 {
-                    L.aI[S.I.count] = inputSampleL + (L.feedbackA * regen);
-                    L.aJ[S.J.count] = inputSampleL + (L.feedbackB * regen);
-                    L.aK[S.K.count] = inputSampleL + (L.feedbackC * regen);
-                    L.aL[S.L.count] = inputSampleL + (L.feedbackD * regen);
-                    R.aI[S.I.count] = inputSampleR + (R.feedbackA * regen);
-                    R.aJ[S.J.count] = inputSampleR + (R.feedbackB * regen);
-                    R.aK[S.K.count] = inputSampleR + (R.feedbackC * regen);
-                    R.aL[S.L.count] = inputSampleR + (R.feedbackD * regen);
+                    L.aI.at(S.I.count) = inputSampleL + (L.feedbackA * regen);
+                    L.aJ.at(S.J.count) = inputSampleL + (L.feedbackB * regen);
+                    L.aK.at(S.K.count) = inputSampleL + (L.feedbackC * regen);
+                    L.aL.at(S.L.count) = inputSampleL + (L.feedbackD * regen);
+                    R.aI.at(S.I.count) = inputSampleR + (R.feedbackA * regen);
+                    R.aJ.at(S.J.count) = inputSampleR + (R.feedbackB * regen);
+                    R.aK.at(S.K.count) = inputSampleR + (R.feedbackC * regen);
+                    R.aL.at(S.L.count) = inputSampleR + (R.feedbackD * regen);
 
                     S.I.advance();
                     S.J.advance();
                     S.K.advance();
                     S.L.advance();
 
-                    double outIL = L.aI[S.I.tail()];
-                    double outJL = L.aJ[S.J.tail()];
-                    double outKL = L.aK[S.K.tail()];
-                    double outLL = L.aL[S.L.tail()];
-                    double outIR = R.aI[S.I.tail()];
-                    double outJR = R.aJ[S.J.tail()];
-                    double outKR = R.aK[S.K.tail()];
-                    double outLR = R.aL[S.L.tail()];
+                    double outIL = L.aI.at(S.I.tail());
+                    double outJL = L.aJ.at(S.J.tail());
+                    double outKL = L.aK.at(S.K.tail());
+                    double outLL = L.aL.at(S.L.tail());
+                    double outIR = R.aI.at(S.I.tail());
+                    double outJR = R.aJ.at(S.J.tail());
+                    double outKR = R.aK.at(S.K.tail());
+                    double outLR = R.aL.at(S.L.tail());
 
-                    L.aA[S.A.count] = (outIL - (outJL + outKL + outLL));
-                    L.aB[S.B.count] = (outJL - (outIL + outKL + outLL));
-                    L.aC[S.C.count] = (outKL - (outIL + outJL + outLL));
-                    L.aD[S.D.count] = (outLL - (outIL + outJL + outKL));
-                    R.aA[S.A.count] = (outIR - (outJR + outKR + outLR));
-                    R.aB[S.B.count] = (outJR - (outIR + outKR + outLR));
-                    R.aC[S.C.count] = (outKR - (outIR + outJR + outLR));
-                    R.aD[S.D.count] = (outLR - (outIR + outJR + outKR));
+                    L.aA.at(S.A.count) = (outIL - (outJL + outKL + outLL));
+                    L.aB.at(S.B.count) = (outJL - (outIL + outKL + outLL));
+                    L.aC.at(S.C.count) = (outKL - (outIL + outJL + outLL));
+                    L.aD.at(S.D.count) = (outLL - (outIL + outJL + outKL));
+                    R.aA.at(S.A.count) = (outIR - (outJR + outKR + outLR));
+                    R.aB.at(S.B.count) = (outJR - (outIR + outKR + outLR));
+                    R.aC.at(S.C.count) = (outKR - (outIR + outJR + outLR));
+                    R.aD.at(S.D.count) = (outLR - (outIR + outJR + outKR));
 
                     S.A.advance();
                     S.B.advance();
                     S.C.advance();
                     S.D.advance();
 
-                    double outAL = L.aA[S.A.tail()];
-                    double outBL = L.aB[S.B.tail()];
-                    double outCL = L.aC[S.C.tail()];
-                    double outDL = L.aD[S.D.tail()];
-                    double outAR = R.aA[S.A.tail()];
-                    double outBR = R.aB[S.B.tail()];
-                    double outCR = R.aC[S.C.tail()];
-                    double outDR = R.aD[S.D.tail()];
+                    double outAL = L.aA.at(S.A.tail());
+                    double outBL = L.aB.at(S.B.tail());
+                    double outCL = L.aC.at(S.C.tail());
+                    double outDL = L.aD.at(S.D.tail());
+                    double outAR = R.aA.at(S.A.tail());
+                    double outBR = R.aB.at(S.B.tail());
+                    double outCR = R.aC.at(S.C.tail());
+                    double outDR = R.aD.at(S.D.tail());
 
-                    L.aE[S.E.count] = (outAL - (outBL + outCL + outDL));
-                    L.aF[S.F.count] = (outBL - (outAL + outCL + outDL));
-                    L.aG[S.G.count] = (outCL - (outAL + outBL + outDL));
-                    L.aH[S.H.count] = (outDL - (outAL + outBL + outCL));
-                    R.aE[S.E.count] = (outAR - (outBR + outCR + outDR));
-                    R.aF[S.F.count] = (outBR - (outAR + outCR + outDR));
-                    R.aG[S.G.count] = (outCR - (outAR + outBR + outDR));
-                    R.aH[S.H.count] = (outDR - (outAR + outBR + outCR));
+                    L.aE.at(S.E.count) = (outAL - (outBL + outCL + outDL));
+                    L.aF.at(S.F.count) = (outBL - (outAL + outCL + outDL));
+                    L.aG.at(S.G.count) = (outCL - (outAL + outBL + outDL));
+                    L.aH.at(S.H.count) = (outDL - (outAL + outBL + outCL));
+                    R.aE.at(S.E.count) = (outAR - (outBR + outCR + outDR));
+                    R.aF.at(S.F.count) = (outBR - (outAR + outCR + outDR));
+                    R.aG.at(S.G.count) = (outCR - (outAR + outBR + outDR));
+                    R.aH.at(S.H.count) = (outDR - (outAR + outBR + outCR));
 
                     S.E.advance();
                     S.F.advance();
                     S.G.advance();
                     S.H.advance();
 
-                    double outEL = L.aE[S.E.tail()];
-                    double outFL = L.aF[S.F.tail()];
-                    double outGL = L.aG[S.G.tail()];
-                    double outHL = L.aH[S.H.tail()];
-                    double outER = R.aE[S.E.tail()];
-                    double outFR = R.aF[S.F.tail()];
-                    double outGR = R.aG[S.G.tail()];
-                    double outHR = R.aH[S.H.tail()];
+                    double outEL = L.aE.at(S.E.tail());
+                    double outFL = L.aF.at(S.F.tail());
+                    double outGL = L.aG.at(S.G.tail());
+                    double outHL = L.aH.at(S.H.tail());
+                    double outER = R.aE.at(S.E.tail());
+                    double outFR = R.aF.at(S.F.tail());
+                    double outGR = R.aG.at(S.G.tail());
+                    double outHR = R.aH.at(S.H.tail());
 
                     L.feedbackA = (outEL - (outFL + outGL + outHL));
                     L.feedbackB = (outFL - (outEL + outGL + outHL));
