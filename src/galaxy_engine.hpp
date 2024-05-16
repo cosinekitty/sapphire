@@ -76,8 +76,9 @@ namespace Sapphire
         struct ReverbState
         {
         private:
-            ChannelState channel[2];        // 0 = left, 1 = right
-            SharedState shared;
+            ChannelState L;
+            ChannelState R;
+            SharedState  S;
 
             static inline double dither(double sample, uint32_t& fpd)
             {
@@ -99,9 +100,9 @@ namespace Sapphire
 
             void clear()
             {
-                memset(&channel[0], 0, sizeof(ChannelState));
-                memset(&channel[1], 0, sizeof(ChannelState));
-                memset(&shared, 0, sizeof(SharedState));
+                memset(&L, 0, sizeof(ChannelState));
+                memset(&R, 0, sizeof(ChannelState));
+                memset(&S, 0, sizeof(SharedState));
             }
 
 
@@ -113,7 +114,7 @@ namespace Sapphire
                 if (cycleEnd < 1) cycleEnd = 1;
                 if (cycleEnd > 4) cycleEnd = 4;
                 //this is going to be 2 for 88.1 or 96k, 3 for silly people, 4 for 176 or 192k
-                if (shared.cycle > cycleEnd-1) shared.cycle = cycleEnd-1; //sanity check
+                if (S.cycle > cycleEnd-1) S.cycle = cycleEnd-1; //sanity check
 
                 double regen = 0.0625+((1.0-parm.A)*0.0625);
                 double attenuate = (1.0 - (regen / 0.125))*1.333;
@@ -122,180 +123,180 @@ namespace Sapphire
                 double size = (parm.D*1.77)+0.1;
                 double wet = 1.0-(pow(1.0-parm.E,3));
 
-                shared.delayI = 3407.0*size;
-                shared.delayJ = 1823.0*size;
-                shared.delayK = 859.0*size;
-                shared.delayL = 331.0*size;
-                shared.delayA = 4801.0*size;
-                shared.delayB = 2909.0*size;
-                shared.delayC = 1153.0*size;
-                shared.delayD = 461.0*size;
-                shared.delayE = 7607.0*size;
-                shared.delayF = 4217.0*size;
-                shared.delayG = 2269.0*size;
-                shared.delayH = 1597.0*size;
-                shared.delayM = 256;
+                S.delayI = 3407.0*size;
+                S.delayJ = 1823.0*size;
+                S.delayK = 859.0*size;
+                S.delayL = 331.0*size;
+                S.delayA = 4801.0*size;
+                S.delayB = 2909.0*size;
+                S.delayC = 1153.0*size;
+                S.delayD = 461.0*size;
+                S.delayE = 7607.0*size;
+                S.delayF = 4217.0*size;
+                S.delayG = 2269.0*size;
+                S.delayH = 1597.0*size;
+                S.delayM = 256;
 
-                if (std::abs(inputSampleL)<1.18e-23) inputSampleL = channel[0].fpd * 1.18e-17;
-                if (std::abs(inputSampleR)<1.18e-23) inputSampleR = channel[1].fpd * 1.18e-17;
+                if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
+                if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
                 double drySampleL = inputSampleL;
                 double drySampleR = inputSampleR;
 
-                shared.vibM += (shared.oldfpd*drift);
-                if (shared.vibM > 2*M_PI)
+                S.vibM += (S.oldfpd*drift);
+                if (S.vibM > 2*M_PI)
                 {
-                    shared.vibM = 0;
-                    shared.oldfpd = 0.4294967295+(channel[0].fpd*0.0000000000618);
+                    S.vibM = 0;
+                    S.oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                channel[0].aM[shared.countM] = inputSampleL * attenuate;
-                channel[1].aM[shared.countM] = inputSampleR * attenuate;
-                shared.countM++; if (shared.countM < 0 || shared.countM > shared.delayM) shared.countM = 0;
+                L.aM[S.countM] = inputSampleL * attenuate;
+                R.aM[S.countM] = inputSampleR * attenuate;
+                S.countM++; if (S.countM < 0 || S.countM > S.delayM) S.countM = 0;
 
-                double offsetML = (std::sin(shared.vibM)+1.0)*127;
-                double offsetMR = (std::sin(shared.vibM+M_PI_2)+1.0)*127;
-                int workingML = shared.countM + offsetML;
-                int workingMR = shared.countM + offsetMR;
-                double interpolML = (channel[0].aM[workingML-((workingML > shared.delayM)?shared.delayM+1:0)] * (1-(offsetML-std::floor(offsetML))));
-                interpolML += (channel[0].aM[workingML+1-((workingML+1 > shared.delayM)?shared.delayM+1:0)] * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (channel[1].aM[workingMR-((workingMR > shared.delayM)?shared.delayM+1:0)] * (1-(offsetMR-floor(offsetMR))));
-                interpolMR += (channel[1].aM[workingMR+1-((workingMR+1 > shared.delayM)?shared.delayM+1:0)] * ((offsetMR-floor(offsetMR))) );
-                inputSampleL = channel[0].iirA = (channel[0].iirA*(1.0-lowpass))+(interpolML*lowpass);
-                inputSampleR = channel[1].iirA = (channel[1].iirA*(1.0-lowpass))+(interpolMR*lowpass);
+                double offsetML = (std::sin(S.vibM)+1.0)*127;
+                double offsetMR = (std::sin(S.vibM+M_PI_2)+1.0)*127;
+                int workingML = S.countM + offsetML;
+                int workingMR = S.countM + offsetMR;
+                double interpolML = (L.aM[workingML-((workingML > S.delayM)?S.delayM+1:0)] * (1-(offsetML-std::floor(offsetML))));
+                interpolML += (L.aM[workingML+1-((workingML+1 > S.delayM)?S.delayM+1:0)] * ((offsetML-std::floor(offsetML))) );
+                double interpolMR = (R.aM[workingMR-((workingMR > S.delayM)?S.delayM+1:0)] * (1-(offsetMR-floor(offsetMR))));
+                interpolMR += (R.aM[workingMR+1-((workingMR+1 > S.delayM)?S.delayM+1:0)] * ((offsetMR-floor(offsetMR))) );
+                inputSampleL = L.iirA = (L.iirA*(1.0-lowpass))+(interpolML*lowpass);
+                inputSampleR = R.iirA = (R.iirA*(1.0-lowpass))+(interpolMR*lowpass);
 
-                if (++shared.cycle == cycleEnd)
+                if (++S.cycle == cycleEnd)
                 {
-                    channel[0].aI[shared.countI] = inputSampleL + (channel[0].feedbackA * regen);
-                    channel[0].aJ[shared.countJ] = inputSampleL + (channel[0].feedbackB * regen);
-                    channel[0].aK[shared.countK] = inputSampleL + (channel[0].feedbackC * regen);
-                    channel[0].aL[shared.countL] = inputSampleL + (channel[0].feedbackD * regen);
-                    channel[1].aI[shared.countI] = inputSampleR + (channel[1].feedbackA * regen);
-                    channel[1].aJ[shared.countJ] = inputSampleR + (channel[1].feedbackB * regen);
-                    channel[1].aK[shared.countK] = inputSampleR + (channel[1].feedbackC * regen);
-                    channel[1].aL[shared.countL] = inputSampleR + (channel[1].feedbackD * regen);
+                    L.aI[S.countI] = inputSampleL + (L.feedbackA * regen);
+                    L.aJ[S.countJ] = inputSampleL + (L.feedbackB * regen);
+                    L.aK[S.countK] = inputSampleL + (L.feedbackC * regen);
+                    L.aL[S.countL] = inputSampleL + (L.feedbackD * regen);
+                    R.aI[S.countI] = inputSampleR + (R.feedbackA * regen);
+                    R.aJ[S.countJ] = inputSampleR + (R.feedbackB * regen);
+                    R.aK[S.countK] = inputSampleR + (R.feedbackC * regen);
+                    R.aL[S.countL] = inputSampleR + (R.feedbackD * regen);
 
-                    shared.countI++; if (shared.countI < 0 || shared.countI > shared.delayI) shared.countI = 0;
-                    shared.countJ++; if (shared.countJ < 0 || shared.countJ > shared.delayJ) shared.countJ = 0;
-                    shared.countK++; if (shared.countK < 0 || shared.countK > shared.delayK) shared.countK = 0;
-                    shared.countL++; if (shared.countL < 0 || shared.countL > shared.delayL) shared.countL = 0;
+                    S.countI++; if (S.countI < 0 || S.countI > S.delayI) S.countI = 0;
+                    S.countJ++; if (S.countJ < 0 || S.countJ > S.delayJ) S.countJ = 0;
+                    S.countK++; if (S.countK < 0 || S.countK > S.delayK) S.countK = 0;
+                    S.countL++; if (S.countL < 0 || S.countL > S.delayL) S.countL = 0;
 
-                    double outIL = channel[0].aI[shared.countI-((shared.countI > shared.delayI)?shared.delayI+1:0)];
-                    double outJL = channel[0].aJ[shared.countJ-((shared.countJ > shared.delayJ)?shared.delayJ+1:0)];
-                    double outKL = channel[0].aK[shared.countK-((shared.countK > shared.delayK)?shared.delayK+1:0)];
-                    double outLL = channel[0].aL[shared.countL-((shared.countL > shared.delayL)?shared.delayL+1:0)];
-                    double outIR = channel[1].aI[shared.countI-((shared.countI > shared.delayI)?shared.delayI+1:0)];
-                    double outJR = channel[1].aJ[shared.countJ-((shared.countJ > shared.delayJ)?shared.delayJ+1:0)];
-                    double outKR = channel[1].aK[shared.countK-((shared.countK > shared.delayK)?shared.delayK+1:0)];
-                    double outLR = channel[1].aL[shared.countL-((shared.countL > shared.delayL)?shared.delayL+1:0)];
+                    double outIL = L.aI[S.countI-((S.countI > S.delayI)?S.delayI+1:0)];
+                    double outJL = L.aJ[S.countJ-((S.countJ > S.delayJ)?S.delayJ+1:0)];
+                    double outKL = L.aK[S.countK-((S.countK > S.delayK)?S.delayK+1:0)];
+                    double outLL = L.aL[S.countL-((S.countL > S.delayL)?S.delayL+1:0)];
+                    double outIR = R.aI[S.countI-((S.countI > S.delayI)?S.delayI+1:0)];
+                    double outJR = R.aJ[S.countJ-((S.countJ > S.delayJ)?S.delayJ+1:0)];
+                    double outKR = R.aK[S.countK-((S.countK > S.delayK)?S.delayK+1:0)];
+                    double outLR = R.aL[S.countL-((S.countL > S.delayL)?S.delayL+1:0)];
 
-                    channel[0].aA[shared.countA] = (outIL - (outJL + outKL + outLL));
-                    channel[0].aB[shared.countB] = (outJL - (outIL + outKL + outLL));
-                    channel[0].aC[shared.countC] = (outKL - (outIL + outJL + outLL));
-                    channel[0].aD[shared.countD] = (outLL - (outIL + outJL + outKL));
-                    channel[1].aA[shared.countA] = (outIR - (outJR + outKR + outLR));
-                    channel[1].aB[shared.countB] = (outJR - (outIR + outKR + outLR));
-                    channel[1].aC[shared.countC] = (outKR - (outIR + outJR + outLR));
-                    channel[1].aD[shared.countD] = (outLR - (outIR + outJR + outKR));
+                    L.aA[S.countA] = (outIL - (outJL + outKL + outLL));
+                    L.aB[S.countB] = (outJL - (outIL + outKL + outLL));
+                    L.aC[S.countC] = (outKL - (outIL + outJL + outLL));
+                    L.aD[S.countD] = (outLL - (outIL + outJL + outKL));
+                    R.aA[S.countA] = (outIR - (outJR + outKR + outLR));
+                    R.aB[S.countB] = (outJR - (outIR + outKR + outLR));
+                    R.aC[S.countC] = (outKR - (outIR + outJR + outLR));
+                    R.aD[S.countD] = (outLR - (outIR + outJR + outKR));
 
-                    shared.countA++; if (shared.countA < 0 || shared.countA > shared.delayA) shared.countA = 0;
-                    shared.countB++; if (shared.countB < 0 || shared.countB > shared.delayB) shared.countB = 0;
-                    shared.countC++; if (shared.countC < 0 || shared.countC > shared.delayC) shared.countC = 0;
-                    shared.countD++; if (shared.countD < 0 || shared.countD > shared.delayD) shared.countD = 0;
+                    S.countA++; if (S.countA < 0 || S.countA > S.delayA) S.countA = 0;
+                    S.countB++; if (S.countB < 0 || S.countB > S.delayB) S.countB = 0;
+                    S.countC++; if (S.countC < 0 || S.countC > S.delayC) S.countC = 0;
+                    S.countD++; if (S.countD < 0 || S.countD > S.delayD) S.countD = 0;
 
-                    double outAL = channel[0].aA[shared.countA-((shared.countA > shared.delayA)?shared.delayA+1:0)];
-                    double outBL = channel[0].aB[shared.countB-((shared.countB > shared.delayB)?shared.delayB+1:0)];
-                    double outCL = channel[0].aC[shared.countC-((shared.countC > shared.delayC)?shared.delayC+1:0)];
-                    double outDL = channel[0].aD[shared.countD-((shared.countD > shared.delayD)?shared.delayD+1:0)];
-                    double outAR = channel[1].aA[shared.countA-((shared.countA > shared.delayA)?shared.delayA+1:0)];
-                    double outBR = channel[1].aB[shared.countB-((shared.countB > shared.delayB)?shared.delayB+1:0)];
-                    double outCR = channel[1].aC[shared.countC-((shared.countC > shared.delayC)?shared.delayC+1:0)];
-                    double outDR = channel[1].aD[shared.countD-((shared.countD > shared.delayD)?shared.delayD+1:0)];
+                    double outAL = L.aA[S.countA-((S.countA > S.delayA)?S.delayA+1:0)];
+                    double outBL = L.aB[S.countB-((S.countB > S.delayB)?S.delayB+1:0)];
+                    double outCL = L.aC[S.countC-((S.countC > S.delayC)?S.delayC+1:0)];
+                    double outDL = L.aD[S.countD-((S.countD > S.delayD)?S.delayD+1:0)];
+                    double outAR = R.aA[S.countA-((S.countA > S.delayA)?S.delayA+1:0)];
+                    double outBR = R.aB[S.countB-((S.countB > S.delayB)?S.delayB+1:0)];
+                    double outCR = R.aC[S.countC-((S.countC > S.delayC)?S.delayC+1:0)];
+                    double outDR = R.aD[S.countD-((S.countD > S.delayD)?S.delayD+1:0)];
 
-                    channel[0].aE[shared.countE] = (outAL - (outBL + outCL + outDL));
-                    channel[0].aF[shared.countF] = (outBL - (outAL + outCL + outDL));
-                    channel[0].aG[shared.countG] = (outCL - (outAL + outBL + outDL));
-                    channel[0].aH[shared.countH] = (outDL - (outAL + outBL + outCL));
-                    channel[1].aE[shared.countE] = (outAR - (outBR + outCR + outDR));
-                    channel[1].aF[shared.countF] = (outBR - (outAR + outCR + outDR));
-                    channel[1].aG[shared.countG] = (outCR - (outAR + outBR + outDR));
-                    channel[1].aH[shared.countH] = (outDR - (outAR + outBR + outCR));
+                    L.aE[S.countE] = (outAL - (outBL + outCL + outDL));
+                    L.aF[S.countF] = (outBL - (outAL + outCL + outDL));
+                    L.aG[S.countG] = (outCL - (outAL + outBL + outDL));
+                    L.aH[S.countH] = (outDL - (outAL + outBL + outCL));
+                    R.aE[S.countE] = (outAR - (outBR + outCR + outDR));
+                    R.aF[S.countF] = (outBR - (outAR + outCR + outDR));
+                    R.aG[S.countG] = (outCR - (outAR + outBR + outDR));
+                    R.aH[S.countH] = (outDR - (outAR + outBR + outCR));
 
-                    shared.countE++; if (shared.countE < 0 || shared.countE > shared.delayE) shared.countE = 0;
-                    shared.countF++; if (shared.countF < 0 || shared.countF > shared.delayF) shared.countF = 0;
-                    shared.countG++; if (shared.countG < 0 || shared.countG > shared.delayG) shared.countG = 0;
-                    shared.countH++; if (shared.countH < 0 || shared.countH > shared.delayH) shared.countH = 0;
+                    S.countE++; if (S.countE < 0 || S.countE > S.delayE) S.countE = 0;
+                    S.countF++; if (S.countF < 0 || S.countF > S.delayF) S.countF = 0;
+                    S.countG++; if (S.countG < 0 || S.countG > S.delayG) S.countG = 0;
+                    S.countH++; if (S.countH < 0 || S.countH > S.delayH) S.countH = 0;
 
-                    double outEL = channel[0].aE[shared.countE-((shared.countE > shared.delayE)?shared.delayE+1:0)];
-                    double outFL = channel[0].aF[shared.countF-((shared.countF > shared.delayF)?shared.delayF+1:0)];
-                    double outGL = channel[0].aG[shared.countG-((shared.countG > shared.delayG)?shared.delayG+1:0)];
-                    double outHL = channel[0].aH[shared.countH-((shared.countH > shared.delayH)?shared.delayH+1:0)];
-                    double outER = channel[1].aE[shared.countE-((shared.countE > shared.delayE)?shared.delayE+1:0)];
-                    double outFR = channel[1].aF[shared.countF-((shared.countF > shared.delayF)?shared.delayF+1:0)];
-                    double outGR = channel[1].aG[shared.countG-((shared.countG > shared.delayG)?shared.delayG+1:0)];
-                    double outHR = channel[1].aH[shared.countH-((shared.countH > shared.delayH)?shared.delayH+1:0)];
+                    double outEL = L.aE[S.countE-((S.countE > S.delayE)?S.delayE+1:0)];
+                    double outFL = L.aF[S.countF-((S.countF > S.delayF)?S.delayF+1:0)];
+                    double outGL = L.aG[S.countG-((S.countG > S.delayG)?S.delayG+1:0)];
+                    double outHL = L.aH[S.countH-((S.countH > S.delayH)?S.delayH+1:0)];
+                    double outER = R.aE[S.countE-((S.countE > S.delayE)?S.delayE+1:0)];
+                    double outFR = R.aF[S.countF-((S.countF > S.delayF)?S.delayF+1:0)];
+                    double outGR = R.aG[S.countG-((S.countG > S.delayG)?S.delayG+1:0)];
+                    double outHR = R.aH[S.countH-((S.countH > S.delayH)?S.delayH+1:0)];
 
-                    channel[0].feedbackA = (outEL - (outFL + outGL + outHL));
-                    channel[0].feedbackB = (outFL - (outEL + outGL + outHL));
-                    channel[0].feedbackC = (outGL - (outEL + outFL + outHL));
-                    channel[0].feedbackD = (outHL - (outEL + outFL + outGL));
-                    channel[1].feedbackA = (outER - (outFR + outGR + outHR));
-                    channel[1].feedbackB = (outFR - (outER + outGR + outHR));
-                    channel[1].feedbackC = (outGR - (outER + outFR + outHR));
-                    channel[1].feedbackD = (outHR - (outER + outFR + outGR));
+                    L.feedbackA = (outEL - (outFL + outGL + outHL));
+                    L.feedbackB = (outFL - (outEL + outGL + outHL));
+                    L.feedbackC = (outGL - (outEL + outFL + outHL));
+                    L.feedbackD = (outHL - (outEL + outFL + outGL));
+                    R.feedbackA = (outER - (outFR + outGR + outHR));
+                    R.feedbackB = (outFR - (outER + outGR + outHR));
+                    R.feedbackC = (outGR - (outER + outFR + outHR));
+                    R.feedbackD = (outHR - (outER + outFR + outGR));
 
                     inputSampleL = (outEL + outFL + outGL + outHL)/8;
                     inputSampleR = (outER + outFR + outGR + outHR)/8;
                     switch (cycleEnd)
                     {
                     case 4:
-                        channel[0].lastRef[0] = channel[0].lastRef[4];
-                        channel[0].lastRef[2] = (channel[0].lastRef[0] + inputSampleL)/2;
-                        channel[0].lastRef[1] = (channel[0].lastRef[0] + channel[0].lastRef[2])/2;
-                        channel[0].lastRef[3] = (channel[0].lastRef[2] + inputSampleL)/2;
-                        channel[0].lastRef[4] = inputSampleL;
-                        channel[1].lastRef[0] = channel[1].lastRef[4];
-                        channel[1].lastRef[2] = (channel[1].lastRef[0] + inputSampleR)/2;
-                        channel[1].lastRef[1] = (channel[1].lastRef[0] + channel[1].lastRef[2])/2;
-                        channel[1].lastRef[3] = (channel[1].lastRef[2] + inputSampleR)/2;
-                        channel[1].lastRef[4] = inputSampleR;
+                        L.lastRef[0] = L.lastRef[4];
+                        L.lastRef[2] = (L.lastRef[0] + inputSampleL)/2;
+                        L.lastRef[1] = (L.lastRef[0] + L.lastRef[2])/2;
+                        L.lastRef[3] = (L.lastRef[2] + inputSampleL)/2;
+                        L.lastRef[4] = inputSampleL;
+                        R.lastRef[0] = R.lastRef[4];
+                        R.lastRef[2] = (R.lastRef[0] + inputSampleR)/2;
+                        R.lastRef[1] = (R.lastRef[0] + R.lastRef[2])/2;
+                        R.lastRef[3] = (R.lastRef[2] + inputSampleR)/2;
+                        R.lastRef[4] = inputSampleR;
                         break;
 
                     case 3:
-                        channel[0].lastRef[0] = channel[0].lastRef[3];
-                        channel[0].lastRef[2] = (channel[0].lastRef[0]+channel[0].lastRef[0]+inputSampleL)/3;
-                        channel[0].lastRef[1] = (channel[0].lastRef[0]+inputSampleL+inputSampleL)/3;
-                        channel[0].lastRef[3] = inputSampleL;
-                        channel[1].lastRef[0] = channel[1].lastRef[3];
-                        channel[1].lastRef[2] = (channel[1].lastRef[0]+channel[1].lastRef[0]+inputSampleR)/3;
-                        channel[1].lastRef[1] = (channel[1].lastRef[0]+inputSampleR+inputSampleR)/3;
-                        channel[1].lastRef[3] = inputSampleR;
+                        L.lastRef[0] = L.lastRef[3];
+                        L.lastRef[2] = (L.lastRef[0]+L.lastRef[0]+inputSampleL)/3;
+                        L.lastRef[1] = (L.lastRef[0]+inputSampleL+inputSampleL)/3;
+                        L.lastRef[3] = inputSampleL;
+                        R.lastRef[0] = R.lastRef[3];
+                        R.lastRef[2] = (R.lastRef[0]+R.lastRef[0]+inputSampleR)/3;
+                        R.lastRef[1] = (R.lastRef[0]+inputSampleR+inputSampleR)/3;
+                        R.lastRef[3] = inputSampleR;
                         break;
 
                     case 2:
-                        channel[0].lastRef[0] = channel[0].lastRef[2];
-                        channel[0].lastRef[1] = (channel[0].lastRef[0] + inputSampleL)/2;
-                        channel[0].lastRef[2] = inputSampleL;
-                        channel[1].lastRef[0] = channel[1].lastRef[2];
-                        channel[1].lastRef[1] = (channel[1].lastRef[0] + inputSampleR)/2;
-                        channel[1].lastRef[2] = inputSampleR;
+                        L.lastRef[0] = L.lastRef[2];
+                        L.lastRef[1] = (L.lastRef[0] + inputSampleL)/2;
+                        L.lastRef[2] = inputSampleL;
+                        R.lastRef[0] = R.lastRef[2];
+                        R.lastRef[1] = (R.lastRef[0] + inputSampleR)/2;
+                        R.lastRef[2] = inputSampleR;
                         break;
 
                     case 1:
-                        channel[0].lastRef[0] = inputSampleL;
-                        channel[1].lastRef[0] = inputSampleR;
+                        L.lastRef[0] = inputSampleL;
+                        R.lastRef[0] = inputSampleR;
                         break;
                     }
-                    shared.cycle = 0;
+                    S.cycle = 0;
                 }
-                inputSampleL = channel[0].iirB = (channel[0].iirB*(1.0-lowpass))+(channel[0].lastRef[shared.cycle]*lowpass);
-                inputSampleR = channel[1].iirB = (channel[1].iirB*(1.0-lowpass))+(channel[1].lastRef[shared.cycle]*lowpass);
+                inputSampleL = L.iirB = (L.iirB*(1.0-lowpass))+(L.lastRef[S.cycle]*lowpass);
+                inputSampleR = R.iirB = (R.iirB*(1.0-lowpass))+(R.lastRef[S.cycle]*lowpass);
                 if (wet < 1.0)
                 {
                     inputSampleL = (inputSampleL * wet) + (drySampleL * (1-wet));
                     inputSampleR = (inputSampleR * wet) + (drySampleR * (1-wet));
                 }
-                outputSampleL = dither(inputSampleL, channel[0].fpd);
-                outputSampleR = dither(inputSampleR, channel[1].fpd);
+                outputSampleL = dither(inputSampleL, L.fpd);
+                outputSampleR = dither(inputSampleR, R.fpd);
             }
         };
 
