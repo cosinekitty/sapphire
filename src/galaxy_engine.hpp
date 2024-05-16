@@ -75,8 +75,21 @@ namespace Sapphire
 
         struct ReverbState
         {
+        private:
             ChannelState channel[2];        // 0 = left, 1 = right
             SharedState shared;
+
+            static inline double dither(double sample, uint32_t& fpd)
+            {
+                int expon;
+                frexpf((float)sample, &expon);
+                fpd ^= fpd << 13;
+                fpd ^= fpd >> 17;
+                fpd ^= fpd << 5;
+                return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * pow(2,expon+62));
+            }
+
+        public:
             ReverbParameters parm;
 
             ReverbState()
@@ -90,6 +103,7 @@ namespace Sapphire
                 memset(&channel[1], 0, sizeof(ChannelState));
                 memset(&shared, 0, sizeof(SharedState));
             }
+
 
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
@@ -231,66 +245,57 @@ namespace Sapphire
 
                     inputSampleL = (outEL + outFL + outGL + outHL)/8;
                     inputSampleR = (outER + outFR + outGR + outHR)/8;
-                    if (cycleEnd == 4)
+                    switch (cycleEnd)
                     {
-                        channel[0].lastRef[0] = channel[0].lastRef[4]; //start from previous last
-                        channel[0].lastRef[2] = (channel[0].lastRef[0] + inputSampleL)/2; //half
-                        channel[0].lastRef[1] = (channel[0].lastRef[0] + channel[0].lastRef[2])/2; //one quarter
-                        channel[0].lastRef[3] = (channel[0].lastRef[2] + inputSampleL)/2; //three quarters
-                        channel[0].lastRef[4] = inputSampleL; //full
-                        channel[1].lastRef[0] = channel[1].lastRef[4]; //start from previous last
-                        channel[1].lastRef[2] = (channel[1].lastRef[0] + inputSampleR)/2; //half
-                        channel[1].lastRef[1] = (channel[1].lastRef[0] + channel[1].lastRef[2])/2; //one quarter
-                        channel[1].lastRef[3] = (channel[1].lastRef[2] + inputSampleR)/2; //three quarters
-                        channel[1].lastRef[4] = inputSampleR; //full
-                    }
-                    if (cycleEnd == 3)
-                    {
-                        channel[0].lastRef[0] = channel[0].lastRef[3]; //start from previous last
-                        channel[0].lastRef[2] = (channel[0].lastRef[0]+channel[0].lastRef[0]+inputSampleL)/3; //third
-                        channel[0].lastRef[1] = (channel[0].lastRef[0]+inputSampleL+inputSampleL)/3; //two thirds
-                        channel[0].lastRef[3] = inputSampleL; //full
-                        channel[1].lastRef[0] = channel[1].lastRef[3]; //start from previous last
-                        channel[1].lastRef[2] = (channel[1].lastRef[0]+channel[1].lastRef[0]+inputSampleR)/3; //third
-                        channel[1].lastRef[1] = (channel[1].lastRef[0]+inputSampleR+inputSampleR)/3; //two thirds
-                        channel[1].lastRef[3] = inputSampleR; //full
-                    }
-                    if (cycleEnd == 2)
-                    {
-                        channel[0].lastRef[0] = channel[0].lastRef[2]; //start from previous last
-                        channel[0].lastRef[1] = (channel[0].lastRef[0] + inputSampleL)/2; //half
-                        channel[0].lastRef[2] = inputSampleL; //full
-                        channel[1].lastRef[0] = channel[1].lastRef[2]; //start from previous last
-                        channel[1].lastRef[1] = (channel[1].lastRef[0] + inputSampleR)/2; //half
-                        channel[1].lastRef[2] = inputSampleR; //full
-                    }
-                    if (cycleEnd == 1)
-                    {
+                    case 4:
+                        channel[0].lastRef[0] = channel[0].lastRef[4];
+                        channel[0].lastRef[2] = (channel[0].lastRef[0] + inputSampleL)/2;
+                        channel[0].lastRef[1] = (channel[0].lastRef[0] + channel[0].lastRef[2])/2;
+                        channel[0].lastRef[3] = (channel[0].lastRef[2] + inputSampleL)/2;
+                        channel[0].lastRef[4] = inputSampleL;
+                        channel[1].lastRef[0] = channel[1].lastRef[4];
+                        channel[1].lastRef[2] = (channel[1].lastRef[0] + inputSampleR)/2;
+                        channel[1].lastRef[1] = (channel[1].lastRef[0] + channel[1].lastRef[2])/2;
+                        channel[1].lastRef[3] = (channel[1].lastRef[2] + inputSampleR)/2;
+                        channel[1].lastRef[4] = inputSampleR;
+                        break;
+
+                    case 3:
+                        channel[0].lastRef[0] = channel[0].lastRef[3];
+                        channel[0].lastRef[2] = (channel[0].lastRef[0]+channel[0].lastRef[0]+inputSampleL)/3;
+                        channel[0].lastRef[1] = (channel[0].lastRef[0]+inputSampleL+inputSampleL)/3;
+                        channel[0].lastRef[3] = inputSampleL;
+                        channel[1].lastRef[0] = channel[1].lastRef[3];
+                        channel[1].lastRef[2] = (channel[1].lastRef[0]+channel[1].lastRef[0]+inputSampleR)/3;
+                        channel[1].lastRef[1] = (channel[1].lastRef[0]+inputSampleR+inputSampleR)/3;
+                        channel[1].lastRef[3] = inputSampleR;
+                        break;
+
+                    case 2:
+                        channel[0].lastRef[0] = channel[0].lastRef[2];
+                        channel[0].lastRef[1] = (channel[0].lastRef[0] + inputSampleL)/2;
+                        channel[0].lastRef[2] = inputSampleL;
+                        channel[1].lastRef[0] = channel[1].lastRef[2];
+                        channel[1].lastRef[1] = (channel[1].lastRef[0] + inputSampleR)/2;
+                        channel[1].lastRef[2] = inputSampleR;
+                        break;
+
+                    case 1:
                         channel[0].lastRef[0] = inputSampleL;
                         channel[1].lastRef[0] = inputSampleR;
+                        break;
                     }
-                    shared.cycle = 0; //reset
+                    shared.cycle = 0;
                 }
                 inputSampleL = channel[0].iirB = (channel[0].iirB*(1.0-lowpass))+(channel[0].lastRef[shared.cycle]*lowpass);
                 inputSampleR = channel[1].iirB = (channel[1].iirB*(1.0-lowpass))+(channel[1].lastRef[shared.cycle]*lowpass);
-
                 if (wet < 1.0)
                 {
-                    inputSampleL = (inputSampleL * wet) + (drySampleL * (1.0-wet));
-                    inputSampleR = (inputSampleR * wet) + (drySampleR * (1.0-wet));
+                    inputSampleL = (inputSampleL * wet) + (drySampleL * (1-wet));
+                    inputSampleR = (inputSampleR * wet) + (drySampleR * (1-wet));
                 }
-
-                //begin 32 bit stereo floating point dither
-                int expon; frexpf((float)inputSampleL, &expon);
-                channel[0].fpd ^= channel[0].fpd << 13; channel[0].fpd ^= channel[0].fpd >> 17; channel[0].fpd ^= channel[0].fpd << 5;
-                inputSampleL += ((double(channel[0].fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * pow(2,expon+62));
-                frexpf((float)inputSampleR, &expon);
-                channel[1].fpd ^= channel[1].fpd << 13; channel[1].fpd ^= channel[1].fpd >> 17; channel[1].fpd ^= channel[1].fpd << 5;
-                inputSampleR += ((double(channel[1].fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * pow(2,expon+62));
-                //end 32 bit stereo floating point dither
-
-                outputSampleL = inputSampleL;
-                outputSampleR = inputSampleR;
+                outputSampleL = dither(inputSampleL, channel[0].fpd);
+                outputSampleR = dither(inputSampleR, channel[1].fpd);
             }
         };
 
