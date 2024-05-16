@@ -35,6 +35,15 @@
       ]
     },
     {
+      "slug": "Galaxy",
+      "name": "Galaxy",
+      "description": "An adaptation of the Airwindows Galactic algorithm by Chris Johnson (https://github.com/airwindows).",
+      "tags": [
+        "Reverb",
+        "Distortion"
+      ]
+    },
+    {
       "slug": "Glee",
       "name": "Glee",
       "description": "Chaotic oscillator based on the Aizawa Attractor.",
