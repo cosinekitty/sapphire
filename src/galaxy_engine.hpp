@@ -14,6 +14,9 @@ namespace Sapphire
 {
     namespace Galaxy
     {
+        const int MinCycle = 1;
+        const int MaxCycle = 4;
+
         struct ChannelState
         {
             double iirA;
@@ -23,7 +26,7 @@ namespace Sapphire
             double feedbackC;
             double feedbackD;
             uint32_t fpd;
-            double lastRef[7];
+            double lastRef[MaxCycle+1];
             double thunder;
             std::vector<double> aA;
             std::vector<double> aB;
@@ -61,7 +64,7 @@ namespace Sapphire
                 iirA = iirB = 0;
                 feedbackA = feedbackB = feedbackC = feedbackD = 0;
                 fpd = 0;
-                for (int i = 0; i < 7; ++i)
+                for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
                 thunder = 0;
                 clear(aA);
@@ -172,9 +175,8 @@ namespace Sapphire
             {
                 const double overallscale = sampleRateHz / 44100;
 
-                int cycleEnd = std::floor(overallscale);
-                if (cycleEnd < 1) cycleEnd = 1;
-                if (cycleEnd > 4) cycleEnd = 4;
+                int cycleEnd = static_cast<int>(std::floor(overallscale));
+                cycleEnd = std::clamp(cycleEnd, MinCycle, MaxCycle);
                 if (S.cycle > cycleEnd-1) S.cycle = cycleEnd-1;
 
                 double regen = 0.0625+((1.0-parm.A)*0.0625);
@@ -196,7 +198,7 @@ namespace Sapphire
                 S.J.delay = 1823*size;
                 S.K.delay =  859*size;
                 S.L.delay =  331*size;
-                S.M.delay = 256;
+                S.M.delay =  256;
 
                 if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
@@ -346,6 +348,9 @@ namespace Sapphire
                         L.lastRef[0] = inputSampleL;
                         R.lastRef[0] = inputSampleR;
                         break;
+
+                    default:
+                        throw std::runtime_error(std::string("Invalid cycleEnd=") + std::to_string(cycleEnd));
                     }
                     S.cycle = 0;
                 }
