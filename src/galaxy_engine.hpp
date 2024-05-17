@@ -150,7 +150,7 @@ namespace Sapphire
                 fpd ^= fpd << 13;
                 fpd ^= fpd >> 17;
                 fpd ^= fpd << 5;
-                return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * pow(2,expon+62));
+                return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
             }
 
         public:
@@ -184,24 +184,24 @@ namespace Sapphire
                 double size = (parm.D*1.77)+0.1;
                 double wet = 1.0-(pow(1.0-parm.E,3));
 
-                S.A.delay = 4801.0*size;
-                S.B.delay = 2909.0*size;
-                S.C.delay = 1153.0*size;
-                S.D.delay = 461.0*size;
-                S.E.delay = 7607.0*size;
-                S.F.delay = 4217.0*size;
-                S.G.delay = 2269.0*size;
-                S.H.delay = 1597.0*size;
-                S.I.delay = 3407.0*size;
-                S.J.delay = 1823.0*size;
-                S.K.delay = 859.0*size;
-                S.L.delay = 331.0*size;
+                S.A.delay = 4801*size;
+                S.B.delay = 2909*size;
+                S.C.delay = 1153*size;
+                S.D.delay =  461*size;
+                S.E.delay = 7607*size;
+                S.F.delay = 4217*size;
+                S.G.delay = 2269*size;
+                S.H.delay = 1597*size;
+                S.I.delay = 3407*size;
+                S.J.delay = 1823*size;
+                S.K.delay =  859*size;
+                S.L.delay =  331*size;
                 S.M.delay = 256;
 
                 if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
-                double drySampleL = inputSampleL;
-                double drySampleR = inputSampleR;
+                const double drySampleL = inputSampleL;
+                const double drySampleR = inputSampleR;
 
                 S.vibM += (S.oldfpd*drift);
                 if (S.vibM > 2*M_PI)
@@ -214,8 +214,8 @@ namespace Sapphire
                 R.aM.at(S.M.count) = inputSampleR * attenuate;
                 S.M.advance();
 
-                double offsetML = (std::sin(S.vibM)+1.0)*127;
-                double offsetMR = (std::sin(S.vibM+M_PI_2)+1.0)*127;
+                double offsetML = (std::sin(S.vibM)+1)*127;
+                double offsetMR = (std::sin(S.vibM+M_PI_2)+1)*127;
                 int workingML = S.M.count + offsetML;
                 int workingMR = S.M.count + offsetMR;
                 double interpolML = (L.aM.at(S.M.reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
