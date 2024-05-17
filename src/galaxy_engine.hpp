@@ -174,17 +174,17 @@ namespace Sapphire
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
                 const double overallscale = sampleRateHz / 44100;
+                const int cycleEnd = std::clamp(static_cast<int>(std::floor(overallscale)), MinCycle, MaxCycle);
 
-                int cycleEnd = static_cast<int>(std::floor(overallscale));
-                cycleEnd = std::clamp(cycleEnd, MinCycle, MaxCycle);
-                if (S.cycle > cycleEnd-1) S.cycle = cycleEnd-1;
+                if (S.cycle > cycleEnd-1)
+                    S.cycle = cycleEnd-1;
 
-                double regen = 0.0625+((1.0-parm.A)*0.0625);
-                double attenuate = (1.0 - (regen / 0.125))*1.333;
-                double lowpass = pow(1.00001-(1.0-parm.B),2.0)/std::sqrt(overallscale);
-                double drift = std::pow(parm.C,3.0)*0.001;
-                double size = (parm.D*1.77)+0.1;
-                double wet = 1.0-(pow(1.0-parm.E,3));
+                const double regen = 0.0625+((1.0-parm.A)*0.0625);
+                const double attenuate = (1.0 - (regen / 0.125))*1.333;
+                const double lowpass = pow(1.00001-(1.0-parm.B),2.0)/std::sqrt(overallscale);
+                const double drift = std::pow(parm.C,3.0)*0.001;
+                const double size = (parm.D*1.77)+0.1;
+                const double wet = 1.0-(pow(1.0-parm.E,3));
 
                 S.A.delay = 4801*size;
                 S.B.delay = 2909*size;
@@ -348,9 +348,6 @@ namespace Sapphire
                         L.lastRef[0] = inputSampleL;
                         R.lastRef[0] = inputSampleR;
                         break;
-
-                    default:
-                        throw std::runtime_error(std::string("Invalid cycleEnd=") + std::to_string(cycleEnd));
                     }
                     S.cycle = 0;
                 }
