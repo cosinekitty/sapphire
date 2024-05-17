@@ -241,7 +241,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireAutomaticLimiterModule::onReset(e);
                 initialize();
             }
 

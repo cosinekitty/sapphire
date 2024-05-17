@@ -597,10 +597,18 @@ def GenerateGalaxyPanel() -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     controls = ControlLayer()
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+    yInPort = 17.0
+    yOutPort = 112.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
+        controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
+        controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
     pl.append(controls)
     return Save(panel, svgFileName)
 
