@@ -364,11 +364,11 @@ namespace Sapphire
         };
 
 
-        const float ParamKnobMin = 0.0f;
-        const float ParamKnobDef = 0.5f;
-        const float ParamKnobMax = 1.0f;
+        const float ParamKnobMin = 0.0;
+        const float ParamKnobDef = 0.5;
+        const float ParamKnobMax = 1.0;
 
-        inline double ParamClamp(float x)
+        inline float ParamClamp(float x)
         {
             if (!std::isfinite(x))
                 return ParamKnobDef;
