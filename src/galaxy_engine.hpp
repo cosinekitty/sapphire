@@ -364,6 +364,19 @@ namespace Sapphire
         };
 
 
+        const float ParamKnobMin = 0.0f;
+        const float ParamKnobDef = 0.5f;
+        const float ParamKnobMax = 1.0f;
+
+        inline double ParamClamp(float x)
+        {
+            if (!std::isfinite(x))
+                return ParamKnobDef;
+
+            return std::clamp(x, ParamKnobMin, ParamKnobMax);
+        }
+
+
         class Engine
         {
         public:
@@ -394,6 +407,18 @@ namespace Sapphire
             {
                 return state->parm;
             }
+
+            double getReplace()     const { return state->parm.A; }
+            double getBrightness()  const { return state->parm.B; }
+            double getDetune()      const { return state->parm.C; }
+            double getBigness()     const { return state->parm.D; }
+            double getMix()         const { return state->parm.E; }
+
+            void setReplace(double replace)         { state->parm.A = ParamClamp(replace);    }
+            void setBrightness(double brightness)   { state->parm.B = ParamClamp(brightness); }
+            void setDetune(double detune)           { state->parm.C = ParamClamp(detune);     }
+            void setBigness(double bigness)         { state->parm.D = ParamClamp(bigness);    }
+            void setMix(double mix)                 { state->parm.E = ParamClamp(mix);        }
 
         private:
             std::unique_ptr<ReverbState> state = std::make_unique<ReverbState>();
