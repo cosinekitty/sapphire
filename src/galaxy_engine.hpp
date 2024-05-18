@@ -44,22 +44,24 @@ namespace Sapphire
 
             ChannelState()
             {
-                aA.resize(9700);
-                aB.resize(6000);
-                aC.resize(2320);
-                aD.resize(940);
+                aA.resize( 9700);
+                aB.resize( 6000);
+                aC.resize( 2320);
+                aD.resize(  940);
                 aE.resize(15220);
-                aF.resize(8460);
-                aG.resize(4540);
-                aH.resize(3200);
-                aI.resize(6480);
-                aJ.resize(3660);
-                aK.resize(1720);
-                aL.resize(680);
-                aM.resize(3111);
+                aF.resize( 8460);
+                aG.resize( 4540);
+                aH.resize( 3200);
+                aI.resize( 6480);
+                aJ.resize( 3660);
+                aK.resize( 1720);
+                aL.resize(  680);
+                aM.resize( 3111);
+
+                clearInternal();
             }
 
-            void clear()
+            void clearInternal()
             {
                 iirA = iirB = 0;
                 feedbackA = feedbackB = feedbackC = feedbackD = 0;
@@ -67,22 +69,27 @@ namespace Sapphire
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
                 thunder = 0;
-                clear(aA);
-                clear(aB);
-                clear(aC);
-                clear(aD);
-                clear(aE);
-                clear(aF);
-                clear(aG);
-                clear(aH);
-                clear(aI);
-                clear(aJ);
-                clear(aK);
-                clear(aL);
-                clear(aM);
             }
 
-            static void clear(std::vector<double>& vec)
+            void clear()
+            {
+                clearInternal();
+                clearBuffer(aA);
+                clearBuffer(aB);
+                clearBuffer(aC);
+                clearBuffer(aD);
+                clearBuffer(aE);
+                clearBuffer(aF);
+                clearBuffer(aG);
+                clearBuffer(aH);
+                clearBuffer(aI);
+                clearBuffer(aJ);
+                clearBuffer(aK);
+                clearBuffer(aL);
+                clearBuffer(aM);
+            }
+
+            static void clearBuffer(std::vector<double>& vec)
             {
                 for (double& x : vec)
                     x = 0;
@@ -92,8 +99,8 @@ namespace Sapphire
 
         struct DelayState
         {
-            int count;
-            int delay;
+            int count{};
+            int delay{};
 
             void advance()
             {
@@ -126,6 +133,14 @@ namespace Sapphire
             double oldfpd;
             int cycle;
             DelayState A, B, C, D, E, F, G, H, I, J, K, L, M;
+
+            void clear()
+            {
+                depthM = 0;
+                vibM = 0;
+                oldfpd = 0;
+                cycle = 0;
+            }
         };
 
 
@@ -168,7 +183,7 @@ namespace Sapphire
             {
                 L.clear();
                 R.clear();
-                memset(&S, 0, sizeof(SharedState));
+                S.clear();
             }
 
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
