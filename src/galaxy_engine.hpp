@@ -17,6 +17,16 @@ namespace Sapphire
         const int MinCycle = 1;
         const int MaxCycle = 4;
 
+        inline double Square(double x)
+        {
+            return x * x;
+        }
+
+        inline double Cube(double x)
+        {
+            return x * x * x;
+        }
+
         struct ChannelState
         {
             double iirA;
@@ -196,10 +206,10 @@ namespace Sapphire
 
                 const double regen = 0.0625+((1.0-parm.A)*0.0625);
                 const double attenuate = (1.0 - (regen / 0.125))*1.333;
-                const double lowpass = pow(1.00001-(1.0-parm.B),2.0)/std::sqrt(overallscale);
-                const double drift = std::pow(parm.C,3.0)*0.001;
+                const double lowpass = Square(1.00001-(1.0-parm.B))/std::sqrt(overallscale);
+                const double drift = Cube(parm.C)*0.001;
                 const double size = (parm.D*1.77)+0.1;
-                const double wet = 1.0-(pow(1.0-parm.E,3));
+                const double wet = 1-Cube(1 - parm.E);
 
                 S.A.delay = 4801*size;
                 S.B.delay = 2909*size;
