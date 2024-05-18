@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from svgpanel import *
+from typing import List
 
 SAPPHIRE_FONT_FILENAME = 'Quicksand-Light.ttf'
 
@@ -109,3 +110,53 @@ def CenteredGemstone(panel:Panel) -> SapphireGemstone:
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem
+
+
+def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
+    dxControlGroup = 8.0
+    dyControlGroup = 0.0
+    controls.append(Component(symbol + '_cv', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_atten', x, y))
+    controls.append(Component(symbol + '_knob', x + dxControlGroup, y + dyControlGroup))
+    # FIXFIXFIX: add artwork like the following, but adapted for flat control groups.
+    if False:
+        t = ''
+        t += Move(x, y)
+        t += Line(x - dxControlGroup, y + dyControlGroup)
+        t += ClosePath()
+        t += Line(x + dxControlGroup, y + dyControlGroup)
+        t += ClosePath()
+        pl.append(Path(t, CONNECTOR_LINE_STYLE))
+
+
+class FencePost:
+    '''Calculates the position of evenly aligned items on along a closed range of values.'''
+    def __init__(self, lowValue: float, highValue: float, nItems: int) -> None:
+        self.lowValue = lowValue
+        self.highValue = highValue
+        self.nItems = nItems
+        self.delta = (highValue - lowValue) / (nItems - 1)
+
+    def value(self, itemIndex: int) -> float:
+        return self.lowValue + (itemIndex * self.delta)
+
+
+def AddFlatControlGrid(
+        pl: Element,
+        controls: ControlLayer,
+        xpos: FencePost,
+        ypos: FencePost,
+        rowSymbols: List[str],
+        columnSymbols: List[str],
+        id: str = 'control_grid') -> None:
+    grid = Element('g', id)
+    pl.append(grid)
+    xIndex = 0
+    for colSymbol in columnSymbols:
+        x = xpos.value(xIndex)
+        yIndex = 0
+        for rowSymbol in rowSymbols:
+            y = ypos.value(yIndex)
+            AddFlatControlGroup(pl, controls, x, y, colSymbol + '_' + rowSymbol)
+            yIndex += 1
+        xIndex += 1

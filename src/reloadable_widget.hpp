@@ -127,6 +127,13 @@ namespace rack
             return knob;
         }
 
+        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& svgId)
+        {
+            RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
+            addReloadableParam(knob, svgId);
+            return knob;
+        }
+
         void appendContextMenu(Menu *menu) override
         {
             if (isReloadEnabled)

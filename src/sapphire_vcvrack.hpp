@@ -623,6 +623,20 @@ namespace Sapphire
             if (channel < input.getChannels())
                 voltage = input.getVoltage(channel);
         }
+
+        void configControlGroup(
+            const std::string& name,
+            int paramId,
+            int attenId,
+            int cvInputId,
+            float minValue = -1,
+            float maxValue = +1,
+            float defValue =  0)
+        {
+            configParam(paramId, minValue, maxValue, defValue, name);
+            configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+            configInput(cvInputId, name + " CV");
+        }
     };
 
 

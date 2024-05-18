@@ -9,6 +9,21 @@
             <circle id="audio_right_input" cx="21.24" cy="17" r="1" />
             <circle id="audio_left_output" cx="9.24" cy="112" r="1" />
             <circle id="audio_right_output" cx="21.24" cy="112" r="1" />
+            <circle id="replace_cv" cx="7.24" cy="30" r="1" />
+            <circle id="replace_atten" cx="15.24" cy="30" r="1" />
+            <circle id="replace_knob" cx="23.24" cy="30" r="1" />
+            <circle id="brightness_cv" cx="7.24" cy="40" r="1" />
+            <circle id="brightness_atten" cx="15.24" cy="40" r="1" />
+            <circle id="brightness_knob" cx="23.24" cy="40" r="1" />
+            <circle id="detune_cv" cx="7.24" cy="50" r="1" />
+            <circle id="detune_atten" cx="15.24" cy="50" r="1" />
+            <circle id="detune_knob" cx="23.24" cy="50" r="1" />
+            <circle id="bigness_cv" cx="7.24" cy="60" r="1" />
+            <circle id="bigness_atten" cx="15.24" cy="60" r="1" />
+            <circle id="bigness_knob" cx="23.24" cy="60" r="1" />
+            <circle id="mix_cv" cx="7.24" cy="70" r="1" />
+            <circle id="mix_atten" cx="15.24" cy="70" r="1" />
+            <circle id="mix_knob" cx="23.24" cy="70" r="1" />
         </g>
     </g>
 </svg>

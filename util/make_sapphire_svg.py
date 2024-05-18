@@ -10,6 +10,7 @@
 #   script makes it easier to maintain a common style across modules.
 #
 import sys
+from typing import List
 from svgpanel import *
 from sapphire import *
 
@@ -601,6 +602,12 @@ def GenerateGalaxyPanel() -> int:
     dxPortFromCenter = 6.0
     yInPort = 17.0
     yOutPort = 112.0
+
+    def yControlGroup(row: int) -> float:
+        y0 = 30.0
+        dy = 10.0
+        return y0 + (row*dy)
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
@@ -609,6 +616,11 @@ def GenerateGalaxyPanel() -> int:
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+        symbols: List[str] = ['replace', 'brightness', 'detune', 'bigness', 'mix']
+        row = 0
+        for symbol in symbols:
+            AddFlatControlGroup(pl, controls, xmid, yControlGroup(row), symbol)
+            row += 1
     pl.append(controls)
     return Save(panel, svgFileName)
 
