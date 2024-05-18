@@ -73,6 +73,9 @@ namespace Sapphire
                 configGalaxyGroup("Bigness", BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT);
                 configGalaxyGroup("Mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
 
+                configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
+                configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
+
                 initialize();
             }
 

@@ -247,8 +247,8 @@ namespace Sapphire
                 int workingMR = S.M.count + offsetMR;
                 double interpolML = (L.aM.at(S.M.reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
                 interpolML += (L.aM.at(S.M.reverse(workingML+1)) * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (R.aM.at(S.M.reverse(workingMR)) * (1-(offsetMR-floor(offsetMR))));
-                interpolMR += (R.aM.at(S.M.reverse(workingMR+1)) * ((offsetMR-floor(offsetMR))));
+                double interpolMR = (R.aM.at(S.M.reverse(workingMR)) * (1-(offsetMR-std::floor(offsetMR))));
+                interpolMR += (R.aM.at(S.M.reverse(workingMR+1)) * ((offsetMR-std::floor(offsetMR))));
                 inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
                 inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
 

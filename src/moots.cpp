@@ -245,7 +245,7 @@ namespace Sapphire
                 controlMode = ParseControl(text);
             }
 
-            void onBypass(const BypassEvent& e) override
+            void onBypass(const BypassEvent&) override
             {
                 // When the user bypasses Moots, we need to adjust each
                 // output jack to have the same number of channels as the

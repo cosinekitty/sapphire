@@ -172,7 +172,7 @@ namespace Sapphire
                     engine[c].setSampleRate(e.sampleRate);
             }
 
-            void onBypass(const BypassEvent& e) override
+            void onBypass(const BypassEvent&) override
             {
                 numActiveChannels = 0;
             }
