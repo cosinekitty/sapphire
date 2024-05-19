@@ -6,8 +6,10 @@ else
     OPTS="-O3"
 fi
 
-g++ -std=c++17 -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include \
+g++ -std=c++17 -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include -Iairwindows \
     unittest.cpp    \
+    airwindows/Galactic.cpp   \
+    airwindows/GalacticProc.cpp   \
     || exit 1
 
 exit 0

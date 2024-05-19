@@ -5,6 +5,7 @@
 #include "galaxy_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
+#include "Galactic.h"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -670,7 +671,7 @@ static int ChaosTest()
 }
 
 
-static int GalaxyTest()
+static int GalaxyTest_Genesis()
 {
     const char *inFileName = "input/genesis.wav";
     const char *outFileName = "output/galaxy_genesis.wav";
@@ -679,11 +680,11 @@ static int GalaxyTest()
 
     WaveFileReader inwave;
     if (!inwave.Open(inFileName))
-        return Fail("GalaxyTest", std::string("Could not open input file: ") + inFileName);
+        return Fail("GalaxyTest_Genesis", std::string("Could not open input file: ") + inFileName);
 
     ScaledWaveFileWriter outwave;
     if (!outwave.Open(outFileName, sampleRate, channels))
-        return Fail("GalaxyTest", std::string("Could not open output file: ") + outFileName);
+        return Fail("GalaxyTest_Genesis", std::string("Could not open output file: ") + outFileName);
 
     Sapphire::Galaxy::Engine engine;
     Sapphire::Galaxy::ReverbParameters& parms = engine.parameters();
@@ -712,5 +713,57 @@ static int GalaxyTest()
 
     outwave.Close();
     inwave.Close();
-    return Pass("GalaxyTest");
+    return Pass("GalaxyTest_Genesis");
+}
+
+
+static int GalaxyTest_OriginalGenesis()
+{
+    const char *inFileName = "input/genesis.wav";
+    const char *outFileName = "output/airwindows_genesis.wav";
+    const int sampleRate = 44100;
+    const int channels = 2;
+
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("GalaxyTest_OriginalGenesis", std::string("Could not open input file: ") + inFileName);
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("GalaxyTest_OriginalGenesis", std::string("Could not open output file: ") + outFileName);
+
+    float inFrame[channels]{};
+    float outFrame[channels]{};
+
+    float *inputs[channels] = {&inFrame[0], &inFrame[1]};
+    float *outputs[channels] = {&outFrame[0], &outFrame[1]};
+    auto galactic = std::make_unique<Galactic>();
+
+    while (inwave.Read(inFrame, channels) == channels)
+    {
+        galactic->process(sampleRate, inputs, outputs, 1);
+        outwave.WriteSamples(outFrame, channels);
+    }
+
+    const int flushSeconds = 6;
+    const int flushFrames = sampleRate * flushSeconds;
+    inFrame[0] = inFrame[1] = 0;
+    for (int frame = 0; frame < flushFrames; ++frame)
+    {
+        galactic->process(sampleRate, inputs, outputs, 1);
+        outwave.WriteSamples(outFrame, channels);
+    }
+
+    outwave.Close();
+    inwave.Close();
+    return Pass("GalaxyTest_OriginalGenesis");
+}
+
+
+static int GalaxyTest()
+{
+    return
+        GalaxyTest_OriginalGenesis() ||
+        GalaxyTest_Genesis() ||
+        Pass("GalaxyTest");
 }
