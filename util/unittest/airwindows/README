@@ -1,0 +1,14 @@
+Don Cross, 2024-05-19
+
+The Airwindows Galactic reverb source code files in this directory
+are slighly-modified versions of MIT-licensed code by Chris Johnson.
+
+See original code at:
+https://github.com/airwindows/airwindows
+
+These source files are NOT used for building any distributed Sapphire code.
+They are only used for unit tests to verify that output from my implementation
+matches output from the original Airwindows Galactic.
+
+The original MIT license is in the file LICENSE.
+
