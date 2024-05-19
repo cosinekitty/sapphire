@@ -112,7 +112,12 @@ namespace Sapphire
         struct DelayState
         {
             int count{};
-            int delay{};
+            int delay{};    // written on every process() call
+
+            void clear()
+            {
+                count = 1;
+            }
 
             void advance()
             {
@@ -152,6 +157,19 @@ namespace Sapphire
                 vibM = 3;
                 oldfpd = 429496.7295;
                 cycle = 0;
+                A.clear();
+                B.clear();
+                C.clear();
+                D.clear();
+                E.clear();
+                F.clear();
+                G.clear();
+                H.clear();
+                I.clear();
+                J.clear();
+                K.clear();
+                L.clear();
+                M.clear();
             }
         };
 
@@ -256,14 +274,14 @@ namespace Sapphire
 
                 if (++S.cycle == cycleEnd)
                 {
-                    L.aI.at(S.I.count) = inputSampleL + (L.feedbackA * regen);
-                    L.aJ.at(S.J.count) = inputSampleL + (L.feedbackB * regen);
-                    L.aK.at(S.K.count) = inputSampleL + (L.feedbackC * regen);
-                    L.aL.at(S.L.count) = inputSampleL + (L.feedbackD * regen);
-                    R.aI.at(S.I.count) = inputSampleR + (R.feedbackA * regen);
-                    R.aJ.at(S.J.count) = inputSampleR + (R.feedbackB * regen);
-                    R.aK.at(S.K.count) = inputSampleR + (R.feedbackC * regen);
-                    R.aL.at(S.L.count) = inputSampleR + (R.feedbackD * regen);
+                    L.aI.at(S.I.count) = inputSampleL + (R.feedbackA * regen);
+                    L.aJ.at(S.J.count) = inputSampleL + (R.feedbackB * regen);
+                    L.aK.at(S.K.count) = inputSampleL + (R.feedbackC * regen);
+                    L.aL.at(S.L.count) = inputSampleL + (R.feedbackD * regen);
+                    R.aI.at(S.I.count) = inputSampleR + (L.feedbackA * regen);
+                    R.aJ.at(S.J.count) = inputSampleR + (L.feedbackB * regen);
+                    R.aK.at(S.K.count) = inputSampleR + (L.feedbackC * regen);
+                    R.aL.at(S.L.count) = inputSampleR + (L.feedbackD * regen);
 
                     S.I.advance();
                     S.J.advance();

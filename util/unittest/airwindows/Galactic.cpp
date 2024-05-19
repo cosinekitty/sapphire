@@ -40,7 +40,11 @@ Galactic::Galactic()
 	feedbackCL = 0.0; feedbackCR = 0.0;
 	feedbackDL = 0.0; feedbackDR = 0.0;
 
-	for(int count = 0; count < 6; count++) {lastRefL[count] = 0.0;lastRefR[count] = 0.0;}
+	for (int count = 0; count < 6; count++)
+	{
+		lastRefL[count] = 0.0;
+		lastRefR[count] = 0.0;
+	}
 
 	thunderL = 0; thunderR = 0;
 
