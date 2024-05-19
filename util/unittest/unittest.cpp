@@ -691,8 +691,8 @@ static int GalaxyTest_Genesis()
     parms.A = 0.5;
     parms.B = 0.5;
     parms.C = 0.5;
-    parms.D = 0.5;
-    parms.E = 0.5;
+    parms.D = 1.0;
+    parms.E = 1.0;
 
     float inFrame[channels]{};
     float outFrame[channels]{};
@@ -738,6 +738,11 @@ static int GalaxyTest_OriginalGenesis()
     float *inputs[channels] = {&inFrame[0], &inFrame[1]};
     float *outputs[channels] = {&outFrame[0], &outFrame[1]};
     auto galactic = std::make_unique<Galactic>();
+    galactic->setParameter(0, 0.5);
+    galactic->setParameter(1, 0.5);
+    galactic->setParameter(2, 0.5);
+    galactic->setParameter(3, 1.0);
+    galactic->setParameter(4, 1.0);
 
     while (inwave.Read(inFrame, channels) == channels)
     {

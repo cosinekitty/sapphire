@@ -35,6 +35,7 @@ namespace Sapphire
             double feedbackB;
             double feedbackC;
             double feedbackD;
+            const uint32_t init_fpd;
             uint32_t fpd;
             double lastRef[MaxCycle+1];
             double thunder;
@@ -52,7 +53,8 @@ namespace Sapphire
             std::vector<double> aL;
             std::vector<double> aM;
 
-            ChannelState()
+            explicit ChannelState(uint32_t _init_fpd)
+                : init_fpd(_init_fpd)
             {
                 aA.resize( 9700);
                 aB.resize( 6000);
@@ -75,7 +77,7 @@ namespace Sapphire
             {
                 iirA = iirB = 0;
                 feedbackA = feedbackB = feedbackC = feedbackD = 0;
-                fpd = 0;
+                fpd = init_fpd;
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
                 thunder = 0;
@@ -147,8 +149,8 @@ namespace Sapphire
             void clear()
             {
                 depthM = 0;
-                vibM = 0;
-                oldfpd = 0;
+                vibM = 3;
+                oldfpd = 429496.7295;
                 cycle = 0;
             }
         };
@@ -156,19 +158,19 @@ namespace Sapphire
 
         struct ReverbParameters
         {
-            float A{};
-            float B{};
-            float C{};
-            float D{};
-            float E{};
+            float A = 0.5;
+            float B = 0.5;
+            float C = 0.5;
+            float D = 1.0;
+            float E = 1.0;
         };
 
 
         struct ReverbState
         {
         private:
-            ChannelState L;
-            ChannelState R;
+            ChannelState L{2756923396};
+            ChannelState R{2341963165};
             SharedState  S;
 
             static inline double dither(double sample, uint32_t& fpd)

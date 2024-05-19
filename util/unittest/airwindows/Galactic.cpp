@@ -66,8 +66,9 @@ Galactic::Galactic()
 
 	oldfpd = 429496.7295;
 
-	fpdL = 1.0; while (fpdL < 16386) fpdL = rand()*UINT32_MAX;
-	fpdR = 1.0; while (fpdR < 16386) fpdR = rand()*UINT32_MAX;
+	// Don Cross: make deterministic for unit tests
+	fpdL = 2756923396;
+	fpdR = 2341963165;
 }
 
 void Galactic::setParameter(int index, float value) {
