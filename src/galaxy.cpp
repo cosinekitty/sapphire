@@ -97,8 +97,22 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                const float inLeft  = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
-                const float inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+                float inLeft  = 0;
+                float inRight = 0;
+                if (inputs[AUDIO_LEFT_INPUT].isConnected())
+                {
+                    inLeft = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
+                    if (inputs[AUDIO_RIGHT_INPUT].isConnected())
+                    {
+                        inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+                    }
+                    else
+                    {
+                        // Left channel only = monaural input; send half to both inputs.
+                        inLeft /= 2;
+                        inRight = inLeft;
+                    }
+                }
                 engine.setReplace(getControlValue(REPLACE_PARAM, REPLACE_ATTEN, REPLACE_CV_INPUT));
                 engine.setBrightness(getControlValue(BRIGHTNESS_PARAM, BRIGHTNESS_ATTEN, BRIGHTNESS_CV_INPUT));
                 engine.setDetune(getControlValue(DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT));
