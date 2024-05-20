@@ -151,6 +151,15 @@ namespace Sapphire
 
                 reloadPanel();
             }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (galaxyModule == nullptr)
+                    return;
+
+                menu->addChild(new MenuSeparator);
+                menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
+            }
         };
     }
 }
