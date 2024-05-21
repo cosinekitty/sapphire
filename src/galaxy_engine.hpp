@@ -62,10 +62,10 @@ namespace Sapphire
                 array[11].resize(  680);
                 array[12].resize( 3111);
 
-                clearInternal();
+                clear();
             }
 
-            void clearInternal()
+            void clear()
             {
                 iirA = iirB = 0;
                 feedbackA = feedbackB = feedbackC = feedbackD = 0;
@@ -73,19 +73,10 @@ namespace Sapphire
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
                 thunder = 0;
-            }
 
-            void clear()
-            {
-                clearInternal();
                 for (int i = 0; i < NDELAYS; ++i)
-                    clearBuffer(array[i]);
-            }
-
-            static void clearBuffer(std::vector<double>& vec)
-            {
-                for (double& x : vec)
-                    x = 0;
+                    for (double& x : array[i])
+                        x = 0;
             }
         };
 
