@@ -601,13 +601,9 @@ def GenerateGalaxyPanel() -> int:
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    def yRow(row: int) -> float:
-        y0 = 32.0
-        dy = 16.0
-        return y0 + (row*dy)
-
-    yInPort = yRow(-1)
-    yOutPort = yRow(5)
+    yRow = FencePost(16.0, 112.0, 7)
+    yInPort  = yRow.value(0)
+    yOutPort = yRow.value(6)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -626,9 +622,9 @@ def GenerateGalaxyPanel() -> int:
             ('mix',         'MIX')
         ]
         dyText = 6.5
-        row = 0
+        row = 1
         for (symbol, label) in table:
-            y = yRow(row)
+            y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
             AddFlatControlGroup(pl, controls, xmid, y, symbol)
             row += 1
