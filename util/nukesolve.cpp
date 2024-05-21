@@ -4,11 +4,13 @@
     https://github.com/cosinekitty/sapphire
 */
 
+#include <cstdio>
 #include <random>
 #include "nucleus_engine.hpp"
 
 static void Print(const Sapphire::NucleusEngine& engine);
-static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *outHeaderFileName);
+static int WriteHeaderFile(const Sapphire::NucleusEngine& engine,  const char *outHeaderFileName);
+static int UpdateHeaderFile(const Sapphire::NucleusEngine& engine, const char *headerFileName);
 static int SolveMinimumEnergy(Sapphire::NucleusEngine& engine);
 
 int main()
@@ -44,7 +46,7 @@ int main()
     if (SolveMinimumEnergy(engine)) return 1;
 
     Print(engine);
-    if (WriteHeaderFile(engine, "../src/nucleus_init.hpp")) return 1;
+    if (UpdateHeaderFile(engine, "../src/nucleus_init.hpp")) return 1;
     return 0;
 }
 
@@ -62,6 +64,60 @@ static void Print(const Sapphire::NucleusEngine& engine)
             p.vel[0], p.vel[1], p.vel[2]
         );
     }
+}
+
+
+static int UpdateHeaderFile(const Sapphire::NucleusEngine& engine, const char *headerFileName)
+{
+    std::string tempFileName = headerFileName;
+    tempFileName += ".temp";
+
+    int rc = WriteHeaderFile(engine, tempFileName.c_str());
+    if (rc != 0)
+        return rc;
+
+    // If the header file exists, and it contains the same text, don't do anything.
+    FILE *file1 = fopen(headerFileName, "rb");
+    FILE *file2 = fopen(tempFileName.c_str(), "rb");
+    bool identical = false;
+    if (file1 != nullptr && file2 != nullptr)
+    {
+        identical = true;
+        int c1 = 0;
+        while (c1 != EOF)
+        {
+            c1 = fgetc(file1);
+            int c2 = fgetc(file2);
+            if (c1 != c2)
+            {
+                identical = false;
+                break;
+            }
+        }
+
+    }
+    if (file1 != nullptr) fclose(file1);
+    if (file2 != nullptr) fclose(file2);
+
+    if (identical)
+    {
+        // No need to do anything. The header file already contains the text we want.
+        // Delete the temporary file.
+        remove(tempFileName.c_str());
+        printf("nukesolve: Kept header: %s\n", headerFileName);
+    }
+    else
+    {
+        //remove(headerFileName);
+        if (rename(tempFileName.c_str(), headerFileName))
+        {
+            printf("nukesolve:  !!! cannot rename [%s] to [%s]\n", tempFileName.c_str(), headerFileName);
+            return 1;
+        }
+        printf("nukesolve: Wrote header: %s\n", headerFileName);
+    }
+
+    return 0;
 }
 
 
@@ -126,7 +182,6 @@ static int WriteHeaderFile(const Sapphire::NucleusEngine& engine, const char *ou
     fprintf(outfile, "    }\n");
     fprintf(outfile, "}\n");
     fclose(outfile);
-    printf("nukesolve: Wrote header file [%s]\n", outHeaderFileName);
     return 0;
 }
 
