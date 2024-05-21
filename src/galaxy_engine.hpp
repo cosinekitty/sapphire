@@ -14,6 +14,8 @@ namespace Sapphire
 {
     namespace Galaxy
     {
+        const int NDELAYS = 13;     // A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12.
+
         const int MinCycle = 1;
         const int MaxCycle = 4;
 
@@ -27,6 +29,8 @@ namespace Sapphire
             return x * x * x;
         }
 
+        using buffer_t = std::vector<double>;
+
         struct ChannelState
         {
             double iirA;
@@ -39,36 +43,24 @@ namespace Sapphire
             uint32_t fpd;
             double lastRef[MaxCycle+1];
             double thunder;
-            std::vector<double> aA;
-            std::vector<double> aB;
-            std::vector<double> aC;
-            std::vector<double> aD;
-            std::vector<double> aE;
-            std::vector<double> aF;
-            std::vector<double> aG;
-            std::vector<double> aH;
-            std::vector<double> aI;
-            std::vector<double> aJ;
-            std::vector<double> aK;
-            std::vector<double> aL;
-            std::vector<double> aM;
+            buffer_t array[NDELAYS];
 
             explicit ChannelState(uint32_t _init_fpd)
                 : init_fpd(_init_fpd)
             {
-                aA.resize( 9700);
-                aB.resize( 6000);
-                aC.resize( 2320);
-                aD.resize(  940);
-                aE.resize(15220);
-                aF.resize( 8460);
-                aG.resize( 4540);
-                aH.resize( 3200);
-                aI.resize( 6480);
-                aJ.resize( 3660);
-                aK.resize( 1720);
-                aL.resize(  680);
-                aM.resize( 3111);
+                array[ 0].resize( 9700);
+                array[ 1].resize( 6000);
+                array[ 2].resize( 2320);
+                array[ 3].resize(  940);
+                array[ 4].resize(15220);
+                array[ 5].resize( 8460);
+                array[ 6].resize( 4540);
+                array[ 7].resize( 3200);
+                array[ 8].resize( 6480);
+                array[ 9].resize( 3660);
+                array[10].resize( 1720);
+                array[11].resize(  680);
+                array[12].resize( 3111);
 
                 clearInternal();
             }
@@ -86,19 +78,8 @@ namespace Sapphire
             void clear()
             {
                 clearInternal();
-                clearBuffer(aA);
-                clearBuffer(aB);
-                clearBuffer(aC);
-                clearBuffer(aD);
-                clearBuffer(aE);
-                clearBuffer(aF);
-                clearBuffer(aG);
-                clearBuffer(aH);
-                clearBuffer(aI);
-                clearBuffer(aJ);
-                clearBuffer(aK);
-                clearBuffer(aL);
-                clearBuffer(aM);
+                for (int i = 0; i < NDELAYS; ++i)
+                    clearBuffer(array[i]);
             }
 
             static void clearBuffer(std::vector<double>& vec)
@@ -142,8 +123,6 @@ namespace Sapphire
             }
         };
 
-
-        const int NDELAYS = 13;     // A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12.
 
         struct SharedState
         {
@@ -248,91 +227,91 @@ namespace Sapphire
                     S.oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                L.aM.at(S.delay[12].count) = inputSampleL * attenuate;
-                R.aM.at(S.delay[12].count) = inputSampleR * attenuate;
+                L.array[12].at(S.delay[12].count) = inputSampleL * attenuate;
+                R.array[12].at(S.delay[12].count) = inputSampleR * attenuate;
                 S.delay[12].advance();
 
                 double offsetML = (std::sin(S.vibM)+1)*127;
                 double offsetMR = (std::sin(S.vibM+M_PI_2)+1)*127;
                 int workingML = S.delay[12].count + offsetML;
                 int workingMR = S.delay[12].count + offsetMR;
-                double interpolML = (L.aM.at(S.delay[12].reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
-                interpolML += (L.aM.at(S.delay[12].reverse(workingML+1)) * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (R.aM.at(S.delay[12].reverse(workingMR)) * (1-(offsetMR-std::floor(offsetMR))));
-                interpolMR += (R.aM.at(S.delay[12].reverse(workingMR+1)) * ((offsetMR-std::floor(offsetMR))));
+                double interpolML = (L.array[12].at(S.delay[12].reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
+                interpolML += (L.array[12].at(S.delay[12].reverse(workingML+1)) * ((offsetML-std::floor(offsetML))) );
+                double interpolMR = (R.array[12].at(S.delay[12].reverse(workingMR)) * (1-(offsetMR-std::floor(offsetMR))));
+                interpolMR += (R.array[12].at(S.delay[12].reverse(workingMR+1)) * ((offsetMR-std::floor(offsetMR))));
                 inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
                 inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
 
                 if (++S.cycle == cycleEnd)
                 {
-                    L.aI.at(S.delay[ 8].count) = inputSampleL + (R.feedbackA * regen);
-                    L.aJ.at(S.delay[ 9].count) = inputSampleL + (R.feedbackB * regen);
-                    L.aK.at(S.delay[10].count) = inputSampleL + (R.feedbackC * regen);
-                    L.aL.at(S.delay[11].count) = inputSampleL + (R.feedbackD * regen);
-                    R.aI.at(S.delay[ 8].count) = inputSampleR + (L.feedbackA * regen);
-                    R.aJ.at(S.delay[ 9].count) = inputSampleR + (L.feedbackB * regen);
-                    R.aK.at(S.delay[10].count) = inputSampleR + (L.feedbackC * regen);
-                    R.aL.at(S.delay[11].count) = inputSampleR + (L.feedbackD * regen);
+                    L.array[ 8].at(S.delay[ 8].count) = inputSampleL + (R.feedbackA * regen);
+                    L.array[ 9].at(S.delay[ 9].count) = inputSampleL + (R.feedbackB * regen);
+                    L.array[10].at(S.delay[10].count) = inputSampleL + (R.feedbackC * regen);
+                    L.array[11].at(S.delay[11].count) = inputSampleL + (R.feedbackD * regen);
+                    R.array[ 8].at(S.delay[ 8].count) = inputSampleR + (L.feedbackA * regen);
+                    R.array[ 9].at(S.delay[ 9].count) = inputSampleR + (L.feedbackB * regen);
+                    R.array[10].at(S.delay[10].count) = inputSampleR + (L.feedbackC * regen);
+                    R.array[11].at(S.delay[11].count) = inputSampleR + (L.feedbackD * regen);
 
                     S.delay[ 8].advance();
                     S.delay[ 9].advance();
                     S.delay[10].advance();
                     S.delay[11].advance();
 
-                    double outIL = L.aI.at(S.delay[ 8].tail());
-                    double outJL = L.aJ.at(S.delay[ 9].tail());
-                    double outKL = L.aK.at(S.delay[10].tail());
-                    double outLL = L.aL.at(S.delay[11].tail());
-                    double outIR = R.aI.at(S.delay[ 8].tail());
-                    double outJR = R.aJ.at(S.delay[ 9].tail());
-                    double outKR = R.aK.at(S.delay[10].tail());
-                    double outLR = R.aL.at(S.delay[11].tail());
+                    double outIL = L.array[ 8].at(S.delay[ 8].tail());
+                    double outJL = L.array[ 9].at(S.delay[ 9].tail());
+                    double outKL = L.array[10].at(S.delay[10].tail());
+                    double outLL = L.array[11].at(S.delay[11].tail());
+                    double outIR = R.array[ 8].at(S.delay[ 8].tail());
+                    double outJR = R.array[ 9].at(S.delay[ 9].tail());
+                    double outKR = R.array[10].at(S.delay[10].tail());
+                    double outLR = R.array[11].at(S.delay[11].tail());
 
-                    L.aA.at(S.delay[0].count) = (outIL - (outJL + outKL + outLL));
-                    L.aB.at(S.delay[1].count) = (outJL - (outIL + outKL + outLL));
-                    L.aC.at(S.delay[2].count) = (outKL - (outIL + outJL + outLL));
-                    L.aD.at(S.delay[3].count) = (outLL - (outIL + outJL + outKL));
-                    R.aA.at(S.delay[0].count) = (outIR - (outJR + outKR + outLR));
-                    R.aB.at(S.delay[1].count) = (outJR - (outIR + outKR + outLR));
-                    R.aC.at(S.delay[2].count) = (outKR - (outIR + outJR + outLR));
-                    R.aD.at(S.delay[3].count) = (outLR - (outIR + outJR + outKR));
+                    L.array[0].at(S.delay[0].count) = (outIL - (outJL + outKL + outLL));
+                    L.array[1].at(S.delay[1].count) = (outJL - (outIL + outKL + outLL));
+                    L.array[2].at(S.delay[2].count) = (outKL - (outIL + outJL + outLL));
+                    L.array[3].at(S.delay[3].count) = (outLL - (outIL + outJL + outKL));
+                    R.array[0].at(S.delay[0].count) = (outIR - (outJR + outKR + outLR));
+                    R.array[1].at(S.delay[1].count) = (outJR - (outIR + outKR + outLR));
+                    R.array[2].at(S.delay[2].count) = (outKR - (outIR + outJR + outLR));
+                    R.array[3].at(S.delay[3].count) = (outLR - (outIR + outJR + outKR));
 
                     S.delay[0].advance();
                     S.delay[1].advance();
                     S.delay[2].advance();
                     S.delay[3].advance();
 
-                    double outAL = L.aA.at(S.delay[0].tail());
-                    double outBL = L.aB.at(S.delay[1].tail());
-                    double outCL = L.aC.at(S.delay[2].tail());
-                    double outDL = L.aD.at(S.delay[3].tail());
-                    double outAR = R.aA.at(S.delay[0].tail());
-                    double outBR = R.aB.at(S.delay[1].tail());
-                    double outCR = R.aC.at(S.delay[2].tail());
-                    double outDR = R.aD.at(S.delay[3].tail());
+                    double outAL = L.array[0].at(S.delay[0].tail());
+                    double outBL = L.array[1].at(S.delay[1].tail());
+                    double outCL = L.array[2].at(S.delay[2].tail());
+                    double outDL = L.array[3].at(S.delay[3].tail());
+                    double outAR = R.array[0].at(S.delay[0].tail());
+                    double outBR = R.array[1].at(S.delay[1].tail());
+                    double outCR = R.array[2].at(S.delay[2].tail());
+                    double outDR = R.array[3].at(S.delay[3].tail());
 
-                    L.aE.at(S.delay[4].count) = (outAL - (outBL + outCL + outDL));
-                    L.aF.at(S.delay[5].count) = (outBL - (outAL + outCL + outDL));
-                    L.aG.at(S.delay[6].count) = (outCL - (outAL + outBL + outDL));
-                    L.aH.at(S.delay[7].count) = (outDL - (outAL + outBL + outCL));
-                    R.aE.at(S.delay[4].count) = (outAR - (outBR + outCR + outDR));
-                    R.aF.at(S.delay[5].count) = (outBR - (outAR + outCR + outDR));
-                    R.aG.at(S.delay[6].count) = (outCR - (outAR + outBR + outDR));
-                    R.aH.at(S.delay[7].count) = (outDR - (outAR + outBR + outCR));
+                    L.array[4].at(S.delay[4].count) = (outAL - (outBL + outCL + outDL));
+                    L.array[5].at(S.delay[5].count) = (outBL - (outAL + outCL + outDL));
+                    L.array[6].at(S.delay[6].count) = (outCL - (outAL + outBL + outDL));
+                    L.array[7].at(S.delay[7].count) = (outDL - (outAL + outBL + outCL));
+                    R.array[4].at(S.delay[4].count) = (outAR - (outBR + outCR + outDR));
+                    R.array[5].at(S.delay[5].count) = (outBR - (outAR + outCR + outDR));
+                    R.array[6].at(S.delay[6].count) = (outCR - (outAR + outBR + outDR));
+                    R.array[7].at(S.delay[7].count) = (outDR - (outAR + outBR + outCR));
 
                     S.delay[4].advance();
                     S.delay[5].advance();
                     S.delay[6].advance();
                     S.delay[7].advance();
 
-                    double outEL = L.aE.at(S.delay[4].tail());
-                    double outFL = L.aF.at(S.delay[5].tail());
-                    double outGL = L.aG.at(S.delay[6].tail());
-                    double outHL = L.aH.at(S.delay[7].tail());
-                    double outER = R.aE.at(S.delay[4].tail());
-                    double outFR = R.aF.at(S.delay[5].tail());
-                    double outGR = R.aG.at(S.delay[6].tail());
-                    double outHR = R.aH.at(S.delay[7].tail());
+                    double outEL = L.array[4].at(S.delay[4].tail());
+                    double outFL = L.array[5].at(S.delay[5].tail());
+                    double outGL = L.array[6].at(S.delay[6].tail());
+                    double outHL = L.array[7].at(S.delay[7].tail());
+                    double outER = R.array[4].at(S.delay[4].tail());
+                    double outFR = R.array[5].at(S.delay[5].tail());
+                    double outGR = R.array[6].at(S.delay[6].tail());
+                    double outHR = R.array[7].at(S.delay[7].tail());
 
                     L.feedbackA = (outEL - (outFL + outGL + outHL));
                     L.feedbackB = (outFL - (outEL + outGL + outHL));
