@@ -6,7 +6,6 @@
 // https://github.com/airwindows/airwindows
 
 #pragma once
-#include <memory>
 #include <cstdint>
 #include "sapphire_engine.hpp"
 
@@ -27,6 +26,18 @@ namespace Sapphire
         inline double Cube(double x)
         {
             return x * x * x;
+        }
+
+        const float ParamKnobMin = 0.0;
+        const float ParamKnobDef = 0.5;
+        const float ParamKnobMax = 1.0;
+
+        inline float ParamClamp(float x)
+        {
+            if (!std::isfinite(x))
+                return ParamKnobDef;
+
+            return std::clamp(x, ParamKnobMin, ParamKnobMax);
         }
 
         using buffer_t = std::vector<double>;
@@ -115,19 +126,17 @@ namespace Sapphire
         };
 
 
-        struct ReverbParameters
-        {
-            float A = 0.5;
-            float B = 0.5;
-            float C = 0.5;
-            float D = 1.0;
-            float E = 1.0;
-        };
-
-
-        struct ReverbState
+        struct Engine
         {
         private:
+            // Parameters
+            float replaceKnob = 0.5;
+            float brightKnob = 0.5;
+            float detuneKnob = 0.5;
+            float bignessKnob = 1.0;
+            float mixKnob = 1.0;
+
+            // State
             ChannelState L{2756923396};
             ChannelState R{2341963165};
             double depthM;
@@ -147,14 +156,13 @@ namespace Sapphire
             }
 
         public:
-            ReverbParameters parm;
 
-            ReverbState()
+            Engine()
             {
-                clear();
+                initialize();
             }
 
-            void clear()
+            void initialize()
             {
                 L.clear();
                 R.clear();
@@ -166,6 +174,26 @@ namespace Sapphire
                     delay[i].clear();
             }
 
+            double getReplace()     const { return replaceKnob; }
+            double getBrightness()  const { return brightKnob; }
+            double getDetune()      const { return detuneKnob; }
+            double getBigness()     const { return bignessKnob; }
+            double getMix()         const { return mixKnob; }
+
+            void setReplace(double replace)         { replaceKnob = ParamClamp(replace);    }
+            void setBrightness(double brightness)   { brightKnob  = ParamClamp(brightness); }
+            void setDetune(double detune)           { detuneKnob  = ParamClamp(detune);     }
+            void setBigness(double bigness)         { bignessKnob = ParamClamp(bigness);    }
+            void setMix(double mix)                 { mixKnob     = ParamClamp(mix);        }
+
+            void process(float sampleRate, float inLeft, float inRight, float& outLeft, float& outRight)
+            {
+                double resultLeft, resultRight;
+                process(sampleRate, inLeft, inRight, resultLeft, resultRight);
+                outLeft = static_cast<float>(resultLeft);
+                outRight = static_cast<float>(resultRight);
+            }
+
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
                 const double overallscale = sampleRateHz / 44100;
@@ -174,12 +202,12 @@ namespace Sapphire
                 if (cycle > cycleEnd-1)
                     cycle = cycleEnd-1;
 
-                const double regen = 0.0625+((1.0-parm.A)*0.0625);
+                const double regen = 0.0625+((1.0-replaceKnob)*0.0625);
                 const double attenuate = (1.0 - (regen / 0.125))*1.333;
-                const double lowpass = Square(1.00001-(1.0-parm.B))/std::sqrt(overallscale);
-                const double drift = Cube(parm.C)*0.001;
-                const double size = (parm.D*1.77)+0.1;
-                const double wet = 1-Cube(1 - parm.E);
+                const double lowpass = Square(1.00001-(1.0-brightKnob))/std::sqrt(overallscale);
+                const double drift = Cube(detuneKnob)*0.001;
+                const double size = (bignessKnob*1.77)+0.1;
+                const double wet = 1-Cube(1 - mixKnob);
 
                 delay[ 0].delay = 4801*size;
                 delay[ 1].delay = 2909*size;
@@ -356,67 +384,6 @@ namespace Sapphire
                 outputSampleL = dither(inputSampleL, L.fpd);
                 outputSampleR = dither(inputSampleR, R.fpd);
             }
-        };
-
-
-        const float ParamKnobMin = 0.0;
-        const float ParamKnobDef = 0.5;
-        const float ParamKnobMax = 1.0;
-
-        inline float ParamClamp(float x)
-        {
-            if (!std::isfinite(x))
-                return ParamKnobDef;
-
-            return std::clamp(x, ParamKnobMin, ParamKnobMax);
-        }
-
-
-        class Engine
-        {
-        public:
-            Engine()
-            {
-                initialize();
-            }
-
-            void initialize()
-            {
-                clear();
-            }
-
-            void clear()
-            {
-                state->clear();
-            }
-
-            void process(float sampleRate, float inLeft, float inRight, float& outLeft, float& outRight)
-            {
-                double resultLeft, resultRight;
-                state->process(sampleRate, inLeft, inRight, resultLeft, resultRight);
-                outLeft = static_cast<float>(resultLeft);
-                outRight = static_cast<float>(resultRight);
-            }
-
-            ReverbParameters& parameters()
-            {
-                return state->parm;
-            }
-
-            double getReplace()     const { return state->parm.A; }
-            double getBrightness()  const { return state->parm.B; }
-            double getDetune()      const { return state->parm.C; }
-            double getBigness()     const { return state->parm.D; }
-            double getMix()         const { return state->parm.E; }
-
-            void setReplace(double replace)         { state->parm.A = ParamClamp(replace);    }
-            void setBrightness(double brightness)   { state->parm.B = ParamClamp(brightness); }
-            void setDetune(double detune)           { state->parm.C = ParamClamp(detune);     }
-            void setBigness(double bigness)         { state->parm.D = ParamClamp(bigness);    }
-            void setMix(double mix)                 { state->parm.E = ParamClamp(mix);        }
-
-        private:
-            std::unique_ptr<ReverbState> state = std::make_unique<ReverbState>();
         };
     }
 }

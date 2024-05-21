@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <random>
 #include "sapphire_engine.hpp"
 #include "galaxy_engine.hpp"
@@ -687,12 +688,11 @@ static int GalaxyTest_Genesis()
         return Fail("GalaxyTest_Genesis", std::string("Could not open output file: ") + outFileName);
 
     Sapphire::Galaxy::Engine engine;
-    Sapphire::Galaxy::ReverbParameters& parms = engine.parameters();
-    parms.A = 0.5;
-    parms.B = 0.5;
-    parms.C = 0.5;
-    parms.D = 1.0;
-    parms.E = 1.0;
+    engine.setReplace(0.5);
+    engine.setBrightness(0.5);
+    engine.setDetune(0.5);
+    engine.setBigness(1.0);
+    engine.setMix(1.0);
 
     float inFrame[channels]{};
     float outFrame[channels]{};

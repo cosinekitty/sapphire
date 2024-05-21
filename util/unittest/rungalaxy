@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -fv output/galaxy_genesis.wav output/airwindows_genesis.wav
 ./run galaxy || exit 1
-mplayer -really-quiet output/galaxy_genesis.wav || exit 1
+# mplayer -really-quiet output/galaxy_genesis.wav || exit 1
 echo rungalaxy: PASS
 exit 0
