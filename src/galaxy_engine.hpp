@@ -46,10 +46,7 @@ namespace Sapphire
         {
             double iirA;
             double iirB;
-            double feedbackA;
-            double feedbackB;
-            double feedbackC;
-            double feedbackD;
+            double feedback[4];
             const uint32_t init_fpd;
             uint32_t fpd;
             double lastRef[MaxCycle+1];
@@ -79,7 +76,7 @@ namespace Sapphire
             void clear()
             {
                 iirA = iirB = 0;
-                feedbackA = feedbackB = feedbackC = feedbackD = 0;
+                feedback[0] = feedback[1] = feedback[2] = feedback[3] = 0;
                 fpd = init_fpd;
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
@@ -219,7 +216,6 @@ namespace Sapphire
                 t[7] = tail(1, startIndex+3);
             }
 
-
         public:
 
             Engine()
@@ -309,10 +305,10 @@ namespace Sapphire
                 {
                     double t[8];
 
-                    write( 8, inputSampleL + (R.feedbackA * regen), inputSampleR + (L.feedbackA * regen));
-                    write( 9, inputSampleL + (R.feedbackB * regen), inputSampleR + (L.feedbackB * regen));
-                    write(10, inputSampleL + (R.feedbackC * regen), inputSampleR + (L.feedbackC * regen));
-                    write(11, inputSampleL + (R.feedbackD * regen), inputSampleR + (L.feedbackD * regen));
+                    write( 8, inputSampleL + (R.feedback[0] * regen), inputSampleR + (L.feedback[0] * regen));
+                    write( 9, inputSampleL + (R.feedback[1] * regen), inputSampleR + (L.feedback[1] * regen));
+                    write(10, inputSampleL + (R.feedback[2] * regen), inputSampleR + (L.feedback[2] * regen));
+                    write(11, inputSampleL + (R.feedback[3] * regen), inputSampleR + (L.feedback[3] * regen));
 
                     load(t, 8);
                     write(0, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
@@ -327,14 +323,14 @@ namespace Sapphire
                     write(7, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
 
                     load(t, 4);
-                    L.feedbackA = t[0] - (t[2] + t[4] + t[6]);
-                    L.feedbackB = t[2] - (t[0] + t[4] + t[6]);
-                    L.feedbackC = t[4] - (t[0] + t[2] + t[6]);
-                    L.feedbackD = t[6] - (t[0] + t[2] + t[4]);
-                    R.feedbackA = t[1] - (t[3] + t[5] + t[7]);
-                    R.feedbackB = t[3] - (t[1] + t[5] + t[7]);
-                    R.feedbackC = t[5] - (t[1] + t[3] + t[7]);
-                    R.feedbackD = t[7] - (t[1] + t[3] + t[5]);
+                    L.feedback[0] = t[0] - (t[2] + t[4] + t[6]);
+                    L.feedback[1] = t[2] - (t[0] + t[4] + t[6]);
+                    L.feedback[2] = t[4] - (t[0] + t[2] + t[6]);
+                    L.feedback[3] = t[6] - (t[0] + t[2] + t[4]);
+                    R.feedback[0] = t[1] - (t[3] + t[5] + t[7]);
+                    R.feedback[1] = t[3] - (t[1] + t[5] + t[7]);
+                    R.feedback[2] = t[5] - (t[1] + t[3] + t[7]);
+                    R.feedback[3] = t[7] - (t[1] + t[3] + t[5]);
 
                     inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
                     inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
