@@ -190,6 +190,13 @@ namespace Sapphire
                 return access(channel, tankIndex, dstate(tankIndex).tail());
             }
 
+            void write(int tankIndex, double left, double right)
+            {
+                head(0, tankIndex) = left;
+                head(1, tankIndex) = right;
+                dstate(tankIndex).advance();
+            }
+
         public:
 
             Engine()
@@ -270,9 +277,7 @@ namespace Sapphire
                     oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                head(0, 12) = inputSampleL * attenuate;
-                head(1, 12) = inputSampleR * attenuate;
-                delay[12].advance();
+                write(12, inputSampleL * attenuate, inputSampleR * attenuate);
 
                 double offsetML = (std::sin(vibM)+1)*127;
                 double fracML = offsetML - std::floor(offsetML);
@@ -293,21 +298,10 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
-                    head(0, 8) = inputSampleL + (R.feedbackA * regen);
-                    head(1, 8) = inputSampleR + (L.feedbackA * regen);
-                    delay[ 8].advance();
-
-                    head(0, 9) = inputSampleL + (R.feedbackB * regen);
-                    head(1, 9) = inputSampleR + (L.feedbackB * regen);
-                    delay[ 9].advance();
-
-                    head(0, 10) = inputSampleL + (R.feedbackC * regen);
-                    head(1, 10) = inputSampleR + (L.feedbackC * regen);
-                    delay[10].advance();
-
-                    head(0, 11) = inputSampleL + (R.feedbackD * regen);
-                    head(1, 11) = inputSampleR + (L.feedbackD * regen);
-                    delay[11].advance();
+                    write( 8, inputSampleL + (R.feedbackA * regen), inputSampleR + (L.feedbackA * regen));
+                    write( 9, inputSampleL + (R.feedbackB * regen), inputSampleR + (L.feedbackB * regen));
+                    write(10, inputSampleL + (R.feedbackC * regen), inputSampleR + (L.feedbackC * regen));
+                    write(11, inputSampleL + (R.feedbackD * regen), inputSampleR + (L.feedbackD * regen));
 
                     double outIL = tail(0,  8);
                     double outJL = tail(0,  9);
@@ -318,21 +312,10 @@ namespace Sapphire
                     double outKR = tail(1, 10);
                     double outLR = tail(1, 11);
 
-                    head(0, 0) = (outIL - (outJL + outKL + outLL));
-                    head(1, 0) = (outIR - (outJR + outKR + outLR));
-                    delay[0].advance();
-
-                    head(0, 1) = (outJL - (outIL + outKL + outLL));
-                    head(1, 1) = (outJR - (outIR + outKR + outLR));
-                    delay[1].advance();
-
-                    head(0, 2) = (outKL - (outIL + outJL + outLL));
-                    head(1, 2) = (outKR - (outIR + outJR + outLR));
-                    delay[2].advance();
-
-                    head(0, 3) = (outLL - (outIL + outJL + outKL));
-                    head(1, 3) = (outLR - (outIR + outJR + outKR));
-                    delay[3].advance();
+                    write(0, outIL - (outJL + outKL + outLL), outIR - (outJR + outKR + outLR));
+                    write(1, outJL - (outIL + outKL + outLL), outJR - (outIR + outKR + outLR));
+                    write(2, outKL - (outIL + outJL + outLL), outKR - (outIR + outJR + outLR));
+                    write(3, outLL - (outIL + outJL + outKL), outLR - (outIR + outJR + outKR));
 
                     double outAL = tail(0, 0);
                     double outBL = tail(0, 1);
@@ -343,21 +326,10 @@ namespace Sapphire
                     double outCR = tail(1, 2);
                     double outDR = tail(1, 3);
 
-                    head(0, 4) = (outAL - (outBL + outCL + outDL));
-                    head(1, 4) = (outAR - (outBR + outCR + outDR));
-                    delay[4].advance();
-
-                    head(0, 5) = (outBL - (outAL + outCL + outDL));
-                    head(1, 5) = (outBR - (outAR + outCR + outDR));
-                    delay[5].advance();
-
-                    head(0, 6) = (outCL - (outAL + outBL + outDL));
-                    head(1, 6) = (outCR - (outAR + outBR + outDR));
-                    delay[6].advance();
-
-                    head(0, 7) = (outDL - (outAL + outBL + outCL));
-                    head(1, 7) = (outDR - (outAR + outBR + outCR));
-                    delay[7].advance();
+                    write(4, outAL - (outBL + outCL + outDL), outAR - (outBR + outCR + outDR));
+                    write(5, outBL - (outAL + outCL + outDL), outBR - (outAR + outCR + outDR));
+                    write(6, outCL - (outAL + outBL + outDL), outCR - (outAR + outBR + outDR));
+                    write(7, outDL - (outAL + outBL + outCL), outDR - (outAR + outBR + outCR));
 
                     double outEL = tail(0, 4);
                     double outFL = tail(0, 5);
@@ -368,14 +340,14 @@ namespace Sapphire
                     double outGR = tail(1, 6);
                     double outHR = tail(1, 7);
 
-                    L.feedbackA = (outEL - (outFL + outGL + outHL));
-                    L.feedbackB = (outFL - (outEL + outGL + outHL));
-                    L.feedbackC = (outGL - (outEL + outFL + outHL));
-                    L.feedbackD = (outHL - (outEL + outFL + outGL));
-                    R.feedbackA = (outER - (outFR + outGR + outHR));
-                    R.feedbackB = (outFR - (outER + outGR + outHR));
-                    R.feedbackC = (outGR - (outER + outFR + outHR));
-                    R.feedbackD = (outHR - (outER + outFR + outGR));
+                    L.feedbackA = outEL - (outFL + outGL + outHL);
+                    L.feedbackB = outFL - (outEL + outGL + outHL);
+                    L.feedbackC = outGL - (outEL + outFL + outHL);
+                    L.feedbackD = outHL - (outEL + outFL + outGL);
+                    R.feedbackA = outER - (outFR + outGR + outHR);
+                    R.feedbackB = outFR - (outER + outGR + outHR);
+                    R.feedbackC = outGR - (outER + outFR + outHR);
+                    R.feedbackD = outHR - (outER + outFR + outGR);
 
                     inputSampleL = (outEL + outFL + outGL + outHL)/8;
                     inputSampleR = (outER + outFR + outGR + outHR)/8;
