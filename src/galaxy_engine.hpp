@@ -185,7 +185,7 @@ namespace Sapphire
                 return access(channel, tankIndex, dstate(tankIndex).count);
             }
 
-            double& tail(int channel, int tankIndex)
+            double tail(int channel, int tankIndex)
             {
                 return access(channel, tankIndex, dstate(tankIndex).tail());
             }
