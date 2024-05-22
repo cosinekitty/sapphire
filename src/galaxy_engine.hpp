@@ -197,6 +197,16 @@ namespace Sapphire
                 dstate(tankIndex).advance();
             }
 
+            double interp(int channel, double radians)
+            {
+                double ofs = (std::sin(vibM + radians) + 1) * 127;
+                double frc = ofs - std::floor(ofs);
+                int index = delay[12].count + ofs;
+                return
+                    access(channel, 12, delay[12].reverse(index)) * (1-frc) +
+                    access(channel, 12, delay[12].reverse(index+1)) * (frc);
+            }
+
         public:
 
             Engine()
@@ -217,10 +227,10 @@ namespace Sapphire
             }
 
             double getReplace()     const { return replaceKnob; }
-            double getBrightness()  const { return brightKnob; }
-            double getDetune()      const { return detuneKnob; }
+            double getBrightness()  const { return brightKnob;  }
+            double getDetune()      const { return detuneKnob;  }
             double getBigness()     const { return bignessKnob; }
-            double getMix()         const { return mixKnob; }
+            double getMix()         const { return mixKnob;     }
 
             void setReplace(double replace)         { replaceKnob = ParamClamp(replace);    }
             void setBrightness(double brightness)   { brightKnob  = ParamClamp(brightness); }
@@ -279,22 +289,8 @@ namespace Sapphire
 
                 write(12, inputSampleL * attenuate, inputSampleR * attenuate);
 
-                double offsetML = (std::sin(vibM)+1)*127;
-                double fracML = offsetML - std::floor(offsetML);
-                int workingML = delay[12].count + offsetML;
-                double interpolML =
-                    access(0, 12, delay[12].reverse(workingML)) * (1-fracML) +
-                    access(0, 12, delay[12].reverse(workingML+1)) * (fracML);
-
-                double offsetMR = (std::sin(vibM+M_PI_2)+1)*127;
-                double fracMR = offsetMR - std::floor(offsetMR);
-                int workingMR = delay[12].count + offsetMR;
-                double interpolMR =
-                    access(1, 12, delay[12].reverse(workingMR)) * (1-fracMR) +
-                    access(1, 12, delay[12].reverse(workingMR+1)) * (fracMR);
-
-                inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
-                inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
+                inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interp(0, 0     )*lowpass);
+                inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interp(1, M_PI_2)*lowpass);
 
                 if (++cycle == cycleEnd)
                 {
