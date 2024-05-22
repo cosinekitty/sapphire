@@ -7,14 +7,14 @@
 
 #pragma once
 #include <cstdint>
+#include <stdexcept>
 #include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
     namespace Galaxy
     {
-        const int NDELAYS = 13;     // A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12.
-
+        const int NDELAYS = 13;
         const int MinCycle = 1;
         const int MaxCycle = 4;
 
@@ -155,6 +155,41 @@ namespace Sapphire
                 return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
             }
 
+            buffer_t& tank(int channel, int tankIndex)
+            {
+                switch (channel)
+                {
+                case 0:
+                    return L.array[tankIndex];
+                case 1:
+                    return R.array[tankIndex];
+                default:
+                    throw std::runtime_error("Invalid channel");
+                }
+            }
+
+            DelayState& dstate(int tankIndex)
+            {
+                if (tankIndex < 0 || tankIndex >= NDELAYS)
+                    throw std::out_of_range(std::string("tankIndex is invalid: ") + std::to_string(tankIndex));
+                return delay[tankIndex];
+            }
+
+            double& access(int channel, int tankIndex, int sampleIndex)
+            {
+                return tank(channel, tankIndex).at(sampleIndex);
+            }
+
+            double& head(int channel, int tankIndex)
+            {
+                return access(channel, tankIndex, dstate(tankIndex).count);
+            }
+
+            double& tail(int channel, int tankIndex)
+            {
+                return access(channel, tankIndex, dstate(tankIndex).tail());
+            }
+
         public:
 
             Engine()
@@ -235,91 +270,97 @@ namespace Sapphire
                     oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                L.array[12].at(delay[12].count) = inputSampleL * attenuate;
-                R.array[12].at(delay[12].count) = inputSampleR * attenuate;
+                head(0, 12) = inputSampleL * attenuate;
+                head(1, 12) = inputSampleR * attenuate;
                 delay[12].advance();
 
                 double offsetML = (std::sin(vibM)+1)*127;
-                double offsetMR = (std::sin(vibM+M_PI_2)+1)*127;
+                double fracML = offsetML - std::floor(offsetML);
                 int workingML = delay[12].count + offsetML;
+                double interpolML =
+                    access(0, 12, delay[12].reverse(workingML)) * (1-fracML) +
+                    access(0, 12, delay[12].reverse(workingML+1)) * (fracML);
+
+                double offsetMR = (std::sin(vibM+M_PI_2)+1)*127;
+                double fracMR = offsetMR - std::floor(offsetMR);
                 int workingMR = delay[12].count + offsetMR;
-                double interpolML = (L.array[12].at(delay[12].reverse(workingML)) * (1-(offsetML-std::floor(offsetML))));
-                interpolML += (L.array[12].at(delay[12].reverse(workingML+1)) * ((offsetML-std::floor(offsetML))) );
-                double interpolMR = (R.array[12].at(delay[12].reverse(workingMR)) * (1-(offsetMR-std::floor(offsetMR))));
-                interpolMR += (R.array[12].at(delay[12].reverse(workingMR+1)) * ((offsetMR-std::floor(offsetMR))));
+                double interpolMR =
+                    access(1, 12, delay[12].reverse(workingMR)) * (1-fracMR) +
+                    access(1, 12, delay[12].reverse(workingMR+1)) * (fracMR);
+
                 inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interpolML*lowpass);
                 inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interpolMR*lowpass);
 
                 if (++cycle == cycleEnd)
                 {
-                    L.array[ 8].at(delay[ 8].count) = inputSampleL + (R.feedbackA * regen);
-                    L.array[ 9].at(delay[ 9].count) = inputSampleL + (R.feedbackB * regen);
-                    L.array[10].at(delay[10].count) = inputSampleL + (R.feedbackC * regen);
-                    L.array[11].at(delay[11].count) = inputSampleL + (R.feedbackD * regen);
-                    R.array[ 8].at(delay[ 8].count) = inputSampleR + (L.feedbackA * regen);
-                    R.array[ 9].at(delay[ 9].count) = inputSampleR + (L.feedbackB * regen);
-                    R.array[10].at(delay[10].count) = inputSampleR + (L.feedbackC * regen);
-                    R.array[11].at(delay[11].count) = inputSampleR + (L.feedbackD * regen);
+                    head(0,  8) = inputSampleL + (R.feedbackA * regen);
+                    head(0,  9) = inputSampleL + (R.feedbackB * regen);
+                    head(0, 10) = inputSampleL + (R.feedbackC * regen);
+                    head(0, 11) = inputSampleL + (R.feedbackD * regen);
+                    head(1,  8) = inputSampleR + (L.feedbackA * regen);
+                    head(1,  9) = inputSampleR + (L.feedbackB * regen);
+                    head(1, 10) = inputSampleR + (L.feedbackC * regen);
+                    head(1, 11) = inputSampleR + (L.feedbackD * regen);
 
                     delay[ 8].advance();
                     delay[ 9].advance();
                     delay[10].advance();
                     delay[11].advance();
 
-                    double outIL = L.array[ 8].at(delay[ 8].tail());
-                    double outJL = L.array[ 9].at(delay[ 9].tail());
-                    double outKL = L.array[10].at(delay[10].tail());
-                    double outLL = L.array[11].at(delay[11].tail());
-                    double outIR = R.array[ 8].at(delay[ 8].tail());
-                    double outJR = R.array[ 9].at(delay[ 9].tail());
-                    double outKR = R.array[10].at(delay[10].tail());
-                    double outLR = R.array[11].at(delay[11].tail());
+                    double outIL = tail(0,  8);
+                    double outJL = tail(0,  9);
+                    double outKL = tail(0, 10);
+                    double outLL = tail(0, 11);
+                    double outIR = tail(1,  8);
+                    double outJR = tail(1,  9);
+                    double outKR = tail(1, 10);
+                    double outLR = tail(1, 11);
 
-                    L.array[0].at(delay[0].count) = (outIL - (outJL + outKL + outLL));
-                    L.array[1].at(delay[1].count) = (outJL - (outIL + outKL + outLL));
-                    L.array[2].at(delay[2].count) = (outKL - (outIL + outJL + outLL));
-                    L.array[3].at(delay[3].count) = (outLL - (outIL + outJL + outKL));
-                    R.array[0].at(delay[0].count) = (outIR - (outJR + outKR + outLR));
-                    R.array[1].at(delay[1].count) = (outJR - (outIR + outKR + outLR));
-                    R.array[2].at(delay[2].count) = (outKR - (outIR + outJR + outLR));
-                    R.array[3].at(delay[3].count) = (outLR - (outIR + outJR + outKR));
+                    head(0, 0) = (outIL - (outJL + outKL + outLL));
+                    head(0, 1) = (outJL - (outIL + outKL + outLL));
+                    head(0, 2) = (outKL - (outIL + outJL + outLL));
+                    head(0, 3) = (outLL - (outIL + outJL + outKL));
+                    head(1, 0) = (outIR - (outJR + outKR + outLR));
+                    head(1, 1) = (outJR - (outIR + outKR + outLR));
+                    head(1, 2) = (outKR - (outIR + outJR + outLR));
+                    head(1, 3) = (outLR - (outIR + outJR + outKR));
 
                     delay[0].advance();
                     delay[1].advance();
                     delay[2].advance();
                     delay[3].advance();
 
-                    double outAL = L.array[0].at(delay[0].tail());
-                    double outBL = L.array[1].at(delay[1].tail());
-                    double outCL = L.array[2].at(delay[2].tail());
-                    double outDL = L.array[3].at(delay[3].tail());
-                    double outAR = R.array[0].at(delay[0].tail());
-                    double outBR = R.array[1].at(delay[1].tail());
-                    double outCR = R.array[2].at(delay[2].tail());
-                    double outDR = R.array[3].at(delay[3].tail());
+                    double outAL = tail(0, 0);
+                    double outBL = tail(0, 1);
+                    double outCL = tail(0, 2);
+                    double outDL = tail(0, 3);
+                    double outAR = tail(1, 0);
+                    double outBR = tail(1, 1);
+                    double outCR = tail(1, 2);
+                    double outDR = tail(1, 3);
 
-                    L.array[4].at(delay[4].count) = (outAL - (outBL + outCL + outDL));
-                    L.array[5].at(delay[5].count) = (outBL - (outAL + outCL + outDL));
-                    L.array[6].at(delay[6].count) = (outCL - (outAL + outBL + outDL));
-                    L.array[7].at(delay[7].count) = (outDL - (outAL + outBL + outCL));
-                    R.array[4].at(delay[4].count) = (outAR - (outBR + outCR + outDR));
-                    R.array[5].at(delay[5].count) = (outBR - (outAR + outCR + outDR));
-                    R.array[6].at(delay[6].count) = (outCR - (outAR + outBR + outDR));
-                    R.array[7].at(delay[7].count) = (outDR - (outAR + outBR + outCR));
+                    head(0, 4) = (outAL - (outBL + outCL + outDL));
+                    head(0, 5) = (outBL - (outAL + outCL + outDL));
+                    head(0, 6) = (outCL - (outAL + outBL + outDL));
+                    head(0, 7) = (outDL - (outAL + outBL + outCL));
+                    head(1, 4) = (outAR - (outBR + outCR + outDR));
+                    head(1, 5) = (outBR - (outAR + outCR + outDR));
+                    head(1, 6) = (outCR - (outAR + outBR + outDR));
+                    head(1, 7) = (outDR - (outAR + outBR + outCR));
 
                     delay[4].advance();
                     delay[5].advance();
                     delay[6].advance();
                     delay[7].advance();
 
-                    double outEL = L.array[4].at(delay[4].tail());
-                    double outFL = L.array[5].at(delay[5].tail());
-                    double outGL = L.array[6].at(delay[6].tail());
-                    double outHL = L.array[7].at(delay[7].tail());
-                    double outER = R.array[4].at(delay[4].tail());
-                    double outFR = R.array[5].at(delay[5].tail());
-                    double outGR = R.array[6].at(delay[6].tail());
-                    double outHR = R.array[7].at(delay[7].tail());
+                    double outEL = tail(0, 4);
+                    double outFL = tail(0, 5);
+                    double outGL = tail(0, 6);
+                    double outHL = tail(0, 7);
+                    double outER = tail(1, 4);
+                    double outFR = tail(1, 5);
+                    double outGR = tail(1, 6);
+                    double outHR = tail(1, 7);
 
                     L.feedbackA = (outEL - (outFL + outGL + outHL));
                     L.feedbackB = (outFL - (outEL + outGL + outHL));
