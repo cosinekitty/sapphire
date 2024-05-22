@@ -207,6 +207,19 @@ namespace Sapphire
                     access(channel, 12, delay[12].reverse(index+1)) * (frc);
             }
 
+            void load(double t[8], int startIndex)
+            {
+                t[0] = tail(0, startIndex);
+                t[1] = tail(1, startIndex);
+                t[2] = tail(0, startIndex+1);
+                t[3] = tail(1, startIndex+1);
+                t[4] = tail(0, startIndex+2);
+                t[5] = tail(1, startIndex+2);
+                t[6] = tail(0, startIndex+3);
+                t[7] = tail(1, startIndex+3);
+            }
+
+
         public:
 
             Engine()
@@ -294,59 +307,38 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
+                    double t[8];
+
                     write( 8, inputSampleL + (R.feedbackA * regen), inputSampleR + (L.feedbackA * regen));
                     write( 9, inputSampleL + (R.feedbackB * regen), inputSampleR + (L.feedbackB * regen));
                     write(10, inputSampleL + (R.feedbackC * regen), inputSampleR + (L.feedbackC * regen));
                     write(11, inputSampleL + (R.feedbackD * regen), inputSampleR + (L.feedbackD * regen));
 
-                    double outIL = tail(0,  8);
-                    double outJL = tail(0,  9);
-                    double outKL = tail(0, 10);
-                    double outLL = tail(0, 11);
-                    double outIR = tail(1,  8);
-                    double outJR = tail(1,  9);
-                    double outKR = tail(1, 10);
-                    double outLR = tail(1, 11);
+                    load(t, 8);
+                    write(0, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
+                    write(1, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
+                    write(2, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
+                    write(3, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
 
-                    write(0, outIL - (outJL + outKL + outLL), outIR - (outJR + outKR + outLR));
-                    write(1, outJL - (outIL + outKL + outLL), outJR - (outIR + outKR + outLR));
-                    write(2, outKL - (outIL + outJL + outLL), outKR - (outIR + outJR + outLR));
-                    write(3, outLL - (outIL + outJL + outKL), outLR - (outIR + outJR + outKR));
+                    load(t, 0);
+                    write(4, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
+                    write(5, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
+                    write(6, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
+                    write(7, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
 
-                    double outAL = tail(0, 0);
-                    double outBL = tail(0, 1);
-                    double outCL = tail(0, 2);
-                    double outDL = tail(0, 3);
-                    double outAR = tail(1, 0);
-                    double outBR = tail(1, 1);
-                    double outCR = tail(1, 2);
-                    double outDR = tail(1, 3);
+                    load(t, 4);
+                    L.feedbackA = t[0] - (t[2] + t[4] + t[6]);
+                    L.feedbackB = t[2] - (t[0] + t[4] + t[6]);
+                    L.feedbackC = t[4] - (t[0] + t[2] + t[6]);
+                    L.feedbackD = t[6] - (t[0] + t[2] + t[4]);
+                    R.feedbackA = t[1] - (t[3] + t[5] + t[7]);
+                    R.feedbackB = t[3] - (t[1] + t[5] + t[7]);
+                    R.feedbackC = t[5] - (t[1] + t[3] + t[7]);
+                    R.feedbackD = t[7] - (t[1] + t[3] + t[5]);
 
-                    write(4, outAL - (outBL + outCL + outDL), outAR - (outBR + outCR + outDR));
-                    write(5, outBL - (outAL + outCL + outDL), outBR - (outAR + outCR + outDR));
-                    write(6, outCL - (outAL + outBL + outDL), outCR - (outAR + outBR + outDR));
-                    write(7, outDL - (outAL + outBL + outCL), outDR - (outAR + outBR + outCR));
+                    inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
+                    inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
 
-                    double outEL = tail(0, 4);
-                    double outFL = tail(0, 5);
-                    double outGL = tail(0, 6);
-                    double outHL = tail(0, 7);
-                    double outER = tail(1, 4);
-                    double outFR = tail(1, 5);
-                    double outGR = tail(1, 6);
-                    double outHR = tail(1, 7);
-
-                    L.feedbackA = outEL - (outFL + outGL + outHL);
-                    L.feedbackB = outFL - (outEL + outGL + outHL);
-                    L.feedbackC = outGL - (outEL + outFL + outHL);
-                    L.feedbackD = outHL - (outEL + outFL + outGL);
-                    R.feedbackA = outER - (outFR + outGR + outHR);
-                    R.feedbackB = outFR - (outER + outGR + outHR);
-                    R.feedbackC = outGR - (outER + outFR + outHR);
-                    R.feedbackD = outHR - (outER + outFR + outGR);
-
-                    inputSampleL = (outEL + outFL + outGL + outHL)/8;
-                    inputSampleR = (outER + outFR + outGR + outHR)/8;
                     switch (cycleEnd)
                     {
                     case 4:
