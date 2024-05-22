@@ -293,18 +293,20 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
-                    head(0,  8) = inputSampleL + (R.feedbackA * regen);
-                    head(0,  9) = inputSampleL + (R.feedbackB * regen);
-                    head(0, 10) = inputSampleL + (R.feedbackC * regen);
-                    head(0, 11) = inputSampleL + (R.feedbackD * regen);
-                    head(1,  8) = inputSampleR + (L.feedbackA * regen);
-                    head(1,  9) = inputSampleR + (L.feedbackB * regen);
-                    head(1, 10) = inputSampleR + (L.feedbackC * regen);
-                    head(1, 11) = inputSampleR + (L.feedbackD * regen);
-
+                    head(0, 8) = inputSampleL + (R.feedbackA * regen);
+                    head(1, 8) = inputSampleR + (L.feedbackA * regen);
                     delay[ 8].advance();
+
+                    head(0, 9) = inputSampleL + (R.feedbackB * regen);
+                    head(1, 9) = inputSampleR + (L.feedbackB * regen);
                     delay[ 9].advance();
+
+                    head(0, 10) = inputSampleL + (R.feedbackC * regen);
+                    head(1, 10) = inputSampleR + (L.feedbackC * regen);
                     delay[10].advance();
+
+                    head(0, 11) = inputSampleL + (R.feedbackD * regen);
+                    head(1, 11) = inputSampleR + (L.feedbackD * regen);
                     delay[11].advance();
 
                     double outIL = tail(0,  8);
@@ -317,17 +319,19 @@ namespace Sapphire
                     double outLR = tail(1, 11);
 
                     head(0, 0) = (outIL - (outJL + outKL + outLL));
-                    head(0, 1) = (outJL - (outIL + outKL + outLL));
-                    head(0, 2) = (outKL - (outIL + outJL + outLL));
-                    head(0, 3) = (outLL - (outIL + outJL + outKL));
                     head(1, 0) = (outIR - (outJR + outKR + outLR));
-                    head(1, 1) = (outJR - (outIR + outKR + outLR));
-                    head(1, 2) = (outKR - (outIR + outJR + outLR));
-                    head(1, 3) = (outLR - (outIR + outJR + outKR));
-
                     delay[0].advance();
+
+                    head(0, 1) = (outJL - (outIL + outKL + outLL));
+                    head(1, 1) = (outJR - (outIR + outKR + outLR));
                     delay[1].advance();
+
+                    head(0, 2) = (outKL - (outIL + outJL + outLL));
+                    head(1, 2) = (outKR - (outIR + outJR + outLR));
                     delay[2].advance();
+
+                    head(0, 3) = (outLL - (outIL + outJL + outKL));
+                    head(1, 3) = (outLR - (outIR + outJR + outKR));
                     delay[3].advance();
 
                     double outAL = tail(0, 0);
@@ -340,17 +344,19 @@ namespace Sapphire
                     double outDR = tail(1, 3);
 
                     head(0, 4) = (outAL - (outBL + outCL + outDL));
-                    head(0, 5) = (outBL - (outAL + outCL + outDL));
-                    head(0, 6) = (outCL - (outAL + outBL + outDL));
-                    head(0, 7) = (outDL - (outAL + outBL + outCL));
                     head(1, 4) = (outAR - (outBR + outCR + outDR));
-                    head(1, 5) = (outBR - (outAR + outCR + outDR));
-                    head(1, 6) = (outCR - (outAR + outBR + outDR));
-                    head(1, 7) = (outDR - (outAR + outBR + outCR));
-
                     delay[4].advance();
+
+                    head(0, 5) = (outBL - (outAL + outCL + outDL));
+                    head(1, 5) = (outBR - (outAR + outCR + outDR));
                     delay[5].advance();
+
+                    head(0, 6) = (outCL - (outAL + outBL + outDL));
+                    head(1, 6) = (outCR - (outAR + outBR + outDR));
                     delay[6].advance();
+
+                    head(0, 7) = (outDL - (outAL + outBL + outCL));
+                    head(1, 7) = (outDR - (outAR + outBR + outCR));
                     delay[7].advance();
 
                     double outEL = tail(0, 4);
