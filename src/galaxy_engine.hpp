@@ -17,7 +17,7 @@ namespace Sapphire
         const int NDELAYS = 13;
         const int NFEEDBACK = 4;
         const int MinCycle = 1;
-        const int MaxCycle = 4;
+        const int MAXCYCLE = 4;
 
         inline double Square(double x)
         {
@@ -105,7 +105,6 @@ namespace Sapphire
         {
             const uint32_t init_fpd;
             uint32_t fpd;
-            double lastRef[MaxCycle+1];
             double thunder;
 
             explicit ChannelState(uint32_t _init_fpd)
@@ -117,8 +116,6 @@ namespace Sapphire
             void clear()
             {
                 fpd = init_fpd;
-                for (int i = 0; i <= MaxCycle; ++i)
-                    lastRef[i] = 0;
                 thunder = 0;
             }
         };
@@ -182,6 +179,7 @@ namespace Sapphire
             StereoFrame feedback[NFEEDBACK];
             StereoFrame iirA;
             StereoFrame iirB;
+            StereoFrame lastRef[MAXCYCLE + 1];
 
             static inline double dither(double sample, uint32_t& fpd)
             {
@@ -277,6 +275,8 @@ namespace Sapphire
                     delay[i].clear();
                 for (int i = 0; i < NFEEDBACK; ++i)
                     feedback[i].clear();
+                for (int i = 0; i <= MAXCYCLE; ++i)
+                    lastRef[i].clear();
                 iirA.clear();
                 iirB.clear();
             }
@@ -304,7 +304,7 @@ namespace Sapphire
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
                 const double overallscale = sampleRateHz / 44100;
-                const int cycleEnd = std::clamp(static_cast<int>(std::floor(overallscale)), MinCycle, MaxCycle);
+                const int cycleEnd = std::clamp(static_cast<int>(std::floor(overallscale)), MinCycle, MAXCYCLE);
 
                 if (cycle > cycleEnd-1)
                     cycle = cycleEnd-1;
@@ -382,47 +382,35 @@ namespace Sapphire
                     switch (cycleEnd)
                     {
                     case 4:
-                        L.lastRef[0] = L.lastRef[4];
-                        L.lastRef[2] = (L.lastRef[0] + inputSampleL)/2;
-                        L.lastRef[1] = (L.lastRef[0] + L.lastRef[2])/2;
-                        L.lastRef[3] = (L.lastRef[2] + inputSampleL)/2;
-                        L.lastRef[4] = inputSampleL;
-                        R.lastRef[0] = R.lastRef[4];
-                        R.lastRef[2] = (R.lastRef[0] + inputSampleR)/2;
-                        R.lastRef[1] = (R.lastRef[0] + R.lastRef[2])/2;
-                        R.lastRef[3] = (R.lastRef[2] + inputSampleR)/2;
-                        R.lastRef[4] = inputSampleR;
+                        lastRef[0] = lastRef[4];
+                        lastRef[2] = (lastRef[0] + sample)/2;
+                        lastRef[1] = (lastRef[0] + lastRef[2])/2;
+                        lastRef[3] = (lastRef[2] + sample)/2;
+                        lastRef[4] = sample;
                         break;
 
                     case 3:
-                        L.lastRef[0] = L.lastRef[3];
-                        L.lastRef[2] = (L.lastRef[0]+L.lastRef[0]+inputSampleL)/3;
-                        L.lastRef[1] = (L.lastRef[0]+inputSampleL+inputSampleL)/3;
-                        L.lastRef[3] = inputSampleL;
-                        R.lastRef[0] = R.lastRef[3];
-                        R.lastRef[2] = (R.lastRef[0]+R.lastRef[0]+inputSampleR)/3;
-                        R.lastRef[1] = (R.lastRef[0]+inputSampleR+inputSampleR)/3;
-                        R.lastRef[3] = inputSampleR;
+                        lastRef[0] = lastRef[3];
+                        lastRef[2] = (lastRef[0] + lastRef[0] + sample) / 3;
+                        lastRef[1] = (lastRef[0] + sample + sample) / 3;
+                        lastRef[3] = sample;
                         break;
 
                     case 2:
-                        L.lastRef[0] = L.lastRef[2];
-                        L.lastRef[1] = (L.lastRef[0] + inputSampleL)/2;
-                        L.lastRef[2] = inputSampleL;
-                        R.lastRef[0] = R.lastRef[2];
-                        R.lastRef[1] = (R.lastRef[0] + inputSampleR)/2;
-                        R.lastRef[2] = inputSampleR;
+                        lastRef[0] = lastRef[2];
+                        lastRef[1] = (lastRef[0] + sample)/2;
+                        lastRef[2] = sample;
                         break;
 
                     case 1:
-                        L.lastRef[0] = inputSampleL;
-                        R.lastRef[0] = inputSampleR;
+                        lastRef[0] = sample;
                         break;
                     }
                     cycle = 0;
                 }
-                inputSampleL = iirB.channel[0] = (iirB.channel[0]*(1-lowpass))+(L.lastRef[cycle]*lowpass);
-                inputSampleR = iirB.channel[1] = (iirB.channel[1]*(1-lowpass))+(R.lastRef[cycle]*lowpass);
+                sample = iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
+                inputSampleL = sample.channel[0];
+                inputSampleR = sample.channel[1];
                 if (wet < 1.0)
                 {
                     inputSampleL = (inputSampleL * wet) + (drySample.channel[0] * (1-wet));
