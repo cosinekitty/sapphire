@@ -105,7 +105,6 @@ namespace Sapphire
         {
             const uint32_t init_fpd;
             uint32_t fpd;
-            double thunder;
 
             explicit ChannelState(uint32_t _init_fpd)
                 : init_fpd(_init_fpd)
@@ -116,7 +115,6 @@ namespace Sapphire
             void clear()
             {
                 fpd = init_fpd;
-                thunder = 0;
             }
         };
 
