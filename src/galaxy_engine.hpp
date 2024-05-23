@@ -363,23 +363,20 @@ namespace Sapphire
                     write(10, inputSampleL + (R.feedback[2] * regen), inputSampleR + (L.feedback[2] * regen));
                     write(11, inputSampleL + (R.feedback[3] * regen), inputSampleR + (L.feedback[3] * regen));
 
-                    load(t, 8);
                     loadFrames(f, 8);
-                    //write(0, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
                     writeFrame(0, f[0] - (f[1] + f[2] + f[3]));
-                    write(1, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
-                    write(2, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
-                    write(3, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
+                    writeFrame(1, f[1] - (f[0] + f[2] + f[3]));
+                    writeFrame(2, f[2] - (f[0] + f[1] + f[3]));
+                    writeFrame(3, f[3] - (f[0] + f[1] + f[2]));
 
-                    load(t, 0);
                     loadFrames(f, 0);
-                    write(4, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
-                    write(5, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
-                    write(6, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
-                    write(7, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
+                    writeFrame(4, f[0] - (f[1] + f[2] + f[3]));
+                    writeFrame(5, f[1] - (f[0] + f[2] + f[3]));
+                    writeFrame(6, f[2] - (f[0] + f[1] + f[3]));
+                    writeFrame(7, f[3] - (f[0] + f[1] + f[2]));
 
                     load(t, 4);
-                    loadFrames(f, 4);
+                    //loadFrames(f, 4);
                     L.feedback[0] = t[0] - (t[2] + t[4] + t[6]);
                     L.feedback[1] = t[2] - (t[0] + t[4] + t[6]);
                     L.feedback[2] = t[4] - (t[0] + t[2] + t[6]);
