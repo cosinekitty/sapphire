@@ -92,6 +92,11 @@ namespace Sapphire
                     channel[1] * scalar
                 );
             }
+
+            StereoFrame flip() const
+            {
+                return StereoFrame(channel[1], channel[0]);
+            }
         };
 
         using stereo_buffer_t = std::vector<StereoFrame>;
@@ -205,33 +210,16 @@ namespace Sapphire
                 return tank(tankIndex).at(sampleIndex).channel[channel&1];
             }
 
-            double& head(int channel, int tankIndex)
-            {
-                return access(channel, tankIndex, dstate(tankIndex).count);
-            }
-
             StereoFrame& headFrame(int tankIndex)
             {
                 const int headIndex = dstate(tankIndex).count;
                 return tank(tankIndex).at(headIndex);
             }
 
-            double tail(int channel, int tankIndex)
-            {
-                return access(channel, tankIndex, dstate(tankIndex).tail());
-            }
-
             StereoFrame tailFrame(int tankIndex)
             {
                 const int tailIndex = dstate(tankIndex).tail();
                 return tank(tankIndex).at(tailIndex);
-            }
-
-            void write(int tankIndex, double left, double right)
-            {
-                head(0, tankIndex) = left;
-                head(1, tankIndex) = right;
-                dstate(tankIndex).advance();
             }
 
             void writeFrame(int tankIndex, const StereoFrame& frame)
@@ -259,7 +247,6 @@ namespace Sapphire
             }
 
         public:
-
             Engine()
             {
                 delay[ 0].buffer.resize( 9700);
@@ -365,11 +352,10 @@ namespace Sapphire
                 if (++cycle == cycleEnd)
                 {
                     StereoFrame f[4];
-
-                    write( 8, inputSampleL + (feedback[0].channel[1] * regen), inputSampleR + (feedback[0].channel[0] * regen));
-                    write( 9, inputSampleL + (feedback[1].channel[1] * regen), inputSampleR + (feedback[1].channel[0] * regen));
-                    write(10, inputSampleL + (feedback[2].channel[1] * regen), inputSampleR + (feedback[2].channel[0] * regen));
-                    write(11, inputSampleL + (feedback[3].channel[1] * regen), inputSampleR + (feedback[3].channel[0] * regen));
+                    writeFrame( 8, sample + (feedback[0].flip() * regen));
+                    writeFrame( 9, sample + (feedback[1].flip() * regen));
+                    writeFrame(10, sample + (feedback[2].flip() * regen));
+                    writeFrame(11, sample + (feedback[3].flip() * regen));
 
                     loadFrames(f, 8);
                     writeFrame(0, f[0] - (f[1] + f[2] + f[3]));
