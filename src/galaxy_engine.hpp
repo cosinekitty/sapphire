@@ -90,7 +90,6 @@ namespace Sapphire
 
         struct ChannelState
         {
-            double iirB;
             const uint32_t init_fpd;
             uint32_t fpd;
             double lastRef[MaxCycle+1];
@@ -104,7 +103,6 @@ namespace Sapphire
 
             void clear()
             {
-                iirB = 0;
                 fpd = init_fpd;
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
@@ -170,6 +168,7 @@ namespace Sapphire
             DelayState delay[NDELAYS];
             StereoFrame feedback[NFEEDBACK];
             StereoFrame iirA;
+            StereoFrame iirB;
 
             static inline double dither(double sample, uint32_t& fpd)
             {
@@ -296,6 +295,7 @@ namespace Sapphire
                 for (int i = 0; i < NFEEDBACK; ++i)
                     feedback[i].clear();
                 iirA.clear();
+                iirB.clear();
             }
 
             double getReplace()     const { return replaceKnob; }
@@ -440,8 +440,8 @@ namespace Sapphire
                     }
                     cycle = 0;
                 }
-                inputSampleL = L.iirB = (L.iirB*(1-lowpass))+(L.lastRef[cycle]*lowpass);
-                inputSampleR = R.iirB = (R.iirB*(1-lowpass))+(R.lastRef[cycle]*lowpass);
+                inputSampleL = iirB.channel[0] = (iirB.channel[0]*(1-lowpass))+(L.lastRef[cycle]*lowpass);
+                inputSampleR = iirB.channel[1] = (iirB.channel[1]*(1-lowpass))+(R.lastRef[cycle]*lowpass);
                 if (wet < 1.0)
                 {
                     inputSampleL = (inputSampleL * wet) + (drySample.channel[0] * (1-wet));
