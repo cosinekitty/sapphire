@@ -330,7 +330,6 @@ namespace Sapphire
 
                 if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
-
                 const StereoFrame drySample(inputSampleL, inputSampleR);
 
                 vibM += (oldfpd*drift);
@@ -344,8 +343,6 @@ namespace Sapphire
 
                 StereoFrame phasor(interp(0, 0), interp(1, M_PI_2));
                 StereoFrame sample = iirA = iirA*(1-lowpass) + phasor*lowpass;
-                inputSampleL = sample.channel[0];
-                inputSampleR = sample.channel[1];
 
                 if (++cycle == cycleEnd)
                 {
@@ -374,8 +371,6 @@ namespace Sapphire
                     feedback[3] = f[3] - (f[0] + f[1] + f[2]);
 
                     sample = (f[0] + f[1] + f[2] + f[3]) / 8;
-                    inputSampleL = sample.channel[0];
-                    inputSampleR = sample.channel[1];
 
                     switch (cycleEnd)
                     {
@@ -407,15 +402,9 @@ namespace Sapphire
                     cycle = 0;
                 }
                 sample = iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
-                inputSampleL = sample.channel[0];
-                inputSampleR = sample.channel[1];
-                if (wet < 1.0)
-                {
-                    inputSampleL = (inputSampleL * wet) + (drySample.channel[0] * (1-wet));
-                    inputSampleR = (inputSampleR * wet) + (drySample.channel[1] * (1-wet));
-                }
-                outputSampleL = dither(inputSampleL, L.fpd);
-                outputSampleR = dither(inputSampleR, R.fpd);
+                sample = sample*wet + drySample*(1-wet);
+                outputSampleL = dither(sample.channel[0], L.fpd);
+                outputSampleR = dither(sample.channel[1], R.fpd);
             }
         };
     }
