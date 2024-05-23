@@ -358,7 +358,6 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
-                    double t[8];
                     StereoFrame f[4];
 
                     write( 8, inputSampleL + (feedback[0].channel[1] * regen), inputSampleR + (feedback[0].channel[0] * regen));
@@ -378,17 +377,14 @@ namespace Sapphire
                     writeFrame(6, f[2] - (f[0] + f[1] + f[3]));
                     writeFrame(7, f[3] - (f[0] + f[1] + f[2]));
 
-                    load(t, 4);
-                    //loadFrames(f, 4);
-                    feedback[0].channel[0] = t[0] - (t[2] + t[4] + t[6]);
-                    feedback[1].channel[0] = t[2] - (t[0] + t[4] + t[6]);
-                    feedback[2].channel[0] = t[4] - (t[0] + t[2] + t[6]);
-                    feedback[3].channel[0] = t[6] - (t[0] + t[2] + t[4]);
-                    feedback[0].channel[1] = t[1] - (t[3] + t[5] + t[7]);
-                    feedback[1].channel[1] = t[3] - (t[1] + t[5] + t[7]);
-                    feedback[2].channel[1] = t[5] - (t[1] + t[3] + t[7]);
-                    feedback[3].channel[1] = t[7] - (t[1] + t[3] + t[5]);
+                    loadFrames(f, 4);
+                    feedback[0] = f[0] - (f[1] + f[2] + f[3]);
+                    feedback[1] = f[1] - (f[0] + f[2] + f[3]);
+                    feedback[2] = f[2] - (f[0] + f[1] + f[3]);
+                    feedback[3] = f[3] - (f[0] + f[1] + f[2]);
 
+                    double t[8];
+                    load(t, 4);
                     inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
                     inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
 
