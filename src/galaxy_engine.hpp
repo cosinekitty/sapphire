@@ -342,7 +342,7 @@ namespace Sapphire
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
 
                 const StereoFrame drySample(inputSampleL, inputSampleR);
-                StereoFrame inputSample(inputSampleL, inputSampleR);
+                StereoFrame sample(inputSampleL, inputSampleR);
 
                 vibM += (oldfpd*drift);
                 if (vibM > 2*M_PI)
