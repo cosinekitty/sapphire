@@ -355,7 +355,7 @@ namespace Sapphire
                     oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
                 }
 
-                write(12, inputSampleL * attenuate, inputSampleR * attenuate);
+                writeFrame(12, drySample * attenuate);
 
                 StereoFrame phasor(interp(0, 0), interp(1, M_PI_2));
                 StereoFrame sample = iirA = iirA*(1-lowpass) + phasor*lowpass;
