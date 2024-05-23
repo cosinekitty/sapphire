@@ -59,6 +59,22 @@ namespace Sapphire
             {
                 channel[0] = channel[1] = 0;
             }
+
+            StereoFrame operator + (const StereoFrame& other) const
+            {
+                return StereoFrame(
+                    channel[0] + other.channel[0],
+                    channel[1] + other.channel[1]
+                );
+            }
+
+            StereoFrame operator - (const StereoFrame& other) const
+            {
+                return StereoFrame(
+                    channel[0] - other.channel[0],
+                    channel[1] - other.channel[1]
+                );
+            }
         };
 
         using stereo_buffer_t = std::vector<StereoFrame>;
@@ -179,15 +195,33 @@ namespace Sapphire
                 return access(channel, tankIndex, dstate(tankIndex).count);
             }
 
+            StereoFrame& headFrame(int tankIndex)
+            {
+                const int headIndex = dstate(tankIndex).count;
+                return tank(tankIndex).at(headIndex);
+            }
+
             double tail(int channel, int tankIndex)
             {
                 return access(channel, tankIndex, dstate(tankIndex).tail());
+            }
+
+            StereoFrame tailFrame(int tankIndex)
+            {
+                const int tailIndex = dstate(tankIndex).tail();
+                return tank(tankIndex).at(tailIndex);
             }
 
             void write(int tankIndex, double left, double right)
             {
                 head(0, tankIndex) = left;
                 head(1, tankIndex) = right;
+                dstate(tankIndex).advance();
+            }
+
+            void writeFrame(int tankIndex, const StereoFrame& frame)
+            {
+                headFrame(tankIndex) = frame;
                 dstate(tankIndex).advance();
             }
 
@@ -211,6 +245,14 @@ namespace Sapphire
                 t[5] = tail(1, startIndex+2);
                 t[6] = tail(0, startIndex+3);
                 t[7] = tail(1, startIndex+3);
+            }
+
+            void loadFrames(StereoFrame f[4], int startIndex)
+            {
+                f[0] = tailFrame(startIndex+0);
+                f[1] = tailFrame(startIndex+1);
+                f[2] = tailFrame(startIndex+2);
+                f[3] = tailFrame(startIndex+3);
             }
 
         public:
@@ -314,6 +356,7 @@ namespace Sapphire
                 if (++cycle == cycleEnd)
                 {
                     double t[8];
+                    StereoFrame f[4];
 
                     write( 8, inputSampleL + (R.feedback[0] * regen), inputSampleR + (L.feedback[0] * regen));
                     write( 9, inputSampleL + (R.feedback[1] * regen), inputSampleR + (L.feedback[1] * regen));
@@ -321,18 +364,22 @@ namespace Sapphire
                     write(11, inputSampleL + (R.feedback[3] * regen), inputSampleR + (L.feedback[3] * regen));
 
                     load(t, 8);
-                    write(0, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
+                    loadFrames(f, 8);
+                    //write(0, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
+                    writeFrame(0, f[0] - (f[1] + f[2] + f[3]));
                     write(1, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
                     write(2, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
                     write(3, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
 
                     load(t, 0);
+                    loadFrames(f, 0);
                     write(4, t[0] - (t[2] + t[4] + t[6]), t[1] - (t[3] + t[5] + t[7]));
                     write(5, t[2] - (t[0] + t[4] + t[6]), t[3] - (t[1] + t[5] + t[7]));
                     write(6, t[4] - (t[0] + t[2] + t[6]), t[5] - (t[1] + t[3] + t[7]));
                     write(7, t[6] - (t[0] + t[2] + t[4]), t[7] - (t[1] + t[3] + t[5]));
 
                     load(t, 4);
+                    loadFrames(f, 4);
                     L.feedback[0] = t[0] - (t[2] + t[4] + t[6]);
                     L.feedback[1] = t[2] - (t[0] + t[4] + t[6]);
                     L.feedback[2] = t[4] - (t[0] + t[2] + t[6]);
