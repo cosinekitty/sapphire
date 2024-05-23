@@ -84,6 +84,14 @@ namespace Sapphire
                     channel[1] / denom
                 );
             }
+
+            StereoFrame operator * (double scalar) const
+            {
+                return StereoFrame(
+                    channel[0] * scalar,
+                    channel[1] * scalar
+                );
+            }
         };
 
         using stereo_buffer_t = std::vector<StereoFrame>;
@@ -242,18 +250,6 @@ namespace Sapphire
                     access(channel, 12, delay[12].reverse(index+1)) * (frc);
             }
 
-            void load(double t[8], int startIndex)
-            {
-                t[0] = tail(0, startIndex);
-                t[1] = tail(1, startIndex);
-                t[2] = tail(0, startIndex+1);
-                t[3] = tail(1, startIndex+1);
-                t[4] = tail(0, startIndex+2);
-                t[5] = tail(1, startIndex+2);
-                t[6] = tail(0, startIndex+3);
-                t[7] = tail(1, startIndex+3);
-            }
-
             void loadFrames(StereoFrame f[4], int startIndex)
             {
                 f[0] = tailFrame(startIndex+0);
@@ -361,9 +357,10 @@ namespace Sapphire
 
                 write(12, inputSampleL * attenuate, inputSampleR * attenuate);
 
-                inputSampleL = iirA.channel[0] = (iirA.channel[0]*(1-lowpass))+(interp(0, 0     )*lowpass);
-                inputSampleR = iirA.channel[1] = (iirA.channel[1]*(1-lowpass))+(interp(1, M_PI_2)*lowpass);
-                StereoFrame sample(inputSampleL, inputSampleR);
+                StereoFrame phasor(interp(0, 0), interp(1, M_PI_2));
+                StereoFrame sample = iirA = iirA*(1-lowpass) + phasor*lowpass;
+                inputSampleL = sample.channel[0];
+                inputSampleR = sample.channel[1];
 
                 if (++cycle == cycleEnd)
                 {
@@ -392,11 +389,9 @@ namespace Sapphire
                     feedback[2] = f[2] - (f[0] + f[1] + f[3]);
                     feedback[3] = f[3] - (f[0] + f[1] + f[2]);
 
-                    double t[8];
-                    load(t, 4);
-                    inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
-                    inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
                     sample = (f[0] + f[1] + f[2] + f[3]) / 8;
+                    inputSampleL = sample.channel[0];
+                    inputSampleR = sample.channel[1];
 
                     switch (cycleEnd)
                     {
