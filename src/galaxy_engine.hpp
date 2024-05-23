@@ -40,7 +40,28 @@ namespace Sapphire
             return std::clamp(x, ParamKnobMin, ParamKnobMax);
         }
 
-        using buffer_t = std::vector<double>;
+        struct StereoFrame
+        {
+            double channel[2];
+
+            StereoFrame()
+            {
+                clear();
+            }
+
+            explicit StereoFrame(double left, double right)
+            {
+                channel[0] = left;
+                channel[1] = right;
+            }
+
+            void clear()
+            {
+                channel[0] = channel[1] = 0;
+            }
+        };
+
+        using stereo_buffer_t = std::vector<StereoFrame>;
 
         struct ChannelState
         {
@@ -51,25 +72,10 @@ namespace Sapphire
             uint32_t fpd;
             double lastRef[MaxCycle+1];
             double thunder;
-            buffer_t array[NDELAYS];
 
             explicit ChannelState(uint32_t _init_fpd)
                 : init_fpd(_init_fpd)
             {
-                array[ 0].resize( 9700);
-                array[ 1].resize( 6000);
-                array[ 2].resize( 2320);
-                array[ 3].resize(  940);
-                array[ 4].resize(15220);
-                array[ 5].resize( 8460);
-                array[ 6].resize( 4540);
-                array[ 7].resize( 3200);
-                array[ 8].resize( 6480);
-                array[ 9].resize( 3660);
-                array[10].resize( 1720);
-                array[11].resize(  680);
-                array[12].resize( 3111);
-
                 clear();
             }
 
@@ -81,22 +87,21 @@ namespace Sapphire
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
                 thunder = 0;
-
-                for (int i = 0; i < NDELAYS; ++i)
-                    for (double& x : array[i])
-                        x = 0;
             }
         };
 
 
         struct DelayState
         {
+            stereo_buffer_t buffer;
             int count{};
             int delay{};    // written on every process() call
 
             void clear()
             {
                 count = 1;
+                for (StereoFrame& frame : buffer)
+                    frame.clear();
             }
 
             void advance()
@@ -152,19 +157,6 @@ namespace Sapphire
                 return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
             }
 
-            buffer_t& tank(int channel, int tankIndex)
-            {
-                switch (channel)
-                {
-                case 0:
-                    return L.array[tankIndex];
-                case 1:
-                    return R.array[tankIndex];
-                default:
-                    throw std::runtime_error("Invalid channel");
-                }
-            }
-
             DelayState& dstate(int tankIndex)
             {
                 if (tankIndex < 0 || tankIndex >= NDELAYS)
@@ -172,9 +164,14 @@ namespace Sapphire
                 return delay[tankIndex];
             }
 
+            stereo_buffer_t& tank(int tankIndex)
+            {
+                return dstate(tankIndex).buffer;
+            }
+
             double& access(int channel, int tankIndex, int sampleIndex)
             {
-                return tank(channel, tankIndex).at(sampleIndex);
+                return tank(tankIndex).at(sampleIndex).channel[channel&1];
             }
 
             double& head(int channel, int tankIndex)
@@ -220,6 +217,19 @@ namespace Sapphire
 
             Engine()
             {
+                delay[ 0].buffer.resize( 9700);
+                delay[ 1].buffer.resize( 6000);
+                delay[ 2].buffer.resize( 2320);
+                delay[ 3].buffer.resize(  940);
+                delay[ 4].buffer.resize(15220);
+                delay[ 5].buffer.resize( 8460);
+                delay[ 6].buffer.resize( 4540);
+                delay[ 7].buffer.resize( 3200);
+                delay[ 8].buffer.resize( 6480);
+                delay[ 9].buffer.resize( 3660);
+                delay[10].buffer.resize( 1720);
+                delay[11].buffer.resize(  680);
+                delay[12].buffer.resize( 3111);
                 initialize();
             }
 
