@@ -15,6 +15,7 @@ namespace Sapphire
     namespace Galaxy
     {
         const int NDELAYS = 13;
+        const int NFEEDBACK = 4;
         const int MinCycle = 1;
         const int MaxCycle = 4;
 
@@ -83,7 +84,6 @@ namespace Sapphire
         {
             double iirA;
             double iirB;
-            double feedback[4];
             const uint32_t init_fpd;
             uint32_t fpd;
             double lastRef[MaxCycle+1];
@@ -98,7 +98,6 @@ namespace Sapphire
             void clear()
             {
                 iirA = iirB = 0;
-                feedback[0] = feedback[1] = feedback[2] = feedback[3] = 0;
                 fpd = init_fpd;
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
@@ -162,6 +161,7 @@ namespace Sapphire
             double oldfpd;
             int cycle;
             DelayState delay[NDELAYS];
+            StereoFrame feedback[NFEEDBACK];
 
             static inline double dither(double sample, uint32_t& fpd)
             {
@@ -285,6 +285,8 @@ namespace Sapphire
                 cycle = 0;
                 for (int i = 0; i < NDELAYS; ++i)
                     delay[i].clear();
+                for (int i = 0; i < NFEEDBACK; ++i)
+                    feedback[i].clear();
             }
 
             double getReplace()     const { return replaceKnob; }
@@ -338,8 +340,9 @@ namespace Sapphire
 
                 if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
-                const double drySampleL = inputSampleL;
-                const double drySampleR = inputSampleR;
+
+                const StereoFrame drySample(inputSampleL, inputSampleR);
+                StereoFrame inputSample(inputSampleL, inputSampleR);
 
                 vibM += (oldfpd*drift);
                 if (vibM > 2*M_PI)
@@ -358,10 +361,10 @@ namespace Sapphire
                     double t[8];
                     StereoFrame f[4];
 
-                    write( 8, inputSampleL + (R.feedback[0] * regen), inputSampleR + (L.feedback[0] * regen));
-                    write( 9, inputSampleL + (R.feedback[1] * regen), inputSampleR + (L.feedback[1] * regen));
-                    write(10, inputSampleL + (R.feedback[2] * regen), inputSampleR + (L.feedback[2] * regen));
-                    write(11, inputSampleL + (R.feedback[3] * regen), inputSampleR + (L.feedback[3] * regen));
+                    write( 8, inputSampleL + (feedback[0].channel[1] * regen), inputSampleR + (feedback[0].channel[0] * regen));
+                    write( 9, inputSampleL + (feedback[1].channel[1] * regen), inputSampleR + (feedback[1].channel[0] * regen));
+                    write(10, inputSampleL + (feedback[2].channel[1] * regen), inputSampleR + (feedback[2].channel[0] * regen));
+                    write(11, inputSampleL + (feedback[3].channel[1] * regen), inputSampleR + (feedback[3].channel[0] * regen));
 
                     loadFrames(f, 8);
                     writeFrame(0, f[0] - (f[1] + f[2] + f[3]));
@@ -377,14 +380,14 @@ namespace Sapphire
 
                     load(t, 4);
                     //loadFrames(f, 4);
-                    L.feedback[0] = t[0] - (t[2] + t[4] + t[6]);
-                    L.feedback[1] = t[2] - (t[0] + t[4] + t[6]);
-                    L.feedback[2] = t[4] - (t[0] + t[2] + t[6]);
-                    L.feedback[3] = t[6] - (t[0] + t[2] + t[4]);
-                    R.feedback[0] = t[1] - (t[3] + t[5] + t[7]);
-                    R.feedback[1] = t[3] - (t[1] + t[5] + t[7]);
-                    R.feedback[2] = t[5] - (t[1] + t[3] + t[7]);
-                    R.feedback[3] = t[7] - (t[1] + t[3] + t[5]);
+                    feedback[0].channel[0] = t[0] - (t[2] + t[4] + t[6]);
+                    feedback[1].channel[0] = t[2] - (t[0] + t[4] + t[6]);
+                    feedback[2].channel[0] = t[4] - (t[0] + t[2] + t[6]);
+                    feedback[3].channel[0] = t[6] - (t[0] + t[2] + t[4]);
+                    feedback[0].channel[1] = t[1] - (t[3] + t[5] + t[7]);
+                    feedback[1].channel[1] = t[3] - (t[1] + t[5] + t[7]);
+                    feedback[2].channel[1] = t[5] - (t[1] + t[3] + t[7]);
+                    feedback[3].channel[1] = t[7] - (t[1] + t[3] + t[5]);
 
                     inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
                     inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
@@ -435,8 +438,8 @@ namespace Sapphire
                 inputSampleR = R.iirB = (R.iirB*(1-lowpass))+(R.lastRef[cycle]*lowpass);
                 if (wet < 1.0)
                 {
-                    inputSampleL = (inputSampleL * wet) + (drySampleL * (1-wet));
-                    inputSampleR = (inputSampleR * wet) + (drySampleR * (1-wet));
+                    inputSampleL = (inputSampleL * wet) + (drySample.channel[0] * (1-wet));
+                    inputSampleR = (inputSampleR * wet) + (drySample.channel[1] * (1-wet));
                 }
                 outputSampleL = dither(inputSampleL, L.fpd);
                 outputSampleR = dither(inputSampleR, R.fpd);
