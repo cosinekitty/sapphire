@@ -76,13 +76,20 @@ namespace Sapphire
                     channel[1] - other.channel[1]
                 );
             }
+
+            StereoFrame operator / (double denom) const
+            {
+                return StereoFrame(
+                    channel[0] / denom,
+                    channel[1] / denom
+                );
+            }
         };
 
         using stereo_buffer_t = std::vector<StereoFrame>;
 
         struct ChannelState
         {
-            double iirA;
             double iirB;
             const uint32_t init_fpd;
             uint32_t fpd;
@@ -97,7 +104,7 @@ namespace Sapphire
 
             void clear()
             {
-                iirA = iirB = 0;
+                iirB = 0;
                 fpd = init_fpd;
                 for (int i = 0; i <= MaxCycle; ++i)
                     lastRef[i] = 0;
@@ -162,6 +169,7 @@ namespace Sapphire
             int cycle;
             DelayState delay[NDELAYS];
             StereoFrame feedback[NFEEDBACK];
+            StereoFrame iirA;
 
             static inline double dither(double sample, uint32_t& fpd)
             {
@@ -287,6 +295,7 @@ namespace Sapphire
                     delay[i].clear();
                 for (int i = 0; i < NFEEDBACK; ++i)
                     feedback[i].clear();
+                iirA.clear();
             }
 
             double getReplace()     const { return replaceKnob; }
@@ -342,7 +351,6 @@ namespace Sapphire
                 if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
 
                 const StereoFrame drySample(inputSampleL, inputSampleR);
-                StereoFrame sample(inputSampleL, inputSampleR);
 
                 vibM += (oldfpd*drift);
                 if (vibM > 2*M_PI)
@@ -353,8 +361,9 @@ namespace Sapphire
 
                 write(12, inputSampleL * attenuate, inputSampleR * attenuate);
 
-                inputSampleL = L.iirA = (L.iirA*(1-lowpass))+(interp(0, 0     )*lowpass);
-                inputSampleR = R.iirA = (R.iirA*(1-lowpass))+(interp(1, M_PI_2)*lowpass);
+                inputSampleL = iirA.channel[0] = (iirA.channel[0]*(1-lowpass))+(interp(0, 0     )*lowpass);
+                inputSampleR = iirA.channel[1] = (iirA.channel[1]*(1-lowpass))+(interp(1, M_PI_2)*lowpass);
+                StereoFrame sample(inputSampleL, inputSampleR);
 
                 if (++cycle == cycleEnd)
                 {
@@ -387,6 +396,7 @@ namespace Sapphire
                     load(t, 4);
                     inputSampleL = (t[0] + t[2] + t[4] + t[6])/8;
                     inputSampleR = (t[1] + t[3] + t[5] + t[7])/8;
+                    sample = (f[0] + f[1] + f[2] + f[3]) / 8;
 
                     switch (cycleEnd)
                     {
