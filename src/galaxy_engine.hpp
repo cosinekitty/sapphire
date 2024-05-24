@@ -103,7 +103,7 @@ namespace Sapphire
         using stereo_buffer_t = std::vector<StereoFrame>;
 
 
-        struct DelayState
+        struct DelayLine
         {
             stereo_buffer_t buffer;
             int count{};
@@ -156,7 +156,7 @@ namespace Sapphire
             double vibM;
             double oldfpd;
             int cycle;
-            DelayState delay[NDELAYS];
+            DelayLine delay[NDELAYS];
             StereoFrame feedback[NFEEDBACK];
             StereoFrame iirA;
             StereoFrame iirB;
@@ -172,7 +172,7 @@ namespace Sapphire
                 return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
             }
 
-            DelayState& dstate(int tankIndex)
+            DelayLine& dstate(int tankIndex)
             {
                 if (tankIndex < 0 || tankIndex >= NDELAYS)
                     throw std::out_of_range(std::string("tankIndex is invalid: ") + std::to_string(tankIndex));
@@ -215,26 +215,26 @@ namespace Sapphire
                 dstate(tankIndex).advance();
             }
 
-            void write(const StereoFrame f[4], int tankStartIndex)
+            void stir(StereoFrame g[4], const StereoFrame f[4])
             {
-                write(tankStartIndex+0, f[0] - (f[1] + f[2] + f[3]));
-                write(tankStartIndex+1, f[1] - (f[0] + f[2] + f[3]));
-                write(tankStartIndex+2, f[2] - (f[0] + f[1] + f[3]));
-                write(tankStartIndex+3, f[3] - (f[0] + f[1] + f[2]));
+                g[0] = f[0] - (f[1] + f[2] + f[3]);
+                g[1] = f[1] - (f[0] + f[2] + f[3]);
+                g[2] = f[2] - (f[0] + f[1] + f[3]);
+                g[3] = f[3] - (f[0] + f[1] + f[2]);
             }
 
-            void save(int tankStartIndex, const StereoFrame& sample, double regen)
+            void write(const StereoFrame f[4], int tankStartIndex)
+            {
+                StereoFrame g[4];
+                stir(g, f);
+                for (int i = 0; i < 4; ++i)
+                    write(tankStartIndex + i, g[i]);
+            }
+
+            void reflux(int tankStartIndex, const StereoFrame& sample, double regen)
             {
                 for (int i = 0; i < 4; ++i)
                     write(tankStartIndex + i, sample + (feedback[i].flip() * regen));
-            }
-
-            void load(StereoFrame f[4])
-            {
-                feedback[0] = f[0] - (f[1] + f[2] + f[3]);
-                feedback[1] = f[1] - (f[0] + f[2] + f[3]);
-                feedback[2] = f[2] - (f[0] + f[1] + f[3]);
-                feedback[3] = f[3] - (f[0] + f[1] + f[2]);
             }
 
             double interp(int channel, double radians)
@@ -245,6 +245,38 @@ namespace Sapphire
                 return
                     access(channel, 12, delay[12].reverse(index)) * (1-frc) +
                     access(channel, 12, delay[12].reverse(index+1)) * (frc);
+            }
+
+            void mix(const StereoFrame& sample)
+            {
+                switch (cycle)
+                {
+                case 4:
+                    lastRef[0] = lastRef[4];
+                    lastRef[2] = (lastRef[0] + sample)/2;
+                    lastRef[1] = (lastRef[0] + lastRef[2])/2;
+                    lastRef[3] = (lastRef[2] + sample)/2;
+                    lastRef[4] = sample;
+                    break;
+
+                case 3:
+                    lastRef[0] = lastRef[3];
+                    lastRef[2] = (lastRef[0] + lastRef[0] + sample) / 3;
+                    lastRef[1] = (lastRef[0] + sample + sample) / 3;
+                    lastRef[3] = sample;
+                    break;
+
+                case 2:
+                    lastRef[0] = lastRef[2];
+                    lastRef[1] = (lastRef[0] + sample)/2;
+                    lastRef[2] = sample;
+                    break;
+
+                case 1:
+                    lastRef[0] = sample;
+                    break;
+                }
+
             }
 
         public:
@@ -351,7 +383,7 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
-                    save(8, sample, regen);
+                    reflux(8, sample, regen);
 
                     StereoFrame f[4];
                     read(f, 8);
@@ -361,37 +393,9 @@ namespace Sapphire
                     write(f, 4);
 
                     read(f, 4);
-                    load(f);
+                    stir(feedback, f);
 
-                    sample = (f[0] + f[1] + f[2] + f[3]) / 8;
-
-                    switch (cycleEnd)
-                    {
-                    case 4:
-                        lastRef[0] = lastRef[4];
-                        lastRef[2] = (lastRef[0] + sample)/2;
-                        lastRef[1] = (lastRef[0] + lastRef[2])/2;
-                        lastRef[3] = (lastRef[2] + sample)/2;
-                        lastRef[4] = sample;
-                        break;
-
-                    case 3:
-                        lastRef[0] = lastRef[3];
-                        lastRef[2] = (lastRef[0] + lastRef[0] + sample) / 3;
-                        lastRef[1] = (lastRef[0] + sample + sample) / 3;
-                        lastRef[3] = sample;
-                        break;
-
-                    case 2:
-                        lastRef[0] = lastRef[2];
-                        lastRef[1] = (lastRef[0] + sample)/2;
-                        lastRef[2] = sample;
-                        break;
-
-                    case 1:
-                        lastRef[0] = sample;
-                        break;
-                    }
+                    mix((f[0] + f[1] + f[2] + f[3]) / 8);
                     cycle = 0;
                 }
                 sample = iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
