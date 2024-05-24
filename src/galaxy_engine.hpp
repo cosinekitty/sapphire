@@ -99,24 +99,8 @@ namespace Sapphire
             }
         };
 
+
         using stereo_buffer_t = std::vector<StereoFrame>;
-
-        struct ChannelState
-        {
-            const uint32_t init_fpd;
-            uint32_t fpd;
-
-            explicit ChannelState(uint32_t _init_fpd)
-                : init_fpd(_init_fpd)
-            {
-                clear();
-            }
-
-            void clear()
-            {
-                fpd = init_fpd;
-            }
-        };
 
 
         struct DelayState
@@ -167,8 +151,7 @@ namespace Sapphire
             float mixKnob = 1.0;
 
             // State
-            ChannelState L{2756923396};
-            ChannelState R{2341963165};
+            uint32_t fpd[2];
             double depthM;
             double vibM;
             double oldfpd;
@@ -263,8 +246,8 @@ namespace Sapphire
 
             void initialize()
             {
-                L.clear();
-                R.clear();
+                fpd[0] = 2756923396;
+                fpd[1] = 2341963165;
                 depthM = 0;
                 vibM = 3;
                 oldfpd = 429496.7295;
@@ -328,15 +311,15 @@ namespace Sapphire
                 delay[11].delay =  331*size;
                 delay[12].delay =  256;
 
-                if (std::abs(inputSampleL)<1.18e-23) inputSampleL = L.fpd * 1.18e-17;
-                if (std::abs(inputSampleR)<1.18e-23) inputSampleR = R.fpd * 1.18e-17;
+                if (std::abs(inputSampleL) < 1.18e-23) inputSampleL = fpd[0] * 1.18e-17;
+                if (std::abs(inputSampleR) < 1.18e-23) inputSampleR = fpd[1] * 1.18e-17;
                 const StereoFrame drySample(inputSampleL, inputSampleR);
 
-                vibM += (oldfpd*drift);
+                vibM += oldfpd * drift;
                 if (vibM > 2*M_PI)
                 {
                     vibM = 0;
-                    oldfpd = 0.4294967295+(L.fpd*0.0000000000618);
+                    oldfpd = 0.4294967295 + (fpd[0] * 0.0000000000618);
                 }
 
                 writeFrame(12, drySample * attenuate);
@@ -403,8 +386,8 @@ namespace Sapphire
                 }
                 sample = iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
                 sample = sample*wet + drySample*(1-wet);
-                outputSampleL = dither(sample.channel[0], L.fpd);
-                outputSampleR = dither(sample.channel[1], R.fpd);
+                outputSampleL = dither(sample.channel[0], fpd[0]);
+                outputSampleR = dither(sample.channel[1], fpd[1]);
             }
         };
     }
