@@ -143,6 +143,23 @@ namespace Sapphire
         struct Engine
         {
         private:
+            // Structure
+            const int tankSize[12] = 
+            {
+                4801,
+                2909,
+                1153,
+                 461,
+                7607,
+                4217,
+                2269,
+                1597,
+                3407,
+                1823,
+                 859,
+                 331
+            };
+
             // Parameters
             float replaceKnob = 0.5;
             float brightKnob = 0.5;
@@ -351,19 +368,9 @@ namespace Sapphire
                 const double size = (bignessKnob*1.77)+0.1;
                 const double wet = 1-Cube(1 - mixKnob);
 
-                delay[ 0].delay = 4801*size;
-                delay[ 1].delay = 2909*size;
-                delay[ 2].delay = 1153*size;
-                delay[ 3].delay =  461*size;
-                delay[ 4].delay = 7607*size;
-                delay[ 5].delay = 4217*size;
-                delay[ 6].delay = 2269*size;
-                delay[ 7].delay = 1597*size;
-                delay[ 8].delay = 3407*size;
-                delay[ 9].delay = 1823*size;
-                delay[10].delay =  859*size;
-                delay[11].delay =  331*size;
-                delay[12].delay =  256;
+                for (int i = 0; i < 12; ++i)
+                    delay[i].delay = tankSize[i] * size;
+                delay[12].delay = 256;
 
                 if (std::abs(inputSampleL) < 1.18e-23) inputSampleL = fpd[0] * 1.18e-17;
                 if (std::abs(inputSampleR) < 1.18e-23) inputSampleR = fpd[1] * 1.18e-17;
