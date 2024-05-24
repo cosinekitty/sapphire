@@ -201,10 +201,40 @@ namespace Sapphire
                 return tank(tankIndex).at(tailIndex);
             }
 
-            void writeFrame(int tankIndex, const StereoFrame& frame)
+            void read(StereoFrame f[4], int tankStartIndex)
+            {
+                f[0] = tailFrame(tankStartIndex+0);
+                f[1] = tailFrame(tankStartIndex+1);
+                f[2] = tailFrame(tankStartIndex+2);
+                f[3] = tailFrame(tankStartIndex+3);
+            }
+
+            void write(int tankIndex, const StereoFrame& frame)
             {
                 headFrame(tankIndex) = frame;
                 dstate(tankIndex).advance();
+            }
+
+            void write(const StereoFrame f[4], int tankStartIndex)
+            {
+                write(tankStartIndex+0, f[0] - (f[1] + f[2] + f[3]));
+                write(tankStartIndex+1, f[1] - (f[0] + f[2] + f[3]));
+                write(tankStartIndex+2, f[2] - (f[0] + f[1] + f[3]));
+                write(tankStartIndex+3, f[3] - (f[0] + f[1] + f[2]));
+            }
+
+            void save(int tankStartIndex, const StereoFrame& sample, double regen)
+            {
+                for (int i = 0; i < 4; ++i)
+                    write(tankStartIndex + i, sample + (feedback[i].flip() * regen));
+            }
+
+            void load(StereoFrame f[4])
+            {
+                feedback[0] = f[0] - (f[1] + f[2] + f[3]);
+                feedback[1] = f[1] - (f[0] + f[2] + f[3]);
+                feedback[2] = f[2] - (f[0] + f[1] + f[3]);
+                feedback[3] = f[3] - (f[0] + f[1] + f[2]);
             }
 
             double interp(int channel, double radians)
@@ -215,14 +245,6 @@ namespace Sapphire
                 return
                     access(channel, 12, delay[12].reverse(index)) * (1-frc) +
                     access(channel, 12, delay[12].reverse(index+1)) * (frc);
-            }
-
-            void loadFrames(StereoFrame f[4], int startIndex)
-            {
-                f[0] = tailFrame(startIndex+0);
-                f[1] = tailFrame(startIndex+1);
-                f[2] = tailFrame(startIndex+2);
-                f[3] = tailFrame(startIndex+3);
             }
 
         public:
@@ -322,36 +344,24 @@ namespace Sapphire
                     oldfpd = 0.4294967295 + (fpd[0] * 0.0000000000618);
                 }
 
-                writeFrame(12, drySample * attenuate);
+                write(12, drySample * attenuate);
 
                 StereoFrame phasor(interp(0, 0), interp(1, M_PI_2));
                 StereoFrame sample = iirA = iirA*(1-lowpass) + phasor*lowpass;
 
                 if (++cycle == cycleEnd)
                 {
+                    save(8, sample, regen);
+
                     StereoFrame f[4];
-                    writeFrame( 8, sample + (feedback[0].flip() * regen));
-                    writeFrame( 9, sample + (feedback[1].flip() * regen));
-                    writeFrame(10, sample + (feedback[2].flip() * regen));
-                    writeFrame(11, sample + (feedback[3].flip() * regen));
+                    read(f, 8);
+                    write(f, 0);
 
-                    loadFrames(f, 8);
-                    writeFrame(0, f[0] - (f[1] + f[2] + f[3]));
-                    writeFrame(1, f[1] - (f[0] + f[2] + f[3]));
-                    writeFrame(2, f[2] - (f[0] + f[1] + f[3]));
-                    writeFrame(3, f[3] - (f[0] + f[1] + f[2]));
+                    read(f, 0);
+                    write(f, 4);
 
-                    loadFrames(f, 0);
-                    writeFrame(4, f[0] - (f[1] + f[2] + f[3]));
-                    writeFrame(5, f[1] - (f[0] + f[2] + f[3]));
-                    writeFrame(6, f[2] - (f[0] + f[1] + f[3]));
-                    writeFrame(7, f[3] - (f[0] + f[1] + f[2]));
-
-                    loadFrames(f, 4);
-                    feedback[0] = f[0] - (f[1] + f[2] + f[3]);
-                    feedback[1] = f[1] - (f[0] + f[2] + f[3]);
-                    feedback[2] = f[2] - (f[0] + f[1] + f[3]);
-                    feedback[3] = f[3] - (f[0] + f[1] + f[2]);
+                    read(f, 4);
+                    load(f);
 
                     sample = (f[0] + f[1] + f[2] + f[3]) / 8;
 
