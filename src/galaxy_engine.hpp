@@ -405,8 +405,8 @@ namespace Sapphire
                     mix((f[0] + f[1] + f[2] + f[3]) / 8);
                     cycle = 0;
                 }
-                sample = iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
-                sample = sample*wet + drySample*(1-wet);
+                iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
+                sample = iirB*wet + drySample*(1-wet);
                 outputSampleL = dither(sample.channel[0], fpd[0]);
                 outputSampleR = dither(sample.channel[1], fpd[1]);
             }
