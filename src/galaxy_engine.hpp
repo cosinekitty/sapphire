@@ -15,7 +15,6 @@ namespace Sapphire
     namespace Galaxy
     {
         const int NDELAYS = 13;
-        const int NFEEDBACK = 4;
         const int MinCycle = 1;
         const int MAXCYCLE = 4;
 
@@ -103,6 +102,23 @@ namespace Sapphire
         using stereo_buffer_t = std::vector<StereoFrame>;
 
 
+        struct StereoQuad
+        {
+            StereoFrame frame[4];
+
+            void clear()
+            {
+                for (int i = 0; i < 4; ++i)
+                    frame[i].clear();
+            }
+
+            StereoFrame sum() const
+            {
+                return frame[0] + frame[1] + frame[2] + frame[3];
+            }
+        };
+
+
         struct DelayLine
         {
             stereo_buffer_t buffer;
@@ -174,7 +190,7 @@ namespace Sapphire
             double oldfpd;
             int cycle;
             DelayLine delay[NDELAYS];
-            StereoFrame feedback[NFEEDBACK];
+            StereoQuad feedback;
             StereoFrame iirA;
             StereoFrame iirB;
             StereoFrame lastRef[MAXCYCLE + 1];
@@ -226,12 +242,14 @@ namespace Sapphire
                 return delay[tankIndex].tailFrame();
             }
 
-            void read(StereoFrame f[4], int tankStartIndex)
+            StereoQuad read(int tankStartIndex)
             {
-                f[0] = tailFrame(tankStartIndex+0);
-                f[1] = tailFrame(tankStartIndex+1);
-                f[2] = tailFrame(tankStartIndex+2);
-                f[3] = tailFrame(tankStartIndex+3);
+                StereoQuad f;
+                f.frame[0] = tailFrame(tankStartIndex+0);
+                f.frame[1] = tailFrame(tankStartIndex+1);
+                f.frame[2] = tailFrame(tankStartIndex+2);
+                f.frame[3] = tailFrame(tankStartIndex+3);
+                return f;
             }
 
             void write(int tankIndex, const StereoFrame& frame)
@@ -240,26 +258,27 @@ namespace Sapphire
                 dstate(tankIndex).advance();
             }
 
-            void stir(StereoFrame g[4], const StereoFrame f[4])
+            StereoQuad stir(const StereoQuad& f)
             {
-                g[0] = f[0] - (f[1] + f[2] + f[3]);
-                g[1] = f[1] - (f[0] + f[2] + f[3]);
-                g[2] = f[2] - (f[0] + f[1] + f[3]);
-                g[3] = f[3] - (f[0] + f[1] + f[2]);
+                StereoQuad g;
+                g.frame[0] = f.frame[0] - (f.frame[1] + f.frame[2] + f.frame[3]);
+                g.frame[1] = f.frame[1] - (f.frame[0] + f.frame[2] + f.frame[3]);
+                g.frame[2] = f.frame[2] - (f.frame[0] + f.frame[1] + f.frame[3]);
+                g.frame[3] = f.frame[3] - (f.frame[0] + f.frame[1] + f.frame[2]);
+                return g;
             }
 
-            void write(const StereoFrame f[4], int tankStartIndex)
+            void write(const StereoQuad& f, int tankStartIndex)
             {
-                StereoFrame g[4];
-                stir(g, f);
+                StereoQuad g = stir(f);
                 for (int i = 0; i < 4; ++i)
-                    write(tankStartIndex + i, g[i]);
+                    write(tankStartIndex + i, g.frame[i]);
             }
 
             void reflect(int tankStartIndex, const StereoFrame& sample, double regen)
             {
                 for (int i = 0; i < 4; ++i)
-                    write(tankStartIndex + i, sample + (feedback[i].flip() * regen));
+                    write(tankStartIndex + i, sample + (feedback.frame[i].flip() * regen));
             }
 
             double interp(int channel, double radians)
@@ -332,10 +351,9 @@ namespace Sapphire
                 cycle = 0;
                 for (int i = 0; i < NDELAYS; ++i)
                     delay[i].clear();
-                for (int i = 0; i < NFEEDBACK; ++i)
-                    feedback[i].clear();
                 for (int i = 0; i <= MAXCYCLE; ++i)
                     lastRef[i].clear();
+                feedback.clear();
                 iirA.clear();
                 iirB.clear();
             }
@@ -368,6 +386,7 @@ namespace Sapphire
                 if (cycle > cycleEnd-1)
                     cycle = cycleEnd-1;
 
+                // Map knob values onto internal parameter values.
                 const double regen = 0.0625+((1.0-replaceKnob)*0.0625);
                 const double attenuate = (1.0 - (regen / 0.125))*1.333;
                 const double lowpass = Square(1.00001-(1.0-brightKnob))/std::sqrt(overallscale);
@@ -375,10 +394,12 @@ namespace Sapphire
                 const double size = (bignessKnob*1.77)+0.1;
                 const double wet = 1-Cube(1 - mixKnob);
 
+                // Update tank sizes as the bigness knob is adjusted.
                 for (int i = 0; i < 12; ++i)
                     delay[i].delay = tankSize[i] * size;
                 delay[12].delay = 256;
 
+                // ??? Do not allow silence? Add a teensy bit of noise?
                 if (std::abs(inputSampleL) < 1.18e-23) inputSampleL = fpd[0] * 1.18e-17;
                 if (std::abs(inputSampleR) < 1.18e-23) inputSampleR = fpd[1] * 1.18e-17;
                 const StereoFrame drySample(inputSampleL, inputSampleR);
@@ -398,18 +419,11 @@ namespace Sapphire
                 if (++cycle == cycleEnd)
                 {
                     reflect(8, sample, regen);
-
-                    StereoFrame f[4];
-                    read(f, 8);
-                    write(f, 0);
-
-                    read(f, 0);
-                    write(f, 4);
-
-                    read(f, 4);
-                    stir(feedback, f);
-
-                    mix((f[0] + f[1] + f[2] + f[3]) / 8);
+                    write(read(8), 0);
+                    write(read(0), 4);
+                    StereoQuad f = read(4);
+                    feedback = stir(f);
+                    mix(f.sum() / 8);
                     cycle = 0;
                 }
                 iirB = iirB*(1-lowpass) + lastRef[cycle]*lowpass;
