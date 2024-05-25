@@ -268,7 +268,7 @@ namespace Sapphire
                 return g;
             }
 
-            void write(const StereoQuad& f, int tankStartIndex)
+            void write(int tankStartIndex, const StereoQuad& f)
             {
                 StereoQuad g = stir(f);
                 for (int i = 0; i < 4; ++i)
@@ -419,8 +419,8 @@ namespace Sapphire
                 if (++cycle == cycleEnd)
                 {
                     reflect(8, sample, regen);
-                    write(read(8), 0);
-                    write(read(0), 4);
+                    write(0, read(8));
+                    write(4, read(0));
                     StereoQuad f = read(4);
                     feedback = stir(f);
                     mix(f.sum() / 8);
