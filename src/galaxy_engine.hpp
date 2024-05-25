@@ -144,7 +144,7 @@ namespace Sapphire
         {
         private:
             // Structure
-            const int tankSize[12] = 
+            const int tankSize[12] =
             {
                 4801,
                 2909,
@@ -189,16 +189,23 @@ namespace Sapphire
                 return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
             }
 
-            DelayLine& dstate(int tankIndex)
+            static int validateTankIndex(int tankIndex)
             {
                 if (tankIndex < 0 || tankIndex >= NDELAYS)
                     throw std::out_of_range(std::string("tankIndex is invalid: ") + std::to_string(tankIndex));
+                return tankIndex;
+            }
+
+            DelayLine& dstate(int tankIndex)
+            {
+                validateTankIndex(tankIndex);
                 return delay[tankIndex];
             }
 
             stereo_buffer_t& tank(int tankIndex)
             {
-                return dstate(tankIndex).buffer;
+                validateTankIndex(tankIndex);
+                return delay[tankIndex].buffer;
             }
 
             double& access(int channel, int tankIndex, int sampleIndex)
@@ -208,14 +215,16 @@ namespace Sapphire
 
             StereoFrame& headFrame(int tankIndex)
             {
-                const int headIndex = dstate(tankIndex).count;
-                return tank(tankIndex).at(headIndex);
+                validateTankIndex(tankIndex);
+                const int headIndex = delay[tankIndex].count;
+                return delay[tankIndex].buffer.at(headIndex);
             }
 
             StereoFrame tailFrame(int tankIndex)
             {
-                const int tailIndex = dstate(tankIndex).tail();
-                return tank(tankIndex).at(tailIndex);
+                validateTankIndex(tankIndex);
+                const int offset = delay[tankIndex].tail();
+                return delay[tankIndex].buffer.at(offset);
             }
 
             void read(StereoFrame f[4], int tankStartIndex)
@@ -248,7 +257,7 @@ namespace Sapphire
                     write(tankStartIndex + i, g[i]);
             }
 
-            void reflux(int tankStartIndex, const StereoFrame& sample, double regen)
+            void reflect(int tankStartIndex, const StereoFrame& sample, double regen)
             {
                 for (int i = 0; i < 4; ++i)
                     write(tankStartIndex + i, sample + (feedback[i].flip() * regen));
@@ -293,7 +302,6 @@ namespace Sapphire
                     lastRef[0] = sample;
                     break;
                 }
-
             }
 
         public:
@@ -390,7 +398,7 @@ namespace Sapphire
 
                 if (++cycle == cycleEnd)
                 {
-                    reflux(8, sample, regen);
+                    reflect(8, sample, regen);
 
                     StereoFrame f[4];
                     read(f, 8);
