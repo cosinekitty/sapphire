@@ -133,9 +133,9 @@ namespace Sapphire
                 return length - offset(length);
             }
 
-            int tail() const
+            StereoFrame tailFrame()
             {
-                return reverse(count);
+                return buffer.at(count - offset(count));
             }
         };
 
@@ -223,8 +223,7 @@ namespace Sapphire
             StereoFrame tailFrame(int tankIndex)
             {
                 validateTankIndex(tankIndex);
-                const int offset = delay[tankIndex].tail();
-                return delay[tankIndex].buffer.at(offset);
+                return delay[tankIndex].tailFrame();
             }
 
             void read(StereoFrame f[4], int tankStartIndex)
