@@ -121,9 +121,9 @@ namespace Sapphire
 
         struct DelayLine
         {
-            stereo_buffer_t buffer;
-            int count{};
-            int delay{};    // written on every process() call
+            stereo_buffer_t buffer;     // storage for circular queue
+            int count{};                // index of next write position
+            int delay{};                // tank size - written on every process() call
 
             void clear()
             {
@@ -149,9 +149,14 @@ namespace Sapphire
                 return length - offset(length);
             }
 
+            StereoFrame& headFrame()
+            {
+                return buffer.at(count);
+            }
+
             StereoFrame tailFrame()
             {
-                return buffer.at(count - offset(count));
+                return buffer.at(reverse(count));
             }
         };
 
@@ -232,8 +237,7 @@ namespace Sapphire
             StereoFrame& headFrame(int tankIndex)
             {
                 validateTankIndex(tankIndex);
-                const int headIndex = delay[tankIndex].count;
-                return delay[tankIndex].buffer.at(headIndex);
+                return delay[tankIndex].headFrame();
             }
 
             StereoFrame tailFrame(int tankIndex)
