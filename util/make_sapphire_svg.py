@@ -603,11 +603,12 @@ def GenerateGalaxyPanel() -> int:
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
+    dxLeftRight = dxPortFromCenter + 6.3
 
-    yRow = FencePost(18.0, 112.0, 7)
+    yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
-    dyGrad = 5.0
+    dyGrad = 6.0
     dyText = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -615,20 +616,28 @@ def GenerateGalaxyPanel() -> int:
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        y1 = yInPort - dyGrad
+        y1 = yInPort - 9.5
         y2 = yInPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
-        y1 = yRow.value(1) - 2*dyGrad
+        y1 = yRow.value(1) - 9.5
         y2 = yRow.value(5) + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+        defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutPort - dyGrad
+        y1 = yOutPort - 9.5
         y2 = yOutPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
+
+        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yInPort))
+        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
+
+        pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yOutPort))
+        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yOutPort))
 
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
