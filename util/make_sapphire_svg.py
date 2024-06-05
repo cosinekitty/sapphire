@@ -598,18 +598,38 @@ def GenerateGalaxyPanel() -> int:
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+    defs = Element('defs')
+    pl.append(defs)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    yRow = FencePost(16.0, 112.0, 7)
+    yRow = FencePost(18.0, 112.0, 7)
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
+    dyGrad = 5.0
+    dyText = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
+
+        y1 = yInPort - dyGrad
+        y2 = yInPort + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+        pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
+
+        y1 = yRow.value(1) - 2*dyGrad
+        y2 = yRow.value(5) + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+        pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
+
+        y1 = yOutPort - dyGrad
+        y2 = yOutPort + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
+
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
@@ -622,7 +642,6 @@ def GenerateGalaxyPanel() -> int:
             ('bigness',     'SIZE'),
             ('mix',         'MIX')
         ]
-        dyText = 6.5
         row = 1
         for (symbol, label) in table:
             y = yRow.value(row)
