@@ -618,7 +618,7 @@ def GenerateGalaxyPanel() -> int:
 
         y1 = yInPort - 9.5
         y2 = yInPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
         y1 = yRow.value(1) - 9.5
@@ -628,7 +628,7 @@ def GenerateGalaxyPanel() -> int:
 
         y1 = yOutPort - 9.5
         y2 = yOutPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))

@@ -3,7 +3,7 @@
     <g id="PanelLayer">
         <defs>
             <linearGradient id="gradient_in" x1="0" y1="12.5" x2="0" y2="28" gradientUnits="userSpaceOnUse">
-                <stop style="stop-color:#29aab4;stop-opacity:1;" offset="0" />
+                <stop style="stop-color:#a06de4;stop-opacity:1;" offset="0" />
                 <stop style="stop-color:#4f8df2;stop-opacity:1;" offset="1" />
             </linearGradient>
             <linearGradient id="gradient_controls" x1="0" y1="27.8333" x2="0" y2="104.667" gradientUnits="userSpaceOnUse">
@@ -11,7 +11,7 @@
                 <stop style="stop-color:#4f8df2;stop-opacity:1;" offset="1" />
             </linearGradient>
             <linearGradient id="gradient_out" x1="0" y1="104.5" x2="0" y2="120" gradientUnits="userSpaceOnUse">
-                <stop style="stop-color:#a06de4;stop-opacity:1;" offset="0" />
+                <stop style="stop-color:#ba60d1;stop-opacity:1;" offset="0" />
                 <stop style="stop-color:#4f8df2;stop-opacity:1;" offset="1" />
             </linearGradient>
         </defs>
