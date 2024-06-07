@@ -34,6 +34,19 @@ for generating 3 simultaneous smooth but unpredictable voltages.
 
 ---
 
+## Galaxy
+
+An adaptation of Airwindows Galactic by [Chris Johnson](https://github.com/airwindows/airwindows).
+Galactic is also available in the consolidated [Airwindows Suite](https://library.vcvrack.com/Airwin2Rack/Airwin2Rack)
+along with many other filters and effects. Sapphire Galaxy and Airwindows Galactic are verified to produce
+identical output when given identical input and settings.
+
+<a href="Galaxy.md">Sapphire Galaxy documentation</a>
+
+<a href="Galaxy.md"><img src="images/galaxy.png"/></a>
+
+---
+
 ## Glee
 
 Another low-frequency and ultra-low-frequency chaotic oscillator
