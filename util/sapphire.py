@@ -113,21 +113,16 @@ def CenteredGemstone(panel:Panel) -> SapphireGemstone:
     return gem
 
 
+def HorizontalLinePath(x1:float, x2:float, y:float) -> Path:
+    return Path(Move(x1,y) + Line(x2,y) + ClosePath(), CONNECTOR_LINE_STYLE)
+
+
 def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
-    dxControlGroup = 8.0
-    dyControlGroup = 0.0
-    controls.append(Component(symbol + '_cv', x - dxControlGroup, y + dyControlGroup))
+    dx = 9.0
+    controls.append(Component(symbol + '_cv', x - dx, y))
     controls.append(Component(symbol + '_atten', x, y))
-    controls.append(Component(symbol + '_knob', x + dxControlGroup, y + dyControlGroup))
-    # FIXFIXFIX: add artwork like the following, but adapted for flat control groups.
-    if False:
-        t = ''
-        t += Move(x, y)
-        t += Line(x - dxControlGroup, y + dyControlGroup)
-        t += ClosePath()
-        t += Line(x + dxControlGroup, y + dyControlGroup)
-        t += ClosePath()
-        pl.append(Path(t, CONNECTOR_LINE_STYLE))
+    controls.append(Component(symbol + '_knob', x + dx, y))
+    pl.append(HorizontalLinePath(x - dx, x + dx, y))
 
 
 class FencePost:

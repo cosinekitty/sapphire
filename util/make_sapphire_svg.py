@@ -644,6 +644,9 @@ def GenerateGalaxyPanel() -> int:
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
 
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
+
         table: List[Tuple[str, str]] = [
             ('replace',     'REPLACE'),
             ('brightness',  'BRIGHT'),
