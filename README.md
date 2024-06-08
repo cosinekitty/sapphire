@@ -36,10 +36,9 @@ for generating 3 simultaneous smooth but unpredictable voltages.
 
 ## Galaxy
 
-An adaptation of Airwindows Galactic by [Chris Johnson](https://github.com/airwindows/airwindows).
-Galactic is also available in the consolidated [Airwindows Suite](https://library.vcvrack.com/Airwin2Rack/Airwin2Rack)
-along with many other filters and effects. Sapphire Galaxy and Airwindows Galactic are verified to produce
-identical output when given identical input and settings.
+Galaxy is a stereo reverb filter, and is a clone of the
+[Airwindows](https://library.vcvrack.com/Airwin2Rack/Airwin2Rack) Galactic algorithm
+by [Chris Johnson](https://github.com/airwindows/airwindows).
 
 <a href="Galaxy.md">Sapphire Galaxy documentation</a>
 
