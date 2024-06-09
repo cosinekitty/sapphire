@@ -97,25 +97,22 @@ namespace Sapphire
 
             void loadInputs(float& inLeft, float& inRight)
             {
-                inLeft = inRight = 0;
-                if (inputs[AUDIO_LEFT_INPUT].isConnected())
-                {
-                    inLeft = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
-                    if (inputs[AUDIO_RIGHT_INPUT].isConnected())
-                    {
-                        inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
-                    }
-                    else
-                    {
-                        // Left channel only = monaural input; send half to both inputs.
-                        inLeft /= 2;
-                        inRight = inLeft;
-                    }
-                }
-                else if (inputs[AUDIO_RIGHT_INPUT].isConnected())
-                {
-                    inLeft = inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum() / 2;
-                }
+                // Assume stereo input with separate data fed to each input port.
+
+                inLeft  = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
+                inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+
+                // But if only one of the two input ports has a cable,
+                // split that cable's voltage equally between the left and right inputs.
+                // This is "mono" mode.
+
+                const bool lc = inputs[AUDIO_LEFT_INPUT ].isConnected();
+                const bool rc = inputs[AUDIO_RIGHT_INPUT].isConnected();
+
+                if (lc && !rc)
+                    inLeft = inRight = inLeft / 2;
+                else if (rc && !lc)
+                    inLeft = inRight = inRight / 2;
             }
 
             void process(const ProcessArgs& args) override
