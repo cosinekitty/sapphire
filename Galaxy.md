@@ -45,11 +45,11 @@ Galaxy's left and right audio output ports are each monophonic.
 Let us call the combination of a larger parameter knob, a smaller attenuverter knob,
 and a CV input port a *control group*. Galaxy includes the following control groups:
 
-* **REPLACE**: The fraction of the reverb tank's energy that should be replaced by each input sample. If you set REPLACE to 0, it "freezes" the contents of the reverb tank indefinitely. If you set REPLACE to 1, the reverb tanks get flushed quickly.
-* **BRIGHT**: Adjusts the cutoff frequency of an internal low-pass filter in the reverberated signal.
-* **DETUNE**: Adds different amounts of stereo phase distortion between the left and right output channels.
-* **SIZE**: Adjusts the reverb tank sizes. **NOTE**: You might not want to adjust SIZE during a performance, because there is a noticeable zipper noise. People usually experimentally determine a size for their performance and leave it there.
-* **MIX**: The outputs are a mix of the reverberator and the input. The MIX knob adjusts what fraction of the output is from the reverb tanks. If you set MIX to 0, the output is the same as the input (delayed by one sample). If you set MIX to 1, the output is entirely derived from the reverb tanks.
+* **REPLACE**: The fraction of the reverb's energy that should be replaced by each input sample. If you set REPLACE to 0, it "freezes" the contents of the reverb tanks indefinitely. If you set REPLACE to 1, new audio input quickly replaces the contents of the reverb tanks.
+* **BRIGHT**: Adjusts treble by changing the cutoff frequency of an internal low-pass filter in the reverberated signal.
+* **DETUNE**: Adds different amounts of stereo phase distortion between the left and right output channels. Lower values sound "purer" but also flatter in the stereo field. Higher values sound more dissonant. Somewhere between can provide a nice chorus effect with a lush stereo field.
+* **SIZE**: Adjusts the reverb tank sizes. **NOTE**: You might not want to adjust SIZE during a performance, because there is a noticeable zipper noise. People usually experimentally determine a size for their performance and leave it there. (Don says: *Yes, I have tried to fix the zipper noise, and no, I haven't figured out how yet. Sigh.*)
+* **MIX**: Galaxy's outputs result from a linear mix of the reverberator's output and the original input. The MIX knob adjusts what fraction of the output is from the reverb tanks. If you set MIX to 0, the output is the same as the input (delayed by one sample). If you set MIX to 1, the output is entirely derived from the reverb tanks. Lower values work well for adding ambience to a foreground voice or percussion. Higher values work well for creating synth pads or choir effects.
 
 ### Low-sensitivity attenuverters
 
