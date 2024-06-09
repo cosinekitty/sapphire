@@ -27,8 +27,8 @@ Likewise, there are two audio output ports at the bottom also labeled `L` and `R
 You can provide mono (1-channel) or stereo (2-channel) input,
 and the output will have an easily audible stereo field either way.
 
-To provide mono input, connect your audio cable to the left input `L`.
-When only the `L` input is connected to a cable, Galaxy will send half the voltage
+To provide mono input, connect your audio cable to the left input `L` **or** the right input `R`.
+When only one of the inputs is connected to a cable, Galaxy will send half the voltage
 on that cable to both the left and right reverb inputs. The voltage is divided by 2
 to preserve the same general volume level as mono input would if fed to a single channel.
 

@@ -95,13 +95,12 @@ namespace Sapphire
                 initialize();
             }
 
-            void process(const ProcessArgs& args) override
+            void loadInputs(float& inLeft, float& inRight)
             {
-                float inLeft  = 0;
-                float inRight = 0;
+                inLeft = inRight = 0;
                 if (inputs[AUDIO_LEFT_INPUT].isConnected())
                 {
-                    inLeft = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
+                    inLeft = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
                     if (inputs[AUDIO_RIGHT_INPUT].isConnected())
                     {
                         inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
@@ -113,16 +112,27 @@ namespace Sapphire
                         inRight = inLeft;
                     }
                 }
+                else if (inputs[AUDIO_RIGHT_INPUT].isConnected())
+                {
+                    inLeft = inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum() / 2;
+                }
+            }
+
+            void process(const ProcessArgs& args) override
+            {
                 engine.setReplace(getControlValue(REPLACE_PARAM, REPLACE_ATTEN, REPLACE_CV_INPUT));
                 engine.setBrightness(getControlValue(BRIGHTNESS_PARAM, BRIGHTNESS_ATTEN, BRIGHTNESS_CV_INPUT));
                 engine.setDetune(getControlValue(DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT));
                 engine.setBigness(getControlValue(BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT));
                 engine.setMix(getControlValue(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT));
 
+                float inLeft, inRight;
+                loadInputs(inLeft, inRight);
+
                 float outLeft, outRight;
                 engine.process(args.sampleRate, inLeft, inRight, outLeft, outRight);
 
-                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outLeft);
+                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outLeft );
                 outputs[AUDIO_RIGHT_OUTPUT].setVoltage(outRight);
             }
         };
