@@ -20,19 +20,19 @@ Galaxy is intended as a stepping stone toward future Sapphire projects that are 
 
 ### Inputs and Outputs
 
-Galaxy has two audio input ports at the top of the panel, `L` and `R`.
+Galaxy has two audio input ports at the top of the panel, L and R.
 
-Likewise, there are two audio output ports at the bottom also labeled `L` and `R`.
+Likewise, there are two audio output ports at the bottom also labeled L and R.
 
 You can provide mono (1-channel) or stereo (2-channel) input,
 and the output will have an easily audible stereo field either way.
 
-To provide mono input, connect your audio cable to the left input `L` **or** the right input `R`.
+To provide mono input, connect your audio cable to the left input L **or** the right input R.
 When only one of the inputs is connected to a cable, Galaxy will send half the voltage
 on that cable to both the left and right reverb inputs. The voltage is divided by 2
 to preserve the same general volume level as mono input would if fed to a single channel.
 
-To provide stereo input, connect one cable to `L` and one cable to `R`.
+To provide stereo input, connect one cable to L and one cable to R.
 
 Polyphonic input cables are summed across channels to provide
 a monophonic input signal for the port they are plugged into.
