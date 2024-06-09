@@ -16,6 +16,8 @@ Galaxy is intended as a stepping stone toward future Sapphire projects that are 
 
 ### Demo videos
 
+[![Eons Unfolding](https://img.youtube.com/vi/PVh3mgTHYFk/0.jpg)](https://www.youtube.com/watch?v=PVh3mgTHYFk)
+
 ### Inputs and Outputs
 
 Galaxy has two audio input ports at the top of the panel, `L` and `R`.
