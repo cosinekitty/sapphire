@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">11 June 2024</td>
+<td align="center">2.4.6</td>
+<td align="left">
+    <ul>
+        <li>Added new module: Galaxy.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">11 May 2024</td>
 <td align="center">2.4.5</td>
 <td align="left">
