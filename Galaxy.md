@@ -40,6 +40,24 @@ This is true for the two audio input ports and all 5 CV input ports.
 
 Galaxy's left and right audio output ports are each monophonic.
 
+### Stereo splitter option
+
+The right-click context menu for Galaxy looks like this:
+
+![Galaxy menu](images/galaxy_menu.png)
+
+The option "Enable input stereo splitter" overrides the audio input behavior
+described above, but only when a polyphonic cable is connected to either
+L or R, but the opposite input port has no cable.
+
+If the single audio input cable has 2 or more channels, and the stereo splitter
+option is enabled, the first channel is sent to the left input and the second
+channel is sent to the right input.
+
+The purpose of this option is to support a stereo input provided by a single
+cable, which can eliminate the need for a dedicated splitter module between
+the signal and Galaxy.
+
 ### Control groups
 
 Let us call the combination of a larger parameter knob, a smaller attenuverter knob,
