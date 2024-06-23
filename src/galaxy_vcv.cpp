@@ -56,7 +56,7 @@ namespace Sapphire
         {
             Engine engine;
             bool enableStereoSplitter{};
-            float autoResetVoltageThreshold = 3;
+            float autoResetVoltageThreshold = 100;
             int autoResetCountdown = 0;
 
             GalaxyModule()
