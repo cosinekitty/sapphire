@@ -9,6 +9,17 @@
 </tr>
 
 <tr valign="top">
+<td align="center">23 June 2024</td>
+<td align="center">2.4.7</td>
+<td align="left">
+    <ul>
+        <li>Galaxy: added option for polyphonic stereo input to a single input port (L or R).</li>
+        <li>Galaxy: auto-reset if output becomes non-finite or goes outside 100&nbsp;V absolute value.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">11 June 2024</td>
 <td align="center">2.4.6</td>
 <td align="left">

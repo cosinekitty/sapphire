@@ -48,7 +48,7 @@ The right-click context menu for Galaxy looks like this:
 
 The option "Enable input stereo splitter" overrides the audio input behavior
 described above, but only when a polyphonic cable is connected to either
-L or R, but the opposite input port has no cable.
+L or R. For the stereo splitter to work, the opposite port must remain unconnected.
 
 If the single audio input cable has 2 or more channels, and the stereo splitter
 option is enabled, the first channel is sent to the left input and the second
