@@ -56,6 +56,8 @@ namespace Sapphire
         {
             Engine engine;
             bool enableStereoSplitter{};
+            float autoResetVoltageThreshold = 3;
+            int autoResetCountdown = 0;
 
             GalaxyModule()
                 : SapphireModule(PARAMS_LEN)
@@ -89,6 +91,7 @@ namespace Sapphire
             {
                 engine.initialize();
                 enableStereoSplitter = false;
+                autoResetCountdown = 0;
             }
 
             json_t* dataToJson() override
@@ -151,21 +154,47 @@ namespace Sapphire
                     inLeft = inRight = inRight / 2;
             }
 
+            bool isBadOutput(float output) const
+            {
+                return !std::isfinite(output) || std::abs(output) > autoResetVoltageThreshold;
+            }
+
             void process(const ProcessArgs& args) override
             {
-                engine.setReplace(getControlValue(REPLACE_PARAM, REPLACE_ATTEN, REPLACE_CV_INPUT));
-                engine.setBrightness(getControlValue(BRIGHTNESS_PARAM, BRIGHTNESS_ATTEN, BRIGHTNESS_CV_INPUT));
-                engine.setDetune(getControlValue(DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT));
-                engine.setBigness(getControlValue(BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT));
-                engine.setMix(getControlValue(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT));
-
-                float inLeft, inRight;
-                loadInputs(inLeft, inRight);
-
                 float outLeft, outRight;
-                engine.process(args.sampleRate, inLeft, inRight, outLeft, outRight);
+                if (autoResetCountdown > 0)
+                {
+                    // Continue to silence the output for the remainder of the reset period.
+                    --autoResetCountdown;
+                    outLeft = outRight = 0;
+                }
+                else
+                {
+                    engine.setReplace(getControlValue(REPLACE_PARAM, REPLACE_ATTEN, REPLACE_CV_INPUT));
+                    engine.setBrightness(getControlValue(BRIGHTNESS_PARAM, BRIGHTNESS_ATTEN, BRIGHTNESS_CV_INPUT));
+                    engine.setDetune(getControlValue(DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT));
+                    engine.setBigness(getControlValue(BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT));
+                    engine.setMix(getControlValue(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT));
 
-                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outLeft );
+                    float inLeft, inRight;
+                    loadInputs(inLeft, inRight);
+
+                    engine.process(args.sampleRate, inLeft, inRight, outLeft, outRight);
+
+                    // Is the output getting out of control? Or even NAN?
+                    if (isBadOutput(outLeft) || isBadOutput(outRight))
+                    {
+                        // Reset the engine (which also initializes `autoResetCountdown`.)
+                        engine.initialize();
+
+                        // Silence the output for 1/4 of a second.
+                        autoResetCountdown = static_cast<int>(round(args.sampleRate / 4));
+
+                        // Start the silence on this sample.
+                        outLeft = outRight = 0;
+                    }
+                }
+                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outLeft);
                 outputs[AUDIO_RIGHT_OUTPUT].setVoltage(outRight);
             }
         };
