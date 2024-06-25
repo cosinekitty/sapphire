@@ -199,7 +199,9 @@ when the limiter is active. The warning light option
 defaults to being enabled.
 
 <a name="vent_seal_toggle"></a>
+
 ### Toggling between VENT mode and SEAL mode
+
 As [mentioned above](#vent_port), there is a VENT port in the upper left
 corner of the panel.
 
@@ -228,3 +230,7 @@ high, Tube Unit starts making sound.
 
 The VENT/SEAL input is polyphonic just like all the
 other input ports in Tube Unit.
+
+### Low-sensitivity attenuverters
+
+Tube Unit supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).

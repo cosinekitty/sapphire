@@ -1,5 +1,6 @@
 #include <algorithm>
 #include "sapphire_vcvrack.hpp"
+#include "sapphire_widget.hpp"
 #include "tubeunit_engine.hpp"
 
 // Sapphire Tube Unit for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
@@ -192,6 +193,8 @@ namespace Sapphire
                     // Thus we allow the complete range of control for any CV whose
                     // range is [-5, +5] volts.
                     float attenu = params[cg.attenId].getValue();
+                    if (isLowSensitive(cg.attenId))
+                        attenu /= AttenuverterLowSensitivityDenom;
                     slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
                 }
                 return std::clamp(slider, cg.minValue, cg.maxValue);
@@ -380,7 +383,14 @@ namespace Sapphire
                     addParam(createParamCentered<RoundLargeBlackKnob>(knobCenter, tubeUnitModule, cg.paramId));
 
                     Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, -4.0)));
-                    addParam(createParamCentered<Trimpot>(attenCenter, tubeUnitModule, cg.attenId));
+                    SapphireAttenuverterKnob* knob = createParamCentered<SapphireAttenuverterKnob>(attenCenter, tubeUnitModule, cg.attenId);
+                    if (module != nullptr)
+                    {
+                        // Allow Tube Unit's attenuverter knobs to participate in the "low-sensitivity" feature.
+                        knob->lowSensitivityMode = module->lowSensitiveFlag(cg.attenId);
+                        module->defineAttenuverterId(cg.attenId);
+                    }
+                    addParam(knob);
 
                     Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, +4.0)));
                     addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
@@ -420,6 +430,9 @@ namespace Sapphire
 
                         // Add toggle for whether the VENT port should be inverted to a SEAL port.
                         menu->addChild(createBoolPtrMenuItem<bool>("Toggle VENT/SEAL", "", &tubeUnitModule->isInvertedVentPort));
+
+                        // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
+                        menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
                     }
                 }
             }

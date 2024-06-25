@@ -15,6 +15,7 @@
     <ul>
         <li>Galaxy: added option for polyphonic stereo input to a single input port (L or R).</li>
         <li>Galaxy: auto-reset if output becomes non-finite or goes outside 100&nbsp;V absolute value.</li>
+        <li>Tube Unit: [Issue #56](https://github.com/cosinekitty/sapphire/issues/56) - added support for <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>.
     </ul>
 </td>
 </tr>
@@ -34,7 +35,7 @@
 <td align="center">2.4.5</td>
 <td align="left">
     <ul>
-        <li>The following Sapphire modules already supported <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters attenuverter knobs</a>: Elastika, Nucleus, Polynucleus. Now, in addition to being able to right-click and toggle each attenuverter's sensitivity one at a time, you can right-click on any of the above modules to toggle all of its attenuverters.</li>
+        <li>The following Sapphire modules already supported <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>: Elastika, Nucleus, Polynucleus. Now, in addition to being able to right-click and toggle each attenuverter's sensitivity one at a time, you can right-click on any of the above modules to toggle all of its attenuverters.</li>
     </ul>
 </td>
 </tr>
