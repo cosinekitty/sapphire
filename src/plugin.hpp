@@ -16,6 +16,7 @@ extern Model* modelGlee;
 extern Model* modelHiss;
 extern Model* modelMoots;
 extern Model* modelNucleus;
+extern Model* modelObelisk;
 extern Model* modelPolynucleus;
 extern Model* modelTin;
 extern Model* modelTout;

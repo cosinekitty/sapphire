@@ -86,6 +86,16 @@
       ]
     },
     {
+      "slug": "Obelisk",
+      "name": "Obelisk",
+      "description": "A simulated string under tension with a resonance chamber.",
+      "tags": [
+        "Voltage-controlled amplifier",
+        "Physical modeling",
+        "Effect"
+      ]
+    },
+    {
       "slug": "Polynucleus",
       "name": "Polynucleus",
       "description": "Simulation of a cloud of particles with mutually attractive, repulsive, and orthogonal forces.",

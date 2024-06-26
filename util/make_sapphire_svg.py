@@ -664,6 +664,25 @@ def GenerateGalaxyPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateObeliskPanel() -> int:
+    name = 'obelisk'
+    svgFileName = '../res/{}.svg'.format(name)
+    PANEL_WIDTH = 6
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    defs = Element('defs')
+    pl.append(defs)
+    controls = ControlLayer()
+    #xmid = panel.mmWidth / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(CenteredGemstone(panel))
+    pl.append(controls)
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -678,5 +697,6 @@ if __name__ == '__main__':
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
         GenerateGalaxyPanel() or
+        GenerateObeliskPanel() or
         Print('SUCCESS')
     )
