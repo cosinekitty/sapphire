@@ -6,49 +6,75 @@
 
 #pragma once
 #include <vector>
+#include <stdexcept>
 #include "sapphire_simd.hpp"
+#include "sapphire_integrator.hpp"
 
 namespace Sapphire
 {
     namespace Obelisk
     {
-        const int MinParticleCount = 3;     // need 2 anchors and at least 1 mobile ball between them
         const float InitialParticleSpacingMeters = 1.0e-3;
         const float InitialParticleMass = 1.0e-3;
 
+        template <int nparticles>
+        struct GroupVector
+        {
+            PhysicsVector array[nparticles];
+
+            GroupVector()
+            {
+            }
+
+            explicit GroupVector(float init)
+            {
+                for (int i = 0; i < nparticles; ++i)
+                    array[i] = init;
+            }
+        };
+
+
+        template <int nparticles>
         class Engine
         {
         private:
-            std::vector<Particle> array;
+            static_assert(nparticles >= 3, "The number of particles must be 3 or greater.");
+            Integrator::Engine<GroupVector<nparticles>> integrator;
+
+            static int validateIndex(int index)
+            {
+                if (index < 0 || index >= nparticles)
+                    throw std::runtime_error("Invalid particle index");
+
+                return index;
+            }
 
         public:
-            explicit Engine(int _nparticles)
+            using state_vector_t = Integrator::StateVector<GroupVector<nparticles>>;
+
+            Engine()
             {
-                const std::size_t n = static_cast<std::size_t>(std::max(MinParticleCount, _nparticles));
-                array.resize(n);
                 initialize();
-            }
-
-            int numParticles() const
-            {
-                return static_cast<int>(array.size());
-            }
-
-            Particle& particle(int index)
-            {
-                return array.at(index);
             }
 
             void initialize()
             {
-                const int n = numParticles();
-                for (int i = 0; i < n; ++i)
-                {
-                    array[i].pos = PhysicsVector(i*InitialParticleSpacingMeters, 0, 0, 0);
-                    array[i].vel = PhysicsVector::zero();
-                    array[i].force = PhysicsVector::zero();
-                    array[i].mass = (i>0 && i+1<n) ? InitialParticleMass : AnchorMass;
-                }
+                state_vector_t state;
+                for (int i = 0; i < nparticles; ++i)
+                    state.r.array[i][0] = i * InitialParticleSpacingMeters;
+                integrator.setState(state);
+            }
+
+            PhysicsVector& position(int index)
+            {
+                validateIndex(index);
+                return integrator.state.r.array[index];
+            }
+
+            PhysicsVector& velocity(int index)
+            {
+                validateIndex(index);
+                return integrator.state.v.array[index];
             }
 
             void process(float sampleRate)

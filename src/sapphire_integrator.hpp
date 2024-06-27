@@ -44,7 +44,6 @@ namespace Sapphire
             using state_vector_t = StateVector<value_t>;
             using accel_function_t = AccelerationFunction<value_t>;
 
-        private:
             state_vector_t state{};
 
             state_vector_t derivative(const value_t& r, const value_t& v, accel_function_t accel) const
@@ -52,7 +51,6 @@ namespace Sapphire
                 return state_vector_t{v, accel(r, v)};
             }
 
-        public:
             void setState(const state_vector_t& newState)
             {
                 state = newState;
