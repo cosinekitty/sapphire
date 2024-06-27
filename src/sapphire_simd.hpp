@@ -132,4 +132,24 @@ namespace Sapphire
     }
 
     using PhysicsVectorList = std::vector<PhysicsVector>;
+
+    const float AnchorMass = -1.0f;   // infinite mass: this particle doesn't accelerate or move
+
+    struct Particle
+    {
+        PhysicsVector pos;
+        PhysicsVector vel;
+        PhysicsVector force;
+        float mass = 1.0e-3f;
+
+        bool isFinite() const
+        {
+            // We don't check `force` because it is a temporary part of the calculation.
+            // Any problems in `force` will show up in `pos` and `vel`.
+            return pos.isFinite3d() && vel.isFinite3d();
+        }
+
+        bool isAnchor() const { return mass <= 0.0; }
+        bool isMobile() const { return mass > 0.0; }
+    };
 }

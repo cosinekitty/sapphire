@@ -20,21 +20,6 @@ namespace Sapphire
         return (effSpeed/rawSpeed) * vel;
     }
 
-    struct Particle
-    {
-        PhysicsVector pos;
-        PhysicsVector vel;
-        PhysicsVector force;
-        float mass = 1.0e-3f;
-
-        bool isFinite() const
-        {
-            // We don't check `force` because it is a temporary part of the calculation.
-            // Any problems in `force` will show up in `pos` and `vel`.
-            return pos.isFinite3d() && vel.isFinite3d();
-        }
-    };
-
 
     using NucleusDcRejectFilter = StagedFilter<float, 3>;
     const float DefaultCornerFrequencyHz = 30;

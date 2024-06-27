@@ -4,6 +4,7 @@
 #include <random>
 #include "sapphire_engine.hpp"
 #include "galaxy_engine.hpp"
+#include "obelisk_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
 #include "Galactic.h"
@@ -37,19 +38,21 @@ static int InterpolatorTest();
 static int TaperTest();
 static int QuadraticTest();
 static int GalaxyTest();
+static int ObeliskTest();
 
 static const UnitTest CommandTable[] =
 {
-    { "agc",        AutoGainControl },
-    { "chaos",      ChaosTest },
-    { "delay",      DelayLineTest },
-    { "galaxy",     GalaxyTest },
-    { "interp",     InterpolatorTest },
-    { "quad",       QuadraticTest },
-    { "readwave",   ReadWave },
-    { "scale",      AutoScale },
-    { "taper",      TaperTest },
-    { nullptr,  nullptr }
+    { "agc",        AutoGainControl     },
+    { "chaos",      ChaosTest           },
+    { "delay",      DelayLineTest       },
+    { "galaxy",     GalaxyTest          },
+    { "interp",     InterpolatorTest    },
+    { "obelisk",    ObeliskTest         },
+    { "quad",       QuadraticTest       },
+    { "readwave",   ReadWave            },
+    { "scale",      AutoScale           },
+    { "taper",      TaperTest           },
+    { nullptr,      nullptr             }
 };
 
 
@@ -771,4 +774,11 @@ static int GalaxyTest()
         GalaxyTest_OriginalGenesis() ||
         GalaxyTest_Genesis() ||
         Pass("GalaxyTest");
+}
+
+
+static int ObeliskTest()
+{
+    Sapphire::Obelisk::Engine engine(16);
+    return Pass("ObeliskTest");
 }
