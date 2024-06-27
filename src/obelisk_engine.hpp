@@ -28,29 +28,45 @@ namespace Sapphire
 
             explicit GroupVector(float init)
             {
+                if (init != 0)
+                    for (int i = 0; i < nparticles; ++i)
+                        array[i] = init;
+            }
+
+            GroupVector<nparticles> operator + (const GroupVector<nparticles>& other)
+            {
+                GroupVector<nparticles> sum;
                 for (int i = 0; i < nparticles; ++i)
-                    array[i] = init;
+                    sum.array[i] = array[i] + other.array[i];
+                return sum;
+            }
+
+            GroupVector& operator += (const GroupVector<nparticles>& other)
+            {
+                for (int i = 0; i < nparticles; ++i)
+                    array[i] += other.array[i];
+                return *this;
             }
         };
 
 
         template <int nparticles>
+        inline GroupVector<nparticles> operator * (float scalar, const GroupVector<nparticles>& group)
+        {
+            GroupVector<nparticles> product;
+            for (int i = 0; i < nparticles; ++i)
+                product.array[i] = scalar * group.array[i];
+            return product;
+        }
+
+
+        template <int nparticles>
         class Engine
         {
-        private:
             static_assert(nparticles >= 3, "The number of particles must be 3 or greater.");
-            Integrator::Engine<GroupVector<nparticles>> integrator;
-
-            static int validateIndex(int index)
-            {
-                if (index < 0 || index >= nparticles)
-                    throw std::runtime_error("Invalid particle index");
-
-                return index;
-            }
-
         public:
-            using state_vector_t = Integrator::StateVector<GroupVector<nparticles>>;
+            using group_vector_t = GroupVector<nparticles>;
+            using state_vector_t = Integrator::StateVector<group_vector_t>;
 
             Engine()
             {
@@ -79,7 +95,37 @@ namespace Sapphire
 
             void process(float sampleRate)
             {
+                float dt = 1 / sampleRate;
+                auto accel = [] (const group_vector_t& r, const group_vector_t& v) -> group_vector_t
+                {
+                    // FIXFIXFIX: add friction/viscosity, possibly using `v`.
+                    // For now, we calculate energy-conservative forces, divide by
+                    // particle mass to obtain accelerations. Return all the particle accelerations.
+                    group_vector_t a;
 
+                    // The outermost particles (0 and n-1) are anchors.
+                    // Their accelerations must always remain 0.
+                    // Calculate accelerations for:
+                    // particle[1], connected to [0] and [2].
+                    // particle[2], connected to [1] and [3].
+                    // ...
+                    // particle[n-2], connected to particle[n-3] and particle[n-1].
+                    // Consecutive particles apply equal and opposite tension forces on each other.
+
+                    return a;
+                };
+                integrator.update(dt, accel);
+            }
+
+        private:
+            Integrator::Engine<GroupVector<nparticles>> integrator;
+
+            static int validateIndex(int index)
+            {
+                if (index < 0 || index >= nparticles)
+                    throw std::runtime_error("Invalid particle index");
+
+                return index;
             }
         };
     }
