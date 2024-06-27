@@ -12,7 +12,7 @@ namespace Sapphire
 {
     namespace Obelisk
     {
-        const int MinParticleCount = 3;
+        const int MinParticleCount = 3;     // need 2 anchors and at least 1 mobile ball between them
         const float InitialParticleSpacingMeters = 1.0e-3;
         const float InitialParticleMass = 1.0e-3;
 
@@ -29,9 +29,19 @@ namespace Sapphire
                 initialize();
             }
 
+            int numParticles() const
+            {
+                return static_cast<int>(array.size());
+            }
+
+            Particle& particle(int index)
+            {
+                return array.at(index);
+            }
+
             void initialize()
             {
-                const int n = array.size();
+                const int n = numParticles();
                 for (int i = 0; i < n; ++i)
                 {
                     array[i].pos = PhysicsVector(i*InitialParticleSpacingMeters, 0, 0, 0);
@@ -39,6 +49,11 @@ namespace Sapphire
                     array[i].force = PhysicsVector::zero();
                     array[i].mass = (i>0 && i+1<n) ? InitialParticleMass : AnchorMass;
                 }
+            }
+
+            void process(float sampleRate)
+            {
+
             }
         };
     }

@@ -779,6 +779,23 @@ static int GalaxyTest()
 
 static int ObeliskTest()
 {
+    const char *outFileName = "output/obelisk.wav";
+    ScaledWaveFileWriter outwave;
+    const int sampleRate = 44100;
+    const int channels = 2;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("ObeliskTest", std::string("Could not open output file: ") + outFileName);
+
     Sapphire::Obelisk::Engine engine(16);
+    const int outputDurationSeconds = 5;
+    const int outputFrames = sampleRate * outputDurationSeconds;
+    float outFrame[channels]{};
+    for (int frame = 0; frame < outputFrames; ++frame)
+    {
+        engine.process(sampleRate);
+        outwave.WriteSamples(outFrame, channels);
+    }
+
+    outwave.Close();
     return Pass("ObeliskTest");
 }
