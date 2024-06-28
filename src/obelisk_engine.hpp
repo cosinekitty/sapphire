@@ -96,7 +96,7 @@ namespace Sapphire
             void process(float sampleRate)
             {
                 float dt = 1 / sampleRate;
-                auto accel = [] (const group_vector_t& r, const group_vector_t& v) -> group_vector_t
+                auto accel = [this] (const group_vector_t& r, const group_vector_t& v) -> group_vector_t
                 {
                     // FIXFIXFIX: add friction/viscosity, possibly using `v`.
                     // For now, we calculate energy-conservative forces, divide by
@@ -112,12 +112,26 @@ namespace Sapphire
                     // particle[n-2], connected to particle[n-3] and particle[n-1].
                     // Consecutive particles apply equal and opposite tension forces on each other.
 
+                    for (int i = 0; i+1 < nparticles; ++i)
+                    {
+                        PhysicsVector dr = r.array[i+1] - r.array[i];
+                        float length = Magnitude(dr);
+                        PhysicsVector acc = (stiffness / mass) * (1 - restLength/length) * dr;
+                        if (i > 0)
+                            a.array[i] += acc;
+                        if (i+2 < nparticles)
+                            a.array[i+1] -= acc;
+                    }
+
                     return a;
                 };
                 integrator.update(dt, accel);
             }
 
         private:
+            float mass = 1.0e-3;
+            float restLength = InitialParticleSpacingMeters / 4;
+            float stiffness = 50000.0;
             Integrator::Engine<GroupVector<nparticles>> integrator;
 
             static int validateIndex(int index)
