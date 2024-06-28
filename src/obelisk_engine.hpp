@@ -69,6 +69,8 @@ namespace Sapphire
             using state_vector_t = Integrator::StateVector<group_vector_t>;
 
             Engine()
+                : accel_lambda([this] (const group_vector_t& r, const group_vector_t& v)
+                    -> group_vector_t{ return acceleration(r, v); })
             {
                 initialize();
             }
@@ -95,44 +97,15 @@ namespace Sapphire
 
             void process(float sampleRate)
             {
-                float dt = 1 / sampleRate;
-                auto accel = [this] (const group_vector_t& r, const group_vector_t& v) -> group_vector_t
-                {
-                    // FIXFIXFIX: add friction/viscosity, possibly using `v`.
-                    // For now, we calculate energy-conservative forces, divide by
-                    // particle mass to obtain accelerations. Return all the particle accelerations.
-                    group_vector_t a;
-
-                    // The outermost particles (0 and n-1) are anchors.
-                    // Their accelerations must always remain 0.
-                    // Calculate accelerations for:
-                    // particle[1], connected to [0] and [2].
-                    // particle[2], connected to [1] and [3].
-                    // ...
-                    // particle[n-2], connected to particle[n-3] and particle[n-1].
-                    // Consecutive particles apply equal and opposite tension forces on each other.
-
-                    for (int i = 0; i+1 < nparticles; ++i)
-                    {
-                        PhysicsVector dr = r.array[i+1] - r.array[i];
-                        float length = Magnitude(dr);
-                        PhysicsVector acc = (stiffness / mass) * (1 - restLength/length) * dr;
-                        if (i > 0)
-                            a.array[i] += acc;
-                        if (i+2 < nparticles)
-                            a.array[i+1] -= acc;
-                    }
-
-                    return a;
-                };
-                integrator.update(dt, accel);
+                integrator.update(1/sampleRate, accel_lambda);
             }
 
         private:
             float mass = 1.0e-3;
             float restLength = InitialParticleSpacingMeters / 4;
             float stiffness = 50000.0;
-            Integrator::Engine<GroupVector<nparticles>> integrator;
+            Integrator::Engine<group_vector_t> integrator;
+            const Integrator::AccelerationFunction<group_vector_t> accel_lambda;
 
             static int validateIndex(int index)
             {
@@ -140,6 +113,36 @@ namespace Sapphire
                     throw std::runtime_error("Invalid particle index");
 
                 return index;
+            }
+
+            group_vector_t acceleration(const group_vector_t& r, const group_vector_t& v)
+            {
+                // FIXFIXFIX: add friction/viscosity, possibly using `v`.
+                // For now, we calculate energy-conservative forces, divide by
+                // particle mass to obtain accelerations. Return all the particle accelerations.
+                group_vector_t a;
+
+                // The outermost particles (0 and n-1) are anchors.
+                // Their accelerations must always remain 0.
+                // Calculate accelerations for:
+                // particle[1], connected to [0] and [2].
+                // particle[2], connected to [1] and [3].
+                // ...
+                // particle[n-2], connected to particle[n-3] and particle[n-1].
+                // Consecutive particles apply equal and opposite tension forces on each other.
+
+                for (int i = 0; i+1 < nparticles; ++i)
+                {
+                    PhysicsVector dr = r.array[i+1] - r.array[i];
+                    float length = Magnitude(dr);
+                    PhysicsVector acc = (stiffness / mass) * (1 - restLength/length) * dr;
+                    if (i > 0)
+                        a.array[i] += acc;
+                    if (i+2 < nparticles)
+                        a.array[i+1] -= acc;
+                }
+
+                return a;
             }
         };
     }
