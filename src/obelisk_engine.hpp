@@ -102,6 +102,8 @@ namespace Sapphire
         private:
             float restLength = InitialParticleSpacingMeters / 4;
             float stiffness = 5.0e+7;
+            float halflife = 0.5;
+
             Integrator::Engine<group_vector_t> integrator;
             const Integrator::AccelerationFunction<group_vector_t> accel_lambda;
 
@@ -120,23 +122,29 @@ namespace Sapphire
                 // Calculate spring forces acting on all the particles.
                 // The outermost particles (0 and n-1) are anchors.
                 // Their accelerations must always remain 0.
-                // Calculate accelerations for:
-                // particle[1], connected to [0] and [2].
-                // particle[2], connected to [1] and [3].
-                // ...
-                // particle[n-2], connected to particle[n-3] and particle[n-1].
-                // Consecutive particles apply equal and opposite tension forces on each other.
 
                 for (int i = 0; i+1 < nparticles; ++i)
                 {
+                    // Calculate the mutual partial acceleration between particles i and i+1.
+
                     PhysicsVector dr = r.array[i+1] - r.array[i];
                     float length = Magnitude(dr);
                     PhysicsVector acc = stiffness * (1 - restLength/length) * dr;
+
+                    // Never accelerate the first ball. It is an anchor.
                     if (i > 0)
                         a.array[i] += acc;
+
+                    // Never accelerate the last ball. It is also an anchor.
                     if (i+2 < nparticles)
                         a.array[i+1] -= acc;
                 }
+
+                // Apply damping to create a decay halflife.
+
+                const float decay = -(M_LN2 / halflife);
+                for (int i = 1; i+1 < nparticles; ++i)
+                    a.array[i] += decay * v.array[i];
 
                 return a;
             }
