@@ -15,7 +15,6 @@ namespace Sapphire
     namespace Obelisk
     {
         const float InitialParticleSpacingMeters = 1.0e-3;
-        const float InitialParticleMass = 1.0e-3;
 
         template <int nparticles>
         struct GroupVector
@@ -101,9 +100,8 @@ namespace Sapphire
             }
 
         private:
-            float mass = 1.0e-3;
             float restLength = InitialParticleSpacingMeters / 4;
-            float stiffness = 50000.0;
+            float stiffness = 5.0e+7;
             Integrator::Engine<group_vector_t> integrator;
             const Integrator::AccelerationFunction<group_vector_t> accel_lambda;
 
@@ -117,11 +115,9 @@ namespace Sapphire
 
             group_vector_t acceleration(const group_vector_t& r, const group_vector_t& v)
             {
-                // FIXFIXFIX: add friction/viscosity, possibly using `v`.
-                // For now, we calculate energy-conservative forces, divide by
-                // particle mass to obtain accelerations. Return all the particle accelerations.
                 group_vector_t a;
 
+                // Calculate spring forces acting on all the particles.
                 // The outermost particles (0 and n-1) are anchors.
                 // Their accelerations must always remain 0.
                 // Calculate accelerations for:
@@ -135,7 +131,7 @@ namespace Sapphire
                 {
                     PhysicsVector dr = r.array[i+1] - r.array[i];
                     float length = Magnitude(dr);
-                    PhysicsVector acc = (stiffness / mass) * (1 - restLength/length) * dr;
+                    PhysicsVector acc = stiffness * (1 - restLength/length) * dr;
                     if (i > 0)
                         a.array[i] += acc;
                     if (i+2 < nparticles)
