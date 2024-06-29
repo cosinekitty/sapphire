@@ -102,7 +102,7 @@ namespace Sapphire
         private:
             float restLength = InitialParticleSpacingMeters / 4;
             float stiffness = 5.0e+7;
-            float halflife = 0.5;
+            float halflife = 0.2;
 
             Integrator::Engine<group_vector_t> integrator;
             const Integrator::AccelerationFunction<group_vector_t> accel_lambda;
