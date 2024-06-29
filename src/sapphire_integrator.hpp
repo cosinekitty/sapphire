@@ -34,7 +34,12 @@ namespace Sapphire
         // Or value_t could represent the position of N particles in a grid!
         // An entire mesh could be computed this way.
         template <typename value_t>
-        using AccelerationFunction = std::function<value_t(const value_t& /*position*/, const value_t& /*velocity*/)>;
+        using AccelerationFunction = std::function<
+            value_t(
+                const value_t&,     // position
+                const value_t&      // velocity
+            )
+        >;
 
 
         template <typename value_t>
