@@ -674,11 +674,19 @@ def GenerateObeliskPanel() -> int:
     defs = Element('defs')
     pl.append(defs)
     controls = ControlLayer()
-    #xmid = panel.mmWidth / 2
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+    yRow = FencePost(22.0, 114.0, 7)
+    yInPort  = yRow.value(0)
+    yOutPort = yRow.value(6)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
+        controls.append(Component('left_audio_input',   xmid - dxPortFromCenter, yInPort ))
+        controls.append(Component('right_audio_input',  xmid + dxPortFromCenter, yInPort ))
+        controls.append(Component('left_audio_output',  xmid - dxPortFromCenter, yOutPort))
+        controls.append(Component('right_audio_output', xmid + dxPortFromCenter, yOutPort))
     pl.append(controls)
     return Save(panel, svgFileName)
 
