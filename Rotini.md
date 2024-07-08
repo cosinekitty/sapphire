@@ -8,4 +8,7 @@ If fewer than 3 channels exist, the values of the missing channels are considere
 
 The purpose of Rotini is to enable combining the outputs of one [Frolic](Frolic.md) or [Glee](Glee.md) with another Frolic or Glee, to produce a more complex 3D vector signal. The signal can be used to drive movement in a generative patch.
 
-### Demo videos
+### Example
+
+![Rotini Example](images/rotini_example.png)
+
