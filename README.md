@@ -100,6 +100,17 @@ for each particle instead of 3 monophonic ports.
 
 ---
 
+## Rotini
+
+A utility module for combining Frolic/Glee into more complex chaotic 3D vector signals.
+Calculates the cross product of two input vectors.
+
+<a href="Rotini.md">Sapphire Rotini documentation</a>
+
+<a href="Rotini.md"><img src="images/rotini.png" /></a>
+
+---
+
 ## Tin
 
 An alterative input module for feeding data into Tricorder.
