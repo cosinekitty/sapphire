@@ -677,6 +677,7 @@ def GenerateRotiniPanel() -> int:
     xmid = panel.mmWidth / 2
     NROWS = 6
     yRow = FencePost(22.0, 110.0, NROWS)
+    dyGrad = 6.0
     dyText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -685,6 +686,22 @@ def GenerateRotiniPanel() -> int:
         controls.append(Component('a_input',  xmid, yRow.value(0)))
         controls.append(Component('b_input',  xmid, yRow.value(1)))
         controls.append(Component('c_output', xmid, yRow.value(NROWS-1)))
+
+        y1 = yRow.value(0) - 9.5
+        y2 = yRow.value(0) + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_a'))
+        pl.append(ControlGroupArt(name, 'a_art', panel, y1, y2, 'gradient_a'))
+
+        y1 = yRow.value(1) - 9.5
+        y2 = yRow.value(1) + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_b'))
+        pl.append(ControlGroupArt(name, 'b_art', panel, y1, y2, 'gradient_b'))
+
+        y1 = yRow.value(NROWS-1) - 9.5
+        y2 = yRow.value(NROWS-1) + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
+        pl.append(ControlGroupArt(name, 'c_art', panel, y1, y2, 'gradient_c'))
+
         pl.append(CenteredControlTextPath(font, 'A',   xmid, yRow.value(0) - dyText))
         pl.append(CenteredControlTextPath(font, 'B',   xmid, yRow.value(1) - dyText))
         pl.append(CenteredControlTextPath(font, 'A x B', xmid, yRow.value(NROWS-1) - dyText))
