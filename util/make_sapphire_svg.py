@@ -675,8 +675,9 @@ def GenerateRotiniPanel() -> int:
     pl.append(defs)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    NROWS = 7
-    yRow = FencePost(22.0, 114.0, NROWS)
+    NROWS = 6
+    yRow = FencePost(22.0, 110.0, NROWS)
+    dyText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
@@ -684,6 +685,11 @@ def GenerateRotiniPanel() -> int:
         controls.append(Component('a_input',  xmid, yRow.value(0)))
         controls.append(Component('b_input',  xmid, yRow.value(1)))
         controls.append(Component('c_output', xmid, yRow.value(NROWS-1)))
+
+        pl.append(CenteredControlTextPath(font, 'A',   xmid, yRow.value(0) - dyText))
+        pl.append(CenteredControlTextPath(font, 'B',   xmid, yRow.value(1) - dyText))
+        pl.append(CenteredControlTextPath(font, 'A x B', xmid, yRow.value(NROWS-1) - dyText))
+        
     pl.append(controls)
     return Save(panel, svgFileName)
 

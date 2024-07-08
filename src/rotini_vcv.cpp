@@ -56,9 +56,29 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float cx = 0;
-                float cy = 0;
-                float cz = 0;
+                auto& a = inputs[A_INPUT];
+                auto& b = inputs[B_INPUT];
+                auto& c = inputs[C_OUTPUT];
+
+                float ax = a.getVoltage(0);
+                float ay = a.getVoltage(1);
+                float az = a.getVoltage(2);
+
+                float bx = b.getVoltage(0);
+                float by = b.getVoltage(1);
+                float bz = b.getVoltage(2);
+
+                const float denom = 5;      // normalize so that 5V = unity
+
+                float cx = (ay*bz - az*by) / denom;
+                float cy = (az*bx - ax*bz) / denom;
+                float cz = (ax*by - ay*bx) / denom;
+
+                c.setChannels(3);
+                c.setVoltage(cx, 0);
+                c.setVoltage(cy, 1);
+                c.setVoltage(cz, 2);
+
                 vectorSender.sendVector(cx, cy, cz, false);
             }
         };
