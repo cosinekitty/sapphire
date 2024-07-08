@@ -58,7 +58,7 @@ namespace Sapphire
             {
                 auto& a = inputs[A_INPUT];
                 auto& b = inputs[B_INPUT];
-                auto& c = inputs[C_OUTPUT];
+                auto& c = outputs[C_OUTPUT];
 
                 float ax = a.getVoltage(0);
                 float ay = a.getVoltage(1);

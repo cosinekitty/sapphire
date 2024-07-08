@@ -685,11 +685,9 @@ def GenerateRotiniPanel() -> int:
         controls.append(Component('a_input',  xmid, yRow.value(0)))
         controls.append(Component('b_input',  xmid, yRow.value(1)))
         controls.append(Component('c_output', xmid, yRow.value(NROWS-1)))
-
         pl.append(CenteredControlTextPath(font, 'A',   xmid, yRow.value(0) - dyText))
         pl.append(CenteredControlTextPath(font, 'B',   xmid, yRow.value(1) - dyText))
         pl.append(CenteredControlTextPath(font, 'A x B', xmid, yRow.value(NROWS-1) - dyText))
-        
     pl.append(controls)
     return Save(panel, svgFileName)
 
