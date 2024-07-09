@@ -675,17 +675,23 @@ def GenerateRotiniPanel() -> int:
     pl.append(defs)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    NROWS = 6
+    NROWS = 7
     yRow = FencePost(22.0, 110.0, NROWS)
     dyGrad = 6.0
-    dyText = 6.5
+    dyText = 6.0
+    dxText = 6.25
+    outputPortDY =  9.0
+    outPortY = yRow.value(NROWS-3)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('a_input',  xmid, yRow.value(0)))
         controls.append(Component('b_input',  xmid, yRow.value(1)))
-        controls.append(Component('c_output', xmid, yRow.value(NROWS-1)))
+        controls.append(Component('x_output', xmid, outPortY + 0*outputPortDY))
+        controls.append(Component('y_output', xmid, outPortY + 1*outputPortDY))
+        controls.append(Component('z_output', xmid, outPortY + 2*outputPortDY))
+        controls.append(Component('c_output', xmid, outPortY + 3*outputPortDY))
 
         y1 = yRow.value(0) - 9.5
         y2 = yRow.value(0) + dyGrad
@@ -697,14 +703,19 @@ def GenerateRotiniPanel() -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_b'))
         pl.append(ControlGroupArt(name, 'b_art', panel, y1, y2, 'gradient_b'))
 
-        y1 = yRow.value(NROWS-1) - 9.5
-        y2 = yRow.value(NROWS-1) + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
-        pl.append(ControlGroupArt(name, 'c_art', panel, y1, y2, 'gradient_c'))
+        outy1 = yRow.value(NROWS-4) + 2.0
+        outy2 = yRow.value(NROWS-1) + dyGrad
+        defs.append(Gradient(outy1, outy2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
+        pl.append(ControlGroupArt(name, 'c_art', panel, outy1, outy2, 'gradient_c'))
 
-        pl.append(CenteredControlTextPath(font, 'A',   xmid, yRow.value(0) - dyText))
-        pl.append(CenteredControlTextPath(font, 'B',   xmid, yRow.value(1) - dyText))
-        pl.append(CenteredControlTextPath(font, 'A x B', xmid, yRow.value(NROWS-1) - dyText))
+        pl.append(CenteredControlTextPath(font, 'A', xmid, yRow.value(0) - dyText))
+        pl.append(CenteredControlTextPath(font, 'B', xmid, yRow.value(1) - dyText))
+        pl.append(CenteredControlTextPath(font, 'A x B', xmid, outy1 + 3.5))
+
+        pl.append(CenteredControlTextPath(font, 'X', xmid - dxText, outPortY + 0*outputPortDY))
+        pl.append(CenteredControlTextPath(font, 'Y', xmid - dxText, outPortY + 1*outputPortDY))
+        pl.append(CenteredControlTextPath(font, 'Z', xmid - dxText, outPortY + 2*outputPortDY))
+        pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
     pl.append(controls)
     return Save(panel, svgFileName)
 

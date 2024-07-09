@@ -24,6 +24,9 @@ namespace Sapphire
         enum OutputId
         {
             C_OUTPUT,
+            X_OUTPUT,
+            Y_OUTPUT,
+            Z_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -79,6 +82,10 @@ namespace Sapphire
                 c.setVoltage(cy, 1);
                 c.setVoltage(cz, 2);
 
+                outputs[X_OUTPUT].setVoltage(cx);
+                outputs[Y_OUTPUT].setVoltage(cy);
+                outputs[Z_OUTPUT].setVoltage(cz);
+
                 vectorSender.sendVector(cx, cy, cz, false);
             }
         };
@@ -93,6 +100,9 @@ namespace Sapphire
                 addSapphireInput(A_INPUT, "a_input");
                 addSapphireInput(B_INPUT, "b_input");
                 addSapphireOutput(C_OUTPUT, "c_output");
+                addSapphireOutput(X_OUTPUT, "x_output");
+                addSapphireOutput(Y_OUTPUT, "y_output");
+                addSapphireOutput(Z_OUTPUT, "z_output");
                 reloadPanel();
             }
         };
