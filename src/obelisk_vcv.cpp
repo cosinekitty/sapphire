@@ -10,7 +10,7 @@ namespace Sapphire
 {
     namespace Obelisk
     {
-        const int NumParticles = 64;
+        const int NumParticles = 16;
         using engine_t = Engine<NumParticles>;
 
         enum ParamId
