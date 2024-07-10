@@ -9,10 +9,11 @@
 </tr>
 
 <tr valign="top">
-<td align="center">23 June 2024</td>
+<td align="center">8 July 2024</td>
 <td align="center">2.4.7</td>
 <td align="left">
     <ul>
+        <li>Added new module: Rotini. It helps create more interesting chaotic 3D vector signals for fun CV.</li>
         <li>Galaxy: added option for polyphonic stereo input to a single input port (L or R).</li>
         <li>Galaxy: auto-reset if output becomes non-finite or goes outside 100&nbsp;V absolute value.</li>
         <li>Tube Unit: [Issue #56](https://github.com/cosinekitty/sapphire/issues/56) - added support for <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>.

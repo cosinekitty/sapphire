@@ -20,6 +20,7 @@ void init(Plugin* p)
     p->addModel(modelNucleus);
     p->addModel(modelObelisk);
     p->addModel(modelPolynucleus);
+    p->addModel(modelRotini);
     p->addModel(modelTin);
     p->addModel(modelTout);
     p->addModel(modelTricorder);

@@ -107,6 +107,14 @@
       ]
     },
     {
+      "slug": "Rotini",
+      "name": "Rotini",
+      "description": "Takes the 3D vector cross product of a pair of 3D vectors.",
+      "tags": [
+        "Utility"
+      ]
+    },
+    {
       "slug": "Tin",
       "name": "Tin",
       "description": "Feeds arbitrary input signals into Tricorder.",
