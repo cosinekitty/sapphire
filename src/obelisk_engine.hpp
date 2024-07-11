@@ -78,7 +78,10 @@ namespace Sapphire
             {
                 state_vector_t state;
                 for (int i = 0; i < nparticles; ++i)
+                {
                     state.r.array[i][0] = i * InitialParticleSpacingMeters;
+                    origin[i] = state.r.array[i];
+                }
                 integrator.setState(state);
             }
 
@@ -96,26 +99,32 @@ namespace Sapphire
 
             void process(float sampleRate, float inLeft, float inRight, float& outLeft, float& outRight)
             {
-                const float drive = 1.0e-2;
+                const float drive = 0.01;
                 PhysicsVector& inL = position(0);
                 PhysicsVector& inR = position(nparticles-1);
-                inL[1] = drive * inLeft;
-                inR[1] = drive * inRight;
+
+                inL = origin[0] + (drive * inLeft)*leftDir;
+                inR = origin[nparticles-1] + (drive * inRight)*rightDir;
 
                 integrator.update(1/sampleRate, accel_lambda);
 
                 const float level = 5.0;
-                const PhysicsVector& outL = position( 4);   // FIXFIXFIX: make configurable
-                const PhysicsVector& outR = position(11);   // FIXFIXFIX: make configurable
-                outLeft  = level * (outL[0] + outL[1] + outL[2]);
-                outRight = level * (outR[0] + outR[1] + outR[2]);
+                const PhysicsVector& outL = position(indexL);
+                const PhysicsVector& outR = position(indexR);
+                outLeft  = level * Dot(leftDir,  outL - origin[indexL]);
+                outRight = level * Dot(rightDir, outR - origin[indexR]);
             }
 
         private:
+            const int indexL =  4;     // FIXFIXFIX: make configurable
+            const int indexR = 11;     // FIXFIXFIX: make configurable
             float restLength = InitialParticleSpacingMeters / 4;
             float stiffness = 1.1e+7;
             float halflife = 0.9;
+            PhysicsVector leftDir{0, 1, 0, 0};
+            PhysicsVector rightDir{0, 0, 1, 0};
 
+            PhysicsVector origin[nparticles];
             Integrator::Engine<group_vector_t> integrator;
             const Integrator::AccelerationFunction<group_vector_t> accel_lambda;
 
