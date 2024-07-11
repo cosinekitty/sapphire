@@ -788,23 +788,22 @@ static int ObeliskTest()
     if (!outwave.Open(outFileName, sampleRate, channels))
         return Fail("ObeliskTest", std::string("Could not open output file: ") + outFileName);
 
-    const int nparticles = 64;
+    const int nparticles = 16;
     Obelisk::Engine<nparticles> engine;
-
-    // Perturb the position of the input particle.
-    const int pluck = nparticles / 7;
-    engine.position(pluck)[1] = 0.012 * Obelisk::InitialParticleSpacingMeters;
-    engine.position(pluck)[2] = 0.007 * Obelisk::InitialParticleSpacingMeters;
 
     const int outputDurationSeconds = 5;
     const int outputFrames = sampleRate * outputDurationSeconds;
-    float outFrame[channels]{};
-    float ignore[2];
+    float inFrame[2];
+    float outFrame[2];
+
+    inFrame[0] = +7;
+    inFrame[1] = -3;
+    engine.process(sampleRate, inFrame[0], inFrame[1], outFrame[0], outFrame[1]);
+    inFrame[0] = inFrame[1] = 0;
+
     for (int frame = 0; frame < outputFrames; ++frame)
     {
-        engine.process(sampleRate, 0, 0, ignore[0], ignore[1]);
-        outFrame[0] = engine.position(12)[1];
-        outFrame[1] = engine.position(12)[2];
+        engine.process(sampleRate, inFrame[0], inFrame[1], outFrame[0], outFrame[1]);
         outwave.WriteSamples(outFrame, channels);
     }
 
