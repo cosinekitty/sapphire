@@ -81,8 +81,8 @@ namespace Sapphire
                 float level = 5.0;
                 const PhysicsVector& outL = engine.position( 4);
                 const PhysicsVector& outR = engine.position(11);
-                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(level * outL[1]);
-                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(level * outR[1]);
+                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(level * (outL[0] + outL[1] + outL[2]));
+                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(level * (outR[0] + outR[1] + outR[2]));
             }
         };
 
