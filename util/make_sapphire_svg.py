@@ -681,7 +681,7 @@ def GenerateRotiniPanel() -> int:
     dyText = 6.0
     dxText = 6.25
     outputPortDY =  9.0
-    outPortY = yRow.value(NROWS-3)
+    outPortY = 88.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
@@ -703,8 +703,8 @@ def GenerateRotiniPanel() -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_b'))
         pl.append(ControlGroupArt(name, 'b_art', panel, y1, y2, 'gradient_b'))
 
-        outy1 = yRow.value(NROWS-4) + 2.0
-        outy2 = yRow.value(NROWS-1) + dyGrad
+        outy1 = 76.0
+        outy2 = 113.6
         defs.append(Gradient(outy1, outy2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
         pl.append(ControlGroupArt(name, 'c_art', panel, outy1, outy2, 'gradient_c'))
 
