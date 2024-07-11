@@ -799,9 +799,10 @@ static int ObeliskTest()
     const int outputDurationSeconds = 5;
     const int outputFrames = sampleRate * outputDurationSeconds;
     float outFrame[channels]{};
+    float ignore[2];
     for (int frame = 0; frame < outputFrames; ++frame)
     {
-        engine.process(sampleRate);
+        engine.process(sampleRate, 0, 0, ignore[0], ignore[1]);
         outFrame[0] = engine.position(12)[1];
         outFrame[1] = engine.position(12)[2];
         outwave.WriteSamples(outFrame, channels);
