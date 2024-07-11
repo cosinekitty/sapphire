@@ -1,8 +1,5 @@
 name: Sapphire Tests
-on:
-  push:
-    tags-ignore:
-      - '**'
+on: [push]
 jobs:
   SapphireTest:
     runs-on: ubuntu-latest
