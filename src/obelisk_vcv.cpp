@@ -43,8 +43,6 @@ namespace Sapphire
         struct ObeliskModule : SapphireModule
         {
             engine_t engine;
-            int inputBallIndex = 3;
-            int outputBallIndex = NumParticles - (inputBallIndex+1);
 
             ObeliskModule()
                 : SapphireModule(PARAMS_LEN)
@@ -72,17 +70,19 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float drive = 3.0e-3;
-                PhysicsVector& invel = engine.velocity(inputBallIndex);
-                invel[1] += drive * inputs[LEFT_AUDIO_INPUT ].getVoltageSum();
-                invel[2] += drive * inputs[RIGHT_AUDIO_INPUT].getVoltageSum();
+                float drive = 1.0e-2;
+                PhysicsVector& inL = engine.position(0);
+                PhysicsVector& inR = engine.position(NumParticles-1);
+                inL[1] = drive * inputs[LEFT_AUDIO_INPUT ].getVoltageSum();
+                inR[1] = drive * inputs[RIGHT_AUDIO_INPUT].getVoltageSum();
 
                 engine.process(args.sampleRate);
 
-                float level = 4.5;
-                const PhysicsVector& outvel = engine.velocity(outputBallIndex);
-                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(level * outvel[1]);
-                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(level * outvel[2]);
+                float level = 5.0;
+                const PhysicsVector& outL = engine.position( 4);
+                const PhysicsVector& outR = engine.position(11);
+                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(level * outL[1]);
+                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(level * outR[1]);
             }
         };
 
