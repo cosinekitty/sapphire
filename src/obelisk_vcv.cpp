@@ -70,19 +70,12 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float drive = 1.0e-2;
-                PhysicsVector& inL = engine.position(0);
-                PhysicsVector& inR = engine.position(NumParticles-1);
-                inL[1] = drive * inputs[LEFT_AUDIO_INPUT ].getVoltageSum();
-                inR[1] = drive * inputs[RIGHT_AUDIO_INPUT].getVoltageSum();
-
-                engine.process(args.sampleRate);
-
-                float level = 5.0;
-                const PhysicsVector& outL = engine.position( 4);
-                const PhysicsVector& outR = engine.position(11);
-                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(level * (outL[0] + outL[1] + outL[2]));
-                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(level * (outR[0] + outR[1] + outR[2]));
+                float inL = inputs[LEFT_AUDIO_INPUT ].getVoltageSum();
+                float inR = inputs[RIGHT_AUDIO_INPUT].getVoltageSum();
+                float outL{}, outR{};
+                engine.process(args.sampleRate, inL, inR, outL, outR);
+                outputs[LEFT_AUDIO_OUTPUT ].setVoltage(outL);
+                outputs[RIGHT_AUDIO_OUTPUT].setVoltage(outR);
             }
         };
 

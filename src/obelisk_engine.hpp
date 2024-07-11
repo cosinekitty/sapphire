@@ -94,9 +94,21 @@ namespace Sapphire
                 return integrator.state.v.array[index];
             }
 
-            void process(float sampleRate)
+            void process(float sampleRate, float inLeft, float inRight, float& outLeft, float& outRight)
             {
+                const float drive = 1.0e-2;
+                PhysicsVector& inL = position(0);
+                PhysicsVector& inR = position(nparticles-1);
+                inL[1] = drive * inLeft;
+                inR[1] = drive * inRight;
+
                 integrator.update(1/sampleRate, accel_lambda);
+
+                const float level = 5.0;
+                const PhysicsVector& outL = position( 4);   // FIXFIXFIX: make configurable
+                const PhysicsVector& outR = position(11);   // FIXFIXFIX: make configurable
+                outLeft  = level * (outL[0] + outL[1] + outL[2]);
+                outRight = level * (outR[0] + outR[1] + outR[2]);
             }
 
         private:
