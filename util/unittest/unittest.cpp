@@ -814,43 +814,28 @@ static int ObeliskTest()
 }
 
 
-static int PivotTest()
+static int TryPivot(float steps, float x, float y, float z)
 {
-    using namespace Sapphire;
-
     const float tolerance = 1.1e-7;
 
-    // Verify that 2pi*n radians selects from n=0 for x, n=1 for y, n=2 for z.
-
-    PhysicsVector xAxis = Obelisk::PivotAxis(0);
-    float dx = xAxis[0] - 1;
-    float dy = xAxis[1] - 0;
-    float dz = xAxis[2] - 0;
+    Sapphire::PhysicsVector vec = Sapphire::Obelisk::PivotAxis(steps);
+    float dx = vec[0] - x;
+    float dy = vec[1] - y;
+    float dz = vec[2] - z;
     float ds = std::sqrt(dx*dx + dy*dy + dz*dz);
-    printf("PivotTest: X ds = %g\n", ds);
+    printf("TryPivot(steps=%0.1f) ds=%g, vec=(%0.6f, %0.6f, %0.6f)\n", steps, ds, vec[0], vec[1], vec[2]);
     if (ds > tolerance)
-        return Fail("PivotTest", "EXCESSIVE X-AXIS ERROR (ds)");
+        return Fail("TryPivot", "EXCESSIVE ERROR");
+    return 0;
+}
 
-    PhysicsVector yAxis = Obelisk::PivotAxis(1);
-    dx = yAxis[0] - 0;
-    dy = yAxis[1] - 1;
-    dz = yAxis[2] - 0;
-    ds = std::sqrt(dx*dx + dy*dy + dz*dz);
-    printf("PivotTest: Y ds = %g\n", ds);
-    if (ds > tolerance)
-        return Fail("PivotTest", "EXCESSIVE Y-AXIS ERROR (ds)");
 
-    PhysicsVector zAxis = Obelisk::PivotAxis(2);
-    dx = zAxis[0] - 0;
-    dy = zAxis[1] - 0;
-    dz = zAxis[2] - 1;
-    ds = std::sqrt(dx*dx + dy*dy + dz*dz);
-    printf("PivotTest: Z ds = %g\n", ds);
-    if (ds > tolerance)
-        return Fail("PivotTest", "EXCESSIVE Z-AXIS ERROR (ds)");
-
-    PhysicsVector vec = Obelisk::PivotAxis(0.5f);
-    printf("PivotTest: vec = (%0.6f, %0.6f, %0.6f)\n", vec[0], vec[1], vec[2]);
-
-    return Pass("PivotTest");
+static int PivotTest()
+{
+    return
+        TryPivot(0, 1, 0, 0) ||
+        TryPivot(1, 0, 1, 0) ||
+        TryPivot(2, 0, 0, 1) ||
+        TryPivot(0.5, 2.0/3, 2.0/3, -1.0/3) ||
+        Pass("PivotTest");
 }
