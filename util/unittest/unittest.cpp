@@ -822,8 +822,7 @@ static int PivotTest()
 
     // Verify that 2pi*n radians selects from n=0 for x, n=1 for y, n=2 for z.
 
-    float radians = (0*M_PI) / 3;
-    PhysicsVector xAxis = Obelisk::PivotAxis(radians);
+    PhysicsVector xAxis = Obelisk::PivotAxis(0);
     float dx = xAxis[0] - 1;
     float dy = xAxis[1] - 0;
     float dz = xAxis[2] - 0;
@@ -832,8 +831,7 @@ static int PivotTest()
     if (ds > tolerance)
         return Fail("PivotTest", "EXCESSIVE X-AXIS ERROR (ds)");
 
-    radians = (2*M_PI) / 3;
-    PhysicsVector yAxis = Obelisk::PivotAxis(radians);
+    PhysicsVector yAxis = Obelisk::PivotAxis(1);
     dx = yAxis[0] - 0;
     dy = yAxis[1] - 1;
     dz = yAxis[2] - 0;
@@ -842,8 +840,7 @@ static int PivotTest()
     if (ds > tolerance)
         return Fail("PivotTest", "EXCESSIVE Y-AXIS ERROR (ds)");
 
-    radians = (4*M_PI) / 3;
-    PhysicsVector zAxis = Obelisk::PivotAxis(radians);
+    PhysicsVector zAxis = Obelisk::PivotAxis(2);
     dx = zAxis[0] - 0;
     dy = zAxis[1] - 0;
     dz = zAxis[2] - 1;
@@ -851,6 +848,9 @@ static int PivotTest()
     printf("PivotTest: Z ds = %g\n", ds);
     if (ds > tolerance)
         return Fail("PivotTest", "EXCESSIVE Z-AXIS ERROR (ds)");
+
+    PhysicsVector vec = Obelisk::PivotAxis(0.5f);
+    printf("PivotTest: vec = (%0.6f, %0.6f, %0.6f)\n", vec[0], vec[1], vec[2]);
 
     return Pass("PivotTest");
 }

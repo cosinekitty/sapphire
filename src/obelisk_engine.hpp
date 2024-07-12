@@ -14,8 +14,18 @@ namespace Sapphire
 {
     namespace Obelisk
     {
-        inline PhysicsVector PivotAxis(float radians)
+        // PivotAxis returns a unit vector.
+        // If `steps` has an integer value, the vector points in
+        // the direction of the positive x, y, or z axis, depending on
+        // the mod 3 value of `steps`:
+        //      0 = x
+        //      1 = y
+        //      2 = z
+        // Increasing the real value of `steps` sweeps though a cone shape
+        // that passes through all 3 axes.
+        inline PhysicsVector PivotAxis(float steps)
         {
+            const float radians = ((2*M_PI)/3) * steps;
             const float C = std::cos(radians);
             const float A = (1 - C) / 3;
             const float three = 3;  // explicitly state type `float` to sidestep optimizations in Cardinal/ARM
