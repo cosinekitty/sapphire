@@ -14,6 +14,15 @@ namespace Sapphire
 {
     namespace Obelisk
     {
+        inline PhysicsVector PivotAxis(float radians)
+        {
+            const float C = std::cos(radians);
+            const float A = (1 - C) / 3;
+            const float three = 3;  // explicitly state type `float` to sidestep optimizations in Cardinal/ARM
+            const float B = std::sin(radians) / std::sqrt(three);
+            return PhysicsVector{C+A, A+B, A-B, 0};
+        }
+
         const float InitialParticleSpacingMeters = 1.0e-3;
 
         template <int nparticles>

@@ -39,6 +39,7 @@ static int TaperTest();
 static int QuadraticTest();
 static int GalaxyTest();
 static int ObeliskTest();
+static int PivotTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -51,6 +52,7 @@ static const UnitTest CommandTable[] =
     { "quad",       QuadraticTest       },
     { "readwave",   ReadWave            },
     { "scale",      AutoScale           },
+    { "pivot",      PivotTest           },
     { "taper",      TaperTest           },
     { nullptr,      nullptr             }
 };
@@ -809,4 +811,46 @@ static int ObeliskTest()
 
     outwave.Close();
     return Pass("ObeliskTest");
+}
+
+
+static int PivotTest()
+{
+    using namespace Sapphire;
+
+    const float tolerance = 1.1e-7;
+
+    // Verify that 2pi*n radians selects from n=0 for x, n=1 for y, n=2 for z.
+
+    float radians = (0*M_PI) / 3;
+    PhysicsVector xAxis = Obelisk::PivotAxis(radians);
+    float dx = xAxis[0] - 1;
+    float dy = xAxis[1] - 0;
+    float dz = xAxis[2] - 0;
+    float ds = std::sqrt(dx*dx + dy*dy + dz*dz);
+    printf("PivotTest: X ds = %g\n", ds);
+    if (ds > tolerance)
+        return Fail("PivotTest", "EXCESSIVE X-AXIS ERROR (ds)");
+
+    radians = (2*M_PI) / 3;
+    PhysicsVector yAxis = Obelisk::PivotAxis(radians);
+    dx = yAxis[0] - 0;
+    dy = yAxis[1] - 1;
+    dz = yAxis[2] - 0;
+    ds = std::sqrt(dx*dx + dy*dy + dz*dz);
+    printf("PivotTest: Y ds = %g\n", ds);
+    if (ds > tolerance)
+        return Fail("PivotTest", "EXCESSIVE Y-AXIS ERROR (ds)");
+
+    radians = (4*M_PI) / 3;
+    PhysicsVector zAxis = Obelisk::PivotAxis(radians);
+    dx = zAxis[0] - 0;
+    dy = zAxis[1] - 0;
+    dz = zAxis[2] - 1;
+    ds = std::sqrt(dx*dx + dy*dy + dz*dz);
+    printf("PivotTest: Z ds = %g\n", ds);
+    if (ds > tolerance)
+        return Fail("PivotTest", "EXCESSIVE Z-AXIS ERROR (ds)");
+
+    return Pass("PivotTest");
 }
