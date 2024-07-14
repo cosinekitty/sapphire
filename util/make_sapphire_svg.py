@@ -766,7 +766,7 @@ def GeneratePivotPanel() -> int:
         pl.append(CenteredControlTextPath(font, 'A', xmid, yRow.value(0) - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, outy1 + 3.5))
 
-        AddControlGroup(pl, controls, font, 'angle', 'ANGLE', xmid, 40.0, 5.5)
+        AddControlGroup(pl, controls, font, 'twist', 'TWIST', xmid, 40.0, 5.5)
 
         pl.append(CenteredControlTextPath(font, 'X', xmid - dxText, outPortY + 0*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'Y', xmid - dxText, outPortY + 1*outputPortDY))

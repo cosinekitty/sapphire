@@ -11,12 +11,16 @@ namespace Sapphire
     {
         enum ParamId
         {
+            TWIST_PARAM,
+            TWIST_ATTEN,
+
             PARAMS_LEN
         };
 
         enum InputId
         {
             A_INPUT,
+            TWIST_INPUT,
 
             INPUTS_LEN
         };
@@ -36,6 +40,8 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+        const float MIN_TWIST = -3;
+        const float MAX_TWIST = +3;
 
         struct PivotModule : SapphireModule
         {
@@ -48,6 +54,11 @@ namespace Sapphire
                 configOutput(Y_OUTPUT, "Y");
                 configOutput(Z_OUTPUT, "Z");
                 configOutput(C_OUTPUT, "Polyphonic (X, Y, Z)");
+
+                configParam(TWIST_PARAM, MIN_TWIST, MAX_TWIST, 0, "Twist");
+                configParam(TWIST_ATTEN, -1, +1, 0, "Twist attenuverter", "%", 0, 100);
+                configInput(TWIST_INPUT, "Twist CV");
+
                 initialize();
             }
 
@@ -71,8 +82,8 @@ namespace Sapphire
                 float az = a.getVoltage(2);
                 PhysicsVector inVec{ax, ay, az, 0};
 
-                float steps = 1;
-                RotationMatrix rot = PivotAxes(steps);
+                float twist = getControlValue(TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT, MIN_TWIST, MAX_TWIST);
+                RotationMatrix rot = PivotAxes(twist);
 
                 float cx = Dot(inVec, rot.xAxis);
                 float cy = Dot(inVec, rot.yAxis);
@@ -103,6 +114,7 @@ namespace Sapphire
                 addSapphireOutput(X_OUTPUT, "x_output");
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
+                addSapphireControlGroup("twist", TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT);
                 reloadPanel();
             }
         };
