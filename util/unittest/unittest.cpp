@@ -37,6 +37,7 @@ static int InterpolatorTest();
 static int TaperTest();
 static int QuadraticTest();
 static int GalaxyTest();
+static int PivotTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -45,6 +46,7 @@ static const UnitTest CommandTable[] =
     { "delay",      DelayLineTest },
     { "galaxy",     GalaxyTest },
     { "interp",     InterpolatorTest },
+    { "pivot",      PivotTest },
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
@@ -772,3 +774,32 @@ static int GalaxyTest()
         GalaxyTest_Genesis() ||
         Pass("GalaxyTest");
 }
+
+
+
+static int TryPivot(float steps, float x, float y, float z)
+{
+    const float tolerance = 1.1e-7;
+
+    Sapphire::PhysicsVector vec = Sapphire::PivotAxis(steps);
+    float dx = vec[0] - x;
+    float dy = vec[1] - y;
+    float dz = vec[2] - z;
+    float ds = std::sqrt(dx*dx + dy*dy + dz*dz);
+    printf("TryPivot(steps=%0.1f) ds=%g, vec=(%0.6f, %0.6f, %0.6f)\n", steps, ds, vec[0], vec[1], vec[2]);
+    if (ds > tolerance)
+        return Fail("TryPivot", "EXCESSIVE ERROR");
+    return 0;
+}
+
+
+static int PivotTest()
+{
+    return
+        TryPivot(0, 1, 0, 0) ||
+        TryPivot(1, 0, 1, 0) ||
+        TryPivot(2, 0, 0, 1) ||
+        TryPivot(0.5, 2.0/3, 2.0/3, -1.0/3) ||
+        Pass("PivotTest");
+}
+
