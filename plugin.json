@@ -86,6 +86,14 @@
       ]
     },
     {
+      "slug": "Pivot",
+      "name": "Pivot",
+      "description": "Rotates a 3D vector around axis-cycling vector (1,1,1).",
+      "tags": [
+        "Utility"
+      ]
+    },
+    {
       "slug": "Polynucleus",
       "name": "Polynucleus",
       "description": "Simulation of a cloud of particles with mutually attractive, repulsive, and orthogonal forces.",
