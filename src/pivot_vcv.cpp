@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_simd.hpp"
 
 // Sapphire Pivot for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -68,12 +69,14 @@ namespace Sapphire
                 float ax = a.getVoltage(0);
                 float ay = a.getVoltage(1);
                 float az = a.getVoltage(2);
+                PhysicsVector inVec{ax, ay, az, 0};
 
-                //const float denom = 5;      // normalize so that 5V = unity
+                float steps = 1;
+                RotationMatrix rot = PivotAxes(steps);
 
-                float cx = ay;      // FIXFIXFIX
-                float cy = az;
-                float cz = ax;
+                float cx = Dot(inVec, rot.xAxis);
+                float cy = Dot(inVec, rot.yAxis);
+                float cz = Dot(inVec, rot.zAxis);
 
                 c.setChannels(3);
                 c.setVoltage(cx, 0);
