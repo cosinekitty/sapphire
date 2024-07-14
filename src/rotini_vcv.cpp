@@ -43,7 +43,12 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-
+                configInput(A_INPUT, "A");
+                configInput(B_INPUT, "B");
+                configOutput(X_OUTPUT, "X");
+                configOutput(Y_OUTPUT, "Y");
+                configOutput(Z_OUTPUT, "Z");
+                configOutput(C_OUTPUT, "Polyphonic (X, Y, Z)");
                 initialize();
             }
 
