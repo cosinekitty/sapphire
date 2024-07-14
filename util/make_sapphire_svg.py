@@ -753,8 +753,9 @@ def GeneratePivotPanel() -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_a'))
         pl.append(ControlGroupArt(name, 'a_art', panel, y1, y2, 'gradient_a'))
 
-        y1 = yRow.value(1) - 9.5
-        y2 = yRow.value(1) + dyGrad
+        yTwist = 57.0
+        y1 = yTwist - 13.0
+        y2 = yTwist + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_b'))
         pl.append(ControlGroupArt(name, 'b_art', panel, y1, y2, 'gradient_b'))
 
@@ -763,10 +764,10 @@ def GeneratePivotPanel() -> int:
         defs.append(Gradient(outy1, outy2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
         pl.append(ControlGroupArt(name, 'c_art', panel, outy1, outy2, 'gradient_c'))
 
-        pl.append(CenteredControlTextPath(font, 'A', xmid, yRow.value(0) - dyText))
+        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yRow.value(0) - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, outy1 + 3.5))
 
-        AddControlGroup(pl, controls, font, 'twist', 'TWIST', xmid, 40.0, 5.5)
+        AddControlGroup(pl, controls, font, 'twist', 'TWIST', xmid, yTwist, 5.5)
 
         pl.append(CenteredControlTextPath(font, 'X', xmid - dxText, outPortY + 0*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'Y', xmid - dxText, outPortY + 1*outputPortDY))
