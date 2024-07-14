@@ -89,6 +89,18 @@ The output can be used for control voltages or audio signals.
 
 ---
 
+## Pivot
+
+Twists an input 3D vector by a CV-adjustable angle.
+Pivot is useful in combination with [Frolic](Frolic.md), [Glee](Glee.md), and [Rotini](Rotini.md)
+to create novel chaotic control signals for modulating generative movement in your patches.
+
+<a href="Pivot.md">Sapphire Pivot documentation</a>
+
+<a href="Pivot.md"><img src="images/pivot.png" /></a>
+
+---
+
 ## Polynucleus
 
 Just like Nucleus, only with a single polyphonic port
