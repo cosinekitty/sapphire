@@ -731,8 +731,7 @@ def GeneratePivotPanel() -> int:
     pl.append(defs)
     controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    NROWS = 7
-    yRow = FencePost(22.0, 110.0, NROWS)
+    yRow = 22.0
     dyGrad = 6.0
     dyText = 6.0
     dxText = 6.25
@@ -742,14 +741,14 @@ def GeneratePivotPanel() -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('a_input',  xmid, yRow.value(0)))
+        controls.append(Component('a_input',  xmid, yRow))
         controls.append(Component('x_output', xmid, outPortY + 0*outputPortDY))
         controls.append(Component('y_output', xmid, outPortY + 1*outputPortDY))
         controls.append(Component('z_output', xmid, outPortY + 2*outputPortDY))
         controls.append(Component('c_output', xmid, outPortY + 3*outputPortDY))
 
-        y1 = yRow.value(0) - 9.5
-        y2 = yRow.value(0) + dyGrad
+        y1 = yRow - 9.5
+        y2 = yRow + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_a'))
         pl.append(ControlGroupArt(name, 'a_art', panel, y1, y2, 'gradient_a'))
 
@@ -764,7 +763,7 @@ def GeneratePivotPanel() -> int:
         defs.append(Gradient(outy1, outy2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_c'))
         pl.append(ControlGroupArt(name, 'c_art', panel, outy1, outy2, 'gradient_c'))
 
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yRow.value(0) - dyText))
+        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yRow - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, outy1 + 3.5))
 
         AddControlGroup(pl, controls, font, 'twist', 'TWIST', xmid, yTwist, 5.5)
