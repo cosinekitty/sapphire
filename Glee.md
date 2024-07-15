@@ -4,6 +4,12 @@
 
 Glee is a low frequency (and ultra-low frequency) chaotic oscillator.
 
+### Demo video
+
+[Omri Cohen](https://omricohen-music.com/) gives a tutorial of using Frolic and Glee to generate chaotic modulation:
+
+[![Composing with Chaos video](https://img.youtube.com/vi/OxAhUkqFE5c/0.jpg)](https://www.youtube.com/watch?v=OxAhUkqFE5c)
+
 ### Mathematical basis
 
 Glee is based on the [Aizawa Attractor](http://www.3d-meier.de/tut19/Seite3.html),
