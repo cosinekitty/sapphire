@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">15 July 2024</td>
+<td align="center">2.4.8</td>
+<td align="left">
+    <ul>
+        <li>Added new module: <a href="Pivot.md">Pivot</a> for helping create new 3D chaotic oscillators.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">8 July 2024</td>
 <td align="center">2.4.7</td>
 <td align="left">
