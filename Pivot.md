@@ -13,6 +13,7 @@ movement in your patches.
 Pivot receives a 3D vector through the input port labeled `IN`.
 A connected cable should usually be polyphonic with 3 channels,
 but any missing channels will default to zero volts.
+Any channels beyond the first three will be ignored.
 When no cable is connect to `IN`, the input is treated as (0,&nbsp;0,&nbsp;0).
 The 3 voltages represent the coordinates of a vector in 3D space.
 
