@@ -5,7 +5,8 @@
 Pivot receives a 3D input vector, twists it by a CV-adjustable angle,
 and outputs the result as another 3D vector.
 This module, in combination with [Frolic](Frolic.md), [Glee](Glee.md), and [Rotini](Rotini.md),
-can create novel chaotic control signals for modulating generative movement in your patches.
+can create an umlimited number of chaotic control signals for modulating generative
+movement in your patches.
 
 ## Input port
 
@@ -19,8 +20,8 @@ The 3 voltages represent the coordinates of a vector in 3D space.
 
 Pivot rotates the coordinate frame around the diagonal axis that passes
 through both (0,&nbsp;0,&nbsp;0) and (1,&nbsp;1,&nbsp;1). This axis was chosen because it
-provides the ability to perform axis swapping: the point (x,&nbsp;y,&nbsp;z) can
-be replaced with (y,&nbsp;z,&nbsp;x) or (z,&nbsp;x,&nbsp;y) when the twist angle is 120&deg; or 240&deg; respectively.
+cycles through the coordinate axes using the right-hand rule:
+the point (x,&nbsp;y,&nbsp;z) can be replaced with (y,&nbsp;z,&nbsp;x) or (z,&nbsp;x,&nbsp;y) when the twist angle is 120&deg; or 240&deg; respectively.
 There is a continuum of other orientations for angles between these values.
 
 ## Twist angle
@@ -43,17 +44,16 @@ Here are examples of output vectors for different integer TWIST values:
 * +2 &rarr; (z, x, y)
 * +3 &rarr; (x, y, z)
 
-## Vector graphing with Tricorder
-
-You can place a [Tricorder](Tricorder.md) immediately to the right of a Pivot to graph
-Pivot's output. Having a 3D oscilloscope helps you better understand your signal as you
-tweak patch settings.
-
-![Pivot graphed by Tricorder](images/pivot_tricorder.png)
-
 ## Output ports
 
 The output of Pivot is a 3D vector, provided two ways:
 
 * The monophonic outputs `X`, `Y`, and `Z`.
 * The 3-channel polyphonic output `P` in the format `(X, Y, Z)`.
+
+## Vector graphing with Tricorder
+
+You can place a [Tricorder](Tricorder.md) immediately to the right of a Pivot to graph
+its output. Having a 3D oscilloscope helps you better understand the signal.
+
+![Pivot graphed by Tricorder](images/pivot_tricorder.png)
