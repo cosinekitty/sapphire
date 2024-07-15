@@ -178,10 +178,13 @@ namespace Sapphire
 
     inline RotationMatrix PivotAxes(float steps)
     {
+        PhysicsVector x = PivotAxis(steps + 0);
+        PhysicsVector y = PivotAxis(steps + 1);
+        PhysicsVector z = PivotAxis(steps + 2);
         return RotationMatrix {
-            PivotAxis(steps + 0),   // rotated x-axis unit vector
-            PivotAxis(steps + 1),   // rotated y-axis unit vector
-            PivotAxis(steps + 2)    // rotated z-axis unit vector
+            PhysicsVector{x[0], y[0], z[0], 0},   // rotated x-axis unit vector
+            PhysicsVector{x[1], y[1], z[1], 0},   // rotated y-axis unit vector
+            PhysicsVector{x[2], y[2], z[2], 0}    // rotated z-axis unit vector
         };
     }
 

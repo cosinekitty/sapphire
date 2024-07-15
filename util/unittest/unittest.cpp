@@ -2,6 +2,7 @@
 #include <cstring>
 #include <memory>
 #include <random>
+#include <string>
 #include "sapphire_engine.hpp"
 #include "galaxy_engine.hpp"
 #include "wavefile.hpp"
@@ -793,6 +794,32 @@ static int TryPivot(float steps, float x, float y, float z)
 }
 
 
+static int TryAxes(
+    float steps,
+    float xx, float xy, float xz)
+{
+    using namespace Sapphire;
+
+    const float tolerance = 1.5e-7;
+
+    RotationMatrix rot = PivotAxes(steps);
+    PhysicsVector xAxis{1, 0, 0, 0};
+    float x = Dot(xAxis, rot.xAxis);
+    float y = Dot(xAxis, rot.yAxis);
+    float z = Dot(xAxis, rot.zAxis);
+
+    float dx = x - xx;
+    float dy = y - xy;
+    float dz = z - xz;
+    float ds = std::sqrt(dx*dx + dy*dy + dz*dz);
+
+    printf("TryAxes(%f): x=%f, y=%f, z=%f, ds=%g\n", steps, x, y, z, ds);
+    if (ds > tolerance)
+        return Fail("TryAxes", "EXCESSIVE ERROR");
+    return 0;
+}
+
+
 static int PivotTest()
 {
     return
@@ -800,6 +827,13 @@ static int PivotTest()
         TryPivot(1, 0, 1, 0) ||
         TryPivot(2, 0, 0, 1) ||
         TryPivot(0.5, 2.0/3, 2.0/3, -1.0/3) ||
+        TryAxes(-3, 1,0,0) ||
+        TryAxes(-2, 0,1,0) ||
+        TryAxes(-1, 0,0,1) ||
+        TryAxes( 0, 1,0,0) ||
+        TryAxes(+1, 0,1,0) ||
+        TryAxes(+2, 0,0,1) ||
+        TryAxes(+3, 1,0,0) ||
         Pass("PivotTest");
 }
 
