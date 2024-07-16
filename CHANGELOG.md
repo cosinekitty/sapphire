@@ -14,6 +14,7 @@
 <td align="left">
     <ul>
         <li>Added new module: <a href="Pivot.md">Pivot</a> for helping create new 3D chaotic oscillators.</li>
+        <li><a href="Rotini.md">Rotini</a>: added missing help text for ports.</li>
     </ul>
 </td>
 </tr>

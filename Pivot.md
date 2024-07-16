@@ -5,7 +5,7 @@
 Pivot receives a 3D input vector, twists it by a CV-adjustable angle,
 and outputs the result as another 3D vector.
 This module, in combination with [Frolic](Frolic.md), [Glee](Glee.md), and [Rotini](Rotini.md),
-can create an umlimited number of chaotic control signals for modulating generative
+can create an unlimited number of chaotic control signals for modulating generative
 movement in your patches.
 
 ## Input port
