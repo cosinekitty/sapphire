@@ -53,6 +53,7 @@ namespace Sapphire
         struct ChaosModule : SapphireModule
         {
             circuit_t circuit;
+            bool turboMode = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN)
@@ -79,6 +80,7 @@ namespace Sapphire
             void initialize()
             {
                 circuit.initialize();
+                turboMode = false;
             }
 
             void onReset(const ResetEvent& e) override
@@ -87,11 +89,27 @@ namespace Sapphire
                 initialize();
             }
 
+            json_t* dataToJson() override
+            {
+                json_t *root = SapphireModule::dataToJson();
+                json_object_set_new(root, "turboMode", json_boolean(turboMode));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                json_t* flag = json_object_get(root, "turboMode");
+                turboMode = json_is_true(flag);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                 circuit.setKnob(chaos);
                 float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
+                if (turboMode)
+                    speed += 5;
                 double dt = args.sampleTime * std::pow(2.0f, speed);
                 circuit.update(dt);
                 outputs[X_OUTPUT].setVoltage(circuit.vx());
@@ -109,8 +127,11 @@ namespace Sapphire
         template <typename module_t>
         struct ChaosWidget : SapphireReloadableModuleWidget
         {
+            module_t *chaosModule;
+
             ChaosWidget(module_t* module, const char *panelSvgFileName)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, panelSvgFileName))
+                , chaosModule(module)
             {
                 setModule(module);
 
@@ -130,6 +151,27 @@ namespace Sapphire
 
                 // Load the SVG and place all controls at their correct coordinates.
                 reloadPanel();
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (chaosModule == nullptr)
+                    return;
+
+                menu->addChild(new MenuSeparator);
+
+                menu->addChild(createBoolMenuItem(
+                    "Turbo mode (WARNING: uses more CPU)",
+                    "",
+                    [=]()
+                    {
+                        return chaosModule->turboMode;
+                    },
+                    [=](bool state)
+                    {
+                        chaosModule->turboMode = state;
+                    }
+                ));
             }
         };
     }
