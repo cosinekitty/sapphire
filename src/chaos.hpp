@@ -125,6 +125,7 @@ namespace Sapphire
             x1 = x0;
             y1 = y0;
             z1 = z0;
+            mode = 0;
         }
 
         void setKnob(double k)
