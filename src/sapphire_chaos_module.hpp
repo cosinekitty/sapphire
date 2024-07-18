@@ -161,7 +161,7 @@ namespace Sapphire
                 menu->addChild(new MenuSeparator);
 
                 menu->addChild(createBoolMenuItem(
-                    "Turbo mode (WARNING: uses more CPU)",
+                    "Turbo mode: +5 speed bonus (WARNING: uses more CPU)",
                     "",
                     [=]()
                     {
