@@ -580,31 +580,31 @@ static int QuadraticTest()
 }
 
 
-static int CheckLimits(const Sapphire::ChaoticOscillator& osc)
+static int CheckLimits(const Sapphire::ChaoticOscillator& osc, double range)
 {
     double x = osc.vx();
     double y = osc.vy();
     double z = osc.vz();
-    if (!std::isfinite(x) || std::abs(x) > Sapphire::CHAOS_AMPLITUDE)
+    if (!std::isfinite(x) || std::abs(x) > range)
     {
-        printf("x is out of bounds: %lg\n", x);
+        printf("x is out of bounds: %lg is beyond limit %lg\n", x, range);
         return 1;
     }
-    if (!std::isfinite(y) || std::abs(y) > Sapphire::CHAOS_AMPLITUDE)
+    if (!std::isfinite(y) || std::abs(y) > range)
     {
-        printf("y is out of bounds: %lg\n", y);
+        printf("y is out of bounds: %lg is beyond limit %lg\n", y, range);
         return 1;
     }
-    if (!std::isfinite(z) || std::abs(z) > Sapphire::CHAOS_AMPLITUDE)
+    if (!std::isfinite(z) || std::abs(z) > range)
     {
-        printf("z is out of bounds: %lg\n", z);
+        printf("z is out of bounds: %lg is beyond limit %lg\n", z, range);
         return 1;
     }
     return 0;
 }
 
 
-static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name)
+static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name, double range = Sapphire::CHAOS_AMPLITUDE)
 {
     printf("RangeTest(%s): starting\n", name);
 
@@ -625,13 +625,13 @@ static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name)
     for (long i = 0; i < SETTLE_SAMPLES; ++i)
     {
         osc.update(dt);
-        if (CheckLimits(osc)) return 1;
+        if (CheckLimits(osc, range)) return 1;
     }
 
     for (long i = 0; i < SIM_SAMPLES; ++i)
     {
         osc.update(dt);
-        if (CheckLimits(osc)) return 1;
+        if (CheckLimits(osc, range)) return 1;
         if (i == 0)
         {
             xMin = xMax = osc.vx();
@@ -663,11 +663,25 @@ static int ChaosTest()
     Sapphire::Rucklidge ruck;
     ruck.setKnob(+1.0);     // maximum chaos and maximum range
 
-    Sapphire::Aizawa aiza;
+    Sapphire::Aizawa aiza_subtle;
+
+    int mc = aiza_subtle.getModeCount();
+    printf("ChaosTest: Aizawa mode count = %d\n", mc);
+    if (mc != 2)
+        return Fail("ChaosTest", "INCORRECT MODE COUNT");
+
+    if (aiza_subtle.getMode() != 0)
+        return Fail("ChaosTest", std::string("aiza_subtle mode must be zero, not " + std::to_string(aiza_subtle.getMode())));
+
+    Sapphire::Aizawa aiza_islands;
+    int checkMode = aiza_islands.setMode(1);
+    if (checkMode != 1)
+        return Fail("ChaosTest", "aiza_islands: incorrect mode after trying to set to 1");
 
     return
         RangeTest(ruck, "Rucklidge") ||
-        RangeTest(aiza, "Aizawa") ||
+        RangeTest(aiza_subtle,  "Aizawa_Subtle") ||
+        RangeTest(aiza_islands, "Aizawa_Islands", 5.3) ||
         Pass("ChaosTest");
 }
 
