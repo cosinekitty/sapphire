@@ -93,14 +93,20 @@ namespace Sapphire
             {
                 json_t *root = SapphireModule::dataToJson();
                 json_object_set_new(root, "turboMode", json_boolean(turboMode));
+                json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+
                 json_t* flag = json_object_get(root, "turboMode");
                 turboMode = json_is_true(flag);
+
+                json_t* mode = json_object_get(root, "chaosMode");
+                if (json_is_integer(mode))
+                    circuit.setMode(json_integer_value(mode));
             }
 
             void process(const ProcessArgs& args) override
@@ -172,6 +178,25 @@ namespace Sapphire
                         chaosModule->turboMode = state;
                     }
                 ));
+
+                // If this chaos module supports multiple parameter modes,
+                // enumerate them now as menu options.
+                const int numModes = chaosModule->circuit.getModeCount();
+                if (numModes > 1)
+                {
+                    menu->addChild(new MenuSeparator);
+
+                    std::vector<std::string> labels;
+                    for (int mode = 0; mode < numModes; ++mode)
+                        labels.push_back(chaosModule->circuit.getModeName(mode));
+
+                    menu->addChild(createIndexSubmenuItem(
+                        "Chaos mode",
+                        labels,
+                        [=]() { return chaosModule->circuit.getMode(); },
+                        [=](size_t mode) { chaosModule->circuit.setMode(mode); }
+                    ));
+                }
             }
         };
     }

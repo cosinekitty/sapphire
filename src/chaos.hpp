@@ -52,6 +52,8 @@ namespace Sapphire
     {
     protected:
         double knob = 0.0;
+        int mode = 0;
+
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
     private:
@@ -136,6 +138,29 @@ namespace Sapphire
             knob = std::clamp(k, minKnob, maxKnob);
         }
 
+        virtual int getModeCount() const
+        {
+            return 1;
+        }
+
+        virtual const char* getModeName(int m) const
+        {
+            return "Default";
+        }
+
+        int getMode() const
+        {
+            return mode;
+        }
+
+        int setMode(int m)
+        {
+            int count = getModeCount();
+            if (count > 0)
+                mode = std::clamp(m, 0, count-1);
+            return mode;
+        }
+
         // Scaled values...
         double vx() const { return Remap(x1, xmin, xmax); }
         double vy() const { return Remap(y1, ymin, ymax); }
@@ -182,16 +207,22 @@ namespace Sapphire
     class Aizawa : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite3.html
     {
     private:
-        const double a = 0.95;
         const double b = 0.69535;
         const double d = 3.5;
         const double e = 0.25;
         const double f = 0.1;
 
+        const double aMin = 0.92;
+        const double aMax = 1.03;
+
+        const double cMin = 0.5941;
+        const double cMax = 0.6117;
+
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
-            const double c = KnobValue(knob, 0.5941, 0.6117);
+            const double a = KnobValue((mode==1) ? knob : 0.0, aMin, aMax);
+            const double c = KnobValue((mode==0) ? knob : 0.0, cMin, cMax);
             return SlopeVector(
                 (z-b)*x - d*y,
                 d*x + (z-b)*y,
@@ -208,5 +239,20 @@ namespace Sapphire
                 -1.46, +1.54,
                 -0.39, +1.86)
             {}
+
+        int getModeCount() const override
+        {
+            return 2;
+        }
+
+        const char* getModeName(int m) const override
+        {
+            switch (m)
+            {
+            case 0: return "Subtle";
+            case 1: return "Islands of Stability";
+            default: return "INVALID_MODE";
+            }
+        }
     };
 }
