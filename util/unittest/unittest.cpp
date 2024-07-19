@@ -604,9 +604,32 @@ static int CheckLimits(const Sapphire::ChaoticOscillator& osc, double range)
 }
 
 
-static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name, double range = Sapphire::CHAOS_AMPLITUDE)
+static int SetMode(Sapphire::ChaoticOscillator& circuit, int mode, const char *name)
+{
+    int mc = circuit.getModeCount();
+    printf("ChaosTest(%s): mode = %d\n", name, mode);
+    if (mode < 0 || mode >= mc)
+        return Fail(name, "Invalid mode select");
+
+    int checkMode = circuit.setMode(mode);
+    if (checkMode != mode)
+        return Fail(name, "Selected mode did not stick!");
+
+    return 0;
+}
+
+
+static int RangeTest(
+    Sapphire::ChaoticOscillator& osc,
+    int mode,
+    const char *name,
+    double range = Sapphire::CHAOS_AMPLITUDE)
 {
     printf("RangeTest(%s): starting\n", name);
+
+    osc.initialize();
+    if (SetMode(osc, mode, name))
+        return 1;
 
     const long SAMPLE_RATE = 44100;
     const long SIM_SECONDS = 6 * 3600;
@@ -658,40 +681,19 @@ static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name, double 
 }
 
 
-static int SetMode(Sapphire::ChaoticOscillator& circuit, int mode, const char *name)
-{
-    int mc = circuit.getModeCount();
-    printf("ChaosTest(%s): mode = %d\n", name, mode);
-    if (mode < 0 || mode >= mc)
-        return Fail(name, "Invalid mode select");
-
-    int checkMode = circuit.setMode(mode);
-    if (checkMode != mode)
-        return Fail(name, "Selected mode did not stick!");
-
-    return 0;
-}
-
-
 static int ChaosTest()
 {
     Sapphire::Rucklidge ruck;
     ruck.setKnob(+1.0);     // maximum chaos and maximum range
 
-    Sapphire::Aizawa aiza_subtle;
-    if (SetMode(aiza_subtle, 0, "Subtle")) return 1;
-
-    Sapphire::Aizawa aiza_apple;
-    if (SetMode(aiza_apple, 1, "Apple")) return 1;
-
-    Sapphire::Aizawa aiza_banana;
-    if (SetMode(aiza_banana, 2, "Banana")) return 1;
+    Sapphire::Aizawa aiza;
 
     return
-        RangeTest(ruck, "Rucklidge") ||
-        RangeTest(aiza_subtle, "Aizawa_Subtle") ||
-        RangeTest(aiza_apple,  "Aizawa_Apple", 5.3) ||
-        RangeTest(aiza_banana, "Aizawa_Banana", 10.0) ||
+        RangeTest(ruck, 0, "Rucklidge") ||
+        RangeTest(aiza, 0, "Aizawa_Subtle") ||
+        RangeTest(aiza, 1, "Aizawa_Apple", 5.3) ||
+        RangeTest(aiza, 2, "Aizawa_Banana", 6.0) ||
+        RangeTest(aiza, 3, "Aizawa_Elderberry", 4.6) ||
         Pass("ChaosTest");
 }
 
