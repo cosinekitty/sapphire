@@ -144,8 +144,6 @@ namespace Sapphire
             const int numModes = chaosModule->circuit.getModeCount();
             if (numModes > 1)
             {
-                menu->addChild(new MenuSeparator);
-
                 std::vector<std::string> labels;
                 for (int mode = 0; mode < numModes; ++mode)
                     labels.push_back(chaosModule->circuit.getModeName(mode));
@@ -167,7 +165,33 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                menu->addChild(new MenuSeparator);
                 AddChaosOptionsToMenu(menu, chaosModule);
+            }
+        };
+
+
+        template <typename module_t>
+        inline ui::MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
+        {
+            return createBoolMenuItem(
+                "Turbo mode: +5 speed (WARNING: uses more CPU)",
+                "",
+                [=]() { return chaosModule->turboMode; },
+                [=](bool state) { chaosModule->turboMode = state; }
+            );
+        }
+
+
+        template <typename module_t>
+        struct SpeedKnob : RoundLargeBlackKnob
+        {
+            module_t* chaosModule = nullptr;
+
+            void appendContextMenu(Menu* menu) override
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(CreateTurboModeMenuItem(chaosModule));
             }
         };
 
@@ -188,8 +212,12 @@ namespace Sapphire
                 addSapphireOutput(Z_OUTPUT, "z_output");
                 addSapphireOutput(POLY_OUTPUT, "p_output");
 
-                addKnob(SPEED_KNOB_PARAM, "speed_knob");
+                // SPEED knob: provide Turbo Mode context menu checkbox.
+                using speed_knob_t = SpeedKnob<module_t>;
+                speed_knob_t* speedKnob = addKnob<speed_knob_t>(SPEED_KNOB_PARAM, "speed_knob");
+                speedKnob->chaosModule = module;
 
+                // CHAOS knob: include Chaos Mode selection in the context menu.
                 using chaos_knob_t = ChaosKnob<module_t>;
                 chaos_knob_t* chaosKnob = addKnob<chaos_knob_t>(CHAOS_KNOB_PARAM, "chaos_knob");
                 chaosKnob->chaosModule = module;
@@ -209,21 +237,14 @@ namespace Sapphire
                 if (chaosModule == nullptr)
                     return;
 
+                // The SPEED knob has Turbo Mode in its context menu.
+                // The CHAOS knob has mode selector in its context menu.
+                // We put both of these in the panel menu also, because
+                // people often explore the right-click menu of the
+                // panel, but don't think to do that for knobs.
+
                 menu->addChild(new MenuSeparator);
-
-                menu->addChild(createBoolMenuItem(
-                    "Turbo mode: +5 speed (WARNING: uses more CPU)",
-                    "",
-                    [=]()
-                    {
-                        return chaosModule->turboMode;
-                    },
-                    [=](bool state)
-                    {
-                        chaosModule->turboMode = state;
-                    }
-                ));
-
+                menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule);
             }
         };
