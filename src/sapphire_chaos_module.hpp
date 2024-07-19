@@ -131,6 +131,48 @@ namespace Sapphire
 
 
         template <typename module_t>
+        inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule)
+        {
+            if (menu == nullptr)
+                return;
+
+            if (chaosModule == nullptr)
+                return;
+
+            // If this chaos module supports multiple parameter modes,
+            // enumerate them now as menu options.
+            const int numModes = chaosModule->circuit.getModeCount();
+            if (numModes > 1)
+            {
+                menu->addChild(new MenuSeparator);
+
+                std::vector<std::string> labels;
+                for (int mode = 0; mode < numModes; ++mode)
+                    labels.push_back(chaosModule->circuit.getModeName(mode));
+
+                menu->addChild(createIndexSubmenuItem(
+                    "Chaos mode",
+                    labels,
+                    [=]() { return chaosModule->circuit.getMode(); },
+                    [=](size_t mode) { chaosModule->circuit.setMode(mode); }
+                ));
+            }
+        }
+
+
+        template <typename module_t>
+        struct ChaosKnob : RoundLargeBlackKnob
+        {
+            module_t *chaosModule = nullptr;
+
+            void appendContextMenu(Menu* menu) override
+            {
+                AddChaosOptionsToMenu(menu, chaosModule);
+            }
+        };
+
+
+        template <typename module_t>
         struct ChaosWidget : SapphireReloadableModuleWidget
         {
             module_t *chaosModule;
@@ -147,7 +189,10 @@ namespace Sapphire
                 addSapphireOutput(POLY_OUTPUT, "p_output");
 
                 addKnob(SPEED_KNOB_PARAM, "speed_knob");
-                addKnob(CHAOS_KNOB_PARAM, "chaos_knob");
+
+                using chaos_knob_t = ChaosKnob<module_t>;
+                chaos_knob_t* chaosKnob = addKnob<chaos_knob_t>(CHAOS_KNOB_PARAM, "chaos_knob");
+                chaosKnob->chaosModule = module;
 
                 addSapphireAttenuverter(SPEED_ATTEN, "speed_atten");
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
@@ -167,7 +212,7 @@ namespace Sapphire
                 menu->addChild(new MenuSeparator);
 
                 menu->addChild(createBoolMenuItem(
-                    "Turbo mode: +5 speed bonus (WARNING: uses more CPU)",
+                    "Turbo mode: +5 speed (WARNING: uses more CPU)",
                     "",
                     [=]()
                     {
@@ -179,24 +224,7 @@ namespace Sapphire
                     }
                 ));
 
-                // If this chaos module supports multiple parameter modes,
-                // enumerate them now as menu options.
-                const int numModes = chaosModule->circuit.getModeCount();
-                if (numModes > 1)
-                {
-                    menu->addChild(new MenuSeparator);
-
-                    std::vector<std::string> labels;
-                    for (int mode = 0; mode < numModes; ++mode)
-                        labels.push_back(chaosModule->circuit.getModeName(mode));
-
-                    menu->addChild(createIndexSubmenuItem(
-                        "Chaos mode",
-                        labels,
-                        [=]() { return chaosModule->circuit.getMode(); },
-                        [=](size_t mode) { chaosModule->circuit.setMode(mode); }
-                    ));
-                }
+                AddChaosOptionsToMenu(menu, chaosModule);
             }
         };
     }
