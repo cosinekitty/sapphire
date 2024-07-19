@@ -658,30 +658,40 @@ static int RangeTest(Sapphire::ChaoticOscillator& osc, const char *name, double 
 }
 
 
+static int SetMode(Sapphire::ChaoticOscillator& circuit, int mode, const char *name)
+{
+    int mc = circuit.getModeCount();
+    printf("ChaosTest(%s): mode = %d\n", name, mode);
+    if (mode < 0 || mode >= mc)
+        return Fail(name, "Invalid mode select");
+
+    int checkMode = circuit.setMode(mode);
+    if (checkMode != mode)
+        return Fail(name, "Selected mode did not stick!");
+
+    return 0;
+}
+
+
 static int ChaosTest()
 {
     Sapphire::Rucklidge ruck;
     ruck.setKnob(+1.0);     // maximum chaos and maximum range
 
     Sapphire::Aizawa aiza_subtle;
+    if (SetMode(aiza_subtle, 0, "Subtle")) return 1;
 
-    int mc = aiza_subtle.getModeCount();
-    printf("ChaosTest: Aizawa mode count = %d\n", mc);
-    if (mc != 2)
-        return Fail("ChaosTest", "INCORRECT MODE COUNT");
+    Sapphire::Aizawa aiza_apple;
+    if (SetMode(aiza_apple, 1, "Apple")) return 1;
 
-    if (aiza_subtle.getMode() != 0)
-        return Fail("ChaosTest", std::string("aiza_subtle mode must be zero, not " + std::to_string(aiza_subtle.getMode())));
-
-    Sapphire::Aizawa aiza_islands;
-    int checkMode = aiza_islands.setMode(1);
-    if (checkMode != 1)
-        return Fail("ChaosTest", "aiza_islands: incorrect mode after trying to set to 1");
+    Sapphire::Aizawa aiza_banana;
+    if (SetMode(aiza_banana, 2, "Banana")) return 1;
 
     return
         RangeTest(ruck, "Rucklidge") ||
-        RangeTest(aiza_subtle,  "Aizawa_Subtle") ||
-        RangeTest(aiza_islands, "Aizawa_Islands", 5.3) ||
+        RangeTest(aiza_subtle, "Aizawa_Subtle") ||
+        RangeTest(aiza_apple,  "Aizawa_Apple", 5.3) ||
+        RangeTest(aiza_banana, "Aizawa_Banana", 10.0) ||
         Pass("ChaosTest");
 }
 

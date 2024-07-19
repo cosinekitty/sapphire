@@ -208,7 +208,6 @@ namespace Sapphire
     class Aizawa : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite3.html
     {
     private:
-        const double b = 0.69535;
         const double d = 3.5;
         const double e = 0.25;
         const double f = 0.1;
@@ -216,14 +215,18 @@ namespace Sapphire
         const double aMin = 0.92;
         const double aMax = 1.03;
 
+        const double bMin = 0.58;
+        const double bMax = 0.70;
+
         const double cMin = 0.5941;
         const double cMax = 0.6117;
 
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
-            const double a = (mode==1) ? KnobValue(knob, aMin, aMax) : 0.95;
             const double c = (mode==0) ? KnobValue(knob, cMin, cMax) : 0.6029;
+            const double a = (mode==1) ? KnobValue(knob, aMin, aMax) : 0.95;
+            const double b = (mode==2) ? KnobValue(knob, bMin, bMax) : 0.69535;
             return SlopeVector(
                 (z-b)*x - d*y,
                 d*x + (z-b)*y,
@@ -243,7 +246,7 @@ namespace Sapphire
 
         int getModeCount() const override
         {
-            return 2;
+            return 3;
         }
 
         const char* getModeName(int m) const override
@@ -251,7 +254,8 @@ namespace Sapphire
             switch (m)
             {
             case 0: return "Subtle";
-            case 1: return "Islands of Stability";
+            case 1: return "Apple";
+            case 2: return "Banana";
             default: return "INVALID_MODE";
             }
         }
