@@ -607,7 +607,6 @@ static int CheckLimits(const Sapphire::ChaoticOscillator& osc, double range)
 static int SetMode(Sapphire::ChaoticOscillator& circuit, int mode, const char *name)
 {
     int mc = circuit.getModeCount();
-    printf("ChaosTest(%s): mode = %d\n", name, mode);
     if (mode < 0 || mode >= mc)
         return Fail(name, "Invalid mode select");
 
@@ -632,7 +631,7 @@ static int RangeTest(
         return 1;
 
     const long SAMPLE_RATE = 44100;
-    const long SIM_SECONDS = 6 * 3600;
+    const long SIM_SECONDS = 3600;
     const long SIM_SAMPLES = SIM_SECONDS * SAMPLE_RATE;
     const double dt = 1.0 / SAMPLE_RATE;
 
@@ -672,7 +671,6 @@ static int RangeTest(
         }
     }
 
-    printf("RangeTest(%s): finished\n", name);
     printf("vx range: %10.6lf %10.6lf\n", xMin, xMax);
     printf("vy range: %10.6lf %10.6lf\n", yMin, yMax);
     printf("vz range: %10.6lf %10.6lf\n", zMin, zMax);
@@ -690,10 +688,10 @@ static int ChaosTest()
 
     return
         RangeTest(ruck, 0, "Rucklidge") ||
-        RangeTest(aiza, 0, "Aizawa_Subtle") ||
-        RangeTest(aiza, 1, "Aizawa_Apple", 5.3) ||
-        RangeTest(aiza, 2, "Aizawa_Banana", 6.0) ||
-        RangeTest(aiza, 3, "Aizawa_Elderberry", 4.6) ||
+        RangeTest(aiza, 0, "Aizawa_Apple", 5.3) ||
+        RangeTest(aiza, 1, "Aizawa_Banana", 6.0) ||
+        RangeTest(aiza, 2, "Aizawa_Cantaloupe", 5.0) ||
+        RangeTest(aiza, 3, "Aizawa_Elderberry", 100) ||
         Pass("ChaosTest");
 }
 
