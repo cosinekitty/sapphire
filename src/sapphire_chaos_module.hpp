@@ -105,8 +105,11 @@ namespace Sapphire
                 turboMode = json_is_true(flag);
 
                 json_t* mode = json_object_get(root, "chaosMode");
-                if (json_is_integer(mode))
-                    circuit.setMode(json_integer_value(mode));
+                circuit.setMode(
+                    json_is_integer(mode) ?
+                    static_cast<int>(json_integer_value(mode)) :
+                    circuit.getDefaultMode()
+                );
             }
 
             void process(const ProcessArgs& args) override

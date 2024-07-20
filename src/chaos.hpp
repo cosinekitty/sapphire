@@ -125,7 +125,6 @@ namespace Sapphire
             x1 = x0;
             y1 = y0;
             z1 = z0;
-            mode = 0;
         }
 
         void setKnob(double k)
@@ -160,6 +159,11 @@ namespace Sapphire
             if (count > 0)
                 mode = std::clamp(m, 0, count-1);
             return mode;
+        }
+
+        virtual int getDefaultMode() const
+        {
+            return 0;
         }
 
         // Scaled values...
@@ -225,9 +229,9 @@ namespace Sapphire
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
-            const double c = (mode==0) ? KnobValue(knob, cMin, cMax) : 0.6029;
-            const double a = (mode==1) ? KnobValue(knob, aMin, aMax) : 0.95;
-            const double b = (mode==2) ? KnobValue(knob, bMin, bMax) : 0.69535;
+            const double a = (mode==0) ? KnobValue(knob, aMin, aMax) : 0.95;
+            const double b = (mode==1) ? KnobValue(knob, bMin, bMax) : 0.69535;
+            const double c = (mode==2) ? KnobValue(knob, cMin, cMax) : 0.6029;
             const double d = 3.5;
             const double e = (mode==3) ? KnobValue(knob, eMin, eMax) : 0.25;
             const double f = 0.1;
@@ -258,12 +262,17 @@ namespace Sapphire
         {
             switch (m)
             {
-            case 0: return "Subtle";
-            case 1: return "Apple";
-            case 2: return "Banana";
-            case 3: return "Elderberry";
+            case 0:  return "Apple";
+            case 1:  return "Banana";
+            case 2:  return "Cantaloupe";
+            case 3:  return "Elderberry";
             default: return "INVALID_MODE";
             }
+        }
+
+        int getDefaultMode() const override
+        {
+            return 2;   // what used to be the default is now called Canteloupe (BORING! but backward compatible)
         }
     };
 }
