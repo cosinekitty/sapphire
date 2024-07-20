@@ -131,5 +131,62 @@ namespace Sapphire
         return sqrt(Dot(a,a) / Dot(c,c)) * c;
     }
 
+    inline PhysicsVector PivotAxis(float C, float S)
+    {
+        const float A = (1 - C) / 3;
+        const float three = 3;  // explicitly state type `float` to sidestep optimizations in Cardinal/ARM
+        const float B = S / std::sqrt(three);
+        return PhysicsVector{C+A, A+B, A-B, 0};
+    }
+
+    // PivotAxis returns a unit vector.
+    // If `steps` has an integer value, the vector points in
+    // the direction of the positive x, y, or z axis, depending on
+    // the mod 3.0 value of `steps`:
+    //
+    //      0.0 => [1, 0, 0] = x-axis
+    //      1.0 => [0, 1, 0] = y-axis
+    //      2.0 => [0, 0, 1] = z-axis
+    //      3.0 => [1, 0, 0] = x-axis (again, etc)
+    //
+    // Sweeping the real value of `steps` creates a cone shape
+    // that periodically passes through all 3 axes.
+    // The value of `steps` may be negative or positive, and may
+    // increase within the bounds of type `float`.
+    // However, it is recommended to keep the values as close to
+    // zero as is practical for your application, to reduce error in trig functions.
+    inline PhysicsVector PivotAxis(float steps)
+    {
+        const float radians = ((2*M_PI)/3) * steps;
+        const float C = std::cos(radians);
+        const float S = std::sin(radians);
+        return PivotAxis(C, S);
+    }
+
+    struct RotationMatrix
+    {
+        PhysicsVector xAxis;
+        PhysicsVector yAxis;
+        PhysicsVector zAxis;
+
+        explicit RotationMatrix(PhysicsVector x, PhysicsVector y, PhysicsVector z)
+            : xAxis(x)
+            , yAxis(y)
+            , zAxis(z)
+            {}
+    };
+
+    inline RotationMatrix PivotAxes(float steps)
+    {
+        PhysicsVector x = PivotAxis(steps + 0);
+        PhysicsVector y = PivotAxis(steps + 1);
+        PhysicsVector z = PivotAxis(steps + 2);
+        return RotationMatrix {
+            PhysicsVector{x[0], y[0], z[0], 0},   // rotated x-axis unit vector
+            PhysicsVector{x[1], y[1], z[1], 0},   // rotated y-axis unit vector
+            PhysicsVector{x[2], y[2], z[2], 0}    // rotated z-axis unit vector
+        };
+    }
+
     using PhysicsVectorList = std::vector<PhysicsVector>;
 }

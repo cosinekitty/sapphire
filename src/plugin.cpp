@@ -18,6 +18,7 @@ void init(Plugin* p)
     p->addModel(modelHiss);
     p->addModel(modelMoots);
     p->addModel(modelNucleus);
+    p->addModel(modelPivot);
     p->addModel(modelPolynucleus);
     p->addModel(modelRotini);
     p->addModel(modelTin);
