@@ -9,12 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">15 July 2024</td>
+<td align="center">20 July 2024</td>
 <td align="center">2.4.8</td>
 <td align="left">
     <ul>
-        <li>Added new module: <a href="Pivot.md">Pivot</a> for helping create new 3D chaotic oscillators.</li>
+        <li>New module: <a href="Pivot.md">Pivot</a> for re-orienting a 3D vector. This is another chaos toy.</li>
         <li><a href="Rotini.md">Rotini</a>: added missing help text for ports.</li>
+        <li><a href="Glee.md">Glee</a> now has 4 different chaos modes that you can select from the context menu.</li>
+        <li><a href="Glee.md">Glee</a> and <a href="Frolic.md">Frolic</a> now have a Turbo Mode that uses more CPU but allows the oscillators to go up to 32 times faster than before (+5 added to SPEED knob).</li>
     </ul>
 </td>
 </tr>
@@ -24,7 +26,7 @@
 <td align="center">2.4.7</td>
 <td align="left">
     <ul>
-        <li>Added new module: Rotini. It helps create more interesting chaotic 3D vector signals for fun CV.</li>
+        <li>New module: <a href="Rotini.md">Rotini</a>. It helps create more interesting chaotic 3D vector signals for fun CV.</li>
         <li>Galaxy: added option for polyphonic stereo input to a single input port (L or R).</li>
         <li>Galaxy: auto-reset if output becomes non-finite or goes outside 100&nbsp;V absolute value.</li>
         <li>Tube Unit: [Issue #56](https://github.com/cosinekitty/sapphire/issues/56) - added support for <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>.
