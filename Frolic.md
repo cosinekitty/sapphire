@@ -16,7 +16,7 @@ Frolic is based on the [Rucklidge Attractor](http://www.3d-meier.de/tut19/Seite1
 a system of three differential equations
 
 $$
-\frac{\mathrm{d}x}{\mathrm{d}t} = -2 x + a y - y z
+\frac{\mathrm{d}x}{\mathrm{d}t} = -2 x + A y - y z
 $$
 
 $$
@@ -53,12 +53,18 @@ times faster. Thus the speed can made $2^7=128$ times slower than the default
 by turning the SPEED knob all the way to the left, or 128 times faster than
 the default by turning it all the way to the right.
 
-**CHAOS**: This knob controls the value of the $a$ parameter in the first equation.
-The value of $a$ ranges from 3.8 to 6.7, which was experimentally determined
+However, at the risk of using a **LOT** more CPU time, you can right-click
+on the SPEED knob and toggle *Turbo mode*, which adds a +5 bonus to the SPEED value.
+This is the same as multiplying the effective speed by 32.
+
+![Frolic SPEED button context menu](images/frolic_speed_menu.png)
+
+**CHAOS**: This knob controls the value of the $A$ parameter in the first equation.
+The value of $A$ ranges from 3.8 to 6.7, which was experimentally determined
 to give a wide range of orbital behavior: from highly ordered to highly chaotic.
 In other words, when the CHOAS knob is set all the way down (&minus;1), the
-value of $a$ is set to 3.8, resulting in a simple repeated loop.
-If CHOAS is all the way right (+1), the value of $a$ is set to 6.7 and the
+value of $A$ is set to 3.8, resulting in a simple repeated loop.
+If CHOAS is all the way right (+1), the value of $A$ is set to 6.7 and the
 output of Frolic will be more chaotic.
 
 ### CV input
