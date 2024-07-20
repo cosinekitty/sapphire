@@ -125,6 +125,7 @@ namespace Sapphire
             x1 = x0;
             y1 = y0;
             z1 = z0;
+            mode = 0;
         }
 
         void setKnob(double k)
@@ -161,7 +162,7 @@ namespace Sapphire
             return mode;
         }
 
-        virtual int getDefaultMode() const
+        virtual int getLegacyMode() const
         {
             return 0;
         }
@@ -270,9 +271,21 @@ namespace Sapphire
             }
         }
 
-        int getDefaultMode() const override
+        int getLegacyMode() const override
         {
-            return 2;   // what used to be the default is now called Canteloupe (BORING! but backward compatible)
+            // The legacy mode is not the same as the default mode.
+            // The default mode is always 0, but the legacy mode
+            // is provided for backward compatibility of patches that
+            // were created before chaos modes existed.
+            // Sapphire Glee's previous behavior is what we now call
+            // Cantaloupe mode, but it isn't very fun, so we made it
+            // a nonzero (non-default) value. This way, when people create
+            // new patches and use Glee in it, Glee will default to Apple mode,
+            // which is far more fun.
+            //
+            // legacy mode = what we did before adding chaos modes
+            // default mode = 0 = what we would like to do by default moving forward
+            return 2;
         }
     };
 }

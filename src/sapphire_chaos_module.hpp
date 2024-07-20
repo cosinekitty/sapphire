@@ -108,7 +108,7 @@ namespace Sapphire
                 circuit.setMode(
                     json_is_integer(mode) ?
                     static_cast<int>(json_integer_value(mode)) :
-                    circuit.getDefaultMode()
+                    circuit.getLegacyMode()
                 );
             }
 
