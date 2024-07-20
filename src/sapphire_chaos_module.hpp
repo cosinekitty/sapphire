@@ -134,7 +134,7 @@ namespace Sapphire
 
 
         template <typename module_t>
-        inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule)
+        inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule, bool separator)
         {
             if (menu == nullptr)
                 return;
@@ -147,6 +147,9 @@ namespace Sapphire
             const int numModes = chaosModule->circuit.getModeCount();
             if (numModes > 1)
             {
+                if (separator)
+                    menu->addChild(new MenuSeparator);
+
                 std::vector<std::string> labels;
                 for (int mode = 0; mode < numModes; ++mode)
                     labels.push_back(chaosModule->circuit.getModeName(mode));
@@ -168,8 +171,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                menu->addChild(new MenuSeparator);
-                AddChaosOptionsToMenu(menu, chaosModule);
+                AddChaosOptionsToMenu(menu, chaosModule, true);
             }
         };
 
@@ -248,7 +250,7 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
-                AddChaosOptionsToMenu(menu, chaosModule);
+                AddChaosOptionsToMenu(menu, chaosModule, false);
             }
         };
     }
