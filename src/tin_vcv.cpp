@@ -93,7 +93,7 @@ namespace Sapphire
                 z *= gain;
 
                 bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
-                vectorSender.sendVector(x, y, z, reset);
+                sendVector(x, y, z, reset);
             }
         };
 

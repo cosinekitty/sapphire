@@ -336,7 +336,7 @@ namespace Sapphire
                 outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
 
                 PhysicsVector v = engine.getOutputVector(outputVectorSelectRight);
-                vectorSender.sendVector(v[0], v[1], v[2], false);
+                sendVector(v[0], v[1], v[2], false);
             }
         };
 

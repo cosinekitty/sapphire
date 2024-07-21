@@ -113,7 +113,7 @@ namespace Sapphire
                 outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(triggerVoltage);
 
                 // Mirror the level-adjusted input to any module on the right.
-                vectorSender.sendVector(x, y, z, clear);
+                sendVector(x, y, z, clear);
             }
         };
 

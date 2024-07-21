@@ -91,7 +91,7 @@ namespace Sapphire
                 outputs[Y_OUTPUT].setVoltage(cy);
                 outputs[Z_OUTPUT].setVoltage(cz);
 
-                vectorSender.sendVector(cx, cy, cz, false);
+                sendVector(cx, cy, cz, false);
             }
         };
 

@@ -364,7 +364,7 @@ namespace Sapphire
                 float z = engine.output(tricorderOutputIndex, 2);
                 bool reset = resetTricorder;
                 resetTricorder = false;
-                vectorSender.sendVector(x, y, z, reset);
+                sendVector(x, y, z, reset);
             }
         };
 

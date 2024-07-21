@@ -551,6 +551,11 @@ namespace Sapphire
             );
         }
 
+        void sendVector(float x, float y, float z, bool reset)
+        {
+            vectorSender.sendVector(x, y, z, reset);
+        }
+
         bool isVectorReceiverConnectedOnRight() const
         {
             return vectorSender.isVectorReceiverConnectedOnRight();
