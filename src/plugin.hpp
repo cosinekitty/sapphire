@@ -11,7 +11,7 @@ extern Plugin* pluginInstance;
 // Declare each Model, defined in each module source file
 extern Model* modelElastika;
 extern Model* modelFrolic;
-extern Model* modelGalaxy;
+extern Model* modelSapphireGalaxy;
 extern Model* modelGlee;
 extern Model* modelHiss;
 extern Model* modelMoots;

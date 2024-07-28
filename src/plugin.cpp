@@ -13,7 +13,7 @@ void init(Plugin* p)
 
     p->addModel(modelElastika);
     p->addModel(modelFrolic);
-    p->addModel(modelGalaxy);
+    p->addModel(modelSapphireGalaxy);
     p->addModel(modelGlee);
     p->addModel(modelHiss);
     p->addModel(modelMoots);

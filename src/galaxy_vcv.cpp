@@ -237,7 +237,7 @@ namespace Sapphire
     }
 }
 
-Model *modelGalaxy = createSapphireModel<Sapphire::Galaxy::GalaxyModule, Sapphire::Galaxy::GalaxyWidget>(
+Model *modelSapphireGalaxy = createSapphireModel<Sapphire::Galaxy::GalaxyModule, Sapphire::Galaxy::GalaxyWidget>(
     "Galaxy",
     Sapphire::VectorRole::None
 );
