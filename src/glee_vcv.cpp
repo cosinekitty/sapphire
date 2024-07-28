@@ -15,7 +15,7 @@ namespace Sapphire
     };
 }
 
-Model* modelGlee = createSapphireModel<Sapphire::GleeModule, Sapphire::GleeWidget>(
+Model* modelSapphireGlee = createSapphireModel<Sapphire::GleeModule, Sapphire::GleeWidget>(
     "Glee",
     Sapphire::VectorRole::Sender
 );

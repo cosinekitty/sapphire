@@ -122,7 +122,7 @@ namespace Sapphire
 }
 
 
-Model* modelPivot = createSapphireModel<Sapphire::Pivot::PivotModule, Sapphire::Pivot::PivotWidget>(
+Model* modelSapphirePivot = createSapphireModel<Sapphire::Pivot::PivotModule, Sapphire::Pivot::PivotWidget>(
     "Pivot",
     Sapphire::VectorRole::Sender
 );

@@ -11,18 +11,18 @@ void init(Plugin* p)
 {
     pluginInstance = p;
 
-    p->addModel(modelElastika);
-    p->addModel(modelFrolic);
+    p->addModel(modelSapphireElastika);
+    p->addModel(modelSapphireFrolic);
     p->addModel(modelSapphireGalaxy);
-    p->addModel(modelGlee);
-    p->addModel(modelHiss);
-    p->addModel(modelMoots);
-    p->addModel(modelNucleus);
-    p->addModel(modelPivot);
-    p->addModel(modelPolynucleus);
-    p->addModel(modelRotini);
-    p->addModel(modelTin);
-    p->addModel(modelTout);
-    p->addModel(modelTricorder);
-    p->addModel(modelTubeUnit);
+    p->addModel(modelSapphireGlee);
+    p->addModel(modelSapphireHiss);
+    p->addModel(modelSapphireMoots);
+    p->addModel(modelSapphireNucleus);
+    p->addModel(modelSapphirePivot);
+    p->addModel(modelSapphirePolynucleus);
+    p->addModel(modelSapphireRotini);
+    p->addModel(modelSapphireTin);
+    p->addModel(modelSapphireTout);
+    p->addModel(modelSapphireTricorder);
+    p->addModel(modelSapphireTubeUnit);
 }

@@ -165,7 +165,7 @@ namespace Sapphire
 }
 
 
-Model* modelHiss = createSapphireModel<Sapphire::Hiss::HissModule, Sapphire::Hiss::HissWidget>(
+Model* modelSapphireHiss = createSapphireModel<Sapphire::Hiss::HissModule, Sapphire::Hiss::HissWidget>(
     "Hiss",
     Sapphire::VectorRole::None
 );

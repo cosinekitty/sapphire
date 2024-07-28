@@ -115,7 +115,7 @@ namespace Sapphire
 }
 
 
-Model* modelRotini = createSapphireModel<Sapphire::Rotini::RotiniModule, Sapphire::Rotini::RotiniWidget>(
+Model* modelSapphireRotini = createSapphireModel<Sapphire::Rotini::RotiniModule, Sapphire::Rotini::RotiniWidget>(
     "Rotini",
     Sapphire::VectorRole::Sender
 );
