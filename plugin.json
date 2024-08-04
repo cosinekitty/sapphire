@@ -113,6 +113,14 @@
       ]
     },
     {
+      "slug": "SplitAddMerge",
+      "name": "SAM",
+      "description": "Splits, adds, and/or merges stereo or 3D vector signals.",
+      "tags": [
+        "Utility"
+      ]
+    },
+    {
       "slug": "Tin",
       "name": "Tin",
       "description": "Feeds arbitrary input signals into Tricorder.",
