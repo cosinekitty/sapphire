@@ -355,6 +355,26 @@ class ControlLayer(Element):
         super().__init__('g', 'ControlLayer')
         self.setAttrib('style', 'display:none;')
 
+def UpdateFileIfChanged(filename:str, newText:str) -> bool:
+    # Do not write to the file unless the newText is different from
+    # what already exists in the file, or we can't even read text from the file.
+    # This allows us to change the modification date on a file only
+    # when something has really changed. This way, we don't trick
+    # `make` into doing unnecessary work
+    # (like compiling C++ code that hasn't changed).
+    try:
+        with open(filename, 'rt') as infile:
+            oldText = infile.read()
+    except:
+        oldText = ''
+    if newText == oldText:
+        print('Kept: ', filename)
+        return False
+    with open(filename, 'wt') as outfile:
+        outfile.write(newText)
+    print('Wrote:', filename)
+    return True
+
 
 class Panel(Element):
     """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
@@ -379,7 +399,6 @@ class Panel(Element):
         # See: https://bugs.python.org/issue36233
         return '<?xml version="1.0" encoding="utf-8"?>\n' + rootBytes.decode('utf8') + '\n'    # type: ignore
 
-    def save(self, outFileName:str, indent:str = '    ') -> None:
+    def save(self, outFileName:str, indent:str = '    ') -> bool:
         """Write this panel to an SVG file."""
-        with open(outFileName, 'wt') as outfile:
-            outfile.write(self.svg(indent))
+        return UpdateFileIfChanged(outFileName, self.svg(indent))

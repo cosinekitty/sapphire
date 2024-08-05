@@ -19,7 +19,7 @@ def Print(message:str) -> int:
 
 def Save(panel:Panel, filename:str) -> int:
     panel.save(filename)
-    return Print('Wrote: ' + filename)
+    return 0
 
 
 def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:

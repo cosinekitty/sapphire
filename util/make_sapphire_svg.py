@@ -22,7 +22,7 @@ def Print(message:str) -> int:
 
 def Save(panel:Panel, filename:str) -> int:
     panel.save(filename)
-    return Print('Wrote: ' + filename)
+    return 0
 
 
 def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element:
