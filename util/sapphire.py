@@ -158,22 +158,3 @@ def AddFlatControlGrid(
         xIndex += 1
 
 
-def UpdateFileIfChanged(filename:str, newText:str) -> bool:
-    # Do not write to the file unless the newText is different from
-    # what already exists in the file, or we can't even read text from the file.
-    # This allows us to change the modification date on a file only
-    # when something has really changed. This way, we don't trick
-    # `make` into doing unnecessary work
-    # (like compiling C++ code that hasn't changed).
-    try:
-        with open(filename, 'rt') as infile:
-            oldText = infile.read()
-    except:
-        oldText = ''
-    if newText == oldText:
-        print('Kept:', filename)
-        return False
-    with open(filename, 'wt') as outfile:
-        outfile.write(newText)
-    print('Wrote:', filename)
-    return True
