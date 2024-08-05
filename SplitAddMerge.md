@@ -49,7 +49,7 @@ the 3 monophonic inputs causes them to be copied to the output ports.
 
 ## Examples
 
-Here is an example of splitting a polyphonic 3D vector output from [Polynucleus](Polynucleus.md)
+Here is an example of splitting a polyphonic 3D vector output from [Frolic](Frolic.md)
 into its component voltages.
 
 ![Splitter example](images/sam_split_example.png)
@@ -62,9 +62,9 @@ And here is an example of merging monophonic signals into a polyphonic signal:
 
 ---
 
-If you use both, the signals get added. This can be a handy way to
-create novel chaotic signals using a pair of simple chaotic oscillators.
-This example also demonstrates that you can place a [Tricorder](Tricoder.md)
+If you provide both monophonic and polyphonic inputs, the signals get added.
+This can be a handy way to create novel chaotic signals using a pair of simple chaotic oscillators.
+The following example also demonstrates that you can place a [Tricorder](Tricoder.md)
 immediately to the right of a Split/Add/Merge and it will graph the output vector.
 
 ![Adder example](images/sam_add_example.png)
