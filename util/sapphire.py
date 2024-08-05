@@ -26,6 +26,10 @@ CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;st
 GEMSTONE_STYLE = 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1'
 CONNECTOR_LINE_STYLE = 'stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
 
+VERTICAL_TEXT_POINTS = 14.0
+VERTICAL_TEXT_STYLE = 'stroke:#000000;stroke-width:0.45;stroke-linecap:round;stroke-linejoin:bevel'
+VERTICAL_TEXT_DY = 5.5
+
 
 class SapphireGemstone(Element):
     mmWidth = 5.43
@@ -51,6 +55,16 @@ def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
     tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
     return tp
 
+
+def VerticalText(font:Font, text:str, xCenter:float, yTop:float, dy:float = VERTICAL_TEXT_DY, points:float = VERTICAL_TEXT_POINTS, style:str = VERTICAL_TEXT_STYLE) -> Element:
+    glyphList:List[Element] = []
+    y = yTop
+    for ch in text:
+        ti = TextItem(ch, font, points)
+        tp = ti.toPath(xCenter, y, HorizontalAlignment.Center, VerticalAlignment.Bottom, style)
+        glyphList.append(tp)
+        y += dy
+    return Element('g', '', glyphList)
 
 def SapphireInsignia(panel:Panel, font:Font) -> Element:
     '''Creates a bottom-centered Sapphire insignia with gemstones on either side.'''

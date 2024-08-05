@@ -114,7 +114,7 @@
     },
     {
       "slug": "SplitAddMerge",
-      "name": "SAM",
+      "name": "Split/Add/Merge",
       "description": "Splits, adds, and/or merges stereo or 3D vector signals.",
       "tags": [
         "Utility"

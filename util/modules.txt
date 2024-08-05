@@ -8,6 +8,7 @@ nucleus
 pivot
 polynucleus
 rotini
+splitAddMerge
 tin
 tout
 tricorder

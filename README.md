@@ -123,6 +123,18 @@ Calculates the cross product of two input vectors.
 
 ---
 
+## Split/Add/Merge (SAM)
+
+Splits, adds, and/or merges a stereo or 3D polyphonic signal with 2 or 3 monophonic signals.
+This is like VCV Merge and VCV Split combined, but only for a maximum of 3 channels.
+SplitAddMerge saves patch screen space because it is only 2 HP wide.
+
+<a href="SplitAddMerge.md">Split/Add/Merge documentation</a>
+
+<a href="SplitAddMerge.md"><img src="images/splitAddMerge.png" /></a>
+
+---
+
 ## Tin
 
 An alterative input module for feeding data into Tricorder.
