@@ -804,6 +804,24 @@ def GenerateSamPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateGeigerPanel() -> int:
+    name = 'pop'
+    svgFileName = '../res/{}.svg'.format(name)
+    PANEL_WIDTH = 4
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    controls = ControlLayer()
+    pl.append(controls)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateChaosPanel('frolic') or
@@ -821,5 +839,6 @@ if __name__ == '__main__':
         GenerateRotiniPanel() or
         GeneratePivotPanel() or
         GenerateSamPanel() or
+        GenerateGeigerPanel() or
         Print('SUCCESS')
     )
