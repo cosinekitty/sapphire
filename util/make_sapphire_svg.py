@@ -804,7 +804,7 @@ def GenerateSamPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateGeigerPanel() -> int:
+def GeneratePopPanel() -> int:
     name = 'pop'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -815,10 +815,48 @@ def GenerateGeigerPanel() -> int:
     panel.append(pl)
     controls = ControlLayer()
     pl.append(controls)
+    xmid = panel.mmWidth / 2
+    ySpeedKnob = 26.0
+    yChaosKnob = 57.0
+    dxControlGroup = 5.0
+    dyControlGroup = 11.0
+    dyControlText = -11.6
+    xOutLabel = xmid - 3.9
+    yOutLabel = 77.5
+    artSpaceAboveKnob = 13.0
+    artSpaceBelowKnob = 25.0
+    outputPortY1 = 88.0
+    outputPortDY =  9.0
+    yPortLabel = outputPortY1 - 2.4
+    outGradY1 = yOutLabel - 1.5
+    outGradY2 = yPortLabel + 2*outputPortDY + 10.0
+    yTriggerPort = outputPortY1 + 3*outputPortDY
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+        defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
+        defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
+        defs.append(Gradient(outGradY1, outGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
+        pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_out'))
+        lineGroup = Element('g', 'connector_lines').setAttrib('style', 'fill:none;stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
+        pl.append(lineGroup)
+        lineGroup.append(LineElement(xmid, ySpeedKnob, xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
+        lineGroup.append(LineElement(xmid, ySpeedKnob, xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
+        lineGroup.append(LineElement(xmid, yChaosKnob, xmid - dxControlGroup, yChaosKnob + dyControlGroup))
+        lineGroup.append(LineElement(xmid, yChaosKnob, xmid + dxControlGroup, yChaosKnob + dyControlGroup))
+        controls.append(Component('speed_knob', xmid, ySpeedKnob))
+        controls.append(Component('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
+        controls.append(Component('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
+        controls.append(Component('chaos_knob', xmid, yChaosKnob))
+        controls.append(Component('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup))
+        controls.append(Component('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup))
+        controls.append(Component('trigger_output', xmid, yTriggerPort))
+        pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
+        pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
+        pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
     return Save(panel, svgFileName)
 
 
@@ -839,6 +877,6 @@ if __name__ == '__main__':
         GenerateRotiniPanel() or
         GeneratePivotPanel() or
         GenerateSamPanel() or
-        GenerateGeigerPanel() or
+        GeneratePopPanel() or
         Print('SUCCESS')
     )
