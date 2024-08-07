@@ -821,14 +821,13 @@ def GeneratePopPanel() -> int:
     dxControlGroup = 5.0
     dyControlGroup = 11.0
     dyControlText = -11.6
-    xOutLabel = xmid - 3.9
-    yOutLabel = 77.5
+    yOutLabel = 107.0
     artSpaceAboveKnob = 13.0
     artSpaceBelowKnob = 25.0
     outputPortY1 = 88.0
     outputPortDY =  9.0
     yPortLabel = outputPortY1 - 2.4
-    outGradY1 = yOutLabel - 1.5
+    outGradY1 = yOutLabel - 3.5
     outGradY2 = yPortLabel + 2*outputPortDY + 10.0
     yTriggerPort = outputPortY1 + 3*outputPortDY
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -856,7 +855,7 @@ def GeneratePopPanel() -> int:
         controls.append(Component('trigger_output', xmid, yTriggerPort))
         pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
-        pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
+        pl.append(CenteredControlTextPath(font, 'TRIGGER', xmid, yOutLabel, 'trigger_label'))
     return Save(panel, svgFileName)
 
 
