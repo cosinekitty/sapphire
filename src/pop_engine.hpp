@@ -76,8 +76,11 @@ namespace Sapphire
                 case TriggerState::Quiet:
                     if (secondsRemaining <= 0)
                     {
+                        // We have been quiet for 1 millisecond. Go back to the waiting state.
                         state = TriggerState::Waiting;
-                        secondsRemaining = nextWaitInterval();
+                        // Figure out how many seconds to wait for the next radioactive decay.
+                        // Deduct the 2-millisecond trigger cycle (1ms @ 10V, 1ms @ 0V).
+                        secondsRemaining = nextWaitInterval() - 0.002;
                     }
                     return 0;
                 }
