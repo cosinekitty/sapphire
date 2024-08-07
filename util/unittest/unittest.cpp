@@ -8,6 +8,7 @@
 #include "wavefile.hpp"
 #include "chaos.hpp"
 #include "Galactic.h"
+#include "pop_engine.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -39,6 +40,7 @@ static int TaperTest();
 static int QuadraticTest();
 static int GalaxyTest();
 static int PivotTest();
+static int PopTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -48,6 +50,7 @@ static const UnitTest CommandTable[] =
     { "galaxy",     GalaxyTest },
     { "interp",     InterpolatorTest },
     { "pivot",      PivotTest },
+    { "pop",        PopTest },
     { "quad",       QuadraticTest },
     { "readwave",   ReadWave },
     { "scale",      AutoScale },
@@ -861,3 +864,31 @@ static int PivotTest()
         Pass("PivotTest");
 }
 
+
+static int PopTest()
+{
+    const float sampleRate = 48000;
+    const float dt = 1 / sampleRate;
+
+    Sapphire::Pop::Engine engine;
+    engine.setSpeed(0.0f);
+    engine.setChaos(1.0f);
+    engine.initialize();
+
+    const int popLimit = 1000;
+    int popCount = 0;
+    int sampleCount = 0;
+    float prev = 0;
+    while (popCount < popLimit)
+    {
+        ++sampleCount;
+        float s = engine.process(dt);
+        if (s > 1 && prev < 1)
+            ++popCount;
+        prev = s;
+    }
+
+    float elapsedSeconds = sampleCount / sampleRate;
+    printf("PopTest: popCount=%d, sampleCount=%d, %0.3f seconds\n", popCount, sampleCount, elapsedSeconds);
+    return Pass("PopTest");
+}
