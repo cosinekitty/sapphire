@@ -7,11 +7,15 @@ namespace Sapphire
 {
     namespace Pop
     {
+        const double MEAN_POP_RATE_HZ = 2;    // matches VCV LFO default frequency in Hz
+
         const double MIN_POP_SPEED = -7;
         const double MAX_POP_SPEED = +7;
-        const double MEAN_POP_RATE_HZ = 2;    // matches VCV LFO default frequency in Hz
+        const double DEFAULT_POP_SPEED = 0;
+
         const double MIN_POP_CHAOS = 0;
         const double MAX_POP_CHAOS = 1;
+        const double DEFAULT_POP_CHAOS = 1;
 
         enum class TriggerState
         {
@@ -109,8 +113,8 @@ namespace Sapphire
             }
 
         private:
-            double speed = 0;
-            double chaos = 1;
+            double speed = DEFAULT_POP_SPEED;
+            double chaos = DEFAULT_POP_CHAOS;
             double secondsRemaining = 0;
             TriggerState state = TriggerState::Reset;
             std::mt19937 gen;

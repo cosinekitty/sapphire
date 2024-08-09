@@ -867,6 +867,8 @@ static int PivotTest()
 
 static int PopHistogram(double chaos)
 {
+    printf("PopHistogram: starting chaos = %0.3lf\n", chaos);
+
     const double sampleRate = 48000;
     const double dt = 1 / sampleRate;
 
@@ -897,7 +899,7 @@ static int PopHistogram(double chaos)
             if (prevClickTime >= 0)
             {
                 double elapsed = clickTime - prevClickTime;
-                printf("PopTest(%d @ %d): t = %0.3f, dt = %lg\n", popCount, sampleCount, t, elapsed);
+                //printf("PopTest(%d @ %d): t = %0.3f, dt = %lg\n", popCount, sampleCount, t, elapsed);
                 int h = static_cast<int>(std::round(nbands*(elapsed / histLimit)));
                 if (h >= 0 && h < nbands)
                     ++hist[h];
@@ -918,5 +920,8 @@ static int PopHistogram(double chaos)
 
 static int PopTest()
 {
-    return PopHistogram(0);
+    return
+        PopHistogram(0.0) ||
+        PopHistogram(0.5) ||
+        PopHistogram(1.0);
 }

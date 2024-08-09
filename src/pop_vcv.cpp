@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "pop_engine.hpp"
 
 namespace Sapphire
 {
@@ -38,6 +39,9 @@ namespace Sapphire
 
         struct PopModule : SapphireModule
         {
+            int nPolyChannels = 1;      // current number of output channels (how many of `engine` array to use)
+            Engine engine[PORT_MAX_CHANNELS];
+
             PopModule()
                 : SapphireModule(PARAMS_LEN)
             {
@@ -45,8 +49,8 @@ namespace Sapphire
 
                 configOutput(TRIGGER_OUTPUT, "Trigger");
 
-                configParam(SPEED_PARAM, -7, +7, 0, "Speed");
-                configParam(CHAOS_PARAM, 0, 1, 1, "Chaos");
+                configParam(SPEED_PARAM, MIN_POP_SPEED, MAX_POP_SPEED, DEFAULT_POP_SPEED, "Speed");
+                configParam(CHAOS_PARAM, MIN_POP_CHAOS, MAX_POP_CHAOS, DEFAULT_POP_CHAOS, "Chaos");
 
                 configParam(SPEED_ATTEN, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
                 configParam(CHAOS_ATTEN, -1, 1, 0, "Chaos attenuverter", "%", 0, 100);
@@ -59,6 +63,8 @@ namespace Sapphire
 
             void initialize()
             {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    engine[c].initialize();
             }
 
             void onReset(const ResetEvent& e) override
