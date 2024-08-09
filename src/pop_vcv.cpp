@@ -49,6 +49,14 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
+                channelCountQuantity = configParam<ChannelCountQuantity>(
+                    CHANNEL_COUNT_PARAM,
+                    0.5f,
+                    16.5f,
+                    1,
+                    "Output channels"
+                );
+
                 configOutput(TRIGGER_OUTPUT, "Trigger");
 
                 configParam(SPEED_PARAM, MIN_POP_SPEED, MAX_POP_SPEED, DEFAULT_POP_SPEED, "Speed");
@@ -60,23 +68,15 @@ namespace Sapphire
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(CHAOS_CV_INPUT, "Chaos CV");
 
-                channelCountQuantity = configParam<ChannelCountQuantity>(
-                    CHANNEL_COUNT_PARAM,
-                    0.5f,
-                    16.5f,
-                    1,
-                    "Output channels"
-                );
-
                 initialize();
             }
 
             void initialize()
             {
+                channelCountQuantity->initialize();
+
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     engine[c].initialize();
-
-                channelCountQuantity->initialize();
             }
 
             int dimensions() const
@@ -148,7 +148,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (popModule != nullptr && popModule->channelCountQuantity != nullptr)
+                if (popModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));

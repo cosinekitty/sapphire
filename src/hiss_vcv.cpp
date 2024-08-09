@@ -130,7 +130,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (hissModule != nullptr && hissModule->channelCountQuantity != nullptr)
+                if (hissModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
                     menu->addChild(new ChannelCountSlider(hissModule->channelCountQuantity));
