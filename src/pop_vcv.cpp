@@ -12,6 +12,7 @@ namespace Sapphire
             SPEED_ATTEN,
             CHAOS_PARAM,
             CHAOS_ATTEN,
+            CHANNEL_COUNT_PARAM,
 
             PARAMS_LEN
         };
@@ -41,6 +42,7 @@ namespace Sapphire
         {
             int nPolyChannels = 1;      // current number of output channels (how many of `engine` array to use)
             Engine engine[PORT_MAX_CHANNELS];
+            ChannelCountQuantity *channelCountQuantity{};
 
             PopModule()
                 : SapphireModule(PARAMS_LEN)
@@ -58,6 +60,14 @@ namespace Sapphire
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(CHAOS_CV_INPUT, "Chaos CV");
 
+                channelCountQuantity = configParam<ChannelCountQuantity>(
+                    CHANNEL_COUNT_PARAM,
+                    0.5f,
+                    16.5f,
+                    1,
+                    "Output channels"
+                );
+
                 initialize();
             }
 
@@ -65,6 +75,13 @@ namespace Sapphire
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     engine[c].initialize();
+
+                channelCountQuantity->initialize();
+            }
+
+            int dimensions() const
+            {
+                return channelCountQuantity->getDesiredChannelCount();
             }
 
             void onReset(const ResetEvent& e) override
@@ -73,16 +90,45 @@ namespace Sapphire
                 initialize();
             }
 
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                json_object_set_new(root, "channels", json_integer(dimensions()));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                json_t* channels = json_object_get(root, "channels");
+                if (json_is_integer(channels))
+                {
+                    json_int_t n = json_integer_value(channels);
+                    if (n >= 1 && n <= 16)
+                        channelCountQuantity->value = static_cast<float>(n);
+                }
+            }
+
             void process(const ProcessArgs& args) override
             {
+                const int dim = dimensions();
+                outputs[TRIGGER_OUTPUT].setChannels(dim);
+                for (int c = 0; c < dim; ++c)
+                {
+                    const float v = engine[c].process(args.sampleRate);
+                    outputs[TRIGGER_OUTPUT].setVoltage(v, c);
+                }
             }
         };
 
 
         struct PopWidget : SapphireReloadableModuleWidget
         {
+            PopModule* popModule{};
+
             explicit PopWidget(PopModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/pop.svg"))
+                , popModule(module)
             {
                 setModule(module);
 
@@ -98,6 +144,15 @@ namespace Sapphire
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
 
                 reloadPanel();
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (popModule != nullptr && popModule->channelCountQuantity != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
+                }
             }
         };
     }

@@ -36,30 +36,6 @@ namespace Sapphire
         };
 
 
-        struct ChannelCountQuantity : SapphireQuantity
-        {
-            int getDesiredChannelCount() const
-            {
-                int n = static_cast<int>(std::round(value));
-                return std::clamp(n, 1, 16);
-            }
-
-            std::string getDisplayValueString() override
-            {
-                return string::f("%d", getDesiredChannelCount());
-            }
-        };
-
-
-        struct ChannelCountSlider : ui::Slider
-        {
-            explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
-            {
-                quantity = _quantity;
-                box.size.x = 200;
-            }
-        };
-
         struct HissModule : SapphireModule
         {
             RandomVectorGenerator rand;
@@ -154,7 +130,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (hissModule != nullptr)
+                if (hissModule != nullptr && hissModule->channelCountQuantity != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
                     menu->addChild(new ChannelCountSlider(hissModule->channelCountQuantity));

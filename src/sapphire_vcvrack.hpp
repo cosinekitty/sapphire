@@ -289,6 +289,30 @@ namespace Sapphire
     };
 
 
+    struct ChannelCountQuantity : SapphireQuantity
+    {
+        int getDesiredChannelCount() const
+        {
+            int n = static_cast<int>(std::round(value));
+            return std::clamp(n, 1, 16);
+        }
+
+        std::string getDisplayValueString() override
+        {
+            return string::f("%d", getDesiredChannelCount());
+        }
+    };
+
+
+    struct ChannelCountSlider : ui::Slider
+    {
+        explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
+        {
+            quantity = _quantity;
+            box.size.x = 200;
+        }
+    };
+
     const float DC_REJECT_MIN_FREQ = 20.0f;
     const float DC_REJECT_MAX_FREQ = 400.0f;
     const float DC_REJECT_DEFAULT_FREQ = 20.0f;
