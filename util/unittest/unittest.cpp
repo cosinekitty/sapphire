@@ -867,28 +867,37 @@ static int PivotTest()
 
 static int PopTest()
 {
-    const float sampleRate = 48000;
-    const float dt = 1 / sampleRate;
+    const double sampleRate = 48000;
+    const double dt = 1 / sampleRate;
 
     Sapphire::Pop::Engine engine;
     engine.setSpeed(0.0f);
-    engine.setChaos(1.0f);
-    engine.initialize();
+    engine.setChaos(0.0f);
 
     const int popLimit = 1000;
     int popCount = 0;
     int sampleCount = 0;
-    float prev = 0;
+    double prev = 0;
+    double t = 0;    // time in seconds
+    double prevClickTime = -1;
+    double clickTime = -1;
     while (popCount < popLimit)
     {
         ++sampleCount;
-        float s = engine.process(dt);
+        float s = engine.process(sampleRate);
         if (s > 1 && prev < 1)
+        {
             ++popCount;
+            prevClickTime = clickTime;
+            clickTime = t;
+            if (prevClickTime >= 0)
+                printf("PopTest(%d @ %d): t = %0.3f, dt = %lg\n", popCount, sampleCount, t, clickTime - prevClickTime);
+        }
         prev = s;
+        t += dt;
     }
 
-    float elapsedSeconds = sampleCount / sampleRate;
-    printf("PopTest: popCount=%d, sampleCount=%d, %0.3f seconds\n", popCount, sampleCount, elapsedSeconds);
+    double elapsedSeconds = sampleCount / sampleRate;
+    printf("PopTest: popCount=%d, sampleCount=%d, %0.6lf seconds\n", popCount, sampleCount, elapsedSeconds);
     return Pass("PopTest");
 }

@@ -1,16 +1,21 @@
 #pragma once
+#include <algorithm>
 #include <cmath>
+#include <ctime>
 
 namespace Sapphire
 {
     namespace Pop
     {
-        const float MIN_POP_SPEED = -7;
-        const float MAX_POP_SPEED = +7;
-        const float MEAN_POP_RATE_HZ = 2;    // matches VCV LFO default frequency in Hz
+        const double MIN_POP_SPEED = -7;
+        const double MAX_POP_SPEED = +7;
+        const double MEAN_POP_RATE_HZ = 2;    // matches VCV LFO default frequency in Hz
+        const double MIN_POP_CHAOS = 0;
+        const double MAX_POP_CHAOS = 1;
 
         enum class TriggerState
         {
+            Reset,      // first-time initialization needed for random generator
             Waiting,    // counting down for next radioactive decay event
             Firing,     // fire for 1 millisecond
             Quiet,      // stay quiet for 1 millisecond after firing, before waiting again
@@ -26,34 +31,37 @@ namespace Sapphire
 
             void initialize()
             {
+                secondsRemaining = 0;
+                state = TriggerState::Reset;
             }
 
-            float setSpeed(float s)
+            double setSpeed(double s)
             {
-                const float minSpeed = -7;
-                const float maxSpeed = +7;
-                speed = std::clamp(s, minSpeed, maxSpeed);
+                speed = std::clamp(s, MIN_POP_SPEED, MAX_POP_SPEED);
                 return speed;
             }
 
-            float setChaos(float c)
+            double setChaos(double c)
             {
-                const float minChaos = 0;
-                const float maxChaos = 1;
-                chaos = std::clamp(c, minChaos, maxChaos);
+                chaos = std::clamp(c, MIN_POP_CHAOS, MAX_POP_CHAOS);
                 return chaos;
             }
 
-            float process(float dt)
+            float process(double sampleRate)
             {
-                const float two = 2;
-                const float et = dt * std::pow(two, speed);
-                secondsRemaining -= et;
+                const double dt = 1 / sampleRate;
 
                 switch (state)
                 {
-                case TriggerState::Waiting:
+                case TriggerState::Reset:
                 default:
+                    gen.seed(static_cast<unsigned>(clock()));
+                    secondsRemaining = nextWaitInterval();
+                    state = TriggerState::Waiting;
+                    return 0;
+
+                case TriggerState::Waiting:
+                    secondsRemaining -= dt * std::pow(2.0, static_cast<double>(speed));
                     if (secondsRemaining <= 0)
                     {
                         // Time to fire a trigger!
@@ -64,6 +72,7 @@ namespace Sapphire
                     return 0;
 
                 case TriggerState::Firing:
+                    secondsRemaining -= dt;
                     if (secondsRemaining <= 0)
                     {
                         // Stop firing the trigger. Go to zero volts for another millisecond.
@@ -74,6 +83,7 @@ namespace Sapphire
                     return 10;
 
                 case TriggerState::Quiet:
+                    secondsRemaining -= dt;
                     if (secondsRemaining <= 0)
                     {
                         // We have been quiet for 1 millisecond. Go back to the waiting state.
@@ -86,16 +96,25 @@ namespace Sapphire
                 }
             }
 
-            float nextWaitInterval()
+            double nextWaitInterval()
             {
-                return 0.5;
+                return (1-chaos)/MEAN_POP_RATE_HZ + chaos*generateDeltaT(MEAN_POP_RATE_HZ);
+            }
+
+            double generateDeltaT(double lambda)
+            {
+                double u = dis(gen);
+                double dt = -std::log(u) / lambda;
+                return dt;
             }
 
         private:
-            float speed = 0;
-            float chaos = 1;
-            float secondsRemaining = 0;
-            TriggerState state = TriggerState::Waiting;
+            double speed = 0;
+            double chaos = 1;
+            double secondsRemaining = 0;
+            TriggerState state = TriggerState::Reset;
+            std::mt19937 gen;
+            std::uniform_real_distribution<double> dis{0.001, 1.0};
         };
     }
 }
