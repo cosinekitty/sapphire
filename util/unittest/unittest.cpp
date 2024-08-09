@@ -865,14 +865,18 @@ static int PivotTest()
 }
 
 
-static int PopTest()
+static int PopHistogram(double chaos)
 {
     const double sampleRate = 48000;
     const double dt = 1 / sampleRate;
 
     Sapphire::Pop::Engine engine;
     engine.setSpeed(0.0f);
-    engine.setChaos(0.0f);
+    engine.setChaos(chaos);
+
+    const int nbands = 20;
+    const double histLimit = 2.0;
+    int hist[nbands]{};
 
     const int popLimit = 1000;
     int popCount = 0;
@@ -891,13 +895,28 @@ static int PopTest()
             prevClickTime = clickTime;
             clickTime = t;
             if (prevClickTime >= 0)
-                printf("PopTest(%d @ %d): t = %0.3f, dt = %lg\n", popCount, sampleCount, t, clickTime - prevClickTime);
+            {
+                double elapsed = clickTime - prevClickTime;
+                printf("PopTest(%d @ %d): t = %0.3f, dt = %lg\n", popCount, sampleCount, t, elapsed);
+                int h = static_cast<int>(std::round(nbands*(elapsed / histLimit)));
+                if (h >= 0 && h < nbands)
+                    ++hist[h];
+            }
         }
         prev = s;
         t += dt;
     }
 
     double elapsedSeconds = sampleCount / sampleRate;
-    printf("PopTest: popCount=%d, sampleCount=%d, %0.6lf seconds\n", popCount, sampleCount, elapsedSeconds);
-    return Pass("PopTest");
+    printf("PopHistogram: popCount=%d, sampleCount=%d, mean dt = %0.6lf seconds\n", popCount, sampleCount, elapsedSeconds/popCount);
+    for (int h = 0; h < nbands; ++h)
+        printf("PopHistogram[%2d]: %6d\n", h, hist[h]);
+
+    return Pass("PopHistogram");
+}
+
+
+static int PopTest()
+{
+    return PopHistogram(0);
 }

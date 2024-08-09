@@ -66,7 +66,7 @@ namespace Sapphire
                     {
                         // Time to fire a trigger!
                         state = TriggerState::Firing;
-                        secondsRemaining = 0.001;
+                        secondsRemaining = 0.001 - 1/sampleRate;
                         return 10;
                     }
                     return 0;
@@ -77,7 +77,7 @@ namespace Sapphire
                     {
                         // Stop firing the trigger. Go to zero volts for another millisecond.
                         state = TriggerState::Quiet;
-                        secondsRemaining = 0.001;
+                        secondsRemaining = 0.001 - 1/sampleRate;
                         return 0;
                     }
                     return 10;
