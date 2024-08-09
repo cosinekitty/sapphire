@@ -79,11 +79,6 @@ namespace Sapphire
                     engine[c].initialize();
             }
 
-            int dimensions() const
-            {
-                return channelCountQuantity->getDesiredChannelCount();
-            }
-
             void onReset(const ResetEvent& e) override
             {
                 Module::onReset(e);
@@ -93,7 +88,7 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "channels", json_integer(dimensions()));
+                json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
                 return root;
             }
 
@@ -111,13 +106,26 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                const int dim = dimensions();
-                outputs[TRIGGER_OUTPUT].setChannels(dim);
-                for (int c = 0; c < dim; ++c)
+                const int nc = desiredChannelCount();
+                outputs[TRIGGER_OUTPUT].setChannels(nc);
+                float cvSpeed = 0;
+                float cvChaos = 0;
+                for (int c = 0; c < nc; ++c)
                 {
+                    nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
+                    nextChannelInputVoltage(cvChaos, CHAOS_CV_INPUT, c);
+                    float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
+                    float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
+                    engine[c].setSpeed(speed);
+                    engine[c].setChaos(chaos);
                     const float v = engine[c].process(args.sampleRate);
                     outputs[TRIGGER_OUTPUT].setVoltage(v, c);
                 }
+            }
+
+            int desiredChannelCount() const
+            {
+                return channelCountQuantity->getDesiredChannelCount();
             }
         };
 

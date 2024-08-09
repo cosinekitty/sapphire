@@ -46,16 +46,6 @@
       ]
     },
     {
-      "slug": "Pop",
-      "name": "Pop",
-      "description": "A trigger generator based on the statistics of radioactive decay.",
-      "tags": [
-        "Noise",
-        "Polyphonic",
-        "Random"
-      ]
-    },
-    {
       "slug": "Glee",
       "name": "Glee",
       "description": "Chaotic oscillator based on the Aizawa Attractor.",
@@ -112,6 +102,16 @@
         "Effect",
         "Filter",
         "Reverb"
+      ]
+    },
+    {
+      "slug": "Pop",
+      "name": "Pop",
+      "description": "A trigger generator based on the statistics of radioactive decay.",
+      "tags": [
+        "Noise",
+        "Polyphonic",
+        "Random"
       ]
     },
     {
