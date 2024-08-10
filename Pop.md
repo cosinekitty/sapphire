@@ -46,11 +46,11 @@ timing and completely random timing.
 
 When a monophonic cable is connected to the SYNC input port, a trigger received on that
 port causes all 1..16 polyphonic Pop engines to restart in sync.
-This can be useful for CHAOS set to 0 or a very small value, to bring
-all the output PULSE channels to a common starting point.
+This can be useful when CHAOS is set to a value very close to zero,
+in order to bring all the output PULSE channels to a common starting point.
 
 A polyphonic SYNC cable allows independent control of sync timing on each output engine.
-The final channel in the cable "normals forward" to all remaining required channels.
+The final channel in the cable "normals forward" to all remaining pulse channels.
 Therefore, the monophonic case isn't actually special: the single supplied channel
 normals forward to all 1..16 pulse engines.
 
