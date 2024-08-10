@@ -112,6 +112,18 @@ for each particle instead of 3 monophonic ports.
 
 ---
 
+## Pop
+
+A polyphonic trigger generator that can simulate the statistical
+behavior of radioactive decay, generate completely regular pulses,
+or anywhere in between.
+
+<a href="Pop.md">Sapphire Pop documentation</a>
+
+<a href="Pop.md"><img src="images/pop.png" /></a>
+
+---
+
 ## Rotini
 
 A utility module for combining Frolic/Glee into more complex chaotic 3D vector signals.
