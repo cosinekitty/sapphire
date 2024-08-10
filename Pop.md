@@ -44,10 +44,15 @@ timing and completely random timing.
 
 ## SYNC trigger input
 
-When a cable is connected to the SYNC input port, a trigger received on that
+When a monophonic cable is connected to the SYNC input port, a trigger received on that
 port causes all 1..16 polyphonic Pop engines to restart in sync.
 This can be useful for CHAOS set to 0 or a very small value, to bring
 all the output PULSE channels to a common starting point.
+
+A polyphonic SYNC cable allows independent control of sync timing on each output engine.
+The final channel in the cable "normals forward" to all remaining required channels.
+Therefore, the monophonic case isn't actually special: the single supplied channel
+normals forward to all 1..16 pulse engines.
 
 ## PULSE trigger output
 
@@ -57,3 +62,13 @@ there for one millisecond. Then the voltage goes back to 0&nbsp;V for another mi
 
 After that, a pulse can occur again at any time. This results in a maximum possible
 instantaneous pulse rate of 500&nbsp;Hz, even though the mean pulse rate is clamped to 256&nbsp;Hz.
+
+## Polyphonic CV
+
+The SPEED and CHAOS _control groups_ each consist of a large manual knob, a small attenuverter knob,
+and a control voltage (CV) input port.
+
+The SPEED and CHAOS CV input ports are both polyphonic. Just like the SYNC trigger input port,
+you can independently control the 1..16 pulse engines using a polyphonic cable with the correct
+number of channels. Just as the SYNC trigger does, the final channel value on a CV input port
+normals forward to all remaining channels.
