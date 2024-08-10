@@ -21,13 +21,14 @@ namespace Sapphire
         {
             SPEED_CV_INPUT,
             CHAOS_CV_INPUT,
+            SYNC_TRIGGER_INPUT,
 
             INPUTS_LEN
         };
 
         enum OutputId
         {
-            TRIGGER_OUTPUT,
+            PULSE_TRIGGER_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -42,6 +43,7 @@ namespace Sapphire
         {
             int nPolyChannels = 1;      // current number of output channels (how many of `engine` array to use)
             Engine engine[PORT_MAX_CHANNELS];
+            GateTriggerReceiver syncReceiver[PORT_MAX_CHANNELS];
             ChannelCountQuantity *channelCountQuantity{};
 
             PopModule()
@@ -51,7 +53,7 @@ namespace Sapphire
 
                 channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM, 1);
 
-                configOutput(TRIGGER_OUTPUT, "Trigger");
+                configOutput(PULSE_TRIGGER_OUTPUT, "Pulse trigger");
 
                 configParam(SPEED_PARAM, MIN_POP_SPEED, MAX_POP_SPEED, DEFAULT_POP_SPEED, "Speed");
                 configParam(CHAOS_PARAM, MIN_POP_CHAOS, MAX_POP_CHAOS, DEFAULT_POP_CHAOS, "Chaos");
@@ -61,6 +63,7 @@ namespace Sapphire
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(CHAOS_CV_INPUT, "Chaos CV");
+                configInput(SYNC_TRIGGER_INPUT, "Sync trigger");
 
                 initialize();
             }
@@ -70,7 +73,11 @@ namespace Sapphire
                 channelCountQuantity->initialize();
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                {
                     engine[c].initialize();
+                    engine[c].setRandomSeed(c*0x100001 + 0xbeef0);
+                    syncReceiver[c].initialize();
+                }
             }
 
             void onReset(const ResetEvent& e) override
@@ -101,19 +108,27 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 const int nc = desiredChannelCount();
-                outputs[TRIGGER_OUTPUT].setChannels(nc);
+                outputs[PULSE_TRIGGER_OUTPUT].setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
+                float vSync = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
                     nextChannelInputVoltage(cvChaos, CHAOS_CV_INPUT, c);
+                    nextChannelInputVoltage(vSync, SYNC_TRIGGER_INPUT, c);
+
+                    bool isSyncTrigger = syncReceiver[c].updateTrigger(vSync);
                     float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
                     float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
+
+                    if (isSyncTrigger)
+                        engine[c].initialize();
                     engine[c].setSpeed(speed);
                     engine[c].setChaos(chaos);
+
                     const float v = engine[c].process(args.sampleRate);
-                    outputs[TRIGGER_OUTPUT].setVoltage(v, c);
+                    outputs[PULSE_TRIGGER_OUTPUT].setVoltage(v, c);
                 }
             }
 
@@ -134,7 +149,7 @@ namespace Sapphire
             {
                 setModule(module);
 
-                addSapphireOutput(TRIGGER_OUTPUT, "trigger_output");
+                addSapphireOutput(PULSE_TRIGGER_OUTPUT, "pulse_output");
 
                 addKnob(SPEED_PARAM, "speed_knob");
                 addKnob(CHAOS_PARAM, "chaos_knob");
@@ -144,6 +159,7 @@ namespace Sapphire
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
+                addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");
 
                 reloadPanel();
             }

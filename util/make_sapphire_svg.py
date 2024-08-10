@@ -816,12 +816,14 @@ def GeneratePopPanel() -> int:
     controls = ControlLayer()
     pl.append(controls)
     xmid = panel.mmWidth / 2
+    syncDy = 20.0       # vertical distance between SYNC input port and TRIGGER output port
     ySpeedKnob = 26.0
     yChaosKnob = 57.0
     dxControlGroup = 5.0
     dyControlGroup = 11.0
     dyControlText = -11.6
     yOutLabel = 107.0
+    ySyncLabel = yOutLabel - syncDy
     artSpaceAboveKnob = 13.0
     artSpaceBelowKnob = 25.0
     outputPortY1 = 88.0
@@ -829,16 +831,21 @@ def GeneratePopPanel() -> int:
     yPortLabel = outputPortY1 - 2.4
     outGradY1 = yOutLabel - 3.5
     outGradY2 = yPortLabel + 2*outputPortDY + 10.0
+    syncGradY1 = outGradY1 - syncDy
+    syncGradY2 = syncGradY1 + (outGradY2 - outGradY1)
     yTriggerPort = outputPortY1 + 3*outputPortDY
+    ySyncPort = yTriggerPort - syncDy
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
         defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
-        defs.append(Gradient(outGradY1, outGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        defs.append(Gradient(syncGradY1, syncGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_sync'))
+        defs.append(Gradient(outGradY1, outGradY2, SAPPHIRE_SALMON_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
         pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
+        pl.append(ControlGroupArt(name, 'sync_art', panel, syncGradY1, syncGradY2, 'gradient_sync'))
         pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_out'))
         lineGroup = Element('g', 'connector_lines').setAttrib('style', 'fill:none;stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
         pl.append(lineGroup)
@@ -852,10 +859,12 @@ def GeneratePopPanel() -> int:
         controls.append(Component('chaos_knob', xmid, yChaosKnob))
         controls.append(Component('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup))
         controls.append(Component('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup))
-        controls.append(Component('trigger_output', xmid, yTriggerPort))
+        controls.append(Component('sync_input', xmid, ySyncPort))
+        controls.append(Component('pulse_output', xmid, yTriggerPort))
         pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
-        pl.append(CenteredControlTextPath(font, 'TRIGGER', xmid, yOutLabel, 'trigger_label'))
+        pl.append(CenteredControlTextPath(font, 'PULSE', xmid, yOutLabel, 'pulse_label'))
+        pl.append(CenteredControlTextPath(font, 'SYNC', xmid, ySyncLabel, 'sync_label'))
     return Save(panel, svgFileName)
 
 

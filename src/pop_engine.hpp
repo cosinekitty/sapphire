@@ -39,6 +39,11 @@ namespace Sapphire
                 state = TriggerState::Reset;
             }
 
+            void setRandomSeed(unsigned rs)
+            {
+                randomSeed = rs;
+            }
+
             double setSpeed(double s)
             {
                 speed = std::clamp(s, MIN_POP_SPEED, MAX_POP_SPEED);
@@ -59,7 +64,7 @@ namespace Sapphire
                 {
                 case TriggerState::Reset:
                 default:
-                    gen.seed(static_cast<unsigned>(clock()));
+                    gen.seed(randomSeed);
                     secondsRemaining = nextWaitInterval();
                     state = TriggerState::Waiting;
                     return 0;
@@ -113,6 +118,7 @@ namespace Sapphire
             }
 
         private:
+            unsigned randomSeed = 8675309;
             double speed = DEFAULT_POP_SPEED;
             double chaos = DEFAULT_POP_CHAOS;
             double secondsRemaining = 0;
