@@ -15,7 +15,7 @@ namespace Sapphire
 
         const double MIN_POP_CHAOS = 0;
         const double MAX_POP_CHAOS = 1;
-        const double DEFAULT_POP_CHAOS = 1;
+        const double DEFAULT_POP_CHAOS = 0.5;
 
         enum class TriggerState
         {
