@@ -49,13 +49,7 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                channelCountQuantity = configParam<ChannelCountQuantity>(
-                    CHANNEL_COUNT_PARAM,
-                    0.5f,
-                    16.5f,
-                    1,
-                    "Output channels"
-                );
+                channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM);
 
                 configOutput(TRIGGER_OUTPUT, "Trigger");
 

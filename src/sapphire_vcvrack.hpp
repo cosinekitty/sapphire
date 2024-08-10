@@ -638,6 +638,17 @@ namespace Sapphire
             }
         }
 
+        ChannelCountQuantity* configChannelCount(int paramId)
+        {
+            return configParam<ChannelCountQuantity>(
+                paramId,
+                0.5f,
+                16.5f,
+                1,
+                "Output channels"
+            );
+        }
+
         int numOutputChannels(int numInputs)
         {
             int nc = 0;
