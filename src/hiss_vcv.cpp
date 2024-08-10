@@ -49,7 +49,7 @@ namespace Sapphire
                 for (int i = 0; i < NumOutputs; ++i)
                     configOutput(NOISE_OUTPUTS + i, std::string("Noise ") + std::to_string(i + 1));
 
-                channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM);
+                channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM, DefaultDimensions);
 
                 initialize();
             }

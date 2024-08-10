@@ -638,13 +638,13 @@ namespace Sapphire
             }
         }
 
-        ChannelCountQuantity* configChannelCount(int paramId)
+        ChannelCountQuantity* configChannelCount(int paramId, int defaultChannelCount)
         {
             return configParam<ChannelCountQuantity>(
                 paramId,
                 0.5f,
                 16.5f,
-                1,
+                static_cast<float>(defaultChannelCount),
                 "Output channels"
             );
         }
