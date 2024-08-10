@@ -9,9 +9,12 @@
 </tr>
 
 <tr valign="top">
-<td align="center">5 August 2024</td>
+<td align="center">10 August 2024</td>
 <td align="center">2.4.9</td>
 <td align="left">
+    <ul>
+        <li>New module: <a href="Pop.md">Pop</a> that generates trigger pulses that match the statistical timing of radioactive decay.</li>
+    </ul>
     <ul>
         <li>New module: <a href="SplitAddMerge.md">Split/Add/Merge</a> to make working with 2- or 3-channel signals use less real estate in a patch.</li>
     </ul>
