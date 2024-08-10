@@ -26,7 +26,7 @@ Each time you increase the SPEED by 1, it doubles the mean pulse frequency.
 In other words, just like a V/OCT input, every volt represents an octave.
 Therefore, you can increase the speed by a factor of $2^7=128$ by turning the SPEED
 knob all the way to +7. This results in a mean pulse rate of 256&nbsp;Hz.
-If you turn SPEED all the way down to &minus;7, the effective frequency is $2^{-6}=\frac{1}{64}$,
+If you turn SPEED all the way down to &minus;7, the effective frequency is $2^{-6}=\frac{1}{64}$ Hz,
 resulting in less than one pulse per minute on average.
 
 ## CHAOS control group
