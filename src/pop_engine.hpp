@@ -25,6 +25,12 @@ namespace Sapphire
             Quiet,      // stay quiet for 1 millisecond after firing, before waiting again
         };
 
+        enum class OutputMode
+        {
+            Trigger,
+            Gate,
+        };
+
         class Engine
         {
         public:
@@ -37,6 +43,8 @@ namespace Sapphire
             {
                 secondsRemaining = 0;
                 state = TriggerState::Reset;
+                gate = false;
+                prevTriggerVoltage = 0;
             }
 
             void setRandomSeed(unsigned rs)
@@ -56,9 +64,20 @@ namespace Sapphire
                 return chaos;
             }
 
+            OutputMode getOutputMode() const
+            {
+                return outputMode;
+            }
+
+            void setOutputMode(OutputMode mode)
+            {
+                outputMode = mode;
+            }
+
             float process(double sampleRate)
             {
                 const double dt = 1 / sampleRate;
+                float triggerVoltage = 0;
 
                 switch (state)
                 {
@@ -67,7 +86,8 @@ namespace Sapphire
                     gen.seed(randomSeed);
                     secondsRemaining = nextWaitInterval();
                     state = TriggerState::Waiting;
-                    return 0;
+                    triggerVoltage = 0;
+                    break;
 
                 case TriggerState::Waiting:
                     secondsRemaining -= dt * std::pow(2.0, static_cast<double>(speed));
@@ -76,9 +96,11 @@ namespace Sapphire
                         // Time to fire a trigger!
                         state = TriggerState::Firing;
                         secondsRemaining = 0.001 - 1/sampleRate;
-                        return 10;
+                        triggerVoltage = 10;
                     }
-                    return 0;
+                    else
+                        triggerVoltage = 0;
+                    break;
 
                 case TriggerState::Firing:
                     secondsRemaining -= dt;
@@ -87,9 +109,11 @@ namespace Sapphire
                         // Stop firing the trigger. Go to zero volts for another millisecond.
                         state = TriggerState::Quiet;
                         secondsRemaining = 0.001 - 1/sampleRate;
-                        return 0;
+                        triggerVoltage = 0;
                     }
-                    return 10;
+                    else
+                        triggerVoltage = 10;
+                    break;
 
                 case TriggerState::Quiet:
                     secondsRemaining -= dt;
@@ -101,7 +125,23 @@ namespace Sapphire
                         // Deduct the 2-millisecond trigger cycle (1ms @ 10V, 1ms @ 0V).
                         secondsRemaining = nextWaitInterval() - 0.002;
                     }
-                    return 0;
+                    triggerVoltage = 0;
+                    break;
+                }
+
+                if (prevTriggerVoltage < 1 && triggerVoltage > 1)
+                    gate = !gate;
+
+                prevTriggerVoltage = triggerVoltage;
+
+                switch (outputMode)
+                {
+                case OutputMode::Gate:
+                    return gate ? 10 : 0;
+
+                case OutputMode::Trigger:
+                default:
+                    return triggerVoltage;
                 }
             }
 
@@ -118,6 +158,9 @@ namespace Sapphire
             }
 
         private:
+            OutputMode outputMode = OutputMode::Trigger;
+            bool gate = false;
+            float prevTriggerVoltage = 0;
             unsigned randomSeed = 8675309;
             double speed = DEFAULT_POP_SPEED;
             double chaos = DEFAULT_POP_CHAOS;

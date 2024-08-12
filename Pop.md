@@ -6,15 +6,26 @@ Sapphire Pop is a polyphonic trigger generator that can simulate the statistical
 behavior of radioactive decay, or generate completely regular pulses,
 or anywhere on a spectrum between these extremes.
 
+## Context menu
+
+When you right-click on Pop's panel, the following context menu appears:
+
+![Pop context menu](images/pop_menu.png)
+
+It allows you to control the output channel count and output pulse mode.
+
 ## Output channel count
 
-By right-clicking on Pop's panel, you will see a slider that allows you
+The output channel count slider in the context menu allows you
 to select a number of channels in the range 1..16. By default, Pop outputs
 a pulse trigger that has a single channel. By changing this slider setting,
 you can tell Pop to output up to 16 polyphonic channels from the PULSE port.
 This results in up to 16 independent pulse generators.
 
-![Pop context menu](images/pop_menu.png)
+## Output pulse mode
+
+You can select whether the [PULSE output port](#pulse-output) should produce triggers or gates.
+By default Pop outputs triggers.
 
 ## SPEED control group
 
@@ -54,14 +65,16 @@ The final channel in the cable "normals forward" to all remaining pulse channels
 Therefore, the monophonic case isn't actually special: the single supplied channel
 normals forward to all 1..16 pulse engines.
 
-## PULSE trigger output
+## PULSE output
 
-PULSE is a polyphonic trigger output. Most of the time, each channel voltage is zero.
+PULSE is a polyphonic output port. You can select from the available output modes
+in the [context menu](#context-menu):
+
+* **Triggers**: Most of the time, each channel voltage is zero.
 When a pulse occurs on channel, the voltage immediately jumps to 10&nbsp;V and stays
-there for one millisecond. Then the voltage goes back to 0&nbsp;V for another millisecond.
-
-After that, a pulse can occur again at any time. This results in a maximum possible
+there for one millisecond. Then the voltage goes back to 0&nbsp;V for another millisecond. After that, a pulse can occur again at any time. This results in a maximum possible
 instantaneous pulse rate of 500&nbsp;Hz, even though the mean pulse rate is clamped to 256&nbsp;Hz.
+* **Gates**: In gate mode, the output starts at zero volts. Every time a pulse occurs, the output is toggled between 0&nbsp;V and +10&nbsp;V. This results in a series of gates that occur between every alternating pair of pulses. The maximum mean square wave frequency is thus half the maximum mean pulse rate, i.e., 128&nbsp;Hz.
 
 ## Polyphonic CV
 

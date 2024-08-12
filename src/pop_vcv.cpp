@@ -90,6 +90,7 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
+                json_object_set_new(root, "outputMode", json_integer(getOutputMode()));
                 return root;
             }
 
@@ -100,8 +101,15 @@ namespace Sapphire
                 if (json_is_integer(channels))
                 {
                     json_int_t n = json_integer_value(channels);
-                    if (n >= 1 && n <= 16)
+                    if (n >= 1 && n <= PORT_MAX_CHANNELS)
                         channelCountQuantity->value = static_cast<float>(n);
+                }
+
+                json_t* outputMode = json_object_get(root, "outputMode");
+                if (json_is_integer(outputMode))
+                {
+                    size_t index = json_integer_value(outputMode);
+                    setOutputMode(index);
                 }
             }
 
@@ -136,6 +144,20 @@ namespace Sapphire
             {
                 return channelCountQuantity->getDesiredChannelCount();
             }
+
+            size_t getOutputMode() const
+            {
+                // We keep the output modes always in sync.
+                // So the first channel's state is our single source of truth.
+                return static_cast<size_t>(engine[0].getOutputMode());
+            }
+
+            void setOutputMode(size_t index)
+            {
+                OutputMode mode = static_cast<OutputMode>(index);
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    engine[c].setOutputMode(mode);
+            }
         };
 
 
@@ -169,8 +191,24 @@ namespace Sapphire
                 if (popModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
+                    addOutputModeMenuItems(menu);
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
+            }
+
+            void addOutputModeMenuItems(Menu* menu)
+            {
+                std::vector<std::string> labels {
+                    "Triggers",
+                    "Gates"
+                };
+
+                menu->addChild(createIndexSubmenuItem(
+                    "Output pulse mode",
+                    labels,
+                    [=]() { return popModule->getOutputMode(); },
+                    [=](size_t mode) { popModule->setOutputMode(mode); }
+                ));
             }
         };
     }
