@@ -12,7 +12,14 @@ When you right-click on Pop's panel, the following context menu appears:
 
 ![Pop context menu](images/pop_menu.png)
 
-It allows you to control the output channel count and output pulse mode.
+It allows you to manually sync channels, control the output channel count, and select the output pulse mode.
+
+## Sync polyphonic channels
+
+This is a manually operated counterpart to the [SYNC trigger input](#sync-trigger-input).
+Each time you select this menu action, Pop syncs the output channels the same way the trigger input does.
+This menu action is provided to save space in your patch when you want to manually sync,
+so that you don't have to add an external button module.
 
 ## Output channel count
 
@@ -65,6 +72,9 @@ The final channel in the cable "normals forward" to all remaining pulse channels
 Therefore, the monophonic case isn't actually special: the single supplied channel
 normals forward to all 1..16 pulse engines.
 
+You can also manually sync using the [Sync polyphonic channels](#sync-polyphonic-channels)
+action in the right-click context menu.
+
 ## PULSE output
 
 PULSE is a polyphonic output port. You can select from the available output modes
@@ -78,7 +88,7 @@ instantaneous pulse rate of 500&nbsp;Hz, even though the mean pulse rate is clam
 
 ## Polyphonic CV
 
-The SPEED and CHAOS _control groups_ each consist of a large manual knob, a small attenuverter knob,
+The SPEED and CHAOS control groups each consist of a large manual knob, a small attenuverter knob,
 and a control voltage (CV) input port.
 
 The SPEED and CHAOS CV input ports are both polyphonic. Just like the SYNC trigger input port,

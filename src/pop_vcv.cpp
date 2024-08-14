@@ -43,6 +43,7 @@ namespace Sapphire
         {
             int nPolyChannels = 1;      // current number of output channels (how many of `engine` array to use)
             Engine engine[PORT_MAX_CHANNELS];
+            bool isSyncPending = false;
             GateTriggerReceiver syncReceiver[PORT_MAX_CHANNELS];
             ChannelCountQuantity *channelCountQuantity{};
 
@@ -70,6 +71,7 @@ namespace Sapphire
 
             void initialize()
             {
+                isSyncPending = false;
                 channelCountQuantity->initialize();
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
@@ -130,7 +132,7 @@ namespace Sapphire
                     float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
                     float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
 
-                    if (isSyncTrigger)
+                    if (isSyncTrigger || isSyncPending)
                         engine[c].initialize();
                     engine[c].setSpeed(speed);
                     engine[c].setChaos(chaos);
@@ -138,6 +140,7 @@ namespace Sapphire
                     const float v = engine[c].process(args.sampleRate);
                     outputs[PULSE_TRIGGER_OUTPUT].setVoltage(v, c);
                 }
+                isSyncPending = false;
             }
 
             int desiredChannelCount() const
@@ -191,9 +194,19 @@ namespace Sapphire
                 if (popModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
+                    addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
+            }
+
+            void addManualSyncMenuItem(Menu* menu)
+            {
+                menu->addChild(createMenuItem(
+                    "Sync polyphonic channels",
+                    "",
+                    [=]{ popModule->isSyncPending = true; }
+                ));
             }
 
             void addOutputModeMenuItems(Menu* menu)
