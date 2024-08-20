@@ -62,7 +62,7 @@ namespace Sapphire
             {
                 const double x = std::clamp(knob, MIN_POP_CHAOS, MAX_POP_CHAOS);
                 chaos = (x*x*x);
-                return chaos;
+                return x;
             }
 
             OutputMode getOutputMode() const
