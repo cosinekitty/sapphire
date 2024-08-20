@@ -52,15 +52,16 @@ namespace Sapphire
                 randomSeed = rs;
             }
 
-            double setSpeed(double s)
+            double setSpeed(double knob)
             {
-                speed = std::clamp(s, MIN_POP_SPEED, MAX_POP_SPEED);
+                speed = std::clamp(knob, MIN_POP_SPEED, MAX_POP_SPEED);
                 return speed;
             }
 
-            double setChaos(double c)
+            double setChaos(double knob)
             {
-                chaos = std::clamp(c, MIN_POP_CHAOS, MAX_POP_CHAOS);
+                const double x = std::clamp(knob, MIN_POP_CHAOS, MAX_POP_CHAOS);
+                chaos = (x*x*x);
                 return chaos;
             }
 
