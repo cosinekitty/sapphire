@@ -790,7 +790,6 @@ def GenerateSamPanel() -> int:
     xmid = panel.mmWidth / 2.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(VerticalText(font, 'SAM', xmid, panel.mmHeight/2.0 + 5.0))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('x_input' , xmid, yInput.value(0)))
         controls.append(Component('y_input' , xmid, yInput.value(1)))
