@@ -84,10 +84,13 @@ namespace Sapphire
                 {
                 case TriggerState::Reset:
                 default:
+                    // Start deterministically, but with a different random seed for each channel.
                     gen.seed(randomSeed);
-                    secondsRemaining = nextWaitInterval();
-                    state = TriggerState::Waiting;
-                    triggerVoltage = 0;
+
+                    // Start out firing a trigger. Subsequent triggers have adjustably random timing.
+                    state = TriggerState::Firing;
+                    secondsRemaining = 0.001 - 1/sampleRate;
+                    triggerVoltage = 10;
                     break;
 
                 case TriggerState::Waiting:
