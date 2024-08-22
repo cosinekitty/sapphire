@@ -46,6 +46,8 @@ namespace Sapphire
             bool isSyncPending = false;
             GateTriggerReceiver syncReceiver[PORT_MAX_CHANNELS];
             ChannelCountQuantity *channelCountQuantity{};
+            bool prevTriggerOnReset = false;
+            bool sendTriggerOnReset = false;
 
             PopModule()
                 : SapphireModule(PARAMS_LEN)
@@ -76,6 +78,7 @@ namespace Sapphire
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
+                    engine[c].sendTriggerOnReset = sendTriggerOnReset;
                     engine[c].initialize();
                     engine[c].setRandomSeed(c*0x100001 + 0xbeef0);
                     syncReceiver[c].initialize();
@@ -93,6 +96,7 @@ namespace Sapphire
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
                 json_object_set_new(root, "outputMode", json_integer(getOutputMode()));
+                json_object_set_new(root, "triggerOnReset", json_boolean(sendTriggerOnReset));
                 return root;
             }
 
@@ -113,10 +117,20 @@ namespace Sapphire
                     size_t index = json_integer_value(outputMode);
                     setOutputMode(index);
                 }
+
+                json_t* trig = json_object_get(root, "triggerOnReset");
+                sendTriggerOnReset = json_is_true(trig);
             }
 
             void process(const ProcessArgs& args) override
             {
+                if (prevTriggerOnReset != sendTriggerOnReset)
+                {
+                    prevTriggerOnReset = sendTriggerOnReset;
+                    for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                        engine[c].sendTriggerOnReset = prevTriggerOnReset;
+                }
+
                 const int nc = desiredChannelCount();
                 outputs[PULSE_TRIGGER_OUTPUT].setChannels(nc);
                 float cvSpeed = 0;
@@ -196,6 +210,7 @@ namespace Sapphire
                     menu->addChild(new MenuSeparator);
                     addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);
+                    menu->addChild(createBoolPtrMenuItem<bool>("Send trigger on every reset", "", &popModule->sendTriggerOnReset));
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
             }

@@ -34,6 +34,8 @@ namespace Sapphire
         class Engine
         {
         public:
+            bool sendTriggerOnReset = false;
+
             Engine()
             {
                 initialize();
@@ -87,10 +89,20 @@ namespace Sapphire
                     // Start deterministically, but with a different random seed for each channel.
                     gen.seed(randomSeed);
 
-                    // Start out firing a trigger. Subsequent triggers have adjustably random timing.
-                    state = TriggerState::Firing;
-                    secondsRemaining = 0.001 - 1/sampleRate;
-                    triggerVoltage = 10;
+                    if (sendTriggerOnReset)
+                    {
+                        // Start out firing a trigger. Subsequent triggers have adjustably random timing.
+                        state = TriggerState::Firing;
+                        secondsRemaining = 0.001 - 1/sampleRate;
+                        triggerVoltage = 10;
+                    }
+                    else
+                    {
+                        // Start out waiting for the first random time interval.
+                        state = TriggerState::Waiting;
+                        secondsRemaining = nextWaitInterval();
+                        triggerVoltage = 0;
+                    }
                     break;
 
                 case TriggerState::Waiting:
