@@ -13,6 +13,7 @@ SAPPHIRE_PURPLE_COLOR = '#b242bd'
 SAPPHIRE_EGGPLANT_COLOR = '#ba60d1'
 SAPPHIRE_SALMON_COLOR = '#b9818b'
 SAPPHIRE_TEAL_COLOR = '#29aab4'
+SAPPHIRE_GEMSTONE_COLOR = '#2e2114'
 
 MODEL_NAME_POINTS   = 22.0
 MODEL_NAME_STYLE    = 'display:inline;stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:bevel'

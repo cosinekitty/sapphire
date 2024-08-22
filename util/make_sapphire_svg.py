@@ -10,6 +10,7 @@
 #   script makes it easier to maintain a common style across modules.
 #
 import sys
+import math
 from typing import List, Tuple
 from svgpanel import *
 from sapphire import *
@@ -790,15 +791,28 @@ def VerticalArrow(x:float, y1:float, y2:float, dx:float, dy:float) -> Path:
     return Path(t, ARROW_LINE_STYLE)
 
 
-def PolyPortBox(x:float, y:float) -> Path:
-    ds = 4.5
+def PolygonVertices(numSides:int, radius:float, xCenter:float, yCenter:float) -> List[Tuple[float, float]]:
+    vertices:List[Tuple[float, float]] = []
+    for k in range(numSides):
+        angle = (2 * math.pi * (k + 0.5)) / numSides
+        x = xCenter + radius*math.cos(angle)
+        y = yCenter + radius*math.sin(angle)
+        vertices.append((x, y))
+    return vertices
+
+
+def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
+    style = f'stroke:#000000;fill:{SAPPHIRE_EGGPLANT_COLOR};stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
     t = ''
-    t += Move(x - ds, y - ds)
-    t += Line(x + ds, y - ds)
-    t += Line(x + ds, y + ds)
-    t += Line(x - ds, y + ds)
+    vertices = PolygonVertices(6, radius, xCenter, yCenter)
+    first = True
+    for (x, y) in vertices:
+        if first:
+            first = False
+            t += Move(x, y)
+        else:
+            t += Line(x, y)
     t += ClosePath()
-    style = 'stroke:#020670;fill:#b0337a;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
     return Path(t, style)
 
 
@@ -811,8 +825,8 @@ def GenerateSamPanel() -> int:
     defs = Element('defs')
     pl.append(defs)
     controls = ControlLayer()
-    yInput = FencePost(25.0, 55.0, 4)
-    yOutput = FencePost(88.0, 115.0, 4)
+    yInput  = FencePost(24.0,  51.0, 4)
+    yOutput = FencePost(87.0, 114.0, 4)
     dyArrowMargin = 8.5
     dxArrow = 3.5
     dyArrow = 5.0
@@ -825,7 +839,7 @@ def GenerateSamPanel() -> int:
         controls.append(Component('z_input' , xmid, yInput.value(2)))
         controls.append(Component('p_input' , xmid, yInput.value(3)))
 
-        pl.append(PolyPortBox(xmid, yInput.value(3)))
+        pl.append(PolyPortHexagon(xmid, yInput.value(3)))
 
         y1Arrow = yInput.value(3) + dyArrowMargin
         y2Arrow = yOutput.value(0) - dyArrowMargin
@@ -836,7 +850,7 @@ def GenerateSamPanel() -> int:
         controls.append(Component('z_output', xmid, yOutput.value(2)))
         controls.append(Component('p_output', xmid, yOutput.value(3)))
 
-        pl.append(PolyPortBox(xmid, yOutput.value(3)))
+        pl.append(PolyPortHexagon(xmid, yOutput.value(3)))
     pl.append(controls)
     return Save(panel, svgFileName)
 
