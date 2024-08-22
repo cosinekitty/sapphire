@@ -123,6 +123,7 @@ def GenerateChaosPanel(name: str) -> int:
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*outputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*outputPortDY, 'port_label_z'))
         pl.append(ControlTextPath(font, 'P',  xPortLabel, yPortLabel + 3*outputPortDY, 'port_label_p'))
+        pl.append(PolyPortHexagon(xmid, outputPortY1 + 3*outputPortDY))
     return Save(panel, svgFileName)
 
 
@@ -207,6 +208,7 @@ def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> 
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xmid, 75.0, 5.5)
         pl.append(CenteredControlTextPath(font, ioLabel, xmid, yInLabel + 2.5, 'io_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'clear_label'))
+        pl.append(PolyPortHexagon(xmid, inputPortY1 + 3*inputPortDY))
     pl.append(controls)     # controls go LAST so that they end up on top of everything else
     return Save(panel, svgFileName)
 
@@ -717,6 +719,7 @@ def GenerateRotiniPanel() -> int:
         pl.append(CenteredControlTextPath(font, 'Y', xmid - dxText, outPortY + 1*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'Z', xmid - dxText, outPortY + 2*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
+        pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
     pl.append(controls)
     return Save(panel, svgFileName)
 
@@ -825,14 +828,15 @@ def GenerateSamPanel() -> int:
     defs = Element('defs')
     pl.append(defs)
     controls = ControlLayer()
-    yInput  = FencePost(24.0,  51.0, 4)
-    yOutput = FencePost(87.0, 114.0, 4)
+    yInput  = FencePost(25.0,  52.0, 4)
+    yOutput = FencePost(88.0, 115.0, 4)     # cannot change - visually match Frolic/Glee
     dyArrowMargin = 8.5
     dxArrow = 3.5
     dyArrow = 5.0
     xmid = panel.mmWidth / 2.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, 's'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('x_input' , xmid, yInput.value(0)))
         controls.append(Component('y_input' , xmid, yInput.value(1)))
