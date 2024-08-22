@@ -805,7 +805,7 @@ def PolygonVertices(numSides:int, radius:float, xCenter:float, yCenter:float) ->
 
 
 def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
-    style = f'stroke:#000000;fill:{SAPPHIRE_EGGPLANT_COLOR};stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
+    style = f'stroke:#000000;fill:#4469a6;stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
     t = ''
     vertices = PolygonVertices(6, radius, xCenter, yCenter)
     first = True
