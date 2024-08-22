@@ -776,6 +776,32 @@ def GeneratePivotPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def VerticalArrow(x:float, y1:float, y2:float, dx:float, dy:float) -> Path:
+    t = ''
+    t += Move(x, y1)
+    t += Line(x, y2)
+    t += ClosePath()
+    t += Move(x, y2)
+    t += Line(x + dx, y2 - dy)
+    t += ClosePath()
+    t += Move(x, y2)
+    t += Line(x - dx, y2 - dy)
+    t += ClosePath()
+    return Path(t, ARROW_LINE_STYLE)
+
+
+def PolyPortBox(x:float, y:float) -> Path:
+    ds = 4.5
+    t = ''
+    t += Move(x - ds, y - ds)
+    t += Line(x + ds, y - ds)
+    t += Line(x + ds, y + ds)
+    t += Line(x - ds, y + ds)
+    t += ClosePath()
+    style = 'stroke:#020670;fill:#b0337a;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
+    return Path(t, style)
+
+
 def GenerateSamPanel() -> int:
     svgFileName = '../res/sam.svg'
     PANEL_WIDTH = 2
@@ -787,6 +813,9 @@ def GenerateSamPanel() -> int:
     controls = ControlLayer()
     yInput = FencePost(25.0, 55.0, 4)
     yOutput = FencePost(88.0, 115.0, 4)
+    dyArrowMargin = 8.5
+    dxArrow = 3.5
+    dyArrow = 5.0
     xmid = panel.mmWidth / 2.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -795,10 +824,19 @@ def GenerateSamPanel() -> int:
         controls.append(Component('y_input' , xmid, yInput.value(1)))
         controls.append(Component('z_input' , xmid, yInput.value(2)))
         controls.append(Component('p_input' , xmid, yInput.value(3)))
+
+        pl.append(PolyPortBox(xmid, yInput.value(3)))
+
+        y1Arrow = yInput.value(3) + dyArrowMargin
+        y2Arrow = yOutput.value(0) - dyArrowMargin
+        pl.append(VerticalArrow(xmid, y1Arrow, y2Arrow, dxArrow, dyArrow))
+
         controls.append(Component('x_output', xmid, yOutput.value(0)))
         controls.append(Component('y_output', xmid, yOutput.value(1)))
         controls.append(Component('z_output', xmid, yOutput.value(2)))
         controls.append(Component('p_output', xmid, yOutput.value(3)))
+
+        pl.append(PolyPortBox(xmid, yOutput.value(3)))
     pl.append(controls)
     return Save(panel, svgFileName)
 

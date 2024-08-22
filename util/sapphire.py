@@ -25,6 +25,8 @@ CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;st
 
 GEMSTONE_STYLE = 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1'
 CONNECTOR_LINE_STYLE = 'stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
+ARROW_LINE_STYLE = 'stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
+
 
 class SapphireGemstone(Element):
     mmWidth = 5.43
