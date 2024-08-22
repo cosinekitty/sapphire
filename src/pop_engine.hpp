@@ -45,7 +45,7 @@ namespace Sapphire
             {
                 secondsRemaining = 0;
                 state = TriggerState::Reset;
-                gate = false;
+                gateVoltage = 0;
             }
 
             void setRandomSeed(unsigned rs)
@@ -94,7 +94,7 @@ namespace Sapphire
                         state = TriggerState::Firing;
                         secondsRemaining = 0.001 - 1/sampleRate;
                         triggerVoltage = 10;
-                        gate = !gate;
+                        gateVoltage = 10 - gateVoltage;
                     }
                     else
                     {
@@ -113,7 +113,7 @@ namespace Sapphire
                         state = TriggerState::Firing;
                         secondsRemaining = 0.001 - 1/sampleRate;
                         triggerVoltage = 10;
-                        gate = !gate;
+                        gateVoltage = 10 - gateVoltage;
                     }
                     else
                         triggerVoltage = 0;
@@ -149,7 +149,7 @@ namespace Sapphire
                 switch (outputMode)
                 {
                 case OutputMode::Gate:
-                    return gate ? 10 : 0;
+                    return gateVoltage;
 
                 case OutputMode::Trigger:
                 default:
@@ -171,7 +171,7 @@ namespace Sapphire
 
         private:
             OutputMode outputMode = OutputMode::Trigger;
-            bool gate = false;
+            float gateVoltage = 0;
             unsigned randomSeed = 8675309;
             double speed = DEFAULT_POP_SPEED;
             double chaos = DEFAULT_POP_CHAOS;
