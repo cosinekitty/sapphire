@@ -12,7 +12,7 @@ When you right-click on Pop's panel, the following context menu appears:
 
 ![Pop context menu](images/pop_menu.png)
 
-It allows you to manually sync channels, control the output channel count, and select the output pulse mode.
+It allows you to perform the following actions:
 
 ## Sync polyphonic channels
 
@@ -21,6 +21,18 @@ Each time you select this menu action, Pop syncs the output channels the same wa
 This menu action is provided to save space in your patch when you want to manually sync,
 so that you don't have to add an external button module.
 
+## Output pulse mode
+
+You can select whether the [PULSE output port](#pulse-output) should produce triggers or gates.
+By default Pop outputs triggers.
+
+## Send triggers on every reset
+
+By default, Pop does not send an initial trigger when reset.
+Instead, it waits a random amount of time to trigger.
+Enabling "Send triggers on every reset" causes an initial trigger
+every time the a trigger is receivedon the SYNC input port.
+
 ## Output channel count
 
 The output channel count slider in the context menu allows you
@@ -28,11 +40,6 @@ to select a number of channels in the range 1..16. By default, Pop outputs
 a pulse trigger that has a single channel. By changing this slider setting,
 you can tell Pop to output up to 16 polyphonic channels from the PULSE port.
 This results in up to 16 independent pulse generators.
-
-## Output pulse mode
-
-You can select whether the [PULSE output port](#pulse-output) should produce triggers or gates.
-By default Pop outputs triggers.
 
 ## SPEED control group
 

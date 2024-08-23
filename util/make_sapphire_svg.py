@@ -805,7 +805,7 @@ def PolygonVertices(numSides:int, radius:float, xCenter:float, yCenter:float) ->
 
 
 def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
-    style = f'stroke:#000000;fill:#4469a6;stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
+    style = f'stroke:#000000;fill:#2455a6;stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
     t = ''
     vertices = PolygonVertices(6, radius, xCenter, yCenter)
     first = True
@@ -830,8 +830,8 @@ def GenerateSamPanel() -> int:
     controls = ControlLayer()
     yInput  = FencePost(25.0,  52.0, 4)
     yOutput = FencePost(88.0, 115.0, 4)     # cannot change - visually match Frolic/Glee
-    dyArrowMargin = 8.5
-    dxArrow = 3.5
+    dyArrowMargin = 10.0
+    dxArrow = 2.75
     dyArrow = 5.0
     xmid = panel.mmWidth / 2.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
