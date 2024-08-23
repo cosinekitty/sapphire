@@ -14,9 +14,8 @@
 <td align="left">
     <ul>
         <li>New module: <a href="Pop.md">Pop</a> that generates trigger pulses that match the statistical timing of radioactive decay.</li>
-    </ul>
-    <ul>
         <li>New module: <a href="SplitAddMerge.md">Split/Add/Merge</a> to make working with 2- or 3-channel signals use less real estate in a patch.</li>
+        <li>Panels with XYZP port groups now have a hexagon around the P port to make it easier to spot which one is 3D/polyphonic.</li>
     </ul>
 </td>
 </tr>

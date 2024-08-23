@@ -776,6 +776,8 @@ def GeneratePivotPanel() -> int:
         pl.append(CenteredControlTextPath(font, 'Y', xmid - dxText, outPortY + 1*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'Z', xmid - dxText, outPortY + 2*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
+
+        pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
     pl.append(controls)
     return Save(panel, svgFileName)
 
