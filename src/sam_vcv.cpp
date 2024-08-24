@@ -100,7 +100,7 @@ namespace Sapphire
         struct SplitAddMergeWidget : SapphireReloadableModuleWidget
         {
             explicit SplitAddMergeWidget(SplitAddMergeModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/sam.svg"))
+                : SapphireReloadableModuleWidget("sam", asset::plugin(pluginInstance, "res/sam.svg"))
             {
                 setModule(module);
                 addSapphireInput(POLY_INPUT, "p_input");
@@ -111,7 +111,6 @@ namespace Sapphire
                 addSapphireOutput(X_OUTPUT, "x_output");
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
-                reloadPanel();
             }
         };
     }

@@ -101,7 +101,7 @@ namespace Sapphire
         struct TinWidget : SapphireReloadableModuleWidget
         {
             explicit TinWidget(TinModule *module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/tin.svg"))
+                : SapphireReloadableModuleWidget("tin", asset::plugin(pluginInstance, "res/tin.svg"))
             {
                 setModule(module);
                 addSapphireInput(X_INPUT, "x_input");
@@ -112,7 +112,6 @@ namespace Sapphire
                 addKnob(LEVEL_PARAM, "level_knob");
                 addSapphireAttenuverter(LEVEL_ATTEN, "level_atten");
                 addSapphireInput(LEVEL_INPUT, "level_cv");
-                reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }
         };
     }

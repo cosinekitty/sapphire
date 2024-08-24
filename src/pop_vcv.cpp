@@ -183,7 +183,7 @@ namespace Sapphire
             PopModule* popModule{};
 
             explicit PopWidget(PopModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/pop.svg"))
+                : SapphireReloadableModuleWidget("pop", asset::plugin(pluginInstance, "res/pop.svg"))
                 , popModule(module)
             {
                 setModule(module);
@@ -199,8 +199,6 @@ namespace Sapphire
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");
-
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

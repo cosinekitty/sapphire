@@ -106,7 +106,7 @@ namespace Sapphire
         struct PivotWidget : SapphireReloadableModuleWidget
         {
             explicit PivotWidget(PivotModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/pivot.svg"))
+                : SapphireReloadableModuleWidget("pivot", asset::plugin(pluginInstance, "res/pivot.svg"))
             {
                 setModule(module);
                 addSapphireInput(A_INPUT, "a_input");
@@ -115,7 +115,6 @@ namespace Sapphire
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
                 addSapphireControlGroup("twist", TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT);
-                reloadPanel();
             }
         };
     }

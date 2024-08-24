@@ -99,7 +99,7 @@ namespace Sapphire
         struct RotiniWidget : SapphireReloadableModuleWidget
         {
             explicit RotiniWidget(RotiniModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/rotini.svg"))
+                : SapphireReloadableModuleWidget("rotini", asset::plugin(pluginInstance, "res/rotini.svg"))
             {
                 setModule(module);
                 addSapphireInput(A_INPUT, "a_input");
@@ -108,7 +108,6 @@ namespace Sapphire
                 addSapphireOutput(X_OUTPUT, "x_output");
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
-                reloadPanel();
             }
         };
     }

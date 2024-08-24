@@ -111,15 +111,13 @@ namespace Sapphire
             HissModule *hissModule;
 
             explicit HissWidget(HissModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/hiss.svg"))
+                : SapphireReloadableModuleWidget("hiss", asset::plugin(pluginInstance, "res/hiss.svg"))
                 , hissModule(module)
             {
                 setModule(module);
 
                 for (int i = 0; i < NumOutputs; ++i)
                     addSapphireOutput(NOISE_OUTPUTS + i, std::string("random_output_") + std::to_string(i + 1));
-
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

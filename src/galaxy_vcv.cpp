@@ -204,7 +204,7 @@ namespace Sapphire
             GalaxyModule* galaxyModule{};
 
             explicit GalaxyWidget(GalaxyModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/galaxy.svg"))
+                : SapphireReloadableModuleWidget("galaxy", asset::plugin(pluginInstance, "res/galaxy.svg"))
                 , galaxyModule(module)
             {
                 setModule(module);
@@ -220,8 +220,6 @@ namespace Sapphire
                 addSapphireFlatControlGroup("detune", DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT);
                 addSapphireFlatControlGroup("bigness", BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT);
                 addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
-
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

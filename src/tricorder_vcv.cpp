@@ -1718,14 +1718,10 @@ namespace Sapphire
             TricorderModule* tricorderModule{};
 
             explicit TricorderWidget(TricorderModule *module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/tricorder.svg"))
+                : SapphireReloadableModuleWidget("tricorder", asset::plugin(pluginInstance, "res/tricorder.svg"))
                 , tricorderModule(module)
             {
                 setModule(module);
-
-                // Load the SVG and place all controls at their correct coordinates.
-                reloadPanel();
-
                 addChild(new TricorderDisplay(module));
             }
 

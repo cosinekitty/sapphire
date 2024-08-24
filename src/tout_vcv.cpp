@@ -120,7 +120,7 @@ namespace Sapphire
         struct ToutWidget : SapphireReloadableModuleWidget
         {
             explicit ToutWidget(ToutModule *module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/tout.svg"))
+                : SapphireReloadableModuleWidget("tout", asset::plugin(pluginInstance, "res/tout.svg"))
             {
                 setModule(module);
                 addSapphireOutput(X_OUTPUT, "x_output");
@@ -131,7 +131,6 @@ namespace Sapphire
                 addKnob(LEVEL_PARAM, "level_knob");
                 addSapphireAttenuverter(LEVEL_ATTEN, "level_atten");
                 addSapphireInput(LEVEL_INPUT, "level_cv");
-                reloadPanel();      // Load the SVG and place all controls at their correct coordinates.
             }
         };
     }

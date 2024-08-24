@@ -8,15 +8,5 @@
         <path d="M 9.63,54.62 L 5.08,57.25 L 0.53,54.62 L 0.53,49.38 L 5.08,46.75 L 9.63,49.38 z " style="stroke:#000000;fill:#2455a6;stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none" />
         <path d="M 5.08,62.00 L 5.08,78.00 z M 5.08,78.00 L 7.83,73.00 z M 5.08,78.00 L 2.33,73.00 z " style="stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none" />
         <path d="M 9.63,117.62 L 5.08,120.25 L 0.53,117.62 L 0.53,112.38 L 5.08,109.75 L 9.63,112.38 z " style="stroke:#000000;fill:#2455a6;stroke-width:0.15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none" />
-        <g id="ControlLayer" style="display:none;">
-            <circle id="x_input" cx="5.08" cy="25" r="1" />
-            <circle id="y_input" cx="5.08" cy="34" r="1" />
-            <circle id="z_input" cx="5.08" cy="43" r="1" />
-            <circle id="p_input" cx="5.08" cy="52" r="1" />
-            <circle id="x_output" cx="5.08" cy="88" r="1" />
-            <circle id="y_output" cx="5.08" cy="97" r="1" />
-            <circle id="z_output" cx="5.08" cy="106" r="1" />
-            <circle id="p_output" cx="5.08" cy="115" r="1" />
-        </g>
     </g>
 </svg>
