@@ -45,20 +45,20 @@ namespace rack
 
         void addReloadableParam(ParamWidget* param, const std::string& label)
         {
-            addParam(param);
             position(param, label);
+            addParam(param);
         }
 
         void addReloadableInput(PortWidget* input, const std::string& label)
         {
-            addInput(input);
             position(input, label);
+            addInput(input);
         }
 
         void addReloadableOutput(PortWidget* output, const std::string& label)
         {
-            addOutput(output);
             position(output, label);
+            addOutput(output);
         }
 
         template <typename knob_t = RoundLargeBlackKnob>
