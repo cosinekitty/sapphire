@@ -4,6 +4,8 @@
 
 This utility splits, adds, and/or merges a stereo or 3D polyphonic signal with 2 or 3 monophonic signals.
 This is like VCV Merge and VCV Split combined, but only for a maximum of 3 channels.
+I chose 3 as the channel limit to support 3D vectors produced by
+[Frolic](Frolic.md), [Polynucleus](Polynucleus.md), etc.
 SplitAddMerge saves patch screen space because it is only 2 HP wide.
 
 I created this module to save surface area in my patches.
@@ -12,10 +14,6 @@ so that I can multiply both by the same envelope in a VCA, for example.
 
 Usually I would use VCV Split and VCV Merge, but they are designed for up to 16 channels
 and are larger than I need.
-
-Split/Add/Merge is only 2 HP wide, and serves as both a split and a merge module.
-However, it works for a maximum of only 3 channels. I chose 3 as the channel limit
-to support 3D vectors produced by [Frolic](Frolic.md), [Polynucleus](Polynucleus.md), etc.
 
 ## Input Ports
 

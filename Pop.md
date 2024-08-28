@@ -2,7 +2,7 @@
 
 ![Pop](images/pop.png)
 
-Sapphire Pop is a polyphonic trigger generator that can simulate the statistical
+Sapphire Pop is a polyphonic trigger/gate generator that can simulate the statistical
 behavior of radioactive decay, or generate completely regular pulses,
 or anywhere on a spectrum between these extremes.
 
