@@ -11,6 +11,7 @@ namespace Sapphire
     {
         enum ParamId
         {
+            CHANNEL_COUNT_PARAM,
             PARAMS_LEN
         };
 
@@ -41,10 +42,14 @@ namespace Sapphire
 
         struct SplitAddMergeModule : SapphireModule
         {
+            ChannelCountQuantity *channelCountQuantity{};
+
             SplitAddMergeModule()
                 : SapphireModule(PARAMS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+                channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM, 3);
 
                 configInput(POLY_INPUT, "Polyphonic (X, Y, Z)");
                 configInput(X_INPUT, "X");
@@ -61,6 +66,7 @@ namespace Sapphire
 
             void initialize()
             {
+                channelCountQuantity->initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -69,8 +75,34 @@ namespace Sapphire
                 initialize();
             }
 
+            int desiredChannelCount() const
+            {
+                return channelCountQuantity->getDesiredChannelCount();
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                json_t* channels = json_object_get(root, "channels");
+                if (json_is_integer(channels))
+                {
+                    json_int_t n = json_integer_value(channels);
+                    if (n >= 1 && n <= PORT_MAX_CHANNELS)
+                        channelCountQuantity->value = static_cast<float>(n);
+                }
+            }
+
             void process(const ProcessArgs& args) override
             {
+                const int nc = desiredChannelCount();
+
                 float px = inputs[POLY_INPUT].getVoltage(0);
                 float py = inputs[POLY_INPUT].getVoltage(1);
                 float pz = inputs[POLY_INPUT].getVoltage(2);
@@ -83,10 +115,19 @@ namespace Sapphire
                 float sy = py + my;
                 float sz = pz + mz;
 
-                outputs[POLY_OUTPUT].setChannels(3);
+                outputs[POLY_OUTPUT].setChannels(nc);
                 outputs[POLY_OUTPUT].setVoltage(sx, 0);
                 outputs[POLY_OUTPUT].setVoltage(sy, 1);
                 outputs[POLY_OUTPUT].setVoltage(sz, 2);
+
+                // If the user selects more than 3 output channels,
+                // copy poly input from higher channels also.
+                // There are no mono (X, Y, Z) type ports to add with.
+                for (int c = 3; c < nc; ++c)
+                {
+                    float p = inputs[POLY_INPUT].getVoltage(c);
+                    outputs[POLY_OUTPUT].setVoltage(p, c);
+                }
 
                 outputs[X_OUTPUT].setVoltage(sx);
                 outputs[Y_OUTPUT].setVoltage(sy);
@@ -99,8 +140,11 @@ namespace Sapphire
 
         struct SplitAddMergeWidget : SapphireReloadableModuleWidget
         {
+            SplitAddMergeModule* splitAddMergeModule{};
+
             explicit SplitAddMergeWidget(SplitAddMergeModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/sam.svg"))
+                , splitAddMergeModule(module)
             {
                 setModule(module);
                 addSapphireInput(POLY_INPUT, "p_input");
@@ -112,6 +156,15 @@ namespace Sapphire
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
                 reloadPanel();
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (splitAddMergeModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(new ChannelCountSlider(splitAddMergeModule->channelCountQuantity));
+                }
             }
         };
     }

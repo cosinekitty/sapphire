@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">1 September 2024</td>
+<td align="center">2.4.10</td>
+<td align="left">
+    <ul>
+        <li>[Split/Add/Merge](SplitAddMerge.md) now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">23 August 2024</td>
 <td align="center">2.4.9</td>
 <td align="left">
