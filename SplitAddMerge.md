@@ -45,6 +45,9 @@ Both are different representations of the following sums:
 Any missing inputs are treated as 0&nbsp;V, so using only the polyphonic input or only
 the 3 monophonic inputs causes them to be copied to the output ports.
 
+You can change the number of polyphonic channels in the output port P by right-clicking
+on the Split/Add/Merge panel and sliding the channel count slider.
+
 ## Examples
 
 Here is an example of splitting a polyphonic 3D vector output from [Frolic](Frolic.md)
