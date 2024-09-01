@@ -14,6 +14,7 @@
 <td align="left">
     <ul>
         <li>[Split/Add/Merge](SplitAddMerge.md) now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
+        <li>Link each Sapphire module to its individual documentation page.</li>
     </ul>
 </td>
 </tr>
