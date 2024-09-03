@@ -119,6 +119,26 @@ namespace Sapphire
                 initialize();
             }
 
+            bool getRampingOption(int buttonIndex) const
+            {
+                return
+                    (buttonIndex >= 0) &&
+                    (buttonIndex < NUM_CONTROLLERS) &&
+                    slewer[buttonIndex].isEnabled();
+            }
+
+            void setRampingOption(int buttonIndex, bool enable)
+            {
+                if (buttonIndex < 0 || buttonIndex >= NUM_CONTROLLERS)
+                    return;
+
+                Slewer& s = slewer[buttonIndex];
+                if (enable)
+                    s.enable(isActive[buttonIndex]);
+                else
+                    s.reset();
+            }
+
             void onSampleRateChange(const SampleRateChangeEvent& e) override
             {
                 // We slew using a linear ramp over a time span of 1/400 of a second.
@@ -279,15 +299,11 @@ namespace Sapphire
                     "",
                     [=]()
                     {
-                        return module->slewer[buttonIndex].isEnabled();
+                        return module->getRampingOption(buttonIndex);
                     },
                     [=](bool state)
                     {
-                        Slewer& s = module->slewer[buttonIndex];
-                        if (state)
-                            s.enable(module->isActive[buttonIndex]);
-                        else
-                            s.reset();
+                        module->setRampingOption(buttonIndex, state);
                     }
                 ));
             }
@@ -386,15 +402,11 @@ namespace Sapphire
                         "",
                         [=]()
                         {
-                            return mootsModule->slewer[i].isEnabled();
+                            return mootsModule->getRampingOption(i);
                         },
                         [=](bool state)
                         {
-                            Slewer& s = mootsModule->slewer[i];
-                            if (state)
-                                s.enable(mootsModule->isActive[i]);
-                            else
-                                s.reset();
+                            mootsModule->setRampingOption(i, state);
                         }
                     ));
                 }
