@@ -15,6 +15,7 @@
     <ul>
         <li>[Split/Add/Merge](SplitAddMerge.md) now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
         <li>Link each Sapphire module to its individual documentation page.</li>
+        <li>[Moots](Moots.md) now allows you to toggle the anti-ramping option on each of the 5 groups by right-clicking on the button for that group. You can still right-click the panel and toggle the option that way, although I believe most people will prefer the new method.</li>
     </ul>
 </td>
 </tr>

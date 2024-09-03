@@ -261,6 +261,39 @@ namespace Sapphire
         };
 
 
+        struct MootsButtonWidget : VCVLightBezelLatch<>
+        {
+            MootsModule* module = nullptr;
+            int buttonIndex = -1;
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (module == nullptr)
+                    return;
+
+                if (buttonIndex < 0 || buttonIndex >= MootsModule::NUM_CONTROLLERS)
+                    return;
+
+                menu->addChild(createBoolMenuItem(
+                    "Anti-click ramping",
+                    "",
+                    [=]()
+                    {
+                        return module->slewer[buttonIndex].isEnabled();
+                    },
+                    [=](bool state)
+                    {
+                        Slewer& s = module->slewer[buttonIndex];
+                        if (state)
+                            s.enable(module->isActive[buttonIndex]);
+                        else
+                            s.reset();
+                    }
+                ));
+            }
+        };
+
+
         struct MootsWidget : ModuleWidget
         {
             MootsModule* mootsModule{};
@@ -280,11 +313,11 @@ namespace Sapphire
                 triggerLabel->hide();
                 addChild(triggerLabel);
 
-                addMootsButton(25.05,  17.25, TOGGLEBUTTON1_PARAM, MOOTLIGHT1);
-                addMootsButton(25.05,  38.75, TOGGLEBUTTON2_PARAM, MOOTLIGHT2);
-                addMootsButton(25.05,  60.25, TOGGLEBUTTON3_PARAM, MOOTLIGHT3);
-                addMootsButton(25.05,  81.75, TOGGLEBUTTON4_PARAM, MOOTLIGHT4);
-                addMootsButton(25.05, 103.25, TOGGLEBUTTON5_PARAM, MOOTLIGHT5);
+                addMootsButton(25.05,  17.25, TOGGLEBUTTON1_PARAM, MOOTLIGHT1, 0);
+                addMootsButton(25.05,  38.75, TOGGLEBUTTON2_PARAM, MOOTLIGHT2, 1);
+                addMootsButton(25.05,  60.25, TOGGLEBUTTON3_PARAM, MOOTLIGHT3, 2);
+                addMootsButton(25.05,  81.75, TOGGLEBUTTON4_PARAM, MOOTLIGHT4, 3);
+                addMootsButton(25.05, 103.25, TOGGLEBUTTON5_PARAM, MOOTLIGHT5, 4);
 
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  17.25)), module, INAUDIO1_INPUT));
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  38.75)), module, INAUDIO2_INPUT));
@@ -305,14 +338,17 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
             }
 
-            void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId)
+            void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)
             {
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(
+                MootsButtonWidget* button = createLightParamCentered<MootsButtonWidget>(
                     mm2px(Vec(cx, cy)),
                     mootsModule,
                     paramId,
                     lightId
-                ));
+                );
+                button->module = mootsModule;
+                button->buttonIndex = buttonIndex;
+                addParam(button);
             }
 
             void appendContextMenu(Menu* menu) override

@@ -103,6 +103,13 @@ when using a Moots control for plugging/unplugging control voltage (CV)
 signals. When anti-click is disabled, the cable is connected or
 disconnected instantly without any fading.
 
+![Improved anti-click toggles](images/moots_button_menu.png)
+
+Starting in version 2.5.0, Moots allows you to right-click on
+each of the 5 buttons and select the "Anti-click ramping" option
+as shown above. The panel options are still present, but putting
+them on the button will probably feel a little more natural to most people.
+
 ---
 
 [Sapphire module list](README.md)
