@@ -263,7 +263,7 @@ namespace Sapphire
 
         struct MootsWidget : ModuleWidget
         {
-            MootsModule* mootsModule;
+            MootsModule* mootsModule{};
             SvgOverlay* gateLabel{};
             SvgOverlay* triggerLabel{};
 
@@ -280,11 +280,11 @@ namespace Sapphire
                 triggerLabel->hide();
                 addChild(triggerLabel);
 
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  17.25)), module, TOGGLEBUTTON1_PARAM, MOOTLIGHT1));
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  38.75)), module, TOGGLEBUTTON2_PARAM, MOOTLIGHT2));
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  60.25)), module, TOGGLEBUTTON3_PARAM, MOOTLIGHT3));
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05,  81.75)), module, TOGGLEBUTTON4_PARAM, MOOTLIGHT4));
-                addParam(createLightParamCentered<VCVLightBezelLatch<>>(mm2px(Vec(25.05, 103.25)), module, TOGGLEBUTTON5_PARAM, MOOTLIGHT5));
+                addMootsButton(25.05,  17.25, TOGGLEBUTTON1_PARAM, MOOTLIGHT1);
+                addMootsButton(25.05,  38.75, TOGGLEBUTTON2_PARAM, MOOTLIGHT2);
+                addMootsButton(25.05,  60.25, TOGGLEBUTTON3_PARAM, MOOTLIGHT3);
+                addMootsButton(25.05,  81.75, TOGGLEBUTTON4_PARAM, MOOTLIGHT4);
+                addMootsButton(25.05, 103.25, TOGGLEBUTTON5_PARAM, MOOTLIGHT5);
 
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  17.25)), module, INAUDIO1_INPUT));
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.50,  38.75)), module, INAUDIO2_INPUT));
@@ -303,6 +303,16 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  60.25)), module, OUTAUDIO3_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  81.75)), module, OUTAUDIO4_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
+            }
+
+            void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId)
+            {
+                addParam(createLightParamCentered<VCVLightBezelLatch<>>(
+                    mm2px(Vec(cx, cy)),
+                    mootsModule,
+                    paramId,
+                    lightId
+                ));
             }
 
             void appendContextMenu(Menu* menu) override
