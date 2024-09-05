@@ -110,6 +110,12 @@ each of the 5 buttons and select the "Anti-click ramping" option
 as shown above. The panel options are still present, but putting
 them on the button will probably feel a little more natural to most people.
 
+Also, you can now immediately see that a controller has anti-click enabled,
+because its button will have a "ramp" symbol on top. In the following image,
+the top two controllers have anti-click enabled, but the bottom 3 do not.
+
+![Moots button ramp symbol](images/moots_button_ramp.png)
+
 ---
 
 [Sapphire module list](README.md)
