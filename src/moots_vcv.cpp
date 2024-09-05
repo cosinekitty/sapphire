@@ -280,8 +280,9 @@ namespace Sapphire
             }
         };
 
+        using base_button_t = VCVLightBezelLatch<>;
 
-        struct MootsButtonWidget : VCVLightBezelLatch<>
+        struct MootsButtonWidget : base_button_t
         {
             MootsModule* module = nullptr;
             int buttonIndex = -1;
@@ -306,6 +307,34 @@ namespace Sapphire
                         module->setRampingOption(buttonIndex, state);
                     }
                 ));
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                base_button_t::drawLayer(args, layer);
+                if (layer == 1)
+                {
+                    if (module && module->getRampingOption(buttonIndex))
+                    {
+                        // Draw a "ramp" symbol on top of the corresponding button.
+                        const float f = 0.38;
+                        const float e = 0.32;
+                        const float ax = f * box.size.x;
+                        const float ay = (1-e) * box.size.y;
+                        const float bx = (1-f) * box.size.x;
+                        const float by = e * box.size.y;
+                        const float h = 0.15 * box.size.x;
+
+                        nvgBeginPath(args.vg);
+                        nvgStrokeColor(args.vg, SCHEME_BLACK);
+                        nvgStrokeWidth(args.vg, 1.75f);
+                        nvgMoveTo(args.vg, ax-h, ay);
+                        nvgLineTo(args.vg, ax, ay);
+                        nvgLineTo(args.vg, bx, by);
+                        nvgLineTo(args.vg, bx+h, by);
+                        nvgStroke(args.vg);
+                    }
+                }
             }
         };
 
