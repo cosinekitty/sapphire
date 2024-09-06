@@ -15,7 +15,7 @@
     <ul>
         <li><a href="SplitAddMerge.md">Split/Add/Merge</a> now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
         <li>Each Sapphire module now links to its individual documentation page instead of the Sapphire table of contents.</li>
-        <li>[Moots](Moots.md) now allows you to toggle the anti-ramping option on each of the 5 groups by right-clicking on the button for that group. You can still right-click the panel and toggle the option that way, although I believe most people will prefer the new method.</li>
+        <li><a href="Moots.md">Moots</a> now allows you to toggle the anti-ramping option on each of the 5 groups by right-clicking on the button for that group. You can still right-click the panel and toggle the option that way, although I believe most people will prefer the new method.</li>
         <li>Moots also draws a "ramp" symbol on top of a button when anti-click is enabled. This allows you to see at a glance how all the buttons are configured, without clicking on anything.</li>
         <li>Added a <a href="VoltageFlipping.md">voltage-flip option</a> for X, Y, Z outputs on Frolic, Glee, Pivot, and Rotini.</li>
     </ul>
