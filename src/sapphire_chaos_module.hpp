@@ -257,8 +257,6 @@ namespace Sapphire
             void draw(const DrawArgs& args) override
             {
                 SapphireReloadableModuleWidget::draw(args);
-
-                // FIXFIXFIX - I should not hardcode the coordinates, but they are always the same.
                 float xcol = 1.7;
                 drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
                 drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);

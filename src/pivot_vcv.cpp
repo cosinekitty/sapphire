@@ -85,18 +85,14 @@ namespace Sapphire
                 float twist = getControlValue(TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT, MIN_TWIST, MAX_TWIST);
                 RotationMatrix rot = PivotAxes(twist);
 
-                float cx = Dot(inVec, rot.xAxis);
-                float cy = Dot(inVec, rot.yAxis);
-                float cz = Dot(inVec, rot.zAxis);
+                float cx = setFlippableOutputVoltage(X_OUTPUT, Dot(inVec, rot.xAxis));
+                float cy = setFlippableOutputVoltage(Y_OUTPUT, Dot(inVec, rot.yAxis));
+                float cz = setFlippableOutputVoltage(Z_OUTPUT, Dot(inVec, rot.zAxis));
 
                 c.setChannels(3);
                 c.setVoltage(cx, 0);
                 c.setVoltage(cy, 1);
                 c.setVoltage(cz, 2);
-
-                outputs[X_OUTPUT].setVoltage(cx);
-                outputs[Y_OUTPUT].setVoltage(cy);
-                outputs[Z_OUTPUT].setVoltage(cz);
 
                 sendVector(cx, cy, cz, false);
             }
@@ -105,17 +101,43 @@ namespace Sapphire
 
         struct PivotWidget : SapphireReloadableModuleWidget
         {
+            PivotModule* pivotModule{};
+
             explicit PivotWidget(PivotModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/pivot.svg"))
+                , pivotModule(module)
             {
                 setModule(module);
                 addSapphireInput(A_INPUT, "a_input");
                 addSapphireOutput(C_OUTPUT, "c_output");
-                addSapphireOutput(X_OUTPUT, "x_output");
-                addSapphireOutput(Y_OUTPUT, "y_output");
-                addSapphireOutput(Z_OUTPUT, "z_output");
+                addFlippableOutputPort(X_OUTPUT, "x_output", module);
+                addFlippableOutputPort(Y_OUTPUT, "y_output", module);
+                addFlippableOutputPort(Z_OUTPUT, "z_output", module);
                 addSapphireControlGroup("twist", TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT);
                 reloadPanel();
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                SapphireReloadableModuleWidget::draw(args);
+                float xcol = 1.7;
+                drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
+                drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);
+                drawFlipIndicator(args, Z_OUTPUT, xcol, 106.0);
+            }
+
+            void drawFlipIndicator(const DrawArgs& args, int outputId, float x, float y)
+            {
+                if (pivotModule && pivotModule->getVoltageFlipEnabled(outputId))
+                {
+                    const float dx = 0.75;
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, SCHEME_BLACK);
+                    nvgStrokeWidth(args.vg, 1.0);
+                    nvgMoveTo(args.vg, mm2px(x-dx), mm2px(y));
+                    nvgLineTo(args.vg, mm2px(x+dx), mm2px(y));
+                    nvgStroke(args.vg);
+                }
             }
         };
     }
