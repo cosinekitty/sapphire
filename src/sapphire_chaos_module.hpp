@@ -253,6 +253,31 @@ namespace Sapphire
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule, false);
             }
+
+            void draw(const DrawArgs& args) override
+            {
+                SapphireReloadableModuleWidget::draw(args);
+
+                // FIXFIXFIX - I should not hardcode the coordinates, but they are always the same.
+                float xcol = 1.7;
+                drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
+                drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);
+                drawFlipIndicator(args, Z_OUTPUT, xcol, 106.0);
+            }
+
+            void drawFlipIndicator(const DrawArgs& args, int outputId, float x, float y)
+            {
+                if (chaosModule && chaosModule->getVoltageFlipEnabled(outputId))
+                {
+                    const float dx = 0.75;
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, SCHEME_BLACK);
+                    nvgStrokeWidth(args.vg, 1.0);
+                    nvgMoveTo(args.vg, mm2px(x-dx), mm2px(y));
+                    nvgLineTo(args.vg, mm2px(x+dx), mm2px(y));
+                    nvgStroke(args.vg);
+                }
+            }
         };
     }
 }
