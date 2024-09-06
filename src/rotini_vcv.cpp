@@ -78,18 +78,18 @@ namespace Sapphire
 
                 const float denom = 5;      // normalize so that 5V = unity
 
-                float cx = (ay*bz - az*by) / denom;
-                float cy = (az*bx - ax*bz) / denom;
-                float cz = (ax*by - ay*bx) / denom;
+                float rx = (ay*bz - az*by) / denom;
+                float ry = (az*bx - ax*bz) / denom;
+                float rz = (ax*by - ay*bx) / denom;
+
+                float cx = setFlippableOutputVoltage(X_OUTPUT, rx);
+                float cy = setFlippableOutputVoltage(Y_OUTPUT, ry);
+                float cz = setFlippableOutputVoltage(Z_OUTPUT, rz);
 
                 c.setChannels(3);
                 c.setVoltage(cx, 0);
                 c.setVoltage(cy, 1);
                 c.setVoltage(cz, 2);
-
-                outputs[X_OUTPUT].setVoltage(cx);
-                outputs[Y_OUTPUT].setVoltage(cy);
-                outputs[Z_OUTPUT].setVoltage(cz);
 
                 sendVector(cx, cy, cz, false);
             }
@@ -98,17 +98,43 @@ namespace Sapphire
 
         struct RotiniWidget : SapphireReloadableModuleWidget
         {
+            RotiniModule* rotiniModule{};
+
             explicit RotiniWidget(RotiniModule* module)
                 : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/rotini.svg"))
+                , rotiniModule(module)
             {
                 setModule(module);
                 addSapphireInput(A_INPUT, "a_input");
                 addSapphireInput(B_INPUT, "b_input");
                 addSapphireOutput(C_OUTPUT, "c_output");
-                addSapphireOutput(X_OUTPUT, "x_output");
-                addSapphireOutput(Y_OUTPUT, "y_output");
-                addSapphireOutput(Z_OUTPUT, "z_output");
+                addFlippableOutputPort(X_OUTPUT, "x_output", module);
+                addFlippableOutputPort(Y_OUTPUT, "y_output", module);
+                addFlippableOutputPort(Z_OUTPUT, "z_output", module);
                 reloadPanel();
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                SapphireReloadableModuleWidget::draw(args);
+                float xcol = 1.7;
+                drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
+                drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);
+                drawFlipIndicator(args, Z_OUTPUT, xcol, 106.0);
+            }
+
+            void drawFlipIndicator(const DrawArgs& args, int outputId, float x, float y)
+            {
+                if (rotiniModule && rotiniModule->getVoltageFlipEnabled(outputId))
+                {
+                    const float dx = 0.75;
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, SCHEME_BLACK);
+                    nvgStrokeWidth(args.vg, 1.0);
+                    nvgMoveTo(args.vg, mm2px(x-dx), mm2px(y));
+                    nvgLineTo(args.vg, mm2px(x+dx), mm2px(y));
+                    nvgStroke(args.vg);
+                }
             }
         };
     }
