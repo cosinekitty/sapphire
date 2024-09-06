@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">6 September 2024</td>
+<td align="center">6 Sep 2024</td>
 <td align="center">2.5.0</td>
 <td align="left">
     <ul>
@@ -23,7 +23,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">23 August 2024</td>
+<td align="center">23 Aug 2024</td>
 <td align="center">2.4.9</td>
 <td align="left">
     <ul>
@@ -35,7 +35,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">20 July 2024</td>
+<td align="center">20 Jul 2024</td>
 <td align="center">2.4.8</td>
 <td align="left">
     <ul>
@@ -48,7 +48,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">8 July 2024</td>
+<td align="center">8 Jul 2024</td>
 <td align="center">2.4.7</td>
 <td align="left">
     <ul>
@@ -61,7 +61,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">11 June 2024</td>
+<td align="center">11 Jun 2024</td>
 <td align="center">2.4.6</td>
 <td align="left">
     <ul>
