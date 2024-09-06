@@ -24,10 +24,10 @@ Toggled voltage values are reflected in the polyphonic output port P.
 In the example above, if P = [+5.3, -1.7, +0.2], after toggling the X polarity,
 P would be [-5.3, -1.7, +0.2].
 
-Toggled voltage values are also reflected the vector that these modules
+Toggled voltage values are also reflected in the vector that these modules
 send to any [Tricorder](Tricorder.md)-like module immediately to their right.
 
 The purpose of voltage flipping is to allow the patch designer to select from
 $2^3=8$ different variations on curves produced by these modules.
 This greatly multiplies the number of ways that chaotic vector signals
-can be created and combined.
+can be created and combined with each other.
