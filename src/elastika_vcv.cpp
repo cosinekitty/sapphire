@@ -81,7 +81,7 @@ namespace Sapphire
             bool outputVectorSelectRight = false;
 
             ElastikaModule()
-                : SapphireAutomaticLimiterModule(PARAMS_LEN)
+                : SapphireAutomaticLimiterModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

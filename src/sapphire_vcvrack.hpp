@@ -233,14 +233,6 @@ namespace Sapphire
 
     // Custom controls for Sapphire modules.
 
-    struct SapphirePort : app::SvgPort
-    {
-        SapphirePort()
-        {
-            setSvg(Svg::load(asset::plugin(pluginInstance, "res/port.svg")));
-        }
-    };
-
 
     struct SapphireQuantity : ParamQuantity
     {
@@ -492,16 +484,23 @@ namespace Sapphire
         bool isLowSensitive = false;
     };
 
+    struct SapphirePortInfo
+    {
+        bool flipVoltagePolarity = false;
+    };
+
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
         std::vector<SapphireParamInfo> paramInfo;
+        std::vector<SapphirePortInfo> outputPortInfo;
 
-        explicit SapphireModule(std::size_t nparams)
+        explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
             , vectorReceiver(*this)
-            , paramInfo(nparams)
+            , paramInfo(nParams)
+            , outputPortInfo(nOutputPorts)
             {}
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
@@ -598,12 +597,18 @@ namespace Sapphire
             // Represent the settings by saving a list of all the integer attenuverter
             // IDs that have low sensitivity enabled.
             const int nparams = static_cast<int>(paramInfo.size());
-            json_t* list = json_array();
+            json_t* aList = json_array();
             for (int attenId = 0; attenId < nparams; ++attenId)
                 if (isLowSensitive(attenId))
-                    json_array_append(list, json_integer(attenId));
+                    json_array_append(aList, json_integer(attenId));
+            json_object_set_new(root, "lowSensitivityAttenuverters", aList);
 
-            json_object_set_new(root, "lowSensitivityAttenuverters", list);
+            json_t* oList = json_array();
+            const int nOutputPorts = static_cast<int>(outputPortInfo.size());
+            for (int outputId = 0; outputId < nOutputPorts; ++outputId)
+                if (getVoltageFlipEnabled(outputId))
+                    json_array_append(oList, json_integer(outputId));
+            json_object_set_new(root, "voltageFlippedOutputPorts", oList);
 
             return root;
         }
@@ -621,18 +626,38 @@ namespace Sapphire
             for (int attenId = 0; attenId < nparams; ++attenId)
                 paramInfo.at(attenId).isLowSensitive = false;
 
-            json_t* list = json_object_get(root, "lowSensitivityAttenuverters");
-            if (list != nullptr)
+            json_t* aList = json_object_get(root, "lowSensitivityAttenuverters");
+            if (aList != nullptr)
             {
-                std::size_t listLength = static_cast<int>(json_array_size(list));
+                std::size_t listLength = static_cast<int>(json_array_size(aList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
                 {
-                    json_t *item = json_array_get(list, listIndex);
+                    json_t *item = json_array_get(aList, listIndex);
                     if (json_is_integer(item))
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
                         if (attenId >= 0 && attenId < nparams)
                             paramInfo.at(attenId).isLowSensitive = true;
+                    }
+                }
+            }
+
+            const int nOutputs = static_cast<int>(outputPortInfo.size());
+            for (int outputId = 0; outputId < nOutputs; ++outputId)
+                outputPortInfo.at(outputId).flipVoltagePolarity = false;
+
+            json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
+            if (oList != nullptr)
+            {
+                std::size_t listLength = static_cast<int>(json_array_size(oList));
+                for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
+                {
+                    json_t *item = json_array_get(oList, listIndex);
+                    if (json_is_integer(item))
+                    {
+                        int outputId = static_cast<int>(json_integer_value(item));
+                        if (outputId >= 0 && outputId < nOutputs)
+                            outputPortInfo.at(outputId).flipVoltagePolarity = true;
                     }
                 }
             }
@@ -677,6 +702,28 @@ namespace Sapphire
             configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
             configInput(cvInputId, name + " CV");
         }
+
+        bool getVoltageFlipEnabled(int outputId) const
+        {
+            return
+                (outputId >= 0) &&
+                (outputId < static_cast<int>(outputPortInfo.size())) &&
+                outputPortInfo[outputId].flipVoltagePolarity;
+        }
+
+        void setVoltageFlipEnabled(int outputId, bool state)
+        {
+            outputPortInfo.at(outputId).flipVoltagePolarity = state;
+        }
+
+        float setFlippableOutputVoltage(int outputId, float originalVoltage)
+        {
+            float voltage = originalVoltage;
+            if (getVoltageFlipEnabled(outputId))
+                voltage = -voltage;
+            outputs[outputId].setVoltage(voltage);
+            return voltage;
+        }
     };
 
 
@@ -685,8 +732,8 @@ namespace Sapphire
         bool enableLimiterWarning = true;
         int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
 
-        explicit SapphireAutomaticLimiterModule(std::size_t nparams)
-            : SapphireModule(nparams)
+        explicit SapphireAutomaticLimiterModule(std::size_t nParams, std::size_t nOutputPorts)
+            : SapphireModule(nParams, nOutputPorts)
             {}
 
         virtual double getAgcDistortion() const = 0;
@@ -747,6 +794,41 @@ namespace Sapphire
                 color = alModule ? alModule->getWarningColor() : nvgRGBA(0, 0, 0, 0);
 
             LightWidget::drawLayer(args, layer);
+        }
+    };
+
+
+    struct SapphirePort : app::SvgPort
+    {
+        bool allowsVoltageFlip = false;
+        SapphireModule* module = nullptr;
+        int outputId = -1;
+
+        SapphirePort()
+        {
+            setSvg(Svg::load(asset::plugin(pluginInstance, "res/port.svg")));
+        }
+
+        void appendContextMenu(ui::Menu* menu) override
+        {
+            app::SvgPort::appendContextMenu(menu);
+            if (module && allowsVoltageFlip && (outputId >= 0))
+            {
+                menu->addChild(new MenuSeparator);
+
+                menu->addChild(createBoolMenuItem(
+                    "Flip voltage polarity",
+                    "",
+                    [=]()
+                    {
+                        return module->getVoltageFlipEnabled(outputId);
+                    },
+                    [=](bool state)
+                    {
+                        module->setVoltageFlipEnabled(outputId, state);
+                    }
+                ));
+            }
         }
     };
 

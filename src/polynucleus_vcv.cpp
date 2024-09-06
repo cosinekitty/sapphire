@@ -84,7 +84,7 @@ namespace Sapphire
             DcRejectQuantity *dcRejectQuantity{};
 
             PolynucleusModule()
-                : SapphireAutomaticLimiterModule(PARAMS_LEN)
+                : SapphireAutomaticLimiterModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 using namespace Nucleus;
 

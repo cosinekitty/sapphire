@@ -56,7 +56,7 @@ namespace Sapphire
             bool turboMode = false;
 
             ChaosModule()
-                : SapphireModule(PARAMS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -121,14 +121,14 @@ namespace Sapphire
                     speed += 5;
                 double dt = args.sampleTime * std::pow(2.0f, speed);
                 circuit.update(dt);
-                outputs[X_OUTPUT].setVoltage(circuit.vx());
-                outputs[Y_OUTPUT].setVoltage(circuit.vy());
-                outputs[Z_OUTPUT].setVoltage(circuit.vz());
+                float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
+                float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());
+                float vz = setFlippableOutputVoltage(Z_OUTPUT, circuit.vz());
                 outputs[POLY_OUTPUT].setChannels(3);
-                outputs[POLY_OUTPUT].setVoltage(circuit.vx(), 0);
-                outputs[POLY_OUTPUT].setVoltage(circuit.vy(), 1);
-                outputs[POLY_OUTPUT].setVoltage(circuit.vz(), 2);
-                sendVector(circuit.vx(), circuit.vy(), circuit.vz(), false);
+                outputs[POLY_OUTPUT].setVoltage(vx, 0);
+                outputs[POLY_OUTPUT].setVoltage(vy, 1);
+                outputs[POLY_OUTPUT].setVoltage(vz, 2);
+                sendVector(vx, vy, vz, false);
             }
         };
 
@@ -212,9 +212,10 @@ namespace Sapphire
             {
                 setModule(module);
 
-                addSapphireOutput(X_OUTPUT, "x_output");
-                addSapphireOutput(Y_OUTPUT, "y_output");
-                addSapphireOutput(Z_OUTPUT, "z_output");
+                addFlippableOutputPort(X_OUTPUT, "x_output", module);
+                addFlippableOutputPort(Y_OUTPUT, "y_output", module);
+                addFlippableOutputPort(Z_OUTPUT, "z_output", module);
+
                 addSapphireOutput(POLY_OUTPUT, "p_output");
 
                 // SPEED knob: provide Turbo Mode context menu checkbox.

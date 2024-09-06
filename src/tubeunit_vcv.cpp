@@ -87,7 +87,7 @@ namespace Sapphire
             const ControlGroup *cgLookup[INPUTS_LEN] {};
 
             TubeUnitModule()
-                : SapphireAutomaticLimiterModule(PARAMS_LEN)
+                : SapphireAutomaticLimiterModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

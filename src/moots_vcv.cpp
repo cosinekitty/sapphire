@@ -73,7 +73,7 @@ namespace Sapphire
             Slewer slewer[NUM_CONTROLLERS];
 
             MootsModule()
-                : SapphireModule(PARAMS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 initialize();
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);

@@ -44,7 +44,7 @@ namespace Sapphire
             TriggerSender triggerSender;
 
             ToutModule()
-                : SapphireModule(PARAMS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configOutput(X_OUTPUT, "X");

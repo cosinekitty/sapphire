@@ -52,16 +52,26 @@ namespace Sapphire
             : ReloadableModuleWidget(panelSvgFileName)
             {}
 
-        void addSapphireInput(int paramId, const std::string& svgId)
+        void addSapphireInput(int inputId, const std::string& svgId)
         {
-            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, paramId);
+            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
             addReloadableInput(port, svgId);
         }
 
-        void addSapphireOutput(int paramId, const std::string& svgId)
+        SapphirePort* addSapphireOutput(int outputId, const std::string& svgId)
         {
-            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, paramId);
+            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, outputId);
             addReloadableOutput(port, svgId);
+            return port;
+        }
+
+        SapphirePort* addFlippableOutputPort(int outputId, const std::string& svgId, SapphireModule* module)
+        {
+            SapphirePort* port = addSapphireOutput(outputId, svgId);
+            port->allowsVoltageFlip = true;
+            port->module = module;
+            port->outputId = outputId;
+            return port;
         }
 
         SapphireModule* getSapphireModule() const

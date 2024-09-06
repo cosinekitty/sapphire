@@ -404,7 +404,7 @@ namespace Sapphire
             mutable Stopwatch stopwatch;    // used for directly measuring actual VCV Rack frame rates
 
             TricorderModule()
-                : SapphireModule(PARAMS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
