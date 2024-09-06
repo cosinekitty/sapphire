@@ -41,6 +41,7 @@ its velocity vector and uses it to update the particle's position vector.
 The outputs are available in two different forms, for convenience:
 
 1. Three separate monophonic output ports for X, Y, and Z respectively.
+   These ports support [voltage flipping](VoltageFlipping.md).
 2. A polyphonic port P that represents the vector (X, Y, Z) using 3 channels.
 
 ### Knobs

@@ -24,6 +24,8 @@ from [Frolic](Frolic.md) or [Glee](Glee.md). Here is an example:
 
 Rotini calculates the vector cross product of the two vectors, producing a third vector A&times;B that is perpendicular to both A and B. The resulting cross product vector has X, Y, and Z components. These go to the X, Y, and Z ports respectively.
 
+The X, Y, and Z output ports support [voltage flipping](VoltageFlipping.md).
+
 The entire cross product as a 3D vector comes out of Rotini's P port. This is always a 3-channel polyphonic signal in the format (X, Y, Z).
 
 The vector output P can be sent to [Tin](Tin.md) for graphing by [Tricorder](Tricorder.md).

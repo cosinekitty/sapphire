@@ -49,7 +49,7 @@ Here are examples of output vectors for different integer TWIST values:
 
 The output of Pivot is a 3D vector, provided two ways:
 
-* The monophonic outputs `X`, `Y`, and `Z`.
+* The monophonic outputs `X`, `Y`, and `Z`. These ports support [voltage flipping](VoltageFlipping.md).
 * The 3-channel polyphonic output `P` in the format `(X, Y, Z)`.
 
 ## Vector graphing with Tricorder
