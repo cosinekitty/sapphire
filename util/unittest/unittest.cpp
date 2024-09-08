@@ -934,7 +934,38 @@ static int PopTest()
 
 static int BiquadFilterTest()
 {
+    const char *outNoiseFileName  = "output/noise_raw.wav";
+    const char *outFilterFileName = "output/noise_biquad.wav";
+
+    const int channels = 1;
+    const float sampleRateHz = 48000;
+    const float cornerFrequencyHz = 440;
+    const float quality = 80;
+
+    using biquad_t = Sapphire::BiquadFilter<float>;
+    biquad_t filter;
+
+    filter.configure(Sapphire::FilterMode::Bandpass, sampleRateHz, cornerFrequencyHz, quality);
+
+    ScaledWaveFileWriter outNoise;
+    if (!outNoise.Open(outNoiseFileName, sampleRateHz, channels))
+        return Fail("BiquadFilter", std::string("Could not open output file: ") + outNoiseFileName);
+
+    ScaledWaveFileWriter outFilter;
+    if (!outFilter.Open(outFilterFileName, sampleRateHz, channels))
+        return Fail("BiquadFilter", std::string("Could not open output file: ") + outFilterFileName);
+
+    const float durationSeconds = 5;
+    const int nFrames = sampleRateHz * durationSeconds;
+    std::mt19937 rand;
+    std::uniform_real_distribution<float> dist(-1, 1);
+    for (int frame = 0; frame < nFrames; ++frame)
+    {
+        float x = dist(rand);
+        float y = filter.process(x);
+        outNoise.WriteSamples(&x, 1);
+        outFilter.WriteSamples(&y, 1);
+    }
+
     return Pass("BiquadFilter");
 }
-
-

@@ -239,6 +239,73 @@ namespace Sapphire
     };
 
 
+    enum class FilterMode
+    {
+        Lowpass,
+        Bandpass,
+        Highpass,
+    };
+
+
+    template <typename value_t>
+    class BiquadFilter
+    {
+    private:
+        value_t  x1{}, x2{};        // previous two values of input x
+        value_t  y1{}, y2{};        // previous two values of output y
+        value_t  a1{}, a2{};        // coefficients for y
+        value_t  b0{}, b1{}, b2{};  // coefficients for x
+        value_t  q{};               // quality factor
+
+    public:
+        void initialize()
+        {
+            x1 = x2 = y1 = y2 = 0;
+        }
+
+        void configure(FilterMode mode, value_t sampleRateHz, value_t fCornerHz, value_t quality)
+        {
+            q = quality;
+            value_t omega = (2 * M_PI) * (fCornerHz / sampleRateHz);
+            value_t alpha = std::sin(omega) / (2 * q);
+            value_t denom = 1 + alpha;
+            value_t beta  = std::cos(omega);
+            a1 = -2*beta / denom;
+            a2 = (1-alpha) / denom;
+            switch (mode)
+            {
+            case FilterMode::Lowpass:
+                b0 = b2 = ((1 - beta) / 2) / denom;
+                b1 = (1 - beta) / denom;
+                break;
+
+            default:
+            case FilterMode::Bandpass:
+                b0 = alpha / denom;
+                b1 = 0;
+                b2 = -alpha / denom;
+                break;
+
+            case FilterMode::Highpass:
+                b0 = b2 = ((1 + beta) / 2) / denom;
+                b1 = -(1 + beta) / denom;
+                break;
+            }
+        }
+
+        value_t process(value_t x0)
+        {
+            value_t y0 = b0*x0 + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+            x2 = x1;
+            x1 = x0;
+            y2 = y1;
+            y1 = y0;
+            return y0;
+        }
+    };
+
+
+
     enum class SliderScale
     {
         Linear,         // evaluate the polynomial and return the resulting value `y`
