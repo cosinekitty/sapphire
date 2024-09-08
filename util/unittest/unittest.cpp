@@ -932,32 +932,33 @@ static int PopTest()
 //---------------------------------------------------------------------------------------
 
 
-static int BiquadFilterTest()
+static int BiquadCase(
+    const char *outFilterFileName,
+    float cornerFrequencyHz,
+    float quality,
+    Sapphire::FilterMode mode)
 {
     const char *outNoiseFileName  = "output/noise_raw.wav";
-    const char *outFilterFileName = "output/noise_biquad.wav";
 
     const int channels = 1;
     const float sampleRateHz = 48000;
-    const float cornerFrequencyHz = 440;
-    const float quality = 80;
 
     using biquad_t = Sapphire::BiquadFilter<float>;
     biquad_t filter;
 
-    filter.configure(Sapphire::FilterMode::Bandpass, sampleRateHz, cornerFrequencyHz, quality);
+    filter.configure(mode, sampleRateHz, cornerFrequencyHz, quality);
 
     ScaledWaveFileWriter outNoise;
     if (!outNoise.Open(outNoiseFileName, sampleRateHz, channels))
-        return Fail("BiquadFilter", std::string("Could not open output file: ") + outNoiseFileName);
+        return Fail("Biquad", std::string("Could not open output file: ") + outNoiseFileName);
 
     ScaledWaveFileWriter outFilter;
     if (!outFilter.Open(outFilterFileName, sampleRateHz, channels))
-        return Fail("BiquadFilter", std::string("Could not open output file: ") + outFilterFileName);
+        return Fail("Biquad", std::string("Could not open output file: ") + outFilterFileName);
 
     const float durationSeconds = 5;
     const int nFrames = sampleRateHz * durationSeconds;
-    std::mt19937 rand;
+    std::mt19937 rand{12345};     // seed for deterministic behavior
     std::uniform_real_distribution<float> dist(-1, 1);
     for (int frame = 0; frame < nFrames; ++frame)
     {
@@ -967,5 +968,20 @@ static int BiquadFilterTest()
         outFilter.WriteSamples(&y, 1);
     }
 
-    return Pass("BiquadFilter");
+    outNoise.Close();
+    outFilter.Close();
+    printf("Biquad: wrote %s\n", outFilterFileName);
+    return 0;
+}
+
+
+static int BiquadFilterTest()
+{
+    using namespace Sapphire;
+
+    return
+        BiquadCase("output/noise_lp_440.wav", 440,  2, FilterMode::Lowpass) ||
+        BiquadCase("output/noise_bp_440.wav", 440, 80, FilterMode::Bandpass) ||
+        BiquadCase("output/noise_hp_440.wav", 440, 10, FilterMode::Highpass) ||
+        Pass("Biquad");
 }
