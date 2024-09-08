@@ -41,20 +41,22 @@ static int QuadraticTest();
 static int GalaxyTest();
 static int PivotTest();
 static int PopTest();
+static int BiquadFilterTest();
 
 static const UnitTest CommandTable[] =
 {
-    { "agc",        AutoGainControl },
-    { "chaos",      ChaosTest },
-    { "delay",      DelayLineTest },
-    { "galaxy",     GalaxyTest },
+    { "agc",        AutoGainControl  },
+    { "biquad",     BiquadFilterTest },
+    { "chaos",      ChaosTest        },
+    { "delay",      DelayLineTest    },
+    { "galaxy",     GalaxyTest       },
     { "interp",     InterpolatorTest },
-    { "pivot",      PivotTest },
-    { "pop",        PopTest },
-    { "quad",       QuadraticTest },
-    { "readwave",   ReadWave },
-    { "scale",      AutoScale },
-    { "taper",      TaperTest },
+    { "pivot",      PivotTest        },
+    { "pop",        PopTest          },
+    { "quad",       QuadraticTest    },
+    { "readwave",   ReadWave         },
+    { "scale",      AutoScale        },
+    { "taper",      TaperTest        },
     { nullptr,  nullptr }
 };
 
@@ -925,3 +927,14 @@ static int PopTest()
         PopHistogram(0.5) ||
         PopHistogram(1.0);
 }
+
+
+//---------------------------------------------------------------------------------------
+
+
+static int BiquadFilterTest()
+{
+    return Pass("BiquadFilter");
+}
+
+
