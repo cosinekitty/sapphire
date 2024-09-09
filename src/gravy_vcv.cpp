@@ -50,7 +50,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        using gravy_engine_t = PolyEngine<2>;
+        using gravy_engine_t = GravyEngine<2>;
 
         struct GravyModule : SapphireModule
         {
@@ -86,11 +86,27 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                //float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
-                //float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
-                //float driveKnob = getControlValue(DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
-                //float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                //float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+                float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
+                float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
+                float driveKnob = getControlValue(DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
+                float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
+                float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+
+                engine.setFrequency(freqKnob);
+                engine.setResonance(resKnob);
+                engine.setDrive(driveKnob);
+                engine.setMix(mixKnob);
+                engine.setGain(gainKnob);
+
+                float inFrame[2];
+                inFrame[0] = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
+                inFrame[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+
+                float outFrame[2];
+                engine.process(args.sampleRate, inFrame, outFrame);
+
+                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outFrame[0]);
+                outputs[AUDIO_RIGHT_OUTPUT].setVoltage(outFrame[1]);
             }
         };
 

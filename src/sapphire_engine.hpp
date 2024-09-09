@@ -11,6 +11,12 @@
 
 namespace Sapphire
 {
+    template <typename value_t>
+    inline value_t ClampInt(value_t x, int lo, int hi)
+    {
+        return std::clamp(x, static_cast<value_t>(lo), static_cast<value_t>(hi));
+    }
+
     template <typename real_t>
     real_t BicubicLimiter(real_t x, real_t yLimit)
     {
