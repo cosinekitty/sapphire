@@ -594,8 +594,7 @@ def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel() -> int:
-    name = 'galaxy'
+def GenerateGalaxyPanel(name:str, table:List[Tuple[str, str]]) -> int:
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
@@ -650,13 +649,6 @@ def GenerateGalaxyPanel() -> int:
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
-        table: List[Tuple[str, str]] = [
-            ('replace',     'REPLACE'),
-            ('brightness',  'BRIGHT'),
-            ('detune',      'DETUNE'),
-            ('bigness',     'SIZE'),
-            ('mix',         'MIX')
-        ]
         row = 1
         for (symbol, label) in table:
             y = yRow.value(row)
@@ -938,7 +930,20 @@ if __name__ == '__main__':
         GenerateMootsPanel() or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
-        GenerateGalaxyPanel() or
+        GenerateGalaxyPanel('galaxy', [
+            ('replace',     'REPLACE'),
+            ('brightness',  'BRIGHT'),
+            ('detune',      'DETUNE'),
+            ('bigness',     'SIZE'),
+            ('mix',         'MIX')
+        ]) or
+        GenerateGalaxyPanel('gravy', [
+            ('frequency',   'FREQ'),
+            ('resonance',   'RES'),
+            ('drive',       'DRIVE'),
+            ('mix',         'MIX'),
+            ('gain',        'GAIN')
+        ]) or
         GenerateRotiniPanel() or
         GeneratePivotPanel() or
         GenerateSamPanel() or

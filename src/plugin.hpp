@@ -13,6 +13,7 @@ extern Model* modelSapphireElastika;
 extern Model* modelSapphireFrolic;
 extern Model* modelSapphireGalaxy;
 extern Model* modelSapphireGlee;
+extern Model* modelSapphireGravy;
 extern Model* modelSapphireHiss;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;

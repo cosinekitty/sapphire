@@ -60,6 +60,15 @@
       ]
     },
     {
+      "slug": "Gravy",
+      "name": "Gravy",
+      "description": "Low/high/band-pass filter with resonance control.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Gravy.md",
+      "tags": [
+        "Filter"
+      ]
+    },
+    {
       "slug": "Hiss",
       "name": "Hiss",
       "description": "Generates directionally unbiased N-dimensional vector noise.",
