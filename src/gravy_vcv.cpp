@@ -95,12 +95,12 @@ namespace Sapphire
         };
 
 
-        struct GravyWidget : SapphireReloadableModuleWidget
+        struct GravyWidget : SapphireWidget
         {
             GravyModule *gravyModule{};
 
             explicit GravyWidget(GravyModule* module)
-                : SapphireReloadableModuleWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
+                : SapphireWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
                 , gravyModule(module)
             {
                 setModule(module);
