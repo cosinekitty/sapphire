@@ -11,7 +11,7 @@
 #
 import sys
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from svgpanel import *
 from sapphire import *
 
@@ -64,7 +64,7 @@ def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float
     return Path(path, style, id)
 
 
-def GenerateChaosPanel(name: str) -> int:
+def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -72,8 +72,7 @@ def GenerateChaosPanel(name: str) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    controls = ControlLayer()
-    pl.append(controls)
+    cdict[name] = controls = ControlLayer()
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -162,7 +161,7 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
-def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
+def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -170,7 +169,7 @@ def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> 
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth/2
     inputPortY1 = 25.0
     inputPortDY = 10.0
@@ -209,7 +208,6 @@ def GenerateTinToutPanel(name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> 
         pl.append(CenteredControlTextPath(font, ioLabel, xmid, yInLabel + 2.5, 'io_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'clear_label'))
         pl.append(PolyPortHexagon(xmid, inputPortY1 + 3*inputPortDY))
-    pl.append(controls)     # controls go LAST so that they end up on top of everything else
     return Save(panel, svgFileName)
 
 
@@ -253,7 +251,7 @@ def GradientStyle(gradientId:str, opacity:float) -> str:
     return 'fill:url(#{:s});opacity:{:g};stroke:none'.format(gradientId, opacity)
 
 
-def GenerateNucleusPanel() -> int:
+def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'nucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -270,7 +268,7 @@ def GenerateNucleusPanel() -> int:
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPort = 12.5               # horizontal distance between X, Y, Z columns.
     yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
@@ -319,7 +317,6 @@ def GenerateNucleusPanel() -> int:
         pl.append(RectangularBubble(xBubbleLeft, 12.0, xBubbleRight, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 43.0, xBubbleRight, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
-        pl.append(controls)
         xInputCenter = xmid - 12.0
         xInPos = xInputCenter - dxPort
         xOutPos = xmid
@@ -366,7 +363,7 @@ def GenerateNucleusPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def GeneratePolynucleusPanel() -> int:
+def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'polynucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -383,7 +380,7 @@ def GeneratePolynucleusPanel() -> int:
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxKnob = 25.0
     xKnobLeft  = xmid - dxKnob
@@ -436,7 +433,6 @@ def GeneratePolynucleusPanel() -> int:
         pl.append(RectangularBubble(xBubbleLeft, 12.0, xBubbleRight, 31.0, bubbleRadius, GradientStyle('gradient_controls', 0.7), 'controls_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 43.0, xBubbleRight, 30.0, bubbleRadius, GradientStyle('gradient_input',    1.0), 'input_bubble'))
         pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
-        pl.append(controls)
 
         # Create label + input port for particle A.
         controls.append(Component('a_input', xKnobLeft, yInPort))
@@ -477,7 +473,7 @@ def GeneratePolynucleusPanel() -> int:
 
 
 
-def GenerateHissPanel() -> int:
+def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
     numOutputs = 10      # Keep in sync with src/hiss.cpp ! Sapphire::Hiss::NumOutputs
     svgFileName = '../res/hiss.svg'
     PANEL_WIDTH = 3
@@ -486,8 +482,7 @@ def GenerateHissPanel() -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
-    pl.append(controls)
+    cdict['hiss'] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     ytop = 18.0
     ybottom = 112.0
@@ -579,8 +574,6 @@ def GenerateMootsPanel() -> int:
     panel = Panel(MOOTS_PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    #controls = ControlLayer()
-    #pl.append(controls)
     pl.append(LiteralXml(MootsPanelLayerXml))
     return Save(panel, svgFileName)
 
@@ -594,7 +587,7 @@ def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel(name:str, table:List[Tuple[str, str]]) -> int:
+def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, table:List[Tuple[str, str]]) -> int:
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
@@ -602,7 +595,7 @@ def GenerateGalaxyPanel(name:str, table:List[Tuple[str, str]]) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
     dxLeftRight = dxPortFromCenter + 6.3
@@ -655,11 +648,10 @@ def GenerateGalaxyPanel(name:str, table:List[Tuple[str, str]]) -> int:
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
             AddFlatControlGroup(pl, controls, xmid, y, symbol)
             row += 1
-    pl.append(controls)
     return Save(panel, svgFileName)
 
 
-def GenerateRotiniPanel() -> int:
+def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'rotini'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -668,7 +660,7 @@ def GenerateRotiniPanel() -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     NROWS = 7
     yRow = FencePost(22.0, 110.0, NROWS)
@@ -712,11 +704,10 @@ def GenerateRotiniPanel() -> int:
         pl.append(CenteredControlTextPath(font, 'Z', xmid - dxText, outPortY + 2*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
         pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
-    pl.append(controls)
     return Save(panel, svgFileName)
 
 
-def GeneratePivotPanel() -> int:
+def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'pivot'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -725,7 +716,7 @@ def GeneratePivotPanel() -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     yRow = 22.0
     dyGrad = 6.0
@@ -770,7 +761,6 @@ def GeneratePivotPanel() -> int:
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
 
         pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
-    pl.append(controls)
     return Save(panel, svgFileName)
 
 
@@ -813,7 +803,7 @@ def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
     return Path(t, style)
 
 
-def GenerateSamPanel() -> int:
+def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     svgFileName = '../res/sam.svg'
     PANEL_WIDTH = 2
     panel = Panel(PANEL_WIDTH)
@@ -821,7 +811,7 @@ def GenerateSamPanel() -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    controls = ControlLayer()
+    cdict['sam'] = controls = ControlLayer()
     yInput  = FencePost(25.0,  52.0, 4)
     yOutput = FencePost(88.0, 115.0, 4)     # cannot change - visually match Frolic/Glee
     dyArrowMargin = 10.0
@@ -849,11 +839,10 @@ def GenerateSamPanel() -> int:
         controls.append(Component('p_output', xmid, yOutput.value(3)))
 
         pl.append(PolyPortHexagon(xmid, yOutput.value(3)))
-    pl.append(controls)
     return Save(panel, svgFileName)
 
 
-def GeneratePopPanel() -> int:
+def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'pop'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -862,8 +851,7 @@ def GeneratePopPanel() -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    controls = ControlLayer()
-    pl.append(controls)
+    cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     syncDy = 20.0       # vertical distance between SYNC input port and TRIGGER output port
     ySpeedKnob = 26.0
@@ -917,36 +905,137 @@ def GeneratePopPanel() -> int:
     return Save(panel, svgFileName)
 
 
+def PadRight(text:str, length:int) -> str:
+    while len(text) < length:
+        text += ' '
+    return text
+
+
+def SaveControls(cdict:Dict[str, ControlLayer]) -> int:
+    text = '// *** GENERATED CODE *** DO NOT EDIT ***\n'
+    text += '#pragma once\n'
+    text += '#include <map>\n'
+    text += '#include <string>\n'
+    text += '\n'
+    text += 'namespace Sapphire\n'
+    text += '{\n'
+    text += '    struct ComponentLocation\n'
+    text += '    {\n'
+    text += '        float cx;     // x-coordinate of control\'s center\n'
+    text += '        float cy;     // y-coordinate of control\'s center\n'
+    text += '\n'
+    text += '        ComponentLocation(float _cx, float _cy)\n'
+    text += '            : cx(_cx)\n'
+    text += '            , cy(_cy)\n'
+    text += '            {}\n'
+    text += '    };\n'
+    text += '\n'
+    text += '    using ComponentMap = std::map<std::string, ComponentLocation>;\n'
+    text += '    using ModuleMap = std::map<std::string, ComponentMap>;\n'
+    text += '\n'
+    text += '    class ComponentPlacer\n'
+    text += '    {\n'
+    text += '    private:\n'
+    text += '        ModuleMap modmap\n'
+    text += '        {\n'
+
+    for (modname, controls) in sorted(cdict.items()):
+        text += '            { "' + modname + '", {\n'
+        for comp in sorted(controls.componentList):
+            text += '                {'
+            text += PadRight('"' + comp.id + '",', 25) + ' {'
+            text += '{:8.3f}'.format(comp.cx)
+            text += ', '
+            text += '{:8.3f}'.format(comp.cy)
+            text += '}},\n'
+        text += '            }},\n'
+
+    text += '        };\n'
+    text += '\n'
+    text += '    public:\n'
+    text += '        ComponentLocation find(const std::string& modCode, const std::string& label)\n'
+    text += '        {\n'
+    text += '            auto m = modmap.find(modCode);\n'
+    text += '            if (m == modmap.end()) return ComponentLocation{0, 0};\n'
+    text += '            auto c = m->second.find(label);\n'
+    text += '            if (c == m->second.end()) return ComponentLocation{0, 0};\n'
+    text += '            return c->second;\n'
+    text += '        }\n'
+    text += '    };\n'
+    text += '\n'
+    text += '    extern ComponentPlacer TheComponentPlacer;\n'
+    text += '}\n'
+    UpdateFileIfChanged('../src/sapphire_panel.hpp', text)
+    return 0
+
+def PlaceElastikaControls(cdict:Dict[str, ControlLayer]) -> int:
+    # patch_elastika.py also does stuff to elastika.svg
+    # This is here because the code is in place here to generate the C++ map.
+    controls = cdict['elastika'] = ControlLayer()
+    controls.append(Component("fric_slider",         8.00,  46.00))
+    controls.append(Component("stif_slider",        19.24,  46.00))
+    controls.append(Component("span_slider",        30.48,  46.00))
+    controls.append(Component("curl_slider",        41.72,  46.00))
+    controls.append(Component("mass_slider",        52.96,  46.00))
+    controls.append(Component("fric_atten",          8.00,  72.00))
+    controls.append(Component("stif_atten",         19.24,  72.00))
+    controls.append(Component("span_atten",         30.48,  72.00))
+    controls.append(Component("curl_atten",         41.72,  72.00))
+    controls.append(Component("mass_atten",         52.96,  72.00))
+    controls.append(Component("input_tilt_atten",    8.00,  12.50))
+    controls.append(Component("output_tilt_atten",  53.00,  12.50))
+    controls.append(Component("fric_cv",             8.00,  81.74))
+    controls.append(Component("stif_cv",            19.24,  81.74))
+    controls.append(Component("span_cv",            30.48,  81.74))
+    controls.append(Component("curl_cv",            41.72,  81.74))
+    controls.append(Component("mass_cv",            52.96,  81.74))
+    controls.append(Component("input_tilt_cv",       8.00,  22.50))
+    controls.append(Component("output_tilt_cv",     53.00,  22.50))
+    controls.append(Component("drive_knob",         14.00, 102.00))
+    controls.append(Component("level_knob",         46.96, 102.00))
+    controls.append(Component("input_tilt_knob",    19.24,  17.50))
+    controls.append(Component("output_tilt_knob",   41.72,  17.50))
+    controls.append(Component("audio_left_input",    7.50, 115.00))
+    controls.append(Component("audio_right_input",  20.50, 115.00))
+    controls.append(Component("power_gate_input",   30.48, 104.00))
+    controls.append(Component("audio_left_output",  40.46, 115.00))
+    controls.append(Component("audio_right_output", 53.46, 115.00))
+    controls.append(Component("power_toggle",       30.48,  95.00))
+    return 0
+
 if __name__ == '__main__':
+    cdict:Dict[str, ControlLayer] = {}
     sys.exit(
-        GenerateChaosPanel('frolic') or
-        GenerateChaosPanel('glee') or
+        GenerateChaosPanel(cdict, 'frolic') or
+        GenerateChaosPanel(cdict, 'glee') or
         GenerateTricorderPanel() or
-        GenerateTinToutPanel('tin',  'input',  'IN',  +5.2) or
-        GenerateTinToutPanel('tout', 'output', 'OUT', -7.1) or
-        GenerateNucleusPanel() or
-        GeneratePolynucleusPanel() or
-        GenerateHissPanel() or
+        GenerateTinToutPanel(cdict, 'tin',  'input',  'IN',  +5.2) or
+        GenerateTinToutPanel(cdict, 'tout', 'output', 'OUT', -7.1) or
+        GenerateNucleusPanel(cdict) or
+        GeneratePolynucleusPanel(cdict) or
+        GenerateHissPanel(cdict) or
         GenerateMootsPanel() or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
-        GenerateGalaxyPanel('galaxy', [
+        GenerateGalaxyPanel(cdict, 'galaxy', [
             ('replace',     'REPLACE'),
             ('brightness',  'BRIGHT'),
             ('detune',      'DETUNE'),
             ('bigness',     'SIZE'),
             ('mix',         'MIX')
         ]) or
-        GenerateGalaxyPanel('gravy', [
+        GenerateGalaxyPanel(cdict, 'gravy', [
             ('frequency',   'FREQ'),
             ('resonance',   'RES'),
             ('drive',       'DRIVE'),
             ('mix',         'MIX'),
             ('gain',        'GAIN')
         ]) or
-        GenerateRotiniPanel() or
-        GeneratePivotPanel() or
-        GenerateSamPanel() or
-        GeneratePopPanel() or
+        GenerateRotiniPanel(cdict) or
+        GeneratePivotPanel(cdict) or
+        GenerateSamPanel(cdict) or
+        GeneratePopPanel(cdict) or
+        PlaceElastikaControls(cdict) or
+        SaveControls(cdict) or
         Print('SUCCESS')
     )

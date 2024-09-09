@@ -104,7 +104,7 @@ namespace Sapphire
             PivotModule* pivotModule{};
 
             explicit PivotWidget(PivotModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/pivot.svg"))
+                : SapphireReloadableModuleWidget("pivot", asset::plugin(pluginInstance, "res/pivot.svg"))
                 , pivotModule(module)
             {
                 setModule(module);
@@ -114,7 +114,6 @@ namespace Sapphire
                 addFlippableOutputPort(Y_OUTPUT, "y_output", module);
                 addFlippableOutputPort(Z_OUTPUT, "z_output", module);
                 addSapphireControlGroup("twist", TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT);
-                reloadPanel();
             }
 
             void draw(const DrawArgs& args) override

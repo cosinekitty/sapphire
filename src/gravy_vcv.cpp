@@ -100,7 +100,7 @@ namespace Sapphire
             GravyModule *gravyModule{};
 
             explicit GravyWidget(GravyModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/gravy.svg"))
+                : SapphireReloadableModuleWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
                 , gravyModule(module)
             {
                 setModule(module);
@@ -116,8 +116,6 @@ namespace Sapphire
                 addSapphireFlatControlGroup("drive",     DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 addSapphireFlatControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
-
-                reloadPanel();
             }
         };
     }

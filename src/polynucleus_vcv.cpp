@@ -419,7 +419,7 @@ namespace Sapphire
             SvgOverlay* controlLabel;
 
             explicit PolynucleusWidget(PolynucleusModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/polynucleus.svg"))
+                : SapphireReloadableModuleWidget("polynucleus", asset::plugin(pluginInstance, "res/polynucleus.svg"))
                 , polynucleusModule(module)
                 , audioLabel(SvgOverlay::Load("res/polynucleus_label_audio.svg"))
                 , controlLabel(SvgOverlay::Load("res/polynucleus_label_control.svg"))
@@ -484,8 +484,6 @@ namespace Sapphire
 
                 auto clearButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT);
                 addReloadableParam(clearButton, "clear_button");
-
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

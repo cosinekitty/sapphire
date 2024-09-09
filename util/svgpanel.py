@@ -340,20 +340,23 @@ class LinearGradient(Element):
         self.append(Element('stop').setAttrib('offset', '1').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color2)))
 
 
-class Component(Element):
-    """Represents the location of a widget in the VCV Rack design."""
+class Component:
     def __init__(self, id:str, xCenter:float, yCenter:float) -> None:
-        super().__init__('circle', id)
-        self.setAttribFloat('cx', xCenter)
-        self.setAttribFloat('cy', yCenter)
-        self.setAttribFloat('r', 1.0)
+        self.id = id
+        self.cx = xCenter
+        self.cy = yCenter
+
+    def __lt__(self, other:'Component') -> bool:
+        return self.id < other.id
 
 
-class ControlLayer(Element):
-    """A layer that contains invisible elements used for defining widget positions."""
+class ControlLayer:
     def __init__(self) -> None:
-        super().__init__('g', 'ControlLayer')
-        self.setAttrib('style', 'display:none;')
+        self.componentList:List[Component] = []
+
+    def append(self, comp:Component) -> None:
+        self.componentList.append(comp)
+
 
 def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     # Do not write to the file unless the newText is different from

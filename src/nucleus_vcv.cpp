@@ -379,7 +379,7 @@ namespace Sapphire
             SvgOverlay* controlLabel;
 
             explicit NucleusWidget(NucleusModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/nucleus.svg"))
+                : SapphireReloadableModuleWidget("nucleus", asset::plugin(pluginInstance, "res/nucleus.svg"))
                 , nucleusModule(module)
                 , audioLabel(SvgOverlay::Load("res/nucleus_label_audio.svg"))
                 , controlLabel(SvgOverlay::Load("res/nucleus_label_control.svg"))
@@ -437,8 +437,6 @@ namespace Sapphire
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addReloadableParam(toggle, "audio_mode_button");
-
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

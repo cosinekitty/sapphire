@@ -101,7 +101,7 @@ namespace Sapphire
             RotiniModule* rotiniModule{};
 
             explicit RotiniWidget(RotiniModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/rotini.svg"))
+                : SapphireReloadableModuleWidget("rotini", asset::plugin(pluginInstance, "res/rotini.svg"))
                 , rotiniModule(module)
             {
                 setModule(module);
@@ -111,7 +111,6 @@ namespace Sapphire
                 addFlippableOutputPort(X_OUTPUT, "x_output", module);
                 addFlippableOutputPort(Y_OUTPUT, "y_output", module);
                 addFlippableOutputPort(Z_OUTPUT, "z_output", module);
-                reloadPanel();
             }
 
             void draw(const DrawArgs& args) override
