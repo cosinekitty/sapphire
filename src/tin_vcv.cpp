@@ -98,10 +98,10 @@ namespace Sapphire
         };
 
 
-        struct TinWidget : SapphireReloadableModuleWidget
+        struct TinWidget : SapphireWidget
         {
             explicit TinWidget(TinModule *module)
-                : SapphireReloadableModuleWidget("tin", asset::plugin(pluginInstance, "res/tin.svg"))
+                : SapphireWidget("tin", asset::plugin(pluginInstance, "res/tin.svg"))
             {
                 setModule(module);
                 addSapphireInput(X_INPUT, "x_input");

@@ -199,12 +199,12 @@ namespace Sapphire
             }
         };
 
-        struct GalaxyWidget : SapphireReloadableModuleWidget
+        struct GalaxyWidget : SapphireWidget
         {
             GalaxyModule* galaxyModule{};
 
             explicit GalaxyWidget(GalaxyModule* module)
-                : SapphireReloadableModuleWidget("galaxy", asset::plugin(pluginInstance, "res/galaxy.svg"))
+                : SapphireWidget("galaxy", asset::plugin(pluginInstance, "res/galaxy.svg"))
                 , galaxyModule(module)
             {
                 setModule(module);

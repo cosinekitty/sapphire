@@ -96,12 +96,12 @@ namespace Sapphire
         };
 
 
-        struct RotiniWidget : SapphireReloadableModuleWidget
+        struct RotiniWidget : SapphireWidget
         {
             RotiniModule* rotiniModule{};
 
             explicit RotiniWidget(RotiniModule* module)
-                : SapphireReloadableModuleWidget("rotini", asset::plugin(pluginInstance, "res/rotini.svg"))
+                : SapphireWidget("rotini", asset::plugin(pluginInstance, "res/rotini.svg"))
                 , rotiniModule(module)
             {
                 setModule(module);
@@ -115,7 +115,7 @@ namespace Sapphire
 
             void draw(const DrawArgs& args) override
             {
-                SapphireReloadableModuleWidget::draw(args);
+                SapphireWidget::draw(args);
                 float xcol = 1.7;
                 drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
                 drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);

@@ -178,12 +178,12 @@ namespace Sapphire
         };
 
 
-        struct PopWidget : SapphireReloadableModuleWidget
+        struct PopWidget : SapphireWidget
         {
             PopModule* popModule{};
 
             explicit PopWidget(PopModule* module)
-                : SapphireReloadableModuleWidget("pop", asset::plugin(pluginInstance, "res/pop.svg"))
+                : SapphireWidget("pop", asset::plugin(pluginInstance, "res/pop.svg"))
                 , popModule(module)
             {
                 setModule(module);

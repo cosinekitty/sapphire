@@ -9,7 +9,7 @@
 */
 
 #pragma once
-#include "reloadable_widget.hpp"
+#include "sapphire_panel.hpp"
 
 namespace Sapphire
 {
@@ -46,11 +46,58 @@ namespace Sapphire
     };
 
 
-    struct SapphireReloadableModuleWidget : ReloadableModuleWidget
+    struct SapphireWidget : ModuleWidget
     {
-        explicit SapphireReloadableModuleWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
-            : ReloadableModuleWidget(moduleCode, panelSvgFileName)
-            {}
+        const std::string modcode;
+
+        explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+            : modcode(moduleCode)
+        {
+            app::SvgPanel* svgPanel = createPanel(panelSvgFileName);
+            setPanel(svgPanel);
+        }
+
+        void position(Widget* widget, const std::string& label)
+        {
+            using namespace Sapphire;
+
+            ComponentLocation loc = TheComponentPlacer.find(modcode, label);
+            Vec vec = mm2px(Vec{loc.cx, loc.cy});
+            widget->box.pos = vec.minus(widget->box.size.div(2));
+        }
+
+        void addReloadableParam(ParamWidget* param, const std::string& label)
+        {
+            addParam(param);
+            position(param, label);
+        }
+
+        void addReloadableInput(PortWidget* input, const std::string& label)
+        {
+            addInput(input);
+            position(input, label);
+        }
+
+        void addReloadableOutput(PortWidget* output, const std::string& label)
+        {
+            addOutput(output);
+            position(output, label);
+        }
+
+        template <typename knob_t = RoundLargeBlackKnob>
+        knob_t *addKnob(int paramId, const std::string& svgId)
+        {
+            knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
+            addReloadableParam(knob, svgId);
+            return knob;
+        }
+
+        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& svgId)
+        {
+            RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
+            addReloadableParam(knob, svgId);
+            return knob;
+        }
 
         void addSapphireInput(int inputId, const std::string& svgId)
         {

@@ -202,12 +202,12 @@ namespace Sapphire
 
 
         template <typename module_t>
-        struct ChaosWidget : SapphireReloadableModuleWidget
+        struct ChaosWidget : SapphireWidget
         {
             module_t *chaosModule;
 
             ChaosWidget(module_t* module, const char *moduleCode, const char *panelSvgFileName)
-                : SapphireReloadableModuleWidget(moduleCode, asset::plugin(pluginInstance, panelSvgFileName))
+                : SapphireWidget(moduleCode, asset::plugin(pluginInstance, panelSvgFileName))
                 , chaosModule(module)
             {
                 setModule(module);
@@ -253,7 +253,7 @@ namespace Sapphire
 
             void draw(const DrawArgs& args) override
             {
-                SapphireReloadableModuleWidget::draw(args);
+                SapphireWidget::draw(args);
                 float xcol = 1.7;
                 drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
                 drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);

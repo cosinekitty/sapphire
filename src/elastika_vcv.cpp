@@ -343,13 +343,13 @@ namespace Sapphire
 
         using SliderType = VCVLightSlider<YellowLight>;
 
-        struct ElastikaWidget : SapphireReloadableModuleWidget
+        struct ElastikaWidget : SapphireWidget
         {
             ElastikaModule *elastikaModule;
             WarningLightWidget *warningLight = nullptr;
 
             explicit ElastikaWidget(ElastikaModule* module)
-                : SapphireReloadableModuleWidget("elastika", asset::plugin(pluginInstance, "res/elastika.svg"))
+                : SapphireWidget("elastika", asset::plugin(pluginInstance, "res/elastika.svg"))
                 , elastikaModule(module)
             {
                 setModule(module);

@@ -138,12 +138,12 @@ namespace Sapphire
         };
 
 
-        struct SplitAddMergeWidget : SapphireReloadableModuleWidget
+        struct SplitAddMergeWidget : SapphireWidget
         {
             SplitAddMergeModule* splitAddMergeModule{};
 
             explicit SplitAddMergeWidget(SplitAddMergeModule* module)
-                : SapphireReloadableModuleWidget("sam", asset::plugin(pluginInstance, "res/sam.svg"))
+                : SapphireWidget("sam", asset::plugin(pluginInstance, "res/sam.svg"))
                 , splitAddMergeModule(module)
             {
                 setModule(module);
