@@ -10,7 +10,7 @@ namespace Sapphire
     struct FrolicWidget : FrolicWidgetBase
     {
         explicit FrolicWidget(FrolicModule* module)
-            : FrolicWidgetBase(module, "res/frolic.svg")
+            : FrolicWidgetBase(module, "frolic", "res/frolic.svg")
             {}
     };
 }

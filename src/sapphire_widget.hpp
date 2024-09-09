@@ -48,8 +48,8 @@ namespace Sapphire
 
     struct SapphireReloadableModuleWidget : ReloadableModuleWidget
     {
-        explicit SapphireReloadableModuleWidget(const std::string& panelSvgFileName)
-            : ReloadableModuleWidget(panelSvgFileName)
+        explicit SapphireReloadableModuleWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+            : ReloadableModuleWidget(moduleCode, panelSvgFileName)
             {}
 
         void addSapphireInput(int inputId, const std::string& svgId)

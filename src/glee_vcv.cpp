@@ -10,7 +10,7 @@ namespace Sapphire
     struct GleeWidget : GleeWidgetBase
     {
         explicit GleeWidget(GleeModule* module)
-            : GleeWidgetBase(module, "res/glee.svg")
+            : GleeWidgetBase(module, "glee", "res/glee.svg")
             {}
     };
 }

@@ -206,8 +206,8 @@ namespace Sapphire
         {
             module_t *chaosModule;
 
-            ChaosWidget(module_t* module, const char *panelSvgFileName)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, panelSvgFileName))
+            ChaosWidget(module_t* module, const char *moduleCode, const char *panelSvgFileName)
+                : SapphireReloadableModuleWidget(moduleCode, asset::plugin(pluginInstance, panelSvgFileName))
                 , chaosModule(module)
             {
                 setModule(module);
@@ -233,9 +233,6 @@ namespace Sapphire
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
-
-                // Load the SVG and place all controls at their correct coordinates.
-                reloadPanel();
             }
 
             void appendContextMenu(Menu* menu) override

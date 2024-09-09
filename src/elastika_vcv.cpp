@@ -349,7 +349,7 @@ namespace Sapphire
             WarningLightWidget *warningLight = nullptr;
 
             explicit ElastikaWidget(ElastikaModule* module)
-                : SapphireReloadableModuleWidget(asset::plugin(pluginInstance, "res/elastika.svg"))
+                : SapphireReloadableModuleWidget("elastika", asset::plugin(pluginInstance, "res/elastika.svg"))
                 , elastikaModule(module)
             {
                 setModule(module);
@@ -406,9 +406,6 @@ namespace Sapphire
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, POWER_TOGGLE_PARAM, POWER_LIGHT);
                 addReloadableParam(toggle, "power_toggle");
                 addSapphireInput(POWER_GATE_INPUT, "power_gate_input");
-
-                // Load the SVG and place all controls at their correct coordinates.
-                reloadPanel();
             }
 
             void addSlider(ParamId paramId, LightId lightId, const char *svgId)
