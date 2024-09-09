@@ -1713,12 +1713,12 @@ namespace Sapphire
         };
 
 
-        struct TricorderWidget : SapphireReloadableModuleWidget
+        struct TricorderWidget : SapphireWidget
         {
             TricorderModule* tricorderModule{};
 
             explicit TricorderWidget(TricorderModule *module)
-                : SapphireReloadableModuleWidget("tricorder", asset::plugin(pluginInstance, "res/tricorder.svg"))
+                : SapphireWidget("tricorder", asset::plugin(pluginInstance, "res/tricorder.svg"))
                 , tricorderModule(module)
             {
                 setModule(module);

@@ -99,12 +99,12 @@ namespace Sapphire
         };
 
 
-        struct PivotWidget : SapphireReloadableModuleWidget
+        struct PivotWidget : SapphireWidget
         {
             PivotModule* pivotModule{};
 
             explicit PivotWidget(PivotModule* module)
-                : SapphireReloadableModuleWidget("pivot", asset::plugin(pluginInstance, "res/pivot.svg"))
+                : SapphireWidget("pivot", asset::plugin(pluginInstance, "res/pivot.svg"))
                 , pivotModule(module)
             {
                 setModule(module);
@@ -118,7 +118,7 @@ namespace Sapphire
 
             void draw(const DrawArgs& args) override
             {
-                SapphireReloadableModuleWidget::draw(args);
+                SapphireWidget::draw(args);
                 float xcol = 1.7;
                 drawFlipIndicator(args, X_OUTPUT, xcol,  88.0);
                 drawFlipIndicator(args, Y_OUTPUT, xcol,  97.0);

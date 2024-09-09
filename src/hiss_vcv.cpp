@@ -106,12 +106,12 @@ namespace Sapphire
             }
         };
 
-        struct HissWidget : SapphireReloadableModuleWidget
+        struct HissWidget : SapphireWidget
         {
             HissModule *hissModule;
 
             explicit HissWidget(HissModule* module)
-                : SapphireReloadableModuleWidget("hiss", asset::plugin(pluginInstance, "res/hiss.svg"))
+                : SapphireWidget("hiss", asset::plugin(pluginInstance, "res/hiss.svg"))
                 , hissModule(module)
             {
                 setModule(module);

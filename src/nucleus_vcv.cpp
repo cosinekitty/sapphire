@@ -369,7 +369,7 @@ namespace Sapphire
         };
 
 
-        struct NucleusWidget : SapphireReloadableModuleWidget
+        struct NucleusWidget : SapphireWidget
         {
             NucleusModule *nucleusModule;
             WarningLightWidget* warningLight{};
@@ -379,7 +379,7 @@ namespace Sapphire
             SvgOverlay* controlLabel;
 
             explicit NucleusWidget(NucleusModule* module)
-                : SapphireReloadableModuleWidget("nucleus", asset::plugin(pluginInstance, "res/nucleus.svg"))
+                : SapphireWidget("nucleus", asset::plugin(pluginInstance, "res/nucleus.svg"))
                 , nucleusModule(module)
                 , audioLabel(SvgOverlay::Load("res/nucleus_label_audio.svg"))
                 , controlLabel(SvgOverlay::Load("res/nucleus_label_control.svg"))
@@ -474,7 +474,7 @@ namespace Sapphire
             void drawLayer(const DrawArgs& args, int layer) override
             {
                 // Allow everything underneath to draw first.
-                SapphireReloadableModuleWidget::drawLayer(args, layer);
+                SapphireWidget::drawLayer(args, layer);
 
                 if (layer == 1 && isVectorReceiverConnectedOnRight())
                 {
@@ -580,7 +580,7 @@ namespace Sapphire
 
             void onHover(const HoverEvent& e) override
             {
-                SapphireReloadableModuleWidget::onHover(e);
+                SapphireWidget::onHover(e);
 
                 // Check to see if the mouse cursor is within any of the bounding rectangles.
                 hoverOutputIndex = 0;   // indicate none match
@@ -598,18 +598,18 @@ namespace Sapphire
             void onEnter(const EnterEvent& e) override
             {
                 ownsMouse = true;
-                SapphireReloadableModuleWidget::onEnter(e);
+                SapphireWidget::onEnter(e);
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 ownsMouse = false;
-                SapphireReloadableModuleWidget::onLeave(e);
+                SapphireWidget::onLeave(e);
             }
 
             void onButton(const ButtonEvent& e) override
             {
-                SapphireReloadableModuleWidget::onButton(e);
+                SapphireWidget::onButton(e);
 
                 if (isVectorReceiverConnectedOnRight())
                 {
@@ -640,7 +640,7 @@ namespace Sapphire
                         controlLabel->setVisible(!audio);
                     }
                 }
-                SapphireReloadableModuleWidget::step();
+                SapphireWidget::step();
             }
         };
     }

@@ -117,10 +117,10 @@ namespace Sapphire
             }
         };
 
-        struct ToutWidget : SapphireReloadableModuleWidget
+        struct ToutWidget : SapphireWidget
         {
             explicit ToutWidget(ToutModule *module)
-                : SapphireReloadableModuleWidget("tout", asset::plugin(pluginInstance, "res/tout.svg"))
+                : SapphireWidget("tout", asset::plugin(pluginInstance, "res/tout.svg"))
             {
                 setModule(module);
                 addSapphireOutput(X_OUTPUT, "x_output");
