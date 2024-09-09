@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "sapphire_engine.hpp"
+#include "gravy_engine.hpp"
 
 // Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
 // A biquad filter implementation that supports tunable frequency and resonance.
@@ -11,8 +11,6 @@ namespace Sapphire
 {
     namespace Gravy
     {
-        using filter_t = BiquadFilter<float>;
-
         enum ParamId
         {
             FREQ_PARAM,
@@ -52,34 +50,28 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-
-        const int OctaveRange = 5;                              // +/- octave range around default frequency
-        //const float DefaultFrequencyHz = 523.2511306011972;     // C5 = 440*(2**0.25)
-        //const int FrequencyFactor = 1 << OctaveRange;
-        //const float MinFrequencyHz = DefaultFrequencyHz / FrequencyFactor;
-        //const float MaxFrequencyHz = DefaultFrequencyHz * FrequencyFactor;
-
+        using gravy_engine_t = PolyEngine<2>;
 
         struct GravyModule : SapphireModule
         {
-            filter_t filter[2];     // stereo: filter[0] = left, filter[1] = right.
+            gravy_engine_t engine;
 
             GravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                configInput(AUDIO_LEFT_INPUT, "Audio left");
+                configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
 
-                configOutput(AUDIO_LEFT_OUTPUT, "Audio left");
+                configOutput(AUDIO_LEFT_OUTPUT,  "Audio left");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Audio right");
 
-                configControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,   -OctaveRange, +OctaveRange, 0);
-                configControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,    0, 1, 0.5);
-                configControlGroup("drive",     DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT,  0, 1, 0.5);
-                configControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT,    0, 1, 1.0);
-                configControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT,   0, 1, 0.5);
+                configControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
+                configControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, DefaultResonanceKnob);
+                configControlGroup("drive",     DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT, 0, 1, DefaultDriveKnob);
+                configControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT,   0, 1, DefaultMixKnob);
+                configControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT,  0, 1, DefaultGainKnob);
 
                 configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
                 configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
@@ -89,13 +81,16 @@ namespace Sapphire
 
             void initialize()
             {
-                filter[0].initialize();
-                filter[1].initialize();
+                engine.initialize();
             }
 
             void process(const ProcessArgs& args) override
             {
-
+                //float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
+                //float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
+                //float driveKnob = getControlValue(DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
+                //float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
+                //float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
             }
         };
 
@@ -127,8 +122,6 @@ namespace Sapphire
         };
     }
 }
-
-
 
 
 Model *modelSapphireGravy = createSapphireModel<Sapphire::Gravy::GravyModule, Sapphire::Gravy::GravyWidget>(
