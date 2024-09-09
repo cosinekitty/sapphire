@@ -53,11 +53,11 @@ namespace Sapphire
         };
 
 
-        const float DefaultFrequencyHz = 523.2511306011972;     // C5 = 440*(2**0.25)
         const int OctaveRange = 5;                              // +/- octave range around default frequency
-        const int FrequencyFactor = 1 << OctaveRange;
-        const float MinFrequencyHz = DefaultFrequencyHz / FrequencyFactor;
-        const float MaxFrequencyHz = DefaultFrequencyHz * FrequencyFactor;
+        //const float DefaultFrequencyHz = 523.2511306011972;     // C5 = 440*(2**0.25)
+        //const int FrequencyFactor = 1 << OctaveRange;
+        //const float MinFrequencyHz = DefaultFrequencyHz / FrequencyFactor;
+        //const float MaxFrequencyHz = DefaultFrequencyHz * FrequencyFactor;
 
 
         struct GravyModule : SapphireModule
