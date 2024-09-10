@@ -93,7 +93,7 @@ namespace Sapphire
                 engine.setGain(gainKnob);
 
                 float inFrame[2];
-                inFrame[0] = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
+                inFrame[0] = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
                 inFrame[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
 
                 float outFrame[2];

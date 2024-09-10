@@ -70,20 +70,16 @@ namespace Sapphire
 
             void configure(float sampleRateHz)
             {
-                if (sampleRateHz != sampleRate)
+                if (dirty || (sampleRateHz != sampleRate))
                 {
                     sampleRate = sampleRateHz;
-                    dirty = true;
-                }
 
-                if (dirty)
-                {
                     // Update filter parameters from knob values.
                     // This is more CPU expensive than running the filter itself.
 
                     float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
 
-                    float quality = std::pow(100.0f, resKnob);
+                    float quality = std::pow(50.0f, resKnob);
 
                     // FIXFIXFIX: replace with SSE and do 4 channels for the price of 1.
                     // Even though I only need 2 of those 4 channels, it's still faster
