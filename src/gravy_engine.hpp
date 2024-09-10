@@ -15,7 +15,6 @@ namespace Sapphire
 
         const float DefaultFrequencyKnob = 0.0;
         const float DefaultResonanceKnob = 0.5;
-        const float DefaultDriveKnob     = 0.5;
         const float DefaultMixKnob       = 1.0;
         const float DefaultGainKnob      = 0.5;
 
@@ -32,7 +31,6 @@ namespace Sapphire
             float resKnob   = DefaultResonanceKnob;
 
             // Fast knobs: simple scalar factors.
-            float driveKnob = DefaultDriveKnob;
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
@@ -41,7 +39,7 @@ namespace Sapphire
             float setFastKnob(float &v, float k, int lo = 0, int hi = 1)
             {
                 // A "fast knob" is a control that we can happily calculate
-                // at audio rates. We have drive, mix, and gain, each of which
+                // at audio rates. We have mix and gain, each of which
                 // is just a scalar factor; these multiplications consume negligible CPU.
                 if (std::isfinite(k))
                 {
@@ -123,11 +121,6 @@ namespace Sapphire
                 return setSlowKnob(resKnob, k);
             }
 
-            float setDrive(float k)
-            {
-                return setFastKnob(driveKnob, k);
-            }
-
             float setMix(float k)
             {
                 return setFastKnob(mixKnob, k);
@@ -152,12 +145,11 @@ namespace Sapphire
                 configure(sampleRateHz);
 
                 float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
-                float drive = Cube(driveKnob * 2);
                 float mix = mixKnob;
                 for (int c = 0; c < nchannels; ++c)
                 {
                     float x = inFrame[c];
-                    float y = filter[c].process(drive * x);
+                    float y = filter[c].process(x);
                     outFrame[c] = gain * (mix*y + (1-mix)*x);
                 }
             }

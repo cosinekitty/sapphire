@@ -17,8 +17,6 @@ namespace Sapphire
             FREQ_ATTEN,
             RES_PARAM,
             RES_ATTEN,
-            DRIVE_PARAM,
-            DRIVE_ATTEN,
             MIX_PARAM,
             MIX_ATTEN,
             GAIN_PARAM,
@@ -32,7 +30,6 @@ namespace Sapphire
             AUDIO_RIGHT_INPUT,
             FREQ_CV_INPUT,
             RES_CV_INPUT,
-            DRIVE_CV_INPUT,
             MIX_CV_INPUT,
             GAIN_CV_INPUT,
             INPUTS_LEN
@@ -69,7 +66,6 @@ namespace Sapphire
 
                 configControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                 configControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, DefaultResonanceKnob);
-                configControlGroup("drive",     DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT, 0, 1, DefaultDriveKnob);
                 configControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT,   0, 1, DefaultMixKnob);
                 configControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT,  0, 1, DefaultGainKnob);
 
@@ -88,13 +84,11 @@ namespace Sapphire
             {
                 float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
                 float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
-                float driveKnob = getControlValue(DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
                 float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
 
                 engine.setFrequency(freqKnob);
                 engine.setResonance(resKnob);
-                engine.setDrive(driveKnob);
                 engine.setMix(mixKnob);
                 engine.setGain(gainKnob);
 
@@ -129,7 +123,6 @@ namespace Sapphire
 
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
-                addSapphireFlatControlGroup("drive",     DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 addSapphireFlatControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
             }

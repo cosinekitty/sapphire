@@ -663,7 +663,6 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
-        ('drive',       'DRIVE'),
         ('mix',         'MIX'),
         ('gain',        'GAIN')
     ]
@@ -679,7 +678,8 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     dxPortFromCenter = 6.0
     dxLeftRight = dxPortFromCenter + 6.3
 
-    yRow = FencePost(22.0, 114.0, 7)
+    nRows = 2 + len(table)
+    yRow = FencePost(22.0, 114.0, nRows)
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
