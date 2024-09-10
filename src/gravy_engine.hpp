@@ -14,7 +14,7 @@ namespace Sapphire
         //const float MaxFrequencyHz = DefaultFrequencyHz * FrequencyFactor;
 
         const float DefaultFrequencyKnob = 0.0;
-        const float DefaultResonanceKnob = 0.5;
+        const float DefaultResonanceKnob = 0.0;
         const float DefaultMixKnob       = 1.0;
         const float DefaultGainKnob      = 0.5;
 
