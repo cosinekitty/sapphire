@@ -151,8 +151,15 @@ namespace Sapphire
             {
                 configure(sampleRateHz);
 
+                float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
+                float drive = Cube(driveKnob * 2);
+                float mix = mixKnob;
                 for (int c = 0; c < nchannels; ++c)
-                    outFrame[c] = filter[c].process(inFrame[c]);
+                {
+                    float x = inFrame[c];
+                    float y = filter[c].process(drive * x);
+                    outFrame[c] = gain * (mix*y + (1-mix)*x);
+                }
             }
         };
     }
