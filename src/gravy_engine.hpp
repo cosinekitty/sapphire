@@ -26,24 +26,46 @@ namespace Sapphire
             bool dirty = true;
             float sampleRate = 0;
             FilterMode mode = FilterMode::Bandpass;
+
+            // Slow knobs: require setting `dirty` flag when changed.
             float freqKnob  = DefaultFrequencyKnob;
             float resKnob   = DefaultResonanceKnob;
+
+            // Fast knobs: simple scalar factors.
             float driveKnob = DefaultDriveKnob;
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
             BiquadFilter<float> filter[nchannels];
 
-            float setKnob(float &v, float k, int lo = 0, int hi = 1)
+            float setFastKnob(float &v, float k, int lo = 0, int hi = 1)
             {
+                // A "fast knob" is a control that we can happily calculate
+                // at audio rates. We have drive, mix, and gain, each of which
+                // is just a scalar factor; these multiplications consume negligible CPU.
                 if (std::isfinite(k))
                 {
-                    float knob = ClampInt(k, lo, hi);
-                    if (knob != v)
-                    {
+                    v = ClampInt(k, lo, hi);
+                }
+                return v;
+            }
+
+            float setSlowKnob(float &v, float k, int lo = 0, int hi = 1)
+            {
+                // A "slow knob" is a control that causes higher CPU overhead when changed.
+                // All slow knobs set the `dirty` flag when their value changes.
+                // This speeds up cases where parameters are not changing very often.
+                // Slow knobs include frequency and resonance (quality).
+                // Any time one or more of the "slow knobs" is changed, we have to
+                // do an expensive recalculation of filter parameters.
+                // We prefer to set a dirty flag and defer recalculating the filter coefficients
+                // until we process the next audio frame.
+                if (std::isfinite(k))
+                {
+                    float prev = v;
+                    v = ClampInt(k, lo, hi);
+                    if (!std::isfinite(prev) || v != prev)
                         dirty = true;
-                        v = knob;
-                    }
                 }
                 return v;
             }
@@ -64,6 +86,10 @@ namespace Sapphire
                     float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
 
                     float quality = std::pow(100.0f, resKnob);
+
+                    // FIXFIXFIX: replace with SSE and do 4 channels for the price of 1.
+                    // Even though I only need 2 of those 4 channels, it's still faster
+                    // than what I'm doing now with this `for` loop.
 
                     for (int c = 0; c < nchannels; ++c)
                         filter[c].configure(mode, sampleRate, cornerFreqHz, quality);
@@ -89,27 +115,27 @@ namespace Sapphire
 
             float setFrequency(float k)
             {
-                return setKnob(freqKnob, k, -OctaveRange, +OctaveRange);
+                return setSlowKnob(freqKnob, k, -OctaveRange, +OctaveRange);
             }
 
             float setResonance(float k)
             {
-                return setKnob(resKnob, k);
+                return setSlowKnob(resKnob, k);
             }
 
             float setDrive(float k)
             {
-                return setKnob(driveKnob, k);
+                return setFastKnob(driveKnob, k);
             }
 
             float setMix(float k)
             {
-                return setKnob(mixKnob, k);
+                return setFastKnob(mixKnob, k);
             }
 
             float setGain(float k)
             {
-                return setKnob(gainKnob, k);
+                return setFastKnob(gainKnob, k);
             }
 
             void setFilterMode(FilterMode m)
