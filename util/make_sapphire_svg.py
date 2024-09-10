@@ -681,7 +681,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     nRows = 2 + len(table)
     yRow = FencePost(22.0, 114.0, nRows)
     yInPort  = yRow.value(0)
-    yOutPort = yRow.value(6)
+    yOutPort = yRow.value(nRows-1)
     dyGrad = 6.0
     dyText = 6.5
 

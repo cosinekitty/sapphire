@@ -102,9 +102,9 @@ namespace Sapphire
             }},
             { "gravy", {
                 {"audio_left_input",       {   9.240,   22.000}},
-                {"audio_left_output",      {   9.240,  132.400}},
+                {"audio_left_output",      {   9.240,  114.000}},
                 {"audio_right_input",      {  21.240,   22.000}},
-                {"audio_right_output",     {  21.240,  132.400}},
+                {"audio_right_output",     {  21.240,  114.000}},
                 {"frequency_atten",        {  15.240,   40.400}},
                 {"frequency_cv",           {   6.240,   40.400}},
                 {"frequency_knob",         {  24.240,   40.400}},
