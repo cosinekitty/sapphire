@@ -587,7 +587,15 @@ def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, table:List[Tuple[str, str]]) -> int:
+def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+    table:List[Tuple[str, str]] = [
+        ('replace',     'REPLACE'),
+        ('brightness',  'BRIGHT'),
+        ('detune',      'DETUNE'),
+        ('bigness',     'SIZE'),
+        ('mix',         'MIX')
+    ]
+
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
@@ -649,6 +657,78 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, table:List[Tuple
             AddFlatControlGroup(pl, controls, xmid, y, symbol)
             row += 1
     return Save(panel, svgFileName)
+
+
+def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+    table:List[Tuple[str, str]] = [
+        ('frequency',   'FREQ'),
+        ('resonance',   'RES'),
+        ('drive',       'DRIVE'),
+        ('mix',         'MIX'),
+        ('gain',        'GAIN')
+    ]
+    svgFileName = '../res/{}.svg'.format(name)
+    PANEL_WIDTH = 6
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    defs = Element('defs')
+    pl.append(defs)
+    cdict[name] = controls = ControlLayer()
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+    dxLeftRight = dxPortFromCenter + 6.3
+
+    yRow = FencePost(22.0, 114.0, 7)
+    yInPort  = yRow.value(0)
+    yOutPort = yRow.value(6)
+    dyGrad = 6.0
+    dyText = 6.5
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(CenteredGemstone(panel))
+
+        y1 = yInPort - 9.5
+        y2 = yInPort + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+        pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
+
+        y1 = yRow.value(1) - 9.5
+        y2 = yRow.value(5) + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+        pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
+
+        y1 = yOutPort - 9.5
+        y2 = yOutPort + dyGrad
+        defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
+
+        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yInPort))
+        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
+
+        pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yOutPort))
+        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yOutPort))
+
+        controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
+        controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
+
+        row = 1
+        for (symbol, label) in table:
+            y = yRow.value(row)
+            pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
+            AddFlatControlGroup(pl, controls, xmid, y, symbol)
+            row += 1
+    return Save(panel, svgFileName)
+
 
 
 def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
@@ -1017,20 +1097,8 @@ if __name__ == '__main__':
         GenerateMootsPanel() or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
-        GenerateGalaxyPanel(cdict, 'galaxy', [
-            ('replace',     'REPLACE'),
-            ('brightness',  'BRIGHT'),
-            ('detune',      'DETUNE'),
-            ('bigness',     'SIZE'),
-            ('mix',         'MIX')
-        ]) or
-        GenerateGalaxyPanel(cdict, 'gravy', [
-            ('frequency',   'FREQ'),
-            ('resonance',   'RES'),
-            ('drive',       'DRIVE'),
-            ('mix',         'MIX'),
-            ('gain',        'GAIN')
-        ]) or
+        GenerateGalaxyPanel(cdict, 'galaxy') or
+        GenerateGravyPanel(cdict, 'gravy') or
         GenerateRotiniPanel(cdict) or
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
