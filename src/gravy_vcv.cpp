@@ -21,6 +21,7 @@ namespace Sapphire
             MIX_ATTEN,
             GAIN_PARAM,
             GAIN_ATTEN,
+            FILTER_MODE_PARAM,
             PARAMS_LEN
         };
 
@@ -69,6 +70,8 @@ namespace Sapphire
                 configControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT,   0, 1, DefaultMixKnob);
                 configControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT,  0, 1, DefaultGainKnob);
 
+                configSwitch(FILTER_MODE_PARAM, 0.0, 2.0, 1.0, "Mode", {"Lowpass", "Bandpass", "Highpass"});
+
                 configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
                 configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
 
@@ -80,13 +83,20 @@ namespace Sapphire
                 engine.initialize();
             }
 
+            FilterMode getFilterMode()
+            {
+                return static_cast<FilterMode>(params[FILTER_MODE_PARAM].getValue());
+            }
+
             void process(const ProcessArgs& args) override
             {
                 float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
                 float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+                FilterMode mode = getFilterMode();
 
+                engine.setFilterMode(mode);
                 engine.setFrequency(freqKnob);
                 engine.setResonance(resKnob);
                 engine.setMix(mixKnob);
@@ -125,6 +135,9 @@ namespace Sapphire
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 addSapphireFlatControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+
+                CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
+                addReloadableParam(modeSwitch, "mode_switch");
             }
         };
     }

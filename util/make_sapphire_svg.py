@@ -678,10 +678,10 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     dxPortFromCenter = 6.0
     dxLeftRight = dxPortFromCenter + 6.3
 
-    nRows = 2 + len(table)
-    yRow = FencePost(22.0, 114.0, nRows)
+    yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
-    yOutPort = yRow.value(nRows-1)
+    ySwitch  = yRow.value(5)
+    yOutPort = yRow.value(6)
     dyGrad = 6.0
     dyText = 6.5
 
@@ -717,6 +717,8 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+
+        controls.append(Component('mode_switch', xmid, ySwitch))
 
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
