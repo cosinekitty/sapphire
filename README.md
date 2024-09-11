@@ -57,6 +57,17 @@ for generating 3 simultaneous smooth but unpredictable voltages.
 
 ---
 
+## Gravy
+
+A stereo filter with CV-controllable frequency, resonance, mix, and gain.
+Operates in lowpass, bandpass, or highpass mode.
+
+<a href="Gravy.md">Sapphire Gravy documentation</a>
+
+<a href="Gravy.md"><img src="images/gravy.png"/></a>
+
+---
+
 ## Hiss
 
 A random vector generator whose outputs point in all directions of an N-dimensional space with equal probability. Useful for generating vector noise input to physics simulations like Nucleus.
