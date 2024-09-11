@@ -718,6 +718,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
 
+        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
         controls.append(Component('mode_switch', xmid, ySwitch))
 
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
