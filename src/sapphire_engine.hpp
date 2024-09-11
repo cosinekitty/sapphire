@@ -334,6 +334,7 @@ namespace Sapphire
             config[2].b2 = config[2].b0;
         }
 
+        // Generate lowpass, bandpass, and highpass outputs simultaneously.
         void process(const value_t& x0, value_t& yLowpass, value_t& yBandpass, value_t& yHighpass)
         {
             yLowpass  = update(0, x0);
@@ -341,6 +342,20 @@ namespace Sapphire
             yHighpass = update(2, x0);
             x2 = x1;
             x1 = x0;
+        }
+
+        // Keep updating (LP, BP, HP) for smooth transitions, but select which output you want.
+        value_t process(FilterMode mode, const value_t& x0)
+        {
+            value_t yl, yb, yh;
+            process(x0, yl, yb, yh);
+            switch (mode)
+            {
+                case FilterMode::Lowpass:   return yl;
+                case FilterMode::Bandpass:  return yb;
+                case FilterMode::Highpass:  return yh;
+                default:                    return  0;
+            }
         }
     };
 
