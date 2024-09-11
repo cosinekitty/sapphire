@@ -129,11 +129,7 @@ namespace Sapphire
 
             void setFilterMode(FilterMode m)
             {
-                if (m != mode)
-                {
-                    dirty = true;
-                    mode = m;
-                }
+                mode = m;
             }
 
             void process(float sampleRateHz, const float inFrame[nchannels], float outFrame[nchannels])
