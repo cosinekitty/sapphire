@@ -260,21 +260,55 @@ namespace Sapphire
 
 
     template <typename value_t>
+    struct BiquadFilterConfig
+    {
+        value_t  b0{}, b1{}, b2{};      // coefficients for x
+    };
+
+
+    template <typename value_t>
+    struct BiquadFilterState
+    {
+        value_t  y1{}, y2{};            // previous two values of output y
+
+        void initialize()
+        {
+            y1 = y2 = 0;
+        }
+    };
+
+
+    template <typename value_t>
     class BiquadFilter
     {
     private:
-        value_t  x1{}, x2{};        // previous two values of input x
-        value_t  y1{}, y2{};        // previous two values of output y
-        value_t  a1{}, a2{};        // coefficients for y
-        value_t  b0{}, b1{}, b2{};  // coefficients for x
+        using config_t = BiquadFilterConfig<value_t>;
+        using state_t  = BiquadFilterState<value_t>;
+
+        value_t  x1{}, x2{};   // previous two values of input x
+        value_t  a1{}, a2{};   // coefficients for y
+        config_t config[3];    // 0=Lowpass, 1=Bandpass, 2=Highpass
+        state_t  state[3];
+
+        value_t update(int mode, const value_t& x0)
+        {
+            const config_t& c = config[mode];
+            state_t& s = state[mode];
+            value_t y0 = c.b0*x0 + c.b1*x1 + c.b2*x2 - a1*s.y1 - a2*s.y2;
+            s.y2 = s.y1;
+            s.y1 = y0;
+            return y0;
+        }
 
     public:
         void initialize()
         {
-            x1 = x2 = y1 = y2 = 0;
+            x1 = x2 = 0;
+            for (int mode = 0; mode < 3; ++mode)
+                state[mode].initialize();
         }
 
-        void configure(FilterMode mode, value_t sampleRateHz, value_t fCornerHz, value_t quality)
+        void configure(value_t sampleRateHz, value_t fCornerHz, value_t quality)
         {
             value_t omega = (2 * M_PI) * (fCornerHz / sampleRateHz);
             value_t alpha = std::sin(omega) / (2 * quality);
@@ -284,39 +318,29 @@ namespace Sapphire
             a1 = -2*beta / denom;
             a2 = (1-alpha) / denom;
 
-            switch (mode)
-            {
-            case FilterMode::Lowpass:
-                b0 = b2 = (1 - beta) / 2;
-                b1 = 1 - beta;
-                break;
+            // Lowpass coefficients
+            config[0].b0 = (1 - beta) / (2 * denom);
+            config[0].b1 = (1 - beta) / denom;
+            config[0].b2 = config[0].b0;
 
-            default:
-            case FilterMode::Bandpass:
-                b0 = alpha;
-                b1 = 0;
-                b2 = -alpha;
-                break;
+            // Bandpass coefficients
+            config[1].b0 = +alpha / denom;
+            config[1].b1 = 0;
+            config[1].b2 = -alpha / denom;
 
-            case FilterMode::Highpass:
-                b0 = b2 = (1 + beta) / 2;
-                b1 = -(1 + beta);
-                break;
-            }
-
-            b0 /= denom;
-            b1 /= denom;
-            b2 /= denom;
+            // Highpass coefficients
+            config[2].b0 = (1 + beta) / (2 * denom);
+            config[2].b1 = -(1 + beta);
+            config[2].b2 = config[2].b0;
         }
 
-        value_t process(value_t x0)
+        void process(const value_t& x0, value_t& yLowpass, value_t& yBandpass, value_t& yHighpass)
         {
-            value_t y0 = b0*x0 + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+            yLowpass  = update(0, x0);
+            yBandpass = update(1, x0);
+            yHighpass = update(2, x0);
             x2 = x1;
             x1 = x0;
-            y2 = y1;
-            y1 = y0;
-            return y0;
         }
     };
 

@@ -86,7 +86,7 @@ namespace Sapphire
                     // than what I'm doing now with this `for` loop.
 
                     for (int c = 0; c < nchannels; ++c)
-                        filter[c].configure(mode, sampleRate, cornerFreqHz, quality);
+                        filter[c].configure(sampleRate, cornerFreqHz, quality);
 
                     dirty = false;
                 }
@@ -142,10 +142,26 @@ namespace Sapphire
 
                 float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
                 float mix = mixKnob;
+                float y, yLow, yBand, yHigh;
                 for (int c = 0; c < nchannels; ++c)
                 {
                     float x = inFrame[c];
-                    float y = filter[c].process(x);
+                    filter[c].process(x, yLow, yBand, yHigh);
+                    switch (mode)
+                    {
+                    case FilterMode::Lowpass:
+                        y = yLow;
+                        break;
+
+                    case FilterMode::Bandpass:
+                    default:
+                        y = yBand;
+                        break;
+
+                    case FilterMode::Highpass:
+                        y = yHigh;
+                        break;
+                    }
                     outFrame[c] = gain * (mix*y + (1-mix)*x);
                 }
             }
