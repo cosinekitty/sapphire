@@ -70,6 +70,7 @@ int main(int argc, const char *argv[])
             for (int i = 0; CommandTable[i].name; ++i)
                 if (CommandTable[i].func())
                     return 1;
+            printf("unittest: All tests passed.\n");
             return 0;
         }
 
