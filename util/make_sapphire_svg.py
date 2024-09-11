@@ -995,59 +995,43 @@ def PadRight(text:str, length:int) -> str:
 
 def SaveControls(cdict:Dict[str, ControlLayer]) -> int:
     text = '// *** GENERATED CODE *** DO NOT EDIT ***\n'
-    text += '#pragma once\n'
-    text += '#include <map>\n'
-    text += '#include <string>\n'
+    text += '#include "sapphire_panel.hpp"\n'
     text += '\n'
     text += 'namespace Sapphire\n'
     text += '{\n'
-    text += '    struct ComponentLocation\n'
-    text += '    {\n'
-    text += '        float cx;     // x-coordinate of control\'s center\n'
-    text += '        float cy;     // y-coordinate of control\'s center\n'
-    text += '\n'
-    text += '        ComponentLocation(float _cx, float _cy)\n'
-    text += '            : cx(_cx)\n'
-    text += '            , cy(_cy)\n'
-    text += '            {}\n'
-    text += '    };\n'
-    text += '\n'
     text += '    using ComponentMap = std::map<std::string, ComponentLocation>;\n'
     text += '    using ModuleMap = std::map<std::string, ComponentMap>;\n'
     text += '\n'
-    text += '    class ComponentPlacer\n'
+    text += '    static const ModuleMap TheModuleMap\n'
     text += '    {\n'
-    text += '    private:\n'
-    text += '        ModuleMap modmap\n'
-    text += '        {\n'
 
     for (modname, controls) in sorted(cdict.items()):
-        text += '            { "' + modname + '", {\n'
+        text += '        { "' + modname + '", {\n'
         for comp in sorted(controls.componentList):
-            text += '                {'
+            text += '            {'
             text += PadRight('"' + comp.id + '",', 25) + ' {'
             text += '{:8.3f}'.format(comp.cx)
             text += ', '
             text += '{:8.3f}'.format(comp.cy)
             text += '}},\n'
         text += '            }},\n'
-
-    text += '        };\n'
-    text += '\n'
-    text += '    public:\n'
-    text += '        ComponentLocation find(const std::string& modCode, const std::string& label)\n'
-    text += '        {\n'
-    text += '            auto m = modmap.find(modCode);\n'
-    text += '            if (m == modmap.end()) return ComponentLocation{0, 0};\n'
-    text += '            auto c = m->second.find(label);\n'
-    text += '            if (c == m->second.end()) return ComponentLocation{0, 0};\n'
-    text += '            return c->second;\n'
-    text += '        }\n'
     text += '    };\n'
-    text += '\n'
-    text += '    extern ComponentPlacer TheComponentPlacer;\n'
+
+    text += r'''
+    ComponentLocation FindComponent(
+        const std::string& modCode,
+        const std::string& label)
+    {
+        auto m = TheModuleMap.find(modCode);
+        if (m == TheModuleMap.end()) return ComponentLocation{0, 0};
+        auto c = m->second.find(label);
+        if (c == m->second.end()) return ComponentLocation{0, 0};
+        return c->second;
+    }
+'''
+
     text += '}\n'
-    UpdateFileIfChanged('../src/sapphire_panel.hpp', text)
+    UpdateFileIfChanged('../src/sapphire_panel.cpp', text)
     return 0
 
 def PlaceElastikaControls(cdict:Dict[str, ControlLayer]) -> int:

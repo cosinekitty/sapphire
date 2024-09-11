@@ -1,5 +1,4 @@
 #include "sapphire_vcvrack.hpp"
-#include "sapphire_panel.hpp"
 
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -14,5 +13,4 @@ namespace Sapphire
     //     PLUGIN_FILES += $(filter-out Sapphire/src/plugin.cpp,$(wildcard Sapphire/src/*.cpp))
     //
     ModelInfo *ModelInfo::front;
-    ComponentPlacer TheComponentPlacer;
 }
