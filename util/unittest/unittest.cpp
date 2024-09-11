@@ -976,6 +976,47 @@ static int BiquadCase(
 }
 
 
+static int BiquadSSE()
+{
+    using namespace Sapphire;
+    using filter_t = BiquadFilter<PhysicsVector>;
+    filter_t filter;
+
+    const char *outFileName = "output/biquad_sse.txt";
+    FILE *outfile = fopen(outFileName, "wt");
+    if (outfile == nullptr)
+    {
+        printf("BiquadSSE: Cannot open output file '%s'\n", outFileName);
+        return 1;
+    }
+
+    // Weirdness alert: filter.configure allows independent
+    // sample rate, corner frequency, and quality per each of the
+    // 4 values in the PhysicsVector.
+    const float sampleRateHz = 48000;
+    const float cornerFreqHz =   440;
+    const float quality = 50;
+    filter.configure(sampleRateHz, cornerFreqHz, quality);
+    PhysicsVector x{+1, -2, +3, -4};
+    PhysicsVector lowpass, bandpass, highpass;
+    const int nframes = 50;
+    for (int f = 0; f < nframes; ++f)
+    {
+        fprintf(outfile, "frame %d\n", f);
+        filter.process(x, lowpass, bandpass, highpass);
+
+        for (int k = 0; k < 4; ++k)
+            fprintf(outfile, "k=%d  LP=%10.6lf  BP=%10.6lf  HP=%10.6lf\n", k, lowpass[k], bandpass[k], highpass[k]);
+
+        x = 0;
+    }
+
+    fclose(outfile);
+    printf("BiquadSSE: wrote %s\n", outFileName);
+    return Pass("BiquadSSE");
+}
+
+
 static int BiquadFilterTest()
 {
     using namespace Sapphire;
@@ -984,5 +1025,6 @@ static int BiquadFilterTest()
         BiquadCase("output/noise_lp_440.wav", 440,  2, FilterMode::Lowpass ) ||
         BiquadCase("output/noise_bp_440.wav", 440, 80, FilterMode::Bandpass) ||
         BiquadCase("output/noise_hp_440.wav", 440, 10, FilterMode::Highpass) ||
+        BiquadSSE() ||
         Pass("Biquad");
 }

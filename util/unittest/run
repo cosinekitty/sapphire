@@ -12,5 +12,8 @@ echo "Running unit tests..."
 echo "Verifying output audio..."
 sha256sum -c audio_hash.txt || exit 1
 
+echo "Verifying numeric output..."
+diff -s {correct,output}/biquad_sse.txt || exit 1
+
 echo "Unit tests: PASS"
 exit 0

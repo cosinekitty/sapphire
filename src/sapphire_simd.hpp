@@ -74,6 +74,16 @@ namespace Sapphire
         return PhysicsVector(_mm_mul_ps(a.v, b.v));
     }
 
+    inline PhysicsVector operator + (const PhysicsVector& a)
+    {
+        return a;
+    }
+
+    inline PhysicsVector operator - (const PhysicsVector& a)
+    {
+        return PhysicsVector{-1} * a;
+    }
+
     inline PhysicsVector operator / (const PhysicsVector& a, const PhysicsVector& b)
     {
         return PhysicsVector(_mm_div_ps(a.v, b.v));

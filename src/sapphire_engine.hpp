@@ -300,6 +300,16 @@ namespace Sapphire
             return y0;
         }
 
+        value_t Sin(value_t x)
+        {
+            return std::sin(x);
+        }
+
+        value_t Cos(value_t x)
+        {
+            return std::cos(x);
+        }
+
     public:
         void initialize()
         {
@@ -311,8 +321,8 @@ namespace Sapphire
         void configure(value_t sampleRateHz, value_t fCornerHz, value_t quality)
         {
             value_t omega = (2 * M_PI) * (fCornerHz / sampleRateHz);
-            value_t alpha = std::sin(omega) / (2 * quality);
-            value_t beta  = std::cos(omega);
+            value_t alpha = Sin(omega) / (2 * quality);
+            value_t beta  = Cos(omega);
             value_t denom = 1 + alpha;
 
             a1 = -2*beta / denom;
@@ -359,6 +369,31 @@ namespace Sapphire
         }
     };
 
+
+    template <>
+    PhysicsVector BiquadFilter<PhysicsVector>::Sin(PhysicsVector x)
+    {
+        return PhysicsVector
+        {
+            std::sin(x[0]),
+            std::sin(x[1]),
+            std::sin(x[2]),
+            std::sin(x[3])
+        };
+    }
+
+
+    template <>
+    PhysicsVector BiquadFilter<PhysicsVector>::Cos(PhysicsVector x)
+    {
+        return PhysicsVector
+        {
+            std::cos(x[0]),
+            std::cos(x[1]),
+            std::cos(x[2]),
+            std::cos(x[3])
+        };
+    }
 
 
     enum class SliderScale
