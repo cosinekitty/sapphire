@@ -22,6 +22,9 @@ namespace Sapphire
         class GravyEngine
         {
         private:
+            static_assert(nchannels > 0);
+            static constexpr int nquads = (nchannels + 3) / 4;
+
             bool dirty = true;
             float sampleRate = 0;
             FilterMode mode = FilterMode::Bandpass;
@@ -34,7 +37,7 @@ namespace Sapphire
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
-            BiquadFilter<float> filter[nchannels];
+            BiquadFilter<PhysicsVector> filter[nquads];
 
             float setFastKnob(float &v, float k, int lo = 0, int hi = 1)
             {
@@ -81,12 +84,8 @@ namespace Sapphire
 
                     float quality = std::pow(50.0f, resKnob);
 
-                    // FIXFIXFIX: replace with SSE and do 4 channels for the price of 1.
-                    // Even though I only need 2 of those 4 channels, it's still faster
-                    // than what I'm doing now with this `for` loop.
-
-                    for (int c = 0; c < nchannels; ++c)
-                        filter[c].configure(sampleRate, cornerFreqHz, quality);
+                    for (int q = 0; q < nquads; ++q)
+                        filter[q].configure(sampleRate, cornerFreqHz, quality);
 
                     dirty = false;
                 }
@@ -100,8 +99,8 @@ namespace Sapphire
 
             void initialize()
             {
-                for (int c = 0; c < nchannels; ++c)
-                    filter[c].initialize();
+                for (int q = 0; q < nquads; ++q)
+                    filter[q].initialize();
 
                 sampleRate = 0;
                 dirty = true;
@@ -138,11 +137,29 @@ namespace Sapphire
 
                 float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
                 float mix = mixKnob;
-                for (int c = 0; c < nchannels; ++c)
+                PhysicsVector x;
+                for (int q = 0; q < nquads; ++q)
                 {
-                    float x = inFrame[c];
-                    float y = filter[c].process(mode, x);
-                    outFrame[c] = gain * (mix*y + (1-mix)*x);
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        const int c = 4*q + k;
+                        if (c < nchannels)
+                            x[k] = inFrame[c];
+                        else
+                            x[k] = 0;
+                    }
+
+                    PhysicsVector y = filter[q].process(mode, x);
+                    PhysicsVector f = gain * (mix*y + (1-mix)*x);
+
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        const int c = 4*q + k;
+                        if (c < nchannels)
+                            outFrame[c] = f[k];
+                        else
+                            break;
+                    }
                 }
             }
         };
