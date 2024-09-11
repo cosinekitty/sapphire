@@ -138,28 +138,21 @@ namespace Sapphire
                 float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
                 float mix = mixKnob;
                 PhysicsVector x;
-                for (int q = 0; q < nquads; ++q)
+                int c = 0;
+                for (int q = 0; q < nquads; ++q, c += 4)
                 {
-                    for (int k = 0; k < 4; ++k)
-                    {
-                        const int c = 4*q + k;
-                        if (c < nchannels)
-                            x[k] = inFrame[c];
-                        else
-                            x[k] = 0;
-                    }
+                    x[0] = (c+0 < nchannels) ? inFrame[c+0] : 0;
+                    x[1] = (c+1 < nchannels) ? inFrame[c+1] : 0;
+                    x[2] = (c+2 < nchannels) ? inFrame[c+2] : 0;
+                    x[3] = (c+3 < nchannels) ? inFrame[c+3] : 0;
 
                     PhysicsVector y = filter[q].process(mode, x);
                     PhysicsVector f = gain * (mix*y + (1-mix)*x);
 
-                    for (int k = 0; k < 4; ++k)
-                    {
-                        const int c = 4*q + k;
-                        if (c < nchannels)
-                            outFrame[c] = f[k];
-                        else
-                            break;
-                    }
+                    if (c+0 < nchannels) outFrame[c+0] = f[0];
+                    if (c+1 < nchannels) outFrame[c+1] = f[1];
+                    if (c+2 < nchannels) outFrame[c+2] = f[2];
+                    if (c+3 < nchannels) outFrame[c+3] = f[3];
                 }
             }
         };
