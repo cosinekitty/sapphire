@@ -267,7 +267,6 @@ namespace Sapphire
         value_t  y1{}, y2{};        // previous two values of output y
         value_t  a1{}, a2{};        // coefficients for y
         value_t  b0{}, b1{}, b2{};  // coefficients for x
-        value_t  q = 1;             // quality factor (must be positive)
 
     public:
         void initialize()
@@ -277,10 +276,8 @@ namespace Sapphire
 
         void configure(FilterMode mode, value_t sampleRateHz, value_t fCornerHz, value_t quality)
         {
-            q = quality;
-
             value_t omega = (2 * M_PI) * (fCornerHz / sampleRateHz);
-            value_t alpha = std::sin(omega) / (2 * q);
+            value_t alpha = std::sin(omega) / (2 * quality);
             value_t beta  = std::cos(omega);
             value_t denom = 1 + alpha;
 
