@@ -371,7 +371,7 @@ namespace Sapphire
 
 
     template <>
-    PhysicsVector BiquadFilter<PhysicsVector>::Sin(PhysicsVector x)
+    inline PhysicsVector BiquadFilter<PhysicsVector>::Sin(PhysicsVector x)
     {
         return PhysicsVector
         {
@@ -384,7 +384,7 @@ namespace Sapphire
 
 
     template <>
-    PhysicsVector BiquadFilter<PhysicsVector>::Cos(PhysicsVector x)
+    inline PhysicsVector BiquadFilter<PhysicsVector>::Cos(PhysicsVector x)
     {
         return PhysicsVector
         {
