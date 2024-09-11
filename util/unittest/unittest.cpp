@@ -946,7 +946,7 @@ static int BiquadCase(
     using biquad_t = Sapphire::BiquadFilter<float>;
     biquad_t filter;
 
-    filter.configure(mode, sampleRateHz, cornerFrequencyHz, quality);
+    filter.configure(sampleRateHz, cornerFrequencyHz, quality);
 
     ScaledWaveFileWriter outNoise;
     if (!outNoise.Open(outNoiseFileName, sampleRateHz, channels))
@@ -960,10 +960,26 @@ static int BiquadCase(
     const int nFrames = sampleRateHz * durationSeconds;
     std::mt19937 rand{12345};     // seed for deterministic behavior
     std::uniform_real_distribution<float> dist(-1, 1);
+    float y, yl, yb, yh;
     for (int frame = 0; frame < nFrames; ++frame)
     {
         float x = dist(rand);
-        float y = filter.process(x);
+        filter.process(x, yl, yb, yh);
+        switch (mode)
+        {
+        case Sapphire::FilterMode::Lowpass:
+            y = yl;
+            break;
+        case Sapphire::FilterMode::Bandpass:
+            y = yb;
+            break;
+        case Sapphire::FilterMode::Highpass:
+            y = yh;
+            break;
+        default:
+            printf("BiquadCase: INVALID VALUE FOR filter mode!\b");
+            return 1;
+        }
         outNoise.WriteSamples(&x, 1);
         outFilter.WriteSamples(&y, 1);
     }
