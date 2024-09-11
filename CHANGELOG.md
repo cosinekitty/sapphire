@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">11 Sep 2024</td>
+<td align="center">2.5.1</td>
+<td align="left">
+    <ul>
+        <li>Added new module <a href="Gravy.md">Gravy</a>: a stereo filter with frequency and resonance controls.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">6 Sep 2024</td>
 <td align="center">2.5.0</td>
 <td align="left">
