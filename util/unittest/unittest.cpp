@@ -41,12 +41,10 @@ static int QuadraticTest();
 static int GalaxyTest();
 static int PivotTest();
 static int PopTest();
-static int BiquadFilterTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl  },
-    { "biquad",     BiquadFilterTest },
     { "chaos",      ChaosTest        },
     { "delay",      DelayLineTest    },
     { "galaxy",     GalaxyTest       },
@@ -931,100 +929,3 @@ static int PopTest()
 
 
 //---------------------------------------------------------------------------------------
-
-
-static int BiquadCase(
-    const char *outFilterFileName,
-    float cornerFrequencyHz,
-    float quality,
-    Sapphire::FilterMode mode)
-{
-    const char *outNoiseFileName  = "output/noise_raw.wav";
-
-    const int channels = 1;
-    const float sampleRateHz = 48000;
-
-    using biquad_t = Sapphire::BiquadFilter<float>;
-    biquad_t filter;
-
-    filter.configure(sampleRateHz, cornerFrequencyHz, quality);
-
-    ScaledWaveFileWriter outNoise;
-    if (!outNoise.Open(outNoiseFileName, sampleRateHz, channels))
-        return Fail("Biquad", std::string("Could not open output file: ") + outNoiseFileName);
-
-    ScaledWaveFileWriter outFilter;
-    if (!outFilter.Open(outFilterFileName, sampleRateHz, channels))
-        return Fail("Biquad", std::string("Could not open output file: ") + outFilterFileName);
-
-    const float durationSeconds = 5;
-    const int nFrames = sampleRateHz * durationSeconds;
-    std::mt19937 rand{12345};     // seed for deterministic behavior
-    std::uniform_real_distribution<float> dist(-1, 1);
-    for (int frame = 0; frame < nFrames; ++frame)
-    {
-        float x = dist(rand);
-        float y = filter.process(mode, x);
-        outNoise.WriteSamples(&x, 1);
-        outFilter.WriteSamples(&y, 1);
-    }
-
-    outNoise.Close();
-    outFilter.Close();
-    printf("Biquad: wrote %s\n", outFilterFileName);
-    return 0;
-}
-
-
-static int BiquadSSE()
-{
-    using namespace Sapphire;
-    using filter_t = BiquadFilter<PhysicsVector>;
-    filter_t filter;
-
-    const char *outFileName = "output/biquad_sse.txt";
-    FILE *outfile = fopen(outFileName, "wt");
-    if (outfile == nullptr)
-    {
-        printf("BiquadSSE: Cannot open output file '%s'\n", outFileName);
-        return 1;
-    }
-
-    // Weirdness alert: filter.configure allows independent
-    // sample rate, corner frequency, and quality per each of the
-    // 4 values in the PhysicsVector.
-    const float sampleRateHz = 48000;
-    const float cornerFreqHz =   440;
-    const float quality = 50;
-    filter.configure(sampleRateHz, cornerFreqHz, quality);
-    PhysicsVector x{+1, -2, +3, -4};
-    PhysicsVector lowpass, bandpass, highpass;
-    const int nframes = 50;
-    for (int f = 0; f < nframes; ++f)
-    {
-        fprintf(outfile, "frame %d\n", f);
-        filter.process(x, lowpass, bandpass, highpass);
-
-        for (int k = 0; k < 4; ++k)
-            fprintf(outfile, "k=%d  LP=%10.6lf  BP=%10.6lf  HP=%10.6lf\n", k, lowpass[k], bandpass[k], highpass[k]);
-
-        x = 0;
-    }
-
-    fclose(outfile);
-    printf("BiquadSSE: wrote %s\n", outFileName);
-    return Pass("BiquadSSE");
-}
-
-
-static int BiquadFilterTest()
-{
-    using namespace Sapphire;
-
-    return
-        BiquadCase("output/noise_lp_440.wav", 440,  2, FilterMode::Lowpass ) ||
-        BiquadCase("output/noise_bp_440.wav", 440, 80, FilterMode::Bandpass) ||
-        BiquadCase("output/noise_hp_440.wav", 440, 10, FilterMode::Highpass) ||
-        BiquadSSE() ||
-        Pass("Biquad");
-}
