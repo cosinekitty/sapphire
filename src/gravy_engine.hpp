@@ -37,7 +37,7 @@ namespace Sapphire
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
-            BiquadFilter<PhysicsVector> filter[nquads];
+            StateVariableFilter<PhysicsVector> filter[nquads];
 
             float setFastKnob(float &v, float k, int lo = 0, int hi = 1)
             {

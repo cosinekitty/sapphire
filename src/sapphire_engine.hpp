@@ -630,4 +630,85 @@ namespace Sapphire
 
     template <typename item_t, std::size_t steps>
     const InterpolatorTable Interpolator<item_t, steps>::table {steps, 0x801};
+
+    //-----------------------------------------------------------------------------------------
+
+
+    template <typename value_t>
+    struct FilterResult
+    {
+        value_t lowpass;
+        value_t bandpass;
+        value_t highpass;
+
+        explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp)
+        {
+            lowpass  = lp;
+            bandpass = bp;
+            highpass = hp;
+        }
+
+        value_t select(FilterMode mode) const
+        {
+            switch (mode)
+            {
+            case FilterMode::Lowpass:   return lowpass;
+            case FilterMode::Bandpass:  return bandpass;
+            case FilterMode::Highpass:  return highpass;
+            default:                    return 0;
+            }
+        }
+    };
+
+
+    template <typename value_t>
+    class StateVariableFilter
+    {
+    private:
+        value_t c1{};
+        value_t c2{};
+        value_t v1{};
+        value_t v2{};
+        value_t v3{};
+        value_t a1{};
+        value_t a2{};
+        value_t a3{};
+
+        float prevFreqRatio{};
+        float prevResonance{};
+        float k{};
+
+    public:
+        void initialize()
+        {
+            c1 = 0;
+            c2 = 0;
+        }
+
+        FilterResult<value_t> process(float sampleRateHz, float cornerFreqHz, float resonance, const value_t& input)
+        {
+            float ratio = cornerFreqHz / sampleRateHz;
+            if (ratio != prevFreqRatio || resonance != prevResonance)
+            {
+                prevFreqRatio = ratio;
+                prevResonance = resonance;
+
+                float g = std::tan(M_PI * ratio);
+                k = 2 - 2*resonance;
+                a1 = 1 / (1 + g*(g + k));
+                a2 = g * a1;
+                a3 = g * a2;
+            }
+
+            v3 = input - c2;
+            v1 = a1*c1 + a2*v3;
+            v2 = c2 + a2*c1 + a3*v3;
+            c1 = 2*v1 - c1;
+            c2 = 2*v2 - c2;
+
+            return FilterResult<value_t>(v2, v1, input - k*v1 - v2);
+        }
+    };
+
+    //-----------------------------------------------------------------------------------------
 }

@@ -41,6 +41,7 @@ static int QuadraticTest();
 static int GalaxyTest();
 static int PivotTest();
 static int PopTest();
+static int FilterTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -48,6 +49,7 @@ static const UnitTest CommandTable[] =
     { "chaos",      ChaosTest        },
     { "delay",      DelayLineTest    },
     { "galaxy",     GalaxyTest       },
+    { "filter",     FilterTest       },
     { "interp",     InterpolatorTest },
     { "pivot",      PivotTest        },
     { "pop",        PopTest          },
@@ -925,6 +927,58 @@ static int PopTest()
         PopHistogram(0.0) ||
         PopHistogram(0.5) ||
         PopHistogram(1.0);
+}
+
+
+//---------------------------------------------------------------------------------------
+
+
+static int FilterCase(const char *outFileName, float freq, float res, Sapphire::FilterMode mode)
+{
+    using filter_t = Sapphire::StateVariableFilter<float>;
+    using result_t = Sapphire::FilterResult<float>;
+
+    const char *inFileName = "input/genesis.wav";
+    WaveFileReader inwave;
+    if (!inwave.Open(inFileName))
+        return Fail("FilterCase", std::string("Cannot open input file: ") + inFileName);
+
+    const int sampleRate = 44100;
+    const int channels = 2;
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRate, channels))
+        return Fail("FilterCase", std::string("Could not open output file: ") + outFileName);
+
+    float inFrame[channels]{};
+    float outFrame[channels]{};
+
+    filter_t filter[channels];
+
+    while (inwave.Read(inFrame, channels) == channels)
+    {
+        for (int c = 0; c < channels; ++c)
+        {
+            result_t result = filter[c].process(sampleRate, freq, res, inFrame[c]);
+            outFrame[c] = result.select(mode);
+        }
+        outwave.WriteSamples(outFrame, channels);
+    }
+    outwave.Close();
+    printf("FilterCase: Wrote %s\n", outFileName);
+    return 0;
+}
+
+
+static int FilterTest()
+{
+    using namespace Sapphire;
+
+    return
+        FilterCase("output/filter_lp_440.wav", 440.0, 0.9, FilterMode::Lowpass)  ||
+        FilterCase("output/filter_bp_440.wav", 440.0, 0.9, FilterMode::Bandpass) ||
+        FilterCase("output/filter_hp_440.wav", 440.0, 0.9, FilterMode::Highpass) ||
+        Pass("FilterTest");
 }
 
 
