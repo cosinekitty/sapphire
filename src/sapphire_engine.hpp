@@ -687,6 +687,8 @@ namespace Sapphire
 
         FilterResult<value_t> process(float sampleRateHz, float cornerFreqHz, float resonance, const value_t& input)
         {
+            // Based on: https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
+
             float ratio = cornerFreqHz / sampleRateHz;
             if (ratio != prevFreqRatio || resonance != prevResonance)
             {

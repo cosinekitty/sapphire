@@ -25,70 +25,22 @@ namespace Sapphire
             static_assert(nchannels > 0);
             static constexpr int nquads = (nchannels + 3) / 4;
 
-            bool dirty = true;
-            float sampleRate = 0;
             FilterMode mode = FilterMode::Bandpass;
 
-            // Slow knobs: require setting `dirty` flag when changed.
             float freqKnob  = DefaultFrequencyKnob;
             float resKnob   = DefaultResonanceKnob;
-
-            // Fast knobs: simple scalar factors.
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
             StateVariableFilter<PhysicsVector> filter[nquads];
 
-            float setFastKnob(float &v, float k, int lo = 0, int hi = 1)
+            float setKnob(float &v, float k, int lo = 0, int hi = 1)
             {
-                // A "fast knob" is a control that we can happily calculate
-                // at audio rates. We have mix and gain, each of which
-                // is just a scalar factor; these multiplications consume negligible CPU.
                 if (std::isfinite(k))
                 {
                     v = ClampInt(k, lo, hi);
                 }
                 return v;
-            }
-
-            float setSlowKnob(float &v, float k, int lo = 0, int hi = 1)
-            {
-                // A "slow knob" is a control that causes higher CPU overhead when changed.
-                // All slow knobs set the `dirty` flag when their value changes.
-                // This speeds up cases where parameters are not changing very often.
-                // Slow knobs include frequency and resonance (quality).
-                // Any time one or more of the "slow knobs" is changed, we have to
-                // do an expensive recalculation of filter parameters.
-                // We prefer to set a dirty flag and defer recalculating the filter coefficients
-                // until we process the next audio frame.
-                if (std::isfinite(k))
-                {
-                    float prev = v;
-                    v = ClampInt(k, lo, hi);
-                    if (!std::isfinite(prev) || v != prev)
-                        dirty = true;
-                }
-                return v;
-            }
-
-            void configure(float sampleRateHz)
-            {
-                if (dirty || (sampleRateHz != sampleRate))
-                {
-                    sampleRate = sampleRateHz;
-
-                    // Update filter parameters from knob values.
-                    // This is more CPU expensive than running the filter itself.
-
-                    float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
-
-                    float quality = std::pow(50.0f, resKnob);
-
-                    for (int q = 0; q < nquads; ++q)
-                        filter[q].configure(sampleRate, cornerFreqHz, quality);
-
-                    dirty = false;
-                }
             }
 
         public:
@@ -101,29 +53,26 @@ namespace Sapphire
             {
                 for (int q = 0; q < nquads; ++q)
                     filter[q].initialize();
-
-                sampleRate = 0;
-                dirty = true;
             }
 
             float setFrequency(float k)
             {
-                return setSlowKnob(freqKnob, k, -OctaveRange, +OctaveRange);
+                return setKnob(freqKnob, k, -OctaveRange, +OctaveRange);
             }
 
             float setResonance(float k)
             {
-                return setSlowKnob(resKnob, k);
+                return setKnob(resKnob, k);
             }
 
             float setMix(float k)
             {
-                return setFastKnob(mixKnob, k);
+                return setKnob(mixKnob, k);
             }
 
             float setGain(float k)
             {
-                return setFastKnob(gainKnob, k);
+                return setKnob(gainKnob, k);
             }
 
             void setFilterMode(FilterMode m)
@@ -133,9 +82,8 @@ namespace Sapphire
 
             void process(float sampleRateHz, const float inFrame[nchannels], float outFrame[nchannels])
             {
-                configure(sampleRateHz);
-
-                float gain  = Cube(gainKnob  * 2);    // 0.5, the default value, should have unity gain.
+                float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
+                float gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
                 float mix = mixKnob;
                 PhysicsVector x;
                 int c = 0;
@@ -146,7 +94,8 @@ namespace Sapphire
                     x[2] = (c+2 < nchannels) ? inFrame[c+2] : 0;
                     x[3] = (c+3 < nchannels) ? inFrame[c+3] : 0;
 
-                    PhysicsVector y = filter[q].process(mode, x);
+                    FilterResult<PhysicsVector> result = filter[q].process(sampleRateHz, cornerFreqHz, resKnob, x);
+                    PhysicsVector y = result.select(mode);
                     PhysicsVector f = gain * (mix*y + (1-mix)*x);
 
                     if (c+0 < nchannels) outFrame[c+0] = f[0];
