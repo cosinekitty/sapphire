@@ -642,10 +642,10 @@ namespace Sapphire
         value_t highpass;
 
         explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp)
+            : lowpass(lp)
+            , bandpass(bp)
+            , highpass(hp)
         {
-            lowpass  = lp;
-            bandpass = bp;
-            highpass = hp;
         }
 
         value_t select(FilterMode mode) const
