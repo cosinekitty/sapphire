@@ -84,7 +84,7 @@ namespace Sapphire
             {
                 float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
                 float gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
-                float mix = mixKnob;
+                float mix = 1-Cube(1-mixKnob);
                 PhysicsVector x;
                 int c = 0;
                 for (int q = 0; q < nquads; ++q, c += 4)
