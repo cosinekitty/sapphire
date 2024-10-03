@@ -139,6 +139,15 @@ namespace Sapphire
                 CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
                 addReloadableParam(modeSwitch, "mode_switch");
             }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (gravyModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
+                }
+            }
         };
     }
 }
