@@ -975,9 +975,9 @@ static int FilterTest()
     using namespace Sapphire;
 
     return
-        FilterCase("output/filter_lp_440.wav", 440.0, 0.9, FilterMode::Lowpass)  ||
-        FilterCase("output/filter_bp_440.wav", 440.0, 0.9, FilterMode::Bandpass) ||
-        FilterCase("output/filter_hp_440.wav", 440.0, 0.9, FilterMode::Highpass) ||
+        FilterCase("output/filter_lp_440.wav", 440.0, 0.5, FilterMode::Lowpass)  ||
+        FilterCase("output/filter_bp_440.wav", 440.0, 0.5, FilterMode::Bandpass) ||
+        FilterCase("output/filter_hp_440.wav", 440.0, 0.5, FilterMode::Highpass) ||
         Pass("FilterTest");
 }
 

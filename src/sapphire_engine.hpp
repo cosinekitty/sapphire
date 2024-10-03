@@ -696,7 +696,8 @@ namespace Sapphire
                 prevResonance = resonance;
 
                 float g = std::tan(M_PI * ratio);
-                k = 2 - 2*resonance;
+                const float cushion = 0.002;    // values of `k` too close to zero cause excessive ringing and aliasing
+                k = cushion + ((2-cushion) * Cube(1-resonance));
                 a1 = 1 / (1 + g*(g + k));
                 a2 = g * a1;
                 a3 = g * a2;
