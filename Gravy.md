@@ -2,6 +2,8 @@
 
 ![Gravy](images/gravy.png)
 
+### Controls
+
 Gravy is a stereo filter that provides control over the following parameters:
 
 * **FREQ**: the filter's corner frequency. The default setting is 0, which corresponds to the note C5 = 523.251&nbsp;Hz. Each unit on the FREQ dial represents an octave. The dial spans &pm;5 octaves around the note C5.
@@ -16,3 +18,9 @@ Gravy is a stereo filter that provides control over the following parameters:
 Each of the controls except for MODE include a CV input port, a smaller attenuverter knob, and a larger manual control knob.
 
 Gravy supports a [low-sensitivity](LowSensitivityAttenuverterKnobs.md) option for each attenuverter.
+
+### Algorithm
+
+Gravy is a state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in Gravy.
+
+> https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
