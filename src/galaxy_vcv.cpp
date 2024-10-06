@@ -55,13 +55,14 @@ namespace Sapphire
         struct GalaxyModule : SapphireModule
         {
             Engine engine;
-            bool enableStereoSplitter{};
             float autoResetVoltageThreshold = 100;
             int autoResetCountdown = 0;
 
             GalaxyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
+                provideStereoSplitter = true;   // opt in to loading/saving this field in JSON
+
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configInput(AUDIO_LEFT_INPUT, "Audio left");
@@ -94,64 +95,10 @@ namespace Sapphire
                 autoResetCountdown = 0;
             }
 
-            json_t* dataToJson() override
-            {
-                json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "enableStereoSplitter", json_boolean(enableStereoSplitter));
-                return root;
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                SapphireModule::dataFromJson(root);
-                json_t *flag = json_object_get(root, "enableStereoSplitter");
-                enableStereoSplitter = json_is_true(flag);
-            }
-
             void onReset(const ResetEvent& e) override
             {
                 SapphireModule::onReset(e);
                 initialize();
-            }
-
-            void loadInputs(float& inLeft, float& inRight)
-            {
-                const int ncl = inputs[AUDIO_LEFT_INPUT ].channels;
-                const int ncr = inputs[AUDIO_RIGHT_INPUT].channels;
-
-                if (enableStereoSplitter)
-                {
-                    // Special option: stereo given to either input port,
-                    // but with the other port disconnected, results in a stereo splitter.
-
-                    if (ncl >= 2 && ncr == 0)
-                    {
-                        inLeft  = inputs[AUDIO_LEFT_INPUT].getVoltage(0);
-                        inRight = inputs[AUDIO_LEFT_INPUT].getVoltage(1);
-                        return;
-                    }
-
-                    if (ncr >= 2 && ncl == 0)
-                    {
-                        inLeft  = inputs[AUDIO_RIGHT_INPUT].getVoltage(0);
-                        inRight = inputs[AUDIO_RIGHT_INPUT].getVoltage(1);
-                        return;
-                    }
-                }
-
-                // Assume separate data fed to each input port.
-
-                inLeft  = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
-                inRight = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
-
-                // But if only one of the two input ports has a cable,
-                // split that cable's voltage equally between the left and right inputs.
-                // This is "mono" mode.
-
-                if (ncl > 0 && ncr == 0)
-                    inLeft = inRight = inLeft / 2;
-                else if (ncr > 0 && ncl == 0)
-                    inLeft = inRight = inRight / 2;
             }
 
             bool isBadOutput(float output) const
@@ -177,7 +124,7 @@ namespace Sapphire
                     engine.setMix(getControlValue(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT));
 
                     float inLeft, inRight;
-                    loadInputs(inLeft, inRight);
+                    loadStereoInputs(inLeft, inRight, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
                     engine.process(args.sampleRate, inLeft, inRight, outLeft, outRight);
 
@@ -229,7 +176,7 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
                 menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(createBoolPtrMenuItem<bool>("Enable input stereo splitter", "", &galaxyModule->enableStereoSplitter));
+                menu->addChild(galaxyModule->createStereoSplitterMenuItem());
             }
         };
     }

@@ -495,6 +495,8 @@ namespace Sapphire
         Tricorder::VectorReceiver vectorReceiver;
         std::vector<SapphireParamInfo> paramInfo;
         std::vector<SapphirePortInfo> outputPortInfo;
+        bool provideStereoSplitter = false;     // derived class must opt in by setting this flag during constructor
+        bool enableStereoSplitter{};
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -574,6 +576,11 @@ namespace Sapphire
             );
         }
 
+        MenuItem* createStereoSplitterMenuItem()
+        {
+            return createBoolPtrMenuItem<bool>("Enable input stereo splitter", "", &enableStereoSplitter);
+        }
+
         void sendVector(float x, float y, float z, bool reset)
         {
             vectorSender.sendVector(x, y, z, reset);
@@ -609,6 +616,9 @@ namespace Sapphire
                 if (getVoltageFlipEnabled(outputId))
                     json_array_append(oList, json_integer(outputId));
             json_object_set_new(root, "voltageFlippedOutputPorts", oList);
+
+            if (provideStereoSplitter)
+                json_object_set_new(root, "enableStereoSplitter", json_boolean(enableStereoSplitter));
 
             return root;
         }
@@ -661,6 +671,52 @@ namespace Sapphire
                     }
                 }
             }
+
+            if (provideStereoSplitter)
+            {
+                json_t *splitFlag = json_object_get(root, "enableStereoSplitter");
+                enableStereoSplitter = json_is_true(splitFlag);
+            }
+        }
+
+        void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
+        {
+            const int ncl = inputs[leftPortIndex ].channels;
+            const int ncr = inputs[rightPortIndex].channels;
+
+            if (enableStereoSplitter)
+            {
+                // Special option: stereo given to either input port,
+                // but with the other port disconnected, results in a stereo splitter.
+
+                if (ncl >= 2 && ncr == 0)
+                {
+                    inLeft  = inputs[leftPortIndex].getVoltage(0);
+                    inRight = inputs[leftPortIndex].getVoltage(1);
+                    return;
+                }
+
+                if (ncr >= 2 && ncl == 0)
+                {
+                    inLeft  = inputs[rightPortIndex].getVoltage(0);
+                    inRight = inputs[rightPortIndex].getVoltage(1);
+                    return;
+                }
+            }
+
+            // Assume separate data fed to each input port.
+
+            inLeft  = inputs[leftPortIndex ].getVoltageSum();
+            inRight = inputs[rightPortIndex].getVoltageSum();
+
+            // But if only one of the two input ports has a cable,
+            // split that cable's voltage equally between the left and right inputs.
+            // This is "mono" mode.
+
+            if (ncl > 0 && ncr == 0)
+                inLeft = inRight = inLeft / 2;
+            else if (ncr > 0 && ncl == 0)
+                inLeft = inRight = inRight / 2;
         }
 
         ChannelCountQuantity* configChannelCount(int paramId, int defaultChannelCount)
