@@ -61,7 +61,7 @@ namespace Sapphire
             GalaxyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
-                provideStereoSplitter = true;   // opt in to loading/saving this field in JSON
+                provideStereoSplitter = true;
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

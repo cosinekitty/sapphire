@@ -57,6 +57,8 @@ namespace Sapphire
             GravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
+                provideStereoSplitter = true;
+
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
@@ -103,8 +105,7 @@ namespace Sapphire
                 engine.setGain(gainKnob);
 
                 float inFrame[2];
-                inFrame[0] = inputs[AUDIO_LEFT_INPUT ].getVoltageSum();
-                inFrame[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+                loadStereoInputs(inFrame[0], inFrame[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
                 float outFrame[2];
                 engine.process(args.sampleRate, inFrame, outFrame);
@@ -142,11 +143,12 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (gravyModule != nullptr)
-                {
-                    menu->addChild(new MenuSeparator);
-                    menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
-                }
+                if (gravyModule == nullptr)
+                    return;
+
+                menu->addChild(new MenuSeparator);
+                menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
+                menu->addChild(gravyModule->createStereoSplitterMenuItem());
             }
         };
     }

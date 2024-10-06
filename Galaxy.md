@@ -52,7 +52,7 @@ L or R. For the stereo splitter to work, the opposite port must remain unconnect
 
 If the single audio input cable has 2 or more channels, and the stereo splitter
 option is enabled, the first channel is sent to the left input and the second
-channel is sent to the right input.
+channel is sent to the right input. Any remaining channels are ignored.
 
 The purpose of this option is to support a stereo input provided by a single
 cable, which can eliminate the need for a dedicated splitter module between

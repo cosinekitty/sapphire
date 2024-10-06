@@ -17,7 +17,52 @@ Gravy is a stereo filter that provides control over the following parameters:
 
 Each of the controls except for MODE include a CV input port, a smaller attenuverter knob, and a larger manual control knob.
 
-Gravy supports a [low-sensitivity](LowSensitivityAttenuverterKnobs.md) option for each attenuverter.
+### Context menu
+
+When you right-click on the Gravy panel, you will see the following context menu:
+
+![Gravy context menu](images/gravy_menu.png)
+
+The options are:
+
+* **Toggle sensitivity on all attenuverters.** Gravy supports a [low-sensitivity](LowSensitivityAttenuverterKnobs.md) option for each attenuverter. This option toggles all the attenuverters at the same time, as described in the linked document.
+* **Enable input stereo splitter.** See [Inputs and Outputs](#inputs-and-outputs) and [Stereo splitter option](#stereo-splitter-option).
+
+### Inputs and Outputs
+
+Gravy has two audio input ports at the top of the panel, L and R.
+
+Likewise, there are two audio output ports at the bottom also labeled L and R.
+
+You can provide mono (1 mono cable), stereo (2 mono cables),
+or 1 polyphonic [stereo splitter cable](#stereo-splitter-option) as input.
+
+To provide mono input, connect your audio cable to the left input L **or** the right input R.
+When only one of the inputs is connected to a cable, Gravy will send half the voltage
+on that cable to both the left and right reverb inputs. The voltage is divided by 2
+to preserve the same general volume level as mono input would if fed to a single channel.
+
+To provide stereo input, connect one cable to L and one cable to R.
+
+Polyphonic input cables are summed across channels to provide
+a monophonic input signal for the port they are plugged into.
+This is true for the two audio input ports and all 5 CV input ports.
+
+Gravy's left and right audio output ports are each monophonic.
+
+### Stereo splitter option
+
+The context menu option [Enable input stereo splitter](#context-menu) overrides the audio input behavior
+described above, but only when a polyphonic cable is connected to either
+L or R. For the stereo splitter to work, the opposite port must remain unconnected.
+
+If the single audio input cable has 2 or more channels, and the stereo splitter
+option is enabled, the cable's first channel is sent to the left input and its second
+channel is sent to the right input. Any remaining channels are ignored.
+
+The purpose of this option is to support a stereo input provided by a single
+cable, which can eliminate the need for a dedicated splitter module between
+the signal and Gravy.
 
 ### Algorithm
 
