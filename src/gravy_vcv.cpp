@@ -139,6 +139,8 @@ namespace Sapphire
 
                 CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
                 addReloadableParam(modeSwitch, "mode_switch");
+
+                loadStereoMergeLabels();
             }
 
             void appendContextMenu(Menu* menu) override

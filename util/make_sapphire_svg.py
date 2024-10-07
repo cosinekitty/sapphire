@@ -587,6 +587,24 @@ def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateStereoOutputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel:str) -> int:
+    # Assumes the same panel layout and output port locations as Galaxy and Gravy.
+    PANEL_WIDTH = 6
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+    dxLeftRight = dxPortFromCenter + 6.3
+    yRow = FencePost(22.0, 114.0, 7)
+    yOutPort = yRow.value(6)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(CenteredControlTextPath(font, leftPortLabel, xmid - dxLeftRight, yOutPort))
+        if rightPortLabel:
+            pl.append(CenteredControlTextPath(font, rightPortLabel, xmid + dxLeftRight, yOutPort))
+    return Save(panel, svgFileName)
+
+
 def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     table:List[Tuple[str, str]] = [
         ('replace',     'REPLACE'),
@@ -639,8 +657,6 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
 
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
-        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yOutPort))
-        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yOutPort))
 
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
@@ -710,8 +726,6 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
 
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
-        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yOutPort))
-        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yOutPort))
 
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
         controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
@@ -1084,6 +1098,8 @@ if __name__ == '__main__':
         GenerateMootsPanel() or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
+        GenerateStereoOutputLabels('../res/stereo_out_lr.svg', 'L', 'R') or
+        GenerateStereoOutputLabels('../res/stereo_out_2.svg', '2', '') or
         GenerateGalaxyPanel(cdict, 'galaxy') or
         GenerateGravyPanel(cdict, 'gravy') or
         GenerateRotiniPanel(cdict) or
