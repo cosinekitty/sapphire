@@ -62,6 +62,7 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 provideStereoSplitter = true;
+                provideStereoMerge = true;
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -141,8 +142,7 @@ namespace Sapphire
                         outLeft = outRight = 0;
                     }
                 }
-                outputs[AUDIO_LEFT_OUTPUT ].setVoltage(outLeft);
-                outputs[AUDIO_RIGHT_OUTPUT].setVoltage(outRight);
+                writeStereoOutputs(outLeft, outRight, AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }
         };
 
@@ -177,6 +177,7 @@ namespace Sapphire
                 menu->addChild(new MenuSeparator);
                 menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
                 menu->addChild(galaxyModule->createStereoSplitterMenuItem());
+                menu->addChild(galaxyModule->createStereoMergeMenuItem());
             }
         };
     }

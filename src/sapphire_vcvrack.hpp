@@ -497,6 +497,8 @@ namespace Sapphire
         std::vector<SapphirePortInfo> outputPortInfo;
         bool provideStereoSplitter = false;     // derived class must opt in by setting this flag during constructor
         bool enableStereoSplitter{};
+        bool provideStereoMerge = false;
+        bool enableStereoMerge{};
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -581,6 +583,11 @@ namespace Sapphire
             return createBoolPtrMenuItem<bool>("Enable input stereo splitter", "", &enableStereoSplitter);
         }
 
+        MenuItem* createStereoMergeMenuItem()
+        {
+            return createBoolPtrMenuItem<bool>("Send polyphonic stereo to L output", "", &enableStereoMerge);
+        }
+
         void sendVector(float x, float y, float z, bool reset)
         {
             vectorSender.sendVector(x, y, z, reset);
@@ -619,6 +626,9 @@ namespace Sapphire
 
             if (provideStereoSplitter)
                 json_object_set_new(root, "enableStereoSplitter", json_boolean(enableStereoSplitter));
+
+            if (provideStereoMerge)
+                json_object_set_new(root, "enableStereoMerge", json_boolean(enableStereoMerge));
 
             return root;
         }
@@ -677,6 +687,12 @@ namespace Sapphire
                 json_t *splitFlag = json_object_get(root, "enableStereoSplitter");
                 enableStereoSplitter = json_is_true(splitFlag);
             }
+
+            if (provideStereoMerge)
+            {
+                json_t *mergeFlag = json_object_get(root, "enableStereoMerge");
+                enableStereoMerge = json_is_true(mergeFlag);
+            }
         }
 
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
@@ -717,6 +733,27 @@ namespace Sapphire
                 inLeft = inRight = inLeft / 2;
             else if (ncr > 0 && ncl == 0)
                 inLeft = inRight = inRight / 2;
+        }
+
+        void writeStereoOutputs(float outLeft, float outRight, int leftPortIndex, int rightPortIndex)
+        {
+            if (enableStereoMerge)
+            {
+                outputs[leftPortIndex].setChannels(2);
+                outputs[leftPortIndex].setVoltage(outLeft,  0);
+                outputs[leftPortIndex].setVoltage(outRight, 1);
+
+                outputs[rightPortIndex].setChannels(1);
+                outputs[rightPortIndex].setVoltage(0);
+            }
+            else
+            {
+                outputs[leftPortIndex].setChannels(1);
+                outputs[leftPortIndex ].setVoltage(outLeft);
+
+                outputs[rightPortIndex].setChannels(1);
+                outputs[rightPortIndex].setVoltage(outRight);
+            }
         }
 
         ChannelCountQuantity* configChannelCount(int paramId, int defaultChannelCount)
