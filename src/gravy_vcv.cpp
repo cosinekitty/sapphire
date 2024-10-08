@@ -93,7 +93,6 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float input[2];
                 float output[2];
 
                 if (autoResetCountdown > 0)
@@ -116,6 +115,7 @@ namespace Sapphire
                     engine.setMix(mixKnob);
                     engine.setGain(gainKnob);
 
+                    float input[2];
                     loadStereoInputs(input[0], input[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
                     engine.process(args.sampleRate, input, output);
