@@ -187,6 +187,7 @@ namespace Sapphire
         {
             outputStereoLabel2  = loadLabel("res/stereo_out_2.svg");
             outputStereoLabelLR = loadLabel("res/stereo_out_lr.svg");
+            outputStereoLabelLR->setVisible(true);
         }
 
         void loadInputStereoLabels()
