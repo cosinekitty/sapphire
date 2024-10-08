@@ -2,9 +2,13 @@
 
 ![Gravy](images/gravy.png)
 
+Gravy is a stereophonic state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in Gravy.
+
+> https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
+
 ### Controls
 
-Gravy is a stereo filter that provides control over the following parameters:
+Gravy provides control over the following parameters:
 
 * **FREQ**: the filter's corner frequency. The default setting is 0, which corresponds to the note C5 = 523.251&nbsp;Hz. Each unit on the FREQ dial represents an octave. The dial spans &pm;5 octaves around the note C5.
 * **RES**: the filter's resonance, on a scale from 0 (the default) to 1. Higher resonance causes the filter to concentrate the passband closer in to the corner frequency. Toward the upper end of the resonance scale, you can even get sustained oscillations, also known as "ringing".
@@ -23,12 +27,12 @@ When you right-click on the Gravy panel, you will see the following context menu
 
 ![Gravy context menu](images/gravy_menu.png)
 
-The options are:
+### Toggle sensitivity on all attenuverters
 
-* **Toggle sensitivity on all attenuverters.** Gravy supports a [low-sensitivity](LowSensitivityAttenuverterKnobs.md) option for each attenuverter. This option toggles all the attenuverters at the same time, as described in the linked document.
-* **Enable input stereo splitter.** See [Inputs and Outputs](#inputs-and-outputs) and [Stereo splitter option](#stereo-splitter-option).
+Gravy supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
+This option toggles the sensitivity mode on all the attenuverter knobs.
 
-### Inputs and Outputs
+### Inputs and outputs
 
 Gravy has two audio input ports at the top of the panel, L and R.
 
@@ -60,12 +64,21 @@ If the single audio input cable has 2 or more channels, and the stereo splitter
 option is enabled, the cable's first channel is sent to the left input and its second
 channel is sent to the right input. Any remaining channels are ignored.
 
+To confirm that the stereo splitter is actually operational, the "L" and "R"
+input port labels are replaced by a single "2" label on whichever input
+port is connected to the polyphonic input cable.
+
 The purpose of this option is to support a stereo input provided by a single
 cable, which can eliminate the need for a dedicated splitter module between
 the signal and Gravy.
 
-### Algorithm
+### Send polyphonic stereo to L output
 
-Gravy is a state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in Gravy.
+When checked, this option causes stereo output to go to the L output only.
+The output is polyphonic with 2 channels, with channel 0 as the left
+output and channel 1 as the right output.
 
-> https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
+Enabling polyphonic stereo output causes the output port labels to change from "L" and "R"
+to a "2" displayed on the left output port only.
+
+![Stereo output label](images/poly_stereo_out.png)
