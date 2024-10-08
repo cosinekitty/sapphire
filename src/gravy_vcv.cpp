@@ -138,7 +138,7 @@ namespace Sapphire
                 addSapphireFlatControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
 
                 CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
-                addReloadableParam(modeSwitch, "mode_switch");
+                addSapphireParam(modeSwitch, "mode_switch");
 
                 loadInputStereoLabels();
                 loadOutputStereoLabels();

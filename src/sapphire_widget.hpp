@@ -1,11 +1,6 @@
 /*
     sapphire_widget.hpp  -  Don Cross <cosinekitty@gmail.com>
     https://github.com/cosinekitty/sapphire
-
-    Custom extensions to my ReloadableModuleWidget class.
-    These are particular to my Sapphire plugin,
-    while ReloadableModuleWidget is intended to be reusable
-    by other VCV Rack module developers.
 */
 
 #pragma once
@@ -73,50 +68,50 @@ namespace Sapphire
             widget->box.pos = vec.minus(widget->box.size.div(2));
         }
 
-        void addReloadableParam(ParamWidget* param, const std::string& label)
+        void addSapphireParam(ParamWidget* param, const std::string& label)
         {
             addParam(param);
             position(param, label);
         }
 
-        void addReloadableInput(PortWidget* input, const std::string& label)
+        void addSapphireInput(PortWidget* input, const std::string& label)
         {
             addInput(input);
             position(input, label);
         }
 
-        void addReloadableOutput(PortWidget* output, const std::string& label)
+        void addSapphireInput(int inputId, const std::string& svgId)
+        {
+            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
+            addSapphireInput(port, svgId);
+        }
+
+        void addSapphireOutput(PortWidget* output, const std::string& label)
         {
             addOutput(output);
             position(output, label);
+        }
+
+        SapphirePort* addSapphireOutput(int outputId, const std::string& svgId)
+        {
+            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, outputId);
+            addSapphireOutput(port, svgId);
+            return port;
         }
 
         template <typename knob_t = RoundLargeBlackKnob>
         knob_t *addKnob(int paramId, const std::string& svgId)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
-            addReloadableParam(knob, svgId);
+            addSapphireParam(knob, svgId);
             return knob;
         }
 
         RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& svgId)
         {
             RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
-            addReloadableParam(knob, svgId);
+            addSapphireParam(knob, svgId);
             return knob;
-        }
-
-        void addSapphireInput(int inputId, const std::string& svgId)
-        {
-            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
-            addReloadableInput(port, svgId);
-        }
-
-        SapphirePort* addSapphireOutput(int outputId, const std::string& svgId)
-        {
-            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, outputId);
-            addReloadableOutput(port, svgId);
-            return port;
         }
 
         SapphirePort* addFlippableOutputPort(int outputId, const std::string& svgId, SapphireModule* module)
@@ -158,7 +153,7 @@ namespace Sapphire
             }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
-            addReloadableParam(knob, svgId);
+            addSapphireParam(knob, svgId);
         }
 
         void addSapphireControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)

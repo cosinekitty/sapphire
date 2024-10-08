@@ -404,14 +404,14 @@ namespace Sapphire
 
                 // Power enable/disable
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, POWER_TOGGLE_PARAM, POWER_LIGHT);
-                addReloadableParam(toggle, "power_toggle");
+                addSapphireParam(toggle, "power_toggle");
                 addSapphireInput(POWER_GATE_INPUT, "power_gate_input");
             }
 
             void addSlider(ParamId paramId, LightId lightId, const char *svgId)
             {
                 SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
-                addReloadableParam(slider, svgId);
+                addSapphireParam(slider, svgId);
             }
 
             void appendContextMenu(Menu* menu) override

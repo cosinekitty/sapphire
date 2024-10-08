@@ -436,7 +436,7 @@ namespace Sapphire
                 addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
 
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
-                addReloadableParam(toggle, "audio_mode_button");
+                addSapphireParam(toggle, "audio_mode_button");
             }
 
             void appendContextMenu(Menu* menu) override

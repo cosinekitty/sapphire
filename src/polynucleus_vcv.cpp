@@ -480,10 +480,10 @@ namespace Sapphire
 #endif
 
                 auto audioModeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
-                addReloadableParam(audioModeButton, "audio_mode_button");
+                addSapphireParam(audioModeButton, "audio_mode_button");
 
                 auto clearButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT);
-                addReloadableParam(clearButton, "clear_button");
+                addSapphireParam(clearButton, "clear_button");
             }
 
             void appendContextMenu(Menu* menu) override
