@@ -507,6 +507,8 @@ namespace Sapphire
         bool provideStereoMerge = false;
         bool enableStereoMerge{};
         InputStereoMode inputStereoMode = InputStereoMode::LeftRight;
+        float autoResetVoltageThreshold = 100;
+        int autoResetCountdown = 0;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -827,6 +829,32 @@ namespace Sapphire
                 voltage = -voltage;
             outputs[outputId].setVoltage(voltage);
             return voltage;
+        }
+
+        bool isBadOutput(float output) const
+        {
+            return !std::isfinite(output) || std::abs(output) > autoResetVoltageThreshold;
+        }
+
+        bool checkOutputs(float sampleRateHz, float outputArray[], int arrayLength)
+        {
+            // Is the output getting out of control? Or even NAN?
+            bool bad = false;
+            for (int i = 0; i < arrayLength; ++i)
+                if (isBadOutput(outputArray[i]))
+                    bad = true;
+
+            if (bad)
+            {
+                // Silence the output for 1/4 of a second.
+                autoResetCountdown = static_cast<int>(round(sampleRateHz / 4));
+
+                // Start the silence on this sample.
+                for (int i = 0; i < arrayLength; ++i)
+                    outputArray[i] = 0;
+            }
+
+            return bad;
         }
     };
 

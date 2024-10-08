@@ -55,8 +55,6 @@ namespace Sapphire
         struct GalaxyModule : SapphireModule
         {
             Engine engine;
-            float autoResetVoltageThreshold = 100;
-            int autoResetCountdown = 0;
 
             GalaxyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -102,19 +100,14 @@ namespace Sapphire
                 initialize();
             }
 
-            bool isBadOutput(float output) const
-            {
-                return !std::isfinite(output) || std::abs(output) > autoResetVoltageThreshold;
-            }
-
             void process(const ProcessArgs& args) override
             {
-                float outLeft, outRight;
+                float output[2];
                 if (autoResetCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
                     --autoResetCountdown;
-                    outLeft = outRight = 0;
+                    output[0] = output[1] = 0;
                 }
                 else
                 {
@@ -127,22 +120,16 @@ namespace Sapphire
                     float inLeft, inRight;
                     loadStereoInputs(inLeft, inRight, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
-                    engine.process(args.sampleRate, inLeft, inRight, outLeft, outRight);
+                    engine.process(args.sampleRate, inLeft, inRight, output[0], output[1]);
 
                     // Is the output getting out of control? Or even NAN?
-                    if (isBadOutput(outLeft) || isBadOutput(outRight))
+                    if (checkOutputs(args.sampleRate, output, 2))
                     {
                         // Reset the engine (which also initializes `autoResetCountdown`.)
                         engine.initialize();
-
-                        // Silence the output for 1/4 of a second.
-                        autoResetCountdown = static_cast<int>(round(args.sampleRate / 4));
-
-                        // Start the silence on this sample.
-                        outLeft = outRight = 0;
                     }
                 }
-                writeStereoOutputs(outLeft, outRight, AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
+                writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }
         };
 
