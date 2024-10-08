@@ -14,6 +14,7 @@
 <td align="left">
     <ul>
         <li>Added new module <a href="Gravy.md">Gravy</a>: a stereo filter with frequency and resonance controls.</li>
+        <li>Galaxy and Gravy support polyphonic stereo input and output.</li>
     </ul>
 </td>
 </tr>
