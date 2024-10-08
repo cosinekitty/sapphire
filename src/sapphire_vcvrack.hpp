@@ -489,6 +489,13 @@ namespace Sapphire
         bool flipVoltagePolarity = false;
     };
 
+    enum class InputStereoMode
+    {
+        LeftRight,
+        Left2,
+        Right2,
+    };
+
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
@@ -499,6 +506,7 @@ namespace Sapphire
         bool enableStereoSplitter{};
         bool provideStereoMerge = false;
         bool enableStereoMerge{};
+        InputStereoMode inputStereoMode = InputStereoMode::LeftRight;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -709,6 +717,7 @@ namespace Sapphire
                 {
                     inLeft  = inputs[leftPortIndex].getVoltage(0);
                     inRight = inputs[leftPortIndex].getVoltage(1);
+                    inputStereoMode = InputStereoMode::Left2;
                     return;
                 }
 
@@ -716,11 +725,13 @@ namespace Sapphire
                 {
                     inLeft  = inputs[rightPortIndex].getVoltage(0);
                     inRight = inputs[rightPortIndex].getVoltage(1);
+                    inputStereoMode = InputStereoMode::Right2;
                     return;
                 }
             }
 
             // Assume separate data fed to each input port.
+            inputStereoMode = InputStereoMode::LeftRight;
 
             inLeft  = inputs[leftPortIndex ].getVoltageSum();
             inRight = inputs[rightPortIndex].getVoltageSum();

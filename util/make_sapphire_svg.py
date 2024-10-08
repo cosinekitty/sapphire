@@ -599,9 +599,29 @@ def GenerateStereoOutputLabels(svgFileName:str, leftPortLabel:str, rightPortLabe
     yRow = FencePost(22.0, 114.0, 7)
     yOutPort = yRow.value(6)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(CenteredControlTextPath(font, leftPortLabel, xmid - dxLeftRight, yOutPort))
+        if leftPortLabel:
+            pl.append(CenteredControlTextPath(font, leftPortLabel, xmid - dxLeftRight, yOutPort))
         if rightPortLabel:
             pl.append(CenteredControlTextPath(font, rightPortLabel, xmid + dxLeftRight, yOutPort))
+    return Save(panel, svgFileName)
+
+
+def GenerateStereoInputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel:str) -> int:
+    # Assumes the same panel layout and output port locations as Galaxy and Gravy.
+    PANEL_WIDTH = 6
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+    dxLeftRight = dxPortFromCenter + 6.3
+    yRow = FencePost(22.0, 114.0, 7)
+    yInPort  = yRow.value(0)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        if leftPortLabel:
+            pl.append(CenteredControlTextPath(font, leftPortLabel, xmid - dxLeftRight, yInPort))
+        if rightPortLabel:
+            pl.append(CenteredControlTextPath(font, rightPortLabel, xmid + dxLeftRight, yInPort))
     return Save(panel, svgFileName)
 
 
@@ -624,7 +644,6 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
-    dxLeftRight = dxPortFromCenter + 6.3
 
     yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
@@ -653,9 +672,6 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
-        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yInPort))
-        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
-
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
@@ -692,7 +708,6 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
-    dxLeftRight = dxPortFromCenter + 6.3
 
     yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
@@ -721,10 +736,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
-        pl.append(CenteredControlTextPath(font, 'L',   xmid - dxLeftRight, yInPort))
-        pl.append(CenteredControlTextPath(font, 'R',   xmid + dxLeftRight, yInPort))
-
+        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
         controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
@@ -1100,6 +1112,9 @@ if __name__ == '__main__':
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
         GenerateStereoOutputLabels('../res/stereo_out_lr.svg', 'L', 'R') or
         GenerateStereoOutputLabels('../res/stereo_out_2.svg', '2', '') or
+        GenerateStereoInputLabels('../res/stereo_in_lr.svg', 'L', 'R') or
+        GenerateStereoInputLabels('../res/stereo_in_l2.svg', '2', '') or
+        GenerateStereoInputLabels('../res/stereo_in_r2.svg', '', '2') or
         GenerateGalaxyPanel(cdict, 'galaxy') or
         GenerateGravyPanel(cdict, 'gravy') or
         GenerateRotiniPanel(cdict) or

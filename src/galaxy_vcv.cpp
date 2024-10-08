@@ -168,7 +168,8 @@ namespace Sapphire
                 addSapphireFlatControlGroup("bigness", BIGNESS_PARAM, BIGNESS_ATTEN, BIGNESS_CV_INPUT);
                 addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
 
-                loadStereoMergeLabels();
+                loadInputStereoLabels();
+                loadOutputStereoLabels();
             }
 
             void appendContextMenu(Menu* menu) override

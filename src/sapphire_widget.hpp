@@ -49,8 +49,13 @@ namespace Sapphire
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
+
         SvgOverlay* outputStereoLabelLR = nullptr;
-        SvgOverlay* outputStereoLabel2 = nullptr;
+        SvgOverlay* outputStereoLabel2  = nullptr;
+
+        SvgOverlay* inputStereoLabelLR = nullptr;
+        SvgOverlay* inputStereoLabelL2 = nullptr;
+        SvgOverlay* inputStereoLabelR2 = nullptr;
 
         explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
             : modcode(moduleCode)
@@ -170,15 +175,25 @@ namespace Sapphire
             addSapphireInput(cvInputId, prefix + "_cv");
         }
 
-        void loadStereoMergeLabels()
+        SvgOverlay* loadLabel(const char *svgFileName)
         {
-            outputStereoLabel2  = SvgOverlay::Load("res/stereo_out_2.svg");
-            outputStereoLabel2->setVisible(false);
-            addChild(outputStereoLabel2);
+            SvgOverlay* label = SvgOverlay::Load(svgFileName);
+            label->setVisible(false);
+            addChild(label);
+            return label;
+        }
 
-            outputStereoLabelLR = SvgOverlay::Load("res/stereo_out_lr.svg");
-            outputStereoLabelLR->setVisible(false);
-            addChild(outputStereoLabelLR);
+        void loadOutputStereoLabels()
+        {
+            outputStereoLabel2  = loadLabel("res/stereo_out_2.svg");
+            outputStereoLabelLR = loadLabel("res/stereo_out_lr.svg");
+        }
+
+        void loadInputStereoLabels()
+        {
+            inputStereoLabelL2 = loadLabel("res/stereo_in_l2.svg");
+            inputStereoLabelR2 = loadLabel("res/stereo_in_r2.svg");
+            inputStereoLabelLR = loadLabel("res/stereo_in_lr.svg");
         }
 
         bool isOutputStereoMergeEnabled()
@@ -187,9 +202,18 @@ namespace Sapphire
             return (sapphireModule != nullptr) && sapphireModule->enableStereoMerge;
         }
 
+        InputStereoMode getInputStereoMode()
+        {
+            SapphireModule *sapphireModule = getSapphireModule();
+            if (sapphireModule == nullptr)
+                return InputStereoMode::LeftRight;
+            return sapphireModule->inputStereoMode;
+        }
+
         void step() override
         {
             ModuleWidget::step();
+
             if (outputStereoLabel2 && outputStereoLabelLR)
             {
                 const bool merge = isOutputStereoMergeEnabled();
@@ -198,6 +222,14 @@ namespace Sapphire
                     outputStereoLabel2->setVisible(merge);
                     outputStereoLabelLR->setVisible(!merge);
                 }
+            }
+
+            if (inputStereoLabelL2 && inputStereoLabelR2 && inputStereoLabelLR)
+            {
+                const InputStereoMode mode = getInputStereoMode();
+                inputStereoLabelLR->setVisible(mode == InputStereoMode::LeftRight);
+                inputStereoLabelL2->setVisible(mode == InputStereoMode::Left2);
+                inputStereoLabelR2->setVisible(mode == InputStereoMode::Right2);
             }
         }
     };
