@@ -122,12 +122,8 @@ namespace Sapphire
 
                     engine.process(args.sampleRate, inLeft, inRight, output[0], output[1]);
 
-                    // Is the output getting out of control? Or even NAN?
                     if (checkOutputs(args.sampleRate, output, 2))
-                    {
-                        // Reset the engine (which also initializes `autoResetCountdown`.)
                         engine.initialize();
-                    }
                 }
                 writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }

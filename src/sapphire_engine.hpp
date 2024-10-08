@@ -683,6 +683,9 @@ namespace Sapphire
         {
             c1 = 0;
             c2 = 0;
+            v1 = 0;
+            v2 = 0;
+            v3 = 0;
         }
 
         FilterResult<value_t> process(float sampleRateHz, float cornerFreqHz, float resonance, const value_t& input)

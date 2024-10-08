@@ -93,25 +93,38 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
-                float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
-                float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
-                FilterMode mode = getFilterMode();
+                float input[2];
+                float output[2];
 
-                engine.setFilterMode(mode);
-                engine.setFrequency(freqKnob);
-                engine.setResonance(resKnob);
-                engine.setMix(mixKnob);
-                engine.setGain(gainKnob);
+                if (autoResetCountdown > 0)
+                {
+                    // Continue to silence the output for the remainder of the reset period.
+                    --autoResetCountdown;
+                    output[0] = output[1] = 0;
+                }
+                else
+                {
+                    float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
+                    float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
+                    float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
+                    float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+                    FilterMode mode = getFilterMode();
 
-                float inFrame[2];
-                loadStereoInputs(inFrame[0], inFrame[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    engine.setFilterMode(mode);
+                    engine.setFrequency(freqKnob);
+                    engine.setResonance(resKnob);
+                    engine.setMix(mixKnob);
+                    engine.setGain(gainKnob);
 
-                float outFrame[2];
-                engine.process(args.sampleRate, inFrame, outFrame);
+                    loadStereoInputs(input[0], input[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
-                writeStereoOutputs(outFrame[0], outFrame[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
+                    engine.process(args.sampleRate, input, output);
+
+                    if (checkOutputs(args.sampleRate, output, 2))
+                        engine.initialize();
+                }
+
+                writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }
         };
 
