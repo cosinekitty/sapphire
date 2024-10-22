@@ -508,9 +508,8 @@ namespace Sapphire
         bool enableStereoMerge{};
         InputStereoMode inputStereoMode = InputStereoMode::LeftRight;
         float autoResetVoltageThreshold = 100;
-        int autoResetCountdown = 0;
         bool enableLimiterWarning = true;
-        int limiterRecoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
+        int limiterRecoveryCountdown = 0;      // positive integer indicates we are recovering from NAN/INF
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -848,8 +847,8 @@ namespace Sapphire
 
             if (bad)
             {
-                // Silence the output for 1/4 of a second.
-                autoResetCountdown = static_cast<int>(round(sampleRateHz / 4));
+                // Silence the output for one second.
+                limiterRecoveryCountdown = static_cast<int>(sampleRateHz);
 
                 // Start the silence on this sample.
                 for (int i = 0; i < arrayLength; ++i)

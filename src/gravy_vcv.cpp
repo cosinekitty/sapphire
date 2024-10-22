@@ -22,6 +22,7 @@ namespace Sapphire
             GAIN_PARAM,
             GAIN_ATTEN,
             FILTER_MODE_PARAM,
+            AGC_LEVEL_PARAM,
             PARAMS_LEN
         };
 
@@ -53,6 +54,9 @@ namespace Sapphire
         struct GravyModule : SapphireModule
         {
             gravy_engine_t engine;
+            AgcLevelQuantity *agcLevelQuantity = nullptr;
+            AutomaticGainLimiter agc;
+            bool enableAgc = false;
 
             GravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -61,6 +65,15 @@ namespace Sapphire
                 provideStereoMerge = true;
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+                agcLevelQuantity = configParam<AgcLevelQuantity>(
+                    AGC_LEVEL_PARAM,
+                    AGC_LEVEL_MIN,
+                    AGC_DISABLE_MAX,
+                    AGC_LEVEL_DEFAULT,
+                    "Output limiter"
+                );
+                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
@@ -84,6 +97,27 @@ namespace Sapphire
             void initialize()
             {
                 engine.initialize();
+                agcLevelQuantity->initialize();
+                setAgcEnabled(true);
+                reflectAgcSlider();
+            }
+
+            bool getAgcEnabled() const { return enableAgc; }
+
+            void setAgcEnabled(bool enable)
+            {
+                if (enable && !enableAgc)
+                {
+                    // If the AGC isn't enabled, and caller wants to enable it,
+                    // re-initialize the AGC so it forgets any previous level it had settled on.
+                    agc.initialize();
+                }
+                enableAgc = enable;
+            }
+
+            double getAgcDistortion() const override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
+            {
+                return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
             }
 
             FilterMode getFilterMode()
@@ -91,18 +125,51 @@ namespace Sapphire
                 return static_cast<FilterMode>(params[FILTER_MODE_PARAM].getValue());
             }
 
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+                agcLevelQuantity->save(root, "agcLevel");
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+
+                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
+                enableLimiterWarning = !json_is_false(warningFlag);
+
+                agcLevelQuantity->load(root, "agcLevel");
+            }
+
+            void reflectAgcSlider()
+            {
+                // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+                if (agcLevelQuantity && agcLevelQuantity->changed)
+                {
+                    bool enabled = agcLevelQuantity->isAgcEnabled();
+                    if (enabled)
+                        agc.setCeiling(agcLevelQuantity->clampedAgc());
+                    setAgcEnabled(enabled);
+                    agcLevelQuantity->changed = false;
+                }
+            }
+
             void process(const ProcessArgs& args) override
             {
                 float output[2];
 
-                if (autoResetCountdown > 0)
+                if (limiterRecoveryCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
-                    --autoResetCountdown;
+                    --limiterRecoveryCountdown;
                     output[0] = output[1] = 0;
                 }
                 else
                 {
+                    reflectAgcSlider();
+
                     float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
                     float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                     float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
@@ -120,6 +187,9 @@ namespace Sapphire
 
                     engine.process(args.sampleRate, input, output);
 
+                    if (enableAgc)
+                        agc.process(args.sampleRate, output[0], output[1]);
+
                     if (checkOutputs(args.sampleRate, output, 2))
                         engine.initialize();
                 }
@@ -131,7 +201,8 @@ namespace Sapphire
 
         struct GravyWidget : SapphireWidget
         {
-            GravyModule *gravyModule{};
+            GravyModule* gravyModule{};
+            WarningLightWidget* warningLight{};
 
             explicit GravyWidget(GravyModule* module)
                 : SapphireWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
@@ -148,7 +219,12 @@ namespace Sapphire
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                addSapphireFlatControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
+                auto gainKnob = addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+
+                warningLight = new WarningLightWidget(module);
+                warningLight->box.pos  = Vec(0.0f, 0.0f);
+                warningLight->box.size = gainKnob->box.size;
+                gainKnob->addChild(warningLight);
 
                 CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
                 addSapphireParam(modeSwitch, "mode_switch");
@@ -166,6 +242,9 @@ namespace Sapphire
                 menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
                 menu->addChild(gravyModule->createStereoSplitterMenuItem());
                 menu->addChild(gravyModule->createStereoMergeMenuItem());
+                menu->addChild(new MenuSeparator);
+                menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
+                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));
             }
         };
     }

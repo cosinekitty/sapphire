@@ -91,7 +91,7 @@ namespace Sapphire
             {
                 engine.initialize();
                 enableStereoSplitter = false;
-                autoResetCountdown = 0;
+                limiterRecoveryCountdown = 0;
             }
 
             void onReset(const ResetEvent& e) override
@@ -103,10 +103,10 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 float output[2];
-                if (autoResetCountdown > 0)
+                if (limiterRecoveryCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
-                    --autoResetCountdown;
+                    --limiterRecoveryCountdown;
                     output[0] = output[1] = 0;
                 }
                 else
