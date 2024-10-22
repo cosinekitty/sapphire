@@ -54,7 +54,7 @@ namespace Sapphire
         struct GravyModule : SapphireModule
         {
             gravy_engine_t engine;
-            AgcLevelQuantity *agcLevelQuantity = nullptr;
+            AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
 
@@ -66,14 +66,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = configParam<AgcLevelQuantity>(
-                    AGC_LEVEL_PARAM,
-                    AGC_LEVEL_MIN,
-                    AGC_DISABLE_MAX,
-                    AGC_LEVEL_DEFAULT,
-                    "Output limiter"
-                );
-                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 51, 50.0, 50.5, 51.0);
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
@@ -98,7 +91,7 @@ namespace Sapphire
             {
                 engine.initialize();
                 agcLevelQuantity->initialize();
-                setAgcEnabled(true);
+                agcLevelQuantity->changed = true;
                 reflectAgcSlider();
             }
 

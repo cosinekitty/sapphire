@@ -73,8 +73,8 @@ namespace Sapphire
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
-            DcRejectQuantity *dcRejectQuantity = nullptr;
-            AgcLevelQuantity *agcLevelQuantity = nullptr;
+            DcRejectQuantity *dcRejectQuantity{};
+            AgcLevelQuantity *agcLevelQuantity{};
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
@@ -109,14 +109,7 @@ namespace Sapphire
                 );
                 dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
 
-                agcLevelQuantity = configParam<AgcLevelQuantity>(
-                    AGC_LEVEL_PARAM,
-                    AGC_LEVEL_MIN,
-                    AGC_DISABLE_MAX,
-                    AGC_LEVEL_DEFAULT,
-                    "Output limiter"
-                );
-                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);

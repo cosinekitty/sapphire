@@ -78,7 +78,7 @@ namespace Sapphire
         struct TubeUnitModule : SapphireModule
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
-            AgcLevelQuantity *agcLevelQuantity = nullptr;
+            AgcLevelQuantity *agcLevelQuantity{};
             bool isInvertedVentPort = false;
             int numActiveChannels = 0;
             const int outputVerifyInterval = 11000;
@@ -103,14 +103,7 @@ namespace Sapphire
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
-                agcLevelQuantity = configParam<AgcLevelQuantity>(
-                    AGC_LEVEL_PARAM,
-                    AGC_LEVEL_MIN,
-                    AGC_DISABLE_MAX,
-                    AGC_LEVEL_DEFAULT,
-                    "Output limiter"
-                );
-                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
                 levelKnob->randomizeEnabled = false;

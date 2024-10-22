@@ -137,14 +137,7 @@ namespace Sapphire
                 configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
                 configButton(CLEAR_BUTTON_PARAM, "Brings the simulation back to its quiet initial state");
 
-                agcLevelQuantity = configParam<AgcLevelQuantity>(
-                    AGC_LEVEL_PARAM,
-                    AGC_LEVEL_MIN,
-                    AGC_DISABLE_MAX,
-                    AGC_LEVEL_DEFAULT,
-                    "Output limiter"
-                );
-                agcLevelQuantity->value = AGC_LEVEL_DEFAULT;
+                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 initialize();
             }

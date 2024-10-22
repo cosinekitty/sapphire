@@ -329,17 +329,14 @@ namespace Sapphire
     };
 
 
-    const float AGC_LEVEL_MIN = 1.0f;
-    const float AGC_LEVEL_DEFAULT = 4.0f;
-    const float AGC_LEVEL_MAX = 10.0f;
-    const float AGC_DISABLE_MIN = 10.1f;
-    const float AGC_DISABLE_MAX = 10.2f;
-
-
     struct AgcLevelQuantity : SapphireQuantity
     {
-        bool isAgcEnabled() const { return value < AGC_DISABLE_MIN; }
-        float clampedAgc() const { return std::clamp(value, AGC_LEVEL_MIN, AGC_LEVEL_MAX); }
+        float levelMin{};
+        float levelMax{};
+        float disableMin{};
+
+        bool isAgcEnabled() const { return value < disableMin; }
+        float clampedAgc() const { return std::clamp(value, levelMin, levelMax); }
 
         std::string getDisplayValueString() override
         {
@@ -896,6 +893,30 @@ namespace Sapphire
         static int limiterColorComponent(double scale, int lo, int hi)
         {
             return std::clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+        }
+
+        AgcLevelQuantity* makeAgcLevelQuantity(
+            int   paramId,
+            float levelMin   =  1.0,
+            float levelDef   =  4.0,
+            float levelMax   = 10.0,
+            float disableMin = 10.1,
+            float disableMax = 10.2)
+        {
+            AgcLevelQuantity *agcLevelQuantity = configParam<AgcLevelQuantity>(
+                paramId,
+                levelMin,
+                disableMax,
+                levelDef,
+                "Output limiter"
+            );
+
+            agcLevelQuantity->value = levelDef;
+            agcLevelQuantity->levelMin = levelMin;
+            agcLevelQuantity->levelMax = levelMax;
+            agcLevelQuantity->disableMin = disableMin;
+
+            return agcLevelQuantity;
         }
     };
 
