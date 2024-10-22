@@ -509,6 +509,8 @@ namespace Sapphire
         InputStereoMode inputStereoMode = InputStereoMode::LeftRight;
         float autoResetVoltageThreshold = 100;
         int autoResetCountdown = 0;
+        bool enableLimiterWarning = true;
+        int limiterRecoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -856,23 +858,15 @@ namespace Sapphire
 
             return bad;
         }
-    };
 
-
-    struct SapphireAutomaticLimiterModule : public SapphireModule   // a Sapphire module with a warning light on the OUTPUT knob
-    {
-        bool enableLimiterWarning = true;
-        int recoveryCountdown = 0;      // positive integer when we make OUTPUT knob pink to indicate "NAN crash"
-
-        explicit SapphireAutomaticLimiterModule(std::size_t nParams, std::size_t nOutputPorts)
-            : SapphireModule(nParams, nOutputPorts)
-            {}
-
-        virtual double getAgcDistortion() const = 0;
+        virtual double getAgcDistortion() const
+        {
+            return 0.0;     // no distortion
+        }
 
         virtual NVGcolor getWarningColor()
         {
-            if (recoveryCountdown > 0)
+            if (limiterRecoveryCountdown > 0)
             {
                 // The module is recovering from non-finite (NAN/infinite) output.
                 // Inflict an obnoxiously bright pink OUTPUT knob glow on the user!
@@ -892,15 +886,15 @@ namespace Sapphire
             const double maxScale = 1;
             double scale = std::clamp(decibels / 24.0, minScale, maxScale);
 
-            int red   = colorComponent(scale, 0x90, 0xff);
-            int green = colorComponent(scale, 0x20, 0x50);
+            int red   = limiterColorComponent(scale, 0x90, 0xff);
+            int green = limiterColorComponent(scale, 0x20, 0x50);
             int blue  = 0x00;
             int alpha = 0x70;
 
             return nvgRGBA(red, green, blue, alpha);
         }
 
-        static int colorComponent(double scale, int lo, int hi)
+        static int limiterColorComponent(double scale, int lo, int hi)
         {
             return std::clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
         }
@@ -910,10 +904,10 @@ namespace Sapphire
     class WarningLightWidget : public LightWidget
     {
     private:
-        SapphireAutomaticLimiterModule *alModule;
+        SapphireModule *alModule;
 
     public:
-        explicit WarningLightWidget(SapphireAutomaticLimiterModule *_alModule)
+        explicit WarningLightWidget(SapphireModule *_alModule)
             : alModule(_alModule)
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border

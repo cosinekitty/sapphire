@@ -74,7 +74,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct PolynucleusModule : SapphireAutomaticLimiterModule
+        struct PolynucleusModule : SapphireModule
         {
             NucleusEngine engine{Nucleus::NUM_PARTICLES};
             Nucleus::CrashChecker crashChecker;
@@ -84,7 +84,7 @@ namespace Sapphire
             DcRejectQuantity *dcRejectQuantity{};
 
             PolynucleusModule()
-                : SapphireAutomaticLimiterModule(PARAMS_LEN, OUTPUTS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 using namespace Nucleus;
 
@@ -156,7 +156,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
+                json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
                 dcRejectQuantity->save(root, "dcRejectFrequency");
@@ -168,7 +168,7 @@ namespace Sapphire
             {
                 using namespace Nucleus;
 
-                SapphireAutomaticLimiterModule::dataFromJson(root);
+                SapphireModule::dataFromJson(root);
 
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
@@ -364,13 +364,13 @@ namespace Sapphire
                 {
                     // We just "rebooted" the engine due to invalid output.
                     // Make the output knob glow bright pink for a little while.
-                    recoveryCountdown = static_cast<int>(args.sampleRate);
+                    limiterRecoveryCountdown = static_cast<int>(args.sampleRate);
                 }
-                else if (recoveryCountdown > 0)
+                else if (limiterRecoveryCountdown > 0)
                 {
                     // We have reset the engine in the last second or so,
-                    // so we keep the output knob bright pink until recoveryCountdown hits zero.
-                    --recoveryCountdown;
+                    // so we keep the output knob bright pink until limiterRecoveryCountdown hits zero.
+                    --limiterRecoveryCountdown;
                 }
 
                 // Let the audio/cv toggle pushbutton light reflect its button state.

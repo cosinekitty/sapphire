@@ -75,7 +75,7 @@ namespace Sapphire
 
         extern const std::vector<ControlGroup> tubeUnitControls;
 
-        struct TubeUnitModule : SapphireAutomaticLimiterModule
+        struct TubeUnitModule : SapphireModule
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity = nullptr;
@@ -87,7 +87,7 @@ namespace Sapphire
             const ControlGroup *cgLookup[INPUTS_LEN] {};
 
             TubeUnitModule()
-                : SapphireAutomaticLimiterModule(PARAMS_LEN, OUTPUTS_LEN)
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -145,7 +145,7 @@ namespace Sapphire
 
             json_t* dataToJson() override
             {
-                json_t* root = SapphireAutomaticLimiterModule::dataToJson();
+                json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
                 agcLevelQuantity->save(root, "agcLevel");
@@ -154,7 +154,7 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
-                SapphireAutomaticLimiterModule::dataFromJson(root);
+                SapphireModule::dataFromJson(root);
 
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
@@ -281,7 +281,7 @@ namespace Sapphire
                             leftOut = rightOut = 0;
 
                             // Turn on the bright pink panic light on the OUTPUT level knob for 1 second.
-                            recoveryCountdown = static_cast<int>(args.sampleRate);
+                            limiterRecoveryCountdown = static_cast<int>(args.sampleRate);
 
                             // Reset this engine, which hopefully fixes its output issues.
                             engine[c].initialize();
@@ -293,8 +293,8 @@ namespace Sapphire
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * rightOut, c);
                 }
 
-                if (allEnginesHaveFiniteOutput && recoveryCountdown > 0)
-                    --recoveryCountdown;
+                if (allEnginesHaveFiniteOutput && limiterRecoveryCountdown > 0)
+                    --limiterRecoveryCountdown;
             }
 
             void reflectAgcSlider()
