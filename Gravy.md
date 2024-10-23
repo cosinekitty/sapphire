@@ -82,3 +82,24 @@ Enabling polyphonic stereo output causes the output port labels to change from "
 to a "2" displayed on the left output port only.
 
 ![Stereo output label](images/poly_stereo_out.png)
+
+## Output limiter
+
+Sometimes the output voltage from Gravy can be excessively large, especially
+if you use high resonance settings. It can be helpful to keep the output under
+control. To meet this need, Gravy includes a built-in output limiter option.
+
+In the context menu, the output limiter appears as a horizontal slider.
+By default, the limiter is turned OFF. If you start to pull this horizontal
+slider to the left using your mouse, the limiter turns on. You can adjust the
+output limiter to any value from 5&nbsp;V to 50&nbsp;V. You can turn the limiter
+back off by sliding the level all the way to the right.
+
+When the output limiter is enabled, and the output goes beyond the limit,
+the limiter causes the GAIN knob to glow red as an indicator that the output
+level is being attenuated.
+
+Also in the context menu is the toggle option "Limiter warning light".
+By default, the warning light is enabled, causing the GAIN knob to glow red
+when the limiter is actively reducing the output level. You can uncheck this
+option to turn the red glow off.
