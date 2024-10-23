@@ -66,7 +66,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 51, 50.0, 50.5, 51.0);
+                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
@@ -87,11 +87,16 @@ namespace Sapphire
                 initialize();
             }
 
+            void onReset(const ResetEvent& e) override
+            {
+                Module::onReset(e);
+                initialize();
+            }
+
             void initialize()
             {
                 engine.initialize();
                 agcLevelQuantity->initialize();
-                agcLevelQuantity->changed = true;
                 reflectAgcSlider();
             }
 
