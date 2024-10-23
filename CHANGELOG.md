@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">23 Oct 2024</td>
+<td align="center">2.5.2</td>
+<td align="left">
+    <ul>
+        <li><a href="Gravy.md">Gravy</a> now includes an automatic gain control (AGC) limiter in the right-click menu. The limiter is OFF by default, but can be adjusted to the range 5V..50V. This can be helpful when the output gets hot due to high resonance settings.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">11 Sep 2024</td>
 <td align="center">2.5.1</td>
 <td align="left">
