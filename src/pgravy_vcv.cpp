@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "gravy_engine.hpp"
+#include "pgravy_engine.hpp"
 
 // Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
 // A biquad filter implementation that supports tunable frequency and resonance.
@@ -21,7 +21,6 @@ namespace Sapphire
             MIX_ATTEN,
             GAIN_PARAM,
             GAIN_ATTEN,
-            FILTER_MODE_PARAM,
             AGC_LEVEL_PARAM,
             PARAMS_LEN
         };
@@ -38,7 +37,9 @@ namespace Sapphire
 
         enum OutputId
         {
-            AUDIO_OUTPUT,
+            AUDIO_LOWPASS_OUTPUT,
+            AUDIO_BANDPASS_OUTPUT,
+            AUDIO_HIGHPASS_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -47,11 +48,9 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        using poly_gravy_engine_t = Gravy::GravyEngine<PORT_MAX_CHANNELS>;
-
         struct PolyGravyModule : SapphireModule
         {
-            poly_gravy_engine_t engine;
+            Gravy::SingleChannelGravyEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
@@ -69,16 +68,18 @@ namespace Sapphire
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_INPUT, "Audio");
-                configOutput(AUDIO_OUTPUT, "Audio");
+                configOutput(AUDIO_LOWPASS_OUTPUT,  "Lowpass");
+                configOutput(AUDIO_BANDPASS_OUTPUT, "Bandpass");
+                configOutput(AUDIO_HIGHPASS_OUTPUT, "Highpass");
 
                 configControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                 configControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, DefaultResonanceKnob);
                 configControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT,   0, 1, DefaultMixKnob);
                 configControlGroup("gain",      GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT,  0, 1, DefaultGainKnob);
 
-                configSwitch(FILTER_MODE_PARAM, 0.0, 2.0, 1.0, "Mode", {"Lowpass", "Bandpass", "Highpass"});
-
-                configBypass(AUDIO_INPUT, AUDIO_OUTPUT);
+                configBypass(AUDIO_INPUT, AUDIO_LOWPASS_OUTPUT);
+                configBypass(AUDIO_INPUT, AUDIO_BANDPASS_OUTPUT);
+                configBypass(AUDIO_INPUT, AUDIO_HIGHPASS_OUTPUT);
 
                 initialize();
             }
@@ -91,7 +92,8 @@ namespace Sapphire
 
             void initialize()
             {
-                engine.initialize();
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    engine[c].initialize();
                 agcLevelQuantity->initialize();
                 reflectAgcSlider();
             }
@@ -112,11 +114,6 @@ namespace Sapphire
             double getAgcDistortion() const override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
             {
                 return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
-            }
-
-            FilterMode getFilterMode()
-            {
-                return static_cast<FilterMode>(params[FILTER_MODE_PARAM].getValue());
             }
 
             json_t* dataToJson() override
@@ -155,45 +152,78 @@ namespace Sapphire
                 using namespace Gravy;
 
                 const int nc = numOutputChannels(INPUTS_LEN);
-                float output[PORT_MAX_CHANNELS]{};
+                float output[3*PORT_MAX_CHANNELS];    // lowpass, bandpass, highpass.
 
                 if (limiterRecoveryCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
                     --limiterRecoveryCountdown;
+
+                    for (int c = 0; c < 3*PORT_MAX_CHANNELS; ++c)
+                        output[c] = 0;
                 }
                 else
                 {
                     reflectAgcSlider();
 
-                    //!!! add polyphonic logic here
+                    float input = 0;
+                    float cvFreq = 0;
+                    float cvRes = 0;
+                    float cvMix = 0;
+                    float cvGain = 0;
 
-                    float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
-                    float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
-                    float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                    float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
-                    FilterMode mode = getFilterMode();
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        nextChannelInputVoltage(input,  AUDIO_INPUT,   c);
+                        nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
+                        nextChannelInputVoltage(cvRes,  RES_CV_INPUT,  c);
+                        nextChannelInputVoltage(cvMix,  MIX_CV_INPUT,  c);
+                        nextChannelInputVoltage(cvGain, GAIN_CV_INPUT, c);
 
-                    engine.setFilterMode(mode);
-                    engine.setFrequency(freqKnob);
-                    engine.setResonance(resKnob);
-                    engine.setMix(mixKnob);
-                    engine.setGain(gainKnob);
+                        float freqKnob  = cvGetControlValue(FREQ_PARAM,  FREQ_ATTEN,  cvFreq, -OctaveRange, +OctaveRange);
+                        float resKnob   = cvGetControlValue(RES_PARAM,   RES_ATTEN,   cvRes);
+                        float mixKnob   = cvGetControlValue(MIX_PARAM,   MIX_ATTEN,   cvMix);
+                        float gainKnob  = cvGetControlValue(GAIN_PARAM,  GAIN_ATTEN,  cvGain);
 
-                    float input[PORT_MAX_CHANNELS]{};
+                        engine[c].setFrequency(freqKnob);
+                        engine[c].setResonance(resKnob);
+                        engine[c].setMix(mixKnob);
+                        engine[c].setGain(gainKnob);
 
-                    engine.process(args.sampleRate, nc, input, output);
+                        FilterResult<float> result = engine[c].process(args.sampleRate, input);
+                        output[c + 0*PORT_MAX_CHANNELS] = result.lowpass;
+                        output[c + 1*PORT_MAX_CHANNELS] = result.bandpass;
+                        output[c + 2*PORT_MAX_CHANNELS] = result.highpass;
+                    }
+
+                    for (int c = nc; c < PORT_MAX_CHANNELS; ++c)
+                    {
+                        output[c + 0*PORT_MAX_CHANNELS] = 0;
+                        output[c + 1*PORT_MAX_CHANNELS] = 0;
+                        output[c + 2*PORT_MAX_CHANNELS] = 0;
+                    }
 
                     if (enableAgc)
-                        agc.process(args.sampleRate, nc, output);
+                    {
+                        agc.process(args.sampleRate, 3*PORT_MAX_CHANNELS, output);
+                    }
 
-                    if (checkOutputs(args.sampleRate, output, nc))
-                        engine.initialize();
+                    if (checkOutputs(args.sampleRate, output, 3*PORT_MAX_CHANNELS))
+                    {
+                        for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                            engine[c].initialize();
+                    }
                 }
 
-                outputs[AUDIO_OUTPUT].setChannels(nc);
+                outputs[AUDIO_LOWPASS_OUTPUT ].setChannels(nc);
+                outputs[AUDIO_BANDPASS_OUTPUT].setChannels(nc);
+                outputs[AUDIO_HIGHPASS_OUTPUT].setChannels(nc);
                 for (int c = 0; c < nc; ++c)
-                    outputs[AUDIO_OUTPUT].setVoltage(output[c], c);
+                {
+                    outputs[AUDIO_LOWPASS_OUTPUT ].setVoltage(output[c + 0*PORT_MAX_CHANNELS], c);
+                    outputs[AUDIO_BANDPASS_OUTPUT].setVoltage(output[c + 1*PORT_MAX_CHANNELS], c);
+                    outputs[AUDIO_HIGHPASS_OUTPUT].setVoltage(output[c + 2*PORT_MAX_CHANNELS], c);
+                }
             }
         };
 
@@ -210,7 +240,9 @@ namespace Sapphire
                 setModule(module);
 
                 addSapphireInput(AUDIO_INPUT,  "audio_input");
-                addSapphireOutput(AUDIO_OUTPUT, "audio_output");
+                addSapphireOutput(AUDIO_LOWPASS_OUTPUT,  "audio_lp_output");
+                addSapphireOutput(AUDIO_BANDPASS_OUTPUT, "audio_bp_output");
+                addSapphireOutput(AUDIO_HIGHPASS_OUTPUT, "audio_hp_output");
 
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
@@ -221,9 +253,6 @@ namespace Sapphire
                 warningLight->box.pos  = Vec(0.0f, 0.0f);
                 warningLight->box.size = gainKnob->box.size;
                 gainKnob->addChild(warningLight);
-
-                CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
-                addSapphireParam(modeSwitch, "mode_switch");
             }
 
             void appendContextMenu(Menu* menu) override

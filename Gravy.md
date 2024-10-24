@@ -6,6 +6,9 @@ Gravy is a stereophonic state-variable filter as described in the following pape
 
 > https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
 
+For a more general polyphonic module based on the same state variable filter algorithm,
+see [PGravy](PGravy.md).
+
 ### Controls
 
 Gravy provides control over the following parameters:

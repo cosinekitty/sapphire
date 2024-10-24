@@ -778,10 +778,13 @@ def GeneratePolyGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
 
     yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
-    ySwitch  = yRow.value(5)
-    yOutPort = yRow.value(6)
+    dyOutPort = 10.0
+    yOutLowPort  = yRow.value(5) - 3.0
+    yOutBandPort = yOutLowPort + 1*dyOutPort
+    yOutHighPort = yOutLowPort + 2*dyOutPort
     dyGrad = 6.0
     dyText = 6.5
+    dxOutPortText = 7.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -793,24 +796,27 @@ def GeneratePolyGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
-        y1 = yRow.value(1) - 9.5
+        y1 = yRow.value(1) - 8.5
         y2 = yRow.value(5) + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutPort - 9.5
-        y2 = yOutPort + dyGrad
+        y1 = yOutLowPort - 6.0
+        y2 = yOutLowPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
-        pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
         controls.append(Component('audio_input',  xmid, yInPort ))
-        controls.append(Component('audio_output', xmid, yOutPort))
+        controls.append(Component('audio_lp_output', xmid, yOutLowPort))
+        controls.append(Component('audio_bp_output', xmid, yOutBandPort))
+        controls.append(Component('audio_hp_output', xmid, yOutHighPort))
 
-        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
-        controls.append(Component('mode_switch', xmid, ySwitch))
+
+        pl.append(CenteredControlTextPath(font, 'LP', xmid - dxOutPortText, yOutLowPort))
+        pl.append(CenteredControlTextPath(font, 'BP', xmid - dxOutPortText, yOutBandPort))
+        pl.append(CenteredControlTextPath(font, 'HP', xmid - dxOutPortText, yOutHighPort))
 
         row = 1
         for (symbol, label) in table:
