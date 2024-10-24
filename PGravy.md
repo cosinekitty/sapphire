@@ -1,8 +1,8 @@
-## Gravy
+## PGravy
 
 ![PGravy](images/pGravy.png)
 
-PGravy is a polyphonic state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in Gravy.
+PGravy is a polyphonic state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in PGravy.
 
 > https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
 
@@ -17,22 +17,22 @@ PGravy provides control over the following parameters:
 * **MIX**: A value from 0 to 1 that controls how much of the original, unfiltered stereo signal is included in the output. The default MIX value is 1, which means that the output represents 100% filtered audio. As the value is decreased toward 0, more of the original audio is included in the output. At zero, the output is identical to the input (except for a one-sample delay inherent to all VCV Rack modules).
 * **GAIN**: Allows you to make the output louder or quieter, as a convenience. Consider it a built-in VCA.
 
-Each of the controls include a CV input port, a smaller attenuverter knob, and a larger manual control knob. The CV input ports all support full polyphony. Missing channels are normalled forward. For example, this means you can use a 1-channel cable connected to the FREQ CV input to control all 3 signals in a 3-channel audio input. Or you could use 3-channel CV input to control the frequencies differently.
+Each of the controls include a CV input port, a smaller attenuverter knob, and a larger manual control knob. The CV input ports all support full polyphony. Missing channels are normalled forward. For example, this means you can use a 1-channel cable connected to the FREQ CV input to control all 3 signals in a 3-channel audio input. Or you could use 3-channel CV input to control the frequencies independently.
 
 ### Context menu
 
 When you right-click on the PGravy panel, you will see the following context menu:
 
-![Gravy context menu](images/pgravy_menu.png)
+![PGravy context menu](images/pgravy_menu.png)
 
 ### Toggle sensitivity on all attenuverters
 
-Gravy supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
+PGravy supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 This option toggles the sensitivity mode on all the attenuverter knobs.
 
 ## Output limiter
 
-Sometimes the output voltage from PGravy can be excessively large, especially
+Sometimes an output voltage from PGravy can be excessively large, especially
 if you use high resonance settings. It can be helpful to keep the output under
 control. To meet this need, PGravy includes a built-in output limiter option.
 
