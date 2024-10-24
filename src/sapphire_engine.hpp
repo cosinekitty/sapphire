@@ -392,6 +392,24 @@ namespace Sapphire
                 x /= follower;
         }
 
+        void process(double sampleRate, int nchannels, float frame[])
+        {
+            using namespace std;
+
+            // Find maximum absolute value for all the input data.
+            float input = 0;
+            for (int c = 0; c < nchannels; ++c)
+                input = max(input, abs(frame[c]));
+
+            // Update the limiter state using the maximum value we just found.
+            update(sampleRate, input);
+
+            // Scale the data based on the limiter state.
+            for (int c = 0; c < nchannels; ++c)
+                frame[c] /= follower;
+
+        }
+
         double getFollower() const
         {
             return follower;

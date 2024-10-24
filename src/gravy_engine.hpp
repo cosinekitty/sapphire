@@ -18,12 +18,12 @@ namespace Sapphire
         const float DefaultMixKnob       = 1.0;
         const float DefaultGainKnob      = 0.5;
 
-        template <int nchannels>
+        template <int maxchannels>
         class GravyEngine
         {
         private:
-            static_assert(nchannels > 0);
-            static constexpr int nquads = (nchannels + 3) / 4;
+            static_assert(maxchannels > 0);
+            static constexpr int maxquads = (maxchannels + 3) / 4;
 
             FilterMode mode = FilterMode::Bandpass;
 
@@ -32,7 +32,7 @@ namespace Sapphire
             float mixKnob   = DefaultMixKnob;
             float gainKnob  = DefaultGainKnob;
 
-            StateVariableFilter<PhysicsVector> filter[nquads];
+            StateVariableFilter<PhysicsVector> filter[maxquads];
 
             float setKnob(float &v, float k, int lo = 0, int hi = 1)
             {
@@ -51,7 +51,7 @@ namespace Sapphire
 
             void initialize()
             {
-                for (int q = 0; q < nquads; ++q)
+                for (int q = 0; q < maxquads; ++q)
                     filter[q].initialize();
             }
 
@@ -80,8 +80,15 @@ namespace Sapphire
                 mode = m;
             }
 
-            void process(float sampleRateHz, const float inFrame[nchannels], float outFrame[nchannels])
+            int process(float sampleRateHz, int nchannels, const float inFrame[], float outFrame[])
             {
+                if (nchannels < 1)
+                    return 0;
+
+                if (nchannels > maxchannels)
+                    nchannels = maxchannels;
+
+                const int nquads = (nchannels + 3) / 4;
                 float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
                 float gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
                 float mix = 1-Cube(1-mixKnob);
@@ -103,6 +110,8 @@ namespace Sapphire
                     if (c+2 < nchannels) outFrame[c+2] = f[2];
                     if (c+3 < nchannels) outFrame[c+3] = f[3];
                 }
+
+                return nchannels;
             }
         };
     }

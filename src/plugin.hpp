@@ -17,6 +17,7 @@ extern Model* modelSapphireGravy;
 extern Model* modelSapphireHiss;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;
+extern Model* modelSapphirePGravy;
 extern Model* modelSapphirePivot;
 extern Model* modelSapphirePolynucleus;
 extern Model* modelSapphirePop;

@@ -783,7 +783,7 @@ namespace Sapphire
             int nc = 0;
             for (int i = 0; i < numInputs; ++i)
                 nc = std::max(nc, inputs[i].getChannels());
-            return nc;
+            return std::min(PORT_MAX_CHANNELS, nc);
         }
 
         void nextChannelInputVoltage(float& voltage, int inputId, int channel)

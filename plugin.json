@@ -102,6 +102,16 @@
       ]
     },
     {
+      "slug": "PGravy",
+      "name": "PGravy",
+      "description": "Polyphonic low/high/band-pass filter with resonance control.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/PGravy.md",
+      "tags": [
+        "Filter",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "Pivot",
       "name": "Pivot",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Pivot.md",

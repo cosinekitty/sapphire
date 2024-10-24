@@ -9,7 +9,7 @@
 
 namespace Sapphire
 {
-    namespace Gravy
+    namespace PolyGravy
     {
         enum ParamId
         {
@@ -28,8 +28,7 @@ namespace Sapphire
 
         enum InputId
         {
-            AUDIO_LEFT_INPUT,
-            AUDIO_RIGHT_INPUT,
+            AUDIO_INPUT,
             FREQ_CV_INPUT,
             RES_CV_INPUT,
             MIX_CV_INPUT,
@@ -39,8 +38,7 @@ namespace Sapphire
 
         enum OutputId
         {
-            AUDIO_LEFT_OUTPUT,
-            AUDIO_RIGHT_OUTPUT,
+            AUDIO_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -49,18 +47,20 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        using gravy_engine_t = GravyEngine<2>;
+        using poly_gravy_engine_t = Gravy::GravyEngine<PORT_MAX_CHANNELS>;
 
-        struct GravyModule : SapphireModule
+        struct PolyGravyModule : SapphireModule
         {
-            gravy_engine_t engine;
+            poly_gravy_engine_t engine;
             AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
 
-            GravyModule()
+            PolyGravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
+                using namespace Gravy;
+
                 provideStereoSplitter = true;
                 provideStereoMerge = true;
 
@@ -68,11 +68,8 @@ namespace Sapphire
 
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
-                configInput(AUDIO_LEFT_INPUT,  "Audio left");
-                configInput(AUDIO_RIGHT_INPUT, "Audio right");
-
-                configOutput(AUDIO_LEFT_OUTPUT,  "Audio left");
-                configOutput(AUDIO_RIGHT_OUTPUT, "Audio right");
+                configInput(AUDIO_INPUT, "Audio");
+                configOutput(AUDIO_OUTPUT, "Audio");
 
                 configControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                 configControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, DefaultResonanceKnob);
@@ -81,8 +78,7 @@ namespace Sapphire
 
                 configSwitch(FILTER_MODE_PARAM, 0.0, 2.0, 1.0, "Mode", {"Lowpass", "Bandpass", "Highpass"});
 
-                configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
-                configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
+                configBypass(AUDIO_INPUT, AUDIO_OUTPUT);
 
                 initialize();
             }
@@ -156,17 +152,21 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                float output[2];
+                using namespace Gravy;
+
+                const int nc = numOutputChannels(INPUTS_LEN);
+                float output[PORT_MAX_CHANNELS]{};
 
                 if (limiterRecoveryCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
                     --limiterRecoveryCountdown;
-                    output[0] = output[1] = 0;
                 }
                 else
                 {
                     reflectAgcSlider();
+
+                    //!!! add polyphonic logic here
 
                     float freqKnob  = getControlValue(FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT, -OctaveRange, +OctaveRange);
                     float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
@@ -180,39 +180,37 @@ namespace Sapphire
                     engine.setMix(mixKnob);
                     engine.setGain(gainKnob);
 
-                    float input[2];
-                    loadStereoInputs(input[0], input[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    float input[PORT_MAX_CHANNELS]{};
 
-                    engine.process(args.sampleRate, 2, input, output);
+                    engine.process(args.sampleRate, nc, input, output);
 
                     if (enableAgc)
-                        agc.process(args.sampleRate, output[0], output[1]);
+                        agc.process(args.sampleRate, nc, output);
 
-                    if (checkOutputs(args.sampleRate, output, 2))
+                    if (checkOutputs(args.sampleRate, output, nc))
                         engine.initialize();
                 }
 
-                writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
+                outputs[AUDIO_OUTPUT].setChannels(nc);
+                for (int c = 0; c < nc; ++c)
+                    outputs[AUDIO_OUTPUT].setVoltage(output[c], c);
             }
         };
 
 
-        struct GravyWidget : SapphireWidget
+        struct PolyGravyWidget : SapphireWidget
         {
-            GravyModule* gravyModule{};
+            PolyGravyModule* gravyModule{};
             WarningLightWidget* warningLight{};
 
-            explicit GravyWidget(GravyModule* module)
-                : SapphireWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
+            explicit PolyGravyWidget(PolyGravyModule* module)
+                : SapphireWidget("pgravy", asset::plugin(pluginInstance, "res/pgravy.svg"))
                 , gravyModule(module)
             {
                 setModule(module);
 
-                addSapphireInput(AUDIO_LEFT_INPUT,  "audio_left_input");
-                addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
-
-                addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
-                addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSapphireInput(AUDIO_INPUT,  "audio_input");
+                addSapphireOutput(AUDIO_OUTPUT, "audio_output");
 
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
@@ -226,9 +224,6 @@ namespace Sapphire
 
                 CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
                 addSapphireParam(modeSwitch, "mode_switch");
-
-                loadInputStereoLabels();
-                loadOutputStereoLabels();
             }
 
             void appendContextMenu(Menu* menu) override
@@ -238,9 +233,6 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
                 menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(gravyModule->createStereoSplitterMenuItem());
-                menu->addChild(gravyModule->createStereoMergeMenuItem());
-                menu->addChild(new MenuSeparator);
                 menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
                 menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));
             }
@@ -249,7 +241,7 @@ namespace Sapphire
 }
 
 
-Model *modelSapphireGravy = createSapphireModel<Sapphire::Gravy::GravyModule, Sapphire::Gravy::GravyWidget>(
-    "Gravy",
+Model *modelSapphirePGravy = createSapphireModel<Sapphire::PolyGravy::PolyGravyModule, Sapphire::PolyGravy::PolyGravyWidget>(
+    "PGravy",
     Sapphire::VectorRole::None
 );
