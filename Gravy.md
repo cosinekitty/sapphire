@@ -86,7 +86,7 @@ to a "2" displayed on the left output port only.
 
 ![Stereo output label](images/poly_stereo_out.png)
 
-## Output limiter
+### Output limiter
 
 Sometimes the output voltage from Gravy can be excessively large, especially
 if you use high resonance settings. It can be helpful to keep the output under

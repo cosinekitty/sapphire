@@ -30,7 +30,7 @@ When you right-click on the PGravy panel, you will see the following context men
 PGravy supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 This option toggles the sensitivity mode on all the attenuverter knobs.
 
-## Output limiter
+### Output limiter
 
 Sometimes an output voltage from PGravy can be excessively large, especially
 if you use high resonance settings. It can be helpful to keep the output under
