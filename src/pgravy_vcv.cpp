@@ -52,7 +52,9 @@ namespace Sapphire
         {
             Gravy::SingleChannelGravyEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity{};
-            AutomaticGainLimiter agc;
+            AutomaticGainLimiter agcLow;
+            AutomaticGainLimiter agcBand;
+            AutomaticGainLimiter agcHigh;
             bool enableAgc = false;
 
             PolyGravyModule()
@@ -106,14 +108,23 @@ namespace Sapphire
                 {
                     // If the AGC isn't enabled, and caller wants to enable it,
                     // re-initialize the AGC so it forgets any previous level it had settled on.
-                    agc.initialize();
+                    agcLow.initialize();
+                    agcBand.initialize();
+                    agcHigh.initialize();
                 }
                 enableAgc = enable;
             }
 
             double getAgcDistortion() const override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
             {
-                return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+                if (!enableAgc)
+                    return 0;
+
+                double lp = agcLow.getFollower();
+                double bp = agcBand.getFollower();
+                double hp = agcHigh.getFollower();
+
+                return std::max({lp, bp, hp}) - 1.0;
             }
 
             json_t* dataToJson() override
@@ -141,7 +152,12 @@ namespace Sapphire
                 {
                     bool enabled = agcLevelQuantity->isAgcEnabled();
                     if (enabled)
-                        agc.setCeiling(agcLevelQuantity->clampedAgc());
+                    {
+                        float ceiling = agcLevelQuantity->clampedAgc();
+                        agcLow.setCeiling(ceiling);
+                        agcBand.setCeiling(ceiling);
+                        agcHigh.setCeiling(ceiling);
+                    }
                     setAgcEnabled(enabled);
                     agcLevelQuantity->changed = false;
                 }
@@ -151,16 +167,23 @@ namespace Sapphire
             {
                 using namespace Gravy;
 
+                float lpOutput[PORT_MAX_CHANNELS];
+                float bpOutput[PORT_MAX_CHANNELS];
+                float hpOutput[PORT_MAX_CHANNELS];
+
                 const int nc = numOutputChannels(INPUTS_LEN);
-                float output[3*PORT_MAX_CHANNELS];    // lowpass, bandpass, highpass.
 
                 if (limiterRecoveryCountdown > 0)
                 {
                     // Continue to silence the output for the remainder of the reset period.
                     --limiterRecoveryCountdown;
 
-                    for (int c = 0; c < 3*PORT_MAX_CHANNELS; ++c)
-                        output[c] = 0;
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        lpOutput[c] = 0;
+                        bpOutput[c] = 0;
+                        hpOutput[c] = 0;
+                    }
                 }
                 else
                 {
@@ -191,24 +214,21 @@ namespace Sapphire
                         engine[c].setGain(gainKnob);
 
                         FilterResult<float> result = engine[c].process(args.sampleRate, input);
-                        output[c + 0*PORT_MAX_CHANNELS] = result.lowpass;
-                        output[c + 1*PORT_MAX_CHANNELS] = result.bandpass;
-                        output[c + 2*PORT_MAX_CHANNELS] = result.highpass;
-                    }
-
-                    for (int c = nc; c < PORT_MAX_CHANNELS; ++c)
-                    {
-                        output[c + 0*PORT_MAX_CHANNELS] = 0;
-                        output[c + 1*PORT_MAX_CHANNELS] = 0;
-                        output[c + 2*PORT_MAX_CHANNELS] = 0;
+                        lpOutput[c] = result.lowpass;
+                        bpOutput[c] = result.bandpass;
+                        hpOutput[c] = result.highpass;
                     }
 
                     if (enableAgc)
                     {
-                        agc.process(args.sampleRate, 3*PORT_MAX_CHANNELS, output);
+                        agcLow .process(args.sampleRate, nc, lpOutput);
+                        agcBand.process(args.sampleRate, nc, bpOutput);
+                        agcHigh.process(args.sampleRate, nc, hpOutput);
                     }
 
-                    if (checkOutputs(args.sampleRate, output, 3*PORT_MAX_CHANNELS))
+                    if (checkOutputs(args.sampleRate, lpOutput, nc) ||
+                        checkOutputs(args.sampleRate, bpOutput, nc) ||
+                        checkOutputs(args.sampleRate, hpOutput, nc))
                     {
                         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                             engine[c].initialize();
@@ -220,9 +240,9 @@ namespace Sapphire
                 outputs[AUDIO_HIGHPASS_OUTPUT].setChannels(nc);
                 for (int c = 0; c < nc; ++c)
                 {
-                    outputs[AUDIO_LOWPASS_OUTPUT ].setVoltage(output[c + 0*PORT_MAX_CHANNELS], c);
-                    outputs[AUDIO_BANDPASS_OUTPUT].setVoltage(output[c + 1*PORT_MAX_CHANNELS], c);
-                    outputs[AUDIO_HIGHPASS_OUTPUT].setVoltage(output[c + 2*PORT_MAX_CHANNELS], c);
+                    outputs[AUDIO_LOWPASS_OUTPUT ].setVoltage(lpOutput[c], c);
+                    outputs[AUDIO_BANDPASS_OUTPUT].setVoltage(bpOutput[c], c);
+                    outputs[AUDIO_HIGHPASS_OUTPUT].setVoltage(hpOutput[c], c);
                 }
             }
         };
