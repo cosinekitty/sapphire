@@ -113,7 +113,7 @@ namespace Sapphire
                 enableAgc = enable;
             }
 
-            double getAgcDistortion() const override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
+            double getAgcDistortion() override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
             {
                 return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
             }

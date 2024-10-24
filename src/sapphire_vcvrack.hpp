@@ -855,7 +855,7 @@ namespace Sapphire
             return bad;
         }
 
-        virtual double getAgcDistortion() const
+        virtual double getAgcDistortion()
         {
             return 0.0;     // no distortion
         }

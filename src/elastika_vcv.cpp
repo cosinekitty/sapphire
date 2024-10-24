@@ -160,7 +160,7 @@ namespace Sapphire
                 outputVectorSelectRight = false;
             }
 
-            double getAgcDistortion() const override
+            double getAgcDistortion() override
             {
                 return engine.getAgcDistortion();
             }

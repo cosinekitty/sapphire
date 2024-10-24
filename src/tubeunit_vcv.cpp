@@ -306,7 +306,7 @@ namespace Sapphire
                 }
             }
 
-            double getAgcDistortion() const override
+            double getAgcDistortion() override
             {
                 // Return the maximum distortion from the engines that are actively producing output.
                 double distortion = 0;

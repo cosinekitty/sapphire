@@ -142,7 +142,7 @@ namespace Sapphire
                 initialize();
             }
 
-            double getAgcDistortion() const override
+            double getAgcDistortion() override
             {
                 return engine.getAgcDistortion();
             }

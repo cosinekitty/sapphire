@@ -115,16 +115,26 @@ namespace Sapphire
                 enableAgc = enable;
             }
 
-            double getAgcDistortion() const override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
+            double getAgcDistortion() override     // returns 0 when no distortion, or a positive value correlated with AGC distortion
             {
                 if (!enableAgc)
-                    return 0;
+                    return 0.0;
 
-                double lp = agcLow.getFollower();
-                double bp = agcBand.getFollower();
-                double hp = agcHigh.getFollower();
+                // Only report distortion for connected output ports.
+                // Otherwise, we could confuse people when the knob starts glowing for an unknown reason!
 
-                return std::max({lp, bp, hp}) - 1.0;
+                double follower = 1.0;
+
+                if (outputs[AUDIO_LOWPASS_OUTPUT].isConnected())
+                    follower = std::max(follower, agcLow.getFollower());
+
+                if (outputs[AUDIO_BANDPASS_OUTPUT].isConnected())
+                    follower = std::max(follower, agcBand.getFollower());
+
+                if (outputs[AUDIO_HIGHPASS_OUTPUT].isConnected())
+                    follower = std::max(follower, agcHigh.getFollower());
+
+                return follower - 1.0;
             }
 
             json_t* dataToJson() override
