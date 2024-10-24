@@ -796,7 +796,7 @@ def GeneratePolyGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
-        y1 = yRow.value(1) - 8.5
+        y1 = yRow.value(1) - 9.5
         y2 = yRow.value(5) + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
@@ -812,7 +812,6 @@ def GeneratePolyGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         controls.append(Component('audio_lp_output', xmid, yOutLowPort))
         controls.append(Component('audio_bp_output', xmid, yOutBandPort))
         controls.append(Component('audio_hp_output', xmid, yOutHighPort))
-
 
         pl.append(CenteredControlTextPath(font, 'LP', xmid - dxOutPortText, yOutLowPort))
         pl.append(CenteredControlTextPath(font, 'BP', xmid - dxOutPortText, yOutBandPort))
