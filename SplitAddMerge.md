@@ -46,7 +46,7 @@ Any missing inputs are treated as 0&nbsp;V, so using only the polyphonic input o
 the 3 monophonic inputs causes them to be copied to the output ports.
 
 You can change the number of polyphonic channels in the output port P by right-clicking
-on the Split/Add/Merge panel and sliding the channel count slider.
+on the Split/Add/Merge panel and sliding the channel count slider. The current output channel count is indicated by the LED-style numeric display in the uppper part of the panel.
 
 ## Examples
 
