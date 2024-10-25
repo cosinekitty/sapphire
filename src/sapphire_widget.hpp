@@ -44,20 +44,11 @@ namespace Sapphire
     struct SapphireChannelDisplay : Widget
     {
         SapphireModule* module = nullptr;
-        std::string fontPath;
-        std::string bgText;
+        std::string fontPath = asset::system("res/fonts/DSEG7ClassicMini-BoldItalic.ttf");
         std::string text;
-        float fontSize;
+        float fontSize = 16;
         NVGcolor fgColor = SCHEME_ORANGE;
-        Vec textPos;
-
-        SapphireChannelDisplay()
-        {
-            fontPath = asset::system("res/fonts/DSEG7ClassicMini-BoldItalic.ttf");
-            textPos = Vec(22, 20);
-            bgText = "18";
-            fontSize = 16;
-        }
+        Vec textPos{22, 20};
 
         void prepareFont(const DrawArgs& args)
         {
@@ -72,13 +63,10 @@ namespace Sapphire
 
         void draw(const DrawArgs& args) override
         {
-            // Background
             nvgBeginPath(args.vg);
             nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
             nvgFillColor(args.vg, nvgRGB(0x19, 0x19, 0x19));
             nvgFill(args.vg);
-            prepareFont(args);
-            nvgText(args.vg, textPos.x, textPos.y, bgText.c_str(), nullptr);
         }
 
         void drawLayer(const DrawArgs& args, int layer) override
