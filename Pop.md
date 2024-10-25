@@ -40,6 +40,7 @@ to select a number of channels in the range 1..16. By default, Pop outputs
 a pulse trigger that has a single channel. By changing this slider setting,
 you can tell Pop to output up to 16 polyphonic channels from the PULSE port.
 This results in up to 16 independent pulse generators.
+The LED-style numeric display on the panel indicates the current number of output channels.
 
 ## SPEED control group
 

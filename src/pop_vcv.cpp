@@ -132,6 +132,7 @@ namespace Sapphire
                 }
 
                 const int nc = desiredChannelCount();
+                currentChannelCount = nc;       // keep channel display panel updated
                 outputs[PULSE_TRIGGER_OUTPUT].setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
@@ -199,6 +200,8 @@ namespace Sapphire
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");
+
+                addSapphireChannelDisplay("channel_display");
             }
 
             void appendContextMenu(Menu* menu) override

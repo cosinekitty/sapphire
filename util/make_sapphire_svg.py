@@ -1033,25 +1033,26 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    syncDy = 20.0       # vertical distance between SYNC input port and TRIGGER output port
+    syncDy = 16.0       # vertical distance between SYNC input port and TRIGGER output port
     ySpeedKnob = 26.0
     yChaosKnob = 57.0
     dxControlGroup = 5.0
     dyControlGroup = 11.0
     dyControlText = -11.6
-    yOutLabel = 107.0
+    yOutLabel = 108.0
     ySyncLabel = yOutLabel - syncDy
     artSpaceAboveKnob = 13.0
     artSpaceBelowKnob = 25.0
     outputPortY1 = 88.0
     outputPortDY =  9.0
     yPortLabel = outputPortY1 - 2.4
-    outGradY1 = yOutLabel - 3.5
+    outGradY1 = yOutLabel - 3.0
     outGradY2 = yPortLabel + 2*outputPortDY + 10.0
     syncGradY1 = outGradY1 - syncDy
     syncGradY2 = syncGradY1 + (outGradY2 - outGradY1)
     yTriggerPort = outputPortY1 + 3*outputPortDY
     ySyncPort = yTriggerPort - syncDy
+    yChannelDisplay = 80.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -1082,6 +1083,7 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
         pl.append(CenteredControlTextPath(font, 'PULSE', xmid, yOutLabel, 'pulse_label'))
         pl.append(CenteredControlTextPath(font, 'SYNC', xmid, ySyncLabel, 'sync_label'))
+        controls.append(Component('channel_display', xmid, yChannelDisplay))
     return Save(panel, svgFileName)
 
 

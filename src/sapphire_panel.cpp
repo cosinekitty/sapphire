@@ -183,6 +183,7 @@ namespace Sapphire
             {"speed_knob",             {  15.640,   25.000}},
             }},
         { "pop", {
+            {"channel_display",        {  10.160,   80.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -190,7 +191,7 @@ namespace Sapphire
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
-            {"sync_input",             {  10.160,   95.000}},
+            {"sync_input",             {  10.160,   99.000}},
             }},
         { "rotini", {
             {"a_input",                {  10.160,   22.000}},
