@@ -201,6 +201,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "sam", {
+            {"channel_display",        {   5.080,   14.750}},
             {"p_input",                {   5.080,   52.000}},
             {"p_output",               {   5.080,  115.000}},
             {"x_input",                {   5.080,   25.000}},

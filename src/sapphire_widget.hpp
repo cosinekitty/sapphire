@@ -41,6 +41,65 @@ namespace Sapphire
     };
 
 
+    struct SapphireChannelDisplay : Widget
+    {
+        SapphireModule* module = nullptr;
+        std::string fontPath;
+        std::string bgText;
+        std::string text;
+        float fontSize;
+        NVGcolor fgColor = SCHEME_ORANGE;
+        Vec textPos;
+
+        SapphireChannelDisplay()
+        {
+            fontPath = asset::system("res/fonts/DSEG7ClassicMini-BoldItalic.ttf");
+            textPos = Vec(22, 20);
+            bgText = "18";
+            fontSize = 16;
+        }
+
+        void prepareFont(const DrawArgs& args)
+        {
+            std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+            if (!font)
+                return;
+            nvgFontFaceId(args.vg, font->handle);
+            nvgFontSize(args.vg, fontSize);
+            nvgTextLetterSpacing(args.vg, 0.0);
+            nvgTextAlign(args.vg, NVG_ALIGN_RIGHT);
+        }
+
+        void draw(const DrawArgs& args) override
+        {
+            // Background
+            nvgBeginPath(args.vg);
+            nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
+            nvgFillColor(args.vg, nvgRGB(0x19, 0x19, 0x19));
+            nvgFill(args.vg);
+            prepareFont(args);
+            nvgText(args.vg, textPos.x, textPos.y, bgText.c_str(), nullptr);
+        }
+
+        void drawLayer(const DrawArgs& args, int layer) override
+        {
+            if (layer == 1)
+            {
+                prepareFont(args);
+                nvgFillColor(args.vg, fgColor);
+                nvgText(args.vg, textPos.x, textPos.y, text.c_str(), nullptr);
+            }
+            Widget::drawLayer(args, layer);
+        }
+
+        void step() override
+        {
+            int channels = module ? module->currentChannelCount : 0;
+            text = string::f("%d", channels);
+        }
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -121,6 +180,16 @@ namespace Sapphire
             port->module = module;
             port->outputId = outputId;
             return port;
+        }
+
+        SapphireChannelDisplay* addSapphireChannelDisplay(const std::string& svgId)
+        {
+            SapphireChannelDisplay* display = createWidget<SapphireChannelDisplay>(Vec{});
+            display->box.size = mm2px(Vec(8.197, 8.197));
+            display->module = getSapphireModule();
+            position(display, svgId);
+            addChild(display);
+            return display;
         }
 
         SapphireModule* getSapphireModule() const

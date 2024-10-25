@@ -507,6 +507,7 @@ namespace Sapphire
         float autoResetVoltageThreshold = 100;
         bool enableLimiterWarning = true;
         int limiterRecoveryCountdown = 0;      // positive integer indicates we are recovering from NAN/INF
+        int currentChannelCount = 0;           // used only by modules that display a channel count on the panel
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)

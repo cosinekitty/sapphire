@@ -134,6 +134,8 @@ namespace Sapphire
                 outputs[Z_OUTPUT].setVoltage(sz);
 
                 sendVector(sx, sy, sz, false);
+
+                currentChannelCount = nc;   // keep the channel display widget updated
             }
         };
 
@@ -155,6 +157,7 @@ namespace Sapphire
                 addSapphireOutput(X_OUTPUT, "x_output");
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
+                addSapphireChannelDisplay("channel_display");
             }
 
             void appendContextMenu(Menu* menu) override

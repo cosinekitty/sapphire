@@ -994,10 +994,12 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     dxArrow = 2.75
     dyArrow = 5.0
     xmid = panel.mmWidth / 2.0
+    yChannelDisplay = 14.75
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 's'))
         pl.append(CenteredGemstone(panel))
+
         controls.append(Component('x_input' , xmid, yInput.value(0)))
         controls.append(Component('y_input' , xmid, yInput.value(1)))
         controls.append(Component('z_input' , xmid, yInput.value(2)))
@@ -1013,6 +1015,8 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
         controls.append(Component('y_output', xmid, yOutput.value(1)))
         controls.append(Component('z_output', xmid, yOutput.value(2)))
         controls.append(Component('p_output', xmid, yOutput.value(3)))
+
+        controls.append(Component('channel_display', xmid, yChannelDisplay))
 
         pl.append(PolyPortHexagon(xmid, yOutput.value(3)))
     return Save(panel, svgFileName)
