@@ -100,15 +100,15 @@ The output can be used for control voltages or audio signals.
 
 ---
 
-## PGravy
+## Sauce
 
 A polyphonic filter with CV-controllable frequency, resonance, mix, and gain.
 Provides simultaneous lowpass, bandpass, and highpass outputs.
 This is the polyphonic version of the [Gravy](Gravy.md) stereo filter.
 
-<a href="PGravy.md">Sapphire PGravy documentation</a>
+<a href="Sauce.md">Sapphire Sauce documentation</a>
 
-<a href="PGravy.md"><img src="images/pGravy.png"/></a>
+<a href="Sauce.md"><img src="images/sauce.png"/></a>
 
 ---
 

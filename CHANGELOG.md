@@ -13,7 +13,7 @@
 <td align="center">2.5.2</td>
 <td align="left">
     <ul>
-        <li>Added new module <a href="PGravy.md">PGravy</a>. This is a polyphonic version of <a href="Gravy.md">Gravy</a>, but optimized for general polyphonic use.</li>
+        <li>Added new filter module <a href="Sauce.md">Sauce</a>. This uses the same filter algorithm as <a href="Gravy.md">Gravy</a> but with an interface optimized for general polyphonic use.</li>
         <li><a href="Gravy.md">Gravy</a> now includes an automatic gain control (AGC) limiter in the right-click menu. The limiter is OFF by default, but can be adjusted to the range 5V..50V. This can be helpful when the output gets hot due to high resonance settings.</li>
     </ul>
 </td>

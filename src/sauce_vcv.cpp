@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "pgravy_engine.hpp"
+#include "sauce_engine.hpp"
 
 // Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
 // A biquad filter implementation that supports tunable frequency and resonance.
@@ -9,7 +9,7 @@
 
 namespace Sapphire
 {
-    namespace PolyGravy
+    namespace Sauce
     {
         enum ParamId
         {
@@ -48,7 +48,7 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
-        struct PolyGravyModule : SapphireModule
+        struct SauceModule : SapphireModule
         {
             Gravy::SingleChannelGravyEngine engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity{};
@@ -57,7 +57,7 @@ namespace Sapphire
             AutomaticGainLimiter agcHigh;
             bool enableAgc = false;
 
-            PolyGravyModule()
+            SauceModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 using namespace Gravy;
@@ -258,13 +258,13 @@ namespace Sapphire
         };
 
 
-        struct PolyGravyWidget : SapphireWidget
+        struct SauceWidget : SapphireWidget
         {
-            PolyGravyModule* gravyModule{};
+            SauceModule* gravyModule{};
             WarningLightWidget* warningLight{};
 
-            explicit PolyGravyWidget(PolyGravyModule* module)
-                : SapphireWidget("pgravy", asset::plugin(pluginInstance, "res/pgravy.svg"))
+            explicit SauceWidget(SauceModule* module)
+                : SapphireWidget("sauce", asset::plugin(pluginInstance, "res/sauce.svg"))
                 , gravyModule(module)
             {
                 setModule(module);
@@ -300,7 +300,7 @@ namespace Sapphire
 }
 
 
-Model *modelSapphirePGravy = createSapphireModel<Sapphire::PolyGravy::PolyGravyModule, Sapphire::PolyGravy::PolyGravyWidget>(
-    "PGravy",
+Model *modelSapphireSauce = createSapphireModel<Sapphire::Sauce::SauceModule, Sapphire::Sauce::SauceWidget>(
+    "Sauce",
     Sapphire::VectorRole::None
 );

@@ -759,7 +759,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     return Save(panel, svgFileName)
 
 
-def GeneratePolyGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
@@ -1184,7 +1184,7 @@ if __name__ == '__main__':
         GenerateStereoInputLabels('../res/stereo_in_r2.svg', '', '2') or
         GenerateGalaxyPanel(cdict, 'galaxy') or
         GenerateGravyPanel(cdict, 'gravy') or
-        GeneratePolyGravyPanel(cdict, 'pgravy') or
+        GenerateSaucePanel(cdict, 'sauce') or
         GenerateRotiniPanel(cdict) or
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or

@@ -20,11 +20,11 @@ void init(Plugin* p)
     p->addModel(modelSapphireMoots);
     p->addModel(modelSapphireNucleus);
     p->addModel(modelSapphirePivot);
-    p->addModel(modelSapphirePGravy);
     p->addModel(modelSapphirePolynucleus);
     p->addModel(modelSapphirePop);
     p->addModel(modelSapphireRotini);
     p->addModel(modelSapphireSam);
+    p->addModel(modelSapphireSauce);
     p->addModel(modelSapphireTin);
     p->addModel(modelSapphireTout);
     p->addModel(modelSapphireTricorder);

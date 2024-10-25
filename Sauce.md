@@ -1,16 +1,16 @@
-## PGravy
+## Sauce
 
-![PGravy](images/pGravy.png)
+![Sauce](images/sauce.png)
 
-PGravy is a polyphonic state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in PGravy.
+Sauce is a polyphonic state-variable filter as described in the following paper by Andrew Simper (Cytomic). See page 6 of that paper for the equations used in Sauce.
 
 > https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
 
-PGravy is very similar to the stereo filter [Gravy](Gravy.md), but is optimized for general polyphonic use.
+Sauce is very similar to the stereo filter [Gravy](Gravy.md), but is optimized for general polyphonic use.
 
 ### Controls
 
-PGravy provides control over the following parameters:
+Sauce provides control over the following parameters:
 
 * **FREQ**: the filter's corner frequency. The default setting is 0, which corresponds to the note C5 = 523.251&nbsp;Hz. Each unit on the FREQ dial represents an octave. The dial spans &pm;5 octaves around the note C5.
 * **RES**: the filter's resonance, on a scale from 0 (the default) to 1. Higher resonance causes the filter to concentrate the passband closer in to the corner frequency. Toward the upper end of the resonance scale, you can even get sustained oscillations, also known as "ringing".
@@ -21,20 +21,20 @@ Each of the controls include a CV input port, a smaller attenuverter knob, and a
 
 ### Context menu
 
-When you right-click on the PGravy panel, you will see the following context menu:
+When you right-click on the Sauce panel, you will see the following context menu:
 
-![PGravy context menu](images/pgravy_menu.png)
+![Sauce context menu](images/sauce_menu.png)
 
 ### Toggle sensitivity on all attenuverters
 
-PGravy supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
+Sauce supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 This option toggles the sensitivity mode on all the attenuverter knobs.
 
 ### Output limiter
 
-Sometimes an output voltage from PGravy can be excessively large, especially
+Sometimes an output voltage from Sauce can be excessively large, especially
 if you use high resonance settings. It can be helpful to keep the output under
-control. To meet this need, PGravy includes a built-in output limiter option.
+control. To meet this need, Sauce includes a built-in output limiter option.
 
 In the context menu, the output limiter appears as a horizontal slider.
 By default, the limiter is turned OFF. If you start to pull this horizontal

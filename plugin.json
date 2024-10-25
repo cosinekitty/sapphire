@@ -102,16 +102,6 @@
       ]
     },
     {
-      "slug": "PGravy",
-      "name": "PGravy",
-      "description": "Polyphonic low/high/band-pass filter with resonance control.",
-      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/PGravy.md",
-      "tags": [
-        "Filter",
-        "Polyphonic"
-      ]
-    },
-    {
       "slug": "Pivot",
       "name": "Pivot",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Pivot.md",
@@ -150,6 +140,16 @@
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Rotini.md",
       "tags": [
         "Utility"
+      ]
+    },
+    {
+      "slug": "Sauce",
+      "name": "Sauce",
+      "description": "Polyphonic low/high/band-pass filter with resonance control.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Sauce.md",
+      "tags": [
+        "Filter",
+        "Polyphonic"
       ]
     },
     {
