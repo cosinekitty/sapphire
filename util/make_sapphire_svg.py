@@ -484,13 +484,15 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
     pl.append(defs)
     cdict['hiss'] = controls = ControlLayer()
     xmid = panel.mmWidth / 2
-    ytop = 18.0
-    ybottom = 112.0
+    yChannelDisplay = 14.75
+    ytop = 27.0
+    ybottom = 114.0
+    dyGradientSpacing = 6.0
     dyOut = (ybottom - ytop) / (numOutputs - 1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        defs.append(Gradient(ytop - 7.0, panel.mmHeight - 15.0, '#1058ef', SAPPHIRE_PANEL_COLOR, 'gradient_hiss'))
-        pl.append(ControlGroupArt('hiss', 'hiss_art', panel, ytop - 7.0, panel.mmHeight - 15.0, 'gradient_hiss'))
+        defs.append(Gradient(ytop - dyGradientSpacing, panel.mmHeight - 15.0, '#1058ef', SAPPHIRE_PANEL_COLOR, 'gradient_hiss'))
+        pl.append(ControlGroupArt('hiss', 'hiss_art', panel, ytop - dyGradientSpacing, panel.mmHeight - 15.0, 'gradient_hiss'))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'hiss'))
         yout = ytop
@@ -498,6 +500,7 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
             name = 'random_output_{:d}'.format(i + 1)
             controls.append(Component(name, xmid, yout))
             yout += dyOut
+        controls.append(Component('channel_display', xmid, yChannelDisplay))
     return Save(panel, svgFileName)
 
 

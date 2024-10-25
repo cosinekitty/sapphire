@@ -9,12 +9,13 @@
 </tr>
 
 <tr valign="top">
-<td align="center">24 Oct 2024</td>
+<td align="center">25 Oct 2024</td>
 <td align="center">2.5.2</td>
 <td align="left">
     <ul>
         <li>Added new filter module <a href="Sauce.md">Sauce</a>. This uses the same filter algorithm as <a href="Gravy.md">Gravy</a> but with an interface optimized for general polyphonic use.</li>
         <li><a href="Gravy.md">Gravy</a> now includes an automatic gain control (AGC) limiter in the right-click menu. The limiter is OFF by default, but can be adjusted to the range 5V..50V. This can be helpful when the output gets hot due to high resonance settings.</li>
+        <li>Added a channel count display that shows 1..16 in <a href="Pop.md">Pop</a>, <a href="Hiss.md">Hiss</a>, and <a href="SplitAddMerge.md">SplitAddMerge</a>. This allows you to know the number of output channels just by looking at the panel.</li>
     </ul>
 </td>
 </tr>

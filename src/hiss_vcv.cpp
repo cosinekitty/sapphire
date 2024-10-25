@@ -92,6 +92,7 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 const int dim = dimensions();
+                currentChannelCount = dim;
                 for (int i = 0; i < NumOutputs; ++i)
                 {
                     Output& op = outputs[NOISE_OUTPUTS + i];
@@ -118,6 +119,8 @@ namespace Sapphire
 
                 for (int i = 0; i < NumOutputs; ++i)
                     addSapphireOutput(NOISE_OUTPUTS + i, std::string("random_output_") + std::to_string(i + 1));
+
+                addSapphireChannelDisplay("channel_display");
             }
 
             void appendContextMenu(Menu* menu) override
