@@ -127,10 +127,10 @@ namespace Sapphire
             position(input, label);
         }
 
-        void addSapphireInput(int inputId, const std::string& svgId)
+        void addSapphireInput(int inputId, const std::string& label)
         {
             SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
-            addSapphireInput(port, svgId);
+            addSapphireInput(port, label);
         }
 
         void addSapphireOutput(PortWidget* output, const std::string& label)
@@ -139,43 +139,43 @@ namespace Sapphire
             position(output, label);
         }
 
-        SapphirePort* addSapphireOutput(int outputId, const std::string& svgId)
+        SapphirePort* addSapphireOutput(int outputId, const std::string& label)
         {
             SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, outputId);
-            addSapphireOutput(port, svgId);
+            addSapphireOutput(port, label);
             return port;
         }
 
         template <typename knob_t = RoundLargeBlackKnob>
-        knob_t *addKnob(int paramId, const std::string& svgId)
+        knob_t *addKnob(int paramId, const std::string& label)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
-            addSapphireParam(knob, svgId);
+            addSapphireParam(knob, label);
             return knob;
         }
 
-        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& svgId)
+        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& label)
         {
             RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
-            addSapphireParam(knob, svgId);
+            addSapphireParam(knob, label);
             return knob;
         }
 
-        SapphirePort* addFlippableOutputPort(int outputId, const std::string& svgId, SapphireModule* module)
+        SapphirePort* addFlippableOutputPort(int outputId, const std::string& label, SapphireModule* module)
         {
-            SapphirePort* port = addSapphireOutput(outputId, svgId);
+            SapphirePort* port = addSapphireOutput(outputId, label);
             port->allowsVoltageFlip = true;
             port->module = module;
             port->outputId = outputId;
             return port;
         }
 
-        SapphireChannelDisplay* addSapphireChannelDisplay(const std::string& svgId)
+        SapphireChannelDisplay* addSapphireChannelDisplay(const std::string& label)
         {
             SapphireChannelDisplay* display = createWidget<SapphireChannelDisplay>(Vec{});
             display->box.size = mm2px(Vec(8.197, 8.197));
             display->module = getSapphireModule();
-            position(display, svgId);
+            position(display, label);
             addChild(display);
             return display;
         }
@@ -195,7 +195,7 @@ namespace Sapphire
             return sapphireModule;
         }
 
-        void addSapphireAttenuverter(int attenId, const std::string& svgId)
+        void addSapphireAttenuverter(int attenId, const std::string& label)
         {
             SapphireAttenuverterKnob *knob = createParamCentered<SapphireAttenuverterKnob>(Vec{}, module, attenId);
             SapphireModule* sapphireModule = getSapphireModule();
@@ -210,7 +210,7 @@ namespace Sapphire
             }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
-            addSapphireParam(knob, svgId);
+            addSapphireParam(knob, label);
         }
 
         void addSapphireControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)

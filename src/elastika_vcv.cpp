@@ -401,10 +401,10 @@ namespace Sapphire
                 addSapphireInput(POWER_GATE_INPUT, "power_gate_input");
             }
 
-            void addSlider(ParamId paramId, LightId lightId, const char *svgId)
+            void addSlider(ParamId paramId, LightId lightId, const char *label)
             {
                 SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
-                addSapphireParam(slider, svgId);
+                addSapphireParam(slider, label);
             }
 
             void appendContextMenu(Menu* menu) override
