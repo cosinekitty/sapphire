@@ -108,8 +108,6 @@ namespace Sapphire
 
         void position(Widget* widget, const std::string& label)
         {
-            using namespace Sapphire;
-
             ComponentLocation loc = FindComponent(modcode, label);
             Vec vec = mm2px(Vec{loc.cx, loc.cy});
             widget->box.pos = vec.minus(widget->box.size.div(2));
