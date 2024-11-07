@@ -868,6 +868,61 @@ static int PivotTest()
 }
 
 
+static int PopSpeed(double speed)
+{
+    const double sampleRate = 48000;
+    const int pulseLimit = 1000;
+
+    Sapphire::Pop::Engine engine;
+    engine.setSpeed(speed);
+    engine.setChaos(0);
+
+    // Verify that when CHAOS=0 the interval between pulses
+    // is exactly controlled by the SPEED parameter.
+    // Specifically, the time between pulses is proportial to 2^(-speed).
+    int minInterval = -1;
+    int maxInterval = -1;
+    float prev = 0;
+    int pulseCount = 0;
+    int prevPulseSample = -1;
+    for (int sample = 0; pulseCount < pulseLimit; ++sample)
+    {
+        float s = engine.process(sampleRate);
+        if (s > 1 && prev < 1)
+        {
+            if (prevPulseSample >= 0)
+            {
+                int interval = sample - prevPulseSample;
+                if (maxInterval < 0)
+                {
+                    minInterval = maxInterval = interval;
+                }
+                else
+                {
+                    minInterval = std::min(minInterval, interval);
+                    maxInterval = std::max(maxInterval, interval);
+                }
+            }
+            ++pulseCount;
+            prevPulseSample = sample;
+        }
+        prev = s;
+    }
+
+    double expectedInterval = sampleRate / std::pow(static_cast<double>(2), 1+speed);
+    double diff = std::abs(expectedInterval - maxInterval);
+
+    printf("PopSpeed(%lg): minInterval=%d, maxInterval=%d, expected=%lg, diff=%lg\n", speed, minInterval, maxInterval, expectedInterval, diff);
+    if (minInterval != maxInterval)
+        return Fail("PopSpeed", "Inconsistent intervals even though CHAOS=0.");
+
+    if (diff > 0.0)
+        return Fail("PopSpeed", "Excessive interval time error.");
+
+    return Pass("PopSpeed");
+}
+
+
 static int PopHistogram(double chaos)
 {
     printf("PopHistogram: starting chaos = %0.3lf\n", chaos);
@@ -924,6 +979,9 @@ static int PopHistogram(double chaos)
 static int PopTest()
 {
     return
+        PopSpeed(0.0) ||
+        PopSpeed(+1.0) ||
+        PopSpeed(-1.0) ||
         PopHistogram(0.0) ||
         PopHistogram(0.5) ||
         PopHistogram(1.0);
