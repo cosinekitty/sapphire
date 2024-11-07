@@ -531,6 +531,19 @@ namespace Sapphire
             return std::clamp(slider, minValue, maxValue);
         }
 
+        float cvGetVoltPerOctave(int paramId, int attenId, float cv, float minValue, float maxValue)
+        {
+            // Make it easy for a human to use this control voltage for V/OCT.
+            // Just turn the attenuverter to +100%, disable "low sensitivity",
+            // and each 1V change in CV is reflected in the return value (within clamping limits).
+            float slider = params[paramId].getValue();
+            float attenu = params[attenId].getValue();
+            if (isLowSensitive(attenId))
+                attenu /= AttenuverterLowSensitivityDenom;
+            slider += attenu * cv;
+            return std::clamp(slider, minValue, maxValue);
+        }
+
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
             float cv = inputs[inputId].getVoltageSum();

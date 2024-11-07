@@ -144,7 +144,7 @@ namespace Sapphire
                     nextChannelInputVoltage(vSync, SYNC_TRIGGER_INPUT, c);
 
                     bool isSyncTrigger = syncReceiver[c].updateTrigger(vSync);
-                    float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
+                    float speed = cvGetVoltPerOctave(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
                     float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
 
                     if (isSyncTrigger || isSyncPending)

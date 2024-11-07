@@ -13,7 +13,7 @@
 <td align="center">2.5.3</td>
 <td align="left">
     <ul>
-        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0.</li>
+        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0. Also made Pop's SPEED control voltage operate as V/OCT when the attenuverter is set to +100%.</li>
     </ul>
 </td>
 </tr>
