@@ -107,7 +107,7 @@ namespace Sapphire
                     gateVoltage = 10 - gateVoltage;
                     remainingTime = nextWaitInterval();
                     isFiringTrigger = true;
-                    pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+                    pulseSamplesRemaining = 1 + static_cast<int>(std::round(sampleRate / 1000));
                 }
 
                 if (isFiringTrigger)

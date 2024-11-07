@@ -868,9 +868,8 @@ static int PivotTest()
 }
 
 
-static int PopSpeed(double speed)
+static int PopSpeed(double speed, double sampleRate = 48000)
 {
-    const double sampleRate = 48000;
     const int pulseLimit = 1000;
 
     Sapphire::Pop::Engine engine;
@@ -885,9 +884,12 @@ static int PopSpeed(double speed)
     float prev = 0;
     int pulseCount = 0;
     int prevPulseSample = -1;
+    int triggerSamples = 0;
     for (int sample = 0; pulseCount < pulseLimit; ++sample)
     {
         float s = engine.process(sampleRate);
+        if (s > 1)
+            ++triggerSamples;
         if (s > 1 && prev < 1)
         {
             if (prevPulseSample >= 0)
@@ -905,6 +907,17 @@ static int PopSpeed(double speed)
             }
             ++pulseCount;
             prevPulseSample = sample;
+        }
+        if (s < 1 && prev > 1)
+        {
+            // Verify that each trigger lasts at least one millisecond, but not too much longer than that.
+            double triggerMillis = (1000.0 * triggerSamples) / sampleRate;
+            if (triggerMillis < 1.0 || triggerMillis > 1.021)
+            {
+                printf("PopSpeed(%g): sampleRate=%g, triggerSamples=%d, triggerMillis=%0.16lf\n", speed, sampleRate, triggerSamples, triggerMillis);
+                return Fail("PopSpeed", "trigger pulse was not close enough to 1 millisecond.");
+            }
+            triggerSamples = 0;
         }
         prev = s;
     }
@@ -988,6 +1001,8 @@ static int PopTest()
         PopSpeed(-2.0) ||
         PopSpeed(-3.0) ||
         PopSpeed(-4.0) ||
+        PopSpeed(-1.0, 44100) ||
+        PopSpeed(+1.0, 44100) ||
         PopHistogram(0.0) ||
         PopHistogram(0.5) ||
         PopHistogram(1.0) ||
