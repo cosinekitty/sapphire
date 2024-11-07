@@ -990,7 +990,8 @@ static int PopTest()
         PopSpeed(-4.0) ||
         PopHistogram(0.0) ||
         PopHistogram(0.5) ||
-        PopHistogram(1.0);
+        PopHistogram(1.0) ||
+        Pass("Pop");
 }
 
 

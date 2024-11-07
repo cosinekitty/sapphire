@@ -19,7 +19,6 @@ namespace Sapphire
 
         enum class TriggerState
         {
-            Reset,      // first-time initialization needed for random generator
             Waiting,    // counting down for next radioactive decay event
             Firing,     // fire for 1 millisecond
             Quiet,      // stay quiet for 1 millisecond after firing, before waiting again
@@ -38,14 +37,15 @@ namespace Sapphire
 
             Engine()
             {
+                updatePower();
                 initialize();
             }
 
             void initialize()
             {
-                secondsRemaining = 0;
-                state = TriggerState::Reset;
+                state = TriggerState::Waiting;
                 gateVoltage = 0;
+                needReset = true;
             }
 
             void setRandomSeed(unsigned rs)
@@ -56,6 +56,7 @@ namespace Sapphire
             double setSpeed(double knob)
             {
                 speed = std::clamp(knob, MIN_POP_SPEED, MAX_POP_SPEED);
+                updatePower();
                 return speed;
             }
 
@@ -79,84 +80,81 @@ namespace Sapphire
             float process(double sampleRate)
             {
                 const double dt = 1 / sampleRate;
-                float triggerVoltage = 0;
+                const double et = dt * power;
+                int triggerVoltage = 0;
+                bool startFiringTrigger = false;
+
+                remainingTime -= et;
+
+                if (needReset)
+                {
+                    needReset = false;
+                    gen.seed(randomSeed);
+                    if (sendTriggerOnReset)
+                    {
+                        startFiringTrigger = true;
+                    }
+                    else
+                    {
+                        state = TriggerState::Waiting;
+                        remainingTime = nextWaitInterval();
+                    }
+                }
+                else if (state == TriggerState::Waiting)
+                {
+                    // If we have been waiting long enough, fire the next trigger.
+                    if (remainingTime <= 0.0)
+                        startFiringTrigger = true;
+                }
+
+                if (startFiringTrigger)
+                {
+                    gateVoltage = 10 - gateVoltage;
+                    state = TriggerState::Firing;
+                    remainingTime = nextWaitInterval();
+                    pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+                }
 
                 switch (state)
                 {
-                case TriggerState::Reset:
-                default:
-                    // Start deterministically, but with a different random seed for each channel.
-                    gen.seed(randomSeed);
-
-                    if (sendTriggerOnReset)
-                    {
-                        // Start out firing a trigger. Subsequent triggers have adjustably random timing.
-                        state = TriggerState::Firing;
-                        secondsRemaining = 0.001 - 1/sampleRate;
-                        triggerVoltage = 10;
-                        gateVoltage = 10 - gateVoltage;
-                    }
-                    else
-                    {
-                        // Start out waiting for the first random time interval.
-                        state = TriggerState::Waiting;
-                        secondsRemaining = nextWaitInterval();
-                        triggerVoltage = 0;
-                    }
-                    break;
-
                 case TriggerState::Waiting:
-                    secondsRemaining -= dt * std::pow(2.0, static_cast<double>(speed));
-                    if (secondsRemaining <= 0)
-                    {
-                        // Time to fire a trigger!
-                        state = TriggerState::Firing;
-                        secondsRemaining = 0.001 - 1/sampleRate;
-                        triggerVoltage = 10;
-                        gateVoltage = 10 - gateVoltage;
-                    }
-                    else
-                        triggerVoltage = 0;
+                default:
+                    // Do nothing until trigger firing logic above kicks us out of the waiting state.
                     break;
 
                 case TriggerState::Firing:
-                    secondsRemaining -= dt;
-                    if (secondsRemaining <= 0)
+                    if (pulseSamplesRemaining > 0)
                     {
-                        // Stop firing the trigger. Go to zero volts for another millisecond.
-                        state = TriggerState::Quiet;
-                        secondsRemaining = 0.001 - 1/sampleRate;
-                        triggerVoltage = 0;
+                        --pulseSamplesRemaining;
+                        triggerVoltage = 10;
                     }
                     else
-                        triggerVoltage = 10;
+                    {
+                        state = TriggerState::Quiet;
+                        pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+                    }
                     break;
 
                 case TriggerState::Quiet:
-                    secondsRemaining -= dt;
-                    if (secondsRemaining <= 0)
-                    {
-                        // We have been quiet for 1 millisecond. Go back to the waiting state.
+                    if (pulseSamplesRemaining > 0)
+                        --pulseSamplesRemaining;
+                    else
                         state = TriggerState::Waiting;
-                        // Figure out how many seconds to wait for the next radioactive decay.
-                        // Deduct the 2-millisecond trigger cycle (1ms @ 10V, 1ms @ 0V).
-                        secondsRemaining = nextWaitInterval() - 0.002;
-                    }
-                    triggerVoltage = 0;
                     break;
                 }
 
                 switch (outputMode)
                 {
                 case OutputMode::Gate:
-                    return gateVoltage;
+                    return static_cast<float>(gateVoltage);
 
                 case OutputMode::Trigger:
                 default:
-                    return triggerVoltage;
+                    return static_cast<float>(triggerVoltage);
                 }
             }
 
+private:
             double nextWaitInterval()
             {
                 return (1-chaos)/MEAN_POP_RATE_HZ + chaos*generateDeltaT(MEAN_POP_RATE_HZ);
@@ -169,14 +167,26 @@ namespace Sapphire
                 return dt;
             }
 
-        private:
+            void updatePower()
+            {
+                if (speed != prevSpeed)
+                {
+                    prevSpeed = speed;
+                    power = std::pow(static_cast<double>(2), speed);
+                }
+            }
+
             OutputMode outputMode = OutputMode::Trigger;
-            float gateVoltage = 0;
+            int gateVoltage = 0;
             unsigned randomSeed = 8675309;
+            double prevSpeed = 99;
             double speed = DEFAULT_POP_SPEED;
+            double power{};
+            double remainingTime = 0;
+            int pulseSamplesRemaining = 0;
             double chaos = DEFAULT_POP_CHAOS;
-            double secondsRemaining = 0;
-            TriggerState state = TriggerState::Reset;
+            TriggerState state = TriggerState::Waiting;
+            bool needReset = true;
             std::mt19937 gen;
             std::uniform_real_distribution<double> dis{0.001, 1.0};
         };
