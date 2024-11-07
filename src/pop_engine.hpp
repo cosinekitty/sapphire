@@ -17,13 +17,6 @@ namespace Sapphire
         const double MAX_POP_CHAOS = 1;
         const double DEFAULT_POP_CHAOS = 0.5;
 
-        enum class TriggerState
-        {
-            Waiting,    // counting down for next radioactive decay event
-            Firing,     // fire for 1 millisecond
-            Quiet,      // stay quiet for 1 millisecond after firing, before waiting again
-        };
-
         enum class OutputMode
         {
             Trigger,
@@ -43,9 +36,10 @@ namespace Sapphire
 
             void initialize()
             {
-                state = TriggerState::Waiting;
+                isFiringTrigger = false;
                 gateVoltage = 0;
                 needReset = true;
+                pulseSamplesRemaining = 0;
             }
 
             void setRandomSeed(unsigned rs)
@@ -96,11 +90,11 @@ namespace Sapphire
                     }
                     else
                     {
-                        state = TriggerState::Waiting;
+                        isFiringTrigger = false;
                         remainingTime = nextWaitInterval();
                     }
                 }
-                else if (state == TriggerState::Waiting)
+                else if (!isFiringTrigger)
                 {
                     // If we have been waiting long enough, fire the next trigger.
                     if (remainingTime <= 0.0)
@@ -111,18 +105,12 @@ namespace Sapphire
                 {
                     gateVoltage = 10 - gateVoltage;
                     remainingTime = nextWaitInterval();
-                    state = TriggerState::Firing;
-                    beginMillisecondCountdown(sampleRate);
+                    isFiringTrigger = true;
+                    pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
                 }
 
-                switch (state)
+                if (isFiringTrigger)
                 {
-                case TriggerState::Waiting:
-                default:
-                    // Do nothing until trigger firing logic above kicks us out of the waiting state.
-                    break;
-
-                case TriggerState::Firing:
                     if (pulseSamplesRemaining > 0)
                     {
                         --pulseSamplesRemaining;
@@ -130,17 +118,8 @@ namespace Sapphire
                     }
                     else
                     {
-                        state = TriggerState::Quiet;
-                        beginMillisecondCountdown(sampleRate);
+                        isFiringTrigger = false;
                     }
-                    break;
-
-                case TriggerState::Quiet:
-                    if (pulseSamplesRemaining > 0)
-                        --pulseSamplesRemaining;
-                    else
-                        state = TriggerState::Waiting;
-                    break;
                 }
 
                 switch (outputMode)
@@ -155,11 +134,6 @@ namespace Sapphire
             }
 
 private:
-            void beginMillisecondCountdown(double sampleRate)
-            {
-                pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
-            }
-
             double nextWaitInterval()
             {
                 return (1-chaos)/MEAN_POP_RATE_HZ + chaos*generateDeltaT(MEAN_POP_RATE_HZ);
@@ -190,7 +164,7 @@ private:
             double remainingTime = 0;
             int pulseSamplesRemaining = 0;
             double chaos = DEFAULT_POP_CHAOS;
-            TriggerState state = TriggerState::Waiting;
+            bool isFiringTrigger = false;
             bool needReset = true;
             std::mt19937 gen;
             std::uniform_real_distribution<double> dis{0.001, 1.0};
