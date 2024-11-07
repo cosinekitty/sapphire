@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">7 Nov 2024</td>
+<td align="center">2.5.3</td>
+<td align="left">
+    <ul>
+        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">25 Oct 2024</td>
 <td align="center">2.5.2</td>
 <td align="left">
