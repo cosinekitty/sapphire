@@ -981,7 +981,13 @@ static int PopTest()
     return
         PopSpeed(0.0) ||
         PopSpeed(+1.0) ||
+        PopSpeed(+2.0) ||
+        PopSpeed(+3.0) ||
+        PopSpeed(+4.0) ||
         PopSpeed(-1.0) ||
+        PopSpeed(-2.0) ||
+        PopSpeed(-3.0) ||
+        PopSpeed(-4.0) ||
         PopHistogram(0.0) ||
         PopHistogram(0.5) ||
         PopHistogram(1.0);
