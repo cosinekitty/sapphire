@@ -916,7 +916,7 @@ static int PopSpeed(double speed)
     if (minInterval != maxInterval)
         return Fail("PopSpeed", "Inconsistent intervals even though CHAOS=0.");
 
-    if (diff > 1.0)
+    if (diff > 0.0)
         return Fail("PopSpeed", "Excessive interval time error.");
 
     return Pass("PopSpeed");

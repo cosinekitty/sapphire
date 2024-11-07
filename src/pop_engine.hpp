@@ -97,7 +97,9 @@ namespace Sapphire
                 else if (!isFiringTrigger)
                 {
                     // If we have been waiting long enough, fire the next trigger.
-                    if (remainingTime <= 0.0)
+                    // Tolerate a tiny amount of floatig point error so that we don't
+                    // lag by a random sample here and there.
+                    if (remainingTime <= 1.0e-6)
                         startFiringTrigger = true;
                 }
 
