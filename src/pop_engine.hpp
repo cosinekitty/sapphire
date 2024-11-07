@@ -110,9 +110,9 @@ namespace Sapphire
                 if (startFiringTrigger)
                 {
                     gateVoltage = 10 - gateVoltage;
-                    state = TriggerState::Firing;
                     remainingTime = nextWaitInterval();
-                    pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+                    state = TriggerState::Firing;
+                    beginMillisecondCountdown(sampleRate);
                 }
 
                 switch (state)
@@ -131,7 +131,7 @@ namespace Sapphire
                     else
                     {
                         state = TriggerState::Quiet;
-                        pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+                        beginMillisecondCountdown(sampleRate);
                     }
                     break;
 
@@ -155,6 +155,11 @@ namespace Sapphire
             }
 
 private:
+            void beginMillisecondCountdown(double sampleRate)
+            {
+                pulseSamplesRemaining = static_cast<int>(std::round(sampleRate / 1000));
+            }
+
             double nextWaitInterval()
             {
                 return (1-chaos)/MEAN_POP_RATE_HZ + chaos*generateDeltaT(MEAN_POP_RATE_HZ);
