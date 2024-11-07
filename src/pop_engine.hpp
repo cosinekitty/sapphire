@@ -94,13 +94,12 @@ namespace Sapphire
                         remainingTime = nextWaitInterval();
                     }
                 }
-                else if (!isFiringTrigger)
+                else
                 {
                     // If we have been waiting long enough, fire the next trigger.
-                    // Tolerate a tiny amount of floatig point error so that we don't
+                    // Tolerate a tiny amount of floating point error so that we don't
                     // lag by a random sample here and there.
-                    if (remainingTime <= 1.0e-6)
-                        startFiringTrigger = true;
+                    startFiringTrigger = (!isFiringTrigger && (remainingTime <= 1.0e-6));
                 }
 
                 if (startFiringTrigger)
