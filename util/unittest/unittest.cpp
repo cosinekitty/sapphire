@@ -912,7 +912,7 @@ static int PopSpeed(double speed, double sampleRate = 48000)
         {
             // Verify that each trigger lasts at least one millisecond, but not too much longer than that.
             double triggerMillis = (1000.0 * triggerSamples) / sampleRate;
-            if (triggerMillis < 1.0 || triggerMillis > 1.021)
+            if (triggerMillis < 1.0 || triggerMillis > 1.0 + 1000.0/sampleRate)
             {
                 printf("PopSpeed(%g): sampleRate=%g, triggerSamples=%d, triggerMillis=%0.16lf\n", speed, sampleRate, triggerSamples, triggerMillis);
                 return Fail("PopSpeed", "trigger pulse was not close enough to 1 millisecond.");
