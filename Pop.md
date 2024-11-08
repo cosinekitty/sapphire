@@ -55,6 +55,8 @@ knob all the way to +7. This results in a mean pulse rate of 256&nbsp;Hz.
 If you turn SPEED all the way down to &minus;7, the effective frequency is $2^{-6}=\frac{1}{64}$ Hz,
 resulting in less than one pulse per minute on average.
 
+To use the SPEED CV input as a V/OCT control, set the attenuverter all the way clockwise to +100%.
+
 ## CHAOS control group
 
 When the CHAOS knob is turned all the way to 1 (its maximum value),
