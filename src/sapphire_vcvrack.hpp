@@ -550,6 +550,12 @@ namespace Sapphire
             return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
+        float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
+        {
+            float cv = inputs[inputId].getVoltageSum();
+            return cvGetVoltPerOctave(paramId, attenId, cv, minValue, maxValue);
+        }
+
         void defineAttenuverterId(int attenId)
         {
             // We need to know which parameter IDs are actually for attenuverter knobs.

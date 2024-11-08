@@ -9,11 +9,12 @@
 </tr>
 
 <tr valign="top">
-<td align="center">7 Nov 2024</td>
+<td align="center">8 Nov 2024</td>
 <td align="center">2.5.3</td>
 <td align="left">
     <ul>
-        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0. Also made Pop's SPEED control voltage operate as V/OCT when the attenuverter is set to +100%.</li>
+        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0.</li>
+        <li><a href="Pop.md">Pop</a>, <a href="Gravy.md">Gravy</a>, <a href="Sauce.md">Sauce</a>: SPEED/FREQ control voltages operate as V/OCT when the attenuverter is set to +100%. Before this change, V/OCT behavior required the attenuverter set to a lower value.</li>
     </ul>
 </td>
 </tr>

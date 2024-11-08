@@ -213,7 +213,7 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix,  MIX_CV_INPUT,  c);
                         nextChannelInputVoltage(cvGain, GAIN_CV_INPUT, c);
 
-                        float freqKnob  = cvGetControlValue(FREQ_PARAM,  FREQ_ATTEN,  cvFreq, -OctaveRange, +OctaveRange);
+                        float freqKnob  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN,  cvFreq, -OctaveRange, +OctaveRange);
                         float resKnob   = cvGetControlValue(RES_PARAM,   RES_ATTEN,   cvRes);
                         float mixKnob   = cvGetControlValue(MIX_PARAM,   MIX_ATTEN,   cvMix);
                         float gainKnob  = cvGetControlValue(GAIN_PARAM,  GAIN_ATTEN,  cvGain);
