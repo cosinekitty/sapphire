@@ -15,6 +15,7 @@ extern Model* modelSapphireGalaxy;
 extern Model* modelSapphireGlee;
 extern Model* modelSapphireGravy;
 extern Model* modelSapphireHiss;
+extern Model* modelSapphireLark;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;
 extern Model* modelSapphirePivot;

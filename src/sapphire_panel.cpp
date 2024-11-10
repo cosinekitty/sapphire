@@ -116,6 +116,18 @@ namespace Sapphire
             {"random_output_8",        {   7.620,   94.667}},
             {"random_output_9",        {   7.620,  104.333}},
             }},
+        { "lark", {
+            {"chaos_atten",            {   5.160,   68.000}},
+            {"chaos_cv",               {  15.160,   68.000}},
+            {"chaos_knob",             {  10.160,   57.000}},
+            {"p_output",               {  10.160,  115.000}},
+            {"speed_atten",            {   5.160,   37.000}},
+            {"speed_cv",               {  15.160,   37.000}},
+            {"speed_knob",             {  10.160,   26.000}},
+            {"x_output",               {  10.160,   88.000}},
+            {"y_output",               {  10.160,   97.000}},
+            {"z_output",               {  10.160,  106.000}},
+            }},
         { "nucleus", {
             {"audio_mode_button",      {  15.640,   83.500}},
             {"decay_atten",            {  35.640,   36.000}},

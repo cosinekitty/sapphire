@@ -210,6 +210,35 @@ namespace Sapphire
     };
 
 
+    class Hadley : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite12.html
+    {
+    protected:
+        SlopeVector slopes(double x, double y, double z) const override
+        {
+            const double a = KnobValue(knob, 0.1, 0.3);
+            const double b = 4;
+            const double f = 8;
+            const double g = 1;
+
+            return SlopeVector (
+                -y*y - z*z - a*x + a*f,
+                x*y - b*x*z - y + g,
+                b*x*y + x*z - z
+            );
+        }
+
+    public:
+        Hadley()
+            : ChaoticOscillator(
+                1.0e-4,
+                0.1092, 0.0371, -0.0147,
+                -5, +5,
+                -5, +5,
+                -5, +5)
+            {}
+    };
+
+
     class Aizawa : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite3.html
     {
     private:

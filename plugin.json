@@ -79,6 +79,17 @@
       ]
     },
     {
+      "slug": "Lark",
+      "name": "Lark",
+      "description": "Chaotic oscillator based on the Hadley Attractor.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Lark.md",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Low-frequency oscillator"
+      ]
+    },
+    {
       "slug": "Moots",
       "name": "Moots",
       "description": "Plugs/unplugs polyphonic cables.",
