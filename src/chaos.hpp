@@ -215,7 +215,7 @@ namespace Sapphire
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
-            const double a = KnobValue(knob, 0.1, 0.3);
+            const double a = KnobValue(knob, 0.239, 0.282);
             const double b = 4;
             const double f = 8;
             const double g = 1;
