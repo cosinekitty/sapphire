@@ -210,46 +210,45 @@ namespace Sapphire
     };
 
 
-    class Hadley : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite12.html
+    class DequanLi : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite9.html
     {
     protected:
         SlopeVector slopes(double x, double y, double z) const override
         {
-            const double a = (mode==0) ? KnobValue(knob, 0.239, 0.282) : 0.260723;
-            const double b = (mode==1) ? KnobValue(knob, 3.8, 4.2) : 4.0;
-            const double f = (mode==2) ? KnobValue(knob, 7.0, 9.0) : 8.0;
-            const double g = (mode==3) ? KnobValue(knob, 0.65, 1.35) : 1.0;
+            const double a = (mode==0) ? KnobValue(knob, 33.6, 46.4) : 40;
+            const double c = 1.833;
+            const double d = 0.16;
+            const double e = 0.65;
+            const double k = 55;
+            const double f = 20;
 
             return SlopeVector (
-                -y*y - z*z - a*x + a*f,
-                x*y - b*x*z - y + g,
-                b*x*y + x*z - z
+                a*(y-x) + d*x*z,
+                k*x + f*y - x*z,
+                c*z + x*y - e*x*x
             );
         }
 
     public:
-        Hadley()
+        DequanLi()
             : ChaoticOscillator(
                 1.0e-4,
-                0.1092, 0.0371, -0.0147,
-                -5, +5,
-                -5, +5,
-                -5, +5)
+                0.349, 0.001, -0.16,
+                -300, +300,
+                -300, +300,
+                -300, +300)
             {}
 
         int getModeCount() const override
         {
-            return 4;
+            return 1;
         }
 
         const char* getModeName(int m) const override
         {
             switch (m)
             {
-            case 0: return "A";
-            case 1: return "B";
-            case 2: return "F";
-            case 3: return "G";
+            case 0:  return "A";
             default: return "INVALID_MODE";
             }
         }

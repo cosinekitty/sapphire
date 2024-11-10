@@ -5,7 +5,7 @@
 
 namespace Sapphire
 {
-    using LarkModule = Sapphire::Chaos::ChaosModule<Hadley>;
+    using LarkModule = Sapphire::Chaos::ChaosModule<DequanLi>;
     using LarkWidgetBase = Sapphire::Chaos::ChaosWidget<LarkModule>;
     struct LarkWidget : LarkWidgetBase
     {
