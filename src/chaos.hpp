@@ -217,8 +217,8 @@ namespace Sapphire
         {
             const double a = (mode==0) ? KnobValue(knob, 0.239, 0.282) : 0.260723;
             const double b = (mode==1) ? KnobValue(knob, 3.8, 4.2) : 4.0;
-            const double f = 8;
-            const double g = 1;
+            const double f = (mode==2) ? KnobValue(knob, 7.0, 9.0) : 8.0;
+            const double g = (mode==3) ? KnobValue(knob, 0.65, 1.35) : 1.0;
 
             return SlopeVector (
                 -y*y - z*z - a*x + a*f,
@@ -239,7 +239,7 @@ namespace Sapphire
 
         int getModeCount() const override
         {
-            return 2;
+            return 4;
         }
 
         const char* getModeName(int m) const override
@@ -248,6 +248,8 @@ namespace Sapphire
             {
             case 0: return "A";
             case 1: return "B";
+            case 2: return "F";
+            case 3: return "G";
             default: return "INVALID_MODE";
             }
         }
