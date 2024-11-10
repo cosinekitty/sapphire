@@ -224,7 +224,10 @@ namespace Sapphire
             const double ew = 0.079475;
             const double e = (mode==1) ? KnobValue(knob, e0-ew, e0+ew) : e0;
 
-            const double k = 55;
+            const double k0 = 55;
+            const double kw = 20;
+            const double k = (mode==2) ? KnobValue(knob, k0-kw, k0+kw) : k0;
+
             const double f = 20;
 
             return SlopeVector (
