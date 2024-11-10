@@ -216,9 +216,14 @@ namespace Sapphire
         SlopeVector slopes(double x, double y, double z) const override
         {
             const double a = (mode==0) ? KnobValue(knob, 33.6, 46.4) : 40;
+
             const double c = 1.833;
             const double d = 0.16;
-            const double e = 0.65;
+
+            const double e0 = 0.644475;
+            const double ew = 0.079475;
+            const double e = (mode==1) ? KnobValue(knob, e0-ew, e0+ew) : e0;
+
             const double k = 55;
             const double f = 20;
 
@@ -241,7 +246,7 @@ namespace Sapphire
 
         int getModeCount() const override
         {
-            return 1;
+            return 4;
         }
 
         const char* getModeName(int m) const override
@@ -249,6 +254,9 @@ namespace Sapphire
             switch (m)
             {
             case 0:  return "A";
+            case 1:  return "E";
+            case 2:  return "K";
+            case 3:  return "F";
             default: return "INVALID_MODE";
             }
         }
