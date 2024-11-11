@@ -37,6 +37,11 @@ namespace Sapphire
             , my(_my)
             , mz(_mz)
             {}
+
+        SlopeVector operator / (double denom) const
+        {
+            return SlopeVector(mx/denom, my/denom, mz/denom);
+        }
     };
 
 
@@ -234,17 +239,22 @@ namespace Sapphire
             const double fw = -3.9;
             const double f = (mode==3) ? KnobValue(knob, f0-fw, f0+fw) : f0;
 
+            // The original Dequan Li attractor formulas result in a very
+            // fast-moving particle, which is inconsistent with Frolic and Glee.
+            // Decrease the speed to be more consistent.
+            const double speedDenom = 30;
+
             return SlopeVector (
                 a*(y-x) + d*x*z,
                 k*x + f*y - x*z,
                 c*z + x*y - e*x*x
-            );
+            ) / speedDenom;
         }
 
     public:
         DequanLi()
             : ChaoticOscillator(
-                1.0e-4,
+                1.0e-3,
                 0.349, 0.001, -0.16,
                 -300, +300,
                 -300, +300,
