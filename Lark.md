@@ -59,7 +59,7 @@ This is the same as multiplying the effective speed by 32.
 
 ![SPEED button context menu](images/chaos_speed_menu.png)
 
-**CHAOS**: This knob controls the value of a constant in the Aizawa attractor in a way that varies the nature of its chaotic orbit.
+**CHAOS**: This knob controls the value of a constant in the Dequan Li attractor in a way that varies the nature of its chaotic orbit.
 
 Lark supports 4 distinct *chaos modes* that are named after types of animals.
 Each animal name starts with the same letter as the Dequan Li parameter being controlled:
