@@ -231,13 +231,13 @@ namespace Sapphire
             const double ew = 0.079475;
             const double e = (mode==1) ? KnobValue(knob, e0-ew, e0+ew) : e0;
 
-            const double k0 = 55;
-            const double kw = 20;
-            const double k = (mode==2) ? KnobValue(knob, k0-kw, k0+kw) : k0;
-
             const double f0 = 20;
             const double fw = -3.9;
-            const double f = (mode==3) ? KnobValue(knob, f0-fw, f0+fw) : f0;
+            const double f = (mode==2) ? KnobValue(knob, f0-fw, f0+fw) : f0;
+
+            const double k0 = 55;
+            const double kw = 20;
+            const double k = (mode==3) ? KnobValue(knob, k0-kw, k0+kw) : k0;
 
             // The original Dequan Li attractor formulas result in a very
             // fast-moving particle, which is inconsistent with Frolic and Glee.
@@ -270,10 +270,10 @@ namespace Sapphire
         {
             switch (m)
             {
-            case 0:  return "A";
-            case 1:  return "E";
-            case 2:  return "K";
-            case 3:  return "F";
+            case 0:  return "Aardvark";
+            case 1:  return "Elephant";
+            case 2:  return "Ferret";
+            case 3:  return "Kangaroo";
             default: return "INVALID_MODE";
             }
         }
