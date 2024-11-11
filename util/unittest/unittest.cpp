@@ -644,40 +644,23 @@ static int RangeTest(
     const long SIM_SAMPLES = SIM_SECONDS * SAMPLE_RATE;
     const double dt = 1.0 / SAMPLE_RATE;
 
-    double xMin = 0;
-    double xMax = 0;
-    double yMin = 0;
-    double yMax = 0;
-    double zMin = 0;
-    double zMax = 0;
-
-    const long SETTLE_SECONDS = 60;
-    const long SETTLE_SAMPLES = SETTLE_SECONDS * SAMPLE_RATE;
-    for (long i = 0; i < SETTLE_SAMPLES; ++i)
-    {
-        osc.update(dt);
-        if (CheckLimits(osc, range)) return 1;
-    }
+    double xMin = osc.vx();
+    double xMax = osc.vx();
+    double yMin = osc.vy();
+    double yMax = osc.vy();
+    double zMin = osc.vz();
+    double zMax = osc.vz();
 
     for (long i = 0; i < SIM_SAMPLES; ++i)
     {
         osc.update(dt);
         if (CheckLimits(osc, range)) return 1;
-        if (i == 0)
-        {
-            xMin = xMax = osc.vx();
-            yMin = yMax = osc.vy();
-            zMin = zMax = osc.vz();
-        }
-        else
-        {
-            xMin = std::min(xMin, osc.vx());
-            xMax = std::max(xMax, osc.vx());
-            yMin = std::min(yMin, osc.vy());
-            yMax = std::max(yMax, osc.vy());
-            zMin = std::min(zMin, osc.vz());
-            zMax = std::max(zMax, osc.vz());
-        }
+        xMin = std::min(xMin, osc.vx());
+        xMax = std::max(xMax, osc.vx());
+        yMin = std::min(yMin, osc.vy());
+        yMax = std::max(yMax, osc.vy());
+        zMin = std::min(zMin, osc.vz());
+        zMax = std::max(zMax, osc.vz());
     }
 
     printf("vx range: %10.6lf %10.6lf\n", xMin, xMax);
@@ -700,7 +683,7 @@ static int ChaosTest()
         RangeTest(aiza, 0, "Aizawa_Apple", 5.3) ||
         RangeTest(aiza, 1, "Aizawa_Banana", 6.0) ||
         RangeTest(aiza, 2, "Aizawa_Cantaloupe", 5.0) ||
-        RangeTest(aiza, 3, "Aizawa_Elderberry", 100) ||
+        RangeTest(aiza, 3, "Aizawa_Elderberry", 4.85) ||
         Pass("ChaosTest");
 }
 
