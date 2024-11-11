@@ -58,7 +58,7 @@ However, at the risk of using a **LOT** more CPU time, you can right-click
 on the SPEED knob and toggle *Turbo mode*, which adds a +5 bonus to the SPEED value.
 This is the same as multiplying the effective speed by 32.
 
-![Frolic SPEED button context menu](images/frolic_speed_menu.png)
+![SPEED button context menu](images/chaos_speed_menu.png)
 
 **CHAOS**: This knob controls the value of the $A$ parameter in the first equation.
 The value of $A$ ranges from 3.8 to 6.7, which was experimentally determined
