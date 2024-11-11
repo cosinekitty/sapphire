@@ -48,7 +48,7 @@ by [Chris Johnson](https://github.com/airwindows/airwindows).
 
 ## Glee
 
-Another low-frequency and ultra-low-frequency chaotic oscillator
+A low-frequency and ultra-low-frequency chaotic oscillator
 for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="Glee.md">Sapphire Glee documentation</a>
@@ -75,6 +75,17 @@ A random vector generator whose outputs point in all directions of an N-dimensio
 <a href="Hiss.md">Sapphire Hiss documentation</a>
 
 <a href="Hiss.md"><img src="images/hiss.png"/></a>
+
+---
+
+## Lark
+
+A low-frequency and ultra-low-frequency chaotic oscillator
+for generating 3 simultaneous smooth but unpredictable voltages.
+
+<a href="Lark.md">Sapphire Lark documentation</a>
+
+<a href="Lark.md"><img src="images/lark.png"/></a>
 
 ---
 

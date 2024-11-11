@@ -5,6 +5,7 @@ of the voltage on the X, Y, and/or Z output ports:
 
 * [Frolic](Frolic.md)
 * [Glee](Glee.md)
+* [Lark](Lark.md)
 * [Pivot](Pivot.md)
 * [Rotini](Rotini.md)
 
