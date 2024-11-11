@@ -256,9 +256,9 @@ namespace Sapphire
             : ChaoticOscillator(
                 1.0e-3,
                 0.349, 0.001, -0.16,
-                -300, +300,
-                -300, +300,
-                -300, +300)
+                -150, +150,
+                -200, +200,
+                 -60, +300)
             {}
 
         int getModeCount() const override

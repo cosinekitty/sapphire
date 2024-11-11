@@ -678,7 +678,14 @@ static int ChaosTest()
 
     Sapphire::Aizawa aiza;
 
+    Sapphire::DequanLi deq;
+    deq.setKnob(0.3);   // Modes A,E,K,F are identical when CHAOS=0, so test with nonzero CHAOS knob.
+
     return
+        RangeTest(deq, 0, "DequanLi_A",  5.1) ||
+        RangeTest(deq, 1, "DequanLi_E", 10.1) ||
+        RangeTest(deq, 2, "DequanLi_K",  7.1) ||
+        RangeTest(deq, 3, "DequanLi_F",  5.0) ||
         RangeTest(ruck, 0, "Rucklidge") ||
         RangeTest(aiza, 0, "Aizawa_Apple", 5.3) ||
         RangeTest(aiza, 1, "Aizawa_Banana", 6.0) ||
