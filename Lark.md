@@ -32,7 +32,7 @@ its velocity vector and uses it to update the particle's position vector.
 
 See the following paper for a more in-depth analysis of the Dequan Li attractor's dynamics:
 
-*  "[Poincare sections for a new three-dimensional
+*  "[Poincar&eacute; sections for a new three-dimensional
 toroidal attractor](https://www.physics.drexel.edu/~bob/Papers/Torochaos.pdf)" by Letellier and Gilmore.
 
 ### Outputs
