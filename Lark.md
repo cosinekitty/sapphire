@@ -30,6 +30,11 @@ of a particle into a velocity vector that points in the direction
 the particle must move. No matter where the particle is, Lark calculates
 its velocity vector and uses it to update the particle's position vector.
 
+See the following paper for a more in-depth analysis of the Dequan Li attractor's dynamics:
+
+*  "[Poincare sections for a new three-dimensional
+toroidal attractor](https://www.physics.drexel.edu/~bob/Papers/Torochaos.pdf)" by Letellier and Gilmore.
+
 ### Outputs
 
 The outputs are available in two different forms, for convenience:
