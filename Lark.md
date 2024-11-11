@@ -18,10 +18,10 @@ $$
 $$
 
 $$
-\frac{\mathrm{d}z}{\mathrm{d}t} = c z + x y - e x^2
+\frac{\mathrm{d}z}{\mathrm{d}t} = C z + x y - E x^2
 $$
 
-The right sides of these equations are all linear functions
+The right sides of these equations are all functions
 of $x$, $y$, and $z$. The left sides are all rates of change
 of these variables with time.
 
