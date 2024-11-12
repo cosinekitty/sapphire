@@ -81,7 +81,7 @@
     {
       "slug": "Lark",
       "name": "Lark",
-      "description": "Chaotic oscillator based on the Hadley Attractor.",
+      "description": "Chaotic oscillator based on the Dequan Li Attractor.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Lark.md",
       "tags": [
         "Physical modeling",
