@@ -631,7 +631,7 @@ static int RangeTest(
     Sapphire::ChaoticOscillator& osc,
     int mode,
     const char *name,
-    double range = Sapphire::CHAOS_AMPLITUDE)
+    double range)
 {
     printf("RangeTest(%s): starting\n", name);
 
@@ -681,12 +681,15 @@ static int ChaosTest()
     Sapphire::DequanLi deq;
     deq.setKnob(0.3);   // Modes A,E,K,F are identical when CHAOS=0, so test with nonzero CHAOS knob.
 
+    Sapphire::Halvorsen hal;
+
     return
+        RangeTest(hal, 0, "Halvorsen", 5.0) ||
         RangeTest(deq, 0, "DequanLi_Aardvark",  5.1) ||
         RangeTest(deq, 1, "DequanLi_Elephant", 10.1) ||
         RangeTest(deq, 2, "DequanLi_Ferret",    5.0) ||
         RangeTest(deq, 3, "DequanLi_Kangaroo",  7.1) ||
-        RangeTest(ruck, 0, "Rucklidge") ||
+        RangeTest(ruck, 0, "Rucklidge", 5.0) ||
         RangeTest(aiza, 0, "Aizawa_Apple", 5.3) ||
         RangeTest(aiza, 1, "Aizawa_Banana", 6.0) ||
         RangeTest(aiza, 2, "Aizawa_Cantaloupe", 5.0) ||

@@ -148,7 +148,7 @@
       "slug": "Romp",
       "name": "Romp",
       "description": "Chaotic oscillator based on the Halvorsen Attractor.",
-      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Lark.md",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Romp.md",
       "tags": [
         "Physical modeling",
         "Effect",

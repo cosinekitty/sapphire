@@ -221,7 +221,7 @@ namespace Sapphire
         SlopeVector slopes(double x, double y, double z) const override
         {
             const double a0 = 1.4;
-            const double aw = 0.21;
+            const double aw = 0.06075;
             const double a = KnobValue(knob, a0-aw, a0+aw);
 
             return SlopeVector(
@@ -236,9 +236,9 @@ namespace Sapphire
             : ChaoticOscillator(
                 1.0e-3,
                 1.0, +0.00152, -0.00163,
-                0, 0,
-                0, 0,
-                0, 0)
+                -13.4, 6.5,
+                -13.4, 6.5,
+                -13.4, 6.5)
             {}
     };
 
