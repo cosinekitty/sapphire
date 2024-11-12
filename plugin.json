@@ -145,6 +145,17 @@
       ]
     },
     {
+      "slug": "Romp",
+      "name": "Romp",
+      "description": "Chaotic oscillator based on the Halvorsen Attractor.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Lark.md",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Low-frequency oscillator"
+      ]
+    },
+    {
       "slug": "Rotini",
       "name": "Rotini",
       "description": "Takes the 3D vector cross product of a pair of 3D vectors.",

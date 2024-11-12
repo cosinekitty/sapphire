@@ -215,6 +215,34 @@ namespace Sapphire
     };
 
 
+    class Halvorsen : public ChaoticOscillator    // http://www.3d-meier.de/tut19/Seite13.html
+    {
+    protected:
+        SlopeVector slopes(double x, double y, double z) const override
+        {
+            const double a0 = 1.4;
+            const double aw = 0.21;
+            const double a = KnobValue(knob, a0-aw, a0+aw);
+
+            return SlopeVector(
+                -a*x - 4*y - 4*z - y*y,
+                -a*y - 4*z - 4*x - z*z,
+                -a*z - 4*x - 4*y - x*x
+            );
+        }
+
+    public:
+        Halvorsen()
+            : ChaoticOscillator(
+                1.0e-3,
+                1.0, +0.00152, -0.00163,
+                0, 0,
+                0, 0,
+                0, 0)
+            {}
+    };
+
+
     class DequanLi : public ChaoticOscillator     // http://www.3d-meier.de/tut19/Seite9.html
     {
     protected:

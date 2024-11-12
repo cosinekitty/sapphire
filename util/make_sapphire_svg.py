@@ -1178,6 +1178,7 @@ if __name__ == '__main__':
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
+        GenerateChaosPanel(cdict, 'romp') or
         GenerateTricorderPanel() or
         GenerateTinToutPanel(cdict, 'tin',  'input',  'IN',  +5.2) or
         GenerateTinToutPanel(cdict, 'tout', 'output', 'OUT', -7.1) or
