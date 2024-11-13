@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">13 Nov 2024</td>
+<td align="center">2.5.4</td>
+<td align="left">
+    <ul>
+        <li>Added a new chaotic oscillator: <a href="Lark.md">Lark</a>.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">8 Nov 2024</td>
 <td align="center">2.5.3</td>
 <td align="left">
