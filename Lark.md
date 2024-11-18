@@ -4,6 +4,12 @@
 
 Lark is a low frequency (and ultra-low frequency) chaotic oscillator.
 
+### Demo video
+
+This video shows Lark being used to modulate oscillator and filter parameters to affect the timbre of a melodic voice.
+
+[![Sapphire Lark demo](https://img.youtube.com/vi/_ufJe73IkRg/0.jpg)](https://www.youtube.com/watch?v=_ufJe73IkRg)
+
 ### Mathematical basis
 
 Lark is based on the [Dequan Li attractor](http://www.3d-meier.de/tut19/Seite9.html),
