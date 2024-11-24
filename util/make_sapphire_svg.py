@@ -64,6 +64,23 @@ def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float
     return Path(path, style, id)
 
 
+def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
+    PANEL_WIDTH = 6
+    name = 'chaops'
+    svgFileName = '../res/{}.svg'.format(name)
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    cdict[name] = controls = ControlLayer()
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+    return Save(panel, svgFileName)
+
+
 def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
@@ -1178,6 +1195,7 @@ if __name__ == '__main__':
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
+        GenerateChaosOperatorsPanel(cdict) or
         GenerateTricorderPanel() or
         GenerateTinToutPanel(cdict, 'tin',  'input',  'IN',  +5.2) or
         GenerateTinToutPanel(cdict, 'tout', 'output', 'OUT', -7.1) or

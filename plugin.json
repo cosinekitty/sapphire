@@ -14,6 +14,15 @@
   "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/main/CHANGELOG.md",
   "modules": [
     {
+      "slug": "Chaops",
+      "name": "Chaops",
+      "description": "Left-expander to add extra controls to chaos modules Frolic, Glee, Lark.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Chaops.md",
+      "tags": [
+        "Expander"
+      ]
+    },
+    {
       "slug": "Elastika",
       "name": "Elastika",
       "description": "Filters audio through a simulated network of balls and springs.",

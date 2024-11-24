@@ -8,6 +8,8 @@ namespace Sapphire
 
     static const ModuleMap TheModuleMap
     {
+        { "chaops", {
+            }},
         { "elastika", {
             {"audio_left_input",       {   7.500,  115.000}},
             {"audio_left_output",      {  40.460,  115.000}},

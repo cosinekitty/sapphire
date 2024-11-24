@@ -1055,7 +1055,9 @@ namespace Sapphire
 
 // Keep this in the global namespace, not inside "Sapphire".
 template <class TModule, class TModuleWidget>
-rack::plugin::Model* createSapphireModel(std::string slug, Sapphire::VectorRole vectorRole)
+rack::plugin::Model* createSapphireModel(
+    std::string slug,
+    Sapphire::VectorRole vectorRole)
 {
     Model *model = rack::createModel<TModule, TModuleWidget>(slug);
     Sapphire::ModelInfo::insert(model, vectorRole);
