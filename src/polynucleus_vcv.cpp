@@ -696,5 +696,5 @@ namespace Sapphire
 
 Model* modelSapphirePolynucleus = createSapphireModel<Sapphire::Polynucleus::PolynucleusModule, Sapphire::Polynucleus::PolynucleusWidget>(
     "Polynucleus",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

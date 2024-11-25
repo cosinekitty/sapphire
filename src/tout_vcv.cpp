@@ -138,5 +138,5 @@ namespace Sapphire
 
 Model* modelSapphireTout = createSapphireModel<Sapphire::TricorderOutput::ToutModule, Sapphire::TricorderOutput::ToutWidget>(
     "Tout",
-    Sapphire::VectorRole::SenderAndReceiver
+    Sapphire::VectorSenderAndReceiver
 );

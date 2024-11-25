@@ -145,5 +145,5 @@ namespace Sapphire
 
 Model* modelSapphirePivot = createSapphireModel<Sapphire::Pivot::PivotModule, Sapphire::Pivot::PivotWidget>(
     "Pivot",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

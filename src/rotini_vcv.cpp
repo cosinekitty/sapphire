@@ -142,5 +142,5 @@ namespace Sapphire
 
 Model* modelSapphireRotini = createSapphireModel<Sapphire::Rotini::RotiniModule, Sapphire::Rotini::RotiniWidget>(
     "Rotini",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

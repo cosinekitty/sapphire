@@ -17,5 +17,5 @@ namespace Sapphire
 
 Model* modelSapphireLark = createSapphireModel<Sapphire::LarkModule, Sapphire::LarkWidget>(
     "Lark",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

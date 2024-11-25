@@ -642,5 +642,5 @@ namespace Sapphire
 
 Model* modelSapphireNucleus = createSapphireModel<Sapphire::Nucleus::NucleusModule, Sapphire::Nucleus::NucleusWidget>(
     "Nucleus",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

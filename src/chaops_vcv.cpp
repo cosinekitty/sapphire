@@ -73,5 +73,5 @@ namespace Sapphire
 
 Model* modelSapphireChaops = createSapphireModel<Sapphire::ChaosOperators::ChaopsModule, Sapphire::ChaosOperators::ChaopsWidget>(
     "Chaops",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );

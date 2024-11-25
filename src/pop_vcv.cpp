@@ -246,5 +246,5 @@ namespace Sapphire
 
 Model* modelSapphirePop = createSapphireModel<Sapphire::Pop::PopModule, Sapphire::Pop::PopWidget>(
     "Pop",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );

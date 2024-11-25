@@ -302,5 +302,5 @@ namespace Sapphire
 
 Model *modelSapphireSauce = createSapphireModel<Sapphire::Sauce::SauceModule, Sapphire::Sauce::SauceWidget>(
     "Sauce",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );

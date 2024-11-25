@@ -1739,5 +1739,5 @@ namespace Sapphire
 
 Model *modelSapphireTricorder = createSapphireModel<Sapphire::Tricorder::TricorderModule, Sapphire::Tricorder::TricorderWidget>(
     "Tricorder",
-    Sapphire::VectorRole::SenderAndReceiver
+    Sapphire::VectorSenderAndReceiver
 );

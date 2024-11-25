@@ -4,30 +4,41 @@
 #include "plugin.hpp"
 namespace Sapphire
 {
-    enum class VectorRole
+    enum class ExpanderRole
     {
-        None,
-        Sender,
-        Receiver,
-        SenderAndReceiver,
+        None            = 0,
+        VectorSender    = 0x01,
+        VectorReceiver  = 0x02,
+        ChaosOpSender   = 0x04,     // Chaops
+        ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark
     };
+
+    inline constexpr ExpanderRole Both(ExpanderRole a, ExpanderRole b)
+    {
+        return static_cast<ExpanderRole>(static_cast<int>(a) | static_cast<int>(b));
+    }
+
+    const ExpanderRole VectorSenderAndReceiver = Both(
+        Sapphire::ExpanderRole::VectorSender,
+        Sapphire::ExpanderRole::VectorReceiver
+    );
 
     struct ModelInfo
     {
         static ModelInfo *front;
         ModelInfo *next = nullptr;
         rack::plugin::Model* model;
-        VectorRole vectorRole;
+        ExpanderRole roles;
 
-        ModelInfo(rack::plugin::Model* _model, VectorRole _vectorRole)
+        ModelInfo(rack::plugin::Model* _model, ExpanderRole _roles)
             : model(_model)
-            , vectorRole(_vectorRole)
+            , roles(_roles)
         {
         }
 
-        static void insert(Model *_model, VectorRole _vectorRole)
+        static void insert(Model *_model, ExpanderRole _roles)
         {
-            ModelInfo *info = new ModelInfo(_model, _vectorRole);
+            ModelInfo *info = new ModelInfo(_model, _roles);
             info->next = front;
             front = info;
         }
@@ -42,22 +53,16 @@ namespace Sapphire
             return nullptr;
         }
 
-        static bool canReceiveVectors(const Model* model)
+        static bool hasRole(const Module* module, ExpanderRole role)
         {
-            ModelInfo* info = search(model);
+            if (module == nullptr)
+                return false;
+
+            ModelInfo* info = search(module->model);
             if (info == nullptr)
                 return false;
 
-            return (info->vectorRole == VectorRole::Receiver) || (info->vectorRole == VectorRole::SenderAndReceiver);
-        }
-
-        static bool canSendVectors(const Model* model)
-        {
-            ModelInfo* info = search(model);
-            if (info == nullptr)
-                return false;
-
-            return (info->vectorRole == VectorRole::Sender) || (info->vectorRole == VectorRole::SenderAndReceiver);
+            return 0 != (static_cast<int>(info->roles) & static_cast<int>(role));
         }
     };
 
@@ -127,7 +132,7 @@ namespace Sapphire
 
             static bool isVectorReceiver(const Module* module)
             {
-                return (module != nullptr) && ModelInfo::canReceiveVectors(module->model);
+                return ModelInfo::hasRole(module, ExpanderRole::VectorReceiver);
             }
 
             explicit VectorSender(Module& module)
@@ -158,7 +163,7 @@ namespace Sapphire
 
             static bool isVectorSender(const Module* module)
             {
-                return (module != nullptr) && ModelInfo::canSendVectors(module->model);
+                return ModelInfo::hasRole(module, ExpanderRole::VectorSender);
             }
 
             explicit VectorReceiver(Module& module)
@@ -1057,9 +1062,9 @@ namespace Sapphire
 template <class TModule, class TModuleWidget>
 rack::plugin::Model* createSapphireModel(
     std::string slug,
-    Sapphire::VectorRole vectorRole)
+    Sapphire::ExpanderRole roles)
 {
     Model *model = rack::createModel<TModule, TModuleWidget>(slug);
-    Sapphire::ModelInfo::insert(model, vectorRole);
+    Sapphire::ModelInfo::insert(model, roles);
     return model;
 }

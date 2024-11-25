@@ -171,5 +171,5 @@ namespace Sapphire
 
 Model *modelSapphireGalaxy = createSapphireModel<Sapphire::Galaxy::GalaxyModule, Sapphire::Galaxy::GalaxyWidget>(
     "Galaxy",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );

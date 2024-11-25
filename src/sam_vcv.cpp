@@ -174,5 +174,5 @@ namespace Sapphire
 
 Model* modelSapphireSam = createSapphireModel<Sapphire::SplitAddMerge::SplitAddMergeModule, Sapphire::SplitAddMerge::SplitAddMergeWidget>(
     "SplitAddMerge",
-    Sapphire::VectorRole::Sender
+    Sapphire::ExpanderRole::VectorSender
 );

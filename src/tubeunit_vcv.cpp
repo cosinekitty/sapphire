@@ -519,5 +519,5 @@ namespace Sapphire
 
 Model* modelSapphireTubeUnit = createSapphireModel<Sapphire::TubeUnit::TubeUnitModule, Sapphire::TubeUnit::TubeUnitWidget>(
     "TubeUnit",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );

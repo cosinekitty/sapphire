@@ -251,5 +251,5 @@ namespace Sapphire
 
 Model *modelSapphireGravy = createSapphireModel<Sapphire::Gravy::GravyModule, Sapphire::Gravy::GravyWidget>(
     "Gravy",
-    Sapphire::VectorRole::None
+    Sapphire::ExpanderRole::None
 );
