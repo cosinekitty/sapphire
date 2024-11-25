@@ -64,6 +64,29 @@ def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float
     return Path(path, style, id)
 
 
+def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float = -1.0) -> None:
+    dxControlGroup = 5.0
+    dyControlGroup = 11.0
+    dyControlText = -11.6
+    controls.append(Component(symbol + '_knob', x, y))
+    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
+    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
+    if dxText < 0.0:
+        pl.append(CenteredControlTextPath(font, label, x, y + dyControlText + 2.4))
+    else:
+        pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
+    # Draw a pair of connector lines:
+    # (1) from knob to attenuverter
+    # (2) from knob to CV input
+    t = ''
+    t += Move(x, y)
+    t += Line(x - dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    t += Line(x + dxControlGroup, y + dyControlGroup)
+    t += ClosePath()
+    pl.append(Path(t, CONNECTOR_LINE_STYLE))
+
+
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     PANEL_WIDTH = 6
     name = 'chaops'
@@ -103,9 +126,6 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
         controls.append(Component('p_output', xmid, outputPortY1 + 3*outputPortDY))
         ySpeedKnob = 26.0
         yChaosKnob = 57.0
-        dxControlGroup = 5.0
-        dyControlGroup = 11.0
-        dyControlText = -11.6
         xOutLabel = xmid - 3.9
         yOutLabel = outputPortY1 - 10.5
         artSpaceAboveKnob = 13.0
@@ -120,20 +140,8 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
         pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
         pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
         pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_out'))
-        controls.append(Component('speed_knob', xmid, ySpeedKnob))
-        controls.append(Component('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
-        controls.append(Component('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
-        controls.append(Component('chaos_knob', xmid, yChaosKnob))
-        controls.append(Component('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup))
-        controls.append(Component('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup))
-        pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
-        pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
-        lineGroup = Element('g', 'connector_lines').setAttrib('style', 'fill:none;stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none')
-        pl.append(lineGroup)
-        lineGroup.append(LineElement(xmid, ySpeedKnob, xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
-        lineGroup.append(LineElement(xmid, ySpeedKnob, xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
-        lineGroup.append(LineElement(xmid, yChaosKnob, xmid - dxControlGroup, yChaosKnob + dyControlGroup))
-        lineGroup.append(LineElement(xmid, yChaosKnob, xmid + dxControlGroup, yChaosKnob + dyControlGroup))
+        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid, ySpeedKnob)
+        AddControlGroup(pl, controls, font, 'chaos', 'CHAOS', xmid, yChaosKnob)
         pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
         pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*outputPortDY, 'port_label_x'))
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*outputPortDY, 'port_label_y'))
@@ -153,29 +161,6 @@ def GenerateTricorderPanel() -> int:
         pl.append(SapphireModelInsignia(panel, font, 'tricorder'))
     panel.append(pl)
     return Save(panel, svgFileName)
-
-
-def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float = -1.0) -> None:
-    dxControlGroup = 5.0
-    dyControlGroup = 11.0
-    dyControlText = -11.6
-    controls.append(Component(symbol + '_knob', x, y))
-    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
-    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
-    if dxText < 0.0:
-        pl.append(CenteredControlTextPath(font, label, x, y + dyControlText + 2.4))
-    else:
-        pl.append(ControlTextPath(font, label, x - dxText, y + dyControlText))
-    # Draw a pair of connector lines:
-    # (1) from knob to attenuverter
-    # (2) from knob to CV input
-    t = ''
-    t += Move(x, y)
-    t += Line(x - dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    t += Line(x + dxControlGroup, y + dyControlGroup)
-    t += ClosePath()
-    pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
 def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
