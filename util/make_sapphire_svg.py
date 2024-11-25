@@ -92,6 +92,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'chaops'
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
+    xmid = panel.mmWidth / 2
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
@@ -101,6 +102,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+        AddControlGroup(pl, controls, font, 'time', 'TIME', xmid, 26.0)
     return Save(panel, svgFileName)
 
 
