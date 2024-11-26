@@ -34,8 +34,12 @@ namespace Sapphire
 
         struct ChaopsModule : SapphireModule
         {
+            Sender sender;
+            Message message;
+
             ChaopsModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                , sender(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configParam(TIME_PARAM, -1, +1, +1, "Time flow");
@@ -52,6 +56,25 @@ namespace Sapphire
             {
                 SapphireModule::onReset(e);
                 initialize();
+            }
+
+            void process(const ProcessArgs& args) override
+            {
+                if (sender.isReceiverConnectedOnRight())
+                {
+                    message.timeFactor = 0.1;     // FIXFIXFIX read value from control group
+
+                    for (int c = 0; c < 16; ++c)
+                    {
+                        message.channel[c].x = 0;
+                        message.channel[c].y = 0;
+                        message.channel[c].z = 0;
+                        message.channel[c].recall = false;
+                        message.channel[c].store  = false;
+                    }
+
+                    sender.send(message);
+                }
             }
         };
 
@@ -73,5 +96,5 @@ namespace Sapphire
 
 Model* modelSapphireChaops = createSapphireModel<Sapphire::ChaosOperators::ChaopsModule, Sapphire::ChaosOperators::ChaopsWidget>(
     "Chaops",
-    Sapphire::ExpanderRole::None
+    Sapphire::ExpanderRole::ChaosOpSender
 );

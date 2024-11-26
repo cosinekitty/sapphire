@@ -49,14 +49,38 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+
+        struct VectorMemory
+        {
+            double x;
+            double y;
+            double z;
+
+            VectorMemory()
+                : x(0)
+                , y(0)
+                , z(0)
+                {}
+
+            explicit VectorMemory(double _x, double _y, double _z)
+                : x(_x)
+                , y(_y)
+                , z(_z)
+                {}
+        };
+
+
         template <typename circuit_t>
         struct ChaosModule : SapphireModule
         {
             circuit_t circuit;
             bool turboMode = false;
+            ChaosOperators::Receiver receiver;
+            VectorMemory memory[16];
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                , receiver(*this)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -114,12 +138,19 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                double timeFactor = 1;
+                const Sapphire::ChaosOperators::Message* message = receiver.inboundMessage();
+                if (message != nullptr)
+                {
+                    timeFactor = message->timeFactor;
+                }
+
                 float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                 circuit.setKnob(chaos);
                 float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
                 if (turboMode)
                     speed += 5;
-                double dt = args.sampleTime * std::pow(2.0f, speed);
+                double dt = timeFactor * args.sampleTime * std::pow(2.0f, speed);
                 circuit.update(dt);
                 float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
                 float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());

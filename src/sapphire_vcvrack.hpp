@@ -23,6 +23,11 @@ namespace Sapphire
         Sapphire::ExpanderRole::VectorReceiver
     );
 
+    const ExpanderRole ChaosModuleRoles = Both(
+        Sapphire::ExpanderRole::VectorSender,
+        Sapphire::ExpanderRole::ChaosOpReceiver
+    );
+
     struct ModelInfo
     {
         static ModelInfo *front;
@@ -187,6 +192,73 @@ namespace Sapphire
                     if (IsVectorMessage(message))
                         return message;
                 }
+                return nullptr;
+            }
+        };
+    }
+
+    namespace ChaosOperators
+    {
+        struct MessageChannel
+        {
+            float x{};
+            float y{};
+            float z{};
+            bool store{};
+            bool recall{};
+        };
+
+        struct Message
+        {
+            float timeFactor = 1;
+            MessageChannel channel[16];
+        };
+
+
+        struct Sender
+        {
+            Message buffer[2];
+            Module& parentModule;
+
+            explicit Sender(Module& module)
+                : parentModule(module)
+            {
+                module.rightExpander.producerMessage = &buffer[0];
+                module.rightExpander.consumerMessage = &buffer[1];
+            }
+
+            void send(const Message& message)
+            {
+                //INFO("sending chaops message: timeFactor = %g", message.timeFactor); // timeFactor = 0.1
+                Message& prod = *static_cast<Message*>(parentModule.rightExpander.producerMessage);
+                prod = message;
+                parentModule.rightExpander.requestMessageFlip();
+            }
+
+            bool isReceiverConnectedOnRight() const
+            {
+                return ModelInfo::hasRole(parentModule.rightExpander.module, ExpanderRole::ChaosOpReceiver);
+            }
+        };
+
+
+        struct Receiver
+        {
+            Message buffer[2];
+            Module& parentModule;
+
+            explicit Receiver(Module& module)
+                : parentModule(module)
+            {
+                module.leftExpander.producerMessage = &buffer[0];
+                module.leftExpander.consumerMessage = &buffer[1];
+            }
+
+            const Message* inboundMessage() const
+            {
+                const Module* lm = parentModule.leftExpander.module;
+                if (ModelInfo::hasRole(lm, ExpanderRole::ChaosOpSender))
+                    return static_cast<const Message *>(lm->rightExpander.consumerMessage);
                 return nullptr;
             }
         };
