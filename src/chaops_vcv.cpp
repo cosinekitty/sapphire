@@ -62,7 +62,7 @@ namespace Sapphire
             {
                 if (sender.isReceiverConnectedOnRight())
                 {
-                    message.timeFactor = 0.1;     // FIXFIXFIX read value from control group
+                    message.timeFactor = getControlValue(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT, -1, +1);
 
                     for (int c = 0; c < 16; ++c)
                     {
