@@ -9,9 +9,9 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "chaops", {
-            {"time_atten",             {  10.240,   37.000}},
-            {"time_cv",                {  20.240,   37.000}},
-            {"time_knob",              {  15.240,   26.000}},
+            {"memsel_atten",           {  10.240,   37.000}},
+            {"memsel_cv",              {  20.240,   37.000}},
+            {"memsel_knob",            {  15.240,   26.000}},
             }},
         { "elastika", {
             {"audio_left_input",       {   7.500,  115.000}},

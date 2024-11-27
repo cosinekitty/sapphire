@@ -199,19 +199,14 @@ namespace Sapphire
 
     namespace ChaosOperators
     {
-        struct MessageChannel
-        {
-            float x{};
-            float y{};
-            float z{};
-            bool store{};
-            bool recall{};
-        };
-
         struct Message
         {
-            float timeFactor = 1;
-            MessageChannel channel[16];
+            bool store  = false;
+            bool recall = false;
+            int memoryIndex = 0;       // 0..15
+            float vx = 0;
+            float vy = 0;
+            float vz = 0;
         };
 
 

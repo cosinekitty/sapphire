@@ -138,11 +138,10 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                double timeFactor = 1;
                 const Sapphire::ChaosOperators::Message* message = receiver.inboundMessage();
                 if (message != nullptr)
                 {
-                    timeFactor = message->timeFactor;
+                    // FIXFIXFIX - process commands from Chaops
                 }
 
                 float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
@@ -150,7 +149,7 @@ namespace Sapphire
                 float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
                 if (turboMode)
                     speed += 5;
-                double dt = timeFactor * args.sampleTime * std::pow(2.0f, speed);
+                double dt = args.sampleTime * std::pow(2.0f, speed);
                 circuit.update(dt);
                 float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
                 float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());
