@@ -103,17 +103,27 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yMemoryDisplay = 29.0
     yButton = 40.0
     yMemoryTriggerPorts = 50.0
-    dxButton = 7.0
+    dxButton = 8.0
     xStore  = xmid - dxButton
     xRecall = xmid + dxButton
-    arcRadius = 2.0
-    yRecallLine = 55.0
-    yStoreLine = 60.0
+    arcRadius = 1.5
+    yRecallLine = 56.0
+    yStoreLine = 62.0
     xRightPanel = panel.mmWidth - 1.0
     dxDisplay = 4.75
 
     def LineArtPath(path:str, id:str) -> Path:
         return Path(path, ARROW_LINE_STYLE, id, 'none')
+
+    def ArrowHead(xTip:float, yTip:float) -> str:
+        dx = 1.6
+        dy = 0.6
+        path = ''
+        path += Move(xTip, yTip)
+        path += Line(xTip - dx, yTip - dy)
+        path += Move(xTip, yTip)
+        path += Line(xTip - dx, yTip + dy)
+        return path
 
     def StoreLineArt() -> Path:
         path = ''
@@ -124,6 +134,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += Line(xStore, yMemoryDisplay + arcRadius)
         path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore + arcRadius, yMemoryDisplay)
         path += Line(xmid-dxDisplay, yMemoryDisplay)
+        path += ArrowHead(xmid-dxDisplay, yMemoryDisplay)
         return LineArtPath(path, 'store_line_art')
 
     def RecallLineArt() -> Path:
@@ -134,6 +145,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += Line(xRecall, yMemoryDisplay + arcRadius)
         path += 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xRecall - arcRadius, yMemoryDisplay)
         path += Line(xmid+dxDisplay, yMemoryDisplay)
+        path += ArrowHead(xRightPanel, yRecallLine)
         return LineArtPath(path, 'recall_line_art')
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
