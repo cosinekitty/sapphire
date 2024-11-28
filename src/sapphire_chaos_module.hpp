@@ -104,6 +104,12 @@ namespace Sapphire
             void initialize()
             {
                 circuit.initialize();
+                for (unsigned i = 0; i < ChaosOperators::MemoryCount; ++i)
+                {
+                    memory[i].x = circuit.vx();
+                    memory[i].y = circuit.vy();
+                    memory[i].z = circuit.vz();
+                }
                 turboMode = false;
             }
 
