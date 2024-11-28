@@ -14,7 +14,9 @@ namespace Sapphire
             {"memsel_cv",              {   6.240,   18.000}},
             {"memsel_knob",            {  24.240,   18.000}},
             {"recall_button",          {  22.240,   40.000}},
+            {"recall_trigger",         {  22.240,   50.000}},
             {"store_button",           {   8.240,   40.000}},
+            {"store_trigger",          {   8.240,   50.000}},
             }},
         { "elastika", {
             {"audio_left_input",       {   7.500,  115.000}},
