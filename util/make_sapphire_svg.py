@@ -118,16 +118,21 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     def StoreLineArt() -> Path:
         path = ''
         path += Move(xRightPanel, yStoreLine)
-        path += Line(xStore, yStoreLine)
-        path += Line(xStore, yMemoryDisplay)
+        path += Line(xStore + arcRadius, yStoreLine)
+        # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore, yStoreLine - arcRadius)
+        path += Line(xStore, yMemoryDisplay + arcRadius)
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore + arcRadius, yMemoryDisplay)
         path += Line(xmid-dxDisplay, yMemoryDisplay)
         return LineArtPath(path, 'store_line_art')
 
     def RecallLineArt() -> Path:
         path = ''
         path += Move(xRightPanel, yRecallLine)
-        path += Line(xRecall, yRecallLine)
-        path += Line(xRecall, yMemoryDisplay)
+        path += Line(xRecall + arcRadius, yRecallLine)
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xRecall, yRecallLine - arcRadius)
+        path += Line(xRecall, yMemoryDisplay + arcRadius)
+        path += 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xRecall - arcRadius, yMemoryDisplay)
         path += Line(xmid+dxDisplay, yMemoryDisplay)
         return LineArtPath(path, 'recall_line_art')
 
