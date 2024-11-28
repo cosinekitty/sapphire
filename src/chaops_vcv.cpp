@@ -51,6 +51,8 @@ namespace Sapphire
                 paramQuantities[MEMORY_SELECT_PARAM]->snapEnabled = true;
                 configParam(MEMORY_SELECT_ATTEN, -1, +1, 0, "Memory select attenuverter", "%", 0, 100);
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
+                configButton(STORE_BUTTON_PARAM, "Store");
+                configButton(RECALL_BUTTON_PARAM, "Recall");
                 initialize();
             }
 
@@ -115,7 +117,7 @@ namespace Sapphire
                 , chaopsModule(module)
             {
                 setModule(module);
-                addSapphireControlGroup("memsel", MEMORY_SELECT_PARAM, MEMORY_SELECT_ATTEN, MEMORY_SELECT_CV_INPUT);
+                addSapphireFlatControlGroup("memsel", MEMORY_SELECT_PARAM, MEMORY_SELECT_ATTEN, MEMORY_SELECT_CV_INPUT);
 
                 auto recallButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
                 addSapphireParam(recallButton, "recall_button");

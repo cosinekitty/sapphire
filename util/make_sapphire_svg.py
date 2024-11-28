@@ -98,13 +98,14 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     pl.append(defs)
     panel.append(pl)
     cdict[name] = controls = ControlLayer()
-    yButton = 45.0
-    dxButton = 10.0
+    yMemorySelect = 18.0
+    yButton = 40.0
+    dxButton = 7.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
-        AddControlGroup(pl, controls, font, 'memsel', 'MEM SELECT', xmid, 26.0)
+        AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',  xmid - dxButton, yButton))
         controls.append(Component('recall_button', xmid + dxButton, yButton))
     return Save(panel, svgFileName)

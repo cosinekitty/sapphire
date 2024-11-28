@@ -9,11 +9,11 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "chaops", {
-            {"memsel_atten",           {  10.240,   37.000}},
-            {"memsel_cv",              {  20.240,   37.000}},
-            {"memsel_knob",            {  15.240,   26.000}},
-            {"recall_button",          {  25.240,   45.000}},
-            {"store_button",           {   5.240,   45.000}},
+            {"memsel_atten",           {  15.240,   18.000}},
+            {"memsel_cv",              {   6.240,   18.000}},
+            {"memsel_knob",            {  24.240,   18.000}},
+            {"recall_button",          {  22.240,   40.000}},
+            {"store_button",           {   8.240,   40.000}},
             }},
         { "elastika", {
             {"audio_left_input",       {   7.500,  115.000}},
