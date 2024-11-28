@@ -55,26 +55,17 @@ namespace Sapphire
             double x;
             double y;
             double z;
-            bool xflip;
-            bool yflip;
-            bool zflip;
 
             MemoryCell()
                 : x(0)
                 , y(0)
                 , z(0)
-                , xflip(false)
-                , yflip(false)
-                , zflip(false)
                 {}
 
-            explicit MemoryCell(double _x, double _y, double _z, bool _xflip, bool _yflip, bool _zflip)
+            explicit MemoryCell(double _x, double _y, double _z)
                 : x(_x)
                 , y(_y)
                 , z(_z)
-                , xflip(_xflip)
-                , yflip(_yflip)
-                , zflip(_zflip)
                 {}
         };
 
@@ -149,7 +140,7 @@ namespace Sapphire
             {
                 using namespace Sapphire::ChaosOperators;
 
-                bool jumped = false;
+                bool needUpdate = true;
                 float cx = circuit.vx();
                 float cy = circuit.vy();
                 float cz = circuit.vz();
@@ -159,27 +150,21 @@ namespace Sapphire
                 {
                     if (message->store)
                     {
-                        unsigned index = message->memoryIndex % MemoryCount;
-                        memory[index].x = cx;
-                        memory[index].y = cy;
-                        memory[index].z = cz;
-                        memory[index].xflip = getVoltageFlipEnabled(X_OUTPUT);
-                        memory[index].yflip = getVoltageFlipEnabled(Y_OUTPUT);
-                        memory[index].zflip = getVoltageFlipEnabled(Z_OUTPUT);
+                        MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
+                        mc.x = cx;
+                        mc.y = cy;
+                        mc.z = cz;
                     }
 
                     if (message->recall)
                     {
-                        unsigned index = message->memoryIndex % MemoryCount;
-                        setVoltageFlipEnabled(X_OUTPUT, memory[index].xflip);
-                        setVoltageFlipEnabled(Y_OUTPUT, memory[index].yflip);
-                        setVoltageFlipEnabled(Z_OUTPUT, memory[index].zflip);
-                        circuit.teleport(memory[index].x, memory[index].y, memory[index].z);
-                        jumped = true;  // prevent updating the circuit state this sample
+                        const MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
+                        circuit.teleport(mc.x, mc.y, mc.z);
+                        needUpdate = false;
                     }
                 }
 
-                if (!jumped)
+                if (needUpdate)
                 {
                     float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                     circuit.setKnob(chaos);
