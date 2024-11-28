@@ -141,9 +141,6 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool needUpdate = true;
-                float cx = circuit.vx();
-                float cy = circuit.vy();
-                float cz = circuit.vz();
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
@@ -151,9 +148,9 @@ namespace Sapphire
                     if (message->store)
                     {
                         MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
-                        mc.x = cx;
-                        mc.y = cy;
-                        mc.z = cz;
+                        mc.x = circuit.vx();
+                        mc.y = circuit.vy();
+                        mc.z = circuit.vz();
                     }
 
                     if (message->recall)
@@ -175,9 +172,9 @@ namespace Sapphire
                     circuit.update(dt);
                 }
 
-                float vx = setFlippableOutputVoltage(X_OUTPUT, cx);
-                float vy = setFlippableOutputVoltage(Y_OUTPUT, cy);
-                float vz = setFlippableOutputVoltage(Z_OUTPUT, cz);
+                float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
+                float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());
+                float vz = setFlippableOutputVoltage(Z_OUTPUT, circuit.vz());
                 outputs[POLY_OUTPUT].setChannels(3);
                 outputs[POLY_OUTPUT].setVoltage(vx, 0);
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
