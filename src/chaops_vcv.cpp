@@ -43,6 +43,8 @@ namespace Sapphire
             Sender sender;
             bool storeButtonPressed = false;
             bool recallButtonPressed = false;
+            int storeFlashCounter = 0;
+            int recallFlashCounter = 0;
             GateTriggerReceiver storeReceiver;
             GateTriggerReceiver recallReceiver;
 
@@ -66,6 +68,8 @@ namespace Sapphire
             {
                 storeButtonPressed = false;
                 recallButtonPressed = false;
+                storeFlashCounter = 0;
+                recallFlashCounter = 0;
                 storeReceiver.initialize();
                 recallReceiver.initialize();
             }
@@ -120,12 +124,29 @@ namespace Sapphire
 
                     // HACK: "currentChannelCount" is really the displayed memory address.
                     currentChannelCount = message.memoryIndex;
+
+                    const float flashDurationSeconds = 0.05;
+
+                    if (message.store)
+                        storeFlashCounter = static_cast<int>(args.sampleRate * flashDurationSeconds);
+                    else if (storeFlashCounter > 0)
+                        --storeFlashCounter;
+
+                    if (message.recall)
+                        recallFlashCounter = static_cast<int>(args.sampleRate * flashDurationSeconds);
+                    else if (recallFlashCounter > 0)
+                        --recallFlashCounter;
                 }
                 else
                 {
                     // No attached module, therefore no valid memory address to display.
                     currentChannelCount = -1;
+                    storeFlashCounter = 0;
+                    recallFlashCounter = 0;
                 }
+
+                lights[STORE_BUTTON_LIGHT ].setBrightness(storeFlashCounter  ? 1.0f : 0.03f);
+                lights[RECALL_BUTTON_LIGHT].setBrightness(recallFlashCounter ? 1.0f : 0.03f);
             }
         };
 
