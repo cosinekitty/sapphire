@@ -199,14 +199,13 @@ namespace Sapphire
 
     namespace ChaosOperators
     {
+        const unsigned MemoryCount = 16;
+
         struct Message
         {
             bool store  = false;
             bool recall = false;
-            int memoryIndex = 0;       // 0..15
-            float vx = 0;
-            float vy = 0;
-            float vz = 0;
+            unsigned memoryIndex = 0;       // 0..(MemoryCount-1)
         };
 
 

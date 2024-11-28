@@ -13,16 +13,25 @@ namespace Sapphire
 {
     const double CHAOS_AMPLITUDE = 5.0;  // the intended peak amplitude of output voltage
 
-    inline double Remap(double v, double vmin, double vmax)
+    inline double Remap(double s, double smin, double smax)
     {
-        // Remaps v from the range [vmin, vmax] to [-CHAOS_AMPLITUDE, +CHAOS_AMPLITUDE].
+        // Remaps s from the range [smin, smax] to [-CHAOS_AMPLITUDE, +CHAOS_AMPLITUDE].
         // But before we know the range, return the unmodified signal.
-        if (vmax <= vmin)
+        if (smax <= smin)
+            return s;
+
+        // How far along the range is s in the range [smin, smax]?
+        double r = (s - smin) / (smax - smin);      // [0, 1]
+        return CHAOS_AMPLITUDE * (2*r - 1);
+    }
+
+
+    inline double Invmap(double v, double smin, double smax)
+    {
+        if (smax <= smin)
             return v;
 
-        // How far along the range is v in the range [vmin, vmax]?
-        double r = (v - vmin) / (vmax - vmin);      // [0, 1]
-        return CHAOS_AMPLITUDE * (2*r - 1);
+        return smin + (v/CHAOS_AMPLITUDE + 1)*(smax - smin)/2;
     }
 
 
@@ -186,6 +195,13 @@ namespace Sapphire
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
                 step(et);
+        }
+
+        void teleport(double vx, double vy, double vz)
+        {
+            x1 = Invmap(vx, xmin, xmax);
+            y1 = Invmap(vy, ymin, ymax);
+            z1 = Invmap(vz, zmin, zmax);
         }
     };
 

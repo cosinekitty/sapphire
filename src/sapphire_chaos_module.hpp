@@ -50,22 +50,31 @@ namespace Sapphire
         };
 
 
-        struct VectorMemory
+        struct MemoryCell
         {
             double x;
             double y;
             double z;
+            bool xflip;
+            bool yflip;
+            bool zflip;
 
-            VectorMemory()
+            MemoryCell()
                 : x(0)
                 , y(0)
                 , z(0)
+                , xflip(false)
+                , yflip(false)
+                , zflip(false)
                 {}
 
-            explicit VectorMemory(double _x, double _y, double _z)
+            explicit MemoryCell(double _x, double _y, double _z, bool _xflip, bool _yflip, bool _zflip)
                 : x(_x)
                 , y(_y)
                 , z(_z)
+                , xflip(_xflip)
+                , yflip(_yflip)
+                , zflip(_zflip)
                 {}
         };
 
@@ -76,7 +85,7 @@ namespace Sapphire
             circuit_t circuit;
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
-            VectorMemory memory[16];
+            MemoryCell memory[ChaosOperators::MemoryCount];
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -138,22 +147,52 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                const Sapphire::ChaosOperators::Message* message = receiver.inboundMessage();
+                using namespace Sapphire::ChaosOperators;
+
+                bool jumped = false;
+                float cx = circuit.vx();
+                float cy = circuit.vy();
+                float cz = circuit.vz();
+
+                const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
                 {
-                    // FIXFIXFIX - process commands from Chaops
+                    if (message->store)
+                    {
+                        unsigned index = message->memoryIndex % MemoryCount;
+                        memory[index].x = cx;
+                        memory[index].y = cy;
+                        memory[index].z = cz;
+                        memory[index].xflip = getVoltageFlipEnabled(X_OUTPUT);
+                        memory[index].yflip = getVoltageFlipEnabled(Y_OUTPUT);
+                        memory[index].zflip = getVoltageFlipEnabled(Z_OUTPUT);
+                    }
+
+                    if (message->recall)
+                    {
+                        unsigned index = message->memoryIndex % MemoryCount;
+                        setVoltageFlipEnabled(X_OUTPUT, memory[index].xflip);
+                        setVoltageFlipEnabled(Y_OUTPUT, memory[index].yflip);
+                        setVoltageFlipEnabled(Z_OUTPUT, memory[index].zflip);
+                        circuit.teleport(memory[index].x, memory[index].y, memory[index].z);
+                        jumped = true;  // prevent updating the circuit state this sample
+                    }
                 }
 
-                float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
-                circuit.setKnob(chaos);
-                float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
-                if (turboMode)
-                    speed += 5;
-                double dt = args.sampleTime * std::pow(2.0f, speed);
-                circuit.update(dt);
-                float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
-                float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());
-                float vz = setFlippableOutputVoltage(Z_OUTPUT, circuit.vz());
+                if (!jumped)
+                {
+                    float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
+                    circuit.setKnob(chaos);
+                    float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
+                    if (turboMode)
+                        speed += 5;
+                    double dt = args.sampleTime * std::pow(2.0f, speed);
+                    circuit.update(dt);
+                }
+
+                float vx = setFlippableOutputVoltage(X_OUTPUT, cx);
+                float vy = setFlippableOutputVoltage(Y_OUTPUT, cy);
+                float vz = setFlippableOutputVoltage(Z_OUTPUT, cz);
                 outputs[POLY_OUTPUT].setChannels(3);
                 outputs[POLY_OUTPUT].setVoltage(vx, 0);
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
