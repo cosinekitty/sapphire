@@ -140,7 +140,7 @@ namespace Sapphire
             {
                 using namespace Sapphire::ChaosOperators;
 
-                bool needUpdate = true;
+                bool jumped = false;
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
@@ -157,11 +157,11 @@ namespace Sapphire
                     {
                         const MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
                         circuit.teleport(mc.x, mc.y, mc.z);
-                        needUpdate = false;
+                        jumped = true;
                     }
                 }
 
-                if (needUpdate)
+                if (!jumped)
                 {
                     float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                     circuit.setKnob(chaos);
@@ -179,7 +179,7 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(vx, 0);
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
                 outputs[POLY_OUTPUT].setVoltage(vz, 2);
-                sendVector(vx, vy, vz, false);
+                sendVector(vx, vy, vz, jumped);
             }
         };
 
