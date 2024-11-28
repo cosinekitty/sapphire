@@ -274,10 +274,11 @@ class LiteralXml(Element):
 
 class Path(Element):
     """An SVG path with pre-rendered coordinates."""
-    def __init__(self, dpath:str, style:str = '', id:str = '') -> None:
+    def __init__(self, dpath:str, style:str = '', id:str = '', fillStyle:str = '') -> None:
         super().__init__('path', id)
         self.setAttrib('d', dpath)
         self.setAttrib('style', style)
+        self.setAttrib('fill', fillStyle)
 
 
 class LineElement(Element):

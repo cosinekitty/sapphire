@@ -92,26 +92,56 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     name = 'chaops'
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
-    xmid = panel.mmWidth / 2
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
     cdict[name] = controls = ControlLayer()
+
+    xmid = panel.mmWidth / 2
     yMemorySelect = 18.0
     yMemoryDisplay = 29.0
     yButton = 40.0
     yMemoryTriggerPorts = 50.0
     dxButton = 7.0
+    xStore  = xmid - dxButton
+    xRecall = xmid + dxButton
+    arcRadius = 2.0
+    yRecallLine = 55.0
+    yStoreLine = 60.0
+    xRightPanel = panel.mmWidth - 1.0
+    dxDisplay = 4.75
+
+    def LineArtPath(path:str, id:str) -> Path:
+        return Path(path, ARROW_LINE_STYLE, id, 'none')
+
+    def StoreLineArt() -> Path:
+        path = ''
+        path += Move(xRightPanel, yStoreLine)
+        path += Line(xStore, yStoreLine)
+        path += Line(xStore, yMemoryDisplay)
+        path += Line(xmid-dxDisplay, yMemoryDisplay)
+        return LineArtPath(path, 'store_line_art')
+
+    def RecallLineArt() -> Path:
+        path = ''
+        path += Move(xRightPanel, yRecallLine)
+        path += Line(xRecall, yRecallLine)
+        path += Line(xRecall, yMemoryDisplay)
+        path += Line(xmid+dxDisplay, yMemoryDisplay)
+        return LineArtPath(path, 'recall_line_art')
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+        pl.append(StoreLineArt())
+        pl.append(RecallLineArt())
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
-        controls.append(Component('store_button',   xmid - dxButton, yButton))
-        controls.append(Component('recall_button',  xmid + dxButton, yButton))
-        controls.append(Component('store_trigger',  xmid - dxButton, yMemoryTriggerPorts))
-        controls.append(Component('recall_trigger', xmid + dxButton, yMemoryTriggerPorts))
+        controls.append(Component('store_button',   xStore,  yButton))
+        controls.append(Component('recall_button',  xRecall, yButton))
+        controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
+        controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
     return Save(panel, svgFileName)
 
