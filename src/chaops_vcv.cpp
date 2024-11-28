@@ -103,6 +103,14 @@ namespace Sapphire
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
                     sender.send(message);
+
+                    // HACK: "currentChannelCount" is really the displayed memory address.
+                    currentChannelCount = message.memoryIndex;
+                }
+                else
+                {
+                    // No attached module, therefore no valid memory address to display.
+                    currentChannelCount = -1;
                 }
             }
         };
@@ -124,6 +132,8 @@ namespace Sapphire
 
                 auto storeButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
                 addSapphireParam(storeButton, "store_button");
+
+                addSapphireChannelDisplay("memory_address_display");
            }
         };
     }

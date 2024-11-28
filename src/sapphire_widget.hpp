@@ -83,7 +83,13 @@ namespace Sapphire
         void step() override
         {
             int channels = module ? module->currentChannelCount : 0;
-            text = string::f("%d", channels);
+
+            // The channel count display can actually show any number from 0..19,
+            // even though we generally don't need numbers bigger than 16.
+            if (channels >= 0 && channels <= 19)
+                text = string::f("%d", channels);
+            else
+                text = "";
         }
     };
 
