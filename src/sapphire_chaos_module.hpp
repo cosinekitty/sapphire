@@ -124,6 +124,19 @@ namespace Sapphire
                 json_t *root = SapphireModule::dataToJson();
                 json_object_set_new(root, "turboMode", json_boolean(turboMode));
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
+
+                // Save the memory cells as a JSON array.
+                json_t* memoryArray = json_array();
+                for (unsigned i = 0; i < ChaosOperators::MemoryCount; ++i)
+                {
+                    json_t* cell = json_object();
+                    json_object_set_new(cell, "x", json_real(memory[i].x));
+                    json_object_set_new(cell, "y", json_real(memory[i].y));
+                    json_object_set_new(cell, "z", json_real(memory[i].z));
+                    json_array_append_new(memoryArray, cell);
+                }
+                json_object_set_new(root, "memory", memoryArray);
+
                 return root;
             }
 
@@ -140,6 +153,26 @@ namespace Sapphire
                     static_cast<int>(json_integer_value(mode)) :
                     circuit.getLegacyMode()
                 );
+
+                json_t* memoryArray = json_object_get(root, "memory");
+                if (json_is_array(memoryArray))
+                {
+                    const unsigned n = static_cast<unsigned>(json_array_size(memoryArray));
+                    const unsigned limit = std::min(n, ChaosOperators::MemoryCount);
+                    for (unsigned i = 0; i < limit; ++i)
+                    {
+                        json_t* cell = json_array_get(memoryArray, i);
+                        json_t* jx = json_object_get(cell, "x");
+                        json_t* jy = json_object_get(cell, "y");
+                        json_t* jz = json_object_get(cell, "z");
+                        if (json_is_real(jx) && json_is_real(jy) && json_is_real(jz))
+                        {
+                            memory[i].x = json_real_value(jx);
+                            memory[i].y = json_real_value(jy);
+                            memory[i].z = json_real_value(jz);
+                        }
+                    }
+                }
             }
 
             void process(const ProcessArgs& args) override
