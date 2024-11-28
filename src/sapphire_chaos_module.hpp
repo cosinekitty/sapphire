@@ -50,6 +50,12 @@ namespace Sapphire
         };
 
 
+        inline bool IsSafeCoord(double s)
+        {
+            return std::isfinite(s) && (std::abs(s) <= 100.0);
+        }
+
+
         struct MemoryCell
         {
             double x;
@@ -62,11 +68,21 @@ namespace Sapphire
                 , z(0)
                 {}
 
-            explicit MemoryCell(double _x, double _y, double _z)
-                : x(_x)
-                , y(_y)
-                , z(_z)
+            explicit MemoryCell(double vx, double vy, double vz)
+                : x(vx)
+                , y(vy)
+                , z(vz)
                 {}
+
+            void store(double vx, double vy, double vz)
+            {
+                if (IsSafeCoord(vx) && IsSafeCoord(vy) && IsSafeCoord(vz))
+                {
+                    x = vx;
+                    y = vy;
+                    z = vz;
+                }
+            }
         };
 
 
@@ -167,9 +183,10 @@ namespace Sapphire
                         json_t* jz = json_object_get(cell, "z");
                         if (json_is_real(jx) && json_is_real(jy) && json_is_real(jz))
                         {
-                            memory[i].x = json_real_value(jx);
-                            memory[i].y = json_real_value(jy);
-                            memory[i].z = json_real_value(jz);
+                            double vx = json_real_value(jx);
+                            double vy = json_real_value(jy);
+                            double vz = json_real_value(jz);
+                            memory[i].store(vx, vy, vz);
                         }
                     }
                 }
@@ -187,9 +204,7 @@ namespace Sapphire
                     if (message->store)
                     {
                         MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
-                        mc.x = circuit.vx();
-                        mc.y = circuit.vy();
-                        mc.z = circuit.vz();
+                        mc.store(circuit.vx(), circuit.vy(), circuit.vz());
                     }
 
                     if (message->recall)
