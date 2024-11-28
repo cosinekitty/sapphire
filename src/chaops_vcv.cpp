@@ -70,11 +70,13 @@ namespace Sapphire
             {
                 using namespace std;
 
-                float v = getControlValue(MEMORY_SELECT_PARAM, MEMORY_SELECT_ATTEN, MEMORY_SELECT_CV_INPUT, 0, MemoryCount-1);
-                // Use modular wraparound and snap to nearest integer in the allowed index range 0..15.
-                // FIXFIXFIX - eliminate pre-clamping so modular wraparound is more useful.
-                int index = max(0u, static_cast<unsigned>(round(v)) % MemoryCount);
-
+                float cv = inputs[MEMORY_SELECT_CV_INPUT].getVoltageSum();
+                float slider = params[MEMORY_SELECT_PARAM].getValue();
+                float attenu = 2 * params[MEMORY_SELECT_ATTEN].getValue();
+                if (isLowSensitive(MEMORY_SELECT_ATTEN))
+                    attenu /= AttenuverterLowSensitivityDenom;
+                slider += attenu * cv;
+                int index = max(0u, static_cast<unsigned>(round(slider)) % MemoryCount);
                 return index;
             }
 
