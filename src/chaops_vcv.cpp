@@ -15,6 +15,7 @@ namespace Sapphire
             MEMORY_SELECT_ATTEN,
             STORE_BUTTON_PARAM,
             RECALL_BUTTON_PARAM,
+            FREEZE_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -35,6 +36,7 @@ namespace Sapphire
         {
             STORE_BUTTON_LIGHT,
             RECALL_BUTTON_LIGHT,
+            FREEZE_BUTTON_LIGHT,
             LIGHTS_LEN
         };
 
@@ -59,6 +61,7 @@ namespace Sapphire
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
                 configButton(STORE_BUTTON_PARAM, "Store");
                 configButton(RECALL_BUTTON_PARAM, "Recall");
+                configButton(FREEZE_BUTTON_PARAM, "Freeze");
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
                 initialize();
@@ -112,14 +115,22 @@ namespace Sapphire
                 return buttonJustPressed || triggerFired;
             }
 
+            bool getFreezeGate()
+            {
+                return params[FREEZE_BUTTON_PARAM].getValue() > 0;
+            }
+
             void process(const ProcessArgs& args) override
             {
+                bool frozen = false;
+
                 if (sender.isReceiverConnectedOnRight())
                 {
                     Message message;
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
+                    message.freeze = frozen = getFreezeGate();
                     sender.send(message);
 
                     // HACK: "currentChannelCount" is really the displayed memory address.
@@ -147,6 +158,7 @@ namespace Sapphire
 
                 lights[STORE_BUTTON_LIGHT ].setBrightness(storeFlashCounter  ? 1.0f : 0.03f);
                 lights[RECALL_BUTTON_LIGHT].setBrightness(recallFlashCounter ? 1.0f : 0.03f);
+                lights[FREEZE_BUTTON_LIGHT].setBrightness(frozen ? 1.0f : 0.03f);
             }
         };
 
@@ -167,6 +179,9 @@ namespace Sapphire
 
                 auto storeButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
                 addSapphireParam(storeButton, "store_button");
+
+                auto freezeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
+                addSapphireParam(freezeButton, "freeze_button");
 
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");

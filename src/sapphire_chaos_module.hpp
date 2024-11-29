@@ -196,11 +196,14 @@ namespace Sapphire
             {
                 using namespace Sapphire::ChaosOperators;
 
-                bool jumped = false;
+                bool shouldUpdateCircuit = true;
+                bool clearTricorder = false;
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
                 {
+                    shouldUpdateCircuit = !message->freeze;
+
                     if (message->store)
                     {
                         MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
@@ -211,11 +214,12 @@ namespace Sapphire
                     {
                         const MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
                         circuit.teleport(mc.x, mc.y, mc.z);
-                        jumped = true;
+                        shouldUpdateCircuit = false;
+                        clearTricorder = true;
                     }
                 }
 
-                if (!jumped)
+                if (shouldUpdateCircuit)
                 {
                     float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                     circuit.setKnob(chaos);
@@ -233,7 +237,7 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(vx, 0);
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
                 outputs[POLY_OUTPUT].setVoltage(vz, 2);
-                sendVector(vx, vy, vz, jumped);
+                sendVector(vx, vy, vz, clearTricorder);
             }
         };
 

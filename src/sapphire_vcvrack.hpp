@@ -205,6 +205,7 @@ namespace Sapphire
         {
             bool store  = false;
             bool recall = false;
+            bool freeze = false;
             unsigned memoryIndex = 0;       // 0..(MemoryCount-1)
         };
 

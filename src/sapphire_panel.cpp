@@ -9,6 +9,7 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "chaops", {
+            {"freeze_button",          {  15.240,   90.000}},
             {"memory_address_display", {  15.240,   29.000}},
             {"memsel_atten",           {  15.240,   18.000}},
             {"memsel_cv",              {   6.240,   18.000}},

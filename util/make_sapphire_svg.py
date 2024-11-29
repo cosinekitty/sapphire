@@ -101,8 +101,9 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     xmid = panel.mmWidth / 2
     yMemorySelect = 18.0
     yMemoryDisplay = 29.0
-    yButton = 40.0
+    yMemoryButton = 40.0
     yMemoryTriggerPorts = 50.0
+    yFreezeButton = 90.0
     dxButton = 8.0
     xStore  = xmid - dxButton
     xRecall = xmid + dxButton
@@ -155,11 +156,12 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
-        controls.append(Component('store_button',   xStore,  yButton))
-        controls.append(Component('recall_button',  xRecall, yButton))
+        controls.append(Component('store_button',   xStore,  yMemoryButton))
+        controls.append(Component('recall_button',  xRecall, yMemoryButton))
         controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
         controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
+        controls.append(Component('freeze_button',  xmid, yFreezeButton))
     return Save(panel, svgFileName)
 
 
