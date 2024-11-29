@@ -112,6 +112,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yStoreLine = 62.0
     xRightPanel = panel.mmWidth - 1.0
     dxDisplay = 4.75
+    dyButtonText = 7.0
 
     def LineArtPath(path:str, id:str) -> Path:
         return Path(path, ARROW_LINE_STYLE, id, 'none')
@@ -155,6 +156,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(ModelNamePath(panel, font, name))
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
+        pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
         controls.append(Component('recall_button',  xRecall, yMemoryButton))
