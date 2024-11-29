@@ -93,6 +93,7 @@ namespace Sapphire
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
             MemoryCell memory[ChaosOperators::MemoryCount];
+            bool shouldClearTricorder = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -127,6 +128,7 @@ namespace Sapphire
                     memory[i].z = circuit.vz();
                 }
                 turboMode = false;
+                shouldClearTricorder = true;
             }
 
             void onReset(const ResetEvent& e) override
@@ -197,7 +199,6 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool shouldUpdateCircuit = true;
-                bool shouldClearTricorder = false;
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
@@ -239,6 +240,7 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
                 outputs[POLY_OUTPUT].setVoltage(vz, 2);
                 sendVector(vx, vy, vz, shouldClearTricorder);
+                shouldClearTricorder = false;
             }
         };
 
