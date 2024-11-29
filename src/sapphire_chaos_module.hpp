@@ -202,7 +202,8 @@ namespace Sapphire
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
                 {
-                    shouldUpdateCircuit = !message->freeze;
+                    if (message->freeze)
+                        shouldUpdateCircuit = false;
 
                     if (message->store)
                     {
