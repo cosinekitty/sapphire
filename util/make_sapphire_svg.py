@@ -99,19 +99,19 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     cdict[name] = controls = ControlLayer()
 
     xmid = panel.mmWidth / 2
-    dyMemory = 3.0
-    yMemorySelect = 18.0 + dyMemory
-    yMemoryDisplay = 29.0 + dyMemory
-    yMemoryButton = 40.0 + dyMemory
-    yMemoryTriggerPorts = 50.0 + dyMemory
+    yMemorySelect  = 22.5
+    yMemoryDisplay = 32.0
+    yMemoryButton  = 42.0
+    yMemoryTriggerPorts = 53.0
     yFreezeButton = 115.0
     dxFreezePortButton = 7.0
     dxMemoryButton = 8.0
     xStore  = xmid - dxMemoryButton
     xRecall = xmid + dxMemoryButton
     arcRadius = 1.5
-    yRecallLine = 56.0 + dyMemory
-    yStoreLine  = 62.0 + dyMemory
+    bigArcRadius = 3.0
+    yRecallLine = 61.0
+    yStoreLine  = 69.0
     xRightPanel = panel.mmWidth - 1.0
     dxDisplay = 4.75
     dyButtonText = 7.0
@@ -132,9 +132,9 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     def StoreLineArt() -> Path:
         path = ''
         path += Move(xRightPanel, yStoreLine)
-        path += Line(xStore + arcRadius, yStoreLine)
+        path += Line(xStore + bigArcRadius, yStoreLine)
         # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
-        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore, yStoreLine - arcRadius)
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(bigArcRadius, xStore, yStoreLine - bigArcRadius)
         path += Line(xStore, yMemoryDisplay + arcRadius)
         path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore + arcRadius, yMemoryDisplay)
         path += Line(xmid-dxDisplay, yMemoryDisplay)
@@ -156,7 +156,13 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path = ''
         path += Move(x1, y)
         path += Line(x2, y)
-        return LineArtPath(path, id)
+        return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
+
+    def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
+        path = ''
+        path += Move(x, y1)
+        path += Line(x, y2)
+        return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -167,6 +173,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
         pl.append(HorizontalLine(xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, 'freeze_line_art'))
+        pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
         controls.append(Component('recall_button',  xRecall, yMemoryButton))
