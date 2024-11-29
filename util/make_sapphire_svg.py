@@ -105,9 +105,10 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yMemoryButton = 40.0 + dyMemory
     yMemoryTriggerPorts = 50.0 + dyMemory
     yFreezeButton = 115.0
-    dxButton = 8.0
-    xStore  = xmid - dxButton
-    xRecall = xmid + dxButton
+    dxFreezePortButton = 7.0
+    dxMemoryButton = 8.0
+    xStore  = xmid - dxMemoryButton
+    xRecall = xmid + dxMemoryButton
     arcRadius = 1.5
     yRecallLine = 56.0 + dyMemory
     yStoreLine  = 62.0 + dyMemory
@@ -151,6 +152,12 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += ArrowHead(xRightPanel, yRecallLine)
         return LineArtPath(path, 'recall_line_art')
 
+    def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
+        path = ''
+        path += Move(x1, y)
+        path += Line(x2, y)
+        return LineArtPath(path, id)
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -159,13 +166,15 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(RecallLineArt())
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
+        pl.append(HorizontalLine(xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, 'freeze_line_art'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
         controls.append(Component('recall_button',  xRecall, yMemoryButton))
         controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
         controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
-        controls.append(Component('freeze_button',  xmid, yFreezeButton))
+        controls.append(Component('freeze_button', xmid + dxFreezePortButton, yFreezeButton))
+        controls.append(Component('freeze_input',  xmid - dxFreezePortButton, yFreezeButton))
     return Save(panel, svgFileName)
 
 

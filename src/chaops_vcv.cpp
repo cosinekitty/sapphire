@@ -24,6 +24,7 @@ namespace Sapphire
             MEMORY_SELECT_CV_INPUT,
             STORE_TRIGGER_INPUT,
             RECALL_TRIGGER_INPUT,
+            FREEZE_INPUT,
             INPUTS_LEN
         };
 
@@ -49,6 +50,7 @@ namespace Sapphire
             int recallFlashCounter = 0;
             GateTriggerReceiver storeReceiver;
             GateTriggerReceiver recallReceiver;
+            GateTriggerReceiver freezeReceiver;
 
             ChaopsModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -64,6 +66,7 @@ namespace Sapphire
                 configButton(FREEZE_BUTTON_PARAM, "Freeze");
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
+                configInput(FREEZE_INPUT, "Freeze gate");
                 initialize();
             }
 
@@ -117,7 +120,10 @@ namespace Sapphire
 
             bool getFreezeGate()
             {
-                return params[FREEZE_BUTTON_PARAM].getValue() > 0;
+                bool portActive = freezeReceiver.updateGate(inputs[FREEZE_INPUT].getVoltageSum());
+                bool buttonActive = (params[FREEZE_BUTTON_PARAM].getValue() > 0);
+                // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
+                return portActive ^ buttonActive;
             }
 
             void process(const ProcessArgs& args) override
@@ -185,6 +191,7 @@ namespace Sapphire
 
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
+                addSapphireInput(FREEZE_INPUT, "freeze_input");
 
                 addSapphireChannelDisplay("memory_address_display");
            }
