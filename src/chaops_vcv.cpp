@@ -194,7 +194,7 @@ namespace Sapphire
                 addSapphireInput(FREEZE_INPUT, "freeze_input");
 
                 addSapphireChannelDisplay("memory_address_display");
-           }
+            }
         };
     }
 }

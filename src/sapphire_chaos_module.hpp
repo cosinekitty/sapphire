@@ -197,7 +197,7 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool shouldUpdateCircuit = true;
-                bool clearTricorder = false;
+                bool shouldClearTricorder = false;
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
@@ -216,7 +216,7 @@ namespace Sapphire
                         const MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
                         circuit.teleport(mc.x, mc.y, mc.z);
                         shouldUpdateCircuit = false;
-                        clearTricorder = true;
+                        shouldClearTricorder = true;
                     }
                 }
 
@@ -238,7 +238,7 @@ namespace Sapphire
                 outputs[POLY_OUTPUT].setVoltage(vx, 0);
                 outputs[POLY_OUTPUT].setVoltage(vy, 1);
                 outputs[POLY_OUTPUT].setVoltage(vz, 2);
-                sendVector(vx, vy, vz, clearTricorder);
+                sendVector(vx, vy, vz, shouldClearTricorder);
             }
         };
 

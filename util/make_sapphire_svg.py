@@ -99,22 +99,24 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     cdict[name] = controls = ControlLayer()
 
     xmid = panel.mmWidth / 2
+    dxMemoryButton = 8.0
+    xStore  = xmid - dxMemoryButton
+    xRecall = xmid + dxMemoryButton
+    xRightPanel = panel.mmWidth - 1.0
+    dxDisplay = 4.75
+    dxFreezePortButton = 7.0
+
     yMemorySelect  = 22.5
     yMemoryDisplay = 32.0
     yMemoryButton  = 42.0
     yMemoryTriggerPorts = 53.0
     yFreezeButton = 115.0
-    dxFreezePortButton = 7.0
-    dxMemoryButton = 8.0
-    xStore  = xmid - dxMemoryButton
-    xRecall = xmid + dxMemoryButton
-    arcRadius = 1.5
-    bigArcRadius = 3.0
     yRecallLine = 61.0
     yStoreLine  = 69.0
-    xRightPanel = panel.mmWidth - 1.0
-    dxDisplay = 4.75
     dyButtonText = 7.0
+
+    arcRadius = 1.5
+    bigArcRadius = 3.0
 
     def LineArtPath(path:str, id:str) -> Path:
         return Path(path, SIGNAL_LINE_STYLE, id, 'none')
