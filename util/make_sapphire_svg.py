@@ -117,11 +117,11 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     dyButtonText = 7.0
 
     def LineArtPath(path:str, id:str) -> Path:
-        return Path(path, ARROW_LINE_STYLE, id, 'none')
+        return Path(path, SIGNAL_LINE_STYLE, id, 'none')
 
     def ArrowHead(xTip:float, yTip:float) -> str:
-        dx = 1.6
-        dy = 0.6
+        dx = 1.7
+        dy = 0.7
         path = ''
         path += Move(xTip, yTip)
         path += Line(xTip - dx, yTip - dy)
