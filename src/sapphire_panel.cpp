@@ -9,15 +9,15 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "chaops", {
-            {"freeze_button",          {  15.240,   90.000}},
-            {"memory_address_display", {  15.240,   29.000}},
-            {"memsel_atten",           {  15.240,   18.000}},
-            {"memsel_cv",              {   6.240,   18.000}},
-            {"memsel_knob",            {  24.240,   18.000}},
-            {"recall_button",          {  23.240,   40.000}},
-            {"recall_trigger",         {  23.240,   50.000}},
-            {"store_button",           {   7.240,   40.000}},
-            {"store_trigger",          {   7.240,   50.000}},
+            {"freeze_button",          {  15.240,  115.000}},
+            {"memory_address_display", {  15.240,   32.000}},
+            {"memsel_atten",           {  15.240,   21.000}},
+            {"memsel_cv",              {   6.240,   21.000}},
+            {"memsel_knob",            {  24.240,   21.000}},
+            {"recall_button",          {  23.240,   43.000}},
+            {"recall_trigger",         {  23.240,   53.000}},
+            {"store_button",           {   7.240,   43.000}},
+            {"store_trigger",          {   7.240,   53.000}},
             }},
         { "elastika", {
             {"audio_left_input",       {   7.500,  115.000}},
