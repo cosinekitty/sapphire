@@ -111,8 +111,8 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yMemoryButton  = 42.0
     yMemoryTriggerPorts = 53.0
     yFreezeButton = 115.0
-    yRecallLine = 61.0
-    yStoreLine  = 69.0
+    yRecallLine = 59.0
+    yStoreLine  = 68.0
     dyButtonText = 7.0
     dyGradient = dyButtonText + 4.0
     y1MemoryGradient = yMemorySelect - dyGradient
@@ -120,8 +120,9 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     y1FreezeGradient = yFreezeButton - dyGradient
     y2FreezeGradient = panel.mmHeight - 4.0
 
-    arcRadius = 1.5
-    bigArcRadius = 3.0
+    smallArcRadius  = 1.5
+    mediumArcRadius = 2.5
+    bigArcRadius    = 5.0
 
     def LineArtPath(path:str, id:str) -> Path:
         return Path(path, SIGNAL_LINE_STYLE, id, 'none')
@@ -142,8 +143,8 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += Line(xStore + bigArcRadius, yStoreLine)
         # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
         path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(bigArcRadius, xStore, yStoreLine - bigArcRadius)
-        path += Line(xStore, yMemoryDisplay + arcRadius)
-        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xStore + arcRadius, yMemoryDisplay)
+        path += Line(xStore, yMemoryDisplay + smallArcRadius)
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(smallArcRadius, xStore + smallArcRadius, yMemoryDisplay)
         path += Line(xmid-dxDisplay, yMemoryDisplay)
         path += ArrowHead(xmid-dxDisplay, yMemoryDisplay)
         return LineArtPath(path, 'store_line_art')
@@ -151,10 +152,10 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     def RecallLineArt() -> Path:
         path = ''
         path += Move(xRightPanel, yRecallLine)
-        path += Line(xRecall + arcRadius, yRecallLine)
-        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(arcRadius, xRecall, yRecallLine - arcRadius)
-        path += Line(xRecall, yMemoryDisplay + arcRadius)
-        path += 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xRecall - arcRadius, yMemoryDisplay)
+        path += Line(xRecall + mediumArcRadius, yRecallLine)
+        path += 'A {0:g} {0:g} 0 0 1 {1:g} {2:g} '.format(mediumArcRadius, xRecall, yRecallLine - mediumArcRadius)
+        path += Line(xRecall, yMemoryDisplay + mediumArcRadius)
+        path += 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(mediumArcRadius, xRecall - mediumArcRadius, yMemoryDisplay)
         path += Line(xmid+dxDisplay, yMemoryDisplay)
         path += ArrowHead(xRightPanel, yRecallLine)
         return LineArtPath(path, 'recall_line_art')
