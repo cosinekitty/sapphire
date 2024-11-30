@@ -169,6 +169,32 @@ namespace Sapphire
         };
 
 
+        using letter_button_base_t = VCVLightBezel<>;
+        struct LetterButton : letter_button_base_t
+        {
+            std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
+            char caption[2]{};
+            float dx{};
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                letter_button_base_t::drawLayer(args, layer);
+
+                if (caption[0])
+                {
+                    std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+                    if (font)
+                    {
+                        nvgFontSize(args.vg, 15);
+                        nvgFontFaceId(args.vg, font->handle);
+                        nvgFillColor(args.vg, nvgRGBA(0, 0, 0, 0xff));
+                        nvgText(args.vg, dx, 15.0, caption, caption+1);
+                    }
+                }
+            }
+        };
+
+
         struct ChaopsWidget : SapphireWidget
         {
             ChaopsModule* chaopsModule;
@@ -180,13 +206,21 @@ namespace Sapphire
                 setModule(module);
                 addSapphireFlatControlGroup("memsel", MEMORY_SELECT_PARAM, MEMORY_SELECT_ATTEN, MEMORY_SELECT_CV_INPUT);
 
-                auto recallButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
-                addSapphireParam(recallButton, "recall_button");
-
-                auto storeButton = createLightParamCentered<VCVLightBezel<>>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
+                auto storeButton = createLightParamCentered<LetterButton>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
+                storeButton->caption[0] = 'S';
+                storeButton->dx = 7.2;
                 addSapphireParam(storeButton, "store_button");
 
-                auto freezeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
+                auto recallButton = createLightParamCentered<LetterButton>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
+                recallButton->caption[0] = 'R';
+                recallButton->dx = 7.4;
+                addSapphireParam(recallButton, "recall_button");
+
+                auto freezeButton = createLightParamCentered<LetterButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
+                freezeButton->momentary = false;
+                freezeButton->latch = true;
+                freezeButton->caption[0] = 'F';
+                freezeButton->dx = 7.2;
                 addSapphireParam(freezeButton, "freeze_button");
 
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
