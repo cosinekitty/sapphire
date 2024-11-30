@@ -118,7 +118,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     y1MemoryGradient = yMemorySelect - dyGradient
     y2MemoryGradient = yMemoryButton + dyGradient
     y1FreezeGradient = yFreezeButton - dyGradient
-    y2FreezeGradient = panel.mmHeight
+    y2FreezeGradient = panel.mmHeight - 4.0
 
     arcRadius = 1.5
     bigArcRadius = 3.0
