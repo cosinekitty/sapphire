@@ -94,13 +94,14 @@ namespace Sapphire
     };
 
 
-    using letter_button_base_t = VCVLightBezel<>;
+    using letter_button_base_t = VCVLightBezel<GrayModuleLightWidget>;
     struct LetterButton : letter_button_base_t
     {
         std::string fontPath = asset::system("res/fonts/DejaVuSans.ttf");
         char caption[2]{};
         float dxText =  8.0;
         float dyText = 10.5;
+        bool baseColorInitialized = false;
 
         void drawLayer(const DrawArgs& args, int layer) override
         {
@@ -110,6 +111,9 @@ namespace Sapphire
             {
                 if (caption[0])
                 {
+                    if (!baseColorInitialized)
+                        initBaseColor(SCHEME_WHITE);
+
                     std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
                     if (font)
                     {
@@ -127,6 +131,12 @@ namespace Sapphire
         void setCaption(char c)
         {
             caption[0] = c;
+        }
+
+        void initBaseColor(NVGcolor color)
+        {
+            light->addBaseColor(color);
+            baseColorInitialized = true;
         }
     };
 

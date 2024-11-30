@@ -126,6 +126,12 @@ namespace Sapphire
                 return portActive ^ buttonActive;
             }
 
+            static int flashDurationSamples(float sampleRate)
+            {
+                const float flashDurationSeconds = 0.05;
+                return static_cast<int>(flashDurationSeconds * sampleRate);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 bool frozen = false;
@@ -142,15 +148,14 @@ namespace Sapphire
                     // HACK: "currentChannelCount" is really the displayed memory address.
                     currentChannelCount = message.memoryIndex;
 
-                    const float flashDurationSeconds = 0.05;
 
                     if (message.store)
-                        storeFlashCounter = static_cast<int>(args.sampleRate * flashDurationSeconds);
+                        storeFlashCounter = flashDurationSamples(args.sampleRate);
                     else if (storeFlashCounter > 0)
                         --storeFlashCounter;
 
                     if (message.recall)
-                        recallFlashCounter = static_cast<int>(args.sampleRate * flashDurationSeconds);
+                        recallFlashCounter = flashDurationSamples(args.sampleRate);
                     else if (recallFlashCounter > 0)
                         --recallFlashCounter;
                 }
@@ -182,16 +187,19 @@ namespace Sapphire
 
                 auto storeButton = createLightParamCentered<LetterButton>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
                 storeButton->setCaption('S');
+                storeButton->initBaseColor(SCHEME_RED);
                 addSapphireParam(storeButton, "store_button");
 
                 auto recallButton = createLightParamCentered<LetterButton>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
                 recallButton->setCaption('R');
+                recallButton->initBaseColor(SCHEME_GREEN);
                 addSapphireParam(recallButton, "recall_button");
 
                 auto freezeButton = createLightParamCentered<LetterButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
                 freezeButton->momentary = false;
                 freezeButton->latch = true;
                 freezeButton->setCaption('F');
+                freezeButton->initBaseColor(SCHEME_BLUE);
                 addSapphireParam(freezeButton, "freeze_button");
 
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
