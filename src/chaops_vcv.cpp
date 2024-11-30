@@ -177,6 +177,8 @@ namespace Sapphire
         struct ChaopsWidget : SapphireWidget
         {
             ChaopsModule* chaopsModule;
+            const NVGcolor RECALL_BUTTON_COLOR = nvgRGB(0x40, 0xd0, 0x3e);
+
 
             explicit ChaopsWidget(ChaopsModule* module)
                 : SapphireWidget("chaops", asset::plugin(pluginInstance, "res/chaops.svg"))
@@ -192,12 +194,13 @@ namespace Sapphire
 
                 auto recallButton = createLightParamCentered<LetterButton>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
                 recallButton->setCaption('R');
-                recallButton->initBaseColor(SCHEME_GREEN);
+                recallButton->initBaseColor(RECALL_BUTTON_COLOR);
                 addSapphireParam(recallButton, "recall_button");
 
                 auto freezeButton = createLightParamCentered<LetterButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
                 freezeButton->momentary = false;
                 freezeButton->latch = true;
+                freezeButton->dxText = 7.5;
                 freezeButton->setCaption('F');
                 freezeButton->initBaseColor(SCHEME_BLUE);
                 addSapphireParam(freezeButton, "freeze_button");
