@@ -94,6 +94,43 @@ namespace Sapphire
     };
 
 
+    using letter_button_base_t = VCVLightBezel<>;
+    struct LetterButton : letter_button_base_t
+    {
+        std::string fontPath = asset::system("res/fonts/DejaVuSans.ttf");
+        char caption[2]{};
+        float dxText =  8.0;
+        float dyText = 10.5;
+
+        void drawLayer(const DrawArgs& args, int layer) override
+        {
+            letter_button_base_t::drawLayer(args, layer);
+
+            if (layer == 1)
+            {
+                if (caption[0])
+                {
+                    std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+                    if (font)
+                    {
+                        nvgFontSize(args.vg, 15);
+                        nvgFontFaceId(args.vg, font->handle);
+                        nvgFillColor(args.vg, nvgRGBA(0, 0, 0, 0xff));
+                        float tx = (box.size.x - dxText) / 2;
+                        float ty = (box.size.y + dyText) / 2;
+                        nvgText(args.vg, tx, ty, caption, caption+1);
+                    }
+                }
+            }
+        }
+
+        void setCaption(char c)
+        {
+            caption[0] = c;
+        }
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
