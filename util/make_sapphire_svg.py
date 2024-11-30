@@ -114,6 +114,11 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yRecallLine = 61.0
     yStoreLine  = 69.0
     dyButtonText = 7.0
+    dyGradient = dyButtonText + 4.0
+    y1MemoryGradient = yMemorySelect - dyGradient
+    y2MemoryGradient = yMemoryButton + dyGradient
+    y1FreezeGradient = yFreezeButton - dyGradient
+    y2FreezeGradient = panel.mmHeight
 
     arcRadius = 1.5
     bigArcRadius = 3.0
@@ -166,8 +171,16 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += Line(x, y2)
         return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
+    def AddGradient(y1:float, y2:float, color1:str, color2:str, id:str) -> None:
+        gradientId = id + '_gradient'
+        artworkId  = id + '_artwork'
+        defs.append(Gradient(y1, y2, color1, color2, gradientId))
+        pl.append(ControlGroupArt(name, artworkId, panel, y1, y2, gradientId))
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'memory')
+        AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,  SAPPHIRE_PANEL_COLOR, 'freeze')
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(StoreLineArt())
