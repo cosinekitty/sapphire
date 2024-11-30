@@ -167,9 +167,14 @@ namespace Sapphire
                     recallFlashCounter = 0;
                 }
 
-                lights[STORE_BUTTON_LIGHT ].setBrightness(storeFlashCounter  ? 1.0f : 0.03f);
-                lights[RECALL_BUTTON_LIGHT].setBrightness(recallFlashCounter ? 1.0f : 0.03f);
-                lights[FREEZE_BUTTON_LIGHT].setBrightness(frozen ? 1.0f : 0.03f);
+                setLightBrightness(STORE_BUTTON_LIGHT, storeFlashCounter > 0);
+                setLightBrightness(RECALL_BUTTON_LIGHT, recallFlashCounter > 0);
+                setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
+            }
+
+            void setLightBrightness(LightId lightId, bool lit)
+            {
+                lights[lightId].setBrightness(lit ? 1.0f : 0.06f);
             }
         };
 
