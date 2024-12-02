@@ -318,10 +318,9 @@ namespace Sapphire
                             {
                                 nvgBeginPath(args.vg);
                                 nvgStrokeColor(args.vg, SCHEME_BLACK);
-                                nvgFillColor(args.vg, SCHEME_DARK_GRAY);
+                                nvgFillColor(args.vg, nvgRGBA(0x17, 0x17, 0x70, 0xc0));
                                 const float dotRadius = 7.0;
                                 nvgCircle(args.vg, box.size.x / 2, box.size.y / 2, dotRadius);
-                                nvgStroke(args.vg);
                                 nvgFill(args.vg);
 
                                 nvgFontSize(args.vg, 15);
