@@ -160,7 +160,7 @@ namespace Sapphire
 
         virtual const char* getModeName(int m) const
         {
-            return "Default";
+            return "";
         }
 
         int getMode() const
@@ -290,7 +290,7 @@ namespace Sapphire
             case 1:  return "Elephant";
             case 2:  return "Ferret";
             case 3:  return "Kangaroo";
-            default: return "INVALID_MODE";
+            default: return "";
             }
         }
     };
@@ -353,7 +353,7 @@ namespace Sapphire
             case 1:  return "Banana";
             case 2:  return "Cantaloupe";
             case 3:  return "Elderberry";
-            default: return "INVALID_MODE";
+            default: return "";
             }
         }
 

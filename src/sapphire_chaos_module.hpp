@@ -280,10 +280,60 @@ namespace Sapphire
         struct ChaosKnob : RoundLargeBlackKnob
         {
             module_t *chaosModule = nullptr;
+            std::string fontPath = asset::system("res/fonts/DejaVuSans.ttf");
+            float dyText =  9.0;
 
             void appendContextMenu(Menu* menu) override
             {
                 AddChaosOptionsToMenu(menu, chaosModule, true);
+            }
+
+            static float dxText(char c)
+            {
+                // I tried to use nvgTextBounds() to measure the dimenions of the rendered letters,
+                // but I could never get results that looked good. So I have manually calibrated
+                // the alignment by trial and error to look acceptable.
+                switch (c)
+                {
+                case 'B':   return 8.4;
+                case 'C':   return 9.0;
+                case 'F':   return 8.3;
+                default:    return 8.5;
+                }
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                RoundLargeBlackKnob::drawLayer(args, layer);
+                if (layer == 1 && chaosModule)
+                {
+                    auto& c = chaosModule->circuit;
+                    if (c.getModeCount() > 1)
+                    {
+                        const char *modeName = c.getModeName(c.getMode());
+                        if (modeName && modeName[0])
+                        {
+                            std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+                            if (font)
+                            {
+                                nvgBeginPath(args.vg);
+                                nvgStrokeColor(args.vg, SCHEME_BLACK);
+                                nvgFillColor(args.vg, SCHEME_DARK_GRAY);
+                                const float dotRadius = 7.0;
+                                nvgCircle(args.vg, box.size.x / 2, box.size.y / 2, dotRadius);
+                                nvgStroke(args.vg);
+                                nvgFill(args.vg);
+
+                                nvgFontSize(args.vg, 15);
+                                nvgFontFaceId(args.vg, font->handle);
+                                nvgFillColor(args.vg, SCHEME_ORANGE);
+                                float tx = (box.size.x - dxText(modeName[0])) / 2;
+                                float ty = (box.size.y + dyText) / 2;
+                                nvgText(args.vg, tx, ty, modeName, modeName+1);
+                            }
+                        }
+                    }
+                }
             }
         };
 
