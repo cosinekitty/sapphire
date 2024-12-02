@@ -580,6 +580,7 @@ namespace Sapphire
         bool enableLimiterWarning = true;
         int limiterRecoveryCountdown = 0;      // positive integer indicates we are recovering from NAN/INF
         int currentChannelCount = 0;           // used only by modules that display a channel count on the panel
+        bool shouldClearTricorder = false;     // used only by modules that send vectors to Tricorder for display
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -909,7 +910,12 @@ namespace Sapphire
 
         void setVoltageFlipEnabled(int outputId, bool state)
         {
-            outputPortInfo.at(outputId).flipVoltagePolarity = state;
+            bool& flip = outputPortInfo.at(outputId).flipVoltagePolarity;
+            if (flip != state)
+            {
+                flip = state;
+                shouldClearTricorder = true;
+            }
         }
 
         float setFlippableOutputVoltage(int outputId, float originalVoltage)

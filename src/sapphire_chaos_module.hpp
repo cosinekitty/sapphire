@@ -63,7 +63,6 @@ namespace Sapphire
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
             ChaoticOscillatorState memory[ChaosOperators::MemoryCount];
-            bool shouldClearTricorder = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
