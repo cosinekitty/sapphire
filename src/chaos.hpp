@@ -26,15 +26,6 @@ namespace Sapphire
     }
 
 
-    inline double Invmap(double v, double smin, double smax)
-    {
-        if (smax <= smin)
-            return v;
-
-        return smin + (v/CHAOS_AMPLITUDE + 1)*(smax - smin)/2;
-    }
-
-
     struct SlopeVector
     {
         double mx;
@@ -60,6 +51,29 @@ namespace Sapphire
         // into a linear range [lo, hi].
         return ((hi + lo) + (knob * (hi - lo))) / 2;
     }
+
+
+    struct ChaoticOscillatorState
+    {
+        // The internal state of a chaotic oscillator, provided for memory store/recall.
+        // This is NOT the same as the voltage outputs because of remapping
+        // the original numeric ranges and voltage-flipped output ports.
+        double x;
+        double y;
+        double z;
+
+        ChaoticOscillatorState()
+            : x(0)
+            , y(0)
+            , z(0)
+            {}
+
+        explicit ChaoticOscillatorState(double _x, double _y, double _z)
+            : x(_x)
+            , y(_y)
+            , z(_z)
+            {}
+    };
 
 
     class ChaoticOscillator
@@ -197,11 +211,16 @@ namespace Sapphire
                 step(et);
         }
 
-        void teleport(double vx, double vy, double vz)
+        ChaoticOscillatorState getState() const
         {
-            x1 = Invmap(vx, xmin, xmax);
-            y1 = Invmap(vy, ymin, ymax);
-            z1 = Invmap(vz, zmin, zmax);
+            return ChaoticOscillatorState(x1, y1, z1);
+        }
+
+        void setState(const ChaoticOscillatorState& state)
+        {
+            x1 = state.x;
+            y1 = state.y;
+            z1 = state.z;
         }
     };
 

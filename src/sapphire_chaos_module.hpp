@@ -56,43 +56,13 @@ namespace Sapphire
         }
 
 
-        struct MemoryCell
-        {
-            double x;
-            double y;
-            double z;
-
-            MemoryCell()
-                : x(0)
-                , y(0)
-                , z(0)
-                {}
-
-            explicit MemoryCell(double vx, double vy, double vz)
-                : x(vx)
-                , y(vy)
-                , z(vz)
-                {}
-
-            void store(double vx, double vy, double vz)
-            {
-                if (IsSafeCoord(vx) && IsSafeCoord(vy) && IsSafeCoord(vz))
-                {
-                    x = vx;
-                    y = vy;
-                    z = vz;
-                }
-            }
-        };
-
-
         template <typename circuit_t>
         struct ChaosModule : SapphireModule
         {
             circuit_t circuit;
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
-            MemoryCell memory[ChaosOperators::MemoryCount];
+            ChaoticOscillatorState memory[ChaosOperators::MemoryCount];
             bool shouldClearTricorder = false;
 
             ChaosModule()
@@ -122,11 +92,7 @@ namespace Sapphire
             {
                 circuit.initialize();
                 for (unsigned i = 0; i < ChaosOperators::MemoryCount; ++i)
-                {
-                    memory[i].x = circuit.vx();
-                    memory[i].y = circuit.vy();
-                    memory[i].z = circuit.vz();
-                }
+                    memory[i] = circuit.getState();
                 turboMode = false;
                 shouldClearTricorder = true;
             }
@@ -188,7 +154,7 @@ namespace Sapphire
                             double vx = json_real_value(jx);
                             double vy = json_real_value(jy);
                             double vz = json_real_value(jz);
-                            memory[i].store(vx, vy, vz);
+                            memory[i] = ChaoticOscillatorState(vx, vy, vz);
                         }
                     }
                 }
@@ -208,14 +174,14 @@ namespace Sapphire
 
                     if (message->store)
                     {
-                        MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
-                        mc.store(circuit.vx(), circuit.vy(), circuit.vz());
+                        ChaoticOscillatorState& mc = memory[message->memoryIndex % MemoryCount];
+                        mc = circuit.getState();
                     }
 
                     if (message->recall)
                     {
-                        const MemoryCell& mc = memory[message->memoryIndex % MemoryCount];
-                        circuit.teleport(mc.x, mc.y, mc.z);
+                        const ChaoticOscillatorState& mc = memory[message->memoryIndex % MemoryCount];
+                        circuit.setState(mc);
                         shouldUpdateCircuit = false;
                         shouldClearTricorder = true;
                     }
