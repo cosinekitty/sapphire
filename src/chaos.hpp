@@ -85,8 +85,6 @@ namespace Sapphire
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
     private:
-        const int max_iter = 2;
-
         const double max_dt;
         const double x0;
         const double y0;
@@ -105,23 +103,14 @@ namespace Sapphire
 
         void step(double dt)
         {
-            SlopeVector s = slopes(x1, y1, z1);
-            double dx = dt * s.mx;
-            double dy = dt * s.my;
-            double dz = dt * s.mz;
-            for (int iter = 0; iter < max_iter; ++iter)
-            {
-                double xm = x1 + dx/2;
-                double ym = y1 + dy/2;
-                double zm = z1 + dz/2;
-                s = slopes(xm, ym, zm);
-                dx = dt * s.mx;
-                dy = dt * s.my;
-                dz = dt * s.mz;
-            }
-            x1 += dx;
-            y1 += dy;
-            z1 += dz;
+            // Fourth-order Runge-Kutta (RK4) extrapolation.
+            SlopeVector k1 = slopes(x1, y1, z1);
+            SlopeVector k2 = slopes(x1 + (dt/2)*k1.mx, y1 + (dt/2)*k1.my, z1 + (dt/2)*k1.mz);
+            SlopeVector k3 = slopes(x1 + (dt/2)*k2.mx, y1 + (dt/2)*k2.my, z1 + (dt/2)*k2.mz);
+            SlopeVector k4 = slopes(x1 + dt*k3.mx, y1 + dt*k3.my, z1 + dt*k3.mz);
+            x1 += (dt/6)*(k1.mx + 2*k2.mx + 2*k3.mx + k4.mx);
+            y1 += (dt/6)*(k1.my + 2*k2.my + 2*k3.my + k4.my);
+            z1 += (dt/6)*(k1.mz + 2*k2.mz + 2*k3.mz + k4.mz);
         }
 
     public:
@@ -202,10 +191,12 @@ namespace Sapphire
 
         void update(double dt)
         {
+            using namespace std;
+
             // If the derived class has informed us of a maximum stable time increment,
             // use oversampling to keep the actual time increment within that limit:
             // find the smallest positive integer n such that dt/n <= max_dt.
-            const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(std::ceil(dt / max_dt));
+            const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(ceil(abs(dt) / max_dt));
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
                 step(et);
