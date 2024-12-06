@@ -232,7 +232,7 @@ namespace Sapphire
     public:
         Rucklidge()
             : ChaoticOscillator(
-                5.0e-04,
+                0.03,
                 0.788174, 0.522280, 1.250344,
                 -10.15,  +10.17,
                  -5.570,  +5.565,
@@ -280,7 +280,7 @@ namespace Sapphire
     public:
         DequanLi()
             : ChaoticOscillator(
-                1.0e-3,
+                0.03,
                 0.349, 0.001, -0.16,
                 -150, +150,
                 -200, +200,
@@ -343,7 +343,7 @@ namespace Sapphire
     public:
         Aizawa()
             : ChaoticOscillator(
-                5.0e-04,
+                0.03,
                 0.440125, -0.781267, -0.277170,
                 -1.51, +1.51,
                 -1.46, +1.54,

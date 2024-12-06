@@ -306,7 +306,7 @@ namespace Sapphire
         inline ui::MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
         {
             return createBoolMenuItem(
-                "Turbo mode: +5 speed (WARNING: uses more CPU)",
+                "Turbo mode: +5 speed",
                 "",
                 [=]() { return chaosModule->turboMode; },
                 [=](bool state) { chaosModule->turboMode = state; }

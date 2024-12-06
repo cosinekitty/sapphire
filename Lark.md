@@ -59,8 +59,8 @@ times faster. Thus the speed can made $2^7=128$ times slower than the default
 by turning the SPEED knob all the way to the left, or 128 times faster than
 the default by turning it all the way to the right.
 
-However, at the risk of using a **LOT** more CPU time, you can right-click
-on the SPEED knob and toggle "Turbo Mode", which adds a +5 bonus to the SPEED value.
+However, you can right-click on the SPEED knob and toggle *Turbo mode*,
+which adds a +5 bonus to the SPEED value.
 This is the same as multiplying the effective speed by 32.
 
 ![SPEED button context menu](images/chaos_speed_menu.png)
