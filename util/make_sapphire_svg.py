@@ -106,8 +106,8 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     dxDisplay = 4.75
     dxFreezePortButton = 7.0
 
-    yMemorySelect  = 22.5
-    yMemoryDisplay = 32.0
+    yMemorySelect  = 24.0
+    yMemoryDisplay = 33.0
     yMemoryButton  = 42.0
     yMemoryTriggerPorts = 53.0
     yMorph = 95.0
@@ -125,7 +125,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
 
     smallArcRadius  = 1.5
     mediumArcRadius = 2.5
-    bigArcRadius    = 5.0
+    bigArcRadius    = 7.0
 
     def LineArtPath(path:str, id:str) -> Path:
         return Path(path, SIGNAL_LINE_STYLE, id, 'none')

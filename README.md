@@ -12,6 +12,17 @@ No talking, just patching and listening.
 
 ---
 
+# Chaops
+
+A left-expander module that provides additional functionality for the
+chaos modules [Frolic](Frolic.md), [Glee](Glee.md), and [Lark](Lark.md).
+
+<a href="Chaops.md">Sapphire Chaops documentation</a>
+
+<a href="Chaops.md"><img src="images/chaops.png" /></a>
+
+---
+
 ## Elastika
 
 A complex sound generator that simulates the physics of a
