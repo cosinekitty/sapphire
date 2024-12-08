@@ -12,7 +12,7 @@ Immediately below the MEMORY label, from left to right, are a CV input port, a s
 
 You can automate selecting a memory cell by connecting an input cable to the memory CV input port and setting the attenuverter to a nonzero value. If you turn the attenuverter knob all the way clockwise to 100%, then each half volt (0.5&nbsp;V) increment of input voltage will increase the memory address by 1. Memory addresses are not clamped; instead, they wrap around. So by trying to go beyond address 15, you wrap back around to 0. Likewise, going below 0 will wrap around to 15.
 
-Below the memory cell LED display are two buttons. The one on the left is labeled S, and the one on the right is labeled R. The S button stands for "store", and when pressed, causes the current state of the chaos module to the right to be stored inside the selected memory cell.
+Below the memory cell LED display are two buttons. The one on the left is labeled S, and the one on the right is labeled R. The S button stands for "store", and when pressed, causes the current state of the chaos module to be stored inside the selected memory cell.
 
 When you press the R button, which stands for "recall", the state of the chaos module is restored to the saved state from the selected memory cell.
 
@@ -27,3 +27,5 @@ The chaos modules all produce 3D vectors. Without Chaops, these 3D vectors are a
 At the bottom of the panel is a section labeled FREEZE. To the right is a button labeled F. When you press this button, it toggles whether the chaos module to the right updates the simulation with time or not. To the left is a gate input.
 
 The button and gate input operate in combination with exclusive-or (XOR) logic. This means that if the freeze button is turned off, then the input gate must go high to freeze the module, or low to let it run. If the freeze button is turned on, then the input gate must go low to freeze the module, or high to let it run.
+
+Note that the FREEZE control does not hinder the MORPH control. Changes to the morph mix still take effect even when the chaos module is frozen. This is because FREEZE only stops the flow of simulated time, but does not block the mix ratio between position and velocity.
