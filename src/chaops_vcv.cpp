@@ -202,17 +202,17 @@ namespace Sapphire
                 setModule(module);
                 addSapphireFlatControlGroup("memsel", MEMORY_SELECT_PARAM, MEMORY_SELECT_ATTEN, MEMORY_SELECT_CV_INPUT);
 
-                auto storeButton = createLightParamCentered<LetterButton>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
+                auto storeButton = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, STORE_BUTTON_PARAM, STORE_BUTTON_LIGHT);
                 storeButton->setCaption('S');
                 storeButton->initBaseColor(SCHEME_RED);
                 addSapphireParam(storeButton, "store_button");
 
-                auto recallButton = createLightParamCentered<LetterButton>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
+                auto recallButton = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, RECALL_BUTTON_PARAM, RECALL_BUTTON_LIGHT);
                 recallButton->setCaption('R');
                 recallButton->initBaseColor(RECALL_BUTTON_COLOR);
                 addSapphireParam(recallButton, "recall_button");
 
-                auto freezeButton = createLightParamCentered<LetterButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
+                auto freezeButton = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
                 freezeButton->momentary = false;
                 freezeButton->latch = true;
                 freezeButton->dxText = 7.5;

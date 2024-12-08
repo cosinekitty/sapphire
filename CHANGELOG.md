@@ -9,13 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">6 Dec 2024</td>
+<td align="center">8 Dec 2024</td>
 <td align="center">2.5.5</td>
 <td align="left">
     <ul>
-        <li>Added left-expander module <a href="Chaops.md">Chaops</a> to provide new functionality to the chaos modules <a href="Frolic.md">Frolic</a>, <a href="Glee.md">Glee</a>, and <a href="Lark.md">Lark</a>.</li>
+        <li>Added left-expander module <a href="Chaops.md">Chaops</a> to provide additional functionality to the chaos modules <a href="Frolic.md">Frolic</a>, <a href="Glee.md">Glee</a>, and <a href="Lark.md">Lark</a>.</li>
         <li>Frolic, Glee, and Lark are now 30 times as CPU efficient when Turbo Mode is enabled. The CPU usage warning label on Turbo Mode has been removed.</li>
         <li>Glee and Lark now display the first letter of selected chaos mode on top of the CHAOS knob.</li>
+        <li>Frolic, Glee, and Lark now display the letter T on the SPEED knob when Turbo Mode is enabled.</li>
     </ul>
 </td>
 </tr>

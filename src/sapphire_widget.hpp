@@ -94,8 +94,8 @@ namespace Sapphire
     };
 
 
-    using letter_button_base_t = VCVLightBezel<GrayModuleLightWidget>;
-    struct LetterButton : letter_button_base_t
+    using caption_button_base_t = VCVLightBezel<GrayModuleLightWidget>;
+    struct SapphireCaptionButton : caption_button_base_t
     {
         std::string fontPath = asset::system("res/fonts/DejaVuSans.ttf");
         char caption[2]{};
@@ -105,7 +105,7 @@ namespace Sapphire
 
         void drawLayer(const DrawArgs& args, int layer) override
         {
-            letter_button_base_t::drawLayer(args, layer);
+            caption_button_base_t::drawLayer(args, layer);
 
             if (layer == 1)
             {
@@ -138,6 +138,60 @@ namespace Sapphire
             {
                 baseColorInitialized = true;
                 light->addBaseColor(color);
+            }
+        }
+    };
+
+
+    struct SapphireCaptionKnob : RoundLargeBlackKnob
+    {
+        std::string fontPath = asset::system("res/fonts/DejaVuSans.ttf");
+        float dyText = 9.0;
+
+        static float dxText(char c)
+        {
+            // I tried to use nvgTextBounds() to measure the dimenions of the rendered letters,
+            // but I could never get results that looked good. So I have manually calibrated
+            // the alignment by trial and error to look acceptable.
+            switch (c)
+            {
+            case 'B':   return 8.4;
+            case 'C':   return 9.0;
+            case 'F':   return 8.3;
+            default:    return 8.5;
+            }
+        }
+
+        virtual char getCaption() const = 0;
+
+        void drawLayer(const DrawArgs& args, int layer) override
+        {
+            RoundLargeBlackKnob::drawLayer(args, layer);
+            if (layer == 1)
+            {
+                char caption[2];
+                caption[0] = getCaption();
+                caption[1] = '\0';
+                if (caption[0])
+                {
+                    std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+                    if (font)
+                    {
+                        nvgBeginPath(args.vg);
+                        nvgStrokeColor(args.vg, SCHEME_BLACK);
+                        nvgFillColor(args.vg, nvgRGBA(0x17, 0x17, 0x70, 0xc0));
+                        const float dotRadius = 7.0;
+                        nvgCircle(args.vg, box.size.x / 2, box.size.y / 2, dotRadius);
+                        nvgFill(args.vg);
+
+                        nvgFontSize(args.vg, 15);
+                        nvgFontFaceId(args.vg, font->handle);
+                        nvgFillColor(args.vg, SCHEME_ORANGE);
+                        float tx = (box.size.x - dxText(caption[0])) / 2;
+                        float ty = (box.size.y + dyText) / 2;
+                        nvgText(args.vg, tx, ty, caption, caption+1);
+                    }
+                }
             }
         }
     };
