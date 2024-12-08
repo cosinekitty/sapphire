@@ -591,9 +591,9 @@ static int QuadraticTest()
 
 static int CheckLimits(const Sapphire::ChaoticOscillator& osc, double range)
 {
-    double x = osc.vx();
-    double y = osc.vy();
-    double z = osc.vz();
+    double x = osc.xpos();
+    double y = osc.ypos();
+    double z = osc.zpos();
     if (!std::isfinite(x) || std::abs(x) > range)
     {
         printf("x is out of bounds: %lg is beyond limit %lg\n", x, range);
@@ -644,23 +644,23 @@ static int RangeTest(
     const long SIM_SAMPLES = SIM_SECONDS * SAMPLE_RATE;
     const double dt = 1.0 / SAMPLE_RATE;
 
-    double xMin = osc.vx();
-    double xMax = osc.vx();
-    double yMin = osc.vy();
-    double yMax = osc.vy();
-    double zMin = osc.vz();
-    double zMax = osc.vz();
+    double xMin = osc.xpos();
+    double xMax = osc.xpos();
+    double yMin = osc.ypos();
+    double yMax = osc.ypos();
+    double zMin = osc.zpos();
+    double zMax = osc.zpos();
 
     for (long i = 0; i < SIM_SAMPLES; ++i)
     {
         osc.update(dt);
         if (CheckLimits(osc, range)) return 1;
-        xMin = std::min(xMin, osc.vx());
-        xMax = std::max(xMax, osc.vx());
-        yMin = std::min(yMin, osc.vy());
-        yMax = std::max(yMax, osc.vy());
-        zMin = std::min(zMin, osc.vz());
-        zMax = std::max(zMax, osc.vz());
+        xMin = std::min(xMin, osc.xpos());
+        xMax = std::max(xMax, osc.xpos());
+        yMin = std::min(yMin, osc.ypos());
+        yMax = std::max(yMax, osc.ypos());
+        zMin = std::min(zMin, osc.zpos());
+        zMax = std::max(zMax, osc.zpos());
     }
 
     printf("vx range: %10.6lf %10.6lf\n", xMin, xMax);

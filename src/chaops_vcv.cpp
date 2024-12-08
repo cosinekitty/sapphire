@@ -16,6 +16,8 @@ namespace Sapphire
             STORE_BUTTON_PARAM,
             RECALL_BUTTON_PARAM,
             FREEZE_BUTTON_PARAM,
+            MORPH_PARAM,
+            MORPH_ATTEN,
             PARAMS_LEN
         };
 
@@ -25,6 +27,7 @@ namespace Sapphire
             STORE_TRIGGER_INPUT,
             RECALL_TRIGGER_INPUT,
             FREEZE_INPUT,
+            MORPH_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -67,6 +70,8 @@ namespace Sapphire
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
                 configInput(FREEZE_INPUT, "Freeze gate");
+                configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
+                configParam(MORPH_ATTEN, -1, +1, 0, "Morph attenuverter", "%", 0, 100);
                 initialize();
             }
 
@@ -98,6 +103,11 @@ namespace Sapphire
                 slider += attenu * cv;
                 int index = max(0u, static_cast<unsigned>(round(slider)) % MemoryCount);
                 return index;
+            }
+
+            float getMorph()
+            {
+                return getControlValue(MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
             }
 
             bool getStoreTrigger()
@@ -143,11 +153,11 @@ namespace Sapphire
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
                     message.freeze = frozen = getFreezeGate();
+                    message.morph = getMorph();
                     sender.send(message);
 
                     // HACK: "currentChannelCount" is really the displayed memory address.
                     currentChannelCount = message.memoryIndex;
-
 
                     if (message.store)
                         storeFlashCounter = flashDurationSamples(args.sampleRate);
@@ -213,6 +223,8 @@ namespace Sapphire
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
                 addSapphireInput(FREEZE_INPUT, "freeze_input");
+
+                addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
 
                 addSapphireChannelDisplay("memory_address_display");
             }

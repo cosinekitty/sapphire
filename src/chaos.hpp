@@ -97,6 +97,10 @@ namespace Sapphire
         const double zmin;
         const double zmax;
 
+        const double xVelScale;
+        const double yVelScale;
+        const double zVelScale;
+
         double x1{};
         double y1{};
         double z1{};
@@ -119,7 +123,8 @@ namespace Sapphire
             double _x0, double _y0, double _z0,
             double _xmin, double _xmax,
             double _ymin, double _ymax,
-            double _zmin, double _zmax
+            double _zmin, double _zmax,
+            double _xVelScale, double _yVelScale, double _zVelScale
         )
             : max_dt(_max_dt)
             , x0(_x0)
@@ -131,6 +136,9 @@ namespace Sapphire
             , ymax(_ymax)
             , zmin(_zmin)
             , zmax(_zmax)
+            , xVelScale(_xVelScale)
+            , yVelScale(_yVelScale)
+            , zVelScale(_zVelScale)
         {
             initialize();
         }
@@ -184,10 +192,20 @@ namespace Sapphire
             return 0;
         }
 
-        // Scaled values...
-        double vx() const { return Remap(x1, xmin, xmax); }
-        double vy() const { return Remap(y1, ymin, ymax); }
-        double vz() const { return Remap(z1, zmin, zmax); }
+        // Scaled position values.
+        double xpos() const { return Remap(x1, xmin, xmax); }
+        double ypos() const { return Remap(y1, ymin, ymax); }
+        double zpos() const { return Remap(z1, zmin, zmax); }
+
+        // Scale velocity vector.
+        SlopeVector velocity() const
+        {
+            SlopeVector vec = slopes(x1, y1, z1);
+            vec.mx *= xVelScale;
+            vec.my *= yVelScale;
+            vec.mz *= zVelScale;
+            return vec;
+        }
 
         void update(double dt)
         {
@@ -236,7 +254,8 @@ namespace Sapphire
                 0.788174, 0.522280, 1.250344,
                 -10.15,  +10.17,
                  -5.570,  +5.565,
-                  0.000, +15.387)
+                  0.000, +15.387,
+                0.2, 0.2, 0.2)
             {}
     };
 
@@ -284,7 +303,8 @@ namespace Sapphire
                 0.349, 0.001, -0.16,
                 -150, +150,
                 -200, +200,
-                 -60, +300)
+                 -60, +300,
+                0.015, 0.0075, 0.0075)
             {}
 
         int getModeCount() const override
@@ -347,7 +367,8 @@ namespace Sapphire
                 0.440125, -0.781267, -0.277170,
                 -1.51, +1.51,
                 -1.46, +1.54,
-                -0.39, +1.86)
+                -0.39, +1.86,
+                1, 1, 3.5)
             {}
 
         int getModeCount() const override

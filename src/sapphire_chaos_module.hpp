@@ -150,10 +150,10 @@ namespace Sapphire
                         json_t* jz = json_object_get(cell, "z");
                         if (json_is_real(jx) && json_is_real(jy) && json_is_real(jz))
                         {
-                            double vx = json_real_value(jx);
-                            double vy = json_real_value(jy);
-                            double vz = json_real_value(jz);
-                            memory[i] = ChaoticOscillatorState(vx, vy, vz);
+                            double xpos = json_real_value(jx);
+                            double ypos = json_real_value(jy);
+                            double zpos = json_real_value(jz);
+                            memory[i] = ChaoticOscillatorState(xpos, ypos, zpos);
                         }
                     }
                 }
@@ -164,6 +164,7 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool shouldUpdateCircuit = true;
+                float morph = 0;        // 0 = position, 1 = velocity
 
                 const Message* message = receiver.inboundMessage();
                 if (message != nullptr)
@@ -184,6 +185,8 @@ namespace Sapphire
                         shouldUpdateCircuit = false;
                         shouldClearTricorder = true;
                     }
+
+                    morph = message->morph;
                 }
 
                 if (shouldUpdateCircuit)
@@ -197,14 +200,21 @@ namespace Sapphire
                     circuit.update(dt);
                 }
 
-                float vx = setFlippableOutputVoltage(X_OUTPUT, circuit.vx());
-                float vy = setFlippableOutputVoltage(Y_OUTPUT, circuit.vy());
-                float vz = setFlippableOutputVoltage(Z_OUTPUT, circuit.vz());
+                float xpos = setFlippableOutputVoltage(X_OUTPUT, circuit.xpos());
+                float ypos = setFlippableOutputVoltage(Y_OUTPUT, circuit.ypos());
+                float zpos = setFlippableOutputVoltage(Z_OUTPUT, circuit.zpos());
+
+                SlopeVector vel = circuit.velocity();
+
+                float xmix = (1-morph)*xpos + morph*vel.mx;
+                float ymix = (1-morph)*ypos + morph*vel.my;
+                float zmix = (1-morph)*zpos + morph*vel.mz;
+
                 outputs[POLY_OUTPUT].setChannels(3);
-                outputs[POLY_OUTPUT].setVoltage(vx, 0);
-                outputs[POLY_OUTPUT].setVoltage(vy, 1);
-                outputs[POLY_OUTPUT].setVoltage(vz, 2);
-                sendVector(vx, vy, vz, shouldClearTricorder);
+                outputs[POLY_OUTPUT].setVoltage(xmix, 0);
+                outputs[POLY_OUTPUT].setVoltage(ymix, 1);
+                outputs[POLY_OUTPUT].setVoltage(zmix, 2);
+                sendVector(xmix, ymix, zmix, shouldClearTricorder);
                 shouldClearTricorder = false;
             }
         };

@@ -110,6 +110,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     yMemoryDisplay = 32.0
     yMemoryButton  = 42.0
     yMemoryTriggerPorts = 53.0
+    yMorph = 95.0
     yFreezeButton = 115.0
     yRecallLine = 59.0
     yStoreLine  = 68.0
@@ -119,6 +120,8 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     y2MemoryGradient = yMemoryButton + dyGradient
     y1FreezeGradient = yFreezeButton - dyGradient
     y2FreezeGradient = panel.mmHeight - 4.0
+    y1MorphGradient  = yMorph - dyGradient
+    y2MorphGradient  = y1FreezeGradient - 1.0
 
     smallArcRadius  = 1.5
     mediumArcRadius = 2.5
@@ -180,14 +183,16 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'memory')
-        AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,  SAPPHIRE_PANEL_COLOR, 'freeze')
+        AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR,   SAPPHIRE_PANEL_COLOR, 'memory')
+        AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,    SAPPHIRE_PANEL_COLOR, 'freeze')
+        AddGradient(y1MorphGradient,  y2MorphGradient,  SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'morph')
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'MORPH',  xmid, yMorph - dyButtonText))
         pl.append(HorizontalLine(xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, 'freeze_line_art'))
         pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
@@ -198,6 +203,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
         controls.append(Component('freeze_button', xmid + dxFreezePortButton, yFreezeButton))
         controls.append(Component('freeze_input',  xmid - dxFreezePortButton, yFreezeButton))
+        AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
     return Save(panel, svgFileName)
 
 

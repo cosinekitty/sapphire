@@ -207,8 +207,8 @@ namespace Sapphire
             bool recall = false;
             bool freeze = false;
             unsigned memoryIndex = 0;       // 0..(MemoryCount-1)
+            float morph = 0;
         };
-
 
         struct Sender
         {
@@ -224,7 +224,6 @@ namespace Sapphire
 
             void send(const Message& message)
             {
-                //INFO("sending chaops message: timeFactor = %g", message.timeFactor); // timeFactor = 0.1
                 Message& prod = *static_cast<Message*>(parentModule.rightExpander.producerMessage);
                 prod = message;
                 parentModule.rightExpander.requestMessageFlip();
