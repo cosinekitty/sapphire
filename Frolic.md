@@ -60,6 +60,10 @@ This is the same as multiplying the effective speed by 32.
 
 ![SPEED button context menu](images/chaos_speed_menu.png)
 
+When Turbo Mode is enabled, the letter T appears on top of the SPEED knob:
+
+![SPEED button turbo mode indicator](images/chaos_turbo_mode.png)
+
 **CHAOS**: This knob controls the value of the $A$ parameter in the first equation.
 The value of $A$ ranges from 3.8 to 6.7, which was experimentally determined
 to give a wide range of orbital behavior: from highly ordered to highly chaotic.

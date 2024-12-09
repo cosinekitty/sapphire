@@ -60,6 +60,11 @@ This is the same as multiplying the effective speed by 32.
 
 ![SPEED button context menu](images/chaos_speed_menu.png)
 
+When Turbo Mode is enabled, the letter T appears on top of the SPEED knob:
+
+![SPEED button turbo mode indicator](images/chaos_turbo_mode.png)
+
+
 **CHAOS**: This knob controls the value of a constant in the Aizawa attractor in a way that varies the nature of its chaotic orbit.
 
 Glee supports 4 distinct *chaos modes* that are named after kinds of fruit.
