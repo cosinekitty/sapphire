@@ -1,7 +1,7 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 
-// Sapphire SAM (Split / Add / Merge) for stereo and 3D vectors.
+// Sapphire Split/Add/Merge for stereo and 3D vectors.
 // by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 

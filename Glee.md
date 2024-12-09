@@ -75,6 +75,8 @@ Each fruit name starts with the same letter as the Aizawa parameter being contro
 * Cantaloupe for $C$. (This mode is boring, but kept for backward compatibility.)
 * Elderberry for $E$.
 
+The selected parameter A, B, C, or E appears on top of the CHAOS knob.
+
 When loading patches that were made before Glee supported chaos modes,
 Glee preserves backward compatibility by using Cantalope mode.
 

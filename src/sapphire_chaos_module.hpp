@@ -6,7 +6,7 @@
 
 // Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
-// Generic pattern for a Sapphire-style vector-output chaos module (Frolic & Glee).
+// Generic pattern for a Sapphire-style vector-output chaos module.
 
 namespace Sapphire
 {

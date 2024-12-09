@@ -6,7 +6,7 @@ The name "Chaops" is an abbreviation of "chaos operators". Chaops is a left-expa
 
 ### Memory
 
-The section labeled MEMORY allows you to select one of 16 memory cells with addresses numbered 0..15.
+The section labeled MEMORY allows you to select one of 16 memory cells with addresses numbered 0..15. You can then store/recall the state of the chaos module to the right at any time. This allows you to create repetitive chaotic control signals, or to restart a known state for reproducible results.
 
 Immediately below the MEMORY label, from left to right, are a CV input port, a smaller attenuverter knob, and a larger manual selector knob. Turning the selector knob changes the active memory cell address, as reflected in the LED display.
 

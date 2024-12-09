@@ -1,4 +1,4 @@
-## Split/Add/Merge (SAM)
+## Split/Add/Merge
 
 ![Split/Add/Merge](images/splitAddMerge.png)
 

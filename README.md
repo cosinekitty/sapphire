@@ -1,10 +1,12 @@
 # Sapphire modules for VCV Rack 2
 
 ## Installation
+
 The latest release of the Sapphire plugin is available in the
 [VCV Rack Library](https://library.vcvrack.com/CosineKitty-Sapphire).
 
 ## Video gallery
+
 Videos of [VCV Rack patches using Sapphire modules](VideoGallery.md) by myself and others.
 No talking, just patching and listening.
 
@@ -36,8 +38,7 @@ hexagonal mesh of balls and springs.
 
 ## Frolic
 
-A low-frequency and ultra-low-frequency chaotic oscillator
-for generating 3 simultaneous smooth but unpredictable voltages.
+A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="Frolic.md">Sapphire Frolic documentation</a>
 
@@ -59,8 +60,7 @@ by [Chris Johnson](https://github.com/airwindows/airwindows).
 
 ## Glee
 
-A low-frequency and ultra-low-frequency chaotic oscillator
-for generating 3 simultaneous smooth but unpredictable voltages.
+A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="Glee.md">Sapphire Glee documentation</a>
 
@@ -91,8 +91,7 @@ A random vector generator whose outputs point in all directions of an N-dimensio
 
 ## Lark
 
-A low-frequency and ultra-low-frequency chaotic oscillator
-for generating 3 simultaneous smooth but unpredictable voltages.
+A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="Lark.md">Sapphire Lark documentation</a>
 
@@ -180,7 +179,7 @@ Calculates the cross product of two input vectors.
 
 ---
 
-## Split/Add/Merge (SAM)
+## Split/Add/Merge
 
 Splits, adds, and/or merges a stereo or 3D polyphonic signal with 2 or 3 monophonic signals.
 This is like VCV Merge and VCV Split combined, but only for a maximum of 3 channels.

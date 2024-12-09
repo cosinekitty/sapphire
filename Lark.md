@@ -79,6 +79,8 @@ Each animal name starts with the same letter as the Dequan Li parameter being co
 * Ferret for $F$.
 * Kangaroo for $K$.
 
+The selected parameter A, E, F, or K appears on top of the CHAOS knob.
+
 (The parameters $C$ and $D$ do not appear as chaos mode options because I discovered they did not produce sufficiently interesting or different behavior from the other parameters.)
 
 You can change the chaos mode by right-clicking on the CHAOS knob and selecting one of the chaos mode options:
