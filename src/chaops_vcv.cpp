@@ -72,6 +72,7 @@ namespace Sapphire
                 configInput(FREEZE_INPUT, "Freeze gate");
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configParam(MORPH_ATTEN, -1, +1, 0, "Morph attenuverter", "%", 0, 100);
+                configInput(MORPH_CV_INPUT, "Morph CV");
                 initialize();
             }
 
@@ -83,6 +84,7 @@ namespace Sapphire
                 recallFlashCounter = 0;
                 storeReceiver.initialize();
                 recallReceiver.initialize();
+                freezeReceiver.initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -193,7 +195,6 @@ namespace Sapphire
         {
             ChaopsModule* chaopsModule;
             const NVGcolor RECALL_BUTTON_COLOR = nvgRGB(0x40, 0xd0, 0x3e);
-
 
             explicit ChaopsWidget(ChaopsModule* module)
                 : SapphireWidget("chaops", asset::plugin(pluginInstance, "res/chaops.svg"))
