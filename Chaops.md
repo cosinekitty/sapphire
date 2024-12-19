@@ -4,6 +4,10 @@
 
 The name "Chaops" is an abbreviation of "chaos operators". Chaops is a left-expander module that provides extra functionality to the chaos modules [Frolic](Frolic.md), [Glee](Glee.md), and [Lark](Lark.md). When you place Chaops to the immediate left of a Frolic, Glee, or Lark chaos module, Chaops allows you to access additional functionality not available from outside that chaos module.
 
+### Demo video
+
+[![Sapphire Chaops demo video](https://img.youtube.com/vi/6XYS6T32Otk/0.jpg)](https://www.youtube.com/watch?v=6XYS6T32Otk)
+
 ### Memory
 
 The section labeled MEMORY allows you to select one of 16 memory cells with addresses numbered 0..15. You can then store/recall the state of the chaos module to the right at any time. This allows you to create repetitive chaotic control signals, or to restart a known state for reproducible results.
