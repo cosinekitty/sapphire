@@ -200,21 +200,19 @@ namespace Sapphire
                     circuit.update(dt);
                 }
 
-                float xpos = setFlippableOutputVoltage(X_OUTPUT, circuit.xpos());
-                float ypos = setFlippableOutputVoltage(Y_OUTPUT, circuit.ypos());
-                float zpos = setFlippableOutputVoltage(Z_OUTPUT, circuit.zpos());
-
                 SlopeVector vel = circuit.velocity();
 
-                float xmix = (1-morph)*xpos + morph*vel.mx;
-                float ymix = (1-morph)*ypos + morph*vel.my;
-                float zmix = (1-morph)*zpos + morph*vel.mz;
+                float xmix = setFlippableOutputVoltage(X_OUTPUT, (1-morph)*circuit.xpos() + morph*vel.mx);
+                float ymix = setFlippableOutputVoltage(Y_OUTPUT, (1-morph)*circuit.ypos() + morph*vel.my);
+                float zmix = setFlippableOutputVoltage(Z_OUTPUT, (1-morph)*circuit.zpos() + morph*vel.mz);
 
                 outputs[POLY_OUTPUT].setChannels(3);
                 outputs[POLY_OUTPUT].setVoltage(xmix, 0);
                 outputs[POLY_OUTPUT].setVoltage(ymix, 1);
                 outputs[POLY_OUTPUT].setVoltage(zmix, 2);
+
                 sendVector(xmix, ymix, zmix, shouldClearTricorder);
+
                 shouldClearTricorder = false;
             }
         };

@@ -9,6 +9,17 @@
 </tr>
 
 <tr valign="top">
+<td align="center">21 Dec 2024</td>
+<td align="center">2.5.6</td>
+<td align="left">
+    <ul>
+        <li><a href="Chaops.md">Chaops</a> bug fix: when MORPH was not zero, the Frolic/Glee/Lark to the right was not using it for the monophonic outputs X, Y, Z.</li>
+        <li>Chaops: Added missing help text for the MORPH CV input port.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">8 Dec 2024</td>
 <td align="center">2.5.5</td>
 <td align="left">
