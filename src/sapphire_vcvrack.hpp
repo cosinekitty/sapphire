@@ -374,6 +374,33 @@ namespace Sapphire
             quantity = _quantity;
             box.size.x = 200;
         }
+
+        void draw(const DrawArgs& args) override
+        {
+            // [Don Cross] Copied and modified from: Rack/src/ui/Slider.cpp
+
+            BNDwidgetState state = BND_DEFAULT;
+            if (APP->event->hoveredWidget == this)
+                state = BND_HOVER;
+            if (APP->event->draggedWidget == this)
+                state = BND_ACTIVE;
+
+            float progress = 0;
+
+            // Render the slider snapped to the nearest integer number of channels.
+            // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
+            // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
+            auto ccq = static_cast<ChannelCountQuantity*>(quantity);
+            if (ccq != nullptr)
+                progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
+
+            std::string text = quantity ? quantity->getString() : "";
+
+            // If parent is a Menu, make corners sharp
+            ui::Menu* parentMenu = dynamic_cast<ui::Menu*>(getParent());
+            int flags = parentMenu ? BND_CORNER_ALL : BND_CORNER_NONE;
+            bndSlider(args.vg, 0.0, 0.0, box.size.x, box.size.y, flags, state, progress, text.c_str(), NULL);
+        }
     };
 
     const float DC_REJECT_MIN_FREQ = 20.0f;

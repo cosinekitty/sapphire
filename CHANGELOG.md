@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">28 Dec 2024</td>
+<td align="center">2.5.7</td>
+<td align="left">
+    <ul>
+        <li>The channel count sliders in Hiss, Pop, and Split/Add/Merge now move in a "snapped" manner instead of smoothly, to help visually emphasize their quantized nature.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">21 Dec 2024</td>
 <td align="center">2.5.6</td>
 <td align="left">
