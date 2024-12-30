@@ -26,6 +26,11 @@ namespace Sapphire
             Frame<maxChannels> buffer[maxQueueFrames];
             unsigned length = 0;
 
+            void initialize()
+            {
+                length = 0;
+            }
+
             void append(const Frame<maxChannels>& frame)
             {
                 if (length < maxQueueFrames)
@@ -34,17 +39,25 @@ namespace Sapphire
 
             void consume(unsigned nframes)
             {
-                if (nframes > length)
+                if (nframes == 0)
+                    return;
+
+                if (nframes >= length)
                 {
                     length = 0;
+                    return;
                 }
-                else
-                {
-                    for (unsigned i = 0; i + nframes < length; ++i)
-                        buffer[i] = buffer[i + nframes];
 
-                    length -= nframes;
-                }
+                for (unsigned i = 0; i + nframes < length; ++i)
+                    buffer[i] = buffer[i + nframes];
+
+                length -= nframes;
+            }
+
+            void advance(unsigned nframes)
+            {
+                length += nframes;
+                assert(length <= maxQueueFrames);
             }
 
             float* front()
@@ -113,6 +126,14 @@ namespace Sapphire
                 outResamp.setRates(modelSampleRate, signalSampleRate);
             }
 
+            void initialize()
+            {
+                signalInQueue.initialize();
+                modelInQueue.initialize();
+                modelOutQueue.initialize();
+                signalOutQueue.initialize();
+            }
+
             void process(
                 InternalModel<maxInputChannels, maxOutputChannels>& model,
                 const Frame<maxInputChannels>& signalInFrame,
@@ -137,6 +158,7 @@ namespace Sapphire
                     maxInputChannels,
                     &modelInFrameCount
                 );
+                modelInQueue.advance(modelInFrameCount);
                 signalInQueue.consume(signalInFrameCount);
 
                 // Run as many frames as possible through the model.
@@ -166,6 +188,8 @@ namespace Sapphire
                     maxOutputChannels,
                     &signalOutFrameCount
                 );
+                signalOutQueue.advance(signalOutFrameCount);
+                modelOutQueue.consume(modelOutFrameCount);
 
                 // Hopefully we have at least one output frame available,
                 // but we might not at the very beginning. When that happens,

@@ -121,7 +121,7 @@ namespace Sapphire
             bool isPowerGateActive = true;
             bool isQuiet = false;
             bool outputVectorSelectRight = false;
-            int modelSampleRate = 0;
+            int modelSampleRate = 48000;
             ElastikaModel model;
             hamburger_t hamburger;
 
@@ -204,6 +204,7 @@ namespace Sapphire
                 params[POWER_TOGGLE_PARAM].setValue(1.0f);
                 enableLimiterWarning = true;
                 outputVectorSelectRight = false;
+                hamburger.initialize();
             }
 
             double getAgcDistortion() override
@@ -361,6 +362,8 @@ namespace Sapphire
 
                 if (modelSampleRate > 0)
                 {
+                    // Run the Elastika engine at a different sample rate than the audio signal rate.
+
                     in_frame_t signalInFrame;
                     signalInFrame.sample[0] = leftIn;
                     signalInFrame.sample[1] = rightIn;
@@ -376,6 +379,7 @@ namespace Sapphire
                 }
                 else
                 {
+                    // Run Elastika at the same rate as the audio signal.
                     finite = engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
                 }
 
