@@ -47,11 +47,6 @@ namespace Sapphire
                 }
             }
 
-            unsigned stride() const
-            {
-                return maxChannels;
-            }
-
             float* front()
             {
                 return &buffer[0].sample[0];
@@ -85,7 +80,8 @@ namespace Sapphire
         public:
             virtual void processInternalFrame(
                 const Frame<maxInputChannels>& inFrame,
-                Frame<maxOutputChannels>& outFrame) = 0;
+                Frame<maxOutputChannels>& outFrame,
+                int sampleRate) = 0;
         };
 
 
@@ -100,6 +96,8 @@ namespace Sapphire
             // at 48 kHz. This pattern ensures consistent behavior of physical models
             // for a variable signal rate.
 
+            int modelRate = 0;
+
             ShiftQueue<maxInputChannels, maxQueueFrames> signalInQueue;
             dsp::SampleRateConverter<maxInputChannels> inResamp;
             ShiftQueue<maxInputChannels, maxQueueFrames> modelInQueue;
@@ -110,6 +108,7 @@ namespace Sapphire
 
             void setRates(int signalSampleRate, int modelSampleRate)
             {
+                modelRate = modelSampleRate;
                 inResamp.setRates(signalSampleRate, modelSampleRate);
                 outResamp.setRates(modelSampleRate, signalSampleRate);
             }
@@ -146,7 +145,7 @@ namespace Sapphire
                 unsigned eatCount = 0;
                 for (unsigned f = 0; f < modelInQueue.length && !modelOutQueue.full(); ++f)
                 {
-                    model.processInternalFrame(modelInQueue.buffer[f], modelOutFrame);
+                    model.processInternalFrame(modelInQueue.buffer[f], modelOutFrame, modelRate);
                     modelOutQueue.append(modelOutFrame);
                     ++eatCount;
                 }

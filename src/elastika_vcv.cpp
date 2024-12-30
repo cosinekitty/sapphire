@@ -71,6 +71,47 @@ namespace Sapphire
         };
 
 
+        const unsigned InChannelCount = 2;
+        const unsigned OutChannelCount = 2;
+        const unsigned QueueMaxFrameCount = 32;
+
+        using in_frame_t   = Resampler::Frame<InChannelCount>;
+        using out_frame_t  = Resampler::Frame<OutChannelCount>;
+        using model_base_t = Resampler::InternalModel<InChannelCount, OutChannelCount>;
+        using hamburger_t  = Resampler::Hamburger<InChannelCount, OutChannelCount, QueueMaxFrameCount>;
+
+
+        class ElastikaModel : public model_base_t
+        {
+        private:
+            ElastikaEngine& engine;
+
+        public:
+            explicit ElastikaModel(ElastikaEngine& _engine)
+                : engine(_engine)
+                {}
+
+            bool finite = true;
+
+            void processInternalFrame(
+                const in_frame_t& inFrame,
+                out_frame_t& outFrame,
+                int sampleRate) override
+            {
+                bool thisFrameIsFinite = engine.process(
+                    sampleRate,
+                    inFrame.sample[0],
+                    inFrame.sample[1],
+                    outFrame.sample[0],
+                    outFrame.sample[1]
+                );
+
+                if (!thisFrameIsFinite)
+                    finite = false;
+            }
+        };
+
+
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
@@ -80,9 +121,13 @@ namespace Sapphire
             bool isPowerGateActive = true;
             bool isQuiet = false;
             bool outputVectorSelectRight = false;
+            int modelSampleRate = 0;
+            ElastikaModel model;
+            hamburger_t hamburger;
 
             ElastikaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                , model(engine)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -204,6 +249,11 @@ namespace Sapphire
                 // Round to the nearest integer number of samples for the current sample rate.
                 int newRampLength = static_cast<int>(round(e.sampleRate / 400.0f));
                 slewer.setRampLength(newRampLength);
+
+                if (modelSampleRate > 0)
+                {
+                    hamburger.setRates(static_cast<int>(e.sampleRate), modelSampleRate);
+                }
             }
 
             void reflectAgcSlider()
@@ -307,7 +357,28 @@ namespace Sapphire
                 float leftIn = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
                 float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
                 float sample[2];
-                bool finite = engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+                bool finite;
+
+                if (modelSampleRate > 0)
+                {
+                    in_frame_t signalInFrame;
+                    signalInFrame.sample[0] = leftIn;
+                    signalInFrame.sample[1] = rightIn;
+
+                    out_frame_t signalOutFrame;
+
+                    model.finite = true;
+                    hamburger.process(model, signalInFrame, InChannelCount, signalOutFrame, OutChannelCount);
+                    finite = model.finite;
+
+                    sample[0] = signalOutFrame.sample[0];
+                    sample[1] = signalOutFrame.sample[1];
+                }
+                else
+                {
+                    finite = engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+                }
+
                 if (finite)
                 {
                     if (limiterRecoveryCountdown > 0)
