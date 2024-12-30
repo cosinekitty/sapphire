@@ -121,14 +121,17 @@ namespace Sapphire
             bool isPowerGateActive = true;
             bool isQuiet = false;
             bool outputVectorSelectRight = false;
-            int modelSampleRate = 48000;
             ElastikaModel model;
             hamburger_t hamburger;
+            Resampler::ModelSampleRateChooser modelRateChooser;
 
             ElastikaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
                 , model(engine)
+                , modelRateChooser({0, 22000, 44100, 48000, 96000})
             {
+                provideModelResampler = true;
+
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
                 configParam(FRICTION_SLIDER_PARAM, 0, 1, 0.5, "Friction");
@@ -205,6 +208,7 @@ namespace Sapphire
                 enableLimiterWarning = true;
                 outputVectorSelectRight = false;
                 hamburger.initialize();
+                modelRateChooser.initialize();
             }
 
             double getAgcDistortion() override
@@ -232,6 +236,8 @@ namespace Sapphire
             {
                 SapphireModule::dataFromJson(root);
 
+                modelRateChooser.loadOrRevertToDefault(modelSampleRate);
+
                 // If the JSON is damaged, default to enabling the warning light.
                 json_t *warningFlag = json_object_get(root, "limiterWarningLight");
                 enableLimiterWarning = !json_is_false(warningFlag);
@@ -250,11 +256,6 @@ namespace Sapphire
                 // Round to the nearest integer number of samples for the current sample rate.
                 int newRampLength = static_cast<int>(round(e.sampleRate / 400.0f));
                 slewer.setRampLength(newRampLength);
-
-                if (modelSampleRate > 0)
-                {
-                    hamburger.setRates(static_cast<int>(e.sampleRate), modelSampleRate);
-                }
             }
 
             void reflectAgcSlider()
@@ -272,6 +273,10 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                modelSampleRate = modelRateChooser.getSelectedSampleRate();
+                if (modelSampleRate > 0)
+                    hamburger.setRates(static_cast<int>(args.sampleRate), modelSampleRate);
+
                 // The user is allowed to turn off Elastika to reduce CPU usage.
                 // Check the gate input voltage first, and debounce it.
                 // If the gate is not connected, fall back to the pushbutton state.
@@ -509,6 +514,9 @@ namespace Sapphire
 
                     // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
                     menu->addChild(elastikaModule->createToggleAllSensitivityMenuItem());
+
+                    // Add options to select the sample rate that the Elastika engine runs at.
+                    elastikaModule->modelRateChooser.addOptionsToMenu(menu);
                 }
             }
         };

@@ -205,5 +205,59 @@ namespace Sapphire
                 }
             }
         };
+
+
+        struct ModelSampleRateChooser
+        {
+            std::size_t selectedIndex = 0;
+            const std::vector<int> sampleRateOptions;
+
+            explicit ModelSampleRateChooser(std::initializer_list<int> options)
+                : sampleRateOptions(options)
+                {}
+
+            void initialize()
+            {
+                selectedIndex = 0;
+            }
+
+            void loadOrRevertToDefault(int& sampleRate)
+            {
+                // Search for an exact match.
+                std::size_t index = 0;
+                for (int rate : sampleRateOptions)
+                {
+                    if (sampleRate == rate)
+                    {
+                        selectedIndex = index;
+                        return;
+                    }
+                    ++index;
+                }
+
+                // If not found, revert to default (index = 0).
+                sampleRate = sampleRateOptions.at(0);
+                selectedIndex = 0;
+            }
+
+            int getSelectedSampleRate() const
+            {
+                return sampleRateOptions.at(selectedIndex);
+            }
+
+            void addOptionsToMenu(Menu* menu)
+            {
+                std::vector<std::string> labels;
+                for (int rate : sampleRateOptions)
+                    labels.push_back((rate > 0) ? (std::to_string(rate) + " Hz") : "Match engine rate");
+
+                menu->addChild(createIndexSubmenuItem(
+                    "Model sample rate",
+                    labels,
+                    [=]() { return selectedIndex; },
+                    [=](std::size_t index) { selectedIndex = index; }
+                ));
+            }
+        };
     }
 }

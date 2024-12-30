@@ -607,6 +607,8 @@ namespace Sapphire
         int limiterRecoveryCountdown = 0;      // positive integer indicates we are recovering from NAN/INF
         int currentChannelCount = 0;           // used only by modules that display a channel count on the panel
         bool shouldClearTricorder = false;     // used only by modules that send vectors to Tricorder for display
+        bool provideModelResampler = false;
+        int modelSampleRate = 0;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -757,6 +759,9 @@ namespace Sapphire
             if (provideStereoMerge)
                 json_object_set_new(root, "enableStereoMerge", json_boolean(enableStereoMerge));
 
+            if (provideModelResampler)
+                json_object_set_new(root, "modelSampleRate", json_integer(modelSampleRate));
+
             return root;
         }
 
@@ -819,6 +824,13 @@ namespace Sapphire
             {
                 json_t *mergeFlag = json_object_get(root, "enableStereoMerge");
                 enableStereoMerge = json_is_true(mergeFlag);
+            }
+
+            if (provideModelResampler)
+            {
+                json_t* rate = json_object_get(root, "modelSampleRate");
+                if (json_is_integer(rate))
+                    modelSampleRate = json_integer_value(rate);
             }
         }
 
