@@ -360,32 +360,30 @@ namespace Sapphire
                 engine.setInputTilt(inTilt);
                 engine.setOutputTilt(outTilt);
 
-                float leftIn = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
-                float rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
-                float sample[2];
-                bool finite;
+                in_frame_t signalInFrame;
+                signalInFrame.sample[0] = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
+                signalInFrame.sample[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
 
-                if (modelSampleRate > 0)
+                out_frame_t signalOutFrame;
+
+                bool finite;
+                if (modelSampleRate > 0 && modelSampleRate != static_cast<int>(args.sampleRate))
                 {
                     // Run the Elastika engine at a different sample rate than the audio signal rate.
-
-                    in_frame_t signalInFrame;
-                    signalInFrame.sample[0] = leftIn;
-                    signalInFrame.sample[1] = rightIn;
-
-                    out_frame_t signalOutFrame;
-
                     model.finite = true;
                     hamburger.process(model, signalInFrame, InChannelCount, signalOutFrame, OutChannelCount);
                     finite = model.finite;
-
-                    sample[0] = signalOutFrame.sample[0];
-                    sample[1] = signalOutFrame.sample[1];
                 }
                 else
                 {
                     // Run Elastika at the same rate as the audio signal.
-                    finite = engine.process(args.sampleRate, leftIn, rightIn, sample[0], sample[1]);
+                    finite = engine.process(
+                        args.sampleRate,
+                        signalInFrame.sample[0],
+                        signalInFrame.sample[1],
+                        signalOutFrame.sample[0],
+                        signalOutFrame.sample[1]
+                    );
                 }
 
                 if (finite)
@@ -400,14 +398,14 @@ namespace Sapphire
                 }
 
                 // Scale ElastikaEngine's dimensionless amplitude to a +5.0V amplitude.
-                sample[0] *= 5;
-                sample[1] *= 5;
+                signalOutFrame.sample[0] *= 5;
+                signalOutFrame.sample[1] *= 5;
 
                 // Filter the audio through the slewer to prevent clicks during power transitions.
-                slewer.process(sample, 2);
+                slewer.process(signalOutFrame.sample, 2);
 
-                outputs[AUDIO_LEFT_OUTPUT].setVoltage(sample[0]);
-                outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sample[1]);
+                outputs[AUDIO_LEFT_OUTPUT].setVoltage(signalOutFrame.sample[0]);
+                outputs[AUDIO_RIGHT_OUTPUT].setVoltage(signalOutFrame.sample[1]);
 
                 PhysicsVector v = engine.getOutputVector(outputVectorSelectRight);
                 sendVector(v[0], v[1], v[2], false);
