@@ -128,7 +128,7 @@ namespace Sapphire
             ElastikaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
                 , model(engine)
-                , modelRateChooser({0, 22000, 44100, 48000, 96000})
+                , modelRateChooser({0, 22050, 24000, 44100, 48000, 88200, 96000})
             {
                 provideModelResampler = true;
 
