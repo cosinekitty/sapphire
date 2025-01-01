@@ -274,8 +274,7 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 modelSampleRate = modelRateChooser.getSelectedSampleRate();
-                if (modelSampleRate > 0)
-                    hamburger.setRates(static_cast<int>(args.sampleRate), modelSampleRate);
+                hamburger.setRates(static_cast<int>(args.sampleRate), modelSampleRate);
 
                 // The user is allowed to turn off Elastika to reduce CPU usage.
                 // Check the gate input voltage first, and debounce it.
@@ -365,28 +364,10 @@ namespace Sapphire
                 signalInFrame.sample[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
 
                 out_frame_t signalOutFrame;
+                model.finite = true;
+                hamburger.process(model, signalInFrame, InChannelCount, signalOutFrame, OutChannelCount);
 
-                bool finite;
-                if (modelSampleRate > 0 && modelSampleRate != static_cast<int>(args.sampleRate))
-                {
-                    // Run the Elastika engine at a different sample rate than the audio signal rate.
-                    model.finite = true;
-                    hamburger.process(model, signalInFrame, InChannelCount, signalOutFrame, OutChannelCount);
-                    finite = model.finite;
-                }
-                else
-                {
-                    // Run Elastika at the same rate as the audio signal.
-                    finite = engine.process(
-                        args.sampleRate,
-                        signalInFrame.sample[0],
-                        signalInFrame.sample[1],
-                        signalOutFrame.sample[0],
-                        signalOutFrame.sample[1]
-                    );
-                }
-
-                if (finite)
+                if (model.finite)
                 {
                     if (limiterRecoveryCountdown > 0)
                         --limiterRecoveryCountdown;

@@ -109,7 +109,17 @@ namespace Sapphire
             // at 48 kHz. This pattern ensures consistent behavior of physical models
             // for a variable signal rate.
 
+            int signalRate = 0;
             int modelRate = 0;
+
+            bool canSkipResampler() const
+            {
+                // If the model sample rate is zero, it is a flag that
+                // the caller wants to disable the resampler logic and operate
+                // the model at the same rate as the signal.
+                // Also, if both rates match, it means no resampling is necessary.
+                return modelRate == 0 || modelRate == signalRate;
+            }
 
             ShiftQueue<maxInputChannels, maxQueueFrames> signalInQueue;
             dsp::SampleRateConverter<maxInputChannels> inResamp;
@@ -121,9 +131,13 @@ namespace Sapphire
 
             void setRates(int signalSampleRate, int modelSampleRate)
             {
+                signalRate = signalSampleRate;
                 modelRate = modelSampleRate;
-                inResamp.setRates(signalSampleRate, modelSampleRate);
-                outResamp.setRates(modelSampleRate, signalSampleRate);
+                if (!canSkipResampler())
+                {
+                    inResamp.setRates(signalRate, modelRate);
+                    outResamp.setRates(modelRate, signalRate);
+                }
             }
 
             void initialize()
@@ -141,6 +155,12 @@ namespace Sapphire
                 Frame<maxOutputChannels>& signalOutFrame,
                 unsigned outputChannelCount)
             {
+                if (canSkipResampler())
+                {
+                    model.processInternalFrame(signalInFrame, signalOutFrame, signalRate);
+                    return;
+                }
+
                 // Enqueue in the inbound signal frame.
                 signalInQueue.append(signalInFrame);
 
