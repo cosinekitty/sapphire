@@ -12,14 +12,20 @@ namespace Sapphire
     {
         springList.clear();
         currBallList.clear();
-        nextBallList.clear();
+        nextBallList1.clear();
+        nextBallList2.clear();
+        nextBallList3.clear();
         originalPositions.clear();
-        forceList.clear();
+        forceList1.clear();
+        forceList2.clear();
+        forceList3.clear();
+        forceList4.clear();
         gravity = PhysicsVector::zero();
         magnet = PhysicsVector::zero();
         stiffness  = MESH_DEFAULT_STIFFNESS;
         restLength = MESH_DEFAULT_REST_LENGTH;
         speedLimit = MESH_DEFAULT_SPEED_LIMIT;
+        integrationMode = MeshIntegrationMode::Midpoint;
     }
 
 
@@ -54,11 +60,16 @@ namespace Sapphire
         // Save this ball in `ballList`.
         currBallList.push_back(ball);
 
-        // Reserve a slot in the auxiliary array `nextBallList`.
-        nextBallList.push_back(ball);
+        // Reserve a slot to calculate integration steps for this ball.
+        nextBallList1.push_back(ball);
+        nextBallList2.push_back(ball);
+        nextBallList3.push_back(ball);
 
-        // Reserve a slot for calculating forces.
-        forceList.push_back(PhysicsVector::zero());
+        // Reserve slots for calculating forces.
+        forceList1.push_back(PhysicsVector::zero());
+        forceList2.push_back(PhysicsVector::zero());
+        forceList3.push_back(PhysicsVector::zero());
+        forceList4.push_back(PhysicsVector::zero());
 
         // Remember where each ball started, so we can put it back.
         // This also provides a way to calculate the offset of a ball from its original position.
@@ -84,7 +95,7 @@ namespace Sapphire
 
 
     void PhysicsMesh::CalcForces(
-        BallList& blist,
+        const BallList& blist,
         PhysicsVectorList& forceList)
     {
         // Start with gravity acting on all balls. (But only effective on mobile balls.)
@@ -177,7 +188,7 @@ namespace Sapphire
                 }
 
                 // Estimate the next position based on the average speed over the time increment.
-                next.pos = curr.pos + ((dt / 2.0) * (curr.vel + next.vel));
+                next.pos = curr.pos + ((dt/2) * (curr.vel + next.vel));
             }
         }
     }
@@ -186,11 +197,29 @@ namespace Sapphire
     void PhysicsMesh::Update(float dt, float halflife)
     {
         Dampen(currBallList, dt, halflife);
-        CalcForces(currBallList, forceList);
-        Extrapolate(dt / 2.0, speedLimit, forceList, currBallList, nextBallList);
-        CalcForces(nextBallList, forceList);
-        Extrapolate(dt, speedLimit, forceList, currBallList, nextBallList);
-        Copy(nextBallList, currBallList);
+
+        switch (integrationMode)
+        {
+        case MeshIntegrationMode::Midpoint:
+        default:
+            CalcForces(currBallList, forceList1);
+            Extrapolate(dt/2, speedLimit, forceList1, currBallList, nextBallList1);
+            CalcForces(nextBallList1, forceList1);
+            Extrapolate(dt, speedLimit, forceList1, currBallList, nextBallList1);
+            Copy(nextBallList1, currBallList);
+            break;
+
+        case MeshIntegrationMode::RK4:
+            CalcForces(currBallList, forceList1);
+            Extrapolate(dt/2, speedLimit, forceList1, currBallList, nextBallList1);
+            CalcForces(nextBallList1, forceList2);
+            Extrapolate(dt/2, speedLimit, forceList2, currBallList, nextBallList2);
+            CalcForces(nextBallList2, forceList3);
+            Extrapolate(dt, speedLimit, forceList3, currBallList, nextBallList3);
+            CalcForces(nextBallList3, forceList4);
+            RungeKuttaUpdate(dt);
+            break;
+        }
     }
 
 
@@ -200,5 +229,28 @@ namespace Sapphire
         assert(nballs == target.size());
         for (std::size_t i = 0; i < nballs; ++i)
             target[i] = source[i];
+    }
+
+
+    void PhysicsMesh::RungeKuttaUpdate(float dt)
+    {
+        const std::size_t nballs = currBallList.size();
+        for (std::size_t i = 0; i < nballs; ++i)
+        {
+            Ball &ball = currBallList[i];
+            if (ball.IsMobile())
+            {
+                PhysicsVector v1 = ball.vel;
+                PhysicsVector v2 = nextBallList1[i].vel;
+                PhysicsVector v3 = nextBallList2[i].vel;
+                PhysicsVector v4 = nextBallList3[i].vel;
+                PhysicsVector a1 = forceList1[i] / ball.mass;
+                PhysicsVector a2 = forceList2[i] / ball.mass;
+                PhysicsVector a3 = forceList3[i] / ball.mass;
+                PhysicsVector a4 = forceList4[i] / ball.mass;
+                ball.pos += (dt/6) * (v1 + 2*v2 + 2*v3 + v4);
+                ball.vel += (dt/6) * (a1 + 2*a2 + 2*a3 + a4);
+            }
+        }
     }
 }

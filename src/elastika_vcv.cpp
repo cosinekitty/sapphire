@@ -229,6 +229,7 @@ namespace Sapphire
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
                 dcRejectQuantity->save(root, "dcRejectFrequency");
+                json_object_set_new(root, "integrationMode", json_integer(static_cast<int>(engine.getIntegrationMode())));
                 return root;
             }
 
@@ -248,6 +249,10 @@ namespace Sapphire
 
                 agcLevelQuantity->load(root, "agcLevel");
                 dcRejectQuantity->load(root, "dcRejectFrequency");
+
+                json_t* integrationMode = json_object_get(root, "integrationMode");
+                if (json_is_integer(integrationMode))
+                    engine.setIntegrationMode(static_cast<MeshIntegrationMode>(json_integer_value(integrationMode)));
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -496,6 +501,18 @@ namespace Sapphire
 
                     // Add options to select the sample rate that the Elastika engine runs at.
                     elastikaModule->modelRateChooser.addOptionsToMenu(menu);
+
+                    // Allow toggling between original midpoint algorithm and RK4 integration.
+                    menu->addChild(createBoolMenuItem("Use RK4 integration", "",
+                        [=]()
+                        {
+                            return elastikaModule->engine.getIntegrationMode() == MeshIntegrationMode::RK4;
+                        },
+                        [=](bool rk4)
+                        {
+                            elastikaModule->engine.setIntegrationMode(rk4 ? MeshIntegrationMode::RK4 : MeshIntegrationMode::Midpoint);
+                        }
+                    ));
                 }
             }
         };

@@ -24,7 +24,7 @@ namespace Sapphire
     {
         PhysicsVector pos;      // the ball's position [m]
         PhysicsVector vel;      // the ball's velocity [m/s]
-        float mass;            // the ball's [kg]
+        float mass;             // the ball's mass [kg]
 
         Ball(float _mass, float _x, float _y, float _z)
             : pos(_x, _y, _z, 0.0f)
@@ -59,19 +59,31 @@ namespace Sapphire
     const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
     const float MESH_DEFAULT_SPEED_LIMIT = 2.0;
 
+    enum class MeshIntegrationMode
+    {
+        Midpoint,
+        RK4,
+    };
+
     class PhysicsMesh
     {
     private:
         SpringList springList;
         std::vector<PhysicsVector> originalPositions;
         BallList currBallList;
-        BallList nextBallList;
-        PhysicsVectorList forceList;                // holds calculated net force on each ball
+        BallList nextBallList1;
+        BallList nextBallList2;
+        BallList nextBallList3;
+        PhysicsVectorList forceList1;
+        PhysicsVectorList forceList2;
+        PhysicsVectorList forceList3;
+        PhysicsVectorList forceList4;
         PhysicsVector gravity;
         PhysicsVector magnet;
         float stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
+        MeshIntegrationMode integrationMode = MeshIntegrationMode::Midpoint;
 
     public:
         void Clear();   // empty out the mesh and start over
@@ -99,10 +111,12 @@ namespace Sapphire
         PhysicsVector GetBallOrigin(int index) const { return originalPositions.at(index); }
         PhysicsVector GetBallDisplacement(int index) const { return currBallList.at(index).pos - originalPositions.at(index); }
         Spring& GetSpringAt(int index) { return springList.at(index); }
+        MeshIntegrationMode GetIntegrationMode() const { return integrationMode; }
+        void SetIntegrationMode(MeshIntegrationMode mode) { integrationMode = mode; }
 
     private:
         void CalcForces(
-            BallList& blist,
+            const BallList& blist,
             PhysicsVectorList& forceList);
 
         static void Dampen(BallList& blist, float dt, float halflife);
@@ -115,6 +129,8 @@ namespace Sapphire
             const BallList& sourceList,
             BallList& targetList
         );
+
+        void RungeKuttaUpdate(float dt);
     };
 
     struct MeshAudioParameters
@@ -380,6 +396,16 @@ namespace Sapphire
         double getAgcDistortion() const     // returns 0 when no distortion, or a positive value correlated with AGC distortion
         {
             return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+        }
+
+        MeshIntegrationMode getIntegrationMode() const
+        {
+            return mesh.GetIntegrationMode();
+        }
+
+        void setIntegrationMode(MeshIntegrationMode mode)
+        {
+            mesh.SetIntegrationMode(mode);
         }
 
         bool process(float sampleRate, float leftIn, float rightIn, float& leftOut, float& rightOut)
