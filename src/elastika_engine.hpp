@@ -52,8 +52,20 @@ namespace Sapphire
         bool IsMobile() const { return mass > 0.0; }
     };
 
+    struct RungeKuttaStep
+    {
+        PhysicsVector vel;
+        PhysicsVector acc;
+    };
+
+    struct RungeKuttaCell
+    {
+        RungeKuttaStep k[4];
+    };
+
     using SpringList = std::vector<Spring>;
     using BallList = std::vector<Ball>;
+    using RungeKuttaList = std::vector<RungeKuttaCell>;
 
     const float MESH_DEFAULT_STIFFNESS = 10.0;
     const float MESH_DEFAULT_REST_LENGTH = 1.0e-3;
@@ -79,6 +91,7 @@ namespace Sapphire
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
         MeshIntegrationMode integrationMode = MeshIntegrationMode::Midpoint;
+        RungeKuttaList rkList;
 
     public:
         void Clear();   // empty out the mesh and start over
@@ -126,6 +139,9 @@ namespace Sapphire
         );
 
         void RungeKuttaUpdate(float dt);
+        void RungeKuttaCalcBegin();
+        void RungeKuttaCalcStep(float dt, int readStep, int writeStep);
+        void RungeKuttaCalcEnd(float dt);
     };
 
     struct MeshAudioParameters

@@ -26,6 +26,7 @@ namespace Sapphire
         nextBallList.clear();
         originalPositions.clear();
         forceList.clear();
+        rkList.clear();
         gravity = PhysicsVector::zero();
         magnet = PhysicsVector::zero();
         stiffness  = MESH_DEFAULT_STIFFNESS;
@@ -71,6 +72,8 @@ namespace Sapphire
 
         // Reserve slots for calculating forces.
         forceList.push_back(PhysicsVector::zero());
+
+        rkList.push_back(RungeKuttaCell{});
 
         // Remember where each ball started, so we can put it back.
         // This also provides a way to calculate the offset of a ball from its original position.
@@ -220,5 +223,63 @@ namespace Sapphire
 
     void PhysicsMesh::RungeKuttaUpdate(float dt)
     {
+        RungeKuttaCalcBegin();
+        RungeKuttaCalcStep(dt/2, 0, 1);
+        RungeKuttaCalcStep(dt/2, 1, 2);
+        RungeKuttaCalcStep(dt, 2, 3);
+        RungeKuttaCalcEnd(dt);
+    }
+
+    void PhysicsMesh::RungeKuttaCalcBegin()
+    {
+        CalcForces(currBallList, forceList);
+        const std::size_t nballs = currBallList.size();
+        for (std::size_t i = 0; i < nballs; ++i)
+        {
+            if (currBallList[i].IsMobile())
+            {
+                rkList[i].k[0].vel = currBallList[i].vel;
+                rkList[i].k[0].acc = forceList[i] / currBallList[i].mass;
+            }
+        }
+    }
+
+    void PhysicsMesh::RungeKuttaCalcStep(float dt, int readStep, int writeStep)
+    {
+        const std::size_t nballs = currBallList.size();
+
+        for (std::size_t i = 0; i < nballs; ++i)
+        {
+            if (currBallList[i].IsMobile())
+            {
+                nextBallList[i].pos = currBallList[i].pos + (dt * rkList[i].k[readStep].vel);
+                nextBallList[i].vel = currBallList[i].vel + (dt * rkList[i].k[readStep].acc);
+            }
+        }
+
+        CalcForces(nextBallList, forceList);
+
+        for (std::size_t i = 0; i < nballs; ++i)
+        {
+            if (nextBallList[i].IsMobile())
+            {
+                rkList[i].k[writeStep].acc = forceList[i] / nextBallList[i].mass;
+                rkList[i].k[writeStep].vel = nextBallList[i].vel;
+            }
+        }
+    }
+
+    void PhysicsMesh::RungeKuttaCalcEnd(float dt)
+    {
+        const std::size_t nballs = currBallList.size();
+        for (std::size_t i = 0; i < nballs; ++i)
+        {
+            if (currBallList[i].IsMobile())
+            {
+                currBallList[i].pos += (dt/6) * (rkList[i].k[0].vel + 2*rkList[i].k[1].vel + 2*rkList[i].k[2].vel + rkList[i].k[3].vel);
+                currBallList[i].vel += (dt/6) * (rkList[i].k[0].acc + 2*rkList[i].k[1].acc + 2*rkList[i].k[2].acc + rkList[i].k[3].acc);
+                currBallList[i].vel = LimitVelocity(currBallList[i].vel, speedLimit);
+            }
+        }
     }
 }
