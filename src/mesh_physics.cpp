@@ -190,15 +190,6 @@ namespace Sapphire
         Extrapolate(dt / 2.0, speedLimit, forceList, currBallList, nextBallList);
         CalcForces(nextBallList, forceList);
         Extrapolate(dt, speedLimit, forceList, currBallList, nextBallList);
-        Copy(nextBallList, currBallList);
-    }
-
-
-    void PhysicsMesh::Copy(const BallList& source, BallList& target)
-    {
-        const std::size_t nballs = source.size();
-        assert(nballs == target.size());
-        for (std::size_t i = 0; i < nballs; ++i)
-            target[i] = source[i];
+        std::swap(nextBallList, currBallList);
     }
 }

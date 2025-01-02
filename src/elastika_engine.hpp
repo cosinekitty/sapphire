@@ -106,7 +106,6 @@ namespace Sapphire
             PhysicsVectorList& forceList);
 
         static void Dampen(BallList& blist, float dt, float halflife);
-        static void Copy(const BallList& source, BallList& target);
 
         static void Extrapolate(
             float dt,
