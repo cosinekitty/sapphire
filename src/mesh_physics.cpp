@@ -84,7 +84,7 @@ namespace Sapphire
 
 
     void PhysicsMesh::CalcForces(
-        BallList& blist,
+        const BallList& blist,
         PhysicsVectorList& forceList)
     {
         // Start with gravity acting on all balls. (But only effective on mobile balls.)

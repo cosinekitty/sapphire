@@ -102,7 +102,7 @@ namespace Sapphire
 
     private:
         void CalcForces(
-            BallList& blist,
+            const BallList& blist,
             PhysicsVectorList& forceList);
 
         static void Dampen(BallList& blist, float dt, float halflife);
