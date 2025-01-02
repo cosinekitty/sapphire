@@ -71,13 +71,8 @@ namespace Sapphire
         SpringList springList;
         std::vector<PhysicsVector> originalPositions;
         BallList currBallList;
-        BallList nextBallList1;
-        BallList nextBallList2;
-        BallList nextBallList3;
-        PhysicsVectorList forceList1;
-        PhysicsVectorList forceList2;
-        PhysicsVectorList forceList3;
-        PhysicsVectorList forceList4;
+        BallList nextBallList;
+        PhysicsVectorList forceList;
         PhysicsVector gravity;
         PhysicsVector magnet;
         float stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
