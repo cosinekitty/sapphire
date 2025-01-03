@@ -91,17 +91,26 @@ namespace Sapphire
 
     inline PhysicsVector& operator += (PhysicsVector& a, const PhysicsVector& b)
     {
-        return a = a + b;
+        a = a + b;
+        return a;
     }
 
     inline PhysicsVector& operator -= (PhysicsVector& a, const PhysicsVector& b)
     {
-        return a = a - b;
+        a = a - b;
+        return a;
     }
 
     inline PhysicsVector& operator *= (PhysicsVector& a, const PhysicsVector& b)
     {
-        return a = a * b;
+        a = a * b;
+        return a;
+    }
+
+    inline PhysicsVector& operator /= (PhysicsVector& a, float b)
+    {
+        a = a / b;
+        return a;
     }
 
     inline float Dot(const PhysicsVector &a, const PhysicsVector &b)
