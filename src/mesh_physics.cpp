@@ -104,7 +104,7 @@ namespace Sapphire
             PhysicsVector dr = b2.pos - b1.pos;
             float dist = Magnitude(dr);   // length of the spring
             float attractiveForce = stiffness * (dist - restLength);
-            if (dist < 1.0e-9)
+            if (dist < 1.0e-9f)
             {
                 // Think of this like two bullets hitting each other in a gunfight:
                 // it should almost never happen.
@@ -136,7 +136,7 @@ namespace Sapphire
     void PhysicsMesh::Dampen(BallList& blist, float dt, float halflife)
     {
         // damp^(frictionHalfLife/dt) = 0.5.
-        const float damp = pow(0.5, dt/halflife);
+        const float damp = std::pow(0.5f, dt/halflife);
         for (Ball& b : blist)
             b.vel *= damp;
     }
@@ -169,15 +169,15 @@ namespace Sapphire
                 // Update the velocity vector from `curr` into `next`.
                 next.vel = curr.vel + ((dt / curr.mass) * forceList[i]);
 
-                if (speedLimit > 0.0)
+                if (speedLimit > 0)
                 {
                     float speedSquared = Dot(next.vel, next.vel);
                     if (speedSquared > speedLimitSquared)
-                        next.vel *= speedLimit / sqrt(speedSquared);
+                        next.vel *= speedLimit / std::sqrt(speedSquared);
                 }
 
                 // Estimate the next position based on the average speed over the time increment.
-                next.pos = curr.pos + ((dt / 2.0) * (curr.vel + next.vel));
+                next.pos = curr.pos + ((dt / 2) * (curr.vel + next.vel));
             }
         }
     }
@@ -187,7 +187,7 @@ namespace Sapphire
     {
         Dampen(currBallList, dt, halflife);
         CalcForces(currBallList, forceList);
-        Extrapolate(dt / 2.0, speedLimit, forceList, currBallList, nextBallList);
+        Extrapolate(dt/2, speedLimit, forceList, currBallList, nextBallList);
         CalcForces(nextBallList, forceList);
         Extrapolate(dt, speedLimit, forceList, currBallList, nextBallList);
         std::swap(nextBallList, currBallList);
