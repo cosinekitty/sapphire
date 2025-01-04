@@ -119,10 +119,7 @@ namespace Sapphire
         dr = blist[22].pos - blist[3].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[ 3] += force;
-        }
+            forceList[3] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[4].pos - blist[3].pos;
         dist = Magnitude(dr);
@@ -145,10 +142,7 @@ namespace Sapphire
         dr = blist[23].pos - blist[2].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[ 2] += force;
-        }
+            forceList[2] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[4].pos - blist[15].pos;
         dist = Magnitude(dr);
@@ -162,10 +156,7 @@ namespace Sapphire
         dr = blist[24].pos - blist[15].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[15] += force;
-        }
+            forceList[15] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[16].pos - blist[15].pos;
         dist = Magnitude(dr);
@@ -215,10 +206,7 @@ namespace Sapphire
         dr = blist[25].pos - blist[8].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[ 8] += force;
-        }
+            forceList[8] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[17].pos - blist[16].pos;
         dist = Magnitude(dr);
@@ -232,10 +220,7 @@ namespace Sapphire
         dr = blist[26].pos - blist[16].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[16] += force;
-        }
+            forceList[16] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[0].pos - blist[5].pos;
         dist = Magnitude(dr);
@@ -294,10 +279,7 @@ namespace Sapphire
         dr = blist[27].pos - blist[12].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[12] += force;
-        }
+            forceList[12] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[14].pos - blist[17].pos;
         dist = Magnitude(dr);
@@ -311,10 +293,7 @@ namespace Sapphire
         dr = blist[28].pos - blist[17].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[17] += force;
-        }
+            forceList[17] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[19].pos - blist[14].pos;
         dist = Magnitude(dr);
@@ -355,10 +334,7 @@ namespace Sapphire
         dr = blist[29].pos - blist[11].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[11] += force;
-        }
+            forceList[11] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[10].pos - blist[11].pos;
         dist = Magnitude(dr);
@@ -381,10 +357,7 @@ namespace Sapphire
         dr = blist[30].pos - blist[19].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[19] += force;
-        }
+            forceList[19] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[21].pos - blist[18].pos;
         dist = Magnitude(dr);
@@ -416,10 +389,7 @@ namespace Sapphire
         dr = blist[31].pos - blist[10].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[10] += force;
-        }
+            forceList[10] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[20].pos - blist[21].pos;
         dist = Magnitude(dr);
@@ -433,18 +403,12 @@ namespace Sapphire
         dr = blist[32].pos - blist[21].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[21] += force;
-        }
+            forceList[21] += ((stiffness * (dist - restLength)) / dist) * dr;
 
         dr = blist[33].pos - blist[20].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
-        {
-            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-            forceList[20] += force;
-        }
+            forceList[20] += ((stiffness * (dist - restLength)) / dist) * dr;
 
     }
 

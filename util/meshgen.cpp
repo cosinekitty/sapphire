@@ -139,14 +139,29 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
             fprintf(outfile, "float ");
         fprintf(outfile, "dist = Magnitude(dr);\n");
         fprintf(outfile, "        if (dist >= 1.0e-9f)\n");
-        fprintf(outfile, "        {\n");
-        fprintf(outfile, "            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
-        if (b1.IsMobile())
-            fprintf(outfile, "            forceList[%2d] += force;\n", s.ballIndex1);
-        if (b2.IsMobile())
-            fprintf(outfile, "            forceList[%2d] -= force;\n", s.ballIndex2);
-        fprintf(outfile, "        }\n\n");
-
+        if (b1.IsMobile() && b2.IsAnchor())
+        {
+            fprintf(outfile, "            forceList[%d] += ((stiffness * (dist - restLength)) / dist) * dr;\n\n", s.ballIndex1);
+        }
+        else if (b2.IsMobile() && b1.IsAnchor())
+        {
+            fprintf(outfile, "            forceList[%d] -= ((stiffness * (dist - restLength)) / dist) * dr;\n\n", s.ballIndex2);
+        }
+        else if (b1.IsMobile() && b2.IsMobile())
+        {
+            fprintf(outfile, "        {\n");
+            fprintf(outfile, "            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
+            if (b1.IsMobile())
+                fprintf(outfile, "            forceList[%2d] += force;\n", s.ballIndex1);
+            if (b2.IsMobile())
+                fprintf(outfile, "            forceList[%2d] -= force;\n", s.ballIndex2);
+            fprintf(outfile, "        }\n\n");
+        }
+        else
+        {
+            printf("GenForceFunction(FATAL): both balls are anchors: %d, %d\n", s.ballIndex1, s.ballIndex2);
+            return 1;
+        }
         firstUpdate = false;
     }
 
