@@ -87,11 +87,11 @@ namespace Sapphire
         const BallList& blist,
         PhysicsVectorList& forceList)
     {
-        // Start with gravity acting on all balls. (But only effective on mobile balls.)
+        // Start with gravity and magnetic forces.
         const int nballs = static_cast<int>(blist.size());
         for (int i = 0; i < nballs; ++i)
             if (blist[i].IsMobile())
-                forceList[i] = blist[i].mass * gravity;
+                forceList[i] = (blist[i].mass * gravity) + Cross(blist[i].vel, magnet);
 
         // Calculate the force caused on balls by the tension in each spring.
         // Add equal and opposite force vectors to the pair of attached balls.
@@ -119,16 +119,10 @@ namespace Sapphire
             }
 
             if (b1.IsMobile())
-            {
                 forceList[spring.ballIndex1] += force;
-                forceList[spring.ballIndex1] += Cross(b1.vel, magnet);
-            }
 
             if (b2.IsMobile())
-            {
                 forceList[spring.ballIndex2] -= force;
-                forceList[spring.ballIndex2] += Cross(b2.vel, magnet);
-            }
         }
     }
 

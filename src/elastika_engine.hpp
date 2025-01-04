@@ -324,9 +324,9 @@ namespace Sapphire
         {
             float curl = curlMap.Evaluate(std::clamp(slider, -1.0f, +1.0f));
             if (curl >= 0.0f)
-                mesh.SetMagneticField(curl * PhysicsVector(0.005, 0, 0, 0));
+                mesh.SetMagneticField(curl * PhysicsVector(0.015, 0, 0, 0));
             else
-                mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.005, 0));
+                mesh.SetMagneticField(curl * PhysicsVector(0, 0, -0.015, 0));
         }
 
         void setMass(float slider = 0.0f)
