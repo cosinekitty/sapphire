@@ -81,7 +81,7 @@ namespace Sapphire
 
                 // If a Tricoder-compatible vector sender exists to the left side,
                 // receive a vector from it.
-                Message* message = vectorReceiver.inboundVectorMessage();
+                const Message* message = vectorReceiver.inboundVectorMessage();
                 if (message != nullptr)
                 {
                     x = message->x;
