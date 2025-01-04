@@ -116,7 +116,7 @@ namespace Sapphire
     inline float Dot(const PhysicsVector &a, const PhysicsVector &b)
     {
         PhysicsVector c = a * b;
-        return c.s[0] + c.s[1] + c.s[2] + c.s[3];
+        return c.s[0] + c.s[1] + c.s[2];
     }
 
     inline PhysicsVector Cross(const PhysicsVector &a, const PhysicsVector &b)
