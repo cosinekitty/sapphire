@@ -95,7 +95,6 @@ namespace Sapphire
 
         // Calculate the force caused on balls by the tension in each spring.
         // Add equal and opposite force vectors to the pair of attached balls.
-        PhysicsVector force;
         for (const Spring& spring : springList)
         {
             // dr = vector from ball 1 toward ball 2.
@@ -103,20 +102,10 @@ namespace Sapphire
             const Ball& b2 = blist[spring.ballIndex2];
             PhysicsVector dr = b2.pos - b1.pos;
             float dist = Magnitude(dr);   // length of the spring
-            float attractiveForce = stiffness * (dist - restLength);
             if (dist < 1.0e-9f)
-            {
-                // Think of this like two bullets hitting each other in a gunfight:
-                // it should almost never happen.
-                // The balls are so close together, it's hard to tell which direction the force should go.
-                // We also risk dividing by zero.
-                // It's a little weird/chaotic, but pick an arbitrary tension direction.
-                force = PhysicsVector(0.f, 0.f, -attractiveForce, 0.f);
-            }
-            else
-            {
-                force = (attractiveForce / dist) * dr;
-            }
+                continue;
+
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
 
             if (b1.IsMobile())
                 forceList[spring.ballIndex1] += force;
