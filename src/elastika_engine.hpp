@@ -66,7 +66,6 @@ namespace Sapphire
         int outputVerifyCounter;
         ElastikaMesh mesh;
         const MeshAudioParameters mp;
-        SliderMapping frictionMap;
         SliderMapping stiffnessMap;
         MeshInput leftInput;
         MeshInput rightInput;
@@ -93,7 +92,6 @@ namespace Sapphire
         {
             outputVerifyCounter = 0;
 
-            frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
             stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
 
             // Define how stereo inputs go into the mesh.
@@ -135,7 +133,8 @@ namespace Sapphire
 
         void setFriction(float slider = 0.5f)
         {
-            halfLife = frictionMap.Evaluate(std::clamp(slider, 0.0f, 1.0f));
+            float x = std::clamp(slider, 0.0f, 1.0f);
+            halfLife = std::pow(10.0f, -4.5f*x + 1.3f);
         }
 
         void setSpan(float slider = 0.5f)
