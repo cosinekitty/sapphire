@@ -144,7 +144,7 @@ namespace Sapphire
         const PhysicsVector &a,
         const PhysicsVector &b)
     {
-        PhysicsVector c = (1.0-slider)*a + slider*b;
+        PhysicsVector c = (1-slider)*a + slider*b;
 
         // Normalize the length to the match the first vector `a`.
         return sqrt(Dot(a,a) / Dot(c,c)) * c;

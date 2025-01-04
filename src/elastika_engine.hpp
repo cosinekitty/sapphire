@@ -69,7 +69,6 @@ namespace Sapphire
         SliderMapping frictionMap;
         SliderMapping stiffnessMap;
         SliderMapping spanMap;
-        SliderMapping curlMap;
         SliderMapping massMap;
         SliderMapping tiltMap;
         MeshInput leftInput;
@@ -100,7 +99,6 @@ namespace Sapphire
             frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
             stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
             spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
-            curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
             massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
             tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
@@ -160,7 +158,7 @@ namespace Sapphire
 
         void setCurl(float slider = 0.0f)
         {
-            float curl = curlMap.Evaluate(std::clamp(slider, -1.0f, +1.0f));
+            float curl = std::clamp(slider, -1.0f, +1.0f);
             if (curl >= 0.0f)
                 mesh.SetMagneticField(curl * PhysicsVector(0.015, 0, 0, 0));
             else

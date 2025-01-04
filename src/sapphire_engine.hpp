@@ -275,7 +275,7 @@ namespace Sapphire
     public:
         SliderMapping() {}
 
-        SliderMapping(SliderScale _scale, const std::vector<float>& _polynomial)
+        SliderMapping(SliderScale _scale, const std::initializer_list<float> _polynomial)
             : scale(_scale)
             , polynomial(_polynomial)
             {}
