@@ -501,7 +501,7 @@ namespace Sapphire
             {
                 // Is a compatible module connected to the left?
                 // If so, receive a triplet of voltages from it and put them in the buffer.
-                Message *msg = vectorReceiver.inboundVectorMessage();
+                const Message *msg = vectorReceiver.inboundVectorMessage();
                 if (msg == nullptr)
                 {
                     // There is no compatible module flush to the left of Tricorder.

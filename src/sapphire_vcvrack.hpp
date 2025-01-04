@@ -183,12 +183,12 @@ namespace Sapphire
                 return isVectorSender(parentModule.leftExpander.module);
             }
 
-            Message* inboundVectorMessage() const
+            const Message* inboundVectorMessage() const
             {
                 const Module* lm = parentModule.leftExpander.module;
                 if (isVectorSender(lm))
                 {
-                    Message* message = static_cast<Message *>(lm->rightExpander.consumerMessage);
+                    auto message = static_cast<const Message *>(lm->rightExpander.consumerMessage);
                     if (IsVectorMessage(message))
                         return message;
                 }
