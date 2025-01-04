@@ -106,384 +106,346 @@ namespace Sapphire
         forceList[19] = Cross(blist[19].vel, magnet);
         forceList[20] = Cross(blist[20].vel, magnet);
         forceList[21] = Cross(blist[21].vel, magnet);
+
+        PhysicsVector dr = blist[2].pos - blist[3].pos;
+        float dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 2].pos - blist[ 3].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 3] += force;
-                forceList[ 2] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 3] += force;
+            forceList[ 2] -= force;
         }
+
+        dr = blist[22].pos - blist[3].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[22].pos - blist[ 3].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 3] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 3] += force;
         }
+
+        dr = blist[4].pos - blist[3].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 4].pos - blist[ 3].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 3] += force;
-                forceList[ 4] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 3] += force;
+            forceList[ 4] -= force;
         }
+
+        dr = blist[1].pos - blist[2].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 1].pos - blist[ 2].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 2] += force;
-                forceList[ 1] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 2] += force;
+            forceList[ 1] -= force;
         }
+
+        dr = blist[23].pos - blist[2].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[23].pos - blist[ 2].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 2] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 2] += force;
         }
+
+        dr = blist[4].pos - blist[15].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 4].pos - blist[15].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[15] += force;
-                forceList[ 4] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[15] += force;
+            forceList[ 4] -= force;
         }
+
+        dr = blist[24].pos - blist[15].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[24].pos - blist[15].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[15] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[15] += force;
         }
+
+        dr = blist[16].pos - blist[15].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[16].pos - blist[15].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[15] += force;
-                forceList[16] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[15] += force;
+            forceList[16] -= force;
         }
+
+        dr = blist[5].pos - blist[4].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 5].pos - blist[ 4].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 4] += force;
-                forceList[ 5] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 4] += force;
+            forceList[ 5] -= force;
         }
+
+        dr = blist[8].pos - blist[1].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 8].pos - blist[ 1].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 1] += force;
-                forceList[ 8] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 1] += force;
+            forceList[ 8] -= force;
         }
+
+        dr = blist[0].pos - blist[1].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 0].pos - blist[ 1].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 1] += force;
-                forceList[ 0] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 1] += force;
+            forceList[ 0] -= force;
         }
+
+        dr = blist[7].pos - blist[8].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 7].pos - blist[ 8].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 8] += force;
-                forceList[ 7] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 8] += force;
+            forceList[ 7] -= force;
         }
+
+        dr = blist[25].pos - blist[8].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[25].pos - blist[ 8].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 8] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 8] += force;
         }
+
+        dr = blist[17].pos - blist[16].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[17].pos - blist[16].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[16] += force;
-                forceList[17] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[16] += force;
+            forceList[17] -= force;
         }
+
+        dr = blist[26].pos - blist[16].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[26].pos - blist[16].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[16] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[16] += force;
         }
+
+        dr = blist[0].pos - blist[5].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 0].pos - blist[ 5].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 5] += force;
-                forceList[ 0] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 5] += force;
+            forceList[ 0] -= force;
         }
+
+        dr = blist[14].pos - blist[5].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[14].pos - blist[ 5].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 5] += force;
-                forceList[14] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 5] += force;
+            forceList[14] -= force;
         }
+
+        dr = blist[9].pos - blist[0].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 9].pos - blist[ 0].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 0] += force;
-                forceList[ 9] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 0] += force;
+            forceList[ 9] -= force;
         }
+
+        dr = blist[12].pos - blist[7].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[12].pos - blist[ 7].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 7] += force;
-                forceList[12] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 7] += force;
+            forceList[12] -= force;
         }
+
+        dr = blist[6].pos - blist[7].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 6].pos - blist[ 7].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 7] += force;
-                forceList[ 6] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 7] += force;
+            forceList[ 6] -= force;
         }
+
+        dr = blist[11].pos - blist[12].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[11].pos - blist[12].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[12] += force;
-                forceList[11] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[12] += force;
+            forceList[11] -= force;
         }
+
+        dr = blist[27].pos - blist[12].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[27].pos - blist[12].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[12] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[12] += force;
         }
+
+        dr = blist[14].pos - blist[17].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[14].pos - blist[17].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[17] += force;
-                forceList[14] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[17] += force;
+            forceList[14] -= force;
         }
+
+        dr = blist[28].pos - blist[17].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[28].pos - blist[17].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[17] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[17] += force;
         }
+
+        dr = blist[19].pos - blist[14].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[19].pos - blist[14].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[14] += force;
-                forceList[19] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[14] += force;
+            forceList[19] -= force;
         }
+
+        dr = blist[6].pos - blist[9].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[ 6].pos - blist[ 9].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 9] += force;
-                forceList[ 6] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 9] += force;
+            forceList[ 6] -= force;
         }
+
+        dr = blist[18].pos - blist[9].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[18].pos - blist[ 9].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 9] += force;
-                forceList[18] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 9] += force;
+            forceList[18] -= force;
         }
+
+        dr = blist[13].pos - blist[6].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[13].pos - blist[ 6].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[ 6] += force;
-                forceList[13] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[ 6] += force;
+            forceList[13] -= force;
         }
+
+        dr = blist[29].pos - blist[11].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[29].pos - blist[11].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[11] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[11] += force;
         }
+
+        dr = blist[10].pos - blist[11].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[10].pos - blist[11].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[11] += force;
-                forceList[10] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[11] += force;
+            forceList[10] -= force;
         }
+
+        dr = blist[18].pos - blist[19].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[18].pos - blist[19].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[19] += force;
-                forceList[18] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[19] += force;
+            forceList[18] -= force;
         }
+
+        dr = blist[30].pos - blist[19].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[30].pos - blist[19].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[19] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[19] += force;
         }
+
+        dr = blist[21].pos - blist[18].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[21].pos - blist[18].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[18] += force;
-                forceList[21] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[18] += force;
+            forceList[21] -= force;
         }
+
+        dr = blist[10].pos - blist[13].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[10].pos - blist[13].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[13] += force;
-                forceList[10] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[13] += force;
+            forceList[10] -= force;
         }
+
+        dr = blist[20].pos - blist[13].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[20].pos - blist[13].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[13] += force;
-                forceList[20] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[13] += force;
+            forceList[20] -= force;
         }
+
+        dr = blist[31].pos - blist[10].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[31].pos - blist[10].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[10] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[10] += force;
         }
+
+        dr = blist[20].pos - blist[21].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[20].pos - blist[21].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[21] += force;
-                forceList[20] -= force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[21] += force;
+            forceList[20] -= force;
         }
+
+        dr = blist[32].pos - blist[21].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[32].pos - blist[21].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[21] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[21] += force;
         }
+
+        dr = blist[33].pos - blist[20].pos;
+        dist = Magnitude(dr);
+        if (dist >= 1.0e-9f)
         {
-            PhysicsVector dr = blist[33].pos - blist[20].pos;
-            float dist = Magnitude(dr);
-            if (dist >= 1.0e-9f)
-            {
-                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
-                forceList[20] += force;
-            }
+            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;
+            forceList[20] += force;
         }
+
     }
 
     MeshAudioParameters ElastikaMesh::getAudioParameters()

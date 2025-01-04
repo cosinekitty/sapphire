@@ -122,23 +122,32 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
             fprintf(outfile, "        forceList[%2d] = Cross(blist[%2d].vel, magnet);\n", i, i);
     }
 
+    fprintf(outfile, "\n");
+    bool firstUpdate = true;
+
     const SpringList& slist = mesh.GetSprings();
     for (const Spring& s : slist)
     {
         const Ball& b1 = mesh.GetBallAt(s.ballIndex1);
         const Ball& b2 = mesh.GetBallAt(s.ballIndex2);
+        fprintf(outfile, "        ");
+        if (firstUpdate)
+            fprintf(outfile, "PhysicsVector ");
+        fprintf(outfile, "dr = blist[%d].pos - blist[%d].pos;\n", s.ballIndex2, s.ballIndex1);
+        fprintf(outfile, "        ");
+        if (firstUpdate)
+            fprintf(outfile, "float ");
+        fprintf(outfile, "dist = Magnitude(dr);\n");
+        fprintf(outfile, "        if (dist >= 1.0e-9f)\n");
         fprintf(outfile, "        {\n");
-        fprintf(outfile, "            PhysicsVector dr = blist[%2d].pos - blist[%2d].pos;\n", s.ballIndex2, s.ballIndex1);
-        fprintf(outfile, "            float dist = Magnitude(dr);\n");
-        fprintf(outfile, "            if (dist >= 1.0e-9f)\n");
-        fprintf(outfile, "            {\n");
-        fprintf(outfile, "                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
+        fprintf(outfile, "            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
         if (b1.IsMobile())
-            fprintf(outfile, "                forceList[%2d] += force;\n", s.ballIndex1);
+            fprintf(outfile, "            forceList[%2d] += force;\n", s.ballIndex1);
         if (b2.IsMobile())
-            fprintf(outfile, "                forceList[%2d] -= force;\n", s.ballIndex2);
-        fprintf(outfile, "            }\n");
-        fprintf(outfile, "        }\n");
+            fprintf(outfile, "            forceList[%2d] -= force;\n", s.ballIndex2);
+        fprintf(outfile, "        }\n\n");
+
+        firstUpdate = false;
     }
 
     fprintf(outfile, "    }\n");
