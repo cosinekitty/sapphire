@@ -70,7 +70,6 @@ namespace Sapphire
         SliderMapping stiffnessMap;
         SliderMapping spanMap;
         SliderMapping massMap;
-        SliderMapping tiltMap;
         MeshInput leftInput;
         MeshInput rightInput;
         MeshOutput leftOutput;
@@ -100,7 +99,6 @@ namespace Sapphire
             stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
             spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
             massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
-            tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
 
             // Define how stereo inputs go into the mesh.
             leftInput  = MeshInput(mp.leftInputBallIndex);
