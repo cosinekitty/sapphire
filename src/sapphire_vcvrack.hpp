@@ -390,14 +390,14 @@ namespace Sapphire
             // Render the slider snapped to the nearest integer number of channels.
             // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
             // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
-            auto ccq = static_cast<ChannelCountQuantity*>(quantity);
+            auto ccq = static_cast<const ChannelCountQuantity*>(quantity);
             if (ccq != nullptr)
                 progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
 
             std::string text = quantity ? quantity->getString() : "";
 
             // If parent is a Menu, make corners sharp
-            ui::Menu* parentMenu = dynamic_cast<ui::Menu*>(getParent());
+            auto parentMenu = dynamic_cast<const ui::Menu*>(getParent());
             int flags = parentMenu ? BND_CORNER_ALL : BND_CORNER_NONE;
             bndSlider(args.vg, 0.0, 0.0, box.size.x, box.size.y, flags, state, progress, text.c_str(), NULL);
         }

@@ -287,7 +287,7 @@ namespace Sapphire
             return display;
         }
 
-        SapphireModule* getSapphireModule() const
+        SapphireModule* getSapphireModule()
         {
             if (module == nullptr)
                 return nullptr;
@@ -359,13 +359,13 @@ namespace Sapphire
 
         bool isOutputStereoMergeEnabled()
         {
-            SapphireModule *sapphireModule = getSapphireModule();
+            const SapphireModule *sapphireModule = getSapphireModule();
             return (sapphireModule != nullptr) && sapphireModule->enableStereoMerge;
         }
 
         InputStereoMode getInputStereoMode()
         {
-            SapphireModule *sapphireModule = getSapphireModule();
+            const SapphireModule *sapphireModule = getSapphireModule();
             if (sapphireModule == nullptr)
                 return InputStereoMode::LeftRight;
             return sapphireModule->inputStereoMode;
