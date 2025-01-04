@@ -68,7 +68,6 @@ namespace Sapphire
         const MeshAudioParameters mp;
         SliderMapping frictionMap;
         SliderMapping stiffnessMap;
-        SliderMapping spanMap;
         SliderMapping massMap;
         MeshInput leftInput;
         MeshInput rightInput;
@@ -97,7 +96,6 @@ namespace Sapphire
 
             frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
             stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
-            spanMap = SliderMapping(SliderScale::Linear, {0.0008, 0.0003});
             massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
 
             // Define how stereo inputs go into the mesh.
@@ -144,7 +142,7 @@ namespace Sapphire
 
         void setSpan(float slider = 0.5f)
         {
-            float restLength = spanMap.Evaluate(std::clamp(slider, 0.0f, 1.0f));
+            float restLength = 0.0003f*std::clamp(slider, 0.0f, 1.0f) + 0.0008f;
             mesh.SetRestLength(restLength);
         }
 
