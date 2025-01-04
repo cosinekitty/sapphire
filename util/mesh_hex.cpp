@@ -1,8 +1,7 @@
 #include <cstdint>
+#include <cmath>
 #include <assert.h>
-#include <math.h>
-#include "sapphire_engine.hpp"
-#include "elastika_engine.hpp"
+#include "mesh_hex.hpp"
 
 namespace Sapphire
 {

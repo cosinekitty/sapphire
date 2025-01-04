@@ -59,12 +59,13 @@ namespace Sapphire
         }
     };
 
+
     class ElastikaEngine
     {
     private:
         int outputVerifyCounter;
         ElastikaMesh mesh;
-        MeshAudioParameters mp;
+        const MeshAudioParameters mp;
         SliderMapping frictionMap;
         SliderMapping stiffnessMap;
         SliderMapping spanMap;
@@ -87,6 +88,7 @@ namespace Sapphire
 
     public:
         ElastikaEngine()
+            : mp(ElastikaMesh::getAudioParameters())
         {
             initialize();
         }
@@ -101,8 +103,6 @@ namespace Sapphire
             curlMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
             massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
             tiltMap = SliderMapping(SliderScale::Linear, {0.0f, 1.0f});
-
-            mp = CreateHex(mesh);
 
             // Define how stereo inputs go into the mesh.
             leftInput  = MeshInput(mp.leftInputBallIndex);

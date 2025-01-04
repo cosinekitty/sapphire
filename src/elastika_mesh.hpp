@@ -8,6 +8,10 @@ namespace Sapphire
 
     class ElastikaMesh : public PhysicsMesh
     {
+    public:
+        ElastikaMesh();
+        static MeshAudioParameters getAudioParameters();
+
     protected:
     };
 }

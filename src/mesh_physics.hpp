@@ -114,53 +114,19 @@ namespace Sapphire
 
     struct MeshAudioParameters
     {
-        int leftInputBallIndex        {-1};
-        int rightInputBallIndex       {-1};
-        int leftOutputBallIndex       {-1};
-        int rightOutputBallIndex      {-1};
-        int leftVarMassBallIndex      {-1};
-        int rightVarMassBallIndex     {-1};
-        PhysicsVector leftInputDir1   {0.0f};
-        PhysicsVector leftInputDir2   {0.0f};
-        PhysicsVector rightInputDir1  {0.0f};
-        PhysicsVector rightInputDir2  {0.0f};
-        PhysicsVector leftOutputDir1  {0.0f};
-        PhysicsVector leftOutputDir2  {0.0f};
-        PhysicsVector rightOutputDir1 {0.0f};
-        PhysicsVector rightOutputDir2 {0.0f};
+        int leftInputBallIndex      = -1;
+        int rightInputBallIndex     = -1;
+        int leftOutputBallIndex     = -1;
+        int rightOutputBallIndex    = -1;
+        int leftVarMassBallIndex    = -1;
+        int rightVarMassBallIndex   = -1;
+        PhysicsVector leftInputDir1;
+        PhysicsVector leftInputDir2;
+        PhysicsVector rightInputDir1;
+        PhysicsVector rightInputDir2;
+        PhysicsVector leftOutputDir1;
+        PhysicsVector leftOutputDir2;
+        PhysicsVector rightOutputDir1;
+        PhysicsVector rightOutputDir2;
     };
-
-    // GridMap is a read-write 2D array whose indices can be positive or negative.
-    template <typename TElement>
-    class GridMap
-    {
-    private:
-        const int umin;      // the minimum value of a horizontal index
-        const int umax;      // the maximum value of a horizontal index
-        const int vmin;      // the minimum value of a vertical index
-        const int vmax;      // the maximum value of a vertical index
-        std::vector<TElement> array;
-
-    public:
-        GridMap(int _umin, int _umax, int _vmin, int _vmax, TElement _init)
-            : umin(_umin)
-            , umax(_umax)
-            , vmin(_vmin)
-            , vmax(_vmax)
-            , array((_umax-_umin+1)*(_vmax-_vmin+1), _init)
-            {}
-
-        TElement& at(int u, int v)
-        {
-            if (u < umin || u > umax)
-                throw std::out_of_range("u");
-
-            if (v < vmin || v > vmax)
-                throw std::out_of_range("v");
-
-            return array.at((u-umin) + (umax-umin+1)*(v-vmin));
-        }
-    };
-
-    MeshAudioParameters CreateHex(PhysicsMesh& mesh);
 }
