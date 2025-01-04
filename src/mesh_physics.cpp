@@ -100,7 +100,6 @@ namespace Sapphire
         // Add equal and opposite force vectors to the pair of attached balls.
         for (const Spring& spring : springList)
         {
-            // dr = vector from ball 1 toward ball 2.
             const Ball& b1 = blist[spring.ballIndex1];
             const Ball& b2 = blist[spring.ballIndex2];
             PhysicsVector dr = b2.pos - b1.pos;

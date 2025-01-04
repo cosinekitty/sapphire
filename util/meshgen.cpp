@@ -8,6 +8,7 @@
 
 static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp);
 static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
+static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
 
 static int GenerateMeshCode(
     const char *outFileName,
@@ -26,6 +27,7 @@ static int GenerateMeshCode(
     fprintf(outfile, "namespace Sapphire\n");
     fprintf(outfile, "{\n");
     if (GenConstructor(outfile, mesh)) return 1;
+    if (GenForceFunction(outfile, mesh)) return 1;;
     if (GenAudioParameters(outfile, mp)) return 1;
     fprintf(outfile, "}\n");
 
@@ -72,7 +74,6 @@ static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters
     if (GenAudioParmVector(outfile, "rightOutputDir2", mp.rightOutputDir2)) return 1;
     fprintf(outfile, "        return mp;\n");
     fprintf(outfile, "    }\n");
-    fprintf(outfile, "\n");
     return 0;
 }
 
@@ -89,7 +90,7 @@ static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
     for (int i = 0; i < nballs; ++i)
     {
         const Ball& b = mesh.GetBallAt(i);
-        fprintf(outfile, "        Add(Ball(%0.6g, %0.7g, %0.7g, %0.7g));\n", b.mass, b.pos[0], b.pos[1], b.pos[2]);
+        fprintf(outfile, "        Add(Ball(%0.7g, %0.7g, %0.7g, %0.7g));\n", b.mass, b.pos[0], b.pos[1], b.pos[2]);
     }
 
     fprintf(outfile, "\n");
@@ -99,6 +100,45 @@ static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
     for (const Spring& s : slist)
     {
         fprintf(outfile, "        Add(Spring(%d, %d));\n", s.ballIndex1, s.ballIndex2);
+    }
+
+    fprintf(outfile, "    }\n");
+    fprintf(outfile, "\n");
+    return 0;
+}
+
+
+static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
+{
+    using namespace Sapphire;
+
+    const int nballs = mesh.NumBalls();
+    fprintf(outfile, "    void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)\n");
+    fprintf(outfile, "    {\n");
+    for (int i = 0; i < nballs; ++i)
+    {
+        const Ball& b = mesh.GetBallAt(i);
+        if (b.IsMobile())
+            fprintf(outfile, "        forceList[%2d] = Cross(blist[%2d].vel, magnet);\n", i, i);
+    }
+
+    const SpringList& slist = mesh.GetSprings();
+    for (const Spring& s : slist)
+    {
+        const Ball& b1 = mesh.GetBallAt(s.ballIndex1);
+        const Ball& b2 = mesh.GetBallAt(s.ballIndex2);
+        fprintf(outfile, "        {\n");
+        fprintf(outfile, "            PhysicsVector dr = blist[%2d].pos - blist[%2d].pos;\n", s.ballIndex2, s.ballIndex1);
+        fprintf(outfile, "            float dist = Magnitude(dr);\n");
+        fprintf(outfile, "            if (dist >= 1.0e-9f)\n");
+        fprintf(outfile, "            {\n");
+        fprintf(outfile, "                PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
+        if (b1.IsMobile())
+            fprintf(outfile, "                forceList[%2d] += force;\n", s.ballIndex1);
+        if (b2.IsMobile())
+            fprintf(outfile, "                forceList[%2d] -= force;\n", s.ballIndex2);
+        fprintf(outfile, "            }\n");
+        fprintf(outfile, "        }\n");
     }
 
     fprintf(outfile, "    }\n");

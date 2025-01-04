@@ -13,5 +13,6 @@ namespace Sapphire
         static MeshAudioParameters getAudioParameters();
 
     protected:
+        void CalcForces(const BallList& blist, PhysicsVectorList& forceList) override;
     };
 }
