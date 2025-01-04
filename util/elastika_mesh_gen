@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [[ "$1" == "debug" ]]; then
+    OPTS="-ggdb3 -g3 -O0"
+else
+    OPTS="-O3"
+fi
+
+echo "elastika_mesh_gen: Building..."
+
+g++ -Wall -Werror -o meshgen ${OPTS} -D NO_RACK_DEPENDENCY -I../src -Iinclude \
+    meshgen.cpp    \
+    || exit 1
+
+echo "elastika_mesh_gen: Running..."
+./meshgen || exit 1
+
+echo "elastika_mesh_gen: SUCCESS"
+exit 0

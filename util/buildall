@@ -26,11 +26,7 @@ RACKTOOL=../../rack-plugin-toolchain
         make install
 "
 
-# Generate the SVG files used by Sapphire modules for panel layouts.
-./make_panels || exit 1
-
-# Find a random local-minimum-energy state for the Nucleus module's particle gas simulation.
-./nucleus_solver || exit 1
+./prebuild || exit 1
 
 SAPPHIRE=$(realpath ..)
 cd ${RACKTOOL} || Fail "Cannot change directory to ${RACKTOOL}"

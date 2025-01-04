@@ -61,7 +61,7 @@ namespace Sapphire
 
     class PhysicsMesh
     {
-    private:
+    protected:
         SpringList springList;
         std::vector<PhysicsVector> originalPositions;
         BallList currBallList;
