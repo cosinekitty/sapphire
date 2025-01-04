@@ -68,7 +68,6 @@ namespace Sapphire
         const MeshAudioParameters mp;
         SliderMapping frictionMap;
         SliderMapping stiffnessMap;
-        SliderMapping massMap;
         MeshInput leftInput;
         MeshInput rightInput;
         MeshOutput leftOutput;
@@ -96,7 +95,6 @@ namespace Sapphire
 
             frictionMap = SliderMapping(SliderScale::Exponential, {1.3f, -4.5f});
             stiffnessMap = SliderMapping(SliderScale::Exponential, {-0.1f, 3.4f});
-            massMap = SliderMapping(SliderScale::Exponential, {0.0f, 1.0f});
 
             // Define how stereo inputs go into the mesh.
             leftInput  = MeshInput(mp.leftInputBallIndex);
@@ -165,7 +163,7 @@ namespace Sapphire
         {
             Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
             Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
-            lmBall.mass = rmBall.mass = 1.0e-6 * massMap.Evaluate(std::clamp(slider, -1.0f, +1.0f));
+            lmBall.mass = rmBall.mass = 1.0e-6 * std::pow(10.0f, std::clamp(slider, -1.0f, +1.0f));
         }
 
         void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
