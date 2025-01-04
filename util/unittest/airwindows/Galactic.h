@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 #include <math.h>
+#include <cinttypes>
 
 enum {
 	kParamA = 0,
