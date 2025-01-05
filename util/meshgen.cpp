@@ -16,6 +16,9 @@ static int GenerateMeshCode(
     const Sapphire::PhysicsMesh& mesh,
     const Sapphire::MeshAudioParameters& mp)
 {
+    if (0 == remove(outFileName))
+        printf("Deleted: %s\n", outFileName);
+
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
     {

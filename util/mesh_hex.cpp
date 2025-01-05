@@ -219,6 +219,10 @@ namespace Sapphire
     // hexFar  is the number of hexagons whose centers lie along the direction [u = +1, v = +1].
     MeshAudioParameters CreateHex(PhysicsMesh& mesh)
     {
+        // Must start with an empty mesh.
+        assert(mesh.NumBalls() == 0);
+        assert(mesh.NumSprings() == 0);
+
         const float mass = 1.0e-6;
         const int hexWide = 2;
         const int hexFar = 3;
