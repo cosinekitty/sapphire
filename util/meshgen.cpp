@@ -19,9 +19,6 @@ static int GenerateMeshCode(
     const Sapphire::PhysicsMesh& mesh,
     const Sapphire::MeshAudioParameters& mp)
 {
-    if (0 == remove(outFileName))
-        printf("Deleted: %s\n", outFileName);
-
     const int nballs = mesh.NumBalls();
     int nmobile = 0;
     while (nmobile < nballs && mesh.GetBallAt(nmobile).IsMobile())
@@ -68,9 +65,14 @@ static int GenerateMeshCode(
 int main()
 {
     using namespace Sapphire;
+
+    const char *outFileName = "../src/elastika_mesh.cpp";
+    if (0 == remove(outFileName))
+        printf("Deleted: %s\n", outFileName);
+
     PhysicsMesh mesh;
     MeshAudioParameters mp = CreateHex(mesh);
-    return GenerateMeshCode("../src/elastika_mesh.cpp", mesh, mp);
+    return GenerateMeshCode(outFileName, mesh, mp);
 }
 
 
@@ -135,16 +137,18 @@ static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
     for (int i = 0; i < nballs; ++i)
     {
         const Ball& b = mesh.GetBallAt(i);
-        fprintf(outfile, "        Add(Ball(%0.7g, %0.7g, %0.7g, %0.7g));\n", b.mass, b.pos[0], b.pos[1], b.pos[2]);
+        fprintf(outfile, "        Add(Ball(%7.7g, %7.7g, %14.7g, %0.7g));   // %2d\n", b.mass, b.pos[0], b.pos[1], b.pos[2], i);
     }
 
     fprintf(outfile, "\n");
 
     // Springs
     const SpringList& slist = mesh.GetSprings();
+    int sIndex = 0;
     for (const Spring& s : slist)
     {
-        fprintf(outfile, "        Add(Spring(%d, %d));\n", s.ballIndex1, s.ballIndex2);
+        fprintf(outfile, "        Add(Spring(%2d, %2d));    // %2d\n", s.ballIndex1, s.ballIndex2, sIndex);
+        ++sIndex;
     }
 
     fprintf(outfile, "    }\n");

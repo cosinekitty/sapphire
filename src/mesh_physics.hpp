@@ -83,6 +83,7 @@ namespace Sapphire
         int Add(Ball);      // returns ball index, for linking with springs
         bool Add(Spring);   // returns false if either ball index is bad, true if spring added
         const SpringList& GetSprings() const { return springList; }
+        SpringList& GetSprings() { return springList; }
         BallList& GetBalls() { return currBallList; }
         void Update(float dt, float halflife);
         int NumBalls() const { return static_cast<int>(currBallList.size()); }

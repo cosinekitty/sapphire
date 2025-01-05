@@ -6,80 +6,80 @@ namespace Sapphire
 {
     ElastikaMesh::ElastikaMesh()
     {
-        Add(Ball(1e-06, 0.001, 0, 0));
-        Add(Ball(1e-06, 0.0005, 0.0008660255, 0));
-        Add(Ball(1e-06, -0.0005, 0.0008660255, 0));
-        Add(Ball(1e-06, -0.001, 0, 0));
-        Add(Ball(1e-06, -0.0005, -0.0008660255, 0));
-        Add(Ball(1e-06, 0.0005, -0.0008660255, 0));
-        Add(Ball(1e-06, 0.0025, 0.0008660255, 0));
-        Add(Ball(1e-06, 0.002, 0.001732051, 0));
-        Add(Ball(1e-06, 0.001, 0.001732051, 0));
-        Add(Ball(1e-06, 0.002, 0, 0));
-        Add(Ball(1e-06, 0.004, 0.001732051, 0));
-        Add(Ball(1e-06, 0.0035, 0.002598076, 0));
-        Add(Ball(1e-06, 0.0025, 0.002598076, 0));
-        Add(Ball(1e-06, 0.0035, 0.0008660255, 0));
-        Add(Ball(1e-06, 0.001, -0.001732051, 0));
-        Add(Ball(1e-06, -0.001, -0.001732051, 0));
-        Add(Ball(1e-06, -0.0005, -0.002598076, 0));
-        Add(Ball(1e-06, 0.0005, -0.002598076, 0));
-        Add(Ball(1e-06, 0.0025, -0.0008660255, 0));
-        Add(Ball(1e-06, 0.002, -0.001732051, 0));
-        Add(Ball(1e-06, 0.004, 0, 0));
-        Add(Ball(1e-06, 0.0035, -0.0008660255, 0));
-        Add(Ball(-1, -0.002, 0, 0));
-        Add(Ball(-1, -0.001, 0.001732051, 0));
-        Add(Ball(-1, -0.002, -0.001732051, 0));
-        Add(Ball(-1, 0.0005, 0.002598076, 0));
-        Add(Ball(-1, -0.001, -0.003464102, 0));
-        Add(Ball(-1, 0.002, 0.003464102, 0));
-        Add(Ball(-1, 0.001, -0.003464102, 0));
-        Add(Ball(-1, 0.004, 0.003464102, 0));
-        Add(Ball(-1, 0.0025, -0.002598076, 0));
-        Add(Ball(-1, 0.005, 0.001732051, 0));
-        Add(Ball(-1, 0.004, -0.001732051, 0));
-        Add(Ball(-1, 0.005, 0, 0));
+        Add(Ball(  1e-06,   0.001,              0, 0));   //  0
+        Add(Ball(  1e-06,  0.0005,   0.0008660255, 0));   //  1
+        Add(Ball(  1e-06, -0.0005,   0.0008660255, 0));   //  2
+        Add(Ball(  1e-06,  -0.001,              0, 0));   //  3
+        Add(Ball(  1e-06, -0.0005,  -0.0008660255, 0));   //  4
+        Add(Ball(  1e-06,  0.0005,  -0.0008660255, 0));   //  5
+        Add(Ball(  1e-06,  0.0025,   0.0008660255, 0));   //  6
+        Add(Ball(  1e-06,   0.002,    0.001732051, 0));   //  7
+        Add(Ball(  1e-06,   0.001,    0.001732051, 0));   //  8
+        Add(Ball(  1e-06,   0.002,              0, 0));   //  9
+        Add(Ball(  1e-06,   0.004,    0.001732051, 0));   // 10
+        Add(Ball(  1e-06,  0.0035,    0.002598076, 0));   // 11
+        Add(Ball(  1e-06,  0.0025,    0.002598076, 0));   // 12
+        Add(Ball(  1e-06,  0.0035,   0.0008660255, 0));   // 13
+        Add(Ball(  1e-06,   0.001,   -0.001732051, 0));   // 14
+        Add(Ball(  1e-06,  -0.001,   -0.001732051, 0));   // 15
+        Add(Ball(  1e-06, -0.0005,   -0.002598076, 0));   // 16
+        Add(Ball(  1e-06,  0.0005,   -0.002598076, 0));   // 17
+        Add(Ball(  1e-06,  0.0025,  -0.0008660255, 0));   // 18
+        Add(Ball(  1e-06,   0.002,   -0.001732051, 0));   // 19
+        Add(Ball(  1e-06,   0.004,              0, 0));   // 20
+        Add(Ball(  1e-06,  0.0035,  -0.0008660255, 0));   // 21
+        Add(Ball(     -1,  -0.002,              0, 0));   // 22
+        Add(Ball(     -1,  -0.001,    0.001732051, 0));   // 23
+        Add(Ball(     -1,  -0.002,   -0.001732051, 0));   // 24
+        Add(Ball(     -1,  0.0005,    0.002598076, 0));   // 25
+        Add(Ball(     -1,  -0.001,   -0.003464102, 0));   // 26
+        Add(Ball(     -1,   0.002,    0.003464102, 0));   // 27
+        Add(Ball(     -1,   0.001,   -0.003464102, 0));   // 28
+        Add(Ball(     -1,   0.004,    0.003464102, 0));   // 29
+        Add(Ball(     -1,  0.0025,   -0.002598076, 0));   // 30
+        Add(Ball(     -1,   0.005,    0.001732051, 0));   // 31
+        Add(Ball(     -1,   0.004,   -0.001732051, 0));   // 32
+        Add(Ball(     -1,   0.005,              0, 0));   // 33
 
-        Add(Spring(3, 2));
-        Add(Spring(3, 22));
-        Add(Spring(3, 4));
-        Add(Spring(2, 1));
-        Add(Spring(2, 23));
-        Add(Spring(15, 4));
-        Add(Spring(15, 24));
-        Add(Spring(15, 16));
-        Add(Spring(4, 5));
-        Add(Spring(1, 8));
-        Add(Spring(1, 0));
-        Add(Spring(8, 7));
-        Add(Spring(8, 25));
-        Add(Spring(16, 17));
-        Add(Spring(16, 26));
-        Add(Spring(5, 0));
-        Add(Spring(5, 14));
-        Add(Spring(0, 9));
-        Add(Spring(7, 12));
-        Add(Spring(7, 6));
-        Add(Spring(12, 11));
-        Add(Spring(12, 27));
-        Add(Spring(17, 14));
-        Add(Spring(17, 28));
-        Add(Spring(14, 19));
-        Add(Spring(9, 6));
-        Add(Spring(9, 18));
-        Add(Spring(6, 13));
-        Add(Spring(11, 29));
-        Add(Spring(11, 10));
-        Add(Spring(19, 18));
-        Add(Spring(19, 30));
-        Add(Spring(18, 21));
-        Add(Spring(13, 10));
-        Add(Spring(13, 20));
-        Add(Spring(10, 31));
-        Add(Spring(21, 20));
-        Add(Spring(21, 32));
-        Add(Spring(20, 33));
+        Add(Spring( 3,  2));    //  0
+        Add(Spring( 3, 22));    //  1
+        Add(Spring( 3,  4));    //  2
+        Add(Spring( 2,  1));    //  3
+        Add(Spring( 2, 23));    //  4
+        Add(Spring(15,  4));    //  5
+        Add(Spring(15, 24));    //  6
+        Add(Spring(15, 16));    //  7
+        Add(Spring( 4,  5));    //  8
+        Add(Spring( 1,  8));    //  9
+        Add(Spring( 1,  0));    // 10
+        Add(Spring( 8,  7));    // 11
+        Add(Spring( 8, 25));    // 12
+        Add(Spring(16, 17));    // 13
+        Add(Spring(16, 26));    // 14
+        Add(Spring( 5,  0));    // 15
+        Add(Spring( 5, 14));    // 16
+        Add(Spring( 0,  9));    // 17
+        Add(Spring( 7, 12));    // 18
+        Add(Spring( 7,  6));    // 19
+        Add(Spring(12, 11));    // 20
+        Add(Spring(12, 27));    // 21
+        Add(Spring(17, 14));    // 22
+        Add(Spring(17, 28));    // 23
+        Add(Spring(14, 19));    // 24
+        Add(Spring( 9,  6));    // 25
+        Add(Spring( 9, 18));    // 26
+        Add(Spring( 6, 13));    // 27
+        Add(Spring(11, 29));    // 28
+        Add(Spring(11, 10));    // 29
+        Add(Spring(19, 18));    // 30
+        Add(Spring(19, 30));    // 31
+        Add(Spring(18, 21));    // 32
+        Add(Spring(13, 10));    // 33
+        Add(Spring(13, 20));    // 34
+        Add(Spring(10, 31));    // 35
+        Add(Spring(21, 20));    // 36
+        Add(Spring(21, 32));    // 37
+        Add(Spring(20, 33));    // 38
     }
 
     void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)
