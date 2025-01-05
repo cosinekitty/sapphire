@@ -67,6 +67,12 @@ namespace Sapphire
     }
 
 
+    inline float TenToPower(float x)
+    {
+        return std::exp(2.302585092994046f * x);
+    }
+
+
     class ElastikaEngine
     {
     private:
@@ -138,7 +144,7 @@ namespace Sapphire
         void setFriction(float slider = 0.5f)
         {
             float x = std::clamp(slider, 0.0f, 1.0f);
-            halfLife = std::pow(10.0f, -4.5f*x + 1.3f);
+            halfLife = TenToPower(-4.5f*x + 1.3f);
         }
 
         void setSpan(float slider = 0.5f)
@@ -150,7 +156,7 @@ namespace Sapphire
         void setStiffness(float slider = 0.5f)
         {
             float x = std::clamp(slider, 0.0f, 1.0f);
-            float stiffness = std::pow(10.0f, 3.4f*x - 0.1f);
+            float stiffness = TenToPower(3.4f*x - 0.1f);
             mesh.SetStiffness(stiffness);
         }
 
@@ -167,7 +173,7 @@ namespace Sapphire
         {
             Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
             Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
-            lmBall.mass = rmBall.mass = 1.0e-6 * std::pow(10.0f, std::clamp(slider, -1.0f, +1.0f));
+            lmBall.mass = rmBall.mass = TenToPower(std::clamp(slider, -1.0f, +1.0f) - 6);
         }
 
         void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
