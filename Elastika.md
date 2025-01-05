@@ -267,6 +267,33 @@ This menu item selects the right ball when checked, or the left ball when unchec
 
 See [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
 
+### Model sample rate
+
+By default, Elastika runs its physics model at the same sample rate
+as the VCV Rack engine. This is generally the most efficient way
+to run Elastika.
+
+However, it is possible to oversample or undersample Elastika by
+running its physics model at a higher or lower sample rate by
+using the context menu option "Model sample rate". This enables
+an internal resampler.
+
+Here are a few reasons you might want to enable the resampler:
+
+- If you are running the VCV Rack engine at a very high engine rate (e.g. 192 kHz),
+you may be able to reduce the CPU overhead by running Elastika at a lower rate
+(e.g. 48 kHz). However, in general, the resampler adds some CPU overhead,
+so you should use VCV Rack's CPU monitor to measure actual performance.
+You can toggle the CPU monitor using the [F3 key](https://vcvrack.com/manual/KeyCommands).
+
+- Running Elastika at different rates can affect the nature
+of the sound it produces. A patch running at 48 kHz can sound different from one
+running at 44.1 kHz. Explicitly enabling the resampler for your intended rate
+can help ensure that someone else running the same patch will hear the same thing you do,
+even if they configure VCV Rack's engine to run at a different rate.
+
+- Oversampling Elastika may produce crisper or sharper sounds in the higher frequencies.
+
 ### Power button and gate
 
 Elastika uses more CPU than the typical module in VCV Rack.

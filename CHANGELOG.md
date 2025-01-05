@@ -9,10 +9,12 @@
 </tr>
 
 <tr valign="top">
-<td align="center">28 Dec 2024</td>
+<td align="center">5 Jan 2025</td>
 <td align="center">2.5.7</td>
 <td align="left">
     <ul>
+        <li><a href="Elastika.md">Elastika</a> uses 58% of the CPU time it did in earlier versions, thanks to a complete overhaul of its physics engine.</li>
+        <li>Elastika now provides a context menu option to run its physics model at a different sample rate from the VCV Rack engine. This feature adds extra CPU overhead when enabled, so it is disabled by default.</li>
         <li>The channel count sliders in Hiss, Pop, and Split/Add/Merge now move in a "snapped" manner instead of smoothly, to help visually emphasize their quantized nature.</li>
     </ul>
 </td>
