@@ -436,7 +436,6 @@ namespace Sapphire
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
             forceList[20] += ((stiffness * (dist - restLength)) / dist) * dr;
-
     }
 
     MeshAudioParameters ElastikaMesh::getAudioParameters()
