@@ -18,9 +18,9 @@ namespace Sapphire
 
     struct Ball
     {
-        PhysicsVector pos;      // the ball's position [m]
-        PhysicsVector vel;      // the ball's velocity [m/s]
-        float mass;            // the ball's [kg]
+        PhysicsVector pos;  // position [m]
+        PhysicsVector vel;  // velocity [m/s]
+        float mass;         // mass [kg], or negative to indicate infinite mass (an "anchor")
 
         Ball(float _mass, float _x, float _y, float _z)
             : pos(_x, _y, _z, 0.0f)
@@ -91,13 +91,24 @@ namespace Sapphire
         void Update(float dt, float halflife);
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         int NumSprings() const { return static_cast<int>(springList.size()); }
-        Ball& GetBallAt(int index) { return currBallList.at(index); }
         const Ball& GetBallAt(int index) const { return currBallList.at(index); }
         bool IsAnchor(int ballIndex) const { return GetBallAt(ballIndex).IsAnchor(); }
         bool IsMobile(int ballIndex) const { return GetBallAt(ballIndex).IsMobile(); }
         PhysicsVector GetBallOrigin(int index) const { return originalPositions.at(index); }
         PhysicsVector GetBallDisplacement(int index) const { return currBallList.at(index).pos - originalPositions.at(index); }
         Spring& GetSpringAt(int index) { return springList.at(index); }
+
+        void SetBallPosition(int index, const PhysicsVector& pos)
+        {
+            currBallList.at(index).pos = pos;
+            nextBallList.at(index).pos = pos;
+        }
+
+        void SetBallMass(int index, float mass)
+        {
+            currBallList.at(index).mass = mass;
+            nextBallList.at(index).mass = mass;
+        }
 
     private:
         virtual void Dampen(BallList& blist, float dt, float halflife);

@@ -26,8 +26,8 @@ namespace Sapphire
         // Inject audio into the mesh
         void Inject(PhysicsMesh& mesh, const PhysicsVector& direction, float sample)
         {
-            Ball& ball = mesh.GetBallAt(ballIndex);
-            ball.pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
+            PhysicsVector pos = mesh.GetBallOrigin(ballIndex) + (sample * direction);
+            mesh.SetBallPosition(ballIndex, pos);
         }
     };
 
@@ -171,9 +171,9 @@ namespace Sapphire
 
         void setMass(float slider = 0.0f)
         {
-            Ball& lmBall = mesh.GetBallAt(mp.leftVarMassBallIndex);
-            Ball& rmBall = mesh.GetBallAt(mp.rightVarMassBallIndex);
-            lmBall.mass = rmBall.mass = TenToPower(std::clamp(slider, -1.0f, +1.0f) - 6);
+            const float mass = TenToPower(std::clamp(slider, -1.0f, +1.0f) - 6);
+            mesh.SetBallMass(mp.leftVarMassBallIndex, mass);
+            mesh.SetBallMass(mp.rightVarMassBallIndex, mass);
         }
 
         void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)

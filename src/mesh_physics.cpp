@@ -123,17 +123,9 @@ namespace Sapphire
         for (int i = 0; i < nballs; ++i)
         {
             const Ball& curr = sourceList[i];
-            Ball& next = targetList[i];
-            if (curr.IsAnchor())
+            if (curr.IsMobile())
             {
-                // This is an "anchor" that never moves, not a normal ball.
-                next = curr;
-            }
-            else
-            {
-                // It is possible for the caller to modify a ball's mass.
-                // Make sure we keep masses in sync.
-                next.mass = curr.mass;
+                Ball& next = targetList[i];
 
                 // Update the velocity vector from `curr` into `next`.
                 next.vel = curr.vel + ((dt / curr.mass) * forceList[i]);
