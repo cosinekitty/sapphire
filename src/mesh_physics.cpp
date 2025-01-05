@@ -133,7 +133,7 @@ namespace Sapphire
                 }
 
                 // Estimate the next position based on the average speed over the time increment.
-                next.pos = curr.pos + ((dt / 2) * (curr.vel + next.vel));
+                next.pos = curr.pos + ((dt/2) * (curr.vel + next.vel));
             }
         }
     }

@@ -438,6 +438,188 @@ namespace Sapphire
             forceList[20] += ((stiffness * (dist - restLength)) / dist) * dr;
     }
 
+    void ElastikaMesh::Extrapolate(float dt)
+    {
+        const float speedLimitSquared = speedLimit * speedLimit;
+        const Ball* curr = currBallList.data();
+        Ball* next = nextBallList.data();
+        float speedSquared;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[0]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[1]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[2]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[3]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[4]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[5]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[6]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[7]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[8]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[9]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[10]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[11]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[12]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[13]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[14]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[15]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[16]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[17]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[18]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[19]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[20]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+        ++curr;
+        ++next;
+
+        next->vel = curr->vel + ((dt / curr->mass) * forceList[21]);
+        speedSquared = Quadrature(next->vel);
+        if (speedSquared > speedLimitSquared)
+            next->vel *= speedLimit / std::sqrt(speedSquared);
+        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));
+    }
+
     MeshAudioParameters ElastikaMesh::getAudioParameters()
     {
         MeshAudioParameters mp;

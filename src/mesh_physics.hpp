@@ -69,10 +69,6 @@ namespace Sapphire
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
 
-        virtual void CalcForces(
-            const BallList& blist,
-            PhysicsVectorList& forceList);
-
     public:
         void Quiet();    // put all balls back to their original locations and zero their velocities
         float GetStiffness() const { return stiffness; }
@@ -110,8 +106,9 @@ namespace Sapphire
             nextBallList.at(index).mass = mass;
         }
 
-    private:
+    protected:
         virtual void Dampen(BallList& blist, float dt, float halflife);
+        virtual void CalcForces(const BallList& blist, PhysicsVectorList& forceList);
         virtual void Extrapolate(float dt);
     };
 

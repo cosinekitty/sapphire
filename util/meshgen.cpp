@@ -6,10 +6,13 @@
 #include <cstdio>
 #include "mesh_hex.hpp"
 
+static int WritePrefix(FILE *outfile);
 static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp);
 static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
-static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
+static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh, int nmobile);
 static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
+static int GenExtrapolateFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh, int nmobile);
+static int WriteSuffix(FILE *outfile);
 
 static int GenerateMeshCode(
     const char *outFileName,
@@ -19,6 +22,21 @@ static int GenerateMeshCode(
     if (0 == remove(outFileName))
         printf("Deleted: %s\n", outFileName);
 
+    const int nballs = mesh.NumBalls();
+    int nmobile = 0;
+    while (nmobile < nballs && mesh.GetBallAt(nmobile).IsMobile())
+        ++nmobile;
+
+    printf("GenerateMeshCode: balls=%d, mobile=%d\n", nballs, nmobile);
+    for (int i = nmobile; i < nballs; ++i)
+    {
+        if (mesh.GetBallAt(i).IsMobile())
+        {
+            printf("GenerateMeshCode(FATAL): found mobile ball at index %d\n", i);
+            return 1;
+        }
+    }
+
     FILE *outfile = fopen(outFileName, "wt");
     if (outfile == nullptr)
     {
@@ -26,19 +44,24 @@ static int GenerateMeshCode(
         return 1;
     }
 
-    fprintf(outfile, "//****  GENERATED CODE  ****  DO NOT EDIT  *****\n\n");
-    fprintf(outfile, "#include \"elastika_mesh.hpp\"\n\n");
-    fprintf(outfile, "namespace Sapphire\n");
-    fprintf(outfile, "{\n");
-    if (GenConstructor(outfile, mesh)) return 1;
-    if (GenDampenFunction(outfile, mesh)) return 1;
-    if (GenForceFunction(outfile, mesh)) return 1;
-    if (GenAudioParameters(outfile, mp)) return 1;
-    fprintf(outfile, "}\n");
+    int rc =
+        WritePrefix(outfile) ||
+        GenConstructor(outfile, mesh) ||
+        GenDampenFunction(outfile, mesh, nmobile) ||
+        GenForceFunction(outfile, mesh) ||
+        GenExtrapolateFunction(outfile, mesh, nmobile) ||
+        GenAudioParameters(outfile, mp) ||
+        WriteSuffix(outfile)
+    ;
 
     fclose(outfile);
-    printf("Wrote: %s\n", outFileName);
-    return 0;
+
+    if (rc == 0)
+        printf("Wrote: %s\n", outFileName);
+    else
+        remove(outFileName);
+
+    return rc;
 }
 
 
@@ -48,6 +71,23 @@ int main()
     PhysicsMesh mesh;
     MeshAudioParameters mp = CreateHex(mesh);
     return GenerateMeshCode("../src/elastika_mesh.cpp", mesh, mp);
+}
+
+
+static int WritePrefix(FILE *outfile)
+{
+    fprintf(outfile, "//****  GENERATED CODE  ****  DO NOT EDIT  *****\n\n");
+    fprintf(outfile, "#include \"elastika_mesh.hpp\"\n\n");
+    fprintf(outfile, "namespace Sapphire\n");
+    fprintf(outfile, "{\n");
+    return 0;
+}
+
+
+static int WriteSuffix(FILE *outfile)
+{
+    fprintf(outfile, "}\n");
+    return 0;
 }
 
 
@@ -178,26 +218,9 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
 }
 
 
-static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
+static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh, int nmobile)
 {
     // Unroll the dampen loop.
-    // Also take advantage of the fact that the hex mesh has all
-    // the mobile balls consecutively at the front of the ball list.
-    const int nballs = mesh.NumBalls();
-    int nmobile = 0;
-    while (nmobile < nballs && mesh.GetBallAt(nmobile).IsMobile())
-        ++nmobile;
-
-    printf("GenDampenFunction: balls=%d, mobile=%d\n", nballs, nmobile);
-    for (int i = nmobile; i < nballs; ++i)
-    {
-        if (mesh.GetBallAt(i).IsMobile())
-        {
-            printf("GenDampenFunction(FATAL): found mobile ball at index %d\n", i);
-            return 1;
-        }
-    }
-
     fprintf(outfile, "    void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)\n");
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        const float damp = std::pow(0.5f, dt/halflife);\n");
@@ -205,5 +228,35 @@ static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
         fprintf(outfile, "        blist[%2d].vel *= damp;\n", i);
     fprintf(outfile, "    }\n\n");
 
+    return 0;
+}
+
+
+static int GenExtrapolateFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh, int nmobile)
+{
+    fprintf(outfile, "    void ElastikaMesh::Extrapolate(float dt)\n");
+    fprintf(outfile, "    {\n");
+    fprintf(outfile, "        const float speedLimitSquared = speedLimit * speedLimit;\n");
+    fprintf(outfile, "        const Ball* curr = currBallList.data();\n");
+    fprintf(outfile, "        Ball* next = nextBallList.data();\n");
+    fprintf(outfile, "        float speedSquared;\n");
+    fprintf(outfile, "\n");
+
+    for (int i = 0; i < nmobile; ++i)
+    {
+        fprintf(outfile, "        next->vel = curr->vel + ((dt / curr->mass) * forceList[%d]);\n", i);
+        fprintf(outfile, "        speedSquared = Quadrature(next->vel);\n");
+        fprintf(outfile, "        if (speedSquared > speedLimitSquared)\n");
+        fprintf(outfile, "            next->vel *= speedLimit / std::sqrt(speedSquared);\n");
+        fprintf(outfile, "        next->pos = curr->pos + ((dt/2) * (curr->vel + next->vel));\n");
+        if (i+1 < nmobile)
+        {
+            fprintf(outfile, "        ++curr;\n");
+            fprintf(outfile, "        ++next;\n");
+            fprintf(outfile, "\n");
+        }
+    }
+
+    fprintf(outfile, "    }\n\n");
     return 0;
 }

@@ -15,5 +15,6 @@ namespace Sapphire
     protected:
         void Dampen(BallList& blist, float dt, float halflife) override;
         void CalcForces(const BallList& blist, PhysicsVectorList& forceList) override;
+        void Extrapolate(float dt) override;
     };
 }
