@@ -82,6 +82,33 @@ namespace Sapphire
         Add(Spring(20, 33));
     }
 
+    void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)
+    {
+        const float damp = std::pow(0.5f, dt/halflife);
+        blist[ 0].vel *= damp;
+        blist[ 1].vel *= damp;
+        blist[ 2].vel *= damp;
+        blist[ 3].vel *= damp;
+        blist[ 4].vel *= damp;
+        blist[ 5].vel *= damp;
+        blist[ 6].vel *= damp;
+        blist[ 7].vel *= damp;
+        blist[ 8].vel *= damp;
+        blist[ 9].vel *= damp;
+        blist[10].vel *= damp;
+        blist[11].vel *= damp;
+        blist[12].vel *= damp;
+        blist[13].vel *= damp;
+        blist[14].vel *= damp;
+        blist[15].vel *= damp;
+        blist[16].vel *= damp;
+        blist[17].vel *= damp;
+        blist[18].vel *= damp;
+        blist[19].vel *= damp;
+        blist[20].vel *= damp;
+        blist[21].vel *= damp;
+    }
+
     void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)
     {
         forceList[ 0] = Cross(blist[ 0].vel, magnet);

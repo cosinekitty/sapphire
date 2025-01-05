@@ -101,7 +101,7 @@ namespace Sapphire
         Spring& GetSpringAt(int index) { return springList.at(index); }
 
     private:
-        static void Dampen(BallList& blist, float dt, float halflife);
+        virtual void Dampen(BallList& blist, float dt, float halflife);
 
         static void Extrapolate(
             float dt,

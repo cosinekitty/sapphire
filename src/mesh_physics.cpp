@@ -120,7 +120,6 @@ namespace Sapphire
 
     void PhysicsMesh::Dampen(BallList& blist, float dt, float halflife)
     {
-        // damp^(frictionHalfLife/dt) = 0.5.
         const float damp = std::pow(0.5f, dt/halflife);
         for (Ball& b : blist)
             b.vel *= damp;

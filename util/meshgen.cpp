@@ -8,6 +8,7 @@
 
 static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp);
 static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
+static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
 static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh);
 
 static int GenerateMeshCode(
@@ -27,7 +28,8 @@ static int GenerateMeshCode(
     fprintf(outfile, "namespace Sapphire\n");
     fprintf(outfile, "{\n");
     if (GenConstructor(outfile, mesh)) return 1;
-    if (GenForceFunction(outfile, mesh)) return 1;;
+    if (GenDampenFunction(outfile, mesh)) return 1;
+    if (GenForceFunction(outfile, mesh)) return 1;
     if (GenAudioParameters(outfile, mp)) return 1;
     fprintf(outfile, "}\n");
 
@@ -166,5 +168,36 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
 
     fprintf(outfile, "    }\n");
     fprintf(outfile, "\n");
+    return 0;
+}
+
+
+static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
+{
+    // Unroll the dampen loop.
+    // Also take advantage of the fact that the hex mesh has all
+    // the mobile balls consecutively at the front of the ball list.
+    const int nballs = mesh.NumBalls();
+    int nmobile = 0;
+    while (nmobile < nballs && mesh.GetBallAt(nmobile).IsMobile())
+        ++nmobile;
+
+    printf("GenDampenFunction: balls=%d, mobile=%d\n", nballs, nmobile);
+    for (int i = nmobile; i < nballs; ++i)
+    {
+        if (mesh.GetBallAt(i).IsMobile())
+        {
+            printf("GenDampenFunction(FATAL): found mobile ball at index %d\n", i);
+            return 1;
+        }
+    }
+
+    fprintf(outfile, "    void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)\n");
+    fprintf(outfile, "    {\n");
+    fprintf(outfile, "        const float damp = std::pow(0.5f, dt/halflife);\n");
+    for (int i = 0; i < nmobile; ++i)
+        fprintf(outfile, "        blist[%2d].vel *= damp;\n", i);
+    fprintf(outfile, "    }\n\n");
+
     return 0;
 }
