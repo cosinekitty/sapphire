@@ -159,11 +159,10 @@ static void EmitCrossProduct(
     std::vector<int>& emitted,
     int index)
 {
-    if (!emitted.at(index))
+    if (mesh.GetBallAt(index).IsMobile() && !emitted.at(index))
     {
         emitted.at(index) = 1;
-        if (mesh.GetBallAt(index).IsMobile())
-            fprintf(outfile, "        forceList[%d] = Cross(blist[%d].vel, magnet);\n", index, index);
+        fprintf(outfile, "        forceList[%d] = Cross(blist[%d].vel, magnet);\n", index, index);
     }
 }
 
