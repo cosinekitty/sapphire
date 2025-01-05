@@ -111,21 +111,16 @@ namespace Sapphire
     }
 
 
-    void PhysicsMesh::Extrapolate(
-        float dt,
-        float speedLimit,
-        const PhysicsVectorList& forceList,
-        const BallList& sourceList,
-        BallList& targetList)
+    void PhysicsMesh::Extrapolate(float dt)
     {
         const float speedLimitSquared = speedLimit * speedLimit;
-        const int nballs = static_cast<int>(sourceList.size());
+        const int nballs = static_cast<int>(currBallList.size());
         for (int i = 0; i < nballs; ++i)
         {
-            const Ball& curr = sourceList[i];
+            const Ball& curr = currBallList[i];
             if (curr.IsMobile())
             {
-                Ball& next = targetList[i];
+                Ball& next = nextBallList[i];
 
                 // Update the velocity vector from `curr` into `next`.
                 next.vel = curr.vel + ((dt / curr.mass) * forceList[i]);
@@ -148,9 +143,9 @@ namespace Sapphire
     {
         Dampen(currBallList, dt, halflife);
         CalcForces(currBallList, forceList);
-        Extrapolate(dt/2, speedLimit, forceList, currBallList, nextBallList);
+        Extrapolate(dt/2);
         CalcForces(nextBallList, forceList);
-        Extrapolate(dt, speedLimit, forceList, currBallList, nextBallList);
+        Extrapolate(dt);
         std::swap(nextBallList, currBallList);
     }
 }

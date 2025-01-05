@@ -112,14 +112,7 @@ namespace Sapphire
 
     private:
         virtual void Dampen(BallList& blist, float dt, float halflife);
-
-        static void Extrapolate(
-            float dt,
-            float speedLimit,
-            const PhysicsVectorList& forceList,
-            const BallList& sourceList,
-            BallList& targetList
-        );
+        virtual void Extrapolate(float dt);
     };
 
     struct MeshAudioParameters
