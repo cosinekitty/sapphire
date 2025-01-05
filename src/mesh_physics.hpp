@@ -85,7 +85,6 @@ namespace Sapphire
         const SpringList& GetSprings() const { return springList; }
         SpringList& GetSprings() { return springList; }
         BallList& GetBalls() { return currBallList; }
-        void Update(float dt, float halflife);
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         int NumSprings() const { return static_cast<int>(springList.size()); }
         const Ball& GetBallAt(int index) const { return currBallList.at(index); }
@@ -106,11 +105,6 @@ namespace Sapphire
             currBallList.at(index).mass = mass;
             nextBallList.at(index).mass = mass;
         }
-
-    protected:
-        virtual void Dampen(BallList& blist, float dt, float halflife);
-        virtual void CalcForces(const BallList& blist, PhysicsVectorList& forceList);
-        virtual void Extrapolate(float dt);
     };
 
     struct MeshAudioParameters

@@ -12,9 +12,20 @@ namespace Sapphire
         ElastikaMesh();
         static MeshAudioParameters getAudioParameters();
 
+        void Update(float dt, float halflife)
+        {
+            Dampen(currBallList, dt, halflife);
+            CalcForces(currBallList, forceList);
+            Extrapolate(dt/2);
+            CalcForces(nextBallList, forceList);
+            Extrapolate(dt);
+            std::swap(nextBallList, currBallList);
+        }
+
+
     protected:
-        void Dampen(BallList& blist, float dt, float halflife) override;
-        void CalcForces(const BallList& blist, PhysicsVectorList& forceList) override;
-        void Extrapolate(float dt) override;
+        void Dampen(BallList& blist, float dt, float halflife);
+        void CalcForces(const BallList& blist, PhysicsVectorList& forceList);
+        void Extrapolate(float dt);
     };
 }
