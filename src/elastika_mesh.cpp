@@ -111,29 +111,8 @@ namespace Sapphire
 
     void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)
     {
-        forceList[ 0] = Cross(blist[ 0].vel, magnet);
-        forceList[ 1] = Cross(blist[ 1].vel, magnet);
-        forceList[ 2] = Cross(blist[ 2].vel, magnet);
-        forceList[ 3] = Cross(blist[ 3].vel, magnet);
-        forceList[ 4] = Cross(blist[ 4].vel, magnet);
-        forceList[ 5] = Cross(blist[ 5].vel, magnet);
-        forceList[ 6] = Cross(blist[ 6].vel, magnet);
-        forceList[ 7] = Cross(blist[ 7].vel, magnet);
-        forceList[ 8] = Cross(blist[ 8].vel, magnet);
-        forceList[ 9] = Cross(blist[ 9].vel, magnet);
-        forceList[10] = Cross(blist[10].vel, magnet);
-        forceList[11] = Cross(blist[11].vel, magnet);
-        forceList[12] = Cross(blist[12].vel, magnet);
-        forceList[13] = Cross(blist[13].vel, magnet);
-        forceList[14] = Cross(blist[14].vel, magnet);
-        forceList[15] = Cross(blist[15].vel, magnet);
-        forceList[16] = Cross(blist[16].vel, magnet);
-        forceList[17] = Cross(blist[17].vel, magnet);
-        forceList[18] = Cross(blist[18].vel, magnet);
-        forceList[19] = Cross(blist[19].vel, magnet);
-        forceList[20] = Cross(blist[20].vel, magnet);
-        forceList[21] = Cross(blist[21].vel, magnet);
-
+        forceList[3] = Cross(blist[3].vel, magnet);
+        forceList[2] = Cross(blist[2].vel, magnet);
         PhysicsVector dr = blist[2].pos - blist[3].pos;
         float dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -148,6 +127,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[3] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[4] = Cross(blist[4].vel, magnet);
         dr = blist[4].pos - blist[3].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -157,6 +137,7 @@ namespace Sapphire
             forceList[ 4] -= force;
         }
 
+        forceList[1] = Cross(blist[1].vel, magnet);
         dr = blist[1].pos - blist[2].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -171,6 +152,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[2] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[15] = Cross(blist[15].vel, magnet);
         dr = blist[4].pos - blist[15].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -185,6 +167,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[15] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[16] = Cross(blist[16].vel, magnet);
         dr = blist[16].pos - blist[15].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -194,6 +177,7 @@ namespace Sapphire
             forceList[16] -= force;
         }
 
+        forceList[5] = Cross(blist[5].vel, magnet);
         dr = blist[5].pos - blist[4].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -203,6 +187,7 @@ namespace Sapphire
             forceList[ 5] -= force;
         }
 
+        forceList[8] = Cross(blist[8].vel, magnet);
         dr = blist[8].pos - blist[1].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -212,6 +197,7 @@ namespace Sapphire
             forceList[ 8] -= force;
         }
 
+        forceList[0] = Cross(blist[0].vel, magnet);
         dr = blist[0].pos - blist[1].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -221,6 +207,7 @@ namespace Sapphire
             forceList[ 0] -= force;
         }
 
+        forceList[7] = Cross(blist[7].vel, magnet);
         dr = blist[7].pos - blist[8].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -235,6 +222,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[8] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[17] = Cross(blist[17].vel, magnet);
         dr = blist[17].pos - blist[16].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -258,6 +246,7 @@ namespace Sapphire
             forceList[ 0] -= force;
         }
 
+        forceList[14] = Cross(blist[14].vel, magnet);
         dr = blist[14].pos - blist[5].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -267,6 +256,7 @@ namespace Sapphire
             forceList[14] -= force;
         }
 
+        forceList[9] = Cross(blist[9].vel, magnet);
         dr = blist[9].pos - blist[0].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -276,6 +266,7 @@ namespace Sapphire
             forceList[ 9] -= force;
         }
 
+        forceList[12] = Cross(blist[12].vel, magnet);
         dr = blist[12].pos - blist[7].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -285,6 +276,7 @@ namespace Sapphire
             forceList[12] -= force;
         }
 
+        forceList[6] = Cross(blist[6].vel, magnet);
         dr = blist[6].pos - blist[7].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -294,6 +286,7 @@ namespace Sapphire
             forceList[ 6] -= force;
         }
 
+        forceList[11] = Cross(blist[11].vel, magnet);
         dr = blist[11].pos - blist[12].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -322,6 +315,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[17] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[19] = Cross(blist[19].vel, magnet);
         dr = blist[19].pos - blist[14].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -340,6 +334,7 @@ namespace Sapphire
             forceList[ 6] -= force;
         }
 
+        forceList[18] = Cross(blist[18].vel, magnet);
         dr = blist[18].pos - blist[9].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -349,6 +344,7 @@ namespace Sapphire
             forceList[18] -= force;
         }
 
+        forceList[13] = Cross(blist[13].vel, magnet);
         dr = blist[13].pos - blist[6].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -363,6 +359,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[11] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[10] = Cross(blist[10].vel, magnet);
         dr = blist[10].pos - blist[11].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -386,6 +383,7 @@ namespace Sapphire
         if (dist >= 1.0e-9f)
             forceList[19] += ((stiffness * (dist - restLength)) / dist) * dr;
 
+        forceList[21] = Cross(blist[21].vel, magnet);
         dr = blist[21].pos - blist[18].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)
@@ -404,6 +402,7 @@ namespace Sapphire
             forceList[10] -= force;
         }
 
+        forceList[20] = Cross(blist[20].vel, magnet);
         dr = blist[20].pos - blist[13].pos;
         dist = Magnitude(dr);
         if (dist >= 1.0e-9f)

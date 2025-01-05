@@ -153,30 +153,42 @@ static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
 }
 
 
+static void EmitCrossProduct(
+    FILE *outfile,
+    const Sapphire::PhysicsMesh& mesh,
+    std::vector<int>& emitted,
+    int index)
+{
+    if (!emitted.at(index))
+    {
+        emitted.at(index) = 1;
+        if (mesh.GetBallAt(index).IsMobile())
+            fprintf(outfile, "        forceList[%d] = Cross(blist[%d].vel, magnet);\n", index, index);
+    }
+}
+
+
 static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
 {
     using namespace Sapphire;
 
     const int nballs = mesh.NumBalls();
+    std::vector<int> emittedCrossProduct;
+    emittedCrossProduct.resize(nballs, 0);
+
     fprintf(outfile, "    void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)\n");
     fprintf(outfile, "    {\n");
-    for (int i = 0; i < nballs; ++i)
-    {
-        const Ball& b = mesh.GetBallAt(i);
-        if (b.IsMobile())
-            fprintf(outfile, "        forceList[%2d] = Cross(blist[%2d].vel, magnet);\n", i, i);
-    }
-
-    fprintf(outfile, "\n");
-    bool firstUpdate = true;
 
     const char *updateFormula = "((stiffness * (dist - restLength)) / dist) * dr";
     const SpringList& slist = mesh.GetSprings();
+    bool firstUpdate = true;
     for (const Spring& s : slist)
     {
         if (!firstUpdate)
             fprintf(outfile, "\n");
 
+        EmitCrossProduct(outfile, mesh, emittedCrossProduct, s.ballIndex1);
+        EmitCrossProduct(outfile, mesh, emittedCrossProduct, s.ballIndex2);
         const Ball& b1 = mesh.GetBallAt(s.ballIndex1);
         const Ball& b2 = mesh.GetBallAt(s.ballIndex2);
         fprintf(outfile, "        ");
@@ -214,7 +226,18 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
 
     fprintf(outfile, "    }\n");
     fprintf(outfile, "\n");
-    return 0;
+
+    int rc = 0;
+    for (int i = 0; i < nballs; ++i)
+    {
+        if (mesh.GetBallAt(i).IsMobile() && !emittedCrossProduct.at(i))
+        {
+            printf("GenForceFunction: Failed to emit cross product for ball %d.\n", i);
+            rc = 1;
+        }
+    }
+
+    return rc;
 }
 
 
