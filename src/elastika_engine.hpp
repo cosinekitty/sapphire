@@ -112,7 +112,7 @@ namespace Sapphire
             leftOutput  = MeshOutput(mp.leftOutputBallIndex);
             rightOutput = MeshOutput(mp.rightOutputBallIndex);
 
-            setDcRejectFrequency(20.0f);
+            setDcRejectFrequency(20);
             setFriction();
             setSpan();
             setStiffness();
@@ -230,7 +230,7 @@ namespace Sapphire
             rightInput.Inject(mesh, rightInputDir, drive * rightIn);
 
             // Update the simulation state by one sample's worth of time.
-            mesh.Update(1.0/sampleRate, halfLife);
+            mesh.Update(1/sampleRate, halfLife);
 
             // Extract output for the left channel.
             PhysicsVector leftOutputDir = Interpolate(outTilt, mp.leftOutputDir1, mp.leftOutputDir2);
@@ -263,7 +263,7 @@ namespace Sapphire
                 if (!std::isfinite(leftOut) || !std::isfinite(rightOut))
                 {
                     quiet();
-                    leftOut = rightOut = 0.0f;
+                    leftOut = rightOut = 0;
                     return false;   // non-finite output detected
                 }
             }
