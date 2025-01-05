@@ -125,6 +125,7 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
     fprintf(outfile, "\n");
     bool firstUpdate = true;
 
+    const char *updateFormula = "((stiffness * (dist - restLength)) / dist) * dr";
     const SpringList& slist = mesh.GetSprings();
     for (const Spring& s : slist)
     {
@@ -141,20 +142,18 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMesh& mesh)
         fprintf(outfile, "        if (dist >= 1.0e-9f)\n");
         if (b1.IsMobile() && b2.IsAnchor())
         {
-            fprintf(outfile, "            forceList[%d] += ((stiffness * (dist - restLength)) / dist) * dr;\n\n", s.ballIndex1);
+            fprintf(outfile, "            forceList[%d] += %s;\n\n", s.ballIndex1, updateFormula);
         }
         else if (b2.IsMobile() && b1.IsAnchor())
         {
-            fprintf(outfile, "            forceList[%d] -= ((stiffness * (dist - restLength)) / dist) * dr;\n\n", s.ballIndex2);
+            fprintf(outfile, "            forceList[%d] -= %s;\n\n", s.ballIndex2, updateFormula);
         }
         else if (b1.IsMobile() && b2.IsMobile())
         {
             fprintf(outfile, "        {\n");
-            fprintf(outfile, "            PhysicsVector force = ((stiffness * (dist - restLength)) / dist) * dr;\n");
-            if (b1.IsMobile())
-                fprintf(outfile, "            forceList[%2d] += force;\n", s.ballIndex1);
-            if (b2.IsMobile())
-                fprintf(outfile, "            forceList[%2d] -= force;\n", s.ballIndex2);
+            fprintf(outfile, "            PhysicsVector force = %s;\n", updateFormula);
+            fprintf(outfile, "            forceList[%2d] += force;\n", s.ballIndex1);
+            fprintf(outfile, "            forceList[%2d] -= force;\n", s.ballIndex2);
             fprintf(outfile, "        }\n\n");
         }
         else
