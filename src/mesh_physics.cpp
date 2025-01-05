@@ -8,21 +8,6 @@
 
 namespace Sapphire
 {
-    void PhysicsMesh::Clear()
-    {
-        springList.clear();
-        currBallList.clear();
-        nextBallList.clear();
-        originalPositions.clear();
-        forceList.clear();
-        gravity = PhysicsVector::zero();
-        magnet = PhysicsVector::zero();
-        stiffness  = MESH_DEFAULT_STIFFNESS;
-        restLength = MESH_DEFAULT_REST_LENGTH;
-        speedLimit = MESH_DEFAULT_SPEED_LIMIT;
-    }
-
-
     void PhysicsMesh::Quiet()
     {
         const std::size_t nballs = currBallList.size();

@@ -74,7 +74,6 @@ namespace Sapphire
             PhysicsVectorList& forceList);
 
     public:
-        void Clear();   // empty out the mesh and start over
         void Quiet();    // put all balls back to their original locations and zero their velocities
         float GetStiffness() const { return stiffness; }
         void SetStiffness(float _stiffness);
