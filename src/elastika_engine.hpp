@@ -60,6 +60,13 @@ namespace Sapphire
     };
 
 
+    inline float FourthPower(float x)
+    {
+        const float x2 = x * x;
+        return x2 * x2;
+    }
+
+
     class ElastikaEngine
     {
     private:
@@ -165,12 +172,12 @@ namespace Sapphire
 
         void setDrive(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            drive = std::pow(std::clamp(slider, 0.0f, 2.0f), 4.0f);
+            drive = FourthPower(std::clamp(slider, 0.0f, 2.0f));
         }
 
         void setGain(float slider = 1.0f)      // min = 0.0 (-inf dB), default = 1.0 (0 dB), max = 2.0 (+24 dB)
         {
-            gain = std::pow(std::clamp(slider, 0.0f, 2.0f), 4.0f);
+            gain = FourthPower(std::clamp(slider, 0.0f, 2.0f));
         }
 
         void setInputTilt(float slider = 0.5f)
