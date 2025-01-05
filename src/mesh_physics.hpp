@@ -72,9 +72,9 @@ namespace Sapphire
     public:
         void Quiet();    // put all balls back to their original locations and zero their velocities
         float GetStiffness() const { return stiffness; }
-        void SetStiffness(float _stiffness);
+        void SetStiffness(float _stiffness) { stiffness = std::max(0.0f, _stiffness); }
         float GetRestLength() const { return restLength; }
-        void SetRestLength(float _restLength);
+        void SetRestLength(float _restLength) { restLength = std::max(0.0f, _restLength); }
         float GetSpeedLimit() const { return speedLimit; }
         void SetSpeedLimit(float _speedLimit) { speedLimit = _speedLimit; }
         void SetMagneticField(PhysicsVector _magnet) { magnet = _magnet; }

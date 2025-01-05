@@ -19,19 +19,6 @@ namespace Sapphire
         }
     }
 
-
-    void PhysicsMesh::SetStiffness(float _stiffness)
-    {
-        stiffness = std::max(0.0f, _stiffness);      // negative values would cause impossible & unstable physics
-    }
-
-
-    void PhysicsMesh::SetRestLength(float _restLength)
-    {
-        restLength = std::max(0.0f, _restLength);
-    }
-
-
     int PhysicsMesh::Add(Ball ball)
     {
         int index = static_cast<int>(currBallList.size());
@@ -51,7 +38,6 @@ namespace Sapphire
 
         return index;
     }
-
 
     bool PhysicsMesh::Add(Spring spring)
     {
