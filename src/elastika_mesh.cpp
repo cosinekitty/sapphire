@@ -47,31 +47,31 @@ namespace Sapphire
         AddBall(     -1,   0.005,              0, 0);   // 33
     }
 
-    void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)
+    void ElastikaMesh::Dampen(float dt, float halflife)
     {
         const float damp = std::pow(0.5f, dt/halflife);
-        blist[ 0].vel *= damp;
-        blist[ 1].vel *= damp;
-        blist[ 2].vel *= damp;
-        blist[ 3].vel *= damp;
-        blist[ 4].vel *= damp;
-        blist[ 5].vel *= damp;
-        blist[ 6].vel *= damp;
-        blist[ 7].vel *= damp;
-        blist[ 8].vel *= damp;
-        blist[ 9].vel *= damp;
-        blist[10].vel *= damp;
-        blist[11].vel *= damp;
-        blist[12].vel *= damp;
-        blist[13].vel *= damp;
-        blist[14].vel *= damp;
-        blist[15].vel *= damp;
-        blist[16].vel *= damp;
-        blist[17].vel *= damp;
-        blist[18].vel *= damp;
-        blist[19].vel *= damp;
-        blist[20].vel *= damp;
-        blist[21].vel *= damp;
+        currBallList[ 0].vel *= damp;
+        currBallList[ 1].vel *= damp;
+        currBallList[ 2].vel *= damp;
+        currBallList[ 3].vel *= damp;
+        currBallList[ 4].vel *= damp;
+        currBallList[ 5].vel *= damp;
+        currBallList[ 6].vel *= damp;
+        currBallList[ 7].vel *= damp;
+        currBallList[ 8].vel *= damp;
+        currBallList[ 9].vel *= damp;
+        currBallList[10].vel *= damp;
+        currBallList[11].vel *= damp;
+        currBallList[12].vel *= damp;
+        currBallList[13].vel *= damp;
+        currBallList[14].vel *= damp;
+        currBallList[15].vel *= damp;
+        currBallList[16].vel *= damp;
+        currBallList[17].vel *= damp;
+        currBallList[18].vel *= damp;
+        currBallList[19].vel *= damp;
+        currBallList[20].vel *= damp;
+        currBallList[21].vel *= damp;
     }
 
     void ElastikaMesh::CalcForces(const BallList& blist)

@@ -242,11 +242,11 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
 static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
 {
     // Unroll the dampen loop.
-    fprintf(outfile, "    void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)\n");
+    fprintf(outfile, "    void ElastikaMesh::Dampen(float dt, float halflife)\n");
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        const float damp = std::pow(0.5f, dt/halflife);\n");
     for (int i = 0; i < nmobile; ++i)
-        fprintf(outfile, "        blist[%2d].vel *= damp;\n", i);
+        fprintf(outfile, "        currBallList[%2d].vel *= damp;\n", i);
     fprintf(outfile, "    }\n\n");
 
     return 0;
