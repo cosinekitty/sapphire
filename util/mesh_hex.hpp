@@ -3,6 +3,46 @@
 
 namespace Sapphire
 {
+    struct Spring
+    {
+        int ballIndex1;         // 0-based index into Mesh::ballList
+        int ballIndex2;         // 0-based index into Mesh::ballList
+
+        Spring(int _ballIndex1, int _ballIndex2)
+            : ballIndex1(_ballIndex1)
+            , ballIndex2(_ballIndex2)
+            {}
+    };
+
+    using SpringList = std::vector<Spring>;
+
+    class PhysicsMeshGen : public PhysicsMesh   // Includes explicit springs. Used by code generator only.
+    {
+    protected:
+        SpringList springList;
+
+    public:
+        const SpringList& GetSprings() const { return springList; }
+        SpringList& GetSprings() { return springList; }
+        int NumSprings() const { return static_cast<int>(springList.size()); }
+        Spring& GetSpringAt(int index) { return springList.at(index); }
+
+        bool AddSpring(Spring spring)
+        {
+            const int nballs = static_cast<int>(currBallList.size());
+
+            if (spring.ballIndex1 < 0 || spring.ballIndex1 >= nballs)
+                return false;
+
+            if (spring.ballIndex2 < 0 || spring.ballIndex2 >= nballs)
+                return false;
+
+            springList.push_back(spring);
+            return true;
+        }
+    };
+
+
     // GridMap is a read-write 2D array whose indices can be positive or negative.
     template <typename TElement>
     class GridMap
@@ -35,5 +75,5 @@ namespace Sapphire
         }
     };
 
-    MeshAudioParameters CreateHex(PhysicsMesh& mesh);
+    MeshAudioParameters CreateHex(PhysicsMeshGen& mesh);
 }

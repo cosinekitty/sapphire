@@ -5,17 +5,6 @@ namespace Sapphire
 {
     const float BallPositionFactor = 6000;      // how much to scale voltages based on ball displacements [V/m]
 
-    struct Spring
-    {
-        int ballIndex1;         // 0-based index into Mesh::ballList
-        int ballIndex2;         // 0-based index into Mesh::ballList
-
-        Spring(int _ballIndex1, int _ballIndex2)
-            : ballIndex1(_ballIndex1)
-            , ballIndex2(_ballIndex2)
-            {}
-    };
-
     struct Ball
     {
         PhysicsVector pos;  // position [m]
@@ -48,7 +37,6 @@ namespace Sapphire
         bool IsMobile() const { return mass > 0.0; }
     };
 
-    using SpringList = std::vector<Spring>;
     using BallList = std::vector<Ball>;
 
     const float MESH_DEFAULT_STIFFNESS = 10.0;
@@ -58,7 +46,6 @@ namespace Sapphire
     class PhysicsMesh
     {
     protected:
-        SpringList springList;
         std::vector<PhysicsVector> originalPositions;
         BallList currBallList;
         BallList nextBallList;
@@ -80,19 +67,14 @@ namespace Sapphire
         void SetMagneticField(PhysicsVector _magnet) { magnet = _magnet; }
         PhysicsVector GetGravity() const { return gravity; }
         void SetGravity(PhysicsVector _gravity) { gravity = _gravity; }
-        int Add(Ball);      // returns ball index, for linking with springs
-        bool Add(Spring);   // returns false if either ball index is bad, true if spring added
-        const SpringList& GetSprings() const { return springList; }
-        SpringList& GetSprings() { return springList; }
+        int AddBall(Ball);      // returns ball index, for linking with springs
         BallList& GetBalls() { return currBallList; }
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
-        int NumSprings() const { return static_cast<int>(springList.size()); }
         const Ball& GetBallAt(int index) const { return currBallList.at(index); }
         bool IsAnchor(int ballIndex) const { return GetBallAt(ballIndex).IsAnchor(); }
         bool IsMobile(int ballIndex) const { return GetBallAt(ballIndex).IsMobile(); }
         PhysicsVector GetBallOrigin(int index) const { return originalPositions.at(index); }
         PhysicsVector GetBallDisplacement(int index) const { return currBallList.at(index).pos - originalPositions.at(index); }
-        Spring& GetSpringAt(int index) { return springList.at(index); }
 
         void SetBallPosition(int index, const PhysicsVector& pos)
         {
@@ -106,6 +88,7 @@ namespace Sapphire
             nextBallList.at(index).mass = mass;
         }
     };
+
 
     struct MeshAudioParameters
     {

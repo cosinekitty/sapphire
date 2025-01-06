@@ -45,13 +45,13 @@ namespace Sapphire
     {
     private:
         GridMap<HexGridElement> map;
-        PhysicsMesh& mesh;
+        PhysicsMeshGen& mesh;
         const float spacing;
         const float mass;
         int u1, u2, v1, v2;     // the bounding box that contains all mobile balls
 
     public:
-        HexBuilder(PhysicsMesh& _mesh, int _dimension, float _spacing, float _mass)
+        HexBuilder(PhysicsMeshGen& _mesh, int _dimension, float _spacing, float _mass)
             : map(-_dimension, +_dimension, -_dimension, +_dimension, HexGridElement())
             , mesh(_mesh)
             , spacing(_spacing)
@@ -172,7 +172,7 @@ namespace Sapphire
                 assert(h.springsNeededMask == 0);
                 assert(h.springsAddedMask == 0);
                 PhysicsVector pos = Location(u, v);
-                h.ballIndex = mesh.Add(Ball(mass, pos, PhysicsVector::zero()));
+                h.ballIndex = mesh.AddBall(Ball(mass, pos, PhysicsVector::zero()));
                 h.springsNeededMask = springsNeededMask;
                 h.springsAddedMask = 0;
                 UpdateBoundingBox(u, v);
@@ -189,7 +189,7 @@ namespace Sapphire
                     // There is no ball in the direction where the first ball needs a spring.
                     // Create an anchor as a second ball to satisfy this role.
                     PhysicsVector pos = Location(u2, v2);
-                    second.ballIndex = mesh.Add(Ball::Anchor(pos));
+                    second.ballIndex = mesh.AddBall(Ball::Anchor(pos));
                     second.springsNeededMask |= OppositeDir(dir);
                     second.springsAddedMask = 0;
                 }
@@ -206,7 +206,7 @@ namespace Sapphire
                 assert(second.ballIndex >= 0);
                 assert(second.springsNeededMask & opp);
                 assert(!(second.springsAddedMask & opp));
-                mesh.Add(Spring(first.ballIndex, second.ballIndex));
+                mesh.AddSpring(Spring(first.ballIndex, second.ballIndex));
                 first.springsAddedMask |= dir;
                 second.springsAddedMask |= opp;
             }
@@ -217,7 +217,7 @@ namespace Sapphire
     // Create a mesh of hexagons. This reduces the spring overhead to 3 springs per ball.
     // hexWide is the number of hexagons whose centers lie along the direction [u = +1, v = -2].
     // hexFar  is the number of hexagons whose centers lie along the direction [u = +1, v = +1].
-    MeshAudioParameters CreateHex(PhysicsMesh& mesh)
+    MeshAudioParameters CreateHex(PhysicsMeshGen& mesh)
     {
         // Must start with an empty mesh.
         assert(mesh.NumBalls() == 0);

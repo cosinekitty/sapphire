@@ -19,7 +19,7 @@ namespace Sapphire
         }
     }
 
-    int PhysicsMesh::Add(Ball ball)
+    int PhysicsMesh::AddBall(Ball ball)
     {
         int index = static_cast<int>(currBallList.size());
 
@@ -37,19 +37,5 @@ namespace Sapphire
         originalPositions.push_back(ball.pos);
 
         return index;
-    }
-
-    bool PhysicsMesh::Add(Spring spring)
-    {
-        const int nballs = static_cast<int>(currBallList.size());
-
-        if (spring.ballIndex1 < 0 || spring.ballIndex1 >= nballs)
-            return false;
-
-        if (spring.ballIndex2 < 0 || spring.ballIndex2 >= nballs)
-            return false;
-
-        springList.push_back(spring);
-        return true;
     }
 }
