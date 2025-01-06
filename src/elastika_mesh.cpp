@@ -5,12 +5,8 @@
 namespace Sapphire
 {
     ElastikaMesh::ElastikaMesh()
+        : PhysicsMesh(34, 22)
     {
-        originalPositions.reserve(34);
-        currBallList.reserve(34);
-        nextBallList.reserve(34);
-        forceList.resize(22, PhysicsVector::zero());
-
         AddBall(  1e-06,   0.001,              0, 0);   //  0
         AddBall(  1e-06,  0.0005,   0.0008660255, 0);   //  1
         AddBall(  1e-06, -0.0005,   0.0008660255, 0);   //  2

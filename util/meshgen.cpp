@@ -133,12 +133,8 @@ static int GenConstructor(FILE *outfile, const char *className, const Sapphire::
     const int nballs = mesh.NumBalls();
 
     fprintf(outfile, "    %s::%s()\n", className, className);
+    fprintf(outfile, "        : PhysicsMesh(%d, %d)\n", nballs, nmobile);
     fprintf(outfile, "    {\n");
-    fprintf(outfile, "        originalPositions.reserve(%d);\n", nballs);
-    fprintf(outfile, "        currBallList.reserve(%d);\n", nballs);
-    fprintf(outfile, "        nextBallList.reserve(%d);\n", nballs);
-    fprintf(outfile, "        forceList.resize(%d, PhysicsVector::zero());\n", nmobile);
-    fprintf(outfile, "\n");
 
     // Balls
     for (int i = 0; i < nballs; ++i)

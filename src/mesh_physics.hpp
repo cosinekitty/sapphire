@@ -56,7 +56,17 @@ namespace Sapphire
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
         float speedLimit = MESH_DEFAULT_SPEED_LIMIT;
 
+        PhysicsMesh(std::size_t totalBallCount, std::size_t mobileBallCount)
+        {
+            originalPositions.reserve(totalBallCount);
+            currBallList.reserve(totalBallCount);
+            nextBallList.reserve(totalBallCount);
+            forceList.resize(mobileBallCount, PhysicsVector::zero());
+        }
+
     public:
+        PhysicsMesh() {}
+
         void Quiet();    // put all balls back to their original locations and zero their velocities
         float GetStiffness() const { return stiffness; }
         void SetStiffness(float _stiffness) { stiffness = std::max(0.0f, _stiffness); }
