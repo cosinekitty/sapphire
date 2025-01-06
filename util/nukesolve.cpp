@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <random>
+#include "file_updater.hpp"
 #include "nucleus_engine.hpp"
 
 static void Print(const Sapphire::NucleusEngine& engine);
@@ -69,55 +70,17 @@ static void Print(const Sapphire::NucleusEngine& engine)
 
 static int UpdateHeaderFile(const Sapphire::NucleusEngine& engine, const char *headerFileName)
 {
-    std::string tempFileName = headerFileName;
-    tempFileName += ".temp";
+    std::string tbuf = std::string(headerFileName) + ".temp";
+    const char *tempFileName = tbuf.c_str();
 
-    int rc = WriteHeaderFile(engine, tempFileName.c_str());
+    int rc = WriteHeaderFile(engine, tempFileName);
     if (rc != 0)
+    {
+        remove(tempFileName);
         return rc;
-
-    // If the header file exists, and it contains the same text, don't do anything.
-    FILE *file1 = fopen(headerFileName, "rb");
-    FILE *file2 = fopen(tempFileName.c_str(), "rb");
-    bool identical = false;
-    if (file1 != nullptr && file2 != nullptr)
-    {
-        identical = true;
-        int c1 = 0;
-        while (c1 != EOF)
-        {
-            c1 = fgetc(file1);
-            int c2 = fgetc(file2);
-            if (c1 != c2)
-            {
-                identical = false;
-                break;
-            }
-        }
-
-    }
-    if (file1 != nullptr) fclose(file1);
-    if (file2 != nullptr) fclose(file2);
-
-    if (identical)
-    {
-        // No need to do anything. The header file already contains the text we want.
-        // Delete the temporary file.
-        remove(tempFileName.c_str());
-        printf("nukesolve: Kept header: %s\n", headerFileName);
-    }
-    else
-    {
-        //remove(headerFileName);
-        if (rename(tempFileName.c_str(), headerFileName))
-        {
-            printf("nukesolve:  !!! cannot rename [%s] to [%s]\n", tempFileName.c_str(), headerFileName);
-            return 1;
-        }
-        printf("nukesolve: Wrote header: %s\n", headerFileName);
     }
 
-    return 0;
+    return UpdateFile("nukesolve", tempFileName, headerFileName);
 }
 
 

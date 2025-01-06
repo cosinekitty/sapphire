@@ -10,6 +10,7 @@ echo "nucleus_solver: Building..."
 
 g++ -Wall -Werror -o nukesolve ${OPTS} -D NO_RACK_DEPENDENCY -I../src -Iinclude \
     nukesolve.cpp    \
+    file_updater.cpp \
     || exit 1
 
 echo "nucleus_solver: Running..."

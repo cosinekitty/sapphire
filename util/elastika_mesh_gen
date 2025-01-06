@@ -9,8 +9,9 @@ fi
 echo "elastika_mesh_gen: Building..."
 
 g++ -Wall -Werror -o meshgen ${OPTS} -D NO_RACK_DEPENDENCY -I../src -Iinclude \
-    meshgen.cpp    \
-    mesh_hex.cpp   \
+    meshgen.cpp      \
+    mesh_hex.cpp      \
+    file_updater.cpp   \
     ../src/mesh_physics.cpp    \
     || exit 1
 

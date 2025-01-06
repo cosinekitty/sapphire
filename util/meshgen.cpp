@@ -4,18 +4,20 @@
     https://github.com/cosinekitty/sapphire
 */
 #include <cstdio>
+#include "file_updater.hpp"
 #include "mesh_hex.hpp"
 
 static int WritePrefix(FILE *outfile);
-static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp);
-static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
-static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
-static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh);
-static int GenExtrapolateFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
+static int GenAudioParameters(FILE *outfile, const char *className, const Sapphire::MeshAudioParameters& mp);
+static int GenConstructor(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
+static int GenDampenFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
+static int GenForceFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh);
+static int GenExtrapolateFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
 static int WriteSuffix(FILE *outfile);
 
 static int GenerateMeshCode(
     const char *outFileName,
+    const char *className,
     const Sapphire::PhysicsMeshGen& mesh,
     const Sapphire::MeshAudioParameters& mp)
 {
@@ -34,45 +36,44 @@ static int GenerateMeshCode(
         }
     }
 
-    FILE *outfile = fopen(outFileName, "wt");
+    std::string tbuf = std::string(outFileName) + ".temp";
+    const char *tempFileName = tbuf.c_str();
+
+    FILE *outfile = fopen(tempFileName, "wt");
     if (outfile == nullptr)
     {
-        printf("GenerateMeshCode: Could not open output file: %s\n", outFileName);
+        printf("GenerateMeshCode: Could not open output file: %s\n", tempFileName);
         return 1;
     }
 
     int rc =
         WritePrefix(outfile) ||
-        GenConstructor(outfile, mesh, nmobile) ||
-        GenDampenFunction(outfile, mesh, nmobile) ||
-        GenForceFunction(outfile, mesh) ||
-        GenExtrapolateFunction(outfile, mesh, nmobile) ||
-        GenAudioParameters(outfile, mp) ||
+        GenConstructor(outfile, className, mesh, nmobile) ||
+        GenDampenFunction(outfile, className, mesh, nmobile) ||
+        GenForceFunction(outfile, className, mesh) ||
+        GenExtrapolateFunction(outfile, className, mesh, nmobile) ||
+        GenAudioParameters(outfile, className, mp) ||
         WriteSuffix(outfile)
     ;
 
     fclose(outfile);
 
-    if (rc == 0)
-        printf("Wrote: %s\n", outFileName);
-    else
-        remove(outFileName);
+    if (rc != 0)
+    {
+        remove(tempFileName);
+        return rc;
+    }
 
-    return rc;
+    return UpdateFile("meshcmd", tempFileName, outFileName);
 }
 
 
 int main()
 {
     using namespace Sapphire;
-
-    const char *outFileName = "../src/elastika_mesh.cpp";
-    if (0 == remove(outFileName))
-        printf("Deleted: %s\n", outFileName);
-
     PhysicsMeshGen mesh;
     MeshAudioParameters mp = CreateHex(mesh);
-    return GenerateMeshCode(outFileName, mesh, mp);
+    return GenerateMeshCode("../src/elastika_mesh.cpp", "ElastikaMesh", mesh, mp);
 }
 
 
@@ -100,9 +101,9 @@ static int GenAudioParmVector(FILE *outfile, const char *name, const Sapphire::P
 }
 
 
-static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp)
+static int GenAudioParameters(FILE *outfile, const char *className, const Sapphire::MeshAudioParameters& mp)
 {
-    fprintf(outfile, "    MeshAudioParameters ElastikaMesh::getAudioParameters()\n");
+    fprintf(outfile, "    MeshAudioParameters %s::getAudioParameters()\n", className);
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        MeshAudioParameters mp;\n");
     fprintf(outfile, "        mp.leftInputBallIndex = %d;\n", mp.leftInputBallIndex);
@@ -125,13 +126,13 @@ static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters
 }
 
 
-static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
+static int GenConstructor(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
 {
     using namespace Sapphire;
 
     const int nballs = mesh.NumBalls();
 
-    fprintf(outfile, "    ElastikaMesh::ElastikaMesh()\n");
+    fprintf(outfile, "    %s::%s()\n", className, className);
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        originalPositions.reserve(%d);\n", nballs);
     fprintf(outfile, "        currBallList.reserve(%d);\n", nballs);
@@ -166,7 +167,7 @@ static void EmitCrossProduct(
 }
 
 
-static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
+static int GenForceFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh)
 {
     using namespace Sapphire;
 
@@ -174,7 +175,7 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
     std::vector<int> emittedCrossProduct;
     emittedCrossProduct.resize(nballs, 0);
 
-    fprintf(outfile, "    void ElastikaMesh::CalcForces(const BallList& blist)\n");
+    fprintf(outfile, "    void %s::CalcForces(const BallList& blist)\n", className);
     fprintf(outfile, "    {\n");
 
     const char *updateFormula = "((stiffness * (dist - restLength)) / dist) * dr";
@@ -239,10 +240,10 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
 }
 
 
-static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
+static int GenDampenFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
 {
     // Unroll the dampen loop.
-    fprintf(outfile, "    void ElastikaMesh::Dampen(float dt, float halflife)\n");
+    fprintf(outfile, "    void %s::Dampen(float dt, float halflife)\n", className);
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        const float damp = std::pow(0.5f, dt/halflife);\n");
     for (int i = 0; i < nmobile; ++i)
@@ -253,9 +254,9 @@ static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh
 }
 
 
-static int GenExtrapolateFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
+static int GenExtrapolateFunction(FILE *outfile, const char *className, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
 {
-    fprintf(outfile, "    void ElastikaMesh::Extrapolate(float dt)\n");
+    fprintf(outfile, "    void %s::Extrapolate(float dt)\n", className);
     fprintf(outfile, "    {\n");
     fprintf(outfile, "        const float speedLimitSquared = speedLimit * speedLimit;\n");
     fprintf(outfile, "        const Ball* curr = currBallList.data();\n");
