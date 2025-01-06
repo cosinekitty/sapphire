@@ -6,40 +6,45 @@ namespace Sapphire
 {
     ElastikaMesh::ElastikaMesh()
     {
-        AddBall(Ball(  1e-06,   0.001,              0, 0));   //  0
-        AddBall(Ball(  1e-06,  0.0005,   0.0008660255, 0));   //  1
-        AddBall(Ball(  1e-06, -0.0005,   0.0008660255, 0));   //  2
-        AddBall(Ball(  1e-06,  -0.001,              0, 0));   //  3
-        AddBall(Ball(  1e-06, -0.0005,  -0.0008660255, 0));   //  4
-        AddBall(Ball(  1e-06,  0.0005,  -0.0008660255, 0));   //  5
-        AddBall(Ball(  1e-06,  0.0025,   0.0008660255, 0));   //  6
-        AddBall(Ball(  1e-06,   0.002,    0.001732051, 0));   //  7
-        AddBall(Ball(  1e-06,   0.001,    0.001732051, 0));   //  8
-        AddBall(Ball(  1e-06,   0.002,              0, 0));   //  9
-        AddBall(Ball(  1e-06,   0.004,    0.001732051, 0));   // 10
-        AddBall(Ball(  1e-06,  0.0035,    0.002598076, 0));   // 11
-        AddBall(Ball(  1e-06,  0.0025,    0.002598076, 0));   // 12
-        AddBall(Ball(  1e-06,  0.0035,   0.0008660255, 0));   // 13
-        AddBall(Ball(  1e-06,   0.001,   -0.001732051, 0));   // 14
-        AddBall(Ball(  1e-06,  -0.001,   -0.001732051, 0));   // 15
-        AddBall(Ball(  1e-06, -0.0005,   -0.002598076, 0));   // 16
-        AddBall(Ball(  1e-06,  0.0005,   -0.002598076, 0));   // 17
-        AddBall(Ball(  1e-06,  0.0025,  -0.0008660255, 0));   // 18
-        AddBall(Ball(  1e-06,   0.002,   -0.001732051, 0));   // 19
-        AddBall(Ball(  1e-06,   0.004,              0, 0));   // 20
-        AddBall(Ball(  1e-06,  0.0035,  -0.0008660255, 0));   // 21
-        AddBall(Ball(     -1,  -0.002,              0, 0));   // 22
-        AddBall(Ball(     -1,  -0.001,    0.001732051, 0));   // 23
-        AddBall(Ball(     -1,  -0.002,   -0.001732051, 0));   // 24
-        AddBall(Ball(     -1,  0.0005,    0.002598076, 0));   // 25
-        AddBall(Ball(     -1,  -0.001,   -0.003464102, 0));   // 26
-        AddBall(Ball(     -1,   0.002,    0.003464102, 0));   // 27
-        AddBall(Ball(     -1,   0.001,   -0.003464102, 0));   // 28
-        AddBall(Ball(     -1,   0.004,    0.003464102, 0));   // 29
-        AddBall(Ball(     -1,  0.0025,   -0.002598076, 0));   // 30
-        AddBall(Ball(     -1,   0.005,    0.001732051, 0));   // 31
-        AddBall(Ball(     -1,   0.004,   -0.001732051, 0));   // 32
-        AddBall(Ball(     -1,   0.005,              0, 0));   // 33
+        originalPositions.reserve(34);
+        currBallList.reserve(34);
+        nextBallList.reserve(34);
+        forceList.resize(22, PhysicsVector::zero());
+
+        AddBall(  1e-06,   0.001,              0, 0);   //  0
+        AddBall(  1e-06,  0.0005,   0.0008660255, 0);   //  1
+        AddBall(  1e-06, -0.0005,   0.0008660255, 0);   //  2
+        AddBall(  1e-06,  -0.001,              0, 0);   //  3
+        AddBall(  1e-06, -0.0005,  -0.0008660255, 0);   //  4
+        AddBall(  1e-06,  0.0005,  -0.0008660255, 0);   //  5
+        AddBall(  1e-06,  0.0025,   0.0008660255, 0);   //  6
+        AddBall(  1e-06,   0.002,    0.001732051, 0);   //  7
+        AddBall(  1e-06,   0.001,    0.001732051, 0);   //  8
+        AddBall(  1e-06,   0.002,              0, 0);   //  9
+        AddBall(  1e-06,   0.004,    0.001732051, 0);   // 10
+        AddBall(  1e-06,  0.0035,    0.002598076, 0);   // 11
+        AddBall(  1e-06,  0.0025,    0.002598076, 0);   // 12
+        AddBall(  1e-06,  0.0035,   0.0008660255, 0);   // 13
+        AddBall(  1e-06,   0.001,   -0.001732051, 0);   // 14
+        AddBall(  1e-06,  -0.001,   -0.001732051, 0);   // 15
+        AddBall(  1e-06, -0.0005,   -0.002598076, 0);   // 16
+        AddBall(  1e-06,  0.0005,   -0.002598076, 0);   // 17
+        AddBall(  1e-06,  0.0025,  -0.0008660255, 0);   // 18
+        AddBall(  1e-06,   0.002,   -0.001732051, 0);   // 19
+        AddBall(  1e-06,   0.004,              0, 0);   // 20
+        AddBall(  1e-06,  0.0035,  -0.0008660255, 0);   // 21
+        AddBall(     -1,  -0.002,              0, 0);   // 22
+        AddBall(     -1,  -0.001,    0.001732051, 0);   // 23
+        AddBall(     -1,  -0.002,   -0.001732051, 0);   // 24
+        AddBall(     -1,  0.0005,    0.002598076, 0);   // 25
+        AddBall(     -1,  -0.001,   -0.003464102, 0);   // 26
+        AddBall(     -1,   0.002,    0.003464102, 0);   // 27
+        AddBall(     -1,   0.001,   -0.003464102, 0);   // 28
+        AddBall(     -1,   0.004,    0.003464102, 0);   // 29
+        AddBall(     -1,  0.0025,   -0.002598076, 0);   // 30
+        AddBall(     -1,   0.005,    0.001732051, 0);   // 31
+        AddBall(     -1,   0.004,   -0.001732051, 0);   // 32
+        AddBall(     -1,   0.005,              0, 0);   // 33
     }
 
     void ElastikaMesh::Dampen(BallList& blist, float dt, float halflife)
@@ -69,7 +74,7 @@ namespace Sapphire
         blist[21].vel *= damp;
     }
 
-    void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)
+    void ElastikaMesh::CalcForces(const BallList& blist)
     {
         forceList[3] = Cross(blist[3].vel, magnet);
         forceList[2] = Cross(blist[2].vel, magnet);

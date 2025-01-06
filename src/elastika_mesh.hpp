@@ -15,9 +15,9 @@ namespace Sapphire
         void Update(float dt, float halflife)
         {
             Dampen(currBallList, dt, halflife);
-            CalcForces(currBallList, forceList);
+            CalcForces(currBallList);
             Extrapolate(dt/2);
-            CalcForces(nextBallList, forceList);
+            CalcForces(nextBallList);
             Extrapolate(dt);
             std::swap(nextBallList, currBallList);
         }
@@ -25,7 +25,7 @@ namespace Sapphire
 
     protected:
         void Dampen(BallList& blist, float dt, float halflife);
-        void CalcForces(const BallList& blist, PhysicsVectorList& forceList);
+        void CalcForces(const BallList& blist);
         void Extrapolate(float dt);
     };
 }

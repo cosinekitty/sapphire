@@ -8,7 +8,7 @@
 
 static int WritePrefix(FILE *outfile);
 static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters& mp);
-static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh);
+static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
 static int GenDampenFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
 static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh);
 static int GenExtrapolateFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile);
@@ -43,7 +43,7 @@ static int GenerateMeshCode(
 
     int rc =
         WritePrefix(outfile) ||
-        GenConstructor(outfile, mesh) ||
+        GenConstructor(outfile, mesh, nmobile) ||
         GenDampenFunction(outfile, mesh, nmobile) ||
         GenForceFunction(outfile, mesh) ||
         GenExtrapolateFunction(outfile, mesh, nmobile) ||
@@ -125,19 +125,25 @@ static int GenAudioParameters(FILE *outfile, const Sapphire::MeshAudioParameters
 }
 
 
-static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
+static int GenConstructor(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh, int nmobile)
 {
     using namespace Sapphire;
 
+    const int nballs = mesh.NumBalls();
+
     fprintf(outfile, "    ElastikaMesh::ElastikaMesh()\n");
     fprintf(outfile, "    {\n");
+    fprintf(outfile, "        originalPositions.reserve(%d);\n", nballs);
+    fprintf(outfile, "        currBallList.reserve(%d);\n", nballs);
+    fprintf(outfile, "        nextBallList.reserve(%d);\n", nballs);
+    fprintf(outfile, "        forceList.resize(%d, PhysicsVector::zero());\n", nmobile);
+    fprintf(outfile, "\n");
 
     // Balls
-    const int nballs = mesh.NumBalls();
     for (int i = 0; i < nballs; ++i)
     {
         const Ball& b = mesh.GetBallAt(i);
-        fprintf(outfile, "        AddBall(Ball(%7.7g, %7.7g, %14.7g, %0.7g));   // %2d\n", b.mass, b.pos[0], b.pos[1], b.pos[2], i);
+        fprintf(outfile, "        AddBall(%7.7g, %7.7g, %14.7g, %0.7g);   // %2d\n", b.mass, b.pos[0], b.pos[1], b.pos[2], i);
     }
 
     fprintf(outfile, "    }\n");
@@ -168,7 +174,7 @@ static int GenForceFunction(FILE *outfile, const Sapphire::PhysicsMeshGen& mesh)
     std::vector<int> emittedCrossProduct;
     emittedCrossProduct.resize(nballs, 0);
 
-    fprintf(outfile, "    void ElastikaMesh::CalcForces(const BallList& blist, PhysicsVectorList& forceList)\n");
+    fprintf(outfile, "    void ElastikaMesh::CalcForces(const BallList& blist)\n");
     fprintf(outfile, "    {\n");
 
     const char *updateFormula = "((stiffness * (dist - restLength)) / dist) * dr";

@@ -29,9 +29,6 @@ namespace Sapphire
         // Reserve a slot in the auxiliary array `nextBallList`.
         nextBallList.push_back(ball);
 
-        // Reserve a slot for calculating forces.
-        forceList.push_back(PhysicsVector::zero());
-
         // Remember where each ball started, so we can put it back.
         // This also provides a way to calculate the offset of a ball from its original position.
         originalPositions.push_back(ball.pos);

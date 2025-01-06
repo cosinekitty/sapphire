@@ -68,6 +68,7 @@ namespace Sapphire
         PhysicsVector GetGravity() const { return gravity; }
         void SetGravity(PhysicsVector _gravity) { gravity = _gravity; }
         int AddBall(Ball);      // returns ball index, for linking with springs
+        int AddBall(float mass, float rx, float ry, float rz) { return AddBall(Ball(mass, rx, ry, rz)); }
         BallList& GetBalls() { return currBallList; }
         int NumBalls() const { return static_cast<int>(currBallList.size()); }
         const Ball& GetBallAt(int index) const { return currBallList.at(index); }
