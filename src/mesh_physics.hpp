@@ -74,9 +74,9 @@ namespace Sapphire
         void SetRestLength(float _restLength) { restLength = std::max(0.0f, _restLength); }
         float GetSpeedLimit() const { return speedLimit; }
         void SetSpeedLimit(float _speedLimit) { speedLimit = _speedLimit; }
-        void SetMagneticField(PhysicsVector _magnet) { magnet = _magnet; }
+        void SetMagneticField(const PhysicsVector& _magnet) { magnet = _magnet; }
         PhysicsVector GetGravity() const { return gravity; }
-        void SetGravity(PhysicsVector _gravity) { gravity = _gravity; }
+        void SetGravity(const PhysicsVector& _gravity) { gravity = _gravity; }
         int AddBall(Ball);      // returns ball index, for linking with springs
         int AddBall(float mass, float rx, float ry, float rz) { return AddBall(Ball(mass, rx, ry, rz)); }
         BallList& GetBalls() { return currBallList; }
