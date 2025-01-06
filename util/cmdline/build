@@ -1,6 +1,5 @@
 #!/bin/bash
 SAPPHIRE_SRC=../../src
-SAPPHIRE_UTIL=../../util
 
 rm -f elastika tubeunit
 
@@ -15,7 +14,6 @@ g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -o bin/lohifilter -D NO_R
 
 g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elastika -D NO_RACK_DEPENDENCY \
     elastika_standalone.cpp \
-    ${SAPPHIRE_UTIL}/mesh_hex.cpp \
     ${SAPPHIRE_SRC}/elastika_mesh.cpp \
     ${SAPPHIRE_SRC}/mesh_physics.cpp || exit 1
 
