@@ -50,7 +50,6 @@ namespace Sapphire
         BallList currBallList;
         BallList nextBallList;
         PhysicsVectorList forceList;                // holds calculated net force on each ball
-        PhysicsVector gravity;
         PhysicsVector magnet;
         float stiffness  = MESH_DEFAULT_STIFFNESS;     // the linear spring constant [N/m]
         float restLength = MESH_DEFAULT_REST_LENGTH;   // spring length [m] that results in zero force
@@ -75,8 +74,6 @@ namespace Sapphire
         float GetSpeedLimit() const { return speedLimit; }
         void SetSpeedLimit(float _speedLimit) { speedLimit = _speedLimit; }
         void SetMagneticField(const PhysicsVector& _magnet) { magnet = _magnet; }
-        PhysicsVector GetGravity() const { return gravity; }
-        void SetGravity(const PhysicsVector& _gravity) { gravity = _gravity; }
         int AddBall(Ball);      // returns ball index, for linking with springs
         int AddBall(float mass, float rx, float ry, float rz) { return AddBall(Ball(mass, rx, ry, rz)); }
         BallList& GetBalls() { return currBallList; }
