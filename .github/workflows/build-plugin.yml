@@ -37,7 +37,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build
+          path: |
+            ${{ env.rack-plugin-toolchain-dir }}/plugin-build/*.vcvplugin
+            ${{ env.rack-plugin-toolchain-dir }}/plugin-build/checksums_*.txt
           name: ${{ matrix.platform }}
 
   build-mac:
@@ -69,7 +71,7 @@ jobs:
           export CROSS_COMPILE=$CROSS_COMPILE_TARGET_${{ matrix.platform }}
           make dep
           make dist
-          cd dist && shasum -a 256 *.vcvplugin > checksums_$${{ matrix.platform }}.txt && cd ..
+          cd dist && shasum -a 256 *.vcvplugin > checksums_${{ matrix.platform }}.txt && cd ..
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
