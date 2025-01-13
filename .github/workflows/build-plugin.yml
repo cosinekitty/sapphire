@@ -33,7 +33,7 @@ jobs:
           export PLUGIN_DIR=$GITHUB_WORKSPACE
           pushd ${{ env.rack-plugin-toolchain-dir }}
           make plugin-build-${{ matrix.platform }}
-          cd plugin-build && sha256sum *.vcvplugin > checksums_winlin.txt && cd ..
+          cd plugin-build && sha256sum *.vcvplugin > checksums_${{ matrix.platform }}.txt && cd ..
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -69,7 +69,7 @@ jobs:
           export CROSS_COMPILE=$CROSS_COMPILE_TARGET_${{ matrix.platform }}
           make dep
           make dist
-          cd dist && shasum -a 256 *.vcvplugin > checksums_mac.txt && cd ..
+          cd dist && shasum -a 256 *.vcvplugin > checksums_$${{ matrix.platform }}.txt && cd ..
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
