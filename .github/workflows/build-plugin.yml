@@ -96,8 +96,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: |
-            _artifacts/**/*.vcvplugin
-            _artifacts/**/checksums.txt
+          file: _artifacts/**/*
           tag: Development
           file_glob: true
