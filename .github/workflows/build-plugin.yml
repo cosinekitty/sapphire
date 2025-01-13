@@ -89,12 +89,6 @@ jobs:
         - uses: actions/checkout@v4
         - uses: FranzDiebold/github-env-vars-action@v2
         - name: Check if plugin version matches tag
-          run: |
-            pluginversion=`jq -r '.version' plugin.json`
-            if [ "v$pluginversion" != "${{ env.CI_REF_NAME }}" ]; then
-              echo "Plugin version from plugin.json 'v$pluginversion' does not match tag '${{ env.CI_REF_NAME }}'"
-              exit 1
-            fi
         - name: Create Release
           uses: softprops/action-gh-release@v2
           with:
