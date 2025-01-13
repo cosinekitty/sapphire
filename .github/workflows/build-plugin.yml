@@ -90,7 +90,7 @@ jobs:
         uses: mknejp/delete-release-assets@v1
         with:
           token: ${{ github.token }}
-          tag: Development # This may also be of the form 'refs/tags/staging'
+          tag: Development
           assets: '*'
       - name: Upload release assets
         uses: svenstaro/upload-release-action@v2
