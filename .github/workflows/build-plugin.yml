@@ -68,7 +68,7 @@ jobs:
           export CROSS_COMPILE=$CROSS_COMPILE_TARGET_${{ matrix.platform }}
           make dep
           make dist
-          cd dist && sha256sum *.vcvplugin > checksums.txt && cd ..
+          cd dist && shasum -a 256 *.vcvplugin > checksums.txt && cd ..
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -96,6 +96,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: _artifacts/**/*.vcvplugin
+          file: |
+            _artifacts/**/*.vcvplugin
+            _artifacts/**/checksums.txt
           tag: Development
           file_glob: true
