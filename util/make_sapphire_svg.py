@@ -1277,6 +1277,40 @@ def PlaceElastikaControls(cdict:Dict[str, ControlLayer]) -> int:
     controls.append(Component("power_toggle",       30.48,  95.00))
     return 0
 
+def TubeUnitPos(xGrid:int, yGrid:int) -> Tuple[float, float]:
+    x = 20.5 + xGrid*20.0
+    y = 34.0 + yGrid*21.0 - xGrid*10.5
+    return (x, y)
+
+def AddTubeUnitControl(controls:ControlLayer, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
+    (xCenter, yCenter) = TubeUnitPos(column, row)
+    controls.append(Component(name, xCenter + xofs, yCenter + yofs))
+
+def AddTubeUnitGroup(controls:ControlLayer, prefix:str, column:int, row:int) -> None:
+    xdir = 1 - 2*column     # map column=[0,1] to direction [+1, -1]
+    AddTubeUnitControl(controls, prefix + '_knob',  column, row)
+    AddTubeUnitControl(controls, prefix + '_atten', column, row, -10.0*xdir, -4.0)
+    AddTubeUnitControl(controls, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
+
+def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer]) -> int:
+    controls = cdict['tubeunit'] = ControlLayer()
+    outJackDx = 12.0
+    outJackDy = 5.0
+    AddTubeUnitControl(controls, 'level_knob', 1, 4)
+    AddTubeUnitControl(controls, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
+    AddTubeUnitControl(controls, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
+    controls.append(Component('audio_input_left',   9.0, 114.5))
+    controls.append(Component('audio_input_right', 23.0, 114.5))
+    AddTubeUnitGroup(controls, 'airflow', 0, 0)
+    AddTubeUnitGroup(controls, 'vortex',  1, 0)
+    AddTubeUnitGroup(controls, 'width',   0, 1)
+    AddTubeUnitGroup(controls, 'center',  1, 1)
+    AddTubeUnitGroup(controls, 'decay',   0, 2)
+    AddTubeUnitGroup(controls, 'angle',   1, 2)
+    AddTubeUnitGroup(controls, 'root',    0, 3)
+    AddTubeUnitGroup(controls, 'spring',  1, 3)
+    return 0
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -1306,6 +1340,7 @@ if __name__ == '__main__':
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
         PlaceElastikaControls(cdict) or
+        PlaceTubeUnitControls(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )
