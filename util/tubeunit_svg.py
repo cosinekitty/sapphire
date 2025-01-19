@@ -75,7 +75,15 @@ def TubeUnitMainPanel() -> Panel:
 
     driveConnectorPath = Element('path', 'drive_connector_path')
     driveConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
-    driveConnectorPath.setAttrib('d', 'M 40.5,107.5 L 52.5,102.5 z L 52.5,112.5 z')
+
+    (x1, y1) = (40.5, 107.5)
+    (dx, dy) = (12.0, 5.0)
+    dctext  = Move(x1, y1)
+    dctext += Line(x1+dx, y1-dy)
+    dctext += Move(x1, y1)
+    dctext += Line(x1+dx, y1+dy)
+    driveConnectorPath.setAttrib('d', dctext)
+
     pl.append(driveConnectorPath)
 
     panel.append(pl)
