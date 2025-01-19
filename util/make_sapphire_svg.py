@@ -87,6 +87,13 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
+def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str) -> Path:
+    path = ''
+    path += Move(x1, y1)
+    path += Line(x2, y2)
+    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
+
+
 def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
     path = ''
     path += Move(x1, y)
@@ -1370,7 +1377,17 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtt
 
         tx1 = ELASTIKA_SLIDER_DX*(1.5) + 2.4
         tx2 = ELASTIKA_SLIDER_DX*(3.5) + 2.4
-        pl.append(HorizontalLine(tx1, tx2, 17.5, 'tilt_hor_line'))
+        ty = 17.5
+        pl.append(HorizontalLine(tx1, tx2, ty, 'tilt_hor_line'))
+        if hasAtten:
+            # We need connector lines from the knob to CV input and attenuverter knob.
+            tdx = 11.24
+            tdy = 5.0
+            pl.append(GeneralLine(tx1, ty, tx1-tdx, ty-tdy, 'tilt_input_atten_line'))
+            pl.append(GeneralLine(tx1, ty, tx1-tdx, ty+tdy, 'tilt_input_cv_line'))
+            pl.append(GeneralLine(tx2, ty, tx2+tdx, ty-tdy, 'tilt_output_atten_line'))
+            pl.append(GeneralLine(tx2, ty, tx2+tdx, ty+tdy, 'tilt_output_cv_line'))
+
         # IN/OUT labels for TILT knobs...
         pl.append(CenteredControlTextPath(font, 'IN',   tx1, 26.0))
         pl.append(CenteredControlTextPath(font, 'OUT',  tx2, 26.0))
