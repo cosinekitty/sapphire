@@ -87,6 +87,20 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
+def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
+    path = ''
+    path += Move(x1, y)
+    path += Line(x2, y)
+    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
+
+
+def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
+    path = ''
+    path += Move(x, y1)
+    path += Line(x, y2)
+    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
+
+
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     PANEL_WIDTH = 6
     name = 'chaops'
@@ -162,18 +176,6 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         path += Line(xmid+dxDisplay, yMemoryDisplay)
         path += ArrowHead(xRightPanel, yRecallLine)
         return LineArtPath(path, 'recall_line_art')
-
-    def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
-        path = ''
-        path += Move(x1, y)
-        path += Line(x2, y)
-        return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-    def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
-        path = ''
-        path += Move(x, y1)
-        path += Line(x, y2)
-        return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
     def AddGradient(y1:float, y2:float, color1:str, color2:str, id:str) -> None:
         gradientId = id + '_gradient'
@@ -1345,6 +1347,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtt
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
+    xmid = panel.mmWidth / 2.0
     PlaceElastikaControls(controls)
     (gy1, gy2) = (32.0, 89.5)
     defs.append(Gradient(gy1, gy2, '#5754c4', SAPPHIRE_PANEL_COLOR, 'gradient_fric'))
@@ -1357,12 +1360,23 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtt
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
-        pl.append(ElastikaShape(font, 0,  'fric'))
-        pl.append(ElastikaShape(font, 1,  'stif'))
-        pl.append(ElastikaShape(font, 2,  'span'))
-        pl.append(ElastikaShape(font, 3,  'curl'))
-        pl.append(ElastikaShape(font, 4,  'mass'))
+        pl.append(ElastikaShape(font,  0, 'fric'))
+        pl.append(ElastikaShape(font,  1, 'stif'))
+        pl.append(ElastikaShape(font,  2, 'span'))
+        pl.append(ElastikaShape(font,  3, 'curl'))
+        pl.append(ElastikaShape(font,  4, 'mass'))
         pl.append(ElastikaShape(font, -1, 'power'))
+        pl.append(CenteredControlTextPath(font, 'TILT', xmid, 20.0))
+
+        tx1 = ELASTIKA_SLIDER_DX*(1.5) + 2.4
+        tx2 = ELASTIKA_SLIDER_DX*(3.5) + 2.4
+        pl.append(HorizontalLine(tx1, tx2, 17.5, 'tilt_hor_line'))
+        # IN/OUT labels for TILT knobs...
+        pl.append(CenteredControlTextPath(font, 'IN',   tx1, 26.0))
+        pl.append(CenteredControlTextPath(font, 'OUT',  tx2, 26.0))
+        # IN/OUT labels for drive/level knobs...
+        pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, 93.5))
+        pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, 93.5))
     return Save(panel, svgFileName)
 
 
