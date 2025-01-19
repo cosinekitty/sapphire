@@ -1242,10 +1242,50 @@ def SaveControls(cdict:Dict[str, ControlLayer]) -> int:
     UpdateFileIfChanged('../src/sapphire_panel.cpp', text)
     return 0
 
-def PlaceElastikaControls(cdict:Dict[str, ControlLayer]) -> int:
+
+def ElastikaCoord(x:float, y:float) -> str:
+    return ' {:0.2f},{:0.2f}'.format(x, y)
+
+
+def ElastikaPathForShape(n:int) -> str:
+    # Make a string that looks like:
+    # "M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
+    # Start with "M" for absolute path.
+    p = 'M'
+    w = 11.22
+    if n == -1:
+        # The POWER hexagon is special: much smaller than the others.
+        x0 = 2*w + 2.4
+        y0 = 90.0
+        h = 19.0
+    else:
+        # Follow with 6 coordinate pairs "x,y".
+        x0 = n*w + 2.4
+        y0 = 32.0
+        h = 54.0
+    p += ElastikaCoord(x0, y0)
+    (dx, dy) = (w/2.0, 28.5-32.0)
+    (x1, y1) = (x0 + dx, y0 + dy)
+    p += ElastikaCoord(x1, y1)
+    (x2, y2) = (x1 + dx, y0)
+    p += ElastikaCoord(x2, y2)
+    p += ElastikaCoord(x2, y2 + h)
+    p += ElastikaCoord(x1, y2 + h - dy)
+    p += ElastikaCoord(x0, y2 + h)
+    # Terminate with "z" to close the path.
+    p += ' z'
+    return p
+
+
+def ElastikaShape(n:int, prefix:str) -> Path:
+    text = ElastikaPathForShape(n)
+    style = 'fill:url(#gradient_{});fill-opacity:1;stroke:#000000;stroke-width:0.0;stroke-linecap:square'.format(prefix)
+    return Path(text, style, 'boundary_' + prefix)
+
+
+def PlaceElastikaControls(controls: ControlLayer) -> None:
     # patch_elastika.py also does stuff to elastika.svg
     # This is here because the code is in place here to generate the C++ map.
-    controls = cdict['elastika'] = ControlLayer()
     controls.append(Component("fric_slider",         8.00,  46.00))
     controls.append(Component("stif_slider",        19.24,  46.00))
     controls.append(Component("span_slider",        30.48,  46.00))
@@ -1275,7 +1315,39 @@ def PlaceElastikaControls(cdict:Dict[str, ControlLayer]) -> int:
     controls.append(Component("audio_left_output",  40.46, 115.00))
     controls.append(Component("audio_right_output", 53.46, 115.00))
     controls.append(Component("power_toggle",       30.48,  95.00))
-    return 0
+
+
+def GenerateElastikaPanel(cdict:Dict[str, ControlLayer]) -> int:
+    name = 'elastika'
+    svgFileName = '../res/{}.svg'.format(name)
+    PANEL_WIDTH = 12
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    cdict[name] = controls = ControlLayer()
+    PlaceElastikaControls(controls)
+    xmid = panel.mmWidth / 2
+    (gy1, gy2) = (32.0, 89.5)
+    defs.append(Gradient(gy1, gy2, '#5754c4', SAPPHIRE_PANEL_COLOR, 'gradient_fric'))
+    defs.append(Gradient(gy2, gy1, '#0060f9', SAPPHIRE_PANEL_COLOR, 'gradient_stif'))
+    defs.append(Gradient(gy1, gy2, '#976de4', SAPPHIRE_PANEL_COLOR, 'gradient_span'))
+    defs.append(Gradient(gy2, gy1, '#0081d7', SAPPHIRE_PANEL_COLOR, 'gradient_curl'))
+    defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_tilt'))
+    defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(SapphireInsignia(panel, font))
+        pl.append(ElastikaShape(0,  'fric'))
+        pl.append(ElastikaShape(1,  'stif'))
+        pl.append(ElastikaShape(2,  'span'))
+        pl.append(ElastikaShape(3,  'curl'))
+        pl.append(ElastikaShape(4,  'tilt'))
+        pl.append(ElastikaShape(-1, 'power'))
+    return Save(panel, svgFileName)
+
 
 def TubeUnitPos(xGrid:int, yGrid:int) -> Tuple[float, float]:
     x = 20.5 + xGrid*20.0
@@ -1339,7 +1411,7 @@ if __name__ == '__main__':
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
-        PlaceElastikaControls(cdict) or
+        GenerateElastikaPanel(cdict) or
         PlaceTubeUnitControls(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
