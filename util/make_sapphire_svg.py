@@ -1342,9 +1342,38 @@ def PlaceElastikaControls(controls: ControlLayer) -> None:
     controls.append(Component("power_toggle",       30.48,  95.00))
 
 
-def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtten:bool) -> int:
+def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) -> None:
+    # We need connector lines from the knob to CV input and attenuverter knob.
+    tdx = 11.24
+    tdy = 5.0
+    pl.append(GeneralLine(tx1, ty, tx1-tdx, ty-tdy, 'tilt_input_atten_line'))
+    pl.append(GeneralLine(tx1, ty, tx1-tdx, ty+tdy, 'tilt_input_cv_line'))
+    pl.append(GeneralLine(tx2, ty, tx2+tdx, ty-tdy, 'tilt_output_atten_line'))
+    pl.append(GeneralLine(tx2, ty, tx2+tdx, ty+tdy, 'tilt_output_cv_line'))
+
+    # Connector lines from drive knob to CV/atten.
+    kx1 = 14.0      # horizontal position of IN/drive knob
+    kx2 = 46.96     # horizontal position of OUT/level knob
+    ky = 102.0      # vertical position of both knobs
+    kdx = 6.5
+    kdy = 13.0
+    qx1 = kx1 - 0.1
+    qx2 = kx2 - 0.1
+    qdx = 6.6       # horizontal offset of text labels "L", "R"
+    qy = 109.3
+    pl.append(GeneralLine(kx1, ky, kx1-kdx, ky+kdy, 'left_input_line'))
+    pl.append(GeneralLine(kx1, ky, kx1+kdx, ky+kdy, 'right_input_line'))
+    pl.append(GeneralLine(kx2, ky, kx2-kdx, ky+kdy, 'left_output_line'))
+    pl.append(GeneralLine(kx2, ky, kx2+kdx, ky+kdy, 'right_output_line'))
+    pl.append(CenteredControlTextPath(font, 'L', qx1-qdx, qy))
+    pl.append(CenteredControlTextPath(font, 'R', qx1+qdx, qy))
+    pl.append(CenteredControlTextPath(font, 'L', qx2-qdx, qy))
+    pl.append(CenteredControlTextPath(font, 'R', qx2+qdx, qy))
+
+
+def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvRack:bool) -> int:
     controls = ControlLayer()
-    if hasAtten:
+    if isVcvRack:
         cdict['elastika'] = controls
     else:
         cdict['elastika_export'] = controls
@@ -1379,33 +1408,8 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtt
         tx2 = ELASTIKA_SLIDER_DX*(3.5) + 2.4
         ty = 17.5
         pl.append(HorizontalLine(tx1, tx2, ty, 'tilt_hor_line'))
-        if hasAtten:
-            # We need connector lines from the knob to CV input and attenuverter knob.
-            tdx = 11.24
-            tdy = 5.0
-            pl.append(GeneralLine(tx1, ty, tx1-tdx, ty-tdy, 'tilt_input_atten_line'))
-            pl.append(GeneralLine(tx1, ty, tx1-tdx, ty+tdy, 'tilt_input_cv_line'))
-            pl.append(GeneralLine(tx2, ty, tx2+tdx, ty-tdy, 'tilt_output_atten_line'))
-            pl.append(GeneralLine(tx2, ty, tx2+tdx, ty+tdy, 'tilt_output_cv_line'))
-
-            # Connector lines from drive knob to CV/atten.
-            kx1 = 14.0      # horizontal position of IN/drive knob
-            kx2 = 46.96     # horizontal position of OUT/level knob
-            ky = 102.0      # vertical position of both knobs
-            kdx = 6.5
-            kdy = 13.0
-            qx1 = kx1 - 0.1
-            qx2 = kx2 - 0.1
-            qdx = 6.6       # horizontal offset of text labels "L", "R"
-            qy = 109.3
-            pl.append(GeneralLine(kx1, ky, kx1-kdx, ky+kdy, 'left_input_line'))
-            pl.append(GeneralLine(kx1, ky, kx1+kdx, ky+kdy, 'right_input_line'))
-            pl.append(GeneralLine(kx2, ky, kx2-kdx, ky+kdy, 'left_output_line'))
-            pl.append(GeneralLine(kx2, ky, kx2+kdx, ky+kdy, 'right_output_line'))
-            pl.append(CenteredControlTextPath(font, 'L', qx1-qdx, qy))
-            pl.append(CenteredControlTextPath(font, 'R', qx1+qdx, qy))
-            pl.append(CenteredControlTextPath(font, 'L', qx2-qdx, qy))
-            pl.append(CenteredControlTextPath(font, 'R', qx2+qdx, qy))
+        if isVcvRack:
+            ElastikaConnectorArt(pl, font, tx1, tx2, ty)
 
         # IN/OUT labels for TILT knobs...
         pl.append(CenteredControlTextPath(font, 'IN',   tx1, 26.0))
