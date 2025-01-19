@@ -1388,6 +1388,17 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtt
             pl.append(GeneralLine(tx2, ty, tx2+tdx, ty-tdy, 'tilt_output_atten_line'))
             pl.append(GeneralLine(tx2, ty, tx2+tdx, ty+tdy, 'tilt_output_cv_line'))
 
+            # Connector lines from drive knob to CV/atten.
+            kx1 = 14.0      # horizontal position of IN/drive knob
+            kx2 = 46.96     # horizontal position of OUT/level knob
+            ky = 102.0      # vertical position of both knobs
+            kdx = 6.5
+            kdy = 13.0
+            pl.append(GeneralLine(kx1, ky, kx1-kdx, ky+kdy, 'left_input_line'))
+            pl.append(GeneralLine(kx1, ky, kx1+kdx, ky+kdy, 'right_input_line'))
+            pl.append(GeneralLine(kx2, ky, kx2-kdx, ky+kdy, 'left_output_line'))
+            pl.append(GeneralLine(kx2, ky, kx2+kdx, ky+kdy, 'right_output_line'))
+
         # IN/OUT labels for TILT knobs...
         pl.append(CenteredControlTextPath(font, 'IN',   tx1, 26.0))
         pl.append(CenteredControlTextPath(font, 'OUT',  tx2, 26.0))
