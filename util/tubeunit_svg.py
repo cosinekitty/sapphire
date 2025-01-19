@@ -26,7 +26,36 @@ def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
 
-def TubeUnitMainPanel() -> Panel:
+def TubeUnitPortArtwork() -> Element:
+    group = Element('g', 'port_artwork')
+
+    inputConnectorPath = Element('path', 'input_connector_path')
+    inputConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
+    inputConnectorPath.setAttrib('d', 'M 9,114.5 L 23,114.5 z')
+    group.append(inputConnectorPath)
+
+    driveConnectorPath = Element('path', 'drive_connector_path')
+    driveConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
+    (x1, y1) = (40.5, 107.5)
+    (dx, dy) = (12.0, 5.0)
+    dctext  = Move(x1, y1)
+    dctext += Line(x1+dx, y1-dy)
+    dctext += Move(x1, y1)
+    dctext += Line(x1+dx, y1+dy)
+    driveConnectorPath.setAttrib('d', dctext)
+    group.append(driveConnectorPath)
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        group.append(ControlTextPath(font, 'IN',  14.3, 109.4))
+        group.append(ControlTextPath(font, 'L',    8.1, 106.5))
+        group.append(ControlTextPath(font, 'R',   21.8, 106.5))
+        group.append(ControlTextPath(font, 'L',   57.0, 100.0))
+        group.append(ControlTextPath(font, 'R',   57.0, 110.0))
+
+    return group
+
+
+def TubeUnitMainPanel() -> Tuple[Panel, Element]:
     panel = Panel(PANEL_WIDTH)
 
     defs = Element('defs')
@@ -61,37 +90,14 @@ def TubeUnitMainPanel() -> Panel:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(SapphireInsignia(panel, font))
         pl.append(ModelNamePath(panel, font, 'tube unit'))
-        pl.append(ControlTextPath(font, 'IN',  14.3, 109.4))
-        pl.append(ControlTextPath(font, 'L',    8.1, 106.5))
-        pl.append(ControlTextPath(font, 'R',   21.8, 106.5))
-        pl.append(ControlTextPath(font, 'OUT', 36.7,  96.2))
-        pl.append(ControlTextPath(font, 'L',   57.0, 100.0))
-        pl.append(ControlTextPath(font, 'R',   57.0, 110.0))
-
-    inputConnectorPath = Element('path', 'input_connector_path')
-    inputConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
-    inputConnectorPath.setAttrib('d', 'M 9,114.5 L 23,114.5 z')
-    pl.append(inputConnectorPath)
-
-    driveConnectorPath = Element('path', 'drive_connector_path')
-    driveConnectorPath.setAttrib('style', CONNECTOR_LINE_STYLE)
-
-    (x1, y1) = (40.5, 107.5)
-    (dx, dy) = (12.0, 5.0)
-    dctext  = Move(x1, y1)
-    dctext += Line(x1+dx, y1-dy)
-    dctext += Move(x1, y1)
-    dctext += Line(x1+dx, y1+dy)
-    driveConnectorPath.setAttrib('d', dctext)
-
-    pl.append(driveConnectorPath)
 
     panel.append(pl)
-    return panel
+    return (panel, pl)
 
 
 def GenerateMainPanel() -> int:
-    panel = TubeUnitMainPanel()
+    panel, pl = TubeUnitMainPanel()
+    pl.append(TubeUnitPortArtwork())
     return Save(panel, '../res/tubeunit.svg')
 
 
@@ -160,6 +166,7 @@ def TubeUnitLabelGroup() -> Element:
         group.append(LabelLJ('CENTER',  font, 1, 1))
         group.append(LabelLJ('ANGLE',   font, 1, 2))
         group.append(LabelLJ('SPRING',  font, 1, 3))
+        group.append(ControlTextPath(font, 'OUT', 36.7,  96.2, 'out_label'))
     return group
 
 
@@ -180,8 +187,8 @@ def GenerateVentLayer(name:str) -> int:
 
 def ExportPanel() -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
-    panel = TubeUnitMainPanel()
-    panel.append(TubeUnitLabelGroup())
+    panel, pl = TubeUnitMainPanel()
+    pl.append(TubeUnitLabelGroup())
     return Save(panel, '../export/tubeunit.svg')
 
 
