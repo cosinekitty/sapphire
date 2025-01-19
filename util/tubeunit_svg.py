@@ -26,8 +26,7 @@ def PentagonOrigin(x:float, y:float) -> Tuple[float,float]:
     return (18.5 + x*24.0, 33.0 + y*21.0 - x*10.5)
 
 
-def GenerateMainPanel() -> int:
-    svgFileName = '../res/tubeunit.svg'
+def TubeUnitMainPanel() -> Panel:
     panel = Panel(PANEL_WIDTH)
 
     defs = Element('defs')
@@ -80,7 +79,12 @@ def GenerateMainPanel() -> int:
     pl.append(driveConnectorPath)
 
     panel.append(pl)
-    return Save(panel, svgFileName)
+    return panel
+
+
+def GenerateMainPanel() -> int:
+    panel = TubeUnitMainPanel()
+    return Save(panel, '../res/tubeunit.svg')
 
 
 def GenerateAudioPathLayer() -> int:
@@ -136,12 +140,9 @@ def LabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
     return TextPath(ti, x+dx, y+(h/2)+dy, text.lower() + '_label')
 
 
-def GenerateLabelLayer() -> int:
-    panel = Panel(PANEL_WIDTH)
-
+def TubeUnitLabelGroup() -> Element:
     group = Element('g', 'control_labels')
     group.setAttrib('style', CONTROL_LABEL_STYLE)
-
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         group.append(LabelRJ('AIRFLOW', font, 0, 0))
         group.append(LabelRJ('WIDTH',   font, 0, 1))
@@ -151,8 +152,12 @@ def GenerateLabelLayer() -> int:
         group.append(LabelLJ('CENTER',  font, 1, 1))
         group.append(LabelLJ('ANGLE',   font, 1, 2))
         group.append(LabelLJ('SPRING',  font, 1, 3))
+    return group
 
-    panel.append(group)
+
+def GenerateLabelLayer() -> int:
+    panel = Panel(PANEL_WIDTH)
+    panel.append(TubeUnitLabelGroup())
     return Save(panel, '../res/tubeunit_labels.svg')
 
 
@@ -165,6 +170,13 @@ def GenerateVentLayer(name:str) -> int:
     return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
 
 
+def ExportPanel() -> int:
+    # Combine the control layer with the label layer for external applications to render the panel.
+    panel = TubeUnitMainPanel()
+    panel.append(TubeUnitLabelGroup())
+    return Save(panel, '../export/tubeunit.svg')
+
+
 if __name__ == '__main__':
     sys.exit(
         GenerateMainPanel() or
@@ -172,5 +184,6 @@ if __name__ == '__main__':
         GenerateLabelLayer() or
         GenerateVentLayer('VENT') or
         GenerateVentLayer('SEAL') or
+        ExportPanel() or
         Print('SUCCESS')
     )
