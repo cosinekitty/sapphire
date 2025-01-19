@@ -5,7 +5,7 @@
 #   https://github.com/cosinekitty/sapphire
 #
 #   Generates panel artwork svg files for all Sapphire modules
-#   except for Elastika and Tube Unit.
+#   except for Tube Unit, whose generator lives in tubeunit_svg.py.
 #   Combining panel generation for multiple modules into one
 #   script makes it easier to maintain a common style across modules.
 #
@@ -1302,8 +1302,6 @@ def ElastikaShape(font:Font, n:int, prefix:str) -> Element:
 
 
 def PlaceElastikaControls(controls: ControlLayer) -> None:
-    # patch_elastika.py also does stuff to elastika.svg
-    # This is here because the code is in place here to generate the C++ map.
     controls.append(Component("fric_slider",         8.00,  46.00))
     controls.append(Component("stif_slider",        19.24,  46.00))
     controls.append(Component("span_slider",        30.48,  46.00))
@@ -1335,18 +1333,19 @@ def PlaceElastikaControls(controls: ControlLayer) -> None:
     controls.append(Component("power_toggle",       30.48,  95.00))
 
 
-def GenerateElastikaPanel(cdict:Dict[str, ControlLayer]) -> int:
-    name = 'elastika'
-    svgFileName = '../res/{}.svg'.format(name)
+def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, hasAtten:bool) -> int:
+    controls = ControlLayer()
+    if hasAtten:
+        cdict['elastika'] = controls
+    else:
+        cdict['elastika_export'] = controls
     PANEL_WIDTH = 12
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
     PlaceElastikaControls(controls)
-    xmid = panel.mmWidth / 2
     (gy1, gy2) = (32.0, 89.5)
     defs.append(Gradient(gy1, gy2, '#5754c4', SAPPHIRE_PANEL_COLOR, 'gradient_fric'))
     defs.append(Gradient(gy2, gy1, '#0060f9', SAPPHIRE_PANEL_COLOR, 'gradient_stif'))
@@ -1356,7 +1355,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer]) -> int:
     defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, name))
+        pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(ElastikaShape(font, 0,  'fric'))
         pl.append(ElastikaShape(font, 1,  'stif'))
@@ -1429,7 +1428,8 @@ if __name__ == '__main__':
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
-        GenerateElastikaPanel(cdict) or
+        GenerateElastikaPanel(cdict, '../res/elastika.svg', True) or
+        GenerateElastikaPanel(cdict, '../export/elastika.svg', False) or
         PlaceTubeUnitControls(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
