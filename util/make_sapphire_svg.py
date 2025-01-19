@@ -1247,24 +1247,27 @@ def ElastikaCoord(x:float, y:float) -> str:
     return ' {:0.2f},{:0.2f}'.format(x, y)
 
 
+ELASTIKA_SLIDER_DX = 11.22
+ELASTIKA_SLIDER_YMID = 64.0
+
+
 def ElastikaPathForShape(n:int) -> str:
     # Make a string that looks like:
     # "M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
     # Start with "M" for absolute path.
     p = 'M'
-    w = 11.22
     if n == -1:
         # The POWER hexagon is special: much smaller than the others.
-        x0 = 2*w + 2.4
+        x0 = 2*ELASTIKA_SLIDER_DX + 2.4
         y0 = 90.0
         h = 19.0
     else:
         # Follow with 6 coordinate pairs "x,y".
-        x0 = n*w + 2.4
+        x0 = n*ELASTIKA_SLIDER_DX + 2.4
         y0 = 32.0
         h = 54.0
     p += ElastikaCoord(x0, y0)
-    (dx, dy) = (w/2.0, 28.5-32.0)
+    (dx, dy) = (ELASTIKA_SLIDER_DX/2.0, -3.5)
     (x1, y1) = (x0 + dx, y0 + dy)
     p += ElastikaCoord(x1, y1)
     (x2, y2) = (x1 + dx, y0)
@@ -1277,10 +1280,25 @@ def ElastikaPathForShape(n:int) -> str:
     return p
 
 
-def ElastikaShape(n:int, prefix:str) -> Path:
+def ElastikaSliderLabel(font:Font, n:int, label:str) -> TextPath:
+    if n == -1:
+        xc = ELASTIKA_SLIDER_DX*(2.5) + 2.4
+        y = 90.0 + 19.0/2
+    else:
+        xc = ELASTIKA_SLIDER_DX*(n + 0.5) + 2.4
+        y = ELASTIKA_SLIDER_YMID
+    return CenteredControlTextPath(font, label, xc, y)
+
+
+def ElastikaShape(font:Font, n:int, prefix:str) -> Element:
+    group = Element('g', 'artwork_' + prefix)
     text = ElastikaPathForShape(n)
     style = 'fill:url(#gradient_{});fill-opacity:1;stroke:#000000;stroke-width:0.0;stroke-linecap:square'.format(prefix)
-    return Path(text, style, 'boundary_' + prefix)
+    path = Path(text, style, 'boundary_' + prefix)
+    group.append(path)
+    if n != -1:     # exclude label for power control
+        group.append(ElastikaSliderLabel(font, n, prefix.upper()))
+    return group
 
 
 def PlaceElastikaControls(controls: ControlLayer) -> None:
@@ -1334,18 +1352,18 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer]) -> int:
     defs.append(Gradient(gy2, gy1, '#0060f9', SAPPHIRE_PANEL_COLOR, 'gradient_stif'))
     defs.append(Gradient(gy1, gy2, '#976de4', SAPPHIRE_PANEL_COLOR, 'gradient_span'))
     defs.append(Gradient(gy2, gy1, '#0081d7', SAPPHIRE_PANEL_COLOR, 'gradient_curl'))
-    defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_tilt'))
+    defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_mass'))
     defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        pl.append(ElastikaShape(0,  'fric'))
-        pl.append(ElastikaShape(1,  'stif'))
-        pl.append(ElastikaShape(2,  'span'))
-        pl.append(ElastikaShape(3,  'curl'))
-        pl.append(ElastikaShape(4,  'tilt'))
-        pl.append(ElastikaShape(-1, 'power'))
+        pl.append(ElastikaShape(font, 0,  'fric'))
+        pl.append(ElastikaShape(font, 1,  'stif'))
+        pl.append(ElastikaShape(font, 2,  'span'))
+        pl.append(ElastikaShape(font, 3,  'curl'))
+        pl.append(ElastikaShape(font, 4,  'mass'))
+        pl.append(ElastikaShape(font, -1, 'power'))
     return Save(panel, svgFileName)
 
 
