@@ -1260,11 +1260,10 @@ ELASTIKA_SLIDER_DX = 11.22
 ELASTIKA_SLIDER_YMID = 64.0
 
 
-def ElastikaPathForShape(n:int) -> str:
+def ElastikaPathForShape(n:int, isVcvRack:bool) -> str:
     # Make a string that looks like:
     # "M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
     # Start with "M" for absolute path.
-    p = 'M'
     if n == -1:
         # The POWER hexagon is special: much smaller than the others.
         x0 = 2*ELASTIKA_SLIDER_DX + 2.4
@@ -1274,7 +1273,12 @@ def ElastikaPathForShape(n:int) -> str:
         # Follow with 6 coordinate pairs "x,y".
         x0 = n*ELASTIKA_SLIDER_DX + 2.4
         y0 = 32.0
-        h = 54.0
+        if isVcvRack:
+            h = 54.0
+        else:
+            h = 38.0
+
+    p = 'M'
     p += ElastikaCoord(x0, y0)
     (dx, dy) = (ELASTIKA_SLIDER_DX/2.0, -3.5)
     (x1, y1) = (x0 + dx, y0 + dy)
@@ -1284,7 +1288,6 @@ def ElastikaPathForShape(n:int) -> str:
     p += ElastikaCoord(x2, y2 + h)
     p += ElastikaCoord(x1, y2 + h - dy)
     p += ElastikaCoord(x0, y2 + h)
-    # Terminate with "z" to close the path.
     p += ' z'
     return p
 
@@ -1299,9 +1302,9 @@ def ElastikaSliderLabel(font:Font, n:int, label:str) -> TextPath:
     return CenteredControlTextPath(font, label, xc, y)
 
 
-def ElastikaShape(font:Font, n:int, prefix:str) -> Element:
+def ElastikaShape(font:Font, n:int, prefix:str, isVcvRack:bool) -> Element:
     group = Element('g', 'artwork_' + prefix)
-    text = ElastikaPathForShape(n)
+    text = ElastikaPathForShape(n, isVcvRack)
     style = 'fill:url(#gradient_{});fill-opacity:1;stroke:#000000;stroke-width:0.0;stroke-linecap:square'.format(prefix)
     path = Path(text, style, 'boundary_' + prefix)
     group.append(path)
@@ -1310,12 +1313,19 @@ def ElastikaShape(font:Font, n:int, prefix:str) -> Element:
     return group
 
 
-def PlaceElastikaControls(controls: ControlLayer) -> None:
+def PlaceElastikaControls(controls: ControlLayer, shrink:float) -> None:
     controls.append(Component("fric_slider",         8.00,  46.00))
     controls.append(Component("stif_slider",        19.24,  46.00))
     controls.append(Component("span_slider",        30.48,  46.00))
     controls.append(Component("curl_slider",        41.72,  46.00))
     controls.append(Component("mass_slider",        52.96,  46.00))
+    controls.append(Component("drive_knob",         14.00, 102.00 - shrink))
+    controls.append(Component("level_knob",         46.96, 102.00 - shrink))
+    controls.append(Component("input_tilt_knob",    19.24,  17.50))
+    controls.append(Component("output_tilt_knob",   41.72,  17.50))
+
+
+def PlaceElastikaRackControls(controls: ControlLayer) -> None:
     controls.append(Component("fric_atten",          8.00,  72.00))
     controls.append(Component("stif_atten",         19.24,  72.00))
     controls.append(Component("span_atten",         30.48,  72.00))
@@ -1330,10 +1340,6 @@ def PlaceElastikaControls(controls: ControlLayer) -> None:
     controls.append(Component("mass_cv",            52.96,  81.74))
     controls.append(Component("input_tilt_cv",       8.00,  22.50))
     controls.append(Component("output_tilt_cv",     53.00,  22.50))
-    controls.append(Component("drive_knob",         14.00, 102.00))
-    controls.append(Component("level_knob",         46.96, 102.00))
-    controls.append(Component("input_tilt_knob",    19.24,  17.50))
-    controls.append(Component("output_tilt_knob",   41.72,  17.50))
     controls.append(Component("audio_left_input",    7.50, 115.00))
     controls.append(Component("audio_right_input",  20.50, 115.00))
     controls.append(Component("power_gate_input",   30.48, 104.00))
@@ -1378,13 +1384,17 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
     else:
         cdict['elastika_export'] = controls
     PANEL_WIDTH = 12
-    panel = Panel(PANEL_WIDTH)
+    height = PANEL_HEIGHT_MM if isVcvRack else 100.0
+    shrink = PANEL_HEIGHT_MM - height
+    panel = Panel(PANEL_WIDTH, height)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    PlaceElastikaControls(controls)
+    PlaceElastikaControls(controls, shrink)
+    if isVcvRack:
+        PlaceElastikaRackControls(controls)
     (gy1, gy2) = (32.0, 89.5)
     defs.append(Gradient(gy1, gy2, '#5754c4', SAPPHIRE_PANEL_COLOR, 'gradient_fric'))
     defs.append(Gradient(gy2, gy1, '#0060f9', SAPPHIRE_PANEL_COLOR, 'gradient_stif'))
@@ -1396,12 +1406,13 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
-        pl.append(ElastikaShape(font,  0, 'fric'))
-        pl.append(ElastikaShape(font,  1, 'stif'))
-        pl.append(ElastikaShape(font,  2, 'span'))
-        pl.append(ElastikaShape(font,  3, 'curl'))
-        pl.append(ElastikaShape(font,  4, 'mass'))
-        pl.append(ElastikaShape(font, -1, 'power'))
+        pl.append(ElastikaShape(font,  0, 'fric', isVcvRack))
+        pl.append(ElastikaShape(font,  1, 'stif', isVcvRack))
+        pl.append(ElastikaShape(font,  2, 'span', isVcvRack))
+        pl.append(ElastikaShape(font,  3, 'curl', isVcvRack))
+        pl.append(ElastikaShape(font,  4, 'mass', isVcvRack))
+        if isVcvRack:
+            pl.append(ElastikaShape(font, -1, 'power', isVcvRack))
         pl.append(CenteredControlTextPath(font, 'TILT', xmid, 20.0))
 
         tx1 = ELASTIKA_SLIDER_DX*(1.5) + 2.4
@@ -1414,9 +1425,14 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
         # IN/OUT labels for TILT knobs...
         pl.append(CenteredControlTextPath(font, 'IN',   tx1, 26.0))
         pl.append(CenteredControlTextPath(font, 'OUT',  tx2, 26.0))
+
         # IN/OUT labels for drive/level knobs...
-        pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, 93.5))
-        pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, 93.5))
+        if isVcvRack:
+            ty = 93.5
+        else:
+            ty = 76.0
+        pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
+        pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
     return Save(panel, svgFileName)
 
 
