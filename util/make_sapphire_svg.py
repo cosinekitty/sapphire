@@ -1403,7 +1403,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
     defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_mass'))
     defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR, height))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(ElastikaShape(font,  0, 'fric', isVcvRack))

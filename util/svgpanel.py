@@ -317,12 +317,12 @@ class TextPath(Element):
 
 class BorderRect(Element):
     """A filled rectangle with border for the bottom layer of your panel design."""
-    def __init__(self, hpWidth:int, fillColor:str, borderColor:str) -> None:
+    def __init__(self, hpWidth:int, fillColor:str, borderColor:str, mmHeight:float = PANEL_HEIGHT_MM) -> None:
         super().__init__('rect', 'border_rect')
         if hpWidth <= 0:
             raise Error('Invalid hpWidth={}'.format(hpWidth))
         self.setAttribFloat('width', HP_WIDTH_MM * hpWidth)
-        self.setAttribFloat('height', PANEL_HEIGHT_MM)
+        self.setAttribFloat('height', mmHeight)
         self.setAttrib('x', '0')
         self.setAttrib('y', '0')
         self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
