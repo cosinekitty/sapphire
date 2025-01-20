@@ -1385,7 +1385,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
         cdict['elastika_export'] = controls
     PANEL_WIDTH = 12
     height = PANEL_HEIGHT_MM if isVcvRack else 100.0
-    shrink = PANEL_HEIGHT_MM - height
+    shrink = 0.0 if isVcvRack else 16.5
     panel = Panel(PANEL_WIDTH, height)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')

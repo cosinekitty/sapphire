@@ -56,10 +56,10 @@ namespace Sapphire
             }},
         { "elastika_export", {
             {"curl_slider",            {  41.720,   46.000}},
-            {"drive_knob",             {  14.000,   73.500}},
+            {"drive_knob",             {  14.000,   85.500}},
             {"fric_slider",            {   8.000,   46.000}},
             {"input_tilt_knob",        {  19.240,   17.500}},
-            {"level_knob",             {  46.960,   73.500}},
+            {"level_knob",             {  46.960,   85.500}},
             {"mass_slider",            {  52.960,   46.000}},
             {"output_tilt_knob",       {  41.720,   17.500}},
             {"span_slider",            {  30.480,   46.000}},
