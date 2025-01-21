@@ -103,6 +103,14 @@ namespace Sapphire
             {"replace_cv",             {   6.240,   37.333}},
             {"replace_knob",           {  24.240,   37.333}},
             }},
+        { "galaxy_export", {
+            {"_panel",                 {  30.480,  128.500}},
+            {"bigness_knob",           {  15.240,   83.333}},
+            {"brightness_knob",        {  15.240,   52.667}},
+            {"detune_knob",            {  15.240,   68.000}},
+            {"mix_knob",               {  15.240,   98.667}},
+            {"replace_knob",           {  15.240,   37.333}},
+            }},
         { "glee", {
             {"_panel",                 {  20.320,  128.500}},
             {"chaos_atten",            {   5.160,   68.000}},
@@ -135,6 +143,14 @@ namespace Sapphire
             {"resonance_atten",        {  15.240,   52.667}},
             {"resonance_cv",           {   6.240,   52.667}},
             {"resonance_knob",         {  24.240,   52.667}},
+            }},
+        { "gravy_export", {
+            {"_panel",                 {  30.480,  128.500}},
+            {"frequency_knob",         {  15.240,   37.333}},
+            {"gain_knob",              {  15.240,   83.333}},
+            {"mix_knob",               {  15.240,   68.000}},
+            {"mode_switch",            {  15.240,   98.667}},
+            {"resonance_knob",         {  15.240,   52.667}},
             }},
         { "hiss", {
             {"_panel",                 {  15.240,  128.500}},

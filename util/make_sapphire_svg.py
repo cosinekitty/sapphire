@@ -31,6 +31,10 @@ def SvgFileName(name:str, isVcvRack:bool) -> str:
     return '../{}/{}.svg'.format(dir, name)
 
 
+def cdict_name(name:str, isVcvRack:bool) -> str:
+    return name if isVcvRack else name + '_export'
+
+
 def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element:
     elem = Element('linearGradient', id)
     elem.setAttrib('x1', '0')
@@ -763,7 +767,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer(panel)
+    cdict[cdict_name(name, isVcvRack)] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
@@ -796,19 +800,22 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
-        controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
-        controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
-        controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
-        controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
-
-        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
-        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
+        if isVcvRack:
+            controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
+            controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+            controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
+            controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+            pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
+            pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
         row = 1
         for (symbol, label) in table:
             y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
-            AddFlatControlGroup(pl, controls, xmid, y, symbol)
+            if isVcvRack:
+                AddFlatControlGroup(pl, controls, xmid, y, symbol)
+            else:
+                controls.append(Component(symbol + '_knob', xmid, y))
             row += 1
     return Save(panel, svgFileName)
 
@@ -827,7 +834,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer(panel)
+    cdict[cdict_name(name, isVcvRack)] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
@@ -861,22 +868,25 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
         pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
-        controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
-        controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
-        controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
-        controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+        if isVcvRack:
+            controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
+            controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+            controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
+            controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+            pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
+            pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
+            pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
-        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
         controls.append(Component('mode_switch', xmid, ySwitch))
-
-        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
-        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
         row = 1
         for (symbol, label) in table:
             y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
-            AddFlatControlGroup(pl, controls, xmid, y, symbol)
+            if isVcvRack:
+                AddFlatControlGroup(pl, controls, xmid, y, symbol)
+            else:
+                controls.append(Component(symbol + '_knob', xmid, y))
             row += 1
     return Save(panel, svgFileName)
 
