@@ -117,7 +117,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
 
     xmid = panel.mmWidth / 2
     dxMemoryButton = 8.0
@@ -224,7 +224,7 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -283,7 +283,7 @@ def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabe
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth/2
     inputPortY1 = 25.0
     inputPortDY = 10.0
@@ -382,7 +382,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPort = 12.5               # horizontal distance between X, Y, Z columns.
     yIn = 58.0                  # vertical position of center of input X, Y, Z ports.
@@ -494,7 +494,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxKnob = 25.0
     xKnobLeft  = xmid - dxKnob
@@ -596,7 +596,7 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict['hiss'] = controls = ControlLayer()
+    cdict['hiss'] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     yChannelDisplay = 14.75
     ytop = 27.0
@@ -758,7 +758,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
@@ -822,7 +822,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
@@ -890,7 +890,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
 
     yRow = FencePost(22.0, 114.0, 7)
@@ -953,7 +953,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     NROWS = 7
     yRow = FencePost(22.0, 110.0, NROWS)
@@ -1009,7 +1009,7 @@ def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     yRow = 22.0
     dyGrad = 6.0
@@ -1104,7 +1104,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict['sam'] = controls = ControlLayer()
+    cdict['sam'] = controls = ControlLayer(panel)
     yInput  = FencePost(25.0,  52.0, 4)
     yOutput = FencePost(88.0, 115.0, 4)     # cannot change - visually match Frolic/Glee
     dyArrowMargin = 10.0
@@ -1148,7 +1148,7 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    cdict[name] = controls = ControlLayer()
+    cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     syncDy = 16.0       # vertical distance between SYNC input port and TRIGGER output port
     ySpeedKnob = 26.0
@@ -1378,15 +1378,15 @@ def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) 
 
 
 def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvRack:bool) -> int:
-    controls = ControlLayer()
-    if isVcvRack:
-        cdict['elastika'] = controls
-    else:
-        cdict['elastika_export'] = controls
     PANEL_WIDTH = 12
     height = PANEL_HEIGHT_MM if isVcvRack else 100.0
     shrink = 0.0 if isVcvRack else 16.5
     panel = Panel(PANEL_WIDTH, height)
+    controls = ControlLayer(panel)
+    if isVcvRack:
+        cdict['elastika'] = controls
+    else:
+        cdict['elastika_export'] = controls
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
@@ -1452,7 +1452,7 @@ def AddTubeUnitGroup(controls:ControlLayer, prefix:str, column:int, row:int) -> 
     AddTubeUnitControl(controls, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
 
 def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer]) -> int:
-    controls = cdict['tubeunit'] = ControlLayer()
+    controls = cdict['tubeunit'] = ControlLayer(Panel(12))
     outJackDx = 12.0
     outJackDy = 5.0
     AddTubeUnitControl(controls, 'level_knob', 1, 4)

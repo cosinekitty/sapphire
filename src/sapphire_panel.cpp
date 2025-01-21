@@ -9,6 +9,7 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "chaops", {
+            {"_panel",                 {  30.480,  128.500}},
             {"freeze_button",          {  22.240,  115.000}},
             {"freeze_input",           {   8.240,  115.000}},
             {"memory_address_display", {  15.240,   33.000}},
@@ -24,6 +25,7 @@ namespace Sapphire
             {"store_trigger",          {   7.240,   53.000}},
             }},
         { "elastika", {
+            {"_panel",                 {  60.960,  128.500}},
             {"audio_left_input",       {   7.500,  115.000}},
             {"audio_left_output",      {  40.460,  115.000}},
             {"audio_right_input",      {  20.500,  115.000}},
@@ -55,6 +57,7 @@ namespace Sapphire
             {"stif_slider",            {  19.240,   46.000}},
             }},
         { "elastika_export", {
+            {"_panel",                 {  60.960,  100.000}},
             {"curl_slider",            {  41.720,   46.000}},
             {"drive_knob",             {  14.000,   85.500}},
             {"fric_slider",            {   8.000,   46.000}},
@@ -66,6 +69,7 @@ namespace Sapphire
             {"stif_slider",            {  19.240,   46.000}},
             }},
         { "frolic", {
+            {"_panel",                 {  20.320,  128.500}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -78,6 +82,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "galaxy", {
+            {"_panel",                 {  30.480,  128.500}},
             {"audio_left_input",       {   9.240,   22.000}},
             {"audio_left_output",      {   9.240,  114.000}},
             {"audio_right_input",      {  21.240,   22.000}},
@@ -99,6 +104,7 @@ namespace Sapphire
             {"replace_knob",           {  24.240,   37.333}},
             }},
         { "glee", {
+            {"_panel",                 {  20.320,  128.500}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -111,6 +117,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "gravy", {
+            {"_panel",                 {  30.480,  128.500}},
             {"audio_left_input",       {   9.240,   22.000}},
             {"audio_left_output",      {   9.240,  114.000}},
             {"audio_right_input",      {  21.240,   22.000}},
@@ -130,6 +137,7 @@ namespace Sapphire
             {"resonance_knob",         {  24.240,   52.667}},
             }},
         { "hiss", {
+            {"_panel",                 {  15.240,  128.500}},
             {"channel_display",        {   7.620,   14.750}},
             {"random_output_1",        {   7.620,   27.000}},
             {"random_output_10",       {   7.620,  114.000}},
@@ -143,6 +151,7 @@ namespace Sapphire
             {"random_output_9",        {   7.620,  104.333}},
             }},
         { "lark", {
+            {"_panel",                 {  20.320,  128.500}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -155,6 +164,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "nucleus", {
+            {"_panel",                 {  81.280,  128.500}},
             {"audio_mode_button",      {  15.640,   83.500}},
             {"decay_atten",            {  35.640,   36.000}},
             {"decay_cv",               {  45.640,   36.000}},
@@ -188,6 +198,7 @@ namespace Sapphire
             {"z_input",                {  41.140,   58.000}},
             }},
         { "pivot", {
+            {"_panel",                 {  20.320,  128.500}},
             {"a_input",                {  10.160,   22.000}},
             {"c_output",               {  10.160,  115.000}},
             {"twist_atten",            {   5.160,   68.000}},
@@ -198,6 +209,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "polynucleus", {
+            {"_panel",                 {  81.280,  128.500}},
             {"a_input",                {  15.640,   50.000}},
             {"audio_mode_button",      {  15.640,   66.000}},
             {"b_output",               {  65.640,   81.000}},
@@ -222,6 +234,7 @@ namespace Sapphire
             {"speed_knob",             {  15.640,   25.000}},
             }},
         { "pop", {
+            {"_panel",                 {  20.320,  128.500}},
             {"channel_display",        {  10.160,   80.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
@@ -233,6 +246,7 @@ namespace Sapphire
             {"sync_input",             {  10.160,   99.000}},
             }},
         { "rotini", {
+            {"_panel",                 {  20.320,  128.500}},
             {"a_input",                {  10.160,   22.000}},
             {"b_input",                {  10.160,   36.667}},
             {"c_output",               {  10.160,  115.000}},
@@ -241,6 +255,7 @@ namespace Sapphire
             {"z_output",               {  10.160,  106.000}},
             }},
         { "sam", {
+            {"_panel",                 {  10.160,  128.500}},
             {"channel_display",        {   5.080,   14.750}},
             {"p_input",                {   5.080,   52.000}},
             {"p_output",               {   5.080,  115.000}},
@@ -252,6 +267,7 @@ namespace Sapphire
             {"z_output",               {   5.080,  106.000}},
             }},
         { "sauce", {
+            {"_panel",                 {  30.480,  128.500}},
             {"audio_bp_output",        {  15.240,  105.667}},
             {"audio_hp_output",        {  15.240,  115.667}},
             {"audio_input",            {  15.240,   22.000}},
@@ -270,6 +286,7 @@ namespace Sapphire
             {"resonance_knob",         {  24.240,   52.667}},
             }},
         { "tin", {
+            {"_panel",                 {  20.320,  128.500}},
             {"clear_trigger_input",    {  10.160,  110.000}},
             {"level_atten",            {   5.160,   86.000}},
             {"level_cv",               {  15.160,   86.000}},
@@ -280,6 +297,7 @@ namespace Sapphire
             {"z_input",                {  10.160,   45.000}},
             }},
         { "tout", {
+            {"_panel",                 {  20.320,  128.500}},
             {"clear_trigger_output",   {  10.160,  110.000}},
             {"level_atten",            {   5.160,   86.000}},
             {"level_cv",               {  15.160,   86.000}},
@@ -290,6 +308,7 @@ namespace Sapphire
             {"z_output",               {  10.160,   45.000}},
             }},
         { "tubeunit", {
+            {"_panel",                 {  60.960,  128.500}},
             {"airflow_atten",          {  10.500,   30.000}},
             {"airflow_cv",             {  10.500,   38.000}},
             {"airflow_knob",           {  20.500,   34.000}},

@@ -352,8 +352,8 @@ class Component:
 
 
 class ControlLayer:
-    def __init__(self) -> None:
-        self.componentList:List[Component] = []
+    def __init__(self, panel: 'Panel') -> None:
+        self.componentList = [Component('_panel', panel.mmWidth, panel.mmHeight)]
 
     def append(self, comp:Component) -> None:
         self.componentList.append(comp)

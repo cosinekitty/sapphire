@@ -15,7 +15,14 @@ namespace Sapphire
             {}
     };
 
+
     ComponentLocation FindComponent(
-        const std::string& modCode,
-        const std::string& label);
+        const std::string& moduleCode,      // symbol for the module, e.g. "elastika"
+        const std::string& label);          // symbol for the component, e.g. "mix_knob"
+
+
+    inline ComponentLocation GetPanelDimensions(const std::string& moduleCode)
+    {
+        return FindComponent(moduleCode, "_panel");
+    }
 }
