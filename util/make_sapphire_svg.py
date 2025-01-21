@@ -26,6 +26,11 @@ def Save(panel:Panel, filename:str) -> int:
     return 0
 
 
+def SvgFileName(name:str, isVcvRack:bool) -> str:
+    dir = 'res' if isVcvRack else 'export'
+    return '../{}/{}.svg'.format(dir, name)
+
+
 def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element:
     elem = Element('linearGradient', id)
     elem.setAttrib('x1', '0')
@@ -742,7 +747,7 @@ def GenerateStereoInputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -> int:
     table:List[Tuple[str, str]] = [
         ('replace',     'REPLACE'),
         ('brightness',  'BRIGHT'),
@@ -751,7 +756,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
         ('mix',         'MIX')
     ]
 
-    svgFileName = '../res/{}.svg'.format(name)
+    svgFileName = SvgFileName(name, isVcvRack)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
@@ -808,14 +813,14 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
         ('mix',         'MIX'),
         ('gain',        'GAIN')
     ]
-    svgFileName = '../res/{}.svg'.format(name)
+    svgFileName = SvgFileName(name, isVcvRack)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
@@ -1491,8 +1496,10 @@ if __name__ == '__main__':
         GenerateStereoInputLabels('../res/stereo_in_lr.svg', 'L', 'R') or
         GenerateStereoInputLabels('../res/stereo_in_l2.svg', '2', '') or
         GenerateStereoInputLabels('../res/stereo_in_r2.svg', '', '2') or
-        GenerateGalaxyPanel(cdict, 'galaxy') or
-        GenerateGravyPanel(cdict, 'gravy') or
+        GenerateGalaxyPanel(cdict, 'galaxy', True) or
+        GenerateGalaxyPanel(cdict, 'galaxy', False) or
+        GenerateGravyPanel(cdict, 'gravy', True) or
+        GenerateGravyPanel(cdict, 'gravy', False) or
         GenerateSaucePanel(cdict, 'sauce') or
         GenerateRotiniPanel(cdict) or
         GeneratePivotPanel(cdict) or
