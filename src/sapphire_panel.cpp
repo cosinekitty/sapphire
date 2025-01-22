@@ -105,11 +105,11 @@ namespace Sapphire
             }},
         { "galaxy_export", {
             {"_panel",                 {  30.480,  128.500}},
-            {"bigness_knob",           {  15.240,   83.333}},
-            {"brightness_knob",        {  15.240,   46.667}},
-            {"detune_knob",            {  15.240,   65.000}},
-            {"mix_knob",               {  15.240,  101.667}},
-            {"replace_knob",           {  15.240,   28.333}},
+            {"bigness_knob",           {  15.240,   89.333}},
+            {"brightness_knob",        {  15.240,   49.667}},
+            {"detune_knob",            {  15.240,   69.500}},
+            {"mix_knob",               {  15.240,  109.167}},
+            {"replace_knob",           {  15.240,   29.833}},
             }},
         { "glee", {
             {"_panel",                 {  20.320,  128.500}},
@@ -146,11 +146,11 @@ namespace Sapphire
             }},
         { "gravy_export", {
             {"_panel",                 {  30.480,  128.500}},
-            {"frequency_knob",         {  15.240,   28.333}},
-            {"gain_knob",              {  15.240,   83.333}},
-            {"mix_knob",               {  15.240,   65.000}},
-            {"mode_switch",            {  15.240,  101.667}},
-            {"resonance_knob",         {  15.240,   46.667}},
+            {"frequency_knob",         {  15.240,   29.833}},
+            {"gain_knob",              {  15.240,   89.333}},
+            {"mix_knob",               {  15.240,   69.500}},
+            {"mode_switch",            {  15.240,  109.167}},
+            {"resonance_knob",         {  15.240,   49.667}},
             }},
         { "hiss", {
             {"_panel",                 {  15.240,  128.500}},

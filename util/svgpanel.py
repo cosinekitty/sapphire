@@ -308,6 +308,18 @@ class Polygon(Element):
         self.setAttrib('style', style)
 
 
+class Circle(Element):
+    """SVG Circle"""
+    def __init__(self, cx:float, cy:float, radius:float, stroke:str, strokeWidth:float, fill:str, id:str = '') -> None:
+        super().__init__('circle', id)
+        self.setAttrib('cx', '{:g}'.format(cx))
+        self.setAttrib('cy', '{:g}'.format(cy))
+        self.setAttrib('r', '{:g}'.format(radius))
+        self.setAttrib('stroke', stroke)
+        self.setAttrib('stroke-width', '{:g}'.format(strokeWidth))
+        self.setAttrib('fill', fill)
+
+
 class TextPath(Element):
     """An SVG path that is rendered from text expressed in a given font and size."""
     def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:

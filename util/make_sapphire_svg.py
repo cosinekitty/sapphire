@@ -795,14 +795,16 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
         dyText = 6.5
         dyTopArt = 9.5
     elif target == Target.Lite:
-        yRow = FencePost(10.0, 120.0, 7)
-        dyText = 7.5
-        dyTopArt = 12.0
+        yRow = FencePost(10.0, 129.0, 7)
+        dyText = 8.5
+        dyTopArt = 14.0
     else:
         raise TargetError(target)
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
+
+    previewKnobPositions = False        # set to True for faint traces of knobs in export panels
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -845,8 +847,12 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
-            else:
+            elif target == Target.Lite:
                 controls.append(Component(symbol + '_knob', xmid, y))
+                if previewKnobPositions:
+                    pl.append(Circle(xmid, y, 5.5, 'black', 0.1, 'none'))
+            else:
+                raise TargetError(target)
             row += 1
     return Save(panel, svgFileName)
 
@@ -873,16 +879,19 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
         yRow = FencePost(22.0, 114.0, 7)
         dyText = 6.5
         dyTopArt = 9.5
+    elif target == Target.Lite:
+        yRow = FencePost(10.0, 129.0, 7)
+        dyText = 8.5
+        dyTopArt = 14.0
     else:
-        yRow = FencePost(10.0, 120.0, 7)
-        dyText = 7.5
-        dyTopArt = 12.0
+        raise TargetError(target)
 
     yInPort  = yRow.value(0)
     ySwitch  = yRow.value(5)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
-    dyText = 6.5
+
+    previewKnobPositions = False        # set to True for faint traces of knobs in export panels
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -934,8 +943,12 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
-            else:
+            elif target == Target.Lite:
                 controls.append(Component(symbol + '_knob', xmid, y))
+                if previewKnobPositions:
+                    pl.append(Circle(xmid, y, 5.5, 'black', 0.1, 'none'))
+            else:
+                raise TargetError(target)
             row += 1
     return Save(panel, svgFileName)
 
