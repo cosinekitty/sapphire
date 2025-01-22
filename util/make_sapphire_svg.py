@@ -1453,8 +1453,9 @@ def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) 
     pl.append(CenteredControlTextPath(font, 'R', qx2+qdx, qy))
 
 
-def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, target:Target) -> int:
+def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     PANEL_WIDTH = 12
+    svgFileName = SvgFileName('elastika', target)
 
     if target == Target.VcvRack:
         height = PANEL_HEIGHT_MM
@@ -1766,8 +1767,8 @@ if __name__ == '__main__':
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
-        GenerateElastikaPanel(cdict, '../res/elastika.svg', Target.VcvRack) or
-        GenerateElastikaPanel(cdict, '../export/elastika.svg', Target.Lite) or
+        GenerateElastikaPanel(cdict, Target.VcvRack) or
+        GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateTubeUnit(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
