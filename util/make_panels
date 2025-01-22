@@ -8,7 +8,6 @@ RunPython()
 }
 
 echo "make_panels: STARTING"
-RunPython tubeunit_svg.py
 RunPython make_sapphire_svg.py
 echo "make_panels: SUCCESS"
 exit 0
