@@ -355,6 +355,18 @@ namespace Sapphire
             {"width_cv",               {  10.500,   59.000}},
             {"width_knob",             {  20.500,   55.000}},
             }},
+        { "tubeunit_export", {
+            {"_panel",                 {  60.960,  128.500}},
+            {"airflow_knob",           {  15.000,   34.000}},
+            {"angle_knob",             {  35.000,   65.500}},
+            {"center_knob",            {  35.000,   44.500}},
+            {"decay_knob",             {  15.000,   76.000}},
+            {"level_knob",             {  35.000,  107.500}},
+            {"root_knob",              {  15.000,   97.000}},
+            {"spring_knob",            {  35.000,   86.500}},
+            {"vortex_knob",            {  35.000,   23.500}},
+            {"width_knob",             {  15.000,   55.000}},
+            }},
     };
 
     ComponentLocation FindComponent(

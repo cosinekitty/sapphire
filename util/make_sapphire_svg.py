@@ -1519,38 +1519,52 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
-def TubeUnitPos(xGrid:int, yGrid:int) -> Tuple[float, float]:
-    x = 20.5 + xGrid*20.0
-    y = 34.0 + yGrid*21.0 - xGrid*10.5
+def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
+    if target == Target.VcvRack:
+        x = 20.5 + xGrid*20.0
+        y = 34.0 + yGrid*21.0 - xGrid*10.5
+    elif target == Target.Lite:
+        x = 15.0 + xGrid*20.0
+        y = 34.0 + yGrid*21.0 - xGrid*10.5
+    else:
+        raise TargetError(target)
     return (x, y)
 
-def AddTubeUnitControl(controls:ControlLayer, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
-    (xCenter, yCenter) = TubeUnitPos(column, row)
+def AddTubeUnitControl(controls:ControlLayer, target:Target, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
+    (xCenter, yCenter) = TubeUnitPos(column, row, target)
     controls.append(Component(name, xCenter + xofs, yCenter + yofs))
 
-def AddTubeUnitGroup(controls:ControlLayer, prefix:str, column:int, row:int) -> None:
+def AddTubeUnitGroup(controls:ControlLayer, target:Target, prefix:str, column:int, row:int) -> None:
     xdir = 1 - 2*column     # map column=[0,1] to direction [+1, -1]
-    AddTubeUnitControl(controls, prefix + '_knob',  column, row)
-    AddTubeUnitControl(controls, prefix + '_atten', column, row, -10.0*xdir, -4.0)
-    AddTubeUnitControl(controls, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
+    AddTubeUnitControl(controls, target, prefix + '_knob',  column, row)
+    if target == Target.VcvRack:
+        AddTubeUnitControl(controls, target, prefix + '_atten', column, row, -10.0*xdir, -4.0)
+        AddTubeUnitControl(controls, target, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
 
-def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer]) -> int:
-    controls = cdict['tubeunit'] = ControlLayer(Panel(12))
+def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], target:Target) -> int:
+    if target == Target.VcvRack:
+        cdsymbol = 'tubeunit'
+    elif target == Target.Lite:
+        cdsymbol = 'tubeunit_export'
+    else:
+        raise TargetError(target)
+    controls = cdict[cdsymbol] = ControlLayer(Panel(12))
     outJackDx = 12.0
     outJackDy = 5.0
-    AddTubeUnitControl(controls, 'level_knob', 1, 4)
-    AddTubeUnitControl(controls, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
-    AddTubeUnitControl(controls, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
-    controls.append(Component('audio_input_left',   9.0, 114.5))
-    controls.append(Component('audio_input_right', 23.0, 114.5))
-    AddTubeUnitGroup(controls, 'airflow', 0, 0)
-    AddTubeUnitGroup(controls, 'vortex',  1, 0)
-    AddTubeUnitGroup(controls, 'width',   0, 1)
-    AddTubeUnitGroup(controls, 'center',  1, 1)
-    AddTubeUnitGroup(controls, 'decay',   0, 2)
-    AddTubeUnitGroup(controls, 'angle',   1, 2)
-    AddTubeUnitGroup(controls, 'root',    0, 3)
-    AddTubeUnitGroup(controls, 'spring',  1, 3)
+    AddTubeUnitControl(controls, target, 'level_knob', 1, 4)
+    if target == Target.VcvRack:
+        AddTubeUnitControl(controls, target, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
+        AddTubeUnitControl(controls, target, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
+        controls.append(Component('audio_input_left',   9.0, 114.5))
+        controls.append(Component('audio_input_right', 23.0, 114.5))
+    AddTubeUnitGroup(controls, target, 'airflow', 0, 0)
+    AddTubeUnitGroup(controls, target, 'vortex',  1, 0)
+    AddTubeUnitGroup(controls, target, 'width',   0, 1)
+    AddTubeUnitGroup(controls, target, 'center',  1, 1)
+    AddTubeUnitGroup(controls, target, 'decay',   0, 2)
+    AddTubeUnitGroup(controls, target, 'angle',   1, 2)
+    AddTubeUnitGroup(controls, target, 'root',    0, 3)
+    AddTubeUnitGroup(controls, target, 'spring',  1, 3)
     return 0
 
 TUBE_UNIT_PANEL_WIDTH = 12
@@ -1734,7 +1748,8 @@ def GenerateTubeUnit(cdict:Dict[str, ControlLayer]) -> int:
         GenerateTubeUnitVentLayer('VENT') or
         GenerateTubeUnitVentLayer('SEAL') or
         GenerateTubeUnitExportPanel() or
-        PlaceTubeUnitControls(cdict)
+        PlaceTubeUnitControls(cdict, Target.VcvRack) or
+        PlaceTubeUnitControls(cdict, Target.Lite)
     )
 
 if __name__ == '__main__':
