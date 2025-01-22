@@ -1725,6 +1725,17 @@ def GenerateTubeUnitExportPanel() -> int:
     return Save(panel, '../export/tubeunit.svg')
 
 
+def GenerateTubeUnit(cdict:Dict[str, ControlLayer]) -> int:
+    return (
+        GenerateTubeUnitMainPanel() or
+        GenerateTubeUnitAudioPathLayer() or
+        GenerateTubeUnitLabelLayer() or
+        GenerateTubeUnitVentLayer('VENT') or
+        GenerateTubeUnitVentLayer('SEAL') or
+        GenerateTubeUnitExportPanel() or
+        PlaceTubeUnitControls(cdict)
+    )
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -1757,13 +1768,7 @@ if __name__ == '__main__':
         GeneratePopPanel(cdict) or
         GenerateElastikaPanel(cdict, '../res/elastika.svg', Target.VcvRack) or
         GenerateElastikaPanel(cdict, '../export/elastika.svg', Target.Lite) or
-        GenerateTubeUnitMainPanel() or
-        GenerateTubeUnitAudioPathLayer() or
-        GenerateTubeUnitLabelLayer() or
-        GenerateTubeUnitVentLayer('VENT') or
-        GenerateTubeUnitVentLayer('SEAL') or
-        GenerateTubeUnitExportPanel() or
-        PlaceTubeUnitControls(cdict) or
+        GenerateTubeUnit(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )
