@@ -771,36 +771,47 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    yRow = FencePost(22.0, 114.0, 7)
+    if isVcvRack:
+        yRow = FencePost(22.0, 114.0, 7)
+        dyText = 6.5
+        dyTopArt = 9.5
+    else:
+        yRow = FencePost(10.0, 120.0, 7)
+        dyText = 7.5
+        dyTopArt = 12.0
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
-    dyText = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        y1 = yInPort - 9.5
-        y2 = yInPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
-        pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
+        if isVcvRack:
+            # Gradient for stereo input ports
+            y1 = yInPort - 9.5
+            y2 = yInPort + dyGrad
+            defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+            pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
-        y1 = yRow.value(1) - 9.5
+        # Controls gradient
+        y1 = yRow.value(1) - dyTopArt
         y2 = yRow.value(5) + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutPort - 9.5
-        y2 = yOutPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
-        pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
+        if isVcvRack:
+            # Gradient for stereo output ports
+            y1 = yOutPort - 9.5
+            y2 = yOutPort + dyGrad
+            defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+            pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
-        pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
 
         if isVcvRack:
+            pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
+            pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
             controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
@@ -838,7 +849,15 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    yRow = FencePost(22.0, 114.0, 7)
+    if isVcvRack:
+        yRow = FencePost(22.0, 114.0, 7)
+        dyText = 6.5
+        dyTopArt = 9.5
+    else:
+        yRow = FencePost(10.0, 120.0, 7)
+        dyText = 7.5
+        dyTopArt = 12.0
+
     yInPort  = yRow.value(0)
     ySwitch  = yRow.value(5)
     yOutPort = yRow.value(6)
@@ -850,30 +869,37 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        y1 = yInPort - 9.5
-        y2 = yInPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
-        pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
+        if isVcvRack:
+            # Gradient for stereo input ports
+            y1 = yInPort - dyTopArt
+            y2 = yInPort + dyGrad
+            defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+            pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
-        y1 = yRow.value(1) - 9.5
+        # Controls gradient
+        y1 = yRow.value(1) - dyTopArt
         y2 = yRow.value(5) + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutPort - 9.5
-        y2 = yOutPort + dyGrad
-        defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
-        pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
-
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
-        pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
+        if isVcvRack:
+            # Gradient for stereo output ports.
+            y1 = yOutPort - 9.5
+            y2 = yOutPort + dyGrad
+            defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+            pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         if isVcvRack:
+            pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
+            pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
             controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
             controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
-            pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
+
+        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
+
+        if isVcvRack:
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
