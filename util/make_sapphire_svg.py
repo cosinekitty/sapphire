@@ -808,7 +808,6 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
             defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
             pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-
         if isVcvRack:
             pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
@@ -871,7 +870,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
 
         if isVcvRack:
             # Gradient for stereo input ports
-            y1 = yInPort - dyTopArt
+            y1 = yInPort - 9.5
             y2 = yInPort + dyGrad
             defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
             pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
