@@ -14,6 +14,9 @@ from svgpanel import *
 from sapphire import *
 
 
+previewKnobPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
+
+
 @enum.unique
 class Target(enum.Enum):
     VcvRack = 1
@@ -801,8 +804,6 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
     yOutPort = yRow.value(6)
     dyGrad = 6.0
 
-    previewKnobPositions = False        # set to True for faint traces of knobs in export panels
-
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
@@ -887,8 +888,6 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
     ySwitch  = yRow.value(5)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
-
-    previewKnobPositions = False        # set to True for faint traces of knobs in export panels
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -1530,18 +1529,20 @@ def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
         raise TargetError(target)
     return (x, y)
 
-def AddTubeUnitControl(controls:ControlLayer, target:Target, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
+def AddTubeUnitControl(controls:ControlLayer, target:Target, pl:Element, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
     (xCenter, yCenter) = TubeUnitPos(column, row, target)
     controls.append(Component(name, xCenter + xofs, yCenter + yofs))
+    if previewKnobPositions:
+        pl.append(Circle(xCenter + xofs, yCenter + yofs, 5.5, 'black', 0.1, 'none'))
 
-def AddTubeUnitGroup(controls:ControlLayer, target:Target, prefix:str, column:int, row:int) -> None:
+def AddTubeUnitGroup(controls:ControlLayer, target:Target, pl:Element, prefix:str, column:int, row:int) -> None:
     xdir = 1 - 2*column     # map column=[0,1] to direction [+1, -1]
-    AddTubeUnitControl(controls, target, prefix + '_knob',  column, row)
+    AddTubeUnitControl(controls, target, pl, prefix + '_knob',  column, row)
     if target == Target.VcvRack:
-        AddTubeUnitControl(controls, target, prefix + '_atten', column, row, -10.0*xdir, -4.0)
-        AddTubeUnitControl(controls, target, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
+        AddTubeUnitControl(controls, target, pl, prefix + '_atten', column, row, -10.0*xdir, -4.0)
+        AddTubeUnitControl(controls, target, pl, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
 
-def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], target:Target) -> int:
+def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], pl: Element, target:Target) -> int:
     if target == Target.VcvRack:
         cdsymbol = 'tubeunit'
     elif target == Target.Lite:
@@ -1551,20 +1552,20 @@ def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], target:Target) -> int:
     controls = cdict[cdsymbol] = ControlLayer(Panel(12))
     outJackDx = 12.0
     outJackDy = 5.0
-    AddTubeUnitControl(controls, target, 'level_knob', 1, 4)
+    AddTubeUnitControl(controls, target, pl, 'level_knob', 1, 4)
     if target == Target.VcvRack:
-        AddTubeUnitControl(controls, target, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
-        AddTubeUnitControl(controls, target, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
+        AddTubeUnitControl(controls, target, pl, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
+        AddTubeUnitControl(controls, target, pl, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
         controls.append(Component('audio_input_left',   9.0, 114.5))
         controls.append(Component('audio_input_right', 23.0, 114.5))
-    AddTubeUnitGroup(controls, target, 'airflow', 0, 0)
-    AddTubeUnitGroup(controls, target, 'vortex',  1, 0)
-    AddTubeUnitGroup(controls, target, 'width',   0, 1)
-    AddTubeUnitGroup(controls, target, 'center',  1, 1)
-    AddTubeUnitGroup(controls, target, 'decay',   0, 2)
-    AddTubeUnitGroup(controls, target, 'angle',   1, 2)
-    AddTubeUnitGroup(controls, target, 'root',    0, 3)
-    AddTubeUnitGroup(controls, target, 'spring',  1, 3)
+    AddTubeUnitGroup(controls, target, pl, 'airflow', 0, 0)
+    AddTubeUnitGroup(controls, target, pl, 'vortex',  1, 0)
+    AddTubeUnitGroup(controls, target, pl, 'width',   0, 1)
+    AddTubeUnitGroup(controls, target, pl, 'center',  1, 1)
+    AddTubeUnitGroup(controls, target, pl, 'decay',   0, 2)
+    AddTubeUnitGroup(controls, target, pl, 'angle',   1, 2)
+    AddTubeUnitGroup(controls, target, pl, 'root',    0, 3)
+    AddTubeUnitGroup(controls, target, pl, 'spring',  1, 3)
     return 0
 
 TUBE_UNIT_PANEL_WIDTH = 12
@@ -1643,10 +1644,13 @@ def TubeUnitMainPanel() -> Tuple[Panel, Element]:
     return (panel, pl)
 
 
-def GenerateTubeUnitMainPanel() -> int:
+def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer]) -> int:
     panel, pl = TubeUnitMainPanel()
     pl.append(TubeUnitPortArtwork())
-    return Save(panel, '../res/tubeunit.svg')
+    return (
+        PlaceTubeUnitControls(cdict, pl, Target.VcvRack) or
+        Save(panel, '../res/tubeunit.svg')
+    )
 
 
 def GenerateTubeUnitAudioPathLayer() -> int:
@@ -1733,23 +1737,24 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
     return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
 
 
-def GenerateTubeUnitExportPanel() -> int:
+def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer]) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
     panel, pl = TubeUnitMainPanel()
     pl.append(TubeUnitLabelGroup())
-    return Save(panel, '../export/tubeunit.svg')
+    return (
+        PlaceTubeUnitControls(cdict, pl, Target.Lite) or
+        Save(panel, '../export/tubeunit.svg')
+    )
 
 
 def GenerateTubeUnit(cdict:Dict[str, ControlLayer]) -> int:
     return (
-        GenerateTubeUnitMainPanel() or
+        GenerateTubeUnitMainPanel(cdict) or
+        GenerateTubeUnitExportPanel(cdict) or
         GenerateTubeUnitAudioPathLayer() or
         GenerateTubeUnitLabelLayer() or
         GenerateTubeUnitVentLayer('VENT') or
-        GenerateTubeUnitVentLayer('SEAL') or
-        GenerateTubeUnitExportPanel() or
-        PlaceTubeUnitControls(cdict, Target.VcvRack) or
-        PlaceTubeUnitControls(cdict, Target.Lite)
+        GenerateTubeUnitVentLayer('SEAL')
     )
 
 if __name__ == '__main__':
