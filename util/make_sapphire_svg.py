@@ -1523,7 +1523,8 @@ def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
         x = 20.5 + xGrid*20.0
         y = 34.0 + yGrid*21.0 - xGrid*10.5
     elif target == Target.Lite:
-        x = 15.0 + xGrid*20.0
+        xshift = 4.0
+        x = (20.5 - xshift) + xGrid*(20.0 + 2*xshift)
         y = 34.0 + yGrid*21.0 - xGrid*10.5
     else:
         raise TargetError(target)
@@ -1705,8 +1706,16 @@ def TubeUnitLabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
     (dx, dy) = (-7.0, -12.8)
     return TextPath(ti, x+dx, y+(h/2)+dy, text.lower() + '_label')
 
+def TubeUnitLabelCentered(text:str, font:Font, i:int, j:int) -> TextPath:
+    """Create a label centered over the knob it describes."""
+    ti = TextItem(text, font, CONTROL_LABEL_POINTS)
+    (w, h) = ti.measure()
+    (x, y) = TubeUnitPos(i, j, Target.Lite)
+    (dx, dy) = (0.0, -13.2)
+    return TextPath(ti, x-(w/2)+dx, y+(h/2)+dy, text.lower() + '_label')
 
-def TubeUnitLabelGroup() -> Element:
+
+def TubeUnitLabelGroupVcv() -> Element:
     group = Element('g', 'control_labels')
     group.setAttrib('style', CONTROL_LABEL_STYLE)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -1722,9 +1731,25 @@ def TubeUnitLabelGroup() -> Element:
     return group
 
 
+def TubeUnitLabelGroupLite() -> Element:
+    group = Element('g', 'control_labels')
+    group.setAttrib('style', CONTROL_LABEL_STYLE)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        group.append(TubeUnitLabelCentered('AIRFLOW', font, 0, 0))
+        group.append(TubeUnitLabelCentered('WIDTH',   font, 0, 1))
+        group.append(TubeUnitLabelCentered('DECAY',   font, 0, 2))
+        group.append(TubeUnitLabelCentered('ROOT',    font, 0, 3))
+        group.append(TubeUnitLabelCentered('VORTEX',  font, 1, 0))
+        group.append(TubeUnitLabelCentered('CENTER',  font, 1, 1))
+        group.append(TubeUnitLabelCentered('ANGLE',   font, 1, 2))
+        group.append(TubeUnitLabelCentered('SPRING',  font, 1, 3))
+        group.append(TubeUnitLabelCentered('OUT',     font, 1, 4))
+    return group
+
+
 def GenerateTubeUnitLabelLayer() -> int:
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
-    panel.append(TubeUnitLabelGroup())
+    panel.append(TubeUnitLabelGroupVcv())
     return Save(panel, '../res/tubeunit_labels.svg')
 
 
@@ -1740,7 +1765,7 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
 def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer]) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
     panel, pl = TubeUnitMainPanel()
-    pl.append(TubeUnitLabelGroup())
+    pl.append(TubeUnitLabelGroupLite())
     return (
         PlaceTubeUnitControls(cdict, pl, Target.Lite) or
         Save(panel, '../export/tubeunit.svg')
