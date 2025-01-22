@@ -11,10 +11,20 @@
 #
 import sys
 import math
+import enum
 from typing import List, Tuple, Dict
 from svgpanel import *
 from sapphire import *
 
+
+@enum.unique
+class Target(enum.Enum):
+    VcvRack = 1
+    Lite = 2
+
+class TargetError(Error):
+    def __init__(self, target:Target):
+        Error.__init__(self, 'Unsupported target platform: ' + target.name)
 
 def Print(message:str) -> int:
     print('make_sapphire_svg.py:', message)
@@ -26,13 +36,22 @@ def Save(panel:Panel, filename:str) -> int:
     return 0
 
 
-def SvgFileName(name:str, isVcvRack:bool) -> str:
-    dir = 'res' if isVcvRack else 'export'
+def SvgFileName(name:str, target:Target) -> str:
+    if target == Target.VcvRack:
+        dir = 'res'
+    elif target == Target.Lite:
+        dir = 'export'
+    else:
+        raise TargetError(target)
     return '../{}/{}.svg'.format(dir, name)
 
 
-def cdict_name(name:str, isVcvRack:bool) -> str:
-    return name if isVcvRack else name + '_export'
+def cdict_name(name:str, target:Target) -> str:
+    if target == Target.VcvRack:
+        return name
+    if target == Target.Lite:
+        return name + '_export'
+    raise TargetError(target)
 
 
 def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element:
@@ -751,7 +770,7 @@ def GenerateStereoInputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -> int:
+def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -> int:
     table:List[Tuple[str, str]] = [
         ('replace',     'REPLACE'),
         ('brightness',  'BRIGHT'),
@@ -760,25 +779,27 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
         ('mix',         'MIX')
     ]
 
-    svgFileName = SvgFileName(name, isVcvRack)
+    svgFileName = SvgFileName(name, target)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[cdict_name(name, isVcvRack)] = controls = ControlLayer(panel)
+    cdict[cdict_name(name, target)] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    if isVcvRack:
+    if target == Target.VcvRack:
         yRow = FencePost(22.0, 114.0, 7)
         dyText = 6.5
         dyTopArt = 9.5
-    else:
+    elif target == Target.Lite:
         yRow = FencePost(10.0, 120.0, 7)
         dyText = 7.5
         dyTopArt = 12.0
+    else:
+        raise TargetError(target)
     yInPort  = yRow.value(0)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
@@ -788,7 +809,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
             # Gradient for stereo input ports
             y1 = yInPort - 9.5
             y2 = yInPort + dyGrad
@@ -801,14 +822,14 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
             # Gradient for stereo output ports
             y1 = yOutPort - 9.5
             y2 = yOutPort + dyGrad
             defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
             pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
             pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
@@ -822,7 +843,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
         for (symbol, label) in table:
             y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
-            if isVcvRack:
+            if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             else:
                 controls.append(Component(symbol + '_knob', xmid, y))
@@ -830,25 +851,25 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) 
     return Save(panel, svgFileName)
 
 
-def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -> int:
+def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
         ('mix',         'MIX'),
         ('gain',        'GAIN')
     ]
-    svgFileName = SvgFileName(name, isVcvRack)
+    svgFileName = SvgFileName(name, target)
     PANEL_WIDTH = 6
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     defs = Element('defs')
     pl.append(defs)
-    cdict[cdict_name(name, isVcvRack)] = controls = ControlLayer(panel)
+    cdict[cdict_name(name, target)] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    if isVcvRack:
+    if target == Target.VcvRack:
         yRow = FencePost(22.0, 114.0, 7)
         dyText = 6.5
         dyTopArt = 9.5
@@ -868,7 +889,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
             # Gradient for stereo input ports
             y1 = yInPort - 9.5
             y2 = yInPort + dyGrad
@@ -881,34 +902,37 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, isVcvRack:bool) -
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
             # Gradient for stereo output ports.
             y1 = yOutPort - 9.5
             y2 = yOutPort + dyGrad
             defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
             pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
-
-        if isVcvRack:
+            # Text labels for stereo IN/OUT ports.
             pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
+            # Stereo IN/OUT ports.
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
             controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
             controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
 
+        # Text label for 3-way MODE switch (LP, BP, HP).
         pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
 
-        if isVcvRack:
+        if target == Target.VcvRack:
+            # Horizontal lines connecting stereo IN/OUT ports.
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 
+        # 3-way MODE switch (LP, BP, HP).
         controls.append(Component('mode_switch', xmid, ySwitch))
 
         row = 1
         for (symbol, label) in table:
             y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))
-            if isVcvRack:
+            if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             else:
                 controls.append(Component(symbol + '_knob', xmid, y))
@@ -1300,7 +1324,7 @@ ELASTIKA_SLIDER_DX = 11.22
 ELASTIKA_SLIDER_YMID = 64.0
 
 
-def ElastikaPathForShape(n:int, isVcvRack:bool) -> str:
+def ElastikaPathForShape(n:int, target:Target) -> str:
     # Make a string that looks like:
     # "M 2.7,32.0 8.15,28.5 13.6,32.0 13.6,86.0 8.2,89.0 2.7,86.0 z"
     # Start with "M" for absolute path.
@@ -1313,10 +1337,12 @@ def ElastikaPathForShape(n:int, isVcvRack:bool) -> str:
         # Follow with 6 coordinate pairs "x,y".
         x0 = n*ELASTIKA_SLIDER_DX + 2.4
         y0 = 32.0
-        if isVcvRack:
+        if target == Target.VcvRack:
             h = 54.0
-        else:
+        elif target == Target.Lite:
             h = 38.0
+        else:
+            raise TargetError(target)
 
     p = 'M'
     p += ElastikaCoord(x0, y0)
@@ -1342,9 +1368,9 @@ def ElastikaSliderLabel(font:Font, n:int, label:str) -> TextPath:
     return CenteredControlTextPath(font, label, xc, y)
 
 
-def ElastikaShape(font:Font, n:int, prefix:str, isVcvRack:bool) -> Element:
+def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
     group = Element('g', 'artwork_' + prefix)
-    text = ElastikaPathForShape(n, isVcvRack)
+    text = ElastikaPathForShape(n, target)
     style = 'fill:url(#gradient_{});fill-opacity:1;stroke:#000000;stroke-width:0.0;stroke-linecap:square'.format(prefix)
     path = Path(text, style, 'boundary_' + prefix)
     group.append(path)
@@ -1417,23 +1443,29 @@ def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) 
     pl.append(CenteredControlTextPath(font, 'R', qx2+qdx, qy))
 
 
-def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvRack:bool) -> int:
+def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, target:Target) -> int:
     PANEL_WIDTH = 12
-    height = PANEL_HEIGHT_MM if isVcvRack else 100.0
-    shrink = 0.0 if isVcvRack else 16.5
-    panel = Panel(PANEL_WIDTH, height)
-    controls = ControlLayer(panel)
-    if isVcvRack:
-        cdict['elastika'] = controls
+
+    if target == Target.VcvRack:
+        height = PANEL_HEIGHT_MM
+        shrink = 0.0
+        cdsymbol = 'elastika'
+    elif target == Target.Lite:
+        height = 100.0
+        shrink = 16.5
+        cdsymbol = 'elastika_export'
     else:
-        cdict['elastika_export'] = controls
+        raise TargetError(target)
+
+    panel = Panel(PANEL_WIDTH, height)
+    cdict[cdsymbol] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
     PlaceElastikaControls(controls, shrink)
-    if isVcvRack:
+    if target == Target.VcvRack:
         PlaceElastikaRackControls(controls)
     (gy1, gy2) = (32.0, 89.5)
     defs.append(Gradient(gy1, gy2, '#5754c4', SAPPHIRE_PANEL_COLOR, 'gradient_fric'))
@@ -1446,20 +1478,20 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR, height))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
-        pl.append(ElastikaShape(font,  0, 'fric', isVcvRack))
-        pl.append(ElastikaShape(font,  1, 'stif', isVcvRack))
-        pl.append(ElastikaShape(font,  2, 'span', isVcvRack))
-        pl.append(ElastikaShape(font,  3, 'curl', isVcvRack))
-        pl.append(ElastikaShape(font,  4, 'mass', isVcvRack))
-        if isVcvRack:
-            pl.append(ElastikaShape(font, -1, 'power', isVcvRack))
+        pl.append(ElastikaShape(font,  0, 'fric', target))
+        pl.append(ElastikaShape(font,  1, 'stif', target))
+        pl.append(ElastikaShape(font,  2, 'span', target))
+        pl.append(ElastikaShape(font,  3, 'curl', target))
+        pl.append(ElastikaShape(font,  4, 'mass', target))
+        if target == Target.VcvRack:
+            pl.append(ElastikaShape(font, -1, 'power', target))
         pl.append(CenteredControlTextPath(font, 'TILT', xmid, 20.0))
 
         tx1 = ELASTIKA_SLIDER_DX*(1.5) + 2.4
         tx2 = ELASTIKA_SLIDER_DX*(3.5) + 2.4
         ty = 17.5
         pl.append(HorizontalLine(tx1, tx2, ty, 'tilt_hor_line'))
-        if isVcvRack:
+        if target == Target.VcvRack:
             ElastikaConnectorArt(pl, font, tx1, tx2, ty)
 
         # IN/OUT labels for TILT knobs...
@@ -1467,7 +1499,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], svgFileName:str, isVcvR
         pl.append(CenteredControlTextPath(font, 'OUT',  tx2, 26.0))
 
         # IN/OUT labels for drive/level knobs...
-        if isVcvRack:
+        if target == Target.VcvRack:
             ty = 93.5
         else:
             ty = 76.0
@@ -1531,17 +1563,17 @@ if __name__ == '__main__':
         GenerateStereoInputLabels('../res/stereo_in_lr.svg', 'L', 'R') or
         GenerateStereoInputLabels('../res/stereo_in_l2.svg', '2', '') or
         GenerateStereoInputLabels('../res/stereo_in_r2.svg', '', '2') or
-        GenerateGalaxyPanel(cdict, 'galaxy', True) or
-        GenerateGalaxyPanel(cdict, 'galaxy', False) or
-        GenerateGravyPanel(cdict, 'gravy', True) or
-        GenerateGravyPanel(cdict, 'gravy', False) or
+        GenerateGalaxyPanel(cdict, 'galaxy', Target.VcvRack) or
+        GenerateGalaxyPanel(cdict, 'galaxy', Target.Lite) or
+        GenerateGravyPanel(cdict, 'gravy', Target.VcvRack) or
+        GenerateGravyPanel(cdict, 'gravy', Target.Lite) or
         GenerateSaucePanel(cdict, 'sauce') or
         GenerateRotiniPanel(cdict) or
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
-        GenerateElastikaPanel(cdict, '../res/elastika.svg', True) or
-        GenerateElastikaPanel(cdict, '../export/elastika.svg', False) or
+        GenerateElastikaPanel(cdict, '../res/elastika.svg', Target.VcvRack) or
+        GenerateElastikaPanel(cdict, '../export/elastika.svg', Target.Lite) or
         PlaceTubeUnitControls(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
