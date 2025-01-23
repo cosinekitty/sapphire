@@ -361,7 +361,7 @@ namespace Sapphire
             {"angle_knob",             {  44.500,   65.500}},
             {"center_knob",            {  44.500,   44.500}},
             {"decay_knob",             {  16.500,   76.000}},
-            {"level_knob",             {  44.500,  107.500}},
+            {"mix_knob",               {  44.500,  107.500}},
             {"root_knob",              {  16.500,   97.000}},
             {"spring_knob",            {  44.500,   86.500}},
             {"vortex_knob",            {  44.500,   23.500}},

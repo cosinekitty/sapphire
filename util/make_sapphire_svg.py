@@ -1553,12 +1553,17 @@ def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], pl: Element, target:Tar
     controls = cdict[cdsymbol] = ControlLayer(Panel(12))
     outJackDx = 12.0
     outJackDy = 5.0
-    AddTubeUnitControl(controls, target, pl, 'level_knob', 1, 4)
     if target == Target.VcvRack:
+        AddTubeUnitControl(controls, target, pl, 'level_knob', 1, 4)
         AddTubeUnitControl(controls, target, pl, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
         AddTubeUnitControl(controls, target, pl, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
         controls.append(Component('audio_input_left',   9.0, 114.5))
         controls.append(Component('audio_input_right', 23.0, 114.5))
+    elif target == Target.Lite:
+        AddTubeUnitControl(controls, target, pl, 'mix_knob', 1, 4)
+    else:
+        raise TargetError(target)
+
     AddTubeUnitGroup(controls, target, pl, 'airflow', 0, 0)
     AddTubeUnitGroup(controls, target, pl, 'vortex',  1, 0)
     AddTubeUnitGroup(controls, target, pl, 'width',   0, 1)
@@ -1706,12 +1711,11 @@ def TubeUnitLabelLJ(text:str, font:Font, i:int, j:int) -> TextPath:
     (dx, dy) = (-7.0, -12.8)
     return TextPath(ti, x+dx, y+(h/2)+dy, text.lower() + '_label')
 
-def TubeUnitLabelCentered(text:str, font:Font, i:int, j:int) -> TextPath:
+def TubeUnitLabelCentered(text:str, font:Font, i:int, j:int, dx:float = 0.0, dy:float = -13.2) -> TextPath:
     """Create a label centered over the knob it describes."""
     ti = TextItem(text, font, CONTROL_LABEL_POINTS)
     (w, h) = ti.measure()
     (x, y) = TubeUnitPos(i, j, Target.Lite)
-    (dx, dy) = (0.0, -13.2)
     return TextPath(ti, x-(w/2)+dx, y+(h/2)+dy, text.lower() + '_label')
 
 
@@ -1743,7 +1747,7 @@ def TubeUnitLabelGroupLite() -> Element:
         group.append(TubeUnitLabelCentered('CENTER',  font, 1, 1))
         group.append(TubeUnitLabelCentered('ANGLE',   font, 1, 2))
         group.append(TubeUnitLabelCentered('SPRING',  font, 1, 3))
-        group.append(TubeUnitLabelCentered('OUT',     font, 1, 4))
+        group.append(TubeUnitLabelCentered('MIX',     font, 1, 4))
     return group
 
 
