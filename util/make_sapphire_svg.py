@@ -876,16 +876,19 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
     if target == Target.VcvRack:
         yRow = FencePost(22.0, 114.0, 7)
         dyText = 6.5
+        dyTextSwitch = 6.5
         dyTopArt = 9.5
+        ySwitch  = yRow.value(5)
     elif target == Target.Lite:
         yRow = FencePost(10.0, 129.0, 7)
         dyText = 8.5
+        dyTextSwitch = 5.0
         dyTopArt = 14.0
+        ySwitch  = yRow.value(5) - 2.0
     else:
         raise TargetError(target)
 
     yInPort  = yRow.value(0)
-    ySwitch  = yRow.value(5)
     yOutPort = yRow.value(6)
     dyGrad = 6.0
 
@@ -923,7 +926,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
             controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
 
         # Text label for 3-way MODE switch (LP, BP, HP).
-        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyText))
+        pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyTextSwitch))
 
         if target == Target.VcvRack:
             # Horizontal lines connecting stereo IN/OUT ports.

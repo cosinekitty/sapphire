@@ -150,7 +150,7 @@ namespace Sapphire
             {"frequency_knob",         {  15.240,   29.833}},
             {"gain_knob",              {  15.240,   89.333}},
             {"mix_knob",               {  15.240,   69.500}},
-            {"mode_switch",            {  15.240,  109.167}},
+            {"mode_switch",            {  15.240,  107.167}},
             {"resonance_knob",         {  15.240,   49.667}},
             }},
         { "hiss", {
