@@ -18,9 +18,21 @@ namespace Sapphire
     }
 
     template <typename value_t>
+    inline value_t Square(value_t x)
+    {
+        return x * x;
+    }
+
+    template <typename value_t>
     inline value_t Cube(value_t x)
     {
         return x * x * x;
+    }
+
+    inline float CubicMix(float mix, float dry, float wet)
+    {
+        const float k = Cube(1-mix);
+        return k*dry + (1-k)*wet;
     }
 
     template <typename real_t>

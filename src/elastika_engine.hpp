@@ -90,6 +90,7 @@ namespace Sapphire
         float gain;
         float inTilt;
         float outTilt;
+        float mix;
         AutomaticGainLimiter agc;
         bool enableAgc = false;
 
@@ -123,6 +124,7 @@ namespace Sapphire
             setInputTilt();
             setOutputTilt();
             setAgcEnabled(true);
+            setMix();
 
             quiet();
         }
@@ -196,6 +198,11 @@ namespace Sapphire
             outTilt = std::clamp(slider, 0.0f, 1.0f);
         }
 
+        void setMix(float slider = 1.0f)
+        {
+            mix = std::clamp(slider, 0.0f, 1.0f);
+        }
+
         bool getAgcEnabled() const { return enableAgc; }
 
         void setAgcEnabled(bool enable)
@@ -236,13 +243,13 @@ namespace Sapphire
             PhysicsVector leftOutputDir = Interpolate(outTilt, mp.leftOutputDir1, mp.leftOutputDir2);
             leftOut = leftOutput.Extract(mesh, leftOutputDir);
             leftOut = leftLoCut.UpdateHiPass(leftOut, sampleRate);
-            leftOut *= gain;
+            leftOut = CubicMix(mix, leftIn, gain * leftOut);
 
             // Extract output for the right channel.
             PhysicsVector rightOutputDir = Interpolate(outTilt, mp.rightOutputDir1, mp.rightOutputDir2);
             rightOut = rightOutput.Extract(mesh, rightOutputDir);
             rightOut = rightLoCut.UpdateHiPass(rightOut, sampleRate);
-            rightOut *= gain;
+            rightOut = CubicMix(mix, rightIn, gain * rightOut);
 
             if (enableAgc)
             {

@@ -39,6 +39,7 @@ namespace Sapphire
         bool enableAgc = false;
         float gain;
         float vortex;
+        float mix;
         StagedFilter<complex_t, 1> dcRejectFilter;
         StagedFilter<complex_t, 1> loPassFilter;
         static const int windowSteps = 5;
@@ -74,6 +75,7 @@ namespace Sapphire
             reflectionAngle = 0.87f;
             setAgcEnabled(true);
             setGain();
+            setMix();
             vortex = 0.0f;
             dcRejectFilter.SetCutoffFrequency(10.0f);
             dcRejectFilter.Reset();
@@ -202,6 +204,11 @@ namespace Sapphire
             vortex = v;
         }
 
+        void setMix(float slider = 1.0f)
+        {
+            mix = std::clamp(slider, 0.0f, 1.0f);
+        }
+
         void process(float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
             if (sampleRate <= 0.0f)
@@ -320,8 +327,8 @@ namespace Sapphire
             }
 
             complex_t result = loPassFilter.UpdateLoPass(bellPressure * complex_t{1,1}, sampleRate);
-            leftOutput  = result.real() * gain;
-            rightOutput = result.imag() * gain;
+            leftOutput  = CubicMix(mix, leftInput,  result.real() * gain);
+            rightOutput = CubicMix(mix, rightInput, result.imag() * gain);
 
             if (enableAgc)
             {

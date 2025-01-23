@@ -18,16 +18,6 @@ namespace Sapphire
         const int MinCycle = 1;
         const int MAXCYCLE = 4;
 
-        inline double Square(double x)
-        {
-            return x * x;
-        }
-
-        inline double Cube(double x)
-        {
-            return x * x * x;
-        }
-
         const float ParamKnobMin = 0.0;
         const float ParamKnobDef = 0.5;
         const float ParamKnobMax = 1.0;
@@ -396,7 +386,7 @@ namespace Sapphire
                 const double lowpass = Square(1.00001-(1.0-brightKnob))/std::sqrt(overallscale);
                 const double drift = Cube(detuneKnob)*0.001;
                 const double size = (bignessKnob*1.77)+0.1;
-                const double wet = 1-Cube(1 - mixKnob);
+                const double wet = 1 - Cube(1 - mixKnob);
 
                 // Update tank sizes as the bigness knob is adjusted.
                 for (int i = 0; i < 12; ++i)
