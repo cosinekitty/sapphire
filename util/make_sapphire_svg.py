@@ -1388,14 +1388,22 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
     return group
 
 
-def PlaceElastikaControls(controls: ControlLayer, shrink:float) -> None:
+def PlaceElastikaControls(controls: ControlLayer, shrink:float, target:Target) -> None:
     controls.append(Component("fric_slider",         8.00,  46.00))
     controls.append(Component("stif_slider",        19.24,  46.00))
     controls.append(Component("span_slider",        30.48,  46.00))
     controls.append(Component("curl_slider",        41.72,  46.00))
     controls.append(Component("mass_slider",        52.96,  46.00))
     controls.append(Component("drive_knob",         14.00, 102.00 - shrink))
-    controls.append(Component("level_knob",         46.96, 102.00 - shrink))
+
+    if target == Target.VcvRack:
+        controls.append(Component("level_knob",     46.96, 102.00 - shrink))
+    elif target == Target.Lite:
+        controls.append(Component("level_knob",     30.48, 102.00 - shrink))
+        controls.append(Component("mix_knob",       46.96, 102.00 - shrink))
+    else:
+        raise TargetError(target)
+
     controls.append(Component("input_tilt_knob",    19.24,  17.50))
     controls.append(Component("output_tilt_knob",   41.72,  17.50))
 
@@ -1474,7 +1482,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    PlaceElastikaControls(controls, shrink)
+    PlaceElastikaControls(controls, shrink, target)
     if target == Target.VcvRack:
         PlaceElastikaRackControls(controls)
     (gy1, gy2) = (32.0, 89.5)
@@ -1511,10 +1519,15 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         # IN/OUT labels for drive/level knobs...
         if target == Target.VcvRack:
             ty = 93.5
-        else:
+            pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
+            pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
+        elif target == Target.Lite:
             ty = 76.0
-        pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
-        pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
+            pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
+            pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(2.5) + 2.4, ty))
+            pl.append(CenteredControlTextPath(font, 'MIX',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
+        else:
+            raise TargetError(target)
     return Save(panel, svgFileName)
 
 
