@@ -1399,13 +1399,16 @@ def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, targe
     AddSlider(controls, pl, target, 'curl_slider', 41.72,  46.00)
     AddSlider(controls, pl, target, 'mass_slider', 52.96,  46.00)
 
-    AddLargeKnob(controls, pl, target, 'drive_knob',     14.00, 102.00 - shrink)
-
     if target == Target.VcvRack:
+        AddLargeKnob(controls, pl, target, 'drive_knob', 14.00, 102.00 - shrink)
         AddLargeKnob(controls, pl, target, 'level_knob', 46.96, 102.00 - shrink)
     elif target == Target.Lite:
-        AddLargeKnob(controls, pl, target, 'level_knob', 30.48, 102.00 - shrink)
-        AddLargeKnob(controls, pl, target, 'mix_knob',   46.96, 102.00 - shrink)
+        dxKnob  =  1.5 * ELASTIKA_SLIDER_DX
+        xCenter =  30.48
+        yCenter = 102.00 - shrink
+        AddLargeKnob(controls, pl, target, 'drive_knob', xCenter - dxKnob, yCenter)
+        AddLargeKnob(controls, pl, target, 'level_knob', xCenter,          yCenter)
+        AddLargeKnob(controls, pl, target, 'mix_knob',   xCenter + dxKnob, yCenter)
     else:
         raise TargetError(target)
 
@@ -1475,7 +1478,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         cdsymbol = 'elastika'
     elif target == Target.Lite:
         height = 100.0
-        shrink = 16.5
+        shrink = 17.5
         cdsymbol = 'elastika_export'
     else:
         raise TargetError(target)
@@ -1529,7 +1532,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
             pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
         elif target == Target.Lite:
             ty = 76.0
-            pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
+            pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.4, ty))
             pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(2.5) + 2.4, ty))
             pl.append(CenteredControlTextPath(font, 'MIX',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
             if previewComponentPositions:
