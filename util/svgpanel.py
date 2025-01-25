@@ -312,11 +312,11 @@ class Circle(Element):
     """SVG Circle"""
     def __init__(self, cx:float, cy:float, radius:float, stroke:str, strokeWidth:float, fill:str, id:str = '') -> None:
         super().__init__('circle', id)
-        self.setAttrib('cx', '{:g}'.format(cx))
-        self.setAttrib('cy', '{:g}'.format(cy))
-        self.setAttrib('r', '{:g}'.format(radius))
+        self.setAttribFloat('cx', cx)
+        self.setAttribFloat('cy', cy)
+        self.setAttribFloat('r', radius)
         self.setAttrib('stroke', stroke)
-        self.setAttrib('stroke-width', '{:g}'.format(strokeWidth))
+        self.setAttribFloat('stroke-width', strokeWidth)
         self.setAttrib('fill', fill)
 
 
@@ -325,6 +325,19 @@ class TextPath(Element):
     def __init__(self, textItem:TextItem, x:float, y:float, id:str = '') -> None:
         super().__init__('path', id)
         self.setAttrib('d', textItem.render(x, y))
+
+
+class Rectangle(Element):
+    """SVG Rectangle"""
+    def __init__(self, cx:float, cy:float, width:float, height:float, stroke:str, strokeWidth:float, fill:str, id:str = '') -> None:
+        super().__init__('rect', id)
+        self.setAttribFloat('x', cx - width/2)
+        self.setAttribFloat('y', cy - height/2)
+        self.setAttribFloat('width', width)
+        self.setAttribFloat('height', height)
+        self.setAttrib('stroke', stroke)
+        self.setAttribFloat('stroke-width', strokeWidth)
+        self.setAttrib('fill', fill)
 
 
 class BorderRect(Element):

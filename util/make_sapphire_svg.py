@@ -846,9 +846,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             elif target == Target.Lite:
-                controls.append(Component(symbol + '_knob', xmid, y))
-                if previewKnobPositions:
-                    pl.append(Circle(xmid, y, 5.5, 'black', 0.1, 'none'))
+                AddKnob(controls, pl, target, symbol + '_knob', xmid, y, 5.5)
             else:
                 raise TargetError(target)
             row += 1
@@ -927,14 +925,13 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
 
         # Text label for 3-way MODE switch (LP, BP, HP).
         pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyTextSwitch))
+        # 3-way MODE switch (LP, BP, HP).
+        AddSwitch(controls, pl, target, 'mode_switch', xmid, ySwitch, 12.0, 4.0)
 
         if target == Target.VcvRack:
             # Horizontal lines connecting stereo IN/OUT ports.
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
-
-        # 3-way MODE switch (LP, BP, HP).
-        controls.append(Component('mode_switch', xmid, ySwitch))
 
         row = 1
         for (symbol, label) in table:
@@ -943,9 +940,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             elif target == Target.Lite:
-                controls.append(Component(symbol + '_knob', xmid, y))
-                if previewKnobPositions:
-                    pl.append(Circle(xmid, y, 5.5, 'black', 0.1, 'none'))
+                AddKnob(controls, pl, target, symbol + '_knob', xmid, y, 5.5)
             else:
                 raise TargetError(target)
             row += 1
@@ -1546,11 +1541,23 @@ def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
         raise TargetError(target)
     return (x, y)
 
+
+def AddKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, radius:float) -> None:
+    controls.append(Component(name, xc, yc))
+    if previewKnobPositions and (target == Target.Lite):
+        pl.append(Circle(xc, yc, radius, 'black', 0.1, 'none'))
+
+
+def AddSwitch(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, width:float, height:float) -> None:
+    controls.append(Component(name, xc, yc))
+    if previewKnobPositions and (target == Target.Lite):
+        pl.append(Rectangle(xc, yc, width, height, 'black', 0.1, 'none'))
+
+
 def AddTubeUnitControl(controls:ControlLayer, target:Target, pl:Element, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
     (xCenter, yCenter) = TubeUnitPos(column, row, target)
-    controls.append(Component(name, xCenter + xofs, yCenter + yofs))
-    if previewKnobPositions:
-        pl.append(Circle(xCenter + xofs, yCenter + yofs, 5.5, 'black', 0.1, 'none'))
+    AddKnob(controls, pl, target, name, xCenter + xofs, yCenter + yofs, 5.5)
+
 
 def AddTubeUnitGroup(controls:ControlLayer, target:Target, pl:Element, prefix:str, column:int, row:int) -> None:
     xdir = 1 - 2*column     # map column=[0,1] to direction [+1, -1]
@@ -1558,6 +1565,7 @@ def AddTubeUnitGroup(controls:ControlLayer, target:Target, pl:Element, prefix:st
     if target == Target.VcvRack:
         AddTubeUnitControl(controls, target, pl, prefix + '_atten', column, row, -10.0*xdir, -4.0)
         AddTubeUnitControl(controls, target, pl, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
+
 
 def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], pl: Element, target:Target) -> int:
     if target == Target.VcvRack:
