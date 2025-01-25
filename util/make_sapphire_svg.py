@@ -14,7 +14,7 @@ from svgpanel import *
 from sapphire import *
 
 
-previewKnobPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
+previewComponentPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
 
 
 @enum.unique
@@ -846,7 +846,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             elif target == Target.Lite:
-                AddKnob(controls, pl, target, symbol + '_knob', xmid, y, 5.5)
+                AddLargeKnob(controls, pl, target, symbol + '_knob', xmid, y)
             else:
                 raise TargetError(target)
             row += 1
@@ -940,7 +940,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
             if target == Target.VcvRack:
                 AddFlatControlGroup(pl, controls, xmid, y, symbol)
             elif target == Target.Lite:
-                AddKnob(controls, pl, target, symbol + '_knob', xmid, y, 5.5)
+                AddLargeKnob(controls, pl, target, symbol + '_knob', xmid, y)
             else:
                 raise TargetError(target)
             row += 1
@@ -1386,24 +1386,25 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
     return group
 
 
-def PlaceElastikaControls(controls: ControlLayer, shrink:float, target:Target) -> None:
+def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, target:Target) -> None:
     controls.append(Component("fric_slider",         8.00,  46.00))
     controls.append(Component("stif_slider",        19.24,  46.00))
     controls.append(Component("span_slider",        30.48,  46.00))
     controls.append(Component("curl_slider",        41.72,  46.00))
     controls.append(Component("mass_slider",        52.96,  46.00))
-    controls.append(Component("drive_knob",         14.00, 102.00 - shrink))
+
+    AddLargeKnob(controls, pl, target, 'drive_knob',     14.00, 102.00 - shrink)
 
     if target == Target.VcvRack:
-        controls.append(Component("level_knob",     46.96, 102.00 - shrink))
+        AddLargeKnob(controls, pl, target, 'level_knob', 46.96, 102.00 - shrink)
     elif target == Target.Lite:
-        controls.append(Component("level_knob",     30.48, 102.00 - shrink))
-        controls.append(Component("mix_knob",       46.96, 102.00 - shrink))
+        AddLargeKnob(controls, pl, target, 'level_knob', 30.48, 102.00 - shrink)
+        AddLargeKnob(controls, pl, target, 'mix_knob',   46.96, 102.00 - shrink)
     else:
         raise TargetError(target)
 
-    controls.append(Component("input_tilt_knob",    19.24,  17.50))
-    controls.append(Component("output_tilt_knob",   41.72,  17.50))
+    AddLargeKnob(controls, pl, target, 'input_tilt_knob',  19.24,  17.50)
+    AddLargeKnob(controls, pl, target, 'output_tilt_knob', 41.72,  17.50)
 
 
 def PlaceElastikaRackControls(controls: ControlLayer) -> None:
@@ -1480,7 +1481,8 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    PlaceElastikaControls(controls, shrink, target)
+    previewElement = Element('g', 'PreviewControls')
+    PlaceElastikaControls(controls, previewElement, shrink, target)
     if target == Target.VcvRack:
         PlaceElastikaRackControls(controls)
     (gy1, gy2) = (32.0, 89.5)
@@ -1524,8 +1526,11 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
             pl.append(CenteredControlTextPath(font, 'IN',   ELASTIKA_SLIDER_DX*(1.0) + 2.6, ty))
             pl.append(CenteredControlTextPath(font, 'OUT',  ELASTIKA_SLIDER_DX*(2.5) + 2.4, ty))
             pl.append(CenteredControlTextPath(font, 'MIX',  ELASTIKA_SLIDER_DX*(4.0) + 2.4, ty))
+            if previewComponentPositions:
+                pl.append(previewElement)       # add last, so we can see them!
         else:
             raise TargetError(target)
+
     return Save(panel, svgFileName)
 
 
@@ -1544,19 +1549,23 @@ def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
 
 def AddKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, radius:float) -> None:
     controls.append(Component(name, xc, yc))
-    if previewKnobPositions and (target == Target.Lite):
+    if previewComponentPositions and (target == Target.Lite):
         pl.append(Circle(xc, yc, radius, 'black', 0.1, 'none'))
+
+
+def AddLargeKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float) -> None:
+    AddKnob(controls, pl, target, name, xc, yc, 5.5)
 
 
 def AddSwitch(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, width:float, height:float) -> None:
     controls.append(Component(name, xc, yc))
-    if previewKnobPositions and (target == Target.Lite):
+    if previewComponentPositions and (target == Target.Lite):
         pl.append(Rectangle(xc, yc, width, height, 'black', 0.1, 'none'))
 
 
 def AddTubeUnitControl(controls:ControlLayer, target:Target, pl:Element, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
     (xCenter, yCenter) = TubeUnitPos(column, row, target)
-    AddKnob(controls, pl, target, name, xCenter + xofs, yCenter + yofs, 5.5)
+    AddLargeKnob(controls, pl, target, name, xCenter + xofs, yCenter + yofs)
 
 
 def AddTubeUnitGroup(controls:ControlLayer, target:Target, pl:Element, prefix:str, column:int, row:int) -> None:
