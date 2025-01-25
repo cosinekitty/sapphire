@@ -1652,7 +1652,7 @@ def TubeUnitPortArtwork() -> Element:
     return group
 
 
-def TubeUnitMainPanel() -> Tuple[Panel, Element]:
+def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
 
     defs = Element('defs')
@@ -1686,18 +1686,18 @@ def TubeUnitMainPanel() -> Tuple[Panel, Element]:
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(SapphireInsignia(panel, font))
-        pl.append(ModelNamePath(panel, font, 'tube unit'))
+        pl.append(ModelNamePath(panel, font, title))
 
     panel.append(pl)
     return (panel, pl)
 
 
-def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer]) -> int:
-    panel, pl = TubeUnitMainPanel()
+def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
+    panel, pl = TubeUnitMainPanel(title)
     pl.append(TubeUnitPortArtwork())
     return (
         PlaceTubeUnitControls(cdict, pl, Target.VcvRack) or
-        Save(panel, '../res/tubeunit.svg')
+        Save(panel, '../res/{}.svg'.format(symbol))
     )
 
 
@@ -1808,25 +1808,31 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
     return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
 
 
-def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer]) -> int:
+def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
-    panel, pl = TubeUnitMainPanel()
+    panel, pl = TubeUnitMainPanel(title)
     pl.append(TubeUnitLabelGroupLite())
     return (
         PlaceTubeUnitControls(cdict, pl, Target.Lite) or
-        Save(panel, '../export/tubeunit.svg')
+        Save(panel, '../export/{}.svg'.format(symbol))
     )
 
 
-def GenerateTubeUnit(cdict:Dict[str, ControlLayer]) -> int:
-    return (
-        GenerateTubeUnitMainPanel(cdict) or
-        GenerateTubeUnitExportPanel(cdict) or
-        GenerateTubeUnitAudioPathLayer() or
-        GenerateTubeUnitLabelLayer() or
-        GenerateTubeUnitVentLayer('VENT') or
-        GenerateTubeUnitVentLayer('SEAL')
-    )
+def GenerateTubeUnit(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
+    if (
+        GenerateTubeUnitMainPanel(cdict, title, symbol) or
+        GenerateTubeUnitExportPanel(cdict, title, symbol)
+    ): return 1
+
+    if title == 'tube unit':
+        if (
+            GenerateTubeUnitAudioPathLayer() or
+            GenerateTubeUnitLabelLayer() or
+            GenerateTubeUnitVentLayer('VENT') or
+            GenerateTubeUnitVentLayer('SEAL')
+        ): return 1
+
+    return 0
 
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
@@ -1860,7 +1866,8 @@ if __name__ == '__main__':
         GeneratePopPanel(cdict) or
         GenerateElastikaPanel(cdict, Target.VcvRack) or
         GenerateElastikaPanel(cdict, Target.Lite) or
-        GenerateTubeUnit(cdict) or
+        GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
+        GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
         SaveControls(cdict) or
         Print('SUCCESS')
     )
