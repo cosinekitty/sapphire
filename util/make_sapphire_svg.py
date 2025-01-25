@@ -1386,12 +1386,18 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
     return group
 
 
+def AddSlider(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float) -> None:
+    controls.append(Component(name, xc, yc))
+    if previewComponentPositions and (target == Target.Lite):
+        pl.append(Rectangle(xc, yc, 2.4, 28.0, 'black', 0.1, 'none'))
+
+
 def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, target:Target) -> None:
-    controls.append(Component("fric_slider",         8.00,  46.00))
-    controls.append(Component("stif_slider",        19.24,  46.00))
-    controls.append(Component("span_slider",        30.48,  46.00))
-    controls.append(Component("curl_slider",        41.72,  46.00))
-    controls.append(Component("mass_slider",        52.96,  46.00))
+    AddSlider(controls, pl, target, 'fric_slider',  8.00,  46.00)
+    AddSlider(controls, pl, target, 'stif_slider', 19.24,  46.00)
+    AddSlider(controls, pl, target, 'span_slider', 30.48,  46.00)
+    AddSlider(controls, pl, target, 'curl_slider', 41.72,  46.00)
+    AddSlider(controls, pl, target, 'mass_slider', 52.96,  46.00)
 
     AddLargeKnob(controls, pl, target, 'drive_knob',     14.00, 102.00 - shrink)
 
