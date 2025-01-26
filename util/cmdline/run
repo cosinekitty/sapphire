@@ -9,6 +9,8 @@ echo "Running Elastika..."
 ./bin/elastika || exit 1
 echo "Running TubeUnit..."
 ./bin/tubeunit || exit 1
+echo "Running TubeMonster..."
+./bin/monster || exit 1
 echo "Running Nucleus..."
 ./bin/nucleus || exit 1
 ls -l test/*.wav test/lohifilter.txt

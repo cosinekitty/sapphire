@@ -9,6 +9,7 @@
 #include <cinttypes>
 #include <cstring>
 #include <cstdio>
+#include <cmath>
 #include <vector>
 #include <stdexcept>
 #include <string>
