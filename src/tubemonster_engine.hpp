@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include "tubemonster_engine.hpp"
+#include "tubeunit_engine.hpp"
 
 namespace Sapphire
 {
@@ -22,7 +22,8 @@ namespace Sapphire
                 throw std::logic_error("Invalid sample rate in TubeUnitEngine");
 
             // FIXFIXFIX do stuff here
-            leftOutput = rightOutput = 0;
+            leftOutput = leftInput;
+            rightOutput = rightInput;
         }
     };
 }
