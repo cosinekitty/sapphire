@@ -52,7 +52,7 @@ int main()
 
     for (int f = 0; (int)inwave.Read(inFrame, nchannels) == nchannels; ++f)
     {
-        engine.process(nchannels, inFrame, envelope, pitch);
+        engine.process(nchannels, SAMPLE_RATE, inFrame, envelope, pitch);
         if (f % frameInterval == 0)
             fprintf(outfile, "f=%d, envelope=%g, pitch=%g\n", f, envelope, pitch);
     }
