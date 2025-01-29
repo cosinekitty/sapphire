@@ -9,21 +9,29 @@ namespace Sapphire
     {
     private:
         float sampleRate = 0;
+        TubeUnitEngine tube;
 
     public:
+        TubeMonsterEngine()
+        {
+            initialize();
+        }
+
         void setSampleRate(float sampleRateHz)
         {
             sampleRate = sampleRateHz;
+            tube.setSampleRate(sampleRateHz);
+        }
+
+        void initialize()
+        {
+            tube.initialize();
+            tube.setRootFrequency(32.0f);
         }
 
         void process(float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
-            if (sampleRate <= 0.0f)
-                throw std::logic_error("Invalid sample rate in TubeUnitEngine");
-
-            // FIXFIXFIX do stuff here
-            leftOutput = leftInput;
-            rightOutput = rightInput;
+            tube.process(leftOutput, rightOutput, leftInput, rightInput);
         }
     };
 }
