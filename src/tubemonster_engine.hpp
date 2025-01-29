@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include "tubeunit_engine.hpp"
+#include "env_pitch_detect.hpp"
 
 namespace Sapphire
 {
@@ -31,6 +32,7 @@ namespace Sapphire
 
         void process(float& leftOutput, float& rightOutput, float leftInput, float rightInput)
         {
+            // FIXFIXFIX - detect pitch and output it also.
             tube.process(leftOutput, rightOutput, leftInput, rightInput);
         }
     };

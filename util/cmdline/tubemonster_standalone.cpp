@@ -26,7 +26,7 @@ int main()
 
     const int CHANNELS = inwave.Channels();
     const int SAMPLE_RATE = inwave.SampleRate();
-    printf("Sample rate = %d, channels = %d in: %s\n", SAMPLE_RATE, CHANNELS, inWaveFileName);
+    printf("tubemonster(%s): Sample rate = %d, channels = %d\n", inWaveFileName, SAMPLE_RATE, CHANNELS);
 
     if (CHANNELS != 2)
     {

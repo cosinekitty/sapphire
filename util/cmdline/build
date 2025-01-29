@@ -23,6 +23,9 @@ g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/tubeu
 g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/monster -D NO_RACK_DEPENDENCY \
     tubemonster_standalone.cpp || exit 1
 
+g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/envpitch -D NO_RACK_DEPENDENCY \
+    envpitch_standalone.cpp || exit 1
+
 g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/nucleus -D NO_RACK_DEPENDENCY \
     nucleus_standalone.cpp || exit 1
 

@@ -9,6 +9,8 @@ echo "Running Elastika..."
 ./bin/elastika || exit 1
 echo "Running TubeUnit..."
 ./bin/tubeunit || exit 1
+echo "Running Envelope/Pitch Detector"
+./bin/envpitch || exit 1
 echo "Running TubeMonster..."
 ./bin/monster || exit 1
 echo "Running Nucleus..."
