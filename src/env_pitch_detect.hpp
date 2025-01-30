@@ -23,10 +23,20 @@ namespace Sapphire
         filter_t loCutFilter[maxChannels];
         filter_t hiCutFilter[maxChannels];
         filter_t jitterFilter[maxChannels];
+        filter_t amplFilter[maxChannels];
         float loCutFrequency = 20;
         float hiCutFrequency = 3000;
         float jitterCornerFrequency = 10;
+        float amplCornerFrequency = 10;
         int recoveryCountdown;                // how many samples remain before trying to filter again (CPU usage limiter)
+
+        value_t updateAmplitude(int channel, value_t signal)
+        {
+            // Square the signal and filter the result.
+            // This gives us a time-smeared measure of power.
+            amplFilter[channel].SetCutoffFrequency(amplCornerFrequency);
+            return amplFilter[channel].UpdateLoPass(signal*signal, currentSampleRate);
+        }
 
         void updateWaveLength(int channel, int wavelengthSamples)
         {
@@ -56,10 +66,12 @@ namespace Sapphire
                 ascendSamples[c] = 0;
                 descendSamples[c] = 0;
                 filteredWaveLength[c] = 0;
+
                 // Reset all filters in case they went non-finite.
                 loCutFilter[c].Reset();
                 hiCutFilter[c].Reset();
                 jitterFilter[c].Reset();
+                amplFilter[c].Reset();
             }
         }
 
@@ -107,12 +119,12 @@ namespace Sapphire
 
                 // Reject frequencies lower than we want to keep.
                 loCutFilter[c].SetCutoffFrequency(loCutFrequency);
-                float locut = loCutFilter[c].UpdateHiPass(inFrame[c], sampleRateHz);
+                value_t locut = loCutFilter[c].UpdateHiPass(inFrame[c], sampleRateHz);
 
                 // Reject frequencies higher than we want to keep.
                 // The band-pass result is our signal to feed through envelope and pitch detection.
                 hiCutFilter[c].SetCutoffFrequency(hiCutFrequency);
-                float signal = hiCutFilter[c].UpdateLoPass(locut, sampleRateHz);
+                value_t signal = hiCutFilter[c].UpdateLoPass(locut, sampleRateHz);
 
                 // Make sure we have a normal numeric value for our signal.
                 if (!std::isfinite(signal))
@@ -126,6 +138,8 @@ namespace Sapphire
                     recoveryCountdown = static_cast<int>(sampleRateHz/4);
                     return;
                 }
+
+                outEnvelope[c] = updateAmplitude(c, signal);
 
                 // Keep waiting until we go from negative to positive, or positive to negative,
                 // with any number (zero or more) of 0-valued samples in between them.
@@ -155,8 +169,8 @@ namespace Sapphire
                 // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
                 if (filteredWaveLength[c] > sampleRateHz/4000)
                 {
-                    float frequencyHz = sampleRateHz / filteredWaveLength[c];
-                    outPitchVoct[c] = log2(frequencyHz / centerFrequencyHz);
+                    value_t frequencyHz = sampleRateHz / filteredWaveLength[c];
+                    outPitchVoct[c] = std::log2(frequencyHz / centerFrequencyHz);
                 }
             }
         }
