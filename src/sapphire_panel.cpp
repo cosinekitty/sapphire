@@ -69,6 +69,9 @@ namespace Sapphire
             {"span_slider",            {  30.480,   46.000}},
             {"stif_slider",            {  19.240,   46.000}},
             }},
+        { "env", {
+            {"_panel",                 {  30.480,  128.500}},
+            }},
         { "frolic", {
             {"_panel",                 {  20.320,  128.500}},
             {"chaos_atten",            {   5.160,   68.000}},

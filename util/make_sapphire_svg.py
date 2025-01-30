@@ -1834,6 +1834,24 @@ def GenerateTubeUnit(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> in
 
     return 0
 
+
+def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
+    name = 'env'
+    PANEL_WIDTH = 6
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(PANEL_WIDTH)
+    cdict[cdict_name(name, target)] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -1866,6 +1884,7 @@ if __name__ == '__main__':
         GeneratePopPanel(cdict) or
         GenerateElastikaPanel(cdict, Target.VcvRack) or
         GenerateElastikaPanel(cdict, Target.Lite) or
+        GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
         GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
         SaveControls(cdict) or
