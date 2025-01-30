@@ -35,9 +35,9 @@ int main()
 
     engine_t engine;
 
-    float inFrame[nchannels]{};
-    float envelope = 0;
-    float pitch = 0;
+    float inFrame[nchannels];
+    float envelope[nchannels];
+    float pitch[nchannels];
 
     // Every tenth of a second, take a snapshot of the envelope and pitch.
     const int frameInterval = SAMPLE_RATE / 10;
@@ -52,9 +52,13 @@ int main()
 
     for (int f = 0; (int)inwave.Read(inFrame, nchannels) == nchannels; ++f)
     {
+        // Make sure envelope and pitch are written to.
+        for (int c = 0; c < nchannels; ++c)
+            envelope[c] = pitch[c] = NAN;
+
         engine.process(nchannels, SAMPLE_RATE, inFrame, envelope, pitch);
         if (f % frameInterval == 0)
-            fprintf(outfile, "f=%d, envelope=%g, pitch=%g\n", f, envelope, pitch);
+            fprintf(outfile, "f=%d, envelope=(%g, %g), pitch=(%g, %g)\n", f, envelope[0], envelope[1], pitch[0], pitch[1]);
     }
 
     fclose(outfile);
