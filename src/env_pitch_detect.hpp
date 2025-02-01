@@ -131,7 +131,6 @@ namespace Sapphire
                 {
                     // AUTO-RESET when things go squirelly.
                     initialize();
-                    signal = 0;
 
                     // Keep quiet for a quarter of a second. This prevents runaway CPU usage
                     // from initializing every single process() call!
