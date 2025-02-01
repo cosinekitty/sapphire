@@ -71,6 +71,9 @@ namespace Sapphire
             }},
         { "env", {
             {"_panel",                 {  30.480,  128.500}},
+            {"audio_input",            {  15.240,   40.000}},
+            {"envelope_output",        {  15.240,   60.000}},
+            {"pitch_output",           {  15.240,   80.000}},
             }},
         { "frolic", {
             {"_panel",                 {  20.320,  128.500}},

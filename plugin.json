@@ -35,6 +35,16 @@
       ]
     },
     {
+      "slug": "Env",
+      "name": "Env",
+      "description": "Envelope follower and pitch dector.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/Env.md",
+      "tags": [
+        "Polyphonic",
+        "Envelope follower"
+      ]
+    },
+    {
       "slug": "Frolic",
       "name": "Frolic",
       "description": "Chaotic oscillator based on the Rucklidge Attractor.",

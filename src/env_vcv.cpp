@@ -1,0 +1,117 @@
+#include "sapphire_vcvrack.hpp"
+#include "sapphire_widget.hpp"
+#include "env_pitch_detect.hpp"
+
+// Sapphire Env for VCV Rack by Don Cross <cosinekitty@gmail.com>.
+// Part of the Sapphire project at:
+// https://github.com/cosinekitty/sapphire
+
+namespace Sapphire
+{
+    namespace Env
+    {
+        enum ParamId
+        {
+            PARAMS_LEN
+        };
+
+        enum InputId
+        {
+            AUDIO_INPUT,
+            INPUTS_LEN
+        };
+
+        enum OutputId
+        {
+            ENVELOPE_OUTPUT,
+            PITCH_OUTPUT,
+            OUTPUTS_LEN
+        };
+
+        enum LightId
+        {
+            LIGHTS_LEN
+        };
+
+        using detector_t = EnvPitchDetector<float, PORT_MAX_CHANNELS>;
+
+        struct EnvModule : SapphireModule
+        {
+            detector_t detector;
+
+            EnvModule()
+                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+            {
+                config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configInput(AUDIO_INPUT, "Audio");
+                configOutput(ENVELOPE_OUTPUT, "Envelope");
+                configOutput(PITCH_OUTPUT, "Pitch V/OCT");
+                initialize();
+            }
+
+            void onReset(const ResetEvent& e) override
+            {
+                Module::onReset(e);
+                initialize();
+            }
+
+            void initialize()
+            {
+                detector.initialize();
+            }
+
+            void process(const ProcessArgs& args) override
+            {
+                int nc = inputs[AUDIO_INPUT].getChannels();
+                if (nc <= 0)
+                {
+                    const float zero = 0;
+                    setPolyOutput(ENVELOPE_OUTPUT, 1, &zero);
+                    setPolyOutput(PITCH_OUTPUT, 1, &zero);
+                }
+                else
+                {
+                    float inFrame[PORT_MAX_CHANNELS];
+                    float outEnvelope[PORT_MAX_CHANNELS];
+                    float outPitchVoct[PORT_MAX_CHANNELS];
+
+                    for (int c = 0; c < nc; ++c)
+                        inFrame[c] = inputs[AUDIO_INPUT].getVoltage(c);
+
+                    detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
+
+                    setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
+                    setPolyOutput(PITCH_OUTPUT, nc, outPitchVoct);
+                }
+            }
+
+            void setPolyOutput(const OutputId id, int nc, const float* volts)
+            {
+                outputs[id].setChannels(nc);
+                for (int c = 0; c < nc; ++c)
+                    outputs[id].setVoltage(c, volts[c]);
+            }
+        };
+
+        struct EnvWidget : SapphireWidget
+        {
+            EnvModule* envModule{};
+
+            explicit EnvWidget(EnvModule* module)
+                : SapphireWidget("env", asset::plugin(pluginInstance, "res/env.svg"))
+                , envModule(module)
+            {
+                setModule(module);
+                addSapphireInput(AUDIO_INPUT, "audio_input");
+                addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
+                addSapphireOutput(PITCH_OUTPUT, "pitch_output");
+            }
+        };
+    }
+}
+
+
+Model *modelSapphireEnv = createSapphireModel<Sapphire::Env::EnvModule, Sapphire::Env::EnvWidget>(
+    "Env",
+    Sapphire::ExpanderRole::None
+);

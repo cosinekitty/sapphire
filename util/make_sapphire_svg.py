@@ -1845,10 +1845,25 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
+    xmid = panel.mmWidth / 2.0
+    yFence = FencePost(40.0, 80.0, 3)
+    yPolyAudioIn = yFence.value(0)
+    yEnvelopeOut = yFence.value(1)
+    yPitchOut = yFence.value(2)
+    dyText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+
+        controls.append(Component('audio_input', xmid, yPolyAudioIn))
+        pl.append(CenteredControlTextPath(font, 'IN AUD', xmid, yPolyAudioIn - dyText))
+
+        controls.append(Component('envelope_output', xmid, yEnvelopeOut))
+        pl.append(CenteredControlTextPath(font, 'ENV', xmid, yEnvelopeOut - dyText))
+
+        controls.append(Component('pitch_output', xmid, yPitchOut))
+        pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))
     return Save(panel, svgFileName)
 
 

@@ -4,7 +4,7 @@
 
 namespace Sapphire
 {
-    template <typename value_t, int maxChannels>
+    template <typename value_t, int maxChannels, int filterLayers = 3>
     class EnvPitchDetector
     {
     private:
@@ -19,7 +19,7 @@ namespace Sapphire
         int descendSamples[maxChannels];       // wavelength sample counters between consecutive descending zero-crossings
         value_t filteredWaveLength[maxChannels];
 
-        using filter_t = StagedFilter<value_t, 3>;
+        using filter_t = StagedFilter<value_t, filterLayers>;
         filter_t loCutFilter[maxChannels];
         filter_t hiCutFilter[maxChannels];
         filter_t jitterFilter[maxChannels];
