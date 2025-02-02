@@ -40,6 +40,15 @@ namespace Sapphire
             jitterFilter.Reset();
             amplFilter.Reset();
         }
+
+        value_t bandpass(value_t input, value_t loFreq, value_t hiFreq, int sampleRateHz)
+        {
+            loCutFilter.SetCutoffFrequency(loFreq);
+            value_t locut = loCutFilter.UpdateHiPass(input, sampleRateHz);
+
+            hiCutFilter.SetCutoffFrequency(hiFreq);
+            return hiCutFilter.UpdateLoPass(locut, sampleRateHz);
+        }
     };
 
 
@@ -150,15 +159,7 @@ namespace Sapphire
 
                 // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
                 // and also rejects very high frequencies.
-
-                // Reject frequencies lower than we want to keep.
-                q.loCutFilter.SetCutoffFrequency(loCutFrequency);
-                value_t locut = q.loCutFilter.UpdateHiPass(inFrame[c], sampleRateHz);
-
-                // Reject frequencies higher than we want to keep.
-                // The band-pass result is our signal to feed through envelope and pitch detection.
-                q.hiCutFilter.SetCutoffFrequency(hiCutFrequency);
-                value_t signal = q.hiCutFilter.UpdateLoPass(locut, sampleRateHz);
+                value_t signal = q.bandpass(inFrame[c], loCutFrequency, hiCutFrequency, sampleRateHz);
 
                 // Make sure we have a normal numeric value for our signal.
                 if (!std::isfinite(signal))
