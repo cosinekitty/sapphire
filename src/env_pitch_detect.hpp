@@ -17,6 +17,8 @@ namespace Sapphire
         value_t prevSignal[maxChannels];
         int ascendSamples[maxChannels];        // wavelength sample counters between consecutive ascending  zero-crossings
         int descendSamples[maxChannels];       // wavelength sample counters between consecutive descending zero-crossings
+        int rawWaveLengthAscend[maxChannels];
+        int rawWaveLengthDescend[maxChannels];
         value_t filteredWaveLength[maxChannels];
 
         using filter_t = StagedFilter<value_t, filterLayers>;
@@ -47,6 +49,16 @@ namespace Sapphire
             // TBD: should there be a single SPEED control for both? (Yes, probably.)
             // But if they were independent, would that be more interesting?
             // Or at least there could be an offset parameter.
+
+            // Don't pollute the filter with ridiculous values!
+            // It's better to bail out and ignore this wavelength if it's crazy.
+            if (wavelengthSamples <= 0)
+                return;
+
+            const float rawFrequencyHz = currentSampleRate / static_cast<float>(wavelengthSamples);
+            if (rawFrequencyHz < loCutFrequency || rawFrequencyHz > hiCutFrequency)
+                return;
+
             jitterFilter[channel].SetCutoffFrequency(jitterCornerFrequency);
             filteredWaveLength[channel] = jitterFilter[channel].UpdateLoPass(wavelengthSamples, currentSampleRate);
         }
@@ -65,6 +77,8 @@ namespace Sapphire
                 prevSignal[c] = 0;
                 ascendSamples[c] = 0;
                 descendSamples[c] = 0;
+                rawWaveLengthAscend[c] = 0;
+                rawWaveLengthDescend[c] = 0;
                 filteredWaveLength[c] = 0;
 
                 // Reset all filters in case they went non-finite.
@@ -151,18 +165,21 @@ namespace Sapphire
                     {
                         if (signal > 0)
                         {
-                            updateWaveLength(c, ascendSamples[c]);
+                            rawWaveLengthAscend[c] = ascendSamples[c];
                             ascendSamples[c] = 0;
                         }
                         else
                         {
-                            updateWaveLength(c, descendSamples[c]);
+                            rawWaveLengthDescend[c] = descendSamples[c];
                             descendSamples[c] = 0;
                         }
                     }
 
                     prevSignal[c] = signal;
                 }
+
+                updateWaveLength(c, rawWaveLengthAscend[c]);
+                updateWaveLength(c, rawWaveLengthDescend[c]);
 
                 // Convert wavelength [samples] to frequency [Hz] to pitch [V/OCT].
                 // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
