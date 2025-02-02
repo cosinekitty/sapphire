@@ -85,11 +85,11 @@ namespace Sapphire
                 }
             }
 
-            void setPolyOutput(const OutputId id, int nc, const float* volts)
+            void setPolyOutput(OutputId id, int nc, const float* volts)
             {
                 outputs[id].setChannels(nc);
                 for (int c = 0; c < nc; ++c)
-                    outputs[id].setVoltage(c, volts[c]);
+                    outputs[id].setVoltage(volts[c], c);
             }
         };
 
