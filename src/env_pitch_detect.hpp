@@ -90,20 +90,21 @@ namespace Sapphire
 
             info_t& q = info.at(channel);
             q.jitterFilter.SetCutoffFrequency(jitterCornerFrequency);
-            q.filteredWaveLength = info[channel].jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
+            q.filteredWaveLength = q.jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
         }
 
     public:
         EnvPitchDetector()
         {
             info.resize(maxChannels);
+            initialize();
         }
 
         void initialize()
         {
             recoveryCountdown = 0;
-            for (int c = 0; c < maxChannels; ++c)
-                info[c].initialize();
+            for (info_t& q : info)
+                q.initialize();
         }
 
         void process(
