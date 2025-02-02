@@ -49,6 +49,18 @@ namespace Sapphire
             hiCutFilter.SetCutoffFrequency(hiFreq);
             return hiCutFilter.UpdateLoPass(locut, sampleRateHz);
         }
+
+        value_t pitch(int sampleRateHz, value_t centerFrequencyHz) const
+        {
+            // Convert wavelength [samples] to frequency [Hz] to pitch [V/OCT].
+            // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
+            if (filteredWaveLength > sampleRateHz/4000)
+            {
+                value_t frequencyHz = sampleRateHz / filteredWaveLength;
+                return std::log2(frequencyHz / centerFrequencyHz);
+            }
+            return -10;     // sentinel value: -10 on a V/OCT scale represents the frequency 0.255 Hz.
+        }
     };
 
 
@@ -58,12 +70,12 @@ namespace Sapphire
     private:
         static_assert(maxChannels > 0);
 
-        float centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         int currentSampleRate = 0;
-        float loCutFrequency = 20;
-        float hiCutFrequency = 3000;
-        float jitterCornerFrequency = 10;
-        float amplCornerFrequency = 10;
+        value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
+        value_t loCutFrequency = 20;
+        value_t hiCutFrequency = 3000;
+        value_t jitterCornerFrequency = 10;
+        value_t amplCornerFrequency = 10;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
@@ -201,14 +213,7 @@ namespace Sapphire
 
                 updateWaveLength(c, q.rawWaveLengthAscend);
                 updateWaveLength(c, q.rawWaveLengthDescend);
-
-                // Convert wavelength [samples] to frequency [Hz] to pitch [V/OCT].
-                // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
-                if (q.filteredWaveLength > sampleRateHz/4000)
-                {
-                    value_t frequencyHz = sampleRateHz / q.filteredWaveLength;
-                    outPitchVoct[c] = std::log2(frequencyHz / centerFrequencyHz);
-                }
+                outPitchVoct[c] = q.pitch(sampleRateHz, centerFrequencyHz);
             }
         }
     };
