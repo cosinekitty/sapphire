@@ -4,6 +4,8 @@
 
 namespace Sapphire
 {
+    const int NO_PITCH_VOLTS = -10;    // V/OCT = -10V indicates no pitch detected at all
+
     template <typename value_t, int filterLayers>
     struct EnvPitchChannelInfo
     {
@@ -54,12 +56,12 @@ namespace Sapphire
         {
             // Convert wavelength [samples] to frequency [Hz] to pitch [V/OCT].
             // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
-            if (filteredWaveLength > sampleRateHz/4000)
+            if (filteredWaveLength >= 10)
             {
                 value_t frequencyHz = sampleRateHz / filteredWaveLength;
                 return std::log2(frequencyHz / centerFrequencyHz);
             }
-            return -10;     // sentinel value: -10 on a V/OCT scale represents the frequency 0.255 Hz.
+            return NO_PITCH_VOLTS;
         }
     };
 
@@ -90,7 +92,7 @@ namespace Sapphire
             return q.amplFilter.UpdateLoPass(signal*signal, currentSampleRate);
         }
 
-        void updateWaveLength(int channel, int wavelengthSamples)
+        void updateWaveLength(info_t& q, int wavelengthSamples)
         {
             // The wavelengths we receive here will often be quite jittery.
             // We need to smooth them out with a lowpass filter of some kind.
@@ -109,9 +111,62 @@ namespace Sapphire
             if (rawFrequencyHz < loCutFrequency || rawFrequencyHz > hiCutFrequency)
                 return;
 
-            info_t& q = info.at(channel);
             q.jitterFilter.SetCutoffFrequency(jitterCornerFrequency);
             q.filteredWaveLength = q.jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
+        }
+
+        void processChannel(int c, value_t input, value_t& outEnvelope, value_t& outPitchVoct)
+        {
+            info_t& q = info.at(c);
+
+            ++q.ascendSamples;
+            ++q.descendSamples;
+
+            outEnvelope = updateAmplitude(c, input);
+
+            // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
+            // and also rejects very high frequencies.
+            value_t signal = q.bandpass(input, loCutFrequency, hiCutFrequency, currentSampleRate);
+
+            // Make sure we have a normal numeric value for our signal.
+            if (!std::isfinite(signal))
+            {
+                // AUTO-RESET when things go squirelly.
+                initialize();
+
+                // Keep quiet for a quarter of a second. This prevents runaway CPU usage
+                // from initializing every single process() call!
+                recoveryCountdown = static_cast<int>(currentSampleRate/4);
+                return;
+            }
+
+            // Keep waiting until we go from negative to positive, or positive to negative,
+            // with any number (zero or more) of 0-valued samples in between them.
+            if (signal != 0)
+            {
+                // Find (both ascending and descending), independently for each channel.
+                // Measure the interval between them, expressed in samples, called "wavelength".
+
+                if (signal * q.prevSignal < 0)
+                {
+                    if (signal > 0)
+                    {
+                        q.rawWaveLengthAscend = q.ascendSamples;
+                        q.ascendSamples = 0;
+                    }
+                    else
+                    {
+                        q.rawWaveLengthDescend = q.descendSamples;
+                        q.descendSamples = 0;
+                    }
+                }
+
+                q.prevSignal = signal;
+            }
+
+            updateWaveLength(q, q.rawWaveLengthAscend);
+            updateWaveLength(q, q.rawWaveLengthDescend);
+            outPitchVoct = q.pitch(currentSampleRate, centerFrequencyHz);
         }
 
     public:
@@ -135,13 +190,14 @@ namespace Sapphire
             value_t* outEnvelope,       // output array [numChannels]
             value_t* outPitchVoct)      // output array [numChannels]
         {
-            assert(numChannels <= maxChannels);
+            const int nc = std::clamp(numChannels, 0, maxChannels);
+            assert(nc == numChannels);
 
             // Initialize output to whatever we deem a quiet state.
-            for (int c = 0; c < numChannels; ++c)
+            for (int c = 0; c < nc; ++c)
             {
                 outEnvelope[c] = 0;
-                outPitchVoct[c] = 0;
+                outPitchVoct[c] = NO_PITCH_VOLTS;
             }
 
             if (numChannels < 1)    // avoid division by zero later
@@ -163,58 +219,7 @@ namespace Sapphire
             }
 
             for (int c = 0; c < numChannels; ++c)
-            {
-                info_t& q = info.at(c);
-
-                ++q.ascendSamples;
-                ++q.descendSamples;
-
-                // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
-                // and also rejects very high frequencies.
-                value_t signal = q.bandpass(inFrame[c], loCutFrequency, hiCutFrequency, sampleRateHz);
-
-                // Make sure we have a normal numeric value for our signal.
-                if (!std::isfinite(signal))
-                {
-                    // AUTO-RESET when things go squirelly.
-                    initialize();
-
-                    // Keep quiet for a quarter of a second. This prevents runaway CPU usage
-                    // from initializing every single process() call!
-                    recoveryCountdown = static_cast<int>(sampleRateHz/4);
-                    return;
-                }
-
-                outEnvelope[c] = updateAmplitude(c, signal);
-
-                // Keep waiting until we go from negative to positive, or positive to negative,
-                // with any number (zero or more) of 0-valued samples in between them.
-                if (signal != 0)
-                {
-                    // Find (both ascending and descending), independently for each channel.
-                    // Measure the interval between them, expressed in samples, called "wavelength".
-
-                    if (signal * q.prevSignal < 0)
-                    {
-                        if (signal > 0)
-                        {
-                            q.rawWaveLengthAscend = q.ascendSamples;
-                            q.ascendSamples = 0;
-                        }
-                        else
-                        {
-                            q.rawWaveLengthDescend = q.descendSamples;
-                            q.descendSamples = 0;
-                        }
-                    }
-
-                    q.prevSignal = signal;
-                }
-
-                updateWaveLength(c, q.rawWaveLengthAscend);
-                updateWaveLength(c, q.rawWaveLengthDescend);
-                outPitchVoct[c] = q.pitch(sampleRateHz, centerFrequencyHz);
-            }
+                processChannel(c, inFrame[c], outEnvelope[c], outPitchVoct[c]);
         }
     };
 }
