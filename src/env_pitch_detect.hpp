@@ -83,11 +83,10 @@ namespace Sapphire
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
         std::vector<info_t> info;
 
-        value_t updateAmplitude(int channel, value_t signal)
+        value_t updateAmplitude(info_t& q, value_t signal)
         {
             // Square the signal and filter the result.
             // This gives us a time-smeared measure of power.
-            info_t& q = info.at(channel);
             q.amplFilter.SetCutoffFrequency(amplCornerFrequency);
             return q.amplFilter.UpdateLoPass(signal*signal, currentSampleRate);
         }
@@ -122,7 +121,7 @@ namespace Sapphire
             ++q.ascendSamples;
             ++q.descendSamples;
 
-            outEnvelope = updateAmplitude(c, input);
+            outEnvelope = updateAmplitude(q, input);
 
             // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
             // and also rejects very high frequencies.
@@ -183,7 +182,7 @@ namespace Sapphire
                 q.initialize();
         }
 
-        void process(
+        int process(
             int numChannels,
             int sampleRateHz,
             const value_t* inFrame,     // input  array [numChannels]
@@ -191,7 +190,6 @@ namespace Sapphire
             value_t* outPitchVoct)      // output array [numChannels]
         {
             const int nc = std::clamp(numChannels, 0, maxChannels);
-            assert(nc == numChannels);
 
             // Initialize output to whatever we deem a quiet state.
             for (int c = 0; c < nc; ++c)
@@ -200,26 +198,29 @@ namespace Sapphire
                 outPitchVoct[c] = NO_PITCH_VOLTS;
             }
 
-            if (numChannels < 1)    // avoid division by zero later
-                return;
-
-            // See if we are in a CPU-protective quiet period.
-            if (recoveryCountdown > 0)
+            if (numChannels > 0)    // avoid division by zero later
             {
-                --recoveryCountdown;
-                return;
+                // See if we are in a CPU-protective quiet period.
+                if (recoveryCountdown > 0)
+                {
+                    --recoveryCountdown;
+                }
+                else
+                {
+                    if (sampleRateHz != currentSampleRate)
+                    {
+                        // Reset: it's OK to glitch a little when sample rate changes,
+                        // but we don't want to produce erroneous pitch/env information.
+                        initialize();
+                        currentSampleRate = sampleRateHz;
+                    }
+
+                    for (int c = 0; c < numChannels; ++c)
+                        processChannel(c, inFrame[c], outEnvelope[c], outPitchVoct[c]);
+                }
             }
 
-            if (sampleRateHz != currentSampleRate)
-            {
-                // Reset: it's OK to glitch a little when sample rate changes,
-                // but we don't want to produce erroneous pitch/env information.
-                initialize();
-                currentSampleRate = sampleRateHz;
-            }
-
-            for (int c = 0; c < numChannels; ++c)
-                processChannel(c, inFrame[c], outEnvelope[c], outPitchVoct[c]);
+            return nc;      // number of channels written to outEnvelope[], outPitchVoct[].
         }
     };
 }

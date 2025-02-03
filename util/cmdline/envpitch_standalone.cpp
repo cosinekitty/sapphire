@@ -56,7 +56,13 @@ int main()
         for (int c = 0; c < nchannels; ++c)
             envelope[c] = pitch[c] = NAN;
 
-        engine.process(nchannels, SAMPLE_RATE, inFrame, envelope, pitch);
+        int channelsWritten = engine.process(nchannels, SAMPLE_RATE, inFrame, envelope, pitch);
+        if (channelsWritten != nchannels)
+        {
+            fprintf(stderr, "ERROR: Expected to write %d channels, but wrote %d\n", nchannels, channelsWritten);
+            return 1;
+        }
+
         if (f % frameInterval == 0)
             fprintf(outfile, "f=%d, envelope=(%g, %g), pitch=(%g, %g)\n", f, envelope[0], envelope[1], pitch[0], pitch[1]);
     }
