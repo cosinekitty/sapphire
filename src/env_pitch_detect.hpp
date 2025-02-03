@@ -1,5 +1,7 @@
 #pragma once
+#include <algorithm>
 #include <cmath>
+#include <vector>
 #include "sapphire_engine.hpp"
 
 namespace Sapphire
