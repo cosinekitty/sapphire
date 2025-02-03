@@ -24,6 +24,9 @@ namespace Sapphire
         filter_t jitterFilter;
         filter_t amplFilter;
 
+        value_t decay = 0.995;
+        value_t runningLevel;
+
         EnvPitchChannelInfo()
         {
             initialize();
@@ -43,6 +46,8 @@ namespace Sapphire
             hiCutFilter.Reset();
             jitterFilter.Reset();
             amplFilter.Reset();
+
+            runningLevel = 0;
         }
 
         value_t bandpass(value_t input, value_t loFreq, value_t hiFreq, int sampleRateHz)
@@ -68,13 +73,14 @@ namespace Sapphire
 
         value_t updateAmplitude(value_t signal, value_t amplCornerFrequency, int sampleRate)
         {
+            runningLevel = std::max(decay*runningLevel, std::abs(signal));
             amplFilter.SetCutoffFrequency(amplCornerFrequency);
-            return amplFilter.UpdateLoPass(signal*signal, sampleRate);
+            return amplFilter.UpdateLoPass(runningLevel, sampleRate);
         }
     };
 
 
-    template <typename value_t, int maxChannels, int filterLayers = 3>
+    template <typename value_t, int maxChannels, int filterLayers = 1>
     class EnvPitchDetector
     {
     private:
@@ -85,7 +91,7 @@ namespace Sapphire
         value_t loCutFrequency = 20;
         value_t hiCutFrequency = 3000;
         value_t jitterCornerFrequency = 10;
-        value_t amplCornerFrequency = 10;
+        value_t amplCornerFrequency = 40;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
