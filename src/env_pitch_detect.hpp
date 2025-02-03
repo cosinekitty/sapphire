@@ -65,6 +65,12 @@ namespace Sapphire
             }
             return NO_PITCH_VOLTS;
         }
+
+        value_t updateAmplitude(value_t signal, value_t amplCornerFrequency, int sampleRate)
+        {
+            amplFilter.SetCutoffFrequency(amplCornerFrequency);
+            return amplFilter.UpdateLoPass(signal*signal, sampleRate);
+        }
     };
 
 
@@ -84,14 +90,6 @@ namespace Sapphire
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
         std::vector<info_t> info;
-
-        value_t updateAmplitude(info_t& q, value_t signal)
-        {
-            // Square the signal and filter the result.
-            // This gives us a time-smeared measure of power.
-            q.amplFilter.SetCutoffFrequency(amplCornerFrequency);
-            return q.amplFilter.UpdateLoPass(signal*signal, currentSampleRate);
-        }
 
         void updateWaveLength(info_t& q, int wavelengthSamples)
         {
@@ -123,7 +121,7 @@ namespace Sapphire
             ++q.ascendSamples;
             ++q.descendSamples;
 
-            outEnvelope = updateAmplitude(q, input);
+            outEnvelope = q.updateAmplitude(input, amplCornerFrequency, currentSampleRate);
 
             // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
             // and also rejects very high frequencies.
