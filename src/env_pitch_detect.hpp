@@ -22,10 +22,11 @@ namespace Sapphire
         filter_t loCutFilter;
         filter_t hiCutFilter;
         filter_t jitterFilter;
-        filter_t amplFilter;
 
-        value_t decay = 0.995;
-        value_t runningLevel;
+        value_t envAttack = 0;
+        value_t envDecay = 0;
+        value_t envelope = 0;
+        int prevSampleRate = 0;
 
         EnvPitchChannelInfo()
         {
@@ -45,9 +46,8 @@ namespace Sapphire
             loCutFilter.Reset();
             hiCutFilter.Reset();
             jitterFilter.Reset();
-            amplFilter.Reset();
 
-            runningLevel = 0;
+            envelope = 0;
         }
 
         value_t bandpass(value_t input, value_t loFreq, value_t hiFreq, int sampleRateHz)
@@ -71,11 +71,20 @@ namespace Sapphire
             return NO_PITCH_VOLTS;
         }
 
-        value_t updateAmplitude(value_t signal, value_t amplCornerFrequency, int sampleRate)
+        value_t updateAmplitude(value_t signal, int sampleRate)
         {
-            runningLevel = std::max(decay*runningLevel, std::abs(signal));
-            amplFilter.SetCutoffFrequency(amplCornerFrequency);
-            return amplFilter.UpdateLoPass(runningLevel, sampleRate);
+            // Based on Surge XT Tree Monster's envelope follower:
+            // https://github.com/surge-synthesizer/sst-effects/blob/main/include/sst/effects-shared/TreemonsterCore.h
+            if (sampleRate != prevSampleRate)
+            {
+                prevSampleRate = sampleRate;
+                envAttack = std::pow(0.01, 1.0 / (0.005*sampleRate));
+                envDecay  = std::pow(0.01, 1.0 / (0.500*sampleRate));
+            }
+            value_t v = std::abs(signal);
+            value_t k = (v > envelope) ? envAttack : envDecay;
+            envelope = k*(envelope - v) + v;
+            return envelope;
         }
     };
 
@@ -91,7 +100,6 @@ namespace Sapphire
         value_t loCutFrequency = 20;
         value_t hiCutFrequency = 3000;
         value_t jitterCornerFrequency = 10;
-        value_t amplCornerFrequency = 40;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
@@ -108,8 +116,9 @@ namespace Sapphire
             // Or at least there could be an offset parameter.
 
             // Don't pollute the filter with ridiculous values!
-            // It's better to bail out and ignore this wavelength if it's crazy.
-            if (wavelengthSamples <= 0)
+            // It's better to bail out and ignore this wavelength if it
+            // is invalid or too short to take seriously.
+            if (wavelengthSamples < 16)
                 return;
 
             const float rawFrequencyHz = currentSampleRate / static_cast<float>(wavelengthSamples);
@@ -127,7 +136,7 @@ namespace Sapphire
             ++q.ascendSamples;
             ++q.descendSamples;
 
-            outEnvelope = q.updateAmplitude(input, amplCornerFrequency, currentSampleRate);
+            outEnvelope = q.updateAmplitude(input, currentSampleRate);
 
             // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
             // and also rejects very high frequencies.
