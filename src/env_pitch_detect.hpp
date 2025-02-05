@@ -17,6 +17,7 @@ namespace Sapphire
         int rawWaveLengthAscend;
         int rawWaveLengthDescend;
         value_t filteredWaveLength;
+        bool first_thresh;
 
         using filter_t = StagedFilter<value_t, filterLayers>;
         filter_t loCutFilter;
@@ -41,6 +42,7 @@ namespace Sapphire
             rawWaveLengthAscend = 0;
             rawWaveLengthDescend = 0;
             filteredWaveLength = 0;
+            first_thresh = true;
 
             // Reset all filters in case they went non-finite.
             loCutFilter.Reset();
@@ -99,7 +101,7 @@ namespace Sapphire
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         value_t loCutFrequency = 20;
         value_t hiCutFrequency = 3000;
-        value_t jitterCornerFrequency = 10;
+        value_t jitterCornerFrequency = 5;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
@@ -134,7 +136,16 @@ namespace Sapphire
                 return;
 
             q.jitterFilter.SetCutoffFrequency(jitterCornerFrequency);
-            q.filteredWaveLength = q.jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
+
+            if (q.first_thresh)
+            {
+                q.first_thresh = false;
+                q.filteredWaveLength = q.jitterFilter.SnapLoPass(wavelengthSamples);
+            }
+            else
+            {
+                q.filteredWaveLength = q.jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
+            }
         }
 
         void processChannel(int c, value_t input, value_t& outEnvelope, value_t& outPitchVoct)
