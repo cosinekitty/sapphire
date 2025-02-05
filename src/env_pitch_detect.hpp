@@ -131,7 +131,7 @@ namespace Sapphire
             if (wavelengthSamples < smallestWavelength)
                 return;
 
-            const float rawFrequencyHz = currentSampleRate / static_cast<float>(wavelengthSamples);
+            const value_t rawFrequencyHz = currentSampleRate / static_cast<value_t>(wavelengthSamples);
             if (rawFrequencyHz < loCutFrequency || rawFrequencyHz > hiCutFrequency)
                 return;
 
@@ -235,7 +235,7 @@ namespace Sapphire
                 outPitchVoct[c] = NO_PITCH_VOLTS;
             }
 
-            if (numChannels > 0)    // avoid division by zero later
+            if (nc > 0)    // avoid division by zero later
             {
                 // See if we are in a CPU-protective quiet period.
                 if (recoveryCountdown > 0)
@@ -252,7 +252,7 @@ namespace Sapphire
                         currentSampleRate = sampleRateHz;
                     }
 
-                    for (int c = 0; c < numChannels; ++c)
+                    for (int c = 0; c < nc; ++c)
                         processChannel(c, inFrame[c], outEnvelope[c], outPitchVoct[c]);
                 }
             }
