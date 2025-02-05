@@ -101,9 +101,17 @@ namespace Sapphire
         value_t hiCutFrequency = 3000;
         value_t jitterCornerFrequency = 10;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
+        const int smallestWavelength = 16;
+        value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
         std::vector<info_t> info;
+
+        void setThreshold(value_t knob = -24)
+        {
+            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
+            thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+        }
 
         void updateWaveLength(info_t& q, int wavelengthSamples)
         {
@@ -118,7 +126,7 @@ namespace Sapphire
             // Don't pollute the filter with ridiculous values!
             // It's better to bail out and ignore this wavelength if it
             // is invalid or too short to take seriously.
-            if (wavelengthSamples < 16)
+            if (wavelengthSamples < smallestWavelength)
                 return;
 
             const float rawFrequencyHz = currentSampleRate / static_cast<float>(wavelengthSamples);
@@ -165,12 +173,14 @@ namespace Sapphire
                 {
                     if (signal > 0)
                     {
-                        q.rawWaveLengthAscend = q.ascendSamples;
+                        if (q.ascendSamples >= smallestWavelength && signal > thresh)
+                            q.rawWaveLengthAscend = q.ascendSamples;
                         q.ascendSamples = 0;
                     }
                     else
                     {
-                        q.rawWaveLengthDescend = q.descendSamples;
+                        if (q.descendSamples >= smallestWavelength && signal < -thresh)
+                            q.rawWaveLengthDescend = q.descendSamples;
                         q.descendSamples = 0;
                     }
                 }
@@ -187,6 +197,7 @@ namespace Sapphire
         EnvPitchDetector()
         {
             info.resize(maxChannels);
+            setThreshold();
             initialize();
         }
 
