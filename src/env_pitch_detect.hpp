@@ -115,7 +115,7 @@ namespace Sapphire
             thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
         }
 
-        void updateWaveLength(info_t& q, int wavelengthSamples)
+        void updateWaveLength(info_t& q, int& wavelengthSamples, int samplesSinceCrossing)
         {
             // The wavelengths we receive here will often be quite jittery.
             // We need to smooth them out with a lowpass filter of some kind.
@@ -134,6 +134,14 @@ namespace Sapphire
             const value_t rawFrequencyHz = currentSampleRate / static_cast<value_t>(wavelengthSamples);
             if (rawFrequencyHz < loCutFrequency || rawFrequencyHz > hiCutFrequency)
                 return;
+
+            if (10*samplesSinceCrossing > currentSampleRate)    // 0.1 seconds since we saw a zero crossing?
+            {
+                // It has been too long since we saw a valid wavelength.
+                // Start ignoring this wavelength as a pitch signal.
+                wavelengthSamples = 0;
+                return;
+            }
 
             q.jitterFilter.SetCutoffFrequency(jitterCornerFrequency);
 
@@ -199,8 +207,8 @@ namespace Sapphire
                 q.prevSignal = signal;
             }
 
-            updateWaveLength(q, q.rawWaveLengthAscend);
-            updateWaveLength(q, q.rawWaveLengthDescend);
+            updateWaveLength(q, q.rawWaveLengthAscend,  q.ascendSamples);
+            updateWaveLength(q, q.rawWaveLengthDescend, q.descendSamples);
             outPitchVoct = q.pitch(currentSampleRate, centerFrequencyHz);
         }
 
