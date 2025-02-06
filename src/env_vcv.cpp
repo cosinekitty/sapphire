@@ -14,6 +14,8 @@ namespace Sapphire
         {
             THRESHOLD_PARAM,
             THRESHOLD_ATTEN,
+            SPEED_PARAM,
+            SPEED_ATTEN,
             PARAMS_LEN
         };
 
@@ -21,6 +23,7 @@ namespace Sapphire
         {
             AUDIO_INPUT,
             THRESHOLD_CV_INPUT,
+            SPEED_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -47,6 +50,7 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0, -24, " dB");
+                configControlGroup("Speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1, 0.5);
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");
@@ -84,6 +88,10 @@ namespace Sapphire
 
                     float thresh = getControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0);
                     detector.setThreshold(thresh);
+
+                    float speed = getControlValue(SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1);
+                    detector.setSpeed(speed);
+
                     detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
@@ -112,6 +120,7 @@ namespace Sapphire
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addSapphireControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
+                addSapphireControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
             }
         };
     }

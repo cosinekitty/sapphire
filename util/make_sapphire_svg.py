@@ -1846,7 +1846,8 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    yThresh = 30.0
+    yThresh = 25.0
+    ySpeed  = 54.0
     yFence = FencePost(82.0, 115.0, 3)
     yPolyAudioIn = yFence.value(0)
     yEnvelopeOut = yFence.value(1)
@@ -1867,6 +1868,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))
 
         AddControlGroup(pl, controls, font, 'thresh', 'THRESH', xmid, yThresh)
+        AddControlGroup(pl, controls, font, 'speed',  'SPEED', xmid,  ySpeed)
     return Save(panel, svgFileName)
 
 

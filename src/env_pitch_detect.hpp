@@ -101,7 +101,7 @@ namespace Sapphire
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         value_t loCutFrequency = 20;
         value_t hiCutFrequency = 3000;
-        value_t jitterCornerFrequency = 5;
+        value_t jitterCornerFrequency;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
@@ -204,6 +204,7 @@ namespace Sapphire
         {
             info.resize(maxChannels);
             setThreshold();
+            setSpeed();
             initialize();
         }
 
@@ -218,6 +219,14 @@ namespace Sapphire
         {
             value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
             thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+        }
+
+        void setSpeed(value_t knob = 0.5)
+        {
+            value_t speed = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
+            // Vary the pitch detector's responsiveness to quick changes,
+            // at the expense of tonal stability.
+            jitterCornerFrequency = 20*speed + 1;
         }
 
         int process(
