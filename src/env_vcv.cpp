@@ -119,8 +119,8 @@ namespace Sapphire
                 addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
-                addSapphireControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
-                addSapphireControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
+                addSapphireFlatControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
+                addSapphireFlatControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
             }
         };
     }

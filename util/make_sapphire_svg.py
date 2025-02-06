@@ -1846,12 +1846,13 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    yThresh = 25.0
-    ySpeed  = 54.0
-    yFence = FencePost(82.0, 115.0, 3)
-    yPolyAudioIn = yFence.value(0)
-    yEnvelopeOut = yFence.value(1)
-    yPitchOut = yFence.value(2)
+    yControlFence = FencePost(22.0, 65.0, 4)
+    yThresh = yControlFence.value(0)
+    ySpeed  = yControlFence.value(1)
+    yPortFence = FencePost(82.0, 115.0, 3)
+    yPolyAudioIn = yPortFence.value(0)
+    yEnvelopeOut = yPortFence.value(1)
+    yPitchOut = yPortFence.value(2)
     dyText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -1867,8 +1868,11 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         controls.append(Component('pitch_output', xmid, yPitchOut))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))
 
-        AddControlGroup(pl, controls, font, 'thresh', 'THRESH', xmid, yThresh)
-        AddControlGroup(pl, controls, font, 'speed',  'SPEED', xmid,  ySpeed)
+        AddFlatControlGroup(pl, controls, xmid, yThresh, 'thresh')
+        pl.append(CenteredControlTextPath(font, 'THRESH', xmid, yThresh - dyText))
+
+        AddFlatControlGroup(pl, controls, xmid, ySpeed, 'speed')
+        pl.append(CenteredControlTextPath(font, 'SPEED', xmid, ySpeed - dyText))
     return Save(panel, svgFileName)
 
 
