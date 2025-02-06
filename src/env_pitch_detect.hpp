@@ -109,22 +109,8 @@ namespace Sapphire
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
         std::vector<info_t> info;
 
-        void setThreshold(value_t knob = -24)
-        {
-            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
-            thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
-        }
-
         void updateWaveLength(info_t& q, int& wavelengthSamples, int samplesSinceCrossing)
         {
-            // The wavelengths we receive here will often be quite jittery.
-            // We need to smooth them out with a lowpass filter of some kind.
-            // The corner frequency of this filter will determine the responsiveness
-            // (or SPEED) of the env/pitch detector.
-            // TBD: should there be a single SPEED control for both? (Yes, probably.)
-            // But if they were independent, would that be more interesting?
-            // Or at least there could be an offset parameter.
-
             // Don't pollute the filter with ridiculous values!
             // It's better to bail out and ignore this wavelength if it
             // is invalid or too short to take seriously.
@@ -140,6 +126,7 @@ namespace Sapphire
                 // It has been too long since we saw a valid wavelength.
                 // Start ignoring this wavelength as a pitch signal.
                 wavelengthSamples = 0;
+                q.first_thresh = true;
                 return;
             }
 
@@ -225,6 +212,12 @@ namespace Sapphire
             recoveryCountdown = 0;
             for (info_t& q : info)
                 q.initialize();
+        }
+
+        void setThreshold(value_t knob = -24)
+        {
+            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
+            thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
         }
 
         int process(

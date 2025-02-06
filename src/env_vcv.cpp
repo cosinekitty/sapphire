@@ -12,12 +12,15 @@ namespace Sapphire
     {
         enum ParamId
         {
+            THRESHOLD_PARAM,
+            THRESHOLD_ATTEN,
             PARAMS_LEN
         };
 
         enum InputId
         {
             AUDIO_INPUT,
+            THRESHOLD_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -43,6 +46,7 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0, -24, " dB");
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");
@@ -78,6 +82,8 @@ namespace Sapphire
                     for (int c = 0; c < nc; ++c)
                         inFrame[c] = inputs[AUDIO_INPUT].getVoltage(c);
 
+                    float thresh = getControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0);
+                    detector.setThreshold(thresh);
                     detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
@@ -105,6 +111,7 @@ namespace Sapphire
                 addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
+                addSapphireControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
             }
         };
     }
