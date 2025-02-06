@@ -16,6 +16,10 @@ namespace Sapphire
             THRESHOLD_ATTEN,
             SPEED_PARAM,
             SPEED_ATTEN,
+            LOCUT_PARAM,
+            LOCUT_ATTEN,
+            HICUT_PARAM,
+            HICUT_ATTEN,
             PARAMS_LEN
         };
 
@@ -24,6 +28,8 @@ namespace Sapphire
             AUDIO_INPUT,
             THRESHOLD_CV_INPUT,
             SPEED_CV_INPUT,
+            LOCUT_CV_INPUT,
+            HICUT_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -51,6 +57,8 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0, -24, " dB");
                 configControlGroup("Speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1, 0.5);
+                configControlGroup("Lo Cut", LOCUT_PARAM, LOCUT_ATTEN, LOCUT_CV_INPUT, EnvCutFreqMin, EnvCutFreqMax, EnvCutFreqMin);
+                configControlGroup("Hi Cut", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, EnvCutFreqMin, EnvCutFreqMax, EnvCutFreqMax);
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");
@@ -92,6 +100,12 @@ namespace Sapphire
                     float speed = getControlValue(SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1);
                     detector.setSpeed(speed);
 
+                    float locut = getControlValue(LOCUT_PARAM, LOCUT_ATTEN, LOCUT_CV_INPUT, EnvCutFreqMin, EnvCutFreqMax);
+                    detector.setLoCut(locut);
+
+                    float hicut = getControlValue(HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, EnvCutFreqMin, EnvCutFreqMax);
+                    detector.setHiCut(hicut);
+
                     detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
@@ -121,6 +135,8 @@ namespace Sapphire
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addSapphireFlatControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
                 addSapphireFlatControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
+                addSapphireFlatControlGroup("locut", LOCUT_PARAM, LOCUT_ATTEN, LOCUT_CV_INPUT);
+                addSapphireFlatControlGroup("hicut", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT);
             }
         };
     }

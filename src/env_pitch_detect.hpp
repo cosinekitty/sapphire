@@ -7,6 +7,8 @@
 namespace Sapphire
 {
     const int NO_PITCH_VOLTS = -10;    // V/OCT = -10V indicates no pitch detected at all
+    const float EnvCutFreqMin = 15;
+    const float EnvCutFreqMax = 25000;
 
     template <typename value_t, int filterLayers>
     struct EnvPitchChannelInfo
@@ -97,8 +99,8 @@ namespace Sapphire
 
         int currentSampleRate = 0;
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
-        value_t loCutFrequency = 20;
-        value_t hiCutFrequency = 3000;
+        value_t loCutFrequency = EnvCutFreqMin;
+        value_t hiCutFrequency = EnvCutFreqMax;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
@@ -225,6 +227,16 @@ namespace Sapphire
             qs *= qs;   // square
             qs *= qs;   // fourth power
             speed = 0.9999 - (qs*0.0999 / 128);
+        }
+
+        void setLoCut(value_t freq)
+        {
+            loCutFrequency = std::clamp(freq, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
+        }
+
+        void setHiCut(value_t freq)
+        {
+            hiCutFrequency = std::clamp(freq, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
         }
 
         int process(
