@@ -22,7 +22,6 @@ namespace Sapphire
         using filter_t = StagedFilter<value_t, filterLayers>;
         filter_t loCutFilter;
         filter_t hiCutFilter;
-        filter_t jitterFilter;
 
         value_t envAttack = 0;
         value_t envDecay = 0;
@@ -47,7 +46,6 @@ namespace Sapphire
             // Reset all filters in case they went non-finite.
             loCutFilter.Reset();
             hiCutFilter.Reset();
-            jitterFilter.Reset();
 
             envelope = 0;
         }
@@ -101,10 +99,10 @@ namespace Sapphire
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         value_t loCutFrequency = 20;
         value_t hiCutFrequency = 3000;
-        value_t jitterCornerFrequency;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
+        value_t speed = 0;
 
         using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
         std::vector<info_t> info;
@@ -130,16 +128,16 @@ namespace Sapphire
                 return;
             }
 
-            q.jitterFilter.SetCutoffFrequency(jitterCornerFrequency);
-
             if (q.first_thresh)
             {
                 q.first_thresh = false;
-                q.filteredWaveLength = q.jitterFilter.SnapLoPass(wavelengthSamples);
+                q.filteredWaveLength = wavelengthSamples;
             }
             else
             {
-                q.filteredWaveLength = q.jitterFilter.UpdateLoPass(wavelengthSamples, currentSampleRate);
+                value_t numberOfSteps = static_cast<value_t>(48000) / currentSampleRate;
+                for (int i = 0; i < numberOfSteps; ++i)
+                    q.filteredWaveLength = speed*q.filteredWaveLength + (1-speed)*wavelengthSamples;
             }
         }
 
@@ -223,10 +221,10 @@ namespace Sapphire
 
         void setSpeed(value_t knob = 0.5)
         {
-            value_t speed = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
-            // Vary the pitch detector's responsiveness to quick changes,
-            // at the expense of tonal stability.
-            jitterCornerFrequency = 20*speed + 1;
+            value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
+            qs *= qs;   // square
+            qs *= qs;   // fourth power
+            speed = 0.9999 - (qs*0.0999 / 128);
         }
 
         int process(
