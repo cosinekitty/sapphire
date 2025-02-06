@@ -932,7 +932,7 @@ namespace Sapphire
             float minValue = -1,
             float maxValue = +1,
             float defValue =  0,
-            const std::string unit = "")
+            std::string unit = "")
         {
             configParam(paramId, minValue, maxValue, defValue, name, unit);
             configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
