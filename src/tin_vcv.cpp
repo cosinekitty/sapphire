@@ -41,6 +41,7 @@ namespace Sapphire
         struct TinModule : SapphireModule
         {
             GateTriggerReceiver resetTrigger;
+            unsigned char delay{};
 
             TinModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -62,6 +63,7 @@ namespace Sapphire
             void initialize()
             {
                 resetTrigger.initialize();
+                delay = 2;     // reset Tricorder for the first 2 samples to prevent discontinuity "spikes"
             }
 
             void onReset(const ResetEvent& e) override
@@ -93,7 +95,9 @@ namespace Sapphire
                 z *= gain;
 
                 bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
-                sendVector(x, y, z, reset);
+                sendVector(x, y, z, delay || reset);
+                if (delay)
+                    --delay;
             }
         };
 
