@@ -131,6 +131,8 @@ namespace Sapphire
                 , modelRateChooser({0, 22050, 24000, 32000, 44100, 48000, 88200, 96000})
             {
                 provideModelResampler = true;
+                provideStereoSplitter = true;
+                provideStereoMerge = true;
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -360,8 +362,12 @@ namespace Sapphire
                 engine.setOutputTilt(outTilt);
 
                 in_frame_t signalInFrame;
-                signalInFrame.sample[0] = inputs[AUDIO_LEFT_INPUT].getVoltageSum();
-                signalInFrame.sample[1] = inputs[AUDIO_RIGHT_INPUT].getVoltageSum();
+                loadStereoInputs(
+                    signalInFrame.sample[0],
+                    signalInFrame.sample[1],
+                    AUDIO_LEFT_INPUT,
+                    AUDIO_RIGHT_INPUT
+                );
 
                 out_frame_t signalOutFrame;
                 model.finite = true;
@@ -385,8 +391,12 @@ namespace Sapphire
                 // Filter the audio through the slewer to prevent clicks during power transitions.
                 slewer.process(signalOutFrame.sample, 2);
 
-                outputs[AUDIO_LEFT_OUTPUT].setVoltage(signalOutFrame.sample[0]);
-                outputs[AUDIO_RIGHT_OUTPUT].setVoltage(signalOutFrame.sample[1]);
+                writeStereoOutputs(
+                    signalOutFrame.sample[0],
+                    signalOutFrame.sample[1],
+                    AUDIO_LEFT_OUTPUT,
+                    AUDIO_RIGHT_OUTPUT
+                );
 
                 PhysicsVector v = engine.getOutputVector(outputVectorSelectRight);
                 sendVector(v[0], v[1], v[2], false);
@@ -406,6 +416,13 @@ namespace Sapphire
                 , elastikaModule(module)
             {
                 setModule(module);
+
+                // Extra SVG layers for changing port labels: "L/R" versus "2".
+                outputStereoLabel2  = loadLabel("res/elastika_out_2.svg");
+                outputStereoLabelLR = loadLabel("res/elastika_out_lr.svg");
+                inputStereoLabelL2  = loadLabel("res/elastika_in_l2.svg");
+                inputStereoLabelR2  = loadLabel("res/elastika_in_r2.svg");
+                inputStereoLabelLR  = loadLabel("res/elastika_in_lr.svg");
 
                 // Sliders
                 addSlider(FRICTION_SLIDER_PARAM, FRICTION_LIGHT, "fric_slider");
@@ -493,6 +510,10 @@ namespace Sapphire
 
                     // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
                     menu->addChild(elastikaModule->createToggleAllSensitivityMenuItem());
+
+                    // Options to use polyphonic stereo through the input/output "L" ports.
+                    menu->addChild(elastikaModule->createStereoSplitterMenuItem());
+                    menu->addChild(elastikaModule->createStereoMergeMenuItem());
 
                     // Add options to select the sample rate that the Elastika engine runs at.
                     elastikaModule->modelRateChooser.addOptionsToMenu(menu);
