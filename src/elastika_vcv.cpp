@@ -420,6 +420,7 @@ namespace Sapphire
                 // Extra SVG layers for changing port labels: "L/R" versus "2".
                 outputStereoLabel2  = loadLabel("res/elastika_out_2.svg");
                 outputStereoLabelLR = loadLabel("res/elastika_out_lr.svg");
+                outputStereoLabelLR->setVisible(true);
                 inputStereoLabelL2  = loadLabel("res/elastika_in_l2.svg");
                 inputStereoLabelR2  = loadLabel("res/elastika_in_r2.svg");
                 inputStereoLabelLR  = loadLabel("res/elastika_in_lr.svg");
