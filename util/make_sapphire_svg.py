@@ -1877,8 +1877,8 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     yEnvelopeOut = yFence.value(5)
     yPitchOut    = yFence.value(6)
     dyText = 6.5
-    artSpaceAboveKnob = 10.0
-    artSpaceBelowKnob =  8.0
+    artSpaceAboveKnob = 9.5
+    artSpaceBelowKnob = 8.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
