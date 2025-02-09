@@ -117,10 +117,6 @@ namespace Sapphire
             if (wavelengthSamples < smallestWavelength)
                 return;
 
-            const value_t rawFrequencyHz = currentSampleRate / static_cast<value_t>(wavelengthSamples);
-            if (rawFrequencyHz < loCutFrequency || rawFrequencyHz > hiCutFrequency)
-                return;
-
             if (10*samplesSinceCrossing > currentSampleRate)    // 0.1 seconds since we saw a zero crossing?
             {
                 // It has been too long since we saw a valid wavelength.
