@@ -10,7 +10,7 @@ namespace Sapphire
     const float EnvCutFreqMin = 15;
     const float EnvCutFreqMax = 25000;
 
-    template <typename value_t, int filterLayers>
+    template <typename value_t>
     struct EnvPitchChannelInfo
     {
         value_t prevSignal;
@@ -21,7 +21,7 @@ namespace Sapphire
         value_t filteredWaveLength;
         bool first_thresh;
 
-        using filter_t = StagedFilter<value_t, filterLayers>;
+        using filter_t = StagedFilter<value_t, 1>;
         filter_t loCutFilter;
         filter_t hiCutFilter;
 
@@ -91,7 +91,7 @@ namespace Sapphire
     };
 
 
-    template <typename value_t, int maxChannels, int filterLayers = 1>
+    template <typename value_t, int maxChannels>
     class EnvPitchDetector
     {
     private:
@@ -106,7 +106,7 @@ namespace Sapphire
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
         value_t speed = 0;
 
-        using info_t = EnvPitchChannelInfo<value_t, filterLayers>;
+        using info_t = EnvPitchChannelInfo<value_t>;
         std::vector<info_t> info;
 
         void updateWaveLength(info_t& q, int& wavelengthSamples, int samplesSinceCrossing)
@@ -229,14 +229,14 @@ namespace Sapphire
             speed = 0.9999 - (qs*0.0999 / 128);
         }
 
-        void setLoCut(value_t freq)
+        void setLoCut(value_t loCutHz)
         {
-            loCutFrequency = std::clamp(freq, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
+            loCutFrequency = std::clamp(loCutHz, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
         }
 
-        void setHiCut(value_t freq)
+        void setHiCut(value_t hiCutHz)
         {
-            hiCutFrequency = std::clamp(freq, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
+            hiCutFrequency = std::clamp(hiCutHz, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
         }
 
         int process(
