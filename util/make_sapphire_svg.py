@@ -1868,7 +1868,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    yFence = FencePost(21.0, 114.0, 7)
+    yFence = FencePost(23.0, 114.0, 7)
     yThresh      = yFence.value(0)
     ySpeed       = yFence.value(1)
     yLoCut       = yFence.value(2)
@@ -1877,8 +1877,20 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     yEnvelopeOut = yFence.value(5)
     yPitchOut    = yFence.value(6)
     dyText = 6.5
+    artSpaceAboveKnob = 10.0
+    artSpaceBelowKnob =  8.0
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+
+        defs.append(Gradient(yThresh-artSpaceAboveKnob, yHiCut+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
+        defs.append(Gradient(yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
+        defs.append(Gradient(yEnvelopeOut-artSpaceAboveKnob, yPitchOut+artSpaceBelowKnob, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+
+        pl.append(ControlGroupArt(name, 'control_art', panel, yThresh-artSpaceAboveKnob, yHiCut+artSpaceBelowKnob, 'gradient_blue'))
+        pl.append(ControlGroupArt(name, 'audio_art', panel, yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, 'gradient_purple'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, yEnvelopeOut-artSpaceAboveKnob, yPitchOut+artSpaceBelowKnob, 'gradient_out'))
+
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
 
