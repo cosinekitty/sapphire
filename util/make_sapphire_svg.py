@@ -1454,18 +1454,40 @@ def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) 
     ky = 102.0      # vertical position of both knobs
     kdx = 6.5
     kdy = 13.0
-    qx1 = kx1 - 0.1
-    qx2 = kx2 - 0.1
-    qdx = 6.6       # horizontal offset of text labels "L", "R"
-    qy = 109.3
+
     pl.append(GeneralLine(kx1, ky, kx1-kdx, ky+kdy, 'left_input_line'))
     pl.append(GeneralLine(kx1, ky, kx1+kdx, ky+kdy, 'right_input_line'))
     pl.append(GeneralLine(kx2, ky, kx2-kdx, ky+kdy, 'left_output_line'))
     pl.append(GeneralLine(kx2, ky, kx2+kdx, ky+kdy, 'right_output_line'))
-    pl.append(CenteredControlTextPath(font, 'L', qx1-qdx, qy))
-    pl.append(CenteredControlTextPath(font, 'R', qx1+qdx, qy))
-    pl.append(CenteredControlTextPath(font, 'L', qx2-qdx, qy))
-    pl.append(CenteredControlTextPath(font, 'R', qx2+qdx, qy))
+
+
+def GenerateElastikaLayer(svgFileName:str, leftLabel:str, rightLabel:str, qx:float) -> int:
+    PANEL_WIDTH = 12
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    qdx = 6.6       # horizontal offset of text labels "L", "R"
+    qy = 109.3
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        if leftLabel:
+            pl.append(CenteredControlTextPath(font, leftLabel, qx-qdx, qy))
+        if rightLabel:
+            pl.append(CenteredControlTextPath(font, rightLabel, qx+qdx, qy))
+    return Save(panel, svgFileName)
+
+
+def GenerateElastikaLayers() -> int:
+    kx1 = 14.0      # horizontal position of IN/drive knob
+    kx2 = 46.96     # horizontal position of OUT/level knob
+    qx1 = kx1 - 0.1
+    qx2 = kx2 - 0.1
+    return (
+        GenerateElastikaLayer('../res/elastika_in_lr.svg',  'L', 'R', qx1) or
+        GenerateElastikaLayer('../res/elastika_in_l2.svg',  '2',  '', qx1) or
+        GenerateElastikaLayer('../res/elastika_in_r2.svg',   '', '2', qx1) or
+        GenerateElastikaLayer('../res/elastika_out_lr.svg', 'L', 'R', qx2) or
+        GenerateElastikaLayer('../res/elastika_out_2.svg',  '2',  '', qx2)
+    )
 
 
 def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
@@ -1913,6 +1935,7 @@ if __name__ == '__main__':
         GeneratePivotPanel(cdict) or
         GenerateSamPanel(cdict) or
         GeneratePopPanel(cdict) or
+        GenerateElastikaLayers() or
         GenerateElastikaPanel(cdict, Target.VcvRack) or
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
