@@ -57,8 +57,8 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0, -24, " dB");
                 configControlGroup("Speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1, 0.5);
-                configControlGroup("Frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -Gravy::OctaveRange, +Gravy::OctaveRange, Gravy::DefaultFrequencyKnob);
-                configControlGroup("Resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, Gravy::DefaultResonanceKnob);
+                configControlGroup("Center frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -Gravy::OctaveRange, +Gravy::OctaveRange, Gravy::DefaultFrequencyKnob);
+                configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, 0.25);
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");

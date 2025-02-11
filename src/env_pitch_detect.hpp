@@ -183,6 +183,8 @@ namespace Sapphire
             info.resize(maxChannels);
             setThreshold();
             setSpeed();
+            setFrequency();
+            setResonance();
             initialize();
         }
 
@@ -213,7 +215,7 @@ namespace Sapphire
                 q.pitchFilter.setFrequency(knob);
         }
 
-        void setResonance(value_t knob = 0)
+        void setResonance(value_t knob = 0.25)
         {
             for (info_t& q : info)
                 q.pitchFilter.setResonance(knob);
