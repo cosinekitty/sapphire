@@ -5,17 +5,18 @@ namespace Sapphire
 {
     namespace Gravy
     {
+        template <typename value_t>
         class SingleChannelGravyEngine
         {
         private:
-            float freqKnob  = DefaultFrequencyKnob;
-            float resKnob   = DefaultResonanceKnob;
-            float mixKnob   = DefaultMixKnob;
-            float gainKnob  = DefaultGainKnob;
+            value_t freqKnob  = DefaultFrequencyKnob;
+            value_t resKnob   = DefaultResonanceKnob;
+            value_t mixKnob   = DefaultMixKnob;
+            value_t gainKnob  = DefaultGainKnob;
 
-            StateVariableFilter<float> filter;
+            StateVariableFilter<value_t> filter;
 
-            float setKnob(float &v, float k, int lo = 0, int hi = 1)
+            float setKnob(value_t &v, value_t k, int lo = 0, int hi = 1)
             {
                 if (std::isfinite(k))
                 {
@@ -35,33 +36,33 @@ namespace Sapphire
                 filter.initialize();
             }
 
-            float setFrequency(float k)
+            value_t setFrequency(value_t k)
             {
                 return setKnob(freqKnob, k, -OctaveRange, +OctaveRange);
             }
 
-            float setResonance(float k)
+            value_t setResonance(value_t k)
             {
                 return setKnob(resKnob, k);
             }
 
-            float setMix(float k)
+            value_t setMix(value_t k)
             {
                 return setKnob(mixKnob, k);
             }
 
-            float setGain(float k)
+            value_t setGain(value_t k)
             {
                 return setKnob(gainKnob, k);
             }
 
-            FilterResult<float> process(float sampleRateHz, const float inSample)
+            FilterResult<value_t> process(value_t sampleRateHz, const value_t inSample)
             {
-                float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
-                float gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
-                float mix = 1-Cube(1-mixKnob);
+                value_t cornerFreqHz = std::pow(static_cast<value_t>(2), freqKnob) * DefaultFrequencyHz;
+                value_t gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
+                value_t mix = 1-Cube(1-mixKnob);
 
-                FilterResult<float> result = filter.process(sampleRateHz, cornerFreqHz, resKnob, inSample);
+                FilterResult<value_t> result = filter.process(sampleRateHz, cornerFreqHz, resKnob, inSample);
                 result.lowpass  = gain * (mix*result.lowpass  + (1-mix)*inSample);
                 result.bandpass = gain * (mix*result.bandpass + (1-mix)*inSample);
                 result.highpass = gain * (mix*result.highpass + (1-mix)*inSample);

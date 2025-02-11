@@ -1871,8 +1871,8 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     yFence = FencePost(23.0, 114.0, 7)
     yThresh      = yFence.value(0)
     ySpeed       = yFence.value(1)
-    yLoCut       = yFence.value(2)
-    yHiCut       = yFence.value(3)
+    yFreq        = yFence.value(2)
+    yRes         = yFence.value(3)
     yPolyAudioIn = yFence.value(4)
     yEnvelopeOut = yFence.value(5)
     yPitchOut    = yFence.value(6)
@@ -1883,11 +1883,11 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
 
-        defs.append(Gradient(yThresh-artSpaceAboveKnob, yHiCut+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
+        defs.append(Gradient(yThresh-artSpaceAboveKnob, yRes+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
         defs.append(Gradient(yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
         defs.append(Gradient(yEnvelopeOut-artSpaceAboveKnob, yPitchOut+artSpaceBelowKnob, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
 
-        pl.append(ControlGroupArt(name, 'control_art', panel, yThresh-artSpaceAboveKnob, yHiCut+artSpaceBelowKnob, 'gradient_blue'))
+        pl.append(ControlGroupArt(name, 'control_art', panel, yThresh-artSpaceAboveKnob, yRes+artSpaceBelowKnob, 'gradient_blue'))
         pl.append(ControlGroupArt(name, 'audio_art', panel, yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, 'gradient_purple'))
         pl.append(ControlGroupArt(name, 'out_art', panel, yEnvelopeOut-artSpaceAboveKnob, yPitchOut+artSpaceBelowKnob, 'gradient_out'))
 
@@ -1909,11 +1909,11 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         AddFlatControlGroup(pl, controls, xmid, ySpeed, 'speed')
         pl.append(CenteredControlTextPath(font, 'SPEED', xmid, ySpeed - dyText))
 
-        AddFlatControlGroup(pl, controls, xmid, yLoCut, 'locut')
-        pl.append(CenteredControlTextPath(font, 'LO CUT', xmid, yLoCut - dyText))
+        AddFlatControlGroup(pl, controls, xmid, yFreq, 'frequency')
+        pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyText))
 
-        AddFlatControlGroup(pl, controls, xmid, yHiCut, 'hicut')
-        pl.append(CenteredControlTextPath(font, 'HI CUT', xmid, yHiCut - dyText))
+        AddFlatControlGroup(pl, controls, xmid, yRes, 'resonance')
+        pl.append(CenteredControlTextPath(font, 'RES', xmid, yRes - dyText))
     return Save(panel, svgFileName)
 
 

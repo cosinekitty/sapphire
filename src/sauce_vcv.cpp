@@ -50,7 +50,7 @@ namespace Sapphire
 
         struct SauceModule : SapphireModule
         {
-            Gravy::SingleChannelGravyEngine engine[PORT_MAX_CHANNELS];
+            Gravy::SingleChannelGravyEngine<float> engine[PORT_MAX_CHANNELS];
             AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agcLow;
             AutomaticGainLimiter agcBand;

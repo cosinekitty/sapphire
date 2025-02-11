@@ -3,12 +3,11 @@
 #include <cmath>
 #include <vector>
 #include "sapphire_engine.hpp"
+#include "sauce_engine.hpp"
 
 namespace Sapphire
 {
     const int NO_PITCH_VOLTS = -10;    // V/OCT = -10V indicates no pitch detected at all
-    const float EnvCutFreqMin = 15;
-    const float EnvCutFreqMax = 25000;
 
     template <typename value_t>
     struct EnvPitchChannelInfo
@@ -21,9 +20,8 @@ namespace Sapphire
         value_t filteredWaveLength;
         bool first_thresh;
 
-        using filter_t = StagedFilter<value_t, 1>;
-        filter_t loCutFilter;
-        filter_t hiCutFilter;
+        using filter_t = Gravy::SingleChannelGravyEngine<value_t>;
+        filter_t pitchFilter;
 
         value_t envAttack = 0;
         value_t envDecay = 0;
@@ -44,21 +42,8 @@ namespace Sapphire
             rawWaveLengthDescend = 0;
             filteredWaveLength = 0;
             first_thresh = true;
-
-            // Reset all filters in case they went non-finite.
-            loCutFilter.Reset();
-            hiCutFilter.Reset();
-
+            pitchFilter.initialize();
             envelope = 0;
-        }
-
-        value_t bandpass(value_t input, value_t loFreq, value_t hiFreq, int sampleRateHz)
-        {
-            loCutFilter.SetCutoffFrequency(loFreq);
-            value_t locut = loCutFilter.UpdateHiPass(input, sampleRateHz);
-
-            hiCutFilter.SetCutoffFrequency(hiFreq);
-            return hiCutFilter.UpdateLoPass(locut, sampleRateHz);
         }
 
         value_t pitch(int sampleRateHz, value_t centerFrequencyHz) const
@@ -99,8 +84,6 @@ namespace Sapphire
 
         int currentSampleRate = 0;
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
-        value_t loCutFrequency = EnvCutFreqMin;
-        value_t hiCutFrequency = EnvCutFreqMax;
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
@@ -148,9 +131,8 @@ namespace Sapphire
 
             outEnvelope = q.updateAmplitude(input, currentSampleRate);
 
-            // Feed through a bandpass filter that rejects DC and other frequencies below 20 Hz,
-            // and also rejects very high frequencies.
-            value_t signal = q.bandpass(input, loCutFrequency, hiCutFrequency, currentSampleRate);
+            FilterResult<float> result = q.pitchFilter.process(currentSampleRate, input);
+            value_t signal = result.bandpass;
 
             // Make sure we have a normal numeric value for our signal.
             if (!std::isfinite(signal))
@@ -225,14 +207,16 @@ namespace Sapphire
             speed = 0.9999 - (qs*0.0999 / 128);
         }
 
-        void setLoCut(value_t loCutHz)
+        void setFrequency(value_t knob = 0)
         {
-            loCutFrequency = std::clamp(loCutHz, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
+            for (info_t& q : info)
+                q.pitchFilter.setFrequency(knob);
         }
 
-        void setHiCut(value_t hiCutHz)
+        void setResonance(value_t knob = 0)
         {
-            hiCutFrequency = std::clamp(hiCutHz, static_cast<value_t>(EnvCutFreqMin), static_cast<value_t>(EnvCutFreqMax));
+            for (info_t& q : info)
+                q.pitchFilter.setResonance(knob);
         }
 
         int process(
