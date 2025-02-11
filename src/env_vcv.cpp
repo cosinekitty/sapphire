@@ -79,6 +79,8 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 int nc = inputs[AUDIO_INPUT].getChannels();
+                nc = std::max(nc, inputs[FREQ_CV_INPUT].getChannels());
+                nc = std::max(nc, inputs[RES_CV_INPUT].getChannels());
                 if (nc <= 0)
                 {
                     const float zero = 0;
@@ -91,20 +93,29 @@ namespace Sapphire
                     float outEnvelope[PORT_MAX_CHANNELS];
                     float outPitchVoct[PORT_MAX_CHANNELS];
 
+                    float cvFreq = 0;
+                    float cvRes = 0;
+                    float audio = 0;
+
                     for (int c = 0; c < nc; ++c)
-                        inFrame[c] = inputs[AUDIO_INPUT].getVoltage(c);
+                    {
+                        nextChannelInputVoltage(audio, AUDIO_INPUT, c);
+                        inFrame[c] = audio;
+
+                        nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
+                        float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -Gravy::OctaveRange, +Gravy::OctaveRange);
+                        detector.setFrequency(freq, c);
+
+                        nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
+                        float res = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes, 0, 1);
+                        detector.setResonance(res, c);
+                    }
 
                     float thresh = getControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0);
                     detector.setThreshold(thresh);
 
                     float speed = getControlValue(SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1);
                     detector.setSpeed(speed);
-
-                    float freq = getControlValueVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -Gravy::OctaveRange, +Gravy::OctaveRange);
-                    detector.setFrequency(freq);
-
-                    float res = getControlValue(RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1);
-                    detector.setResonance(res);
 
                     detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
 

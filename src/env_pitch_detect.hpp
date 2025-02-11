@@ -183,8 +183,11 @@ namespace Sapphire
             info.resize(maxChannels);
             setThreshold();
             setSpeed();
-            setFrequency();
-            setResonance();
+            for (int c = 0; c < maxChannels; ++c)
+            {
+                setFrequency(0, c);
+                setResonance(0.25, c);
+            }
             initialize();
         }
 
@@ -209,16 +212,16 @@ namespace Sapphire
             speed = 0.9999 - (qs*0.0999 / 128);
         }
 
-        void setFrequency(value_t knob = 0)
+        void setFrequency(value_t knob, int channel)
         {
-            for (info_t& q : info)
-                q.pitchFilter.setFrequency(knob);
+            info_t& q = info.at(channel);
+            q.pitchFilter.setFrequency(knob);
         }
 
-        void setResonance(value_t knob = 0.25)
+        void setResonance(value_t knob, int channel)
         {
-            for (info_t& q : info)
-                q.pitchFilter.setResonance(knob);
+            info_t& q = info.at(channel);
+            q.pitchFilter.setResonance(knob);
         }
 
         int process(
