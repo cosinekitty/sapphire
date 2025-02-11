@@ -36,6 +36,16 @@ hexagonal mesh of balls and springs.
 
 ---
 
+## Env
+
+A polyphonic envelope follower and pitch detector.
+
+<a href="Env.md">Sapphire Env documentation</a>
+
+<a href="Env.md"><img src="images/env.png" /></a>
+
+---
+
 ## Frolic
 
 A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
