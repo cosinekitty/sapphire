@@ -5,7 +5,7 @@
 Env is a combination pitch detector and envelope follower. Given an input audio signal,
 Env tries to detect the loudness and musical pitch of a single tone in it.
 
-Env is based on the pitch detector and envelope follower in the Surge XT [TreeMonster](https://library.vcvrack.com/SurgeXTRack/SurgeXTFXTreeMonster) module. Thanks to [Paul Walker](https://github.com/baconpaul/) for ideas and encouragement in this project!
+Env is based on the pitch detector and envelope follower in the Surge XT [TreeMonster](https://library.vcvrack.com/SurgeXTRack/SurgeXTFXTreeMonster) module. Thanks to [BaconPaul](https://github.com/baconpaul/) for ideas and encouragement in this project!
 
 ## Controls
 
