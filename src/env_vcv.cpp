@@ -138,6 +138,15 @@ namespace Sapphire
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSapphireFlatControlGroup("resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
             }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (envModule == nullptr)
+                    return;
+
+                menu->addChild(new MenuSeparator);
+                menu->addChild(envModule->createToggleAllSensitivityMenuItem());
+            }
         };
     }
 }

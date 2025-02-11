@@ -36,3 +36,7 @@ The V/OCT output reports the pitch of any detected signal. The zero volt level i
 a C4 note (261.625&nbsp;Hz). Each unit volt indicates an octave. If no pitch can be detected,
 this port may output &minus;10&nbsp;V as a placeholder. Like the ENV port, V/OCT is polyphonic;
 there will be one channel of output for each channel of input on the AUDIO port.
+
+## Attenuverters
+
+Env supports [low-sensitivity attenuverters](LowSensitivityAttenuverterKnobs.md).
