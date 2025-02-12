@@ -917,11 +917,12 @@ namespace Sapphire
             return std::min(PORT_MAX_CHANNELS, nc);
         }
 
-        void nextChannelInputVoltage(float& voltage, int inputId, int channel)
+        float nextChannelInputVoltage(float& voltage, int inputId, int channel)
         {
             rack::engine::Input& input = inputs[inputId];
             if (channel < input.getChannels())
                 voltage = input.getVoltage(channel);
+            return voltage;
         }
 
         void configControlGroup(

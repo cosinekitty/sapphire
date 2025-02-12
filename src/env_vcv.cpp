@@ -81,6 +81,8 @@ namespace Sapphire
                 int nc = inputs[AUDIO_INPUT].getChannels();
                 nc = std::max(nc, inputs[FREQ_CV_INPUT].getChannels());
                 nc = std::max(nc, inputs[RES_CV_INPUT].getChannels());
+                nc = std::max(nc, inputs[SPEED_CV_INPUT].getChannels());
+                nc = std::max(nc, inputs[THRESHOLD_CV_INPUT].getChannels());
                 if (nc <= 0)
                 {
                     const float zero = 0;
@@ -93,14 +95,15 @@ namespace Sapphire
                     float outEnvelope[PORT_MAX_CHANNELS];
                     float outPitchVoct[PORT_MAX_CHANNELS];
 
+                    float audio = 0;
                     float cvFreq = 0;
                     float cvRes = 0;
-                    float audio = 0;
+                    float cvSpeed = 0;
+                    float cvThresh = 0;
 
                     for (int c = 0; c < nc; ++c)
                     {
-                        nextChannelInputVoltage(audio, AUDIO_INPUT, c);
-                        inFrame[c] = audio;
+                        inFrame[c] = nextChannelInputVoltage(audio, AUDIO_INPUT, c);
 
                         nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -Gravy::OctaveRange, +Gravy::OctaveRange);
@@ -109,13 +112,15 @@ namespace Sapphire
                         nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
                         float res = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes, 0, 1);
                         detector.setResonance(res, c);
+
+                        nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
+                        float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, 0, 1);
+                        detector.setSpeed(speed, c);
+
+                        nextChannelInputVoltage(cvThresh, THRESHOLD_CV_INPUT, c);
+                        float thresh = cvGetControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, cvThresh, -96, 0);
+                        detector.setThreshold(thresh, c);
                     }
-
-                    float thresh = getControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0);
-                    detector.setThreshold(thresh);
-
-                    float speed = getControlValue(SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1);
-                    detector.setSpeed(speed);
 
                     detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
 

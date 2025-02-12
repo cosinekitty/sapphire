@@ -28,6 +28,9 @@ namespace Sapphire
         value_t envelope = 0;
         int prevSampleRate = 0;
 
+        value_t speed;
+        value_t threshold;
+
         EnvPitchChannelInfo()
         {
             initialize();
@@ -44,6 +47,8 @@ namespace Sapphire
             first_thresh = true;
             pitchFilter.initialize();
             envelope = 0;
+            setSpeed(0.5);
+            setThreshold(-24);
         }
 
         value_t pitch(int sampleRateHz, value_t centerFrequencyHz) const
@@ -73,6 +78,20 @@ namespace Sapphire
             envelope = k*(envelope - v) + v;
             return envelope;
         }
+
+        void setSpeed(value_t knob)
+        {
+            value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
+            qs *= qs;   // square
+            qs *= qs;   // fourth power
+            speed = 0.9999 - (qs*0.0999 / 128);
+        }
+
+        void setThreshold(value_t knob)
+        {
+            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
+            threshold = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+        }
     };
 
 
@@ -87,7 +106,6 @@ namespace Sapphire
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
         value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
-        value_t speed = 0;
 
         using info_t = EnvPitchChannelInfo<value_t>;
         std::vector<info_t> info;
@@ -118,7 +136,7 @@ namespace Sapphire
             {
                 value_t numberOfSteps = static_cast<value_t>(48000) / currentSampleRate;
                 for (int i = 0; i < numberOfSteps; ++i)
-                    q.filteredWaveLength = speed*q.filteredWaveLength + (1-speed)*wavelengthSamples;
+                    q.filteredWaveLength = q.speed*q.filteredWaveLength + (1-q.speed)*wavelengthSamples;
             }
         }
 
@@ -181,10 +199,10 @@ namespace Sapphire
         EnvPitchDetector()
         {
             info.resize(maxChannels);
-            setThreshold();
-            setSpeed();
             for (int c = 0; c < maxChannels; ++c)
             {
+                setThreshold(-24, c);
+                setSpeed(0.5, c);
                 setFrequency(0, c);
                 setResonance(0.25, c);
             }
@@ -198,18 +216,16 @@ namespace Sapphire
                 q.initialize();
         }
 
-        void setThreshold(value_t knob = -24)
+        void setThreshold(value_t knob, int channel)
         {
-            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
-            thresh = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+            info_t& q = info.at(channel);
+            q.setThreshold(knob);
         }
 
-        void setSpeed(value_t knob = 0.5)
+        void setSpeed(value_t knob, int channel)
         {
-            value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
-            qs *= qs;   // square
-            qs *= qs;   // fourth power
-            speed = 0.9999 - (qs*0.0999 / 128);
+            info_t& q = info.at(channel);
+            q.setSpeed(knob);
         }
 
         void setFrequency(value_t knob, int channel)
@@ -232,16 +248,15 @@ namespace Sapphire
             value_t* outPitchVoct)      // output array [numChannels]
         {
             const int nc = std::clamp(numChannels, 0, maxChannels);
-
-            // Initialize output to whatever we deem a quiet state.
-            for (int c = 0; c < nc; ++c)
-            {
-                outEnvelope[c] = 0;
-                outPitchVoct[c] = NO_PITCH_VOLTS;
-            }
-
             if (nc > 0)    // avoid division by zero later
             {
+                // Initialize output to whatever we deem a quiet state.
+                for (int c = 0; c < nc; ++c)
+                {
+                    outEnvelope[c] = 0;
+                    outPitchVoct[c] = NO_PITCH_VOLTS;
+                }
+
                 // See if we are in a CPU-protective quiet period.
                 if (recoveryCountdown > 0)
                 {
@@ -261,7 +276,6 @@ namespace Sapphire
                         processChannel(c, inFrame[c], outEnvelope[c], outPitchVoct[c]);
                 }
             }
-
             return nc;      // number of channels written to outEnvelope[], outPitchVoct[].
         }
     };
