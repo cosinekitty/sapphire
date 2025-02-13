@@ -16,7 +16,7 @@
         <li>Added new module <a href="doc/Env.md">Env</a>: a polyphonic pitch detector and envelope follower.</li>
         <li><a href="doc/Tin.md">Tin</a> was sending an initial vector (0,0,0) after reset, causing a "spike" to appear from that point. The problem is that there can be a 2-sample delay before we start getting the real vector stream. Eliminated the spike by resetting Tricorder on the first 2 samples we receive.</li>
         <li>Elastika now supports polyphonic stereo using 2-channel input to the L input port, or output from the L output port. These are separate options. See the new checkbox menu options "Enable input stereo splitter" and "Send polyphonic stereo to L output".</li>
-        <li>Module documentation is moving to a new URL inside a new "doc" folder.</li>
+        <li>Module documentation is migrating to a new "doc" folder. Copies of those files will remain in the repo root folder for a while, so that older versions of Sapphire can still link to them. When enough people have upgraded, only the "doc" copies will be kept. The goal is to clean up the root directory.</li>
     </ul>
 </td>
 </tr>
