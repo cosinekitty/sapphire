@@ -13,9 +13,10 @@
 <td align="center">2.5.8</td>
 <td align="left">
     <ul>
-        <li>Added new module <a href="Env.md">Env</a>: a polyphonic pitch detector and envelope follower.</li>
-        <li><a href="Tin.md">Tin</a> was sending an initial vector (0,0,0) after reset, causing a "spike" to appear from that point. The problem is that there can be a 2-sample delay before we start getting the real vector stream. Eliminated the spike by resetting Tricorder on the first 2 samples we receive.</li>
+        <li>Added new module <a href="doc/Env.md">Env</a>: a polyphonic pitch detector and envelope follower.</li>
+        <li><a href="doc/Tin.md">Tin</a> was sending an initial vector (0,0,0) after reset, causing a "spike" to appear from that point. The problem is that there can be a 2-sample delay before we start getting the real vector stream. Eliminated the spike by resetting Tricorder on the first 2 samples we receive.</li>
         <li>Elastika now supports polyphonic stereo using 2-channel input to the L input port, or output from the L output port. These are separate options. See the new checkbox menu options "Enable input stereo splitter" and "Send polyphonic stereo to L output".</li>
+        <li>Module documentation is moving to a new URL inside a new "doc" folder.</li>
     </ul>
 </td>
 </tr>
@@ -25,7 +26,7 @@
 <td align="center">2.5.7</td>
 <td align="left">
     <ul>
-        <li><a href="Elastika.md">Elastika</a> uses 58% of the CPU time it did in earlier versions, thanks to a complete overhaul of its physics engine.</li>
+        <li><a href="doc/Elastika.md">Elastika</a> uses 58% of the CPU time it did in earlier versions, thanks to a complete overhaul of its physics engine.</li>
         <li>Elastika now provides a context menu option to run its physics model at a different sample rate from the VCV Rack engine. This feature adds extra CPU overhead when enabled, so it is disabled by default.</li>
         <li>The channel count sliders in Hiss, Pop, and Split/Add/Merge now move in a "snapped" manner instead of smoothly, to help visually emphasize their quantized nature.</li>
     </ul>
@@ -37,7 +38,7 @@
 <td align="center">2.5.6</td>
 <td align="left">
     <ul>
-        <li><a href="Chaops.md">Chaops</a> bug fix: when MORPH was not zero, the Frolic/Glee/Lark to the right was not using it for the monophonic outputs X, Y, Z.</li>
+        <li><a href="doc/Chaops.md">Chaops</a> bug fix: when MORPH was not zero, the Frolic/Glee/Lark to the right was not using it for the monophonic outputs X, Y, Z.</li>
         <li>Chaops: Added missing help text for the MORPH CV input port.</li>
     </ul>
 </td>
@@ -48,7 +49,7 @@
 <td align="center">2.5.5</td>
 <td align="left">
     <ul>
-        <li>Added left-expander module <a href="Chaops.md">Chaops</a> to provide additional functionality to the chaos modules <a href="Frolic.md">Frolic</a>, <a href="Glee.md">Glee</a>, and <a href="Lark.md">Lark</a>.</li>
+        <li>Added left-expander module <a href="doc/Chaops.md">Chaops</a> to provide additional functionality to the chaos modules <a href="doc/Frolic.md">Frolic</a>, <a href="doc/Glee.md">Glee</a>, and <a href="doc/Lark.md">Lark</a>.</li>
         <li>Frolic, Glee, and Lark are now 30 times as CPU efficient when Turbo Mode is enabled. The CPU usage warning label on Turbo Mode has been removed.</li>
         <li>Glee and Lark now display the first letter of selected chaos mode on top of the CHAOS knob.</li>
         <li>Frolic, Glee, and Lark now display the letter T on the SPEED knob when Turbo Mode is enabled.</li>
@@ -61,7 +62,7 @@
 <td align="center">2.5.4</td>
 <td align="left">
     <ul>
-        <li>Added a new chaotic oscillator: <a href="Lark.md">Lark</a>.</li>
+        <li>Added a new chaotic oscillator: <a href="doc/Lark.md">Lark</a>.</li>
     </ul>
 </td>
 </tr>
@@ -71,8 +72,8 @@
 <td align="center">2.5.3</td>
 <td align="left">
     <ul>
-        <li>Fixed inaccurate frequency tuning of <a href="Pop.md">Pop</a> when CHAOS=0.</li>
-        <li><a href="Pop.md">Pop</a>, <a href="Gravy.md">Gravy</a>, <a href="Sauce.md">Sauce</a>: SPEED/FREQ control voltages operate as V/OCT when the attenuverter is set to +100%. Before this change, V/OCT behavior required the attenuverter set to a lower value.</li>
+        <li>Fixed inaccurate frequency tuning of <a href="doc/Pop.md">Pop</a> when CHAOS=0.</li>
+        <li><a href="doc/Pop.md">Pop</a>, <a href="doc/Gravy.md">Gravy</a>, <a href="doc/Sauce.md">Sauce</a>: SPEED/FREQ control voltages operate as V/OCT when the attenuverter is set to +100%. Before this change, V/OCT behavior required the attenuverter set to a lower value.</li>
     </ul>
 </td>
 </tr>
@@ -82,9 +83,9 @@
 <td align="center">2.5.2</td>
 <td align="left">
     <ul>
-        <li>Added new filter module <a href="Sauce.md">Sauce</a>. This uses the same filter algorithm as <a href="Gravy.md">Gravy</a> but with an interface optimized for general polyphonic use.</li>
-        <li><a href="Gravy.md">Gravy</a> now includes an automatic gain control (AGC) limiter in the right-click menu. The limiter is OFF by default, but can be adjusted to the range 5V..50V. This can be helpful when the output gets hot due to high resonance settings.</li>
-        <li>Added a channel count display that shows 1..16 in <a href="Pop.md">Pop</a>, <a href="Hiss.md">Hiss</a>, and <a href="SplitAddMerge.md">SplitAddMerge</a>. This allows you to know the number of output channels just by looking at the panel.</li>
+        <li>Added new filter module <a href="doc/Sauce.md">Sauce</a>. This uses the same filter algorithm as <a href="doc/Gravy.md">Gravy</a> but with an interface optimized for general polyphonic use.</li>
+        <li><a href="doc/Gravy.md">Gravy</a> now includes an automatic gain control (AGC) limiter in the right-click menu. The limiter is OFF by default, but can be adjusted to the range 5V..50V. This can be helpful when the output gets hot due to high resonance settings.</li>
+        <li>Added a channel count display that shows 1..16 in <a href="doc/Pop.md">Pop</a>, <a href="doc/Hiss.md">Hiss</a>, and <a href="doc/SplitAddMerge.md">SplitAddMerge</a>. This allows you to know the number of output channels just by looking at the panel.</li>
     </ul>
 </td>
 </tr>
@@ -94,7 +95,7 @@
 <td align="center">2.5.1</td>
 <td align="left">
     <ul>
-        <li>Added new module <a href="Gravy.md">Gravy</a>: a stereo filter with frequency and resonance controls.</li>
+        <li>Added new module <a href="doc/Gravy.md">Gravy</a>: a stereo filter with frequency and resonance controls.</li>
         <li>Galaxy and Gravy support polyphonic stereo input and output.</li>
     </ul>
 </td>
@@ -105,11 +106,11 @@
 <td align="center">2.5.0</td>
 <td align="left">
     <ul>
-        <li><a href="SplitAddMerge.md">Split/Add/Merge</a> now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
+        <li><a href="doc/SplitAddMerge.md">Split/Add/Merge</a> now allows selecting any output channel count from 1..16. Before, the channel count was always 3. The default is still 3, for backward compatibility.</li>
         <li>Each Sapphire module now links to its individual documentation page instead of the Sapphire table of contents.</li>
-        <li><a href="Moots.md">Moots</a> now allows you to toggle the anti-ramping option on each of the 5 groups by right-clicking on the button for that group. You can still right-click the panel and toggle the option that way, although I believe most people will prefer the new method.</li>
+        <li><a href="doc/Moots.md">Moots</a> now allows you to toggle the anti-ramping option on each of the 5 groups by right-clicking on the button for that group. You can still right-click the panel and toggle the option that way, although I believe most people will prefer the new method.</li>
         <li>Moots also draws a "ramp" symbol on top of a button when anti-click is enabled. This allows you to see at a glance how all the buttons are configured, without clicking on anything.</li>
-        <li>Added a <a href="VoltageFlipping.md">voltage-flip option</a> for X, Y, Z outputs on Frolic, Glee, Pivot, and Rotini.</li>
+        <li>Added a <a href="doc/VoltageFlipping.md">voltage-flip option</a> for X, Y, Z outputs on Frolic, Glee, Pivot, and Rotini.</li>
     </ul>
 </td>
 </tr>
@@ -119,8 +120,8 @@
 <td align="center">2.4.9</td>
 <td align="left">
     <ul>
-        <li>New module: <a href="Pop.md">Pop</a> that generates trigger pulses that match the statistical timing of radioactive decay.</li>
-        <li>New module: <a href="SplitAddMerge.md">Split/Add/Merge</a> to make working with 2- or 3-channel signals use less real estate in a patch.</li>
+        <li>New module: <a href="doc/Pop.md">Pop</a> that generates trigger pulses that match the statistical timing of radioactive decay.</li>
+        <li>New module: <a href="doc/SplitAddMerge.md">Split/Add/Merge</a> to make working with 2- or 3-channel signals use less real estate in a patch.</li>
         <li>Panels with XYZP port groups now have a hexagon around the P port to make it easier to spot which one is 3D/polyphonic.</li>
     </ul>
 </td>
@@ -131,10 +132,10 @@
 <td align="center">2.4.8</td>
 <td align="left">
     <ul>
-        <li>New module: <a href="Pivot.md">Pivot</a> for re-orienting a 3D vector. This is another chaos toy.</li>
-        <li><a href="Rotini.md">Rotini</a>: added missing help text for ports.</li>
-        <li><a href="Glee.md">Glee</a> now has 4 different chaos modes that you can select from the context menu.</li>
-        <li><a href="Glee.md">Glee</a> and <a href="Frolic.md">Frolic</a> now have a Turbo Mode that uses more CPU but allows the oscillators to go up to 32 times faster than before (+5 added to SPEED knob).</li>
+        <li>New module: <a href="doc/Pivot.md">Pivot</a> for re-orienting a 3D vector. This is another chaos toy.</li>
+        <li><a href="doc/Rotini.md">Rotini</a>: added missing help text for ports.</li>
+        <li><a href="doc/Glee.md">Glee</a> now has 4 different chaos modes that you can select from the context menu.</li>
+        <li><a href="doc/Glee.md">Glee</a> and <a href="doc/Frolic.md">Frolic</a> now have a Turbo Mode that uses more CPU but allows the oscillators to go up to 32 times faster than before (+5 added to SPEED knob).</li>
     </ul>
 </td>
 </tr>
@@ -144,10 +145,10 @@
 <td align="center">2.4.7</td>
 <td align="left">
     <ul>
-        <li>New module: <a href="Rotini.md">Rotini</a>. It helps create more interesting chaotic 3D vector signals for fun CV.</li>
+        <li>New module: <a href="doc/Rotini.md">Rotini</a>. It helps create more interesting chaotic 3D vector signals for fun CV.</li>
         <li>Galaxy: added option for polyphonic stereo input to a single input port (L or R).</li>
         <li>Galaxy: auto-reset if output becomes non-finite or goes outside 100&nbsp;V absolute value.</li>
-        <li>Tube Unit: [Issue #56](https://github.com/cosinekitty/sapphire/issues/56) - added support for <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>.
+        <li>Tube Unit: [Issue #56](https://github.com/cosinekitty/sapphire/issues/56) - added support for <a href="doc/LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>.
     </ul>
 </td>
 </tr>
@@ -167,7 +168,7 @@
 <td align="center">2.4.5</td>
 <td align="left">
     <ul>
-        <li>The following Sapphire modules already supported <a href="LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>: Elastika, Nucleus, Polynucleus. Now, in addition to being able to right-click and toggle each attenuverter's sensitivity one at a time, you can right-click on any of the above modules to toggle all of its attenuverters.</li>
+        <li>The following Sapphire modules already supported <a href="doc/LowSensitivityAttenuverterKnobs.md">low-sensitivity attenuverters</a>: Elastika, Nucleus, Polynucleus. Now, in addition to being able to right-click and toggle each attenuverter's sensitivity one at a time, you can right-click on any of the above modules to toggle all of its attenuverters.</li>
     </ul>
 </td>
 </tr>
@@ -200,7 +201,7 @@
 <td align="center">2.4.2</td>
 <td align="left">
     <ul>
-        <li>Added a <a href="LowSensitivityAttenuverterKnobs.md">low sensitivity</a> option to attenuverter knobs. Sometimes the adjustments were so tiny to get a desired affect that it was awkward to get it right. Low sensitivity mode allows you to more easily explore those delicate parameters!</li>
+        <li>Added a <a href="doc/LowSensitivityAttenuverterKnobs.md">low sensitivity</a> option to attenuverter knobs. Sometimes the adjustments were so tiny to get a desired affect that it was awkward to get it right. Low sensitivity mode allows you to more easily explore those delicate parameters!</li>
         <li>Tricorder's animation is much smoother now. I compensated for jitter caused by VCV Rack calling my animation update function at irregular time intervals.</li>
         <li>Tricorder now allows you to manually adjust its rotation speed using the right-click context menu. You can select any rotation speed from 0.01 RPM to 100 RPM.</li>
         <li>Tricorder: Fixed [Issue #40](https://github.com/cosinekitty/sapphire/issues/40): now you can right-click on the display area and the context menu will appear. Before, you had to click on the top of the panel to get the context menu to appear.</li>
@@ -213,9 +214,9 @@
 <td align="center">2.4.1</td>
 <td align="left">
     <ul>
-        <li>Added new module <a href="Polynucleus.md">Polynucleus</a>. This module is the same as <a href="Nucleus.md">Nucleus</a>, only with 3-channel polyphonic ports instead of triplets of monophonic ports.</li>
-        <li>Added new module <a href="Tout.md">Tout</a>. This module can be placed to the right of a Tricoder to provide the vector that Tricorder is graphing as voltages on output ports. Tout is the inverse of <a href="Tin.md">Tin</a>.</li>
-        <li>Added new module <a href="Hiss.md">Hiss</a> for generating unbiased vectors in an N-dimensional space.</li>
+        <li>Added new module <a href="doc/Polynucleus.md">Polynucleus</a>. This module is the same as <a href="Nucleus.md">Nucleus</a>, only with 3-channel polyphonic ports instead of triplets of monophonic ports.</li>
+        <li>Added new module <a href="doc/Tout.md">Tout</a>. This module can be placed to the right of a Tricoder to provide the vector that Tricorder is graphing as voltages on output ports. Tout is the inverse of <a href="Tin.md">Tin</a>.</li>
+        <li>Added new module <a href="doc/Hiss.md">Hiss</a> for generating unbiased vectors in an N-dimensional space.</li>
         <li>Nucleus <a href="https://github.com/cosinekitty/sapphire/issues/30">issue #30</a>: watch out for infinite/NAN input. If it happens, reset the internal state and keep going.</li>
         <li>Added a "reset simulation" command in the right-click menu that allows you to manually bring the particles to a halt. This can be handy when the simulation gets out of control in a way that does not trigger the NAN auto-reset mentioned above.</li>
         <li>Elastika, Nucleus, and Tube Unit now auto-reset if infinite/NAN output is detected, and indicate the problem by turning the OUTPUT level knob bright pink for 1 second, every time it happens.</li>
@@ -231,7 +232,7 @@
 <td align="center">2.4.0</td>
 <td align="left">
     <ul>
-        <li>Added a new module: <a href="Nucleus.md">Nucleus</a>.</li>
+        <li>Added a new module: <a href="doc/Nucleus.md">Nucleus</a>.</li>
         <li>Fixed issues where Elastika and Tube Unit did not persist AGC level or DC reject frequency. They were being reset to their default values every time a patch was loaded.</li>
         <li>Tricorder: the numeric display now includes a triangle that points up or down, depending on whether the value is increasing or decreasing.</li>
         <li>Tricorder: when first connected to a constant 0V input, immediately refresh the coordinate axes. Before this change, the display area stayed blank until the input voltage changed by more than 0.1V. This was confusing, because it looked like there is no input signal!</li>
@@ -283,7 +284,7 @@
 <td align="center">2.2.1</td>
 <td align="left">
 <ul>
-    Initial release of Sapphire <a href="TubeUnit.md">Tube Unit</a>.
+    Initial release of Sapphire <a href="doc/TubeUnit.md">Tube Unit</a>.
 </ul>
 </td>
 </tr>
@@ -334,7 +335,7 @@ Improvements based on community feedback.
 <td align="center">8 Nov 2022</td>
 <td align="center">2.1.1</td>
 <td align="left">
-Initial release of Sapphire <a href="Elastika.md">Elastika</a>.
+Initial release of Sapphire <a href="doc/Elastika.md">Elastika</a>.
 </td>
 </tr>
 
@@ -372,7 +373,7 @@ Made the following fixes/improvements to Sapphire Moots:
 <td align="center">19 Aug 2022</td>
 <td align="center">2.0.0</td>
 <td align="left">
-Initial release of Sapphire <a href="Moots.md">Moots</a>.
+Initial release of Sapphire <a href="doc/Moots.md">Moots</a>.
 </td>
 </tr>
 
