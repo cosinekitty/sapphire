@@ -37,7 +37,7 @@
     {
       "slug": "Env",
       "name": "Env",
-      "description": "Envelope follower and pitch dector.",
+      "description": "Envelope follower and pitch detector.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Env.md",
       "tags": [
         "Polyphonic",
