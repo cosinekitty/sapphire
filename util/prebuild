@@ -30,6 +30,9 @@ cp -v \
     ../VoltageFlipping.md \
         ../doc/ || exit 1
 
+# Also copy images so identical markdown can use images from both directories.
+cp -v ../images/*.png ../doc/images/ || exit 1
+
 # Generate the SVG files used by Sapphire modules for panel layouts.
 ./make_panels || exit 1
 
