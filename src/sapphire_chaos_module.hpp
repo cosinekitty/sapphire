@@ -12,6 +12,8 @@ namespace Sapphire
 {
     namespace Chaos
     {
+        const int ChaosOctaveRange = 7;     // the number of octaves above *OR* below zero.
+
         enum ParamId
         {
             // Large knobs for manual parameter adjustment
@@ -75,7 +77,7 @@ namespace Sapphire
                 configOutput(Z_OUTPUT, "Z");
                 configOutput(POLY_OUTPUT, "Polyphonic (X, Y, Z)");
 
-                configParam(SPEED_KNOB_PARAM, -7, +7, 0, "Speed");
+                configParam(SPEED_KNOB_PARAM, -ChaosOctaveRange, +ChaosOctaveRange, 0, "Speed");
                 configParam(CHAOS_KNOB_PARAM, -1, +1, 0, "Chaos");
 
                 configParam(SPEED_ATTEN, -1, 1, 0, "Speed attenuverter", "%", 0, 100);
@@ -193,7 +195,7 @@ namespace Sapphire
                 {
                     float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
                     circuit.setKnob(chaos);
-                    float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -7, +7);
+                    float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     if (turboMode)
                         speed += 5;
                     double dt = args.sampleTime * std::pow(2.0f, speed);
@@ -309,10 +311,38 @@ namespace Sapphire
         };
 
 
+        struct SpeedAttenuverterKnob : SapphireAttenuverterKnob
+        {
+            Param* atten = nullptr;
+
+            void appendContextMenu(ui::Menu* menu) override
+            {
+                SapphireAttenuverterKnob::appendContextMenu(menu);
+                if (atten != nullptr)
+                {
+                    // The following lambda is called every time the menu item is clicked.
+                    auto onMenuItemSelected = [this]()
+                    {
+                        // Disable low sensitivity if set, in order to get the correct percentage.
+                        setLowSensitive(false);
+
+                        // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
+                        // if the attenuverter were set to 100%. We want to bring the ratio down
+                        // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
+                        const float cvRange = 5;
+                        const float knobRange = 2*ChaosOctaveRange;
+                        atten->setValue(cvRange/knobRange);
+                    };
+                    menu->addChild(createMenuItem("Snap to V/OCT", "", onMenuItemSelected));
+                }
+            }
+        };
+
+
         template <typename module_t>
         struct ChaosWidget : SapphireWidget
         {
-            module_t *chaosModule;
+            module_t* chaosModule{};
 
             ChaosWidget(module_t* module, const char *moduleCode, const char *panelSvgFileName)
                 : SapphireWidget(moduleCode, asset::plugin(pluginInstance, panelSvgFileName))
@@ -336,7 +366,9 @@ namespace Sapphire
                 chaos_knob_t* chaosKnob = addKnob<chaos_knob_t>(CHAOS_KNOB_PARAM, "chaos_knob");
                 chaosKnob->chaosModule = module;
 
-                addSapphireAttenuverter(SPEED_ATTEN, "speed_atten");
+                auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
+                knob->atten = module ? &module->params[SPEED_ATTEN] : nullptr;
+
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
