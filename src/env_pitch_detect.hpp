@@ -105,7 +105,6 @@ namespace Sapphire
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
-        value_t thresh = 0;     // amplitude to reach before considering pitch to be significant
 
         using info_t = EnvPitchChannelInfo<value_t>;
         std::vector<info_t> info;
@@ -175,13 +174,13 @@ namespace Sapphire
                 {
                     if (signal > 0)
                     {
-                        if (q.ascendSamples >= smallestWavelength && signal > thresh)
+                        if (q.ascendSamples >= smallestWavelength && signal > q.threshold)
                             q.rawWaveLengthAscend = q.ascendSamples;
                         q.ascendSamples = 0;
                     }
                     else
                     {
-                        if (q.descendSamples >= smallestWavelength && signal < -thresh)
+                        if (q.descendSamples >= smallestWavelength && signal < -q.threshold)
                             q.rawWaveLengthDescend = q.descendSamples;
                         q.descendSamples = 0;
                     }
