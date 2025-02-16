@@ -15,6 +15,7 @@ namespace Sapphire
         value_t prevSignal;
         int ascendSamples;        // wavelength sample counters between consecutive ascending  zero-crossings
         int descendSamples;       // wavelength sample counters between consecutive descending zero-crossings
+        int samplesSincePitchDetected;
         int rawWaveLengthAscend;
         int rawWaveLengthDescend;
         value_t filteredWaveLength;
@@ -41,6 +42,7 @@ namespace Sapphire
             prevSignal = 0;
             ascendSamples = 0;
             descendSamples = 0;
+            samplesSincePitchDetected = 0;
             rawWaveLengthAscend = 0;
             rawWaveLengthDescend = 0;
             filteredWaveLength = 0;
@@ -73,7 +75,11 @@ namespace Sapphire
                 envAttack = std::pow(0.01, 1.0 / (0.005*sampleRate));
                 envDecay  = std::pow(0.01, 1.0 / (0.500*sampleRate));
             }
-            value_t v = std::abs(signal);
+            value_t v;
+            if (10 * samplesSincePitchDetected > sampleRate)
+                v = 0;
+            else
+                v = std::abs(signal);
             value_t k = (v > envelope) ? envAttack : envDecay;
             envelope = k*(envelope - v) + v;
             return envelope;
@@ -141,12 +147,15 @@ namespace Sapphire
 
         void processChannel(int c, value_t input, value_t& outEnvelope, value_t& outPitchVoct)
         {
+            outEnvelope = 0;
+            outPitchVoct = NO_PITCH_VOLTS;
+
             info_t& q = info.at(c);
 
             ++q.ascendSamples;
             ++q.descendSamples;
-
-            outEnvelope = q.updateAmplitude(input, currentSampleRate);
+            if (q.samplesSincePitchDetected < 1000000)
+                ++q.samplesSincePitchDetected;
 
             FilterResult<float> result = q.pitchFilter.process(currentSampleRate, input);
             value_t signal = result.bandpass;
@@ -175,13 +184,19 @@ namespace Sapphire
                     if (signal > 0)
                     {
                         if (q.ascendSamples >= smallestWavelength && signal > q.threshold)
+                        {
                             q.rawWaveLengthAscend = q.ascendSamples;
+                            q.samplesSincePitchDetected = 0;
+                        }
                         q.ascendSamples = 0;
                     }
                     else
                     {
                         if (q.descendSamples >= smallestWavelength && signal < -q.threshold)
+                        {
                             q.rawWaveLengthDescend = q.descendSamples;
+                            q.samplesSincePitchDetected = 0;
+                        }
                         q.descendSamples = 0;
                     }
                 }
@@ -191,6 +206,7 @@ namespace Sapphire
 
             updateWaveLength(q, q.rawWaveLengthAscend,  q.ascendSamples);
             updateWaveLength(q, q.rawWaveLengthDescend, q.descendSamples);
+            outEnvelope = q.updateAmplitude(input, currentSampleRate);
             outPitchVoct = q.pitch(currentSampleRate, centerFrequencyHz);
         }
 
