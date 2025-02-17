@@ -1100,10 +1100,17 @@ static int EnvPitch_EnvelopeAmplitude()
         }
     }
     float rms = std::sqrt(sum/count);
-    float spread = (maxEnvelope-minEnvelope) / rms;
-    printf("EnvelopeAmplitude: min=%0.6f, max=%0.6f, rms=%0.6f, error=%0.3e\n", minEnvelope, maxEnvelope, rms, spread);
-    if (spread > 3.7e-3)
+    float jitter = (maxEnvelope-minEnvelope) / rms;
+    printf("EnvelopeAmplitude: min=%0.6f, max=%0.6f, rms=%0.6f, jitter=%0.3e\n", minEnvelope, maxEnvelope, rms, jitter);
+    if (jitter > 3.7e-3)
         return Fail("EnvelopeAmplitude", "Excessive envelope jitter");
+
+    // Output amplitude should be very close to input amplitude.
+    float diff = rms/amplitude - 1;
+    printf("EnvelopeAmplitude: amplitude error = %0.3g\n", diff);
+    if (std::abs(diff) > 1.0e-4)
+        return Fail("EnvelopeAmplitude", "Amplitude is not accurate enough");
+
     return 0;
 }
 
