@@ -1068,14 +1068,17 @@ static int EnvPitch_EnvelopeAmplitude()
     engine_t engine;
 
     const int sampleRate = 48000;
-    const int settleSamples = sampleRate / 10;
+    const int settleSamples = sampleRate / 4;
     const int nsamples = 5*sampleRate;
     float envelope = 0;
     float pitch = 0;
     const float amplitude = 5;
     float minEnvelope = NAN;
     float maxEnvelope = NAN;
-    float sum = 0;
+    double envelopeSum = 0;
+    float minPitch = NAN;
+    float maxPitch = NAN;
+    double pitchSum = 0;
     int count = 0;
     bool firstEnvelope = true;
     for (int i = 0; i < nsamples; ++i)
@@ -1085,31 +1088,49 @@ static int EnvPitch_EnvelopeAmplitude()
         if (i >= settleSamples)
         {
             ++count;
-            sum += envelope*envelope;
+            envelopeSum += static_cast<double>(envelope) * static_cast<double>(envelope);
+            pitchSum += static_cast<double>(pitch) * static_cast<double>(pitch);
 
             if (firstEnvelope)
             {
                 firstEnvelope = false;
                 minEnvelope = maxEnvelope = envelope;
+                minPitch = maxPitch = pitch;
             }
             else
             {
                 minEnvelope = std::min(minEnvelope, envelope);
                 maxEnvelope = std::max(maxEnvelope, envelope);
+                minPitch = std::min(minPitch, pitch);
+                maxPitch = std::max(maxPitch, pitch);
             }
         }
     }
-    float rms = std::sqrt(sum/count);
-    float jitter = (maxEnvelope-minEnvelope) / rms;
-    printf("EnvelopeAmplitude: min=%0.6f, max=%0.6f, rms=%0.6f, jitter=%0.3e\n", minEnvelope, maxEnvelope, rms, jitter);
-    if (jitter > 3.7e-3)
+    double envelopeRms = std::sqrt(envelopeSum/count);
+    float envelopeJitter = (maxEnvelope-minEnvelope) / envelopeRms;
+    printf("EnvelopeAmplitude: min=%0.6f, max=%0.6f, rms=%0.16f, jitter=%0.3e\n", minEnvelope, maxEnvelope, envelopeRms, envelopeJitter);
+    if (envelopeJitter > 3.7e-3)
         return Fail("EnvelopeAmplitude", "Excessive envelope jitter");
 
     // Output amplitude should be very close to input amplitude.
-    float diff = rms/amplitude - 1;
+    float diff = envelopeRms/amplitude - 1;
     printf("EnvelopeAmplitude: amplitude error = %0.3g\n", diff);
-    if (std::abs(diff) > 1.0e-4)
+    if (std::abs(diff) > 1.3e-8)
         return Fail("EnvelopeAmplitude", "Amplitude is not accurate enough");
+
+    double rmsPitch = std::sqrt(pitchSum/count);
+    printf("EnvelopeAmplitude PITCH: min=%0.6f, max=%0.6f, rms=%0.6f\n", minPitch, maxPitch, rmsPitch);
+
+    const double exactPitch = 0.75;     // 440 Hz = 3/4 octave above C4
+    double pitchDiff = rmsPitch/exactPitch - 1;
+    printf("EnvelopeAmplitude PITCH diff = %e\n", pitchDiff);
+    if (std::abs(pitchDiff) > 6.2e-4)
+        return Fail("EnvelopeAmplitude", "Pitch is not accurate enough");
+
+    float warble = (maxPitch - minPitch) / rmsPitch;
+    printf("EnvelopeAmplitude PITCH warble = %e\n", warble);
+    if (warble > 2.3e-3)
+        return Fail("EnvelopeAmplitude", "Too much pitch variation");
 
     return 0;
 }

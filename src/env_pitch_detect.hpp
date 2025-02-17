@@ -118,7 +118,7 @@ namespace Sapphire
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
         const int smallestWavelength = 16;
-        static constexpr value_t envelopeCorrection = 1.032264;   // experimentally derived envelope correction factor for sinewave input
+        static constexpr value_t envelopeCorrection = 1.0324964430935937;   // experimentally derived envelope correction factor for sinewave input
 
         using info_t = EnvPitchChannelInfo<value_t>;
         std::vector<info_t> info;
