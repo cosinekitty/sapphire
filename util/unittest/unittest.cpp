@@ -7,8 +7,9 @@
 #include "galaxy_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
-#include "Galactic.h"
 #include "pop_engine.hpp"
+#include "env_pitch_detect.hpp"
+#include "Galactic.h"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -31,23 +32,25 @@ struct UnitTest
 };
 
 static int AutoGainControl();
-static int ChaosTest();
-static int ReadWave();
 static int AutoScale();
+static int ChaosTest();
 static int DelayLineTest();
-static int InterpolatorTest();
-static int TaperTest();
-static int QuadraticTest();
+static int EnvPitchTest();
+static int FilterTest();
 static int GalaxyTest();
+static int InterpolatorTest();
 static int PivotTest();
 static int PopTest();
-static int FilterTest();
+static int QuadraticTest();
+static int ReadWave();
+static int TaperTest();
 
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl  },
     { "chaos",      ChaosTest        },
     { "delay",      DelayLineTest    },
+    { "env",        EnvPitchTest     },
     { "galaxy",     GalaxyTest       },
     { "filter",     FilterTest       },
     { "interp",     InterpolatorTest },
@@ -1051,5 +1054,65 @@ static int FilterTest()
         Pass("FilterTest");
 }
 
+
+//---------------------------------------------------------------------------------------
+
+static int EnvPitch_EnvelopeAmplitude()
+{
+    // Verify that the pitch detector envelope output closely
+    // matches the actual peak amplitude of the input signal.
+
+    const int nchannels = 1;
+
+    using engine_t = Sapphire::EnvPitchDetector<float, nchannels>;
+    engine_t engine;
+
+    const int sampleRate = 48000;
+    const int settleSamples = sampleRate / 10;
+    const int nsamples = 5*sampleRate;
+    float envelope = 0;
+    float pitch = 0;
+    const float amplitude = 5;
+    float minEnvelope = NAN;
+    float maxEnvelope = NAN;
+    float sum = 0;
+    int count = 0;
+    bool firstEnvelope = true;
+    for (int i = 0; i < nsamples; ++i)
+    {
+        float signal = amplitude * std::sin((440*2*M_PI*i)/sampleRate);
+        engine.process(nchannels, sampleRate, &signal, &envelope, &pitch);
+        if (i >= settleSamples)
+        {
+            ++count;
+            sum += envelope*envelope;
+
+            if (firstEnvelope)
+            {
+                firstEnvelope = false;
+                minEnvelope = maxEnvelope = envelope;
+            }
+            else
+            {
+                minEnvelope = std::min(minEnvelope, envelope);
+                maxEnvelope = std::max(maxEnvelope, envelope);
+            }
+        }
+    }
+    float rms = std::sqrt(sum/count);
+    float spread = (maxEnvelope-minEnvelope) / rms;
+    printf("EnvelopeAmplitude: min=%0.6f, max=%0.6f, rms=%0.6f, error=%0.3e\n", minEnvelope, maxEnvelope, rms, spread);
+    if (spread > 3.7e-3)
+        return Fail("EnvelopeAmplitude", "Excessive envelope jitter");
+    return 0;
+}
+
+
+static int EnvPitchTest()
+{
+    return
+        EnvPitch_EnvelopeAmplitude() ||
+        Pass("EnvPitchTest");
+}
 
 //---------------------------------------------------------------------------------------
