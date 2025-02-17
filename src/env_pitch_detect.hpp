@@ -9,6 +9,13 @@ namespace Sapphire
 {
     const int NO_PITCH_VOLTS = -10;    // V/OCT = -10V indicates no pitch detected at all
 
+    namespace Env
+    {
+        const int MinThreshold = -96;       // decibels
+        const int MaxThreshold = 0;         // decibels
+        const int DefaultThreshold = -30;   // decibels
+    }
+
     template <typename value_t>
     struct EnvPitchChannelInfo
     {
@@ -50,7 +57,7 @@ namespace Sapphire
             pitchFilter.initialize();
             envelope = 0;
             setSpeed(0.5);
-            setThreshold(-24);
+            setThreshold(Env::DefaultThreshold);
         }
 
         value_t pitch(int sampleRateHz, value_t centerFrequencyHz) const
@@ -90,12 +97,12 @@ namespace Sapphire
             value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
             qs *= qs;   // square
             qs *= qs;   // fourth power
-            speed = 0.9999 - (qs*0.0999 / 128);
+            speed = 0.9999 - qs*(0.0999 / 128);
         }
 
         void setThreshold(value_t knob)
         {
-            value_t db = std::clamp(knob, static_cast<value_t>(-96), static_cast<value_t>(0));
+            value_t db = std::clamp(knob, static_cast<value_t>(Env::MinThreshold), static_cast<value_t>(Env::MaxThreshold));
             threshold = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
         }
     };
@@ -147,9 +154,6 @@ namespace Sapphire
 
         void processChannel(int c, value_t input, value_t& outEnvelope, value_t& outPitchVoct)
         {
-            outEnvelope = 0;
-            outPitchVoct = NO_PITCH_VOLTS;
-
             info_t& q = info.at(c);
 
             ++q.ascendSamples;
@@ -216,7 +220,7 @@ namespace Sapphire
             info.resize(maxChannels);
             for (int c = 0; c < maxChannels; ++c)
             {
-                setThreshold(-24, c);
+                setThreshold(Env::DefaultThreshold, c);
                 setSpeed(0.5, c);
                 setFrequency(0, c);
                 setResonance(0.25, c);

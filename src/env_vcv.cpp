@@ -55,7 +55,7 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, -96, 0, -24, " dB");
+                configControlGroup("Threshold", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT, MinThreshold, MaxThreshold, DefaultThreshold, " dB");
                 configControlGroup("Speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1, 0.5);
                 configControlGroup("Center frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -Gravy::OctaveRange, +Gravy::OctaveRange, Gravy::DefaultFrequencyKnob);
                 configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, 0.25);
@@ -118,7 +118,7 @@ namespace Sapphire
                         detector.setSpeed(speed, c);
 
                         nextChannelInputVoltage(cvThresh, THRESHOLD_CV_INPUT, c);
-                        float thresh = cvGetControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, cvThresh, -96, 0);
+                        float thresh = cvGetControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, cvThresh, MinThreshold, MaxThreshold);
                         detector.setThreshold(thresh, c);
                     }
 
