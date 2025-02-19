@@ -14,6 +14,8 @@ namespace Sapphire
         const int MinThreshold = -96;       // decibels
         const int MaxThreshold = 0;         // decibels
         const int DefaultThreshold = -30;   // decibels
+
+        const int SmallestWaveLength = 16;  // samples
     }
 
     template <typename value_t>
@@ -64,7 +66,7 @@ namespace Sapphire
         {
             // Convert wavelength [samples] to frequency [Hz] to pitch [V/OCT].
             // samplerate/wavelength: [samples/sec]/[samples] = [1/sec] = [Hz]
-            if (filteredWaveLength >= 10)
+            if (filteredWaveLength >= Env::SmallestWaveLength)
             {
                 value_t frequencyHz = sampleRateHz / filteredWaveLength;
                 return std::log2(frequencyHz / centerFrequencyHz);
@@ -117,7 +119,6 @@ namespace Sapphire
         int currentSampleRate = 0;
         value_t centerFrequencyHz = 261.6255653005986;        // note C4 = 440 / (2**(3/4))
         int recoveryCountdown = 0;         // how many samples remain before trying to filter again (CPU usage limiter)
-        const int smallestWavelength = 16;
         static constexpr value_t envelopeCorrection = 1.0324964430935937;   // experimentally derived envelope correction factor for sinewave input
 
         using info_t = EnvPitchChannelInfo<value_t>;
@@ -128,7 +129,7 @@ namespace Sapphire
             // Don't pollute the filter with ridiculous values!
             // It's better to bail out and ignore this wavelength if it
             // is invalid or too short to take seriously.
-            if (wavelengthSamples < smallestWavelength)
+            if (wavelengthSamples < Env::SmallestWaveLength)
                 return;
 
             if (10*samplesSinceCrossing > currentSampleRate)    // 0.1 seconds since we saw a zero crossing?
@@ -188,7 +189,7 @@ namespace Sapphire
                 {
                     if (signal > 0)
                     {
-                        if (q.ascendSamples >= smallestWavelength && signal > q.threshold)
+                        if (q.ascendSamples >= Env::SmallestWaveLength && signal > q.threshold)
                         {
                             q.rawWaveLengthAscend = q.ascendSamples;
                             q.samplesSincePitchDetected = 0;
@@ -197,7 +198,7 @@ namespace Sapphire
                     }
                     else
                     {
-                        if (q.descendSamples >= smallestWavelength && signal < -q.threshold)
+                        if (q.descendSamples >= Env::SmallestWaveLength && signal < -q.threshold)
                         {
                             q.rawWaveLengthDescend = q.descendSamples;
                             q.samplesSincePitchDetected = 0;
