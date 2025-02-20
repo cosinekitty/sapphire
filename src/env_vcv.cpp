@@ -47,9 +47,18 @@ namespace Sapphire
 
         using detector_t = EnvPitchDetector<float, PORT_MAX_CHANNELS>;
 
+        enum class EnvPortMode
+        {
+            Linear,
+            GateActiveHi,
+            GateActiveLo,
+            LEN
+        };
+
         struct EnvModule : SapphireModule
         {
             detector_t detector;
+            EnvPortMode envPortMode = EnvPortMode::Linear;
 
             EnvModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -74,6 +83,22 @@ namespace Sapphire
             void initialize()
             {
                 detector.initialize();
+                envPortMode = EnvPortMode::Linear;
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t *root = SapphireModule::dataToJson();
+                json_object_set_new(root, "envPortMode", json_integer(static_cast<int>(envPortMode)));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                json_t* epm = json_object_get(root, "envPortMode");
+                if (json_is_integer(epm))
+                    envPortMode = static_cast<EnvPortMode>(json_integer_value(epm));
             }
 
             void process(const ProcessArgs& args) override
@@ -100,6 +125,7 @@ namespace Sapphire
                     float cvRes = 0;
                     float cvSpeed = 0;
                     float cvThresh = 0;
+                    float thresh[PORT_MAX_CHANNELS]{};
 
                     for (int c = 0; c < nc; ++c)
                     {
@@ -118,11 +144,15 @@ namespace Sapphire
                         detector.setSpeed(speed, c);
 
                         nextChannelInputVoltage(cvThresh, THRESHOLD_CV_INPUT, c);
-                        float thresh = cvGetControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, cvThresh, MinThreshold, MaxThreshold);
-                        detector.setThreshold(thresh, c);
+                        float threshKnob = cvGetControlValue(THRESHOLD_PARAM, THRESHOLD_ATTEN, cvThresh, MinThreshold, MaxThreshold);
+                        thresh[c] = detector.setThreshold(threshKnob, c);
                     }
 
-                    detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
+                    int np = detector.process(nc, args.sampleRate, inFrame, outEnvelope, outPitchVoct);
+                    assert(np == nc);
+
+                    for (int c = 0; c < nc; ++c)
+                        outEnvelope[c] = outputVoltage(outEnvelope[c], thresh[c]);
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
                     setPolyOutput(PITCH_OUTPUT, nc, outPitchVoct);
@@ -134,6 +164,54 @@ namespace Sapphire
                 outputs[id].setChannels(nc);
                 for (int c = 0; c < nc; ++c)
                     outputs[id].setVoltage(volts[c], c);
+            }
+
+            float outputVoltage(float envelope, float threshold) const
+            {
+                switch (envPortMode)
+                {
+                case EnvPortMode::Linear:
+                default:
+                    return envelope;
+
+                case EnvPortMode::GateActiveHi:
+                    return (envelope < threshold) ? 0 : 10;
+
+                case EnvPortMode::GateActiveLo:
+                    return (envelope < threshold) ? 10 : 0;
+            }
+        }
+        };
+
+        void AddPortModesToMenu(Menu* menu, EnvModule* envModule)
+        {
+            if (menu == nullptr)
+                return;
+
+            if (envModule == nullptr)
+                return;
+
+            menu->addChild(createIndexSubmenuItem(
+                "ENV port output mode",
+                {
+                    "Linear envelope",
+                    "Gate when pitch detected",
+                    "Gate when quiet"
+                },
+                [=]() { return static_cast<std::size_t>(envModule->envPortMode); },
+                [=](size_t mode) { envModule->envPortMode = static_cast<EnvPortMode>(mode); }
+            ));
+        }
+
+        struct EnvOutputPort : SapphirePort
+        {
+            EnvModule* envModule = nullptr;
+
+            void appendContextMenu(ui::Menu* menu) override
+            {
+                SapphirePort::appendContextMenu(menu);
+                menu->addChild(new MenuSeparator);
+                AddPortModesToMenu(menu, envModule);
             }
         };
 
@@ -147,7 +225,8 @@ namespace Sapphire
             {
                 setModule(module);
                 addSapphireInput(AUDIO_INPUT, "audio_input");
-                addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
+                EnvOutputPort *ep = addSapphireOutput<EnvOutputPort>(ENVELOPE_OUTPUT, "envelope_output");
+                ep->envModule = module;
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addSapphireFlatControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
                 addSapphireFlatControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
@@ -162,6 +241,7 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
                 menu->addChild(envModule->createToggleAllSensitivityMenuItem());
+                AddPortModesToMenu(menu, envModule);
             }
         };
     }

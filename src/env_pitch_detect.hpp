@@ -102,10 +102,11 @@ namespace Sapphire
             speed = 0.9999 - qs*(0.0999 / 128);
         }
 
-        void setThreshold(value_t knob)
+        value_t setThreshold(value_t knob)
         {
             value_t db = std::clamp(knob, static_cast<value_t>(Env::MinThreshold), static_cast<value_t>(Env::MaxThreshold));
             threshold = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+            return threshold;
         }
     };
 
@@ -237,10 +238,10 @@ namespace Sapphire
                 q.initialize();
         }
 
-        void setThreshold(value_t knob, int channel)
+        value_t setThreshold(value_t knob, int channel)
         {
             info_t& q = info.at(channel);
-            q.setThreshold(knob);
+            return q.setThreshold(knob);
         }
 
         void setSpeed(value_t knob, int channel)

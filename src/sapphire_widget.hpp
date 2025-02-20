@@ -257,9 +257,10 @@ namespace Sapphire
             position(output, label);
         }
 
-        SapphirePort* addSapphireOutput(int outputId, const std::string& label)
+        template <typename port_t = SapphirePort>
+        port_t* addSapphireOutput(int outputId, const std::string& label)
         {
-            SapphirePort *port = createOutputCentered<SapphirePort>(Vec{}, module, outputId);
+            port_t *port = createOutputCentered<port_t>(Vec{}, module, outputId);
             addSapphireOutput(port, label);
             return port;
         }
