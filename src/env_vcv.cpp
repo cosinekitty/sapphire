@@ -179,8 +179,8 @@ namespace Sapphire
 
                 case EnvPortMode::GateActiveLo:
                     return (envelope < threshold) ? 10 : 0;
+                }
             }
-        }
         };
 
         void AddPortModesToMenu(Menu* menu, EnvModule* envModule)
