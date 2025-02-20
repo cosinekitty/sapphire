@@ -1868,16 +1868,17 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-    yFence = FencePost(23.0, 114.0, 7)
+    yFence = FencePost(20.0, 114.0, 8)
     yThresh      = yFence.value(0)
     ySpeed       = yFence.value(1)
     yFreq        = yFence.value(2)
     yRes         = yFence.value(3)
-    yPolyAudioIn = yFence.value(4)
-    yEnvelopeOut = yFence.value(5)
-    yPitchOut    = yFence.value(6)
-    dyText = 6.5
-    artSpaceAboveKnob = 9.5
+    yGain        = yFence.value(4)
+    yPolyAudioIn = yFence.value(5)
+    yEnvelopeOut = yFence.value(6)
+    yPitchOut    = yFence.value(7)
+    dyText = 5.8
+    artSpaceAboveKnob = 8.6
     artSpaceBelowKnob = 8.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -1914,6 +1915,9 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'resonance')
         pl.append(CenteredControlTextPath(font, 'RES', xmid, yRes - dyText))
+
+        AddFlatControlGroup(pl, controls, xmid, yGain, 'gain')
+        pl.append(CenteredControlTextPath(font, 'GAIN', xmid, yGain - dyText))
     return Save(panel, svgFileName)
 
 

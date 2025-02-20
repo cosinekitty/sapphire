@@ -29,6 +29,13 @@ namespace Sapphire
         return x * x * x;
     }
 
+    template <typename value_t>
+    inline value_t FourthPower(value_t x)
+    {
+        value_t s = x * x;
+        return s * s;
+    }
+
     inline float CubicMix(float mix, float dry, float wet)
     {
         const float k = Cube(1-mix);

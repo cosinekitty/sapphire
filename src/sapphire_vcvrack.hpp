@@ -933,9 +933,11 @@ namespace Sapphire
             float minValue = -1,
             float maxValue = +1,
             float defValue =  0,
-            std::string unit = "")
+            std::string unit = "",
+            float displayBase = 0,
+            float displayMultiplier = 1)
         {
-            configParam(paramId, minValue, maxValue, defValue, name, unit);
+            configParam(paramId, minValue, maxValue, defValue, name, unit, displayBase, displayMultiplier);
             configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
             configInput(cvInputId, name + " CV");
         }

@@ -60,13 +60,6 @@ namespace Sapphire
     };
 
 
-    inline float FourthPower(float x)
-    {
-        const float x2 = x * x;
-        return x2 * x2;
-    }
-
-
     inline float TenToPower(float x)
     {
         return std::exp(2.302585092994046f * x);

@@ -20,6 +20,8 @@ namespace Sapphire
             FREQ_ATTEN,
             RES_PARAM,
             RES_ATTEN,
+            GAIN_PARAM,
+            GAIN_ATTEN,
             PARAMS_LEN
         };
 
@@ -30,6 +32,7 @@ namespace Sapphire
             SPEED_CV_INPUT,
             FREQ_CV_INPUT,
             RES_CV_INPUT,
+            GAIN_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -68,6 +71,7 @@ namespace Sapphire
                 configControlGroup("Speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, 0, 1, 0.5);
                 configControlGroup("Center frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -Gravy::OctaveRange, +Gravy::OctaveRange, Gravy::DefaultFrequencyKnob);
                 configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, 0.25);
+                configControlGroup("Gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT, 0, 2, 1, " dB", -10, 80);
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");
@@ -119,13 +123,15 @@ namespace Sapphire
                     float inFrame[PORT_MAX_CHANNELS];
                     float outEnvelope[PORT_MAX_CHANNELS];
                     float outPitchVoct[PORT_MAX_CHANNELS];
+                    float thresh[PORT_MAX_CHANNELS];
+                    float gain[PORT_MAX_CHANNELS];
 
                     float audio = 0;
                     float cvFreq = 0;
                     float cvRes = 0;
                     float cvSpeed = 0;
                     float cvThresh = 0;
-                    float thresh[PORT_MAX_CHANNELS]{};
+                    float cvGain = 0;
 
                     for (int c = 0; c < nc; ++c)
                     {
@@ -138,6 +144,10 @@ namespace Sapphire
                         nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
                         float res = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes, 0, 1);
                         detector.setResonance(res, c);
+
+                        nextChannelInputVoltage(cvGain, GAIN_CV_INPUT, c);
+                        float gainKnob = cvGetControlValue(GAIN_PARAM, GAIN_ATTEN, cvGain, 0, 2);
+                        gain[c] = FourthPower(gainKnob);
 
                         nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
                         float speed = cvGetControlValue(SPEED_PARAM, SPEED_ATTEN, cvSpeed, 0, 1);
@@ -152,7 +162,7 @@ namespace Sapphire
                     assert(np == nc);
 
                     for (int c = 0; c < nc; ++c)
-                        outEnvelope[c] = outputVoltage(outEnvelope[c], thresh[c]);
+                        outEnvelope[c] = outputVoltage(outEnvelope[c], thresh[c], gain[c]);
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
                     setPolyOutput(PITCH_OUTPUT, nc, outPitchVoct);
@@ -166,13 +176,13 @@ namespace Sapphire
                     outputs[id].setVoltage(volts[c], c);
             }
 
-            float outputVoltage(float envelope, float threshold) const
+            float outputVoltage(float envelope, float threshold, float gain) const
             {
                 switch (envPortMode)
                 {
                 case EnvPortMode::Linear:
                 default:
-                    return envelope;
+                    return envelope * gain;
 
                 case EnvPortMode::GateActiveHi:
                     return (envelope < threshold) ? 0 : 10;
@@ -232,6 +242,7 @@ namespace Sapphire
                 addSapphireFlatControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSapphireFlatControlGroup("resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
+                addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override
