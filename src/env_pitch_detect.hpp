@@ -99,7 +99,9 @@ namespace Sapphire
             value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
             qs *= qs;   // square
             qs *= qs;   // fourth power
-            speed = 0.9999 - qs*(0.0999 / 128);
+            static constexpr value_t alpha = 0.99999;
+            static constexpr value_t beta  = 16*(alpha - 0.999851220703125);
+            speed = alpha - beta*qs;
         }
 
         value_t setThreshold(value_t knob)
