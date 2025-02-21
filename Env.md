@@ -17,7 +17,7 @@ Thanks to [BaconPaul](https://github.com/baconpaul/) of Surge XT for the idea fo
 
 ### Demo video
 
-Here I create a drone with [Tube Unit](TubeUnit.md), then use Env to extract a pitch and envelope CV signal from both stereo audio channels. I reconstruct a sawtooth wave from that pitch and envelope. Mix it all together and add some reverb!
+Here I create a drone with [Tube Unit](TubeUnit.md), then use Env to extract a pitch and envelope CV signal from both stereo audio channels. I reconstruct a sawtooth wave from that pitch and envelope. Mix it all together and add some reverb! (Note: this video was made before I added the GAIN control.)
 
 [![Sapphire Env demo](https://img.youtube.com/vi/P8HinJX07t4/0.jpg)](https://www.youtube.com/watch?v=P8HinJX07t4)
 
@@ -32,7 +32,7 @@ a smaller attenuverter knob, and a larger control knob.
 * **SPEED**: How quickly to slew reported output pitches. Lower values result in more stable note detection, but with a trombone-like glide through note changes. Faster values track changes in notes more quickly, but are more susceptible to unwanted variations of pitch (which can sound like birds twittering).
 * **FREQ**: Adjusts the center frequency of a bandpass prefilter that helps narrow in on the intended pitch range of the notes being detected. This can help reject unwanted harmonics from the input audio.
 * **RES**: Adjusts the resonance of the bandpass prefilter. Higher resonance can help squeeze the passband closer to the expected range of notes in the input audio. Too high a value can cause erroneous detection of notes at or near the center frequency.
-* **GAIN**: When the ENV port is in linear output mode, the GAIN control multiplies the envelope voltage by an adjustable factor anywhere from 0 to 16. This knob displays this range in decibels as $-\infin$&nbsp;dB to +24&nbsp;dB.
+* **GAIN**: When the ENV port is in linear output mode, the GAIN control multiplies the envelope voltage by an adjustable factor anywhere from 0 to 16. This knob displays this range in decibels as &minus;&infin;&nbsp;dB to +24&nbsp;dB. The default factor is 1, represented as 0&nbsp;dB on the knob.
 
 ### Polyphony
 
@@ -86,4 +86,4 @@ this port may output &minus;10&nbsp;V as a placeholder.
 
 ### Attenuverters
 
-Env supports [low-sensitivity mode](LowSensitivityAttenuverterKnobs.md) for all four attenuverter knobs.
+Env supports [low-sensitivity mode](LowSensitivityAttenuverterKnobs.md) for all of its attenuverter knobs.
