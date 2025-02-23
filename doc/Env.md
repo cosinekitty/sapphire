@@ -17,7 +17,7 @@ Thanks to [BaconPaul](https://github.com/baconpaul/) of Surge XT for the idea fo
 
 ### Demo video
 
-Here I create a drone with [Tube Unit](TubeUnit.md), then use Env to extract a pitch and envelope CV signal from both stereo audio channels. I reconstruct a sawtooth wave from that pitch and envelope. Mix it all together and add some reverb! (Note: this video was made before I added the GAIN control.)
+Here I create a drone with [Tube Unit](TubeUnit.md), then use Env to extract a pitch and envelope CV signal from both stereo audio channels. I reconstruct a sawtooth wave from that pitch and envelope. Mix it all together and add some reverb! (Note: this video was made with a pre-release version of Env with a different panel design.)
 
 [![Sapphire Env demo](https://img.youtube.com/vi/P8HinJX07t4/0.jpg)](https://www.youtube.com/watch?v=P8HinJX07t4)
 
@@ -48,12 +48,12 @@ voltage across all the required output channels.
 For example, if a cable connected to AUDIO has 2 channels (stereo),
 and a cable connected to the FREQ CV input port has 1 channel,
 and there are no other input cables,
-then the outputs ENV and V/OCT will each have 2 channels.
+then the outputs ENV, GATE, and V/OCT will each have 2 channels.
 Because in this example the FREQ CV signal has only 1 channel, that one channel
 will be used to satisfy the second channel also.
 
 If instead you used a 2-channel FREQ CV input cable, each of the two output channels
-in the ENV and V/OCT ports would set their respective prefilters using the two CV voltages,
+in would set their respective prefilters using the two CV voltages,
 one for each channel in the output.
 
 This system of polyphony treats all of the input ports equally, using the rules explained above.
@@ -66,13 +66,22 @@ The AUDIO input port receives a cable with 1..16 channels of audio signal.
 
 ### Env Output
 
-When you right-click on the ENV port, you will see the following context menu:
+The ENV output port is polyphonic, and each of its channels represents
+the overall loudness (peak amplitude) of the input signal for that same channel.
+It can be used to control the amplitude of a VCA, or for any other desired control
+based on the input loudness.
+
+### Gate Output
+
+The GATE output port is related to the ENV port, but instead of a linear envelope
+signal, the output is a gate voltage that is either 0&nbsp;V or +10&nbsp;V.
+You can use GATE to signal either when a pitch is detected or when a pitch is NOT detected.
+
+When you right-click on the GATE port, you will see the following context menu:
 
 ![ENV port context menu](images/env_output_modes.png)
 
-The option "ENV port output mode" provides the following 3 options:
-
-* **Linear envelope**: This is the default mode. The ENV output port generates an amplitude signal that follows the overall amplitude of the input audio. The GAIN control adjusts the scale of the output voltage, as explained above. The envelope is not an audio-rate signal but a low-frequency CV signal that represents the volume of the input audio. Often envelope output will be used to drive a VCA that gates a voice, but other creative uses are possible.
+The option "GATE port output mode" provides the following two options:
 
 * **Gate when pitch detected**: Send a high gate of +10&nbsp;V when a pitch is being detected. Otherwise it sends 0&nbsp;V. THRESH controls the minimum input audio level at which we send a high gate.
 
