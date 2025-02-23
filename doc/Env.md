@@ -32,16 +32,16 @@ a smaller attenuverter knob, and a larger control knob.
 * **SPEED**: How quickly to slew reported output pitches. Lower values result in more stable note detection, but with a trombone-like glide through note changes. Faster values track changes in notes more quickly, but are more susceptible to unwanted variations of pitch (which can sound like birds twittering).
 * **FREQ**: Adjusts the center frequency of a bandpass prefilter that helps narrow in on the intended pitch range of the notes being detected. This can help reject unwanted harmonics from the input audio.
 * **RES**: Adjusts the resonance of the bandpass prefilter. Higher resonance can help squeeze the passband closer to the expected range of notes in the input audio. Too high a value can cause erroneous detection of notes at or near the center frequency.
-* **GAIN**: When the ENV port is in linear output mode, the GAIN control multiplies the envelope voltage by an adjustable factor anywhere from 0 to 16. This knob displays this range in decibels as &minus;&infin;&nbsp;dB to +24&nbsp;dB. The default factor is 1, represented as 0&nbsp;dB on the knob.
+* **GAIN**: The GAIN control adjusts the output level of the ENV port by a factor anywhere from 0 to 16. This knob displays this range in decibels as &minus;&infin;&nbsp;dB to +24&nbsp;dB. The default factor is 1, represented as 0&nbsp;dB on the knob.
 
 ### Polyphony
 
 Env is fully polyphonic, meaning all 6 of its input ports (AUDIO and the 5 CV input ports) allow
-independent control of up to 16 channels in the ENV and V/OCT output ports.
+independent control of up to 16 channels in the output ports ENV, GATE, and V/OCT.
 Each channel of output represents a completely independent combined pitch detector and envelope follower.
 
 Whichever of the 6 input ports has the highest number of channels (1..16) determines the
-number of channels in the two output ports ENV and V/OCT.
+number of channels in the output ports ENV, GATE, and V/OCT.
 Any of the remaining 5 input ports having fewer channels will "clone" their final channel's
 voltage across all the required output channels.
 
@@ -73,8 +73,9 @@ based on the input loudness.
 
 ### Gate Output
 
-The GATE output port is related to the ENV port, but instead of a linear envelope
-signal, the output is a gate voltage that is either 0&nbsp;V or +10&nbsp;V.
+The GATE output port is polyphonic. GATE is related to the ENV port,
+but instead of a linear envelope signal, each channel of the output is a gate
+voltage that is either 0&nbsp;V or +10&nbsp;V.
 You can use GATE to signal either when a pitch is detected or when a pitch is NOT detected.
 
 When you right-click on the GATE port, you will see the following context menu:
@@ -89,9 +90,10 @@ The option "GATE port output mode" provides the following two options:
 
 ### V/OCT output
 
-The V/OCT output reports the pitch of any detected signal. The zero volt level indicates
-a C4 note (261.625&nbsp;Hz). Each unit volt indicates an octave away from C4. If no pitch can be detected,
-this port may output &minus;10&nbsp;V as a placeholder.
+The V/OCT output is polyphonic, and reports the pitch of any detected signal on each input audio channel.
+The zero volt level indicates a C4 note (261.625&nbsp;Hz).
+Each unit volt indicates an octave away from C4.
+If no pitch has yet been detected, this port will output &minus;10&nbsp;V as a placeholder.
 
 ### Attenuverters
 
