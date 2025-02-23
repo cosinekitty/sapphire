@@ -1905,6 +1905,8 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         controls.append(Component('gate_output', xmid + dxEnvGate, yEnvelopeOut))
         pl.append(CenteredControlTextPath(font, 'GATE', xmid + dxEnvGate, yEnvelopeOut - dyText))
 
+        pl.append(HorizontalLine(xmid - dxEnvGate, xmid + dxEnvGate, yEnvelopeOut, 'env_gate_connector'))
+
         controls.append(Component('pitch_output', xmid, yPitchOut))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))
 
