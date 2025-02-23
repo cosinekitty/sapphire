@@ -1880,6 +1880,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     dyText = 5.8
     artSpaceAboveKnob = 8.6
     artSpaceBelowKnob = 8.0
+    dxEnvGate = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
@@ -1898,8 +1899,11 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
         controls.append(Component('audio_input', xmid, yPolyAudioIn))
         pl.append(CenteredControlTextPath(font, 'AUDIO', xmid, yPolyAudioIn - dyText))
 
-        controls.append(Component('envelope_output', xmid, yEnvelopeOut))
-        pl.append(CenteredControlTextPath(font, 'ENV', xmid, yEnvelopeOut - dyText))
+        controls.append(Component('envelope_output', xmid - dxEnvGate, yEnvelopeOut))
+        pl.append(CenteredControlTextPath(font, 'ENV', xmid - dxEnvGate, yEnvelopeOut - dyText))
+
+        controls.append(Component('gate_output', xmid + dxEnvGate, yEnvelopeOut))
+        pl.append(CenteredControlTextPath(font, 'GATE', xmid + dxEnvGate, yEnvelopeOut - dyText))
 
         controls.append(Component('pitch_output', xmid, yPitchOut))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))

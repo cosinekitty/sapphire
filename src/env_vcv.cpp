@@ -40,6 +40,7 @@ namespace Sapphire
         {
             ENVELOPE_OUTPUT,
             PITCH_OUTPUT,
+            GATE_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -50,18 +51,17 @@ namespace Sapphire
 
         using detector_t = EnvPitchDetector<float, PORT_MAX_CHANNELS>;
 
-        enum class EnvPortMode
+        enum class GatePortMode
         {
-            Linear,
-            GateActiveHi,
-            GateActiveLo,
+            ActiveHi,
+            ActiveLo,
             LEN
         };
 
         struct EnvModule : SapphireModule
         {
             detector_t detector;
-            EnvPortMode envPortMode = EnvPortMode::Linear;
+            GatePortMode gatePortMode = GatePortMode::ActiveHi;
 
             EnvModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -74,6 +74,7 @@ namespace Sapphire
                 configControlGroup("Gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT, 0, 2, 1, " dB", -10, 80);
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
+                configOutput(GATE_OUTPUT, "Detector gate");
                 configOutput(PITCH_OUTPUT, "Pitch V/OCT");
                 initialize();
             }
@@ -87,22 +88,22 @@ namespace Sapphire
             void initialize()
             {
                 detector.initialize();
-                envPortMode = EnvPortMode::Linear;
+                gatePortMode = GatePortMode::ActiveHi;
             }
 
             json_t* dataToJson() override
             {
                 json_t *root = SapphireModule::dataToJson();
-                json_object_set_new(root, "envPortMode", json_integer(static_cast<int>(envPortMode)));
+                json_object_set_new(root, "gatePortMode", json_integer(static_cast<int>(gatePortMode)));
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                json_t* epm = json_object_get(root, "envPortMode");
+                json_t* epm = json_object_get(root, "gatePortMode");
                 if (json_is_integer(epm))
-                    envPortMode = static_cast<EnvPortMode>(json_integer_value(epm));
+                    gatePortMode = static_cast<GatePortMode>(json_integer_value(epm));
             }
 
             void process(const ProcessArgs& args) override
@@ -116,12 +117,14 @@ namespace Sapphire
                 {
                     const float zero = 0;
                     setPolyOutput(ENVELOPE_OUTPUT, 1, &zero);
+                    setPolyOutput(GATE_OUTPUT, 1, &zero);
                     setPolyOutput(PITCH_OUTPUT, 1, &zero);
                 }
                 else
                 {
                     float inFrame[PORT_MAX_CHANNELS];
                     float outEnvelope[PORT_MAX_CHANNELS];
+                    float outGate[PORT_MAX_CHANNELS];
                     float outPitchVoct[PORT_MAX_CHANNELS];
                     float thresh[PORT_MAX_CHANNELS];
                     float gain[PORT_MAX_CHANNELS];
@@ -162,9 +165,13 @@ namespace Sapphire
                     assert(np == nc);
 
                     for (int c = 0; c < nc; ++c)
-                        outEnvelope[c] = outputVoltage(outEnvelope[c], thresh[c], gain[c]);
+                    {
+                        outGate[c] = gateOutputVoltage(outEnvelope[c], thresh[c]);
+                        outEnvelope[c] *= gain[c];
+                    }
 
                     setPolyOutput(ENVELOPE_OUTPUT, nc, outEnvelope);
+                    setPolyOutput(GATE_OUTPUT, nc, outGate);
                     setPolyOutput(PITCH_OUTPUT, nc, outPitchVoct);
                 }
             }
@@ -176,18 +183,15 @@ namespace Sapphire
                     outputs[id].setVoltage(volts[c], c);
             }
 
-            float outputVoltage(float envelope, float threshold, float gain) const
+            float gateOutputVoltage(float envelope, float threshold) const
             {
-                switch (envPortMode)
+                switch (gatePortMode)
                 {
-                case EnvPortMode::Linear:
+                case GatePortMode::ActiveHi:
                 default:
-                    return envelope * gain;
-
-                case EnvPortMode::GateActiveHi:
                     return (envelope < threshold) ? 0 : 10;
 
-                case EnvPortMode::GateActiveLo:
+                case GatePortMode::ActiveLo:
                     return (envelope < threshold) ? 10 : 0;
                 }
             }
@@ -202,18 +206,17 @@ namespace Sapphire
                 return;
 
             menu->addChild(createIndexSubmenuItem(
-                "ENV port output mode",
+                "GATE port output mode",
                 {
-                    "Linear envelope",
                     "Gate when pitch detected",
                     "Gate when quiet"
                 },
-                [=]() { return static_cast<std::size_t>(envModule->envPortMode); },
-                [=](size_t mode) { envModule->envPortMode = static_cast<EnvPortMode>(mode); }
+                [=]() { return static_cast<std::size_t>(envModule->gatePortMode); },
+                [=](size_t mode) { envModule->gatePortMode = static_cast<GatePortMode>(mode); }
             ));
         }
 
-        struct EnvOutputPort : SapphirePort
+        struct EnvGatePort : SapphirePort
         {
             EnvModule* envModule = nullptr;
 
@@ -235,8 +238,9 @@ namespace Sapphire
             {
                 setModule(module);
                 addSapphireInput(AUDIO_INPUT, "audio_input");
-                EnvOutputPort *ep = addSapphireOutput<EnvOutputPort>(ENVELOPE_OUTPUT, "envelope_output");
-                ep->envModule = module;
+                addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
+                EnvGatePort *gatePort = addSapphireOutput<EnvGatePort>(GATE_OUTPUT, "gate_output");
+                gatePort->envModule = module;
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addSapphireFlatControlGroup("thresh", THRESHOLD_PARAM, THRESHOLD_ATTEN, THRESHOLD_CV_INPUT);
                 addSapphireFlatControlGroup("speed", SPEED_PARAM, SPEED_ATTEN, SPEED_CV_INPUT);
