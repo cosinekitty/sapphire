@@ -1,39 +1,5 @@
 #!/bin/bash
 
-# [Don Cross - 2025-02-12]
-# Keep docs in new location up to date with docs in current location.
-# This is a temporary step to ease migration.
-cp -v \
-    ../Chaops.md \
-    ../Elastika.md \
-    ../Env.md \
-    ../Frolic.md \
-    ../Galaxy.md \
-    ../Glee.md \
-    ../Gravy.md \
-    ../Hiss.md \
-    ../Lark.md \
-    ../LowSensitivityAttenuverterKnobs.md \
-    ../Moots.md \
-    ../Nucleus.md \
-    ../Pivot.md \
-    ../Polynucleus.md \
-    ../Pop.md \
-    ../Rotini.md \
-    ../Sauce.md \
-    ../SplitAddMerge.md \
-    ../Tin.md \
-    ../Tout.md \
-    ../Tricorder.md \
-    ../TubeUnit.md \
-    ../VideoGallery.md \
-    ../VoltageFlipping.md \
-        ../doc/ || exit 1
-
-# Also copy images so identical markdown can use images from both directories.
-cp -v ../images/*.{png,svg} ../doc/images/ || exit 1
-
-# Generate the SVG files used by Sapphire modules for panel layouts.
 ./make_panels || exit 1
 
 # Find a random local-minimum-energy state for the Nucleus module's particle gas simulation.
