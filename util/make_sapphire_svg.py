@@ -1927,6 +1927,29 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
+    name = 'opal'
+    PANEL_WIDTH = 4
+    svgFileName = '../res/{}.svg'.format(name)
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    cdict[name] = controls = ControlLayer(panel)
+    xmid = panel.mmWidth / 2
+    yRow = FencePost(22.0, 114.0, 5)
+    yPosInput = yRow.value(0)
+    yNegInput = yRow.value(1)
+    yControlOutput = yRow.value(4)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+        controls.append(Component('pos_input', xmid, yPosInput))
+        controls.append(Component('neg_input', xmid, yNegInput))
+        controls.append(Component('control_output', xmid, yControlOutput))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -1963,6 +1986,7 @@ if __name__ == '__main__':
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
         GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
+        GenerateOpalPanel(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

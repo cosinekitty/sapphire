@@ -132,6 +132,16 @@
       ]
     },
     {
+      "slug": "Opal",
+      "name": "Opal",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Opal.md",
+      "description": "Proportional-Integral (PI) feedback controller.",
+      "tags": [
+        "Utility",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "Pivot",
       "name": "Pivot",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Pivot.md",

@@ -20,6 +20,7 @@ extern Model* modelSapphireHiss;
 extern Model* modelSapphireLark;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;
+extern Model* modelSapphireOpal;
 extern Model* modelSapphirePivot;
 extern Model* modelSapphirePolynucleus;
 extern Model* modelSapphirePop;
