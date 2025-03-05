@@ -1,3 +1,4 @@
+#include "sapphire_feedback_controller.hpp"
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 
@@ -31,6 +32,8 @@ namespace Sapphire
 
         struct OpalModule : SapphireModule
         {
+            FeedbackController<float> fbc[PORT_MAX_CHANNELS];
+
             OpalModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
@@ -43,6 +46,8 @@ namespace Sapphire
 
             void initialize()
             {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    fbc[c].initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -54,6 +59,23 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 // https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralControl
+
+                int nc = std::max(inputs[POS_INPUT].getChannels(), inputs[NEG_INPUT].getChannels());
+                if (nc == 0)
+                {
+                    outputs[CONTROL_OUTPUT].setChannels(1);
+                    outputs[CONTROL_OUTPUT].setVoltage(0, 0);
+                }
+                else
+                {
+                    outputs[CONTROL_OUTPUT].setChannels(nc);
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        float error = inputs[POS_INPUT].getVoltage(c) - inputs[NEG_INPUT].getVoltage(c);
+                        float response = fbc[c].process(error, args.sampleRate);
+                        outputs[CONTROL_OUTPUT].setVoltage(response, c);
+                    }
+                }
             }
         };
 
