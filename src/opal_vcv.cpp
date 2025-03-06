@@ -58,8 +58,6 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                // https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralControl
-
                 int nc = std::max(inputs[POS_INPUT].getChannels(), inputs[NEG_INPUT].getChannels());
                 if (nc == 0)
                 {
