@@ -9,6 +9,7 @@ hiss
 lark
 moots
 nucleus
+opal
 pivot
 polynucleus
 pop
