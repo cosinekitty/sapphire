@@ -46,7 +46,7 @@ namespace Sapphire
         void setIntegralFactor(value_t knob = 0)
         {
             value_t k = std::clamp(knob, static_cast<value_t>(-1), static_cast<value_t>(+1));
-            kIntegral = std::pow(static_cast<value_t>(10), k-2);
+            kIntegral = std::pow(static_cast<value_t>(10), -k-2);
         }
 
         value_t process(value_t error, float sampleRateHz)
