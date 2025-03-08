@@ -8,6 +8,10 @@ namespace Sapphire
     {
         enum ParamId
         {
+            PROPORTIONAL_PARAM,
+            PROPORTIONAL_ATTEN,
+            INTEGRAL_PARAM,
+            INTEGRAL_ATTEN,
             PARAMS_LEN
         };
 
@@ -15,6 +19,8 @@ namespace Sapphire
         {
             POS_INPUT,
             NEG_INPUT,
+            PROPORTIONAL_CV_INPUT,
+            INTEGRAL_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -41,6 +47,8 @@ namespace Sapphire
                 configInput(POS_INPUT, "Positive");
                 configInput(NEG_INPUT, "Negative");
                 configOutput(CONTROL_OUTPUT, "Control");
+                configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
+                configControlGroup("Integral response", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
                 initialize();
             }
 
@@ -66,10 +74,21 @@ namespace Sapphire
                 }
                 else
                 {
+                    float cvProp = 0;
+                    float cvInteg = 0;
                     outputs[CONTROL_OUTPUT].setChannels(nc);
                     for (int c = 0; c < nc; ++c)
                     {
                         float error = inputs[POS_INPUT].getVoltage(c) - inputs[NEG_INPUT].getVoltage(c);
+
+                        nextChannelInputVoltage(cvProp, PROPORTIONAL_CV_INPUT, c);
+                        float prop = cvGetControlValue(PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, cvProp, -1, +1);
+
+                        nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
+                        float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
+
+                        fbc[c].setIntegralFactor(prop);
+                        fbc[c].setProportionalFactor(integ);
                         float response = fbc[c].process(error, args.sampleRate);
                         outputs[CONTROL_OUTPUT].setVoltage(response, c);
                     }
@@ -90,6 +109,8 @@ namespace Sapphire
                 addSapphireInput(POS_INPUT, "pos_input");
                 addSapphireInput(NEG_INPUT, "neg_input");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
+                addSapphireControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
+                addSapphireControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
             }
         };
     }

@@ -1936,16 +1936,20 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
-    yRow = FencePost(22.0, 114.0, 5)
+    yRow = FencePost(22.0, 114.0, 9)
     yPosInput = yRow.value(0)
     yNegInput = yRow.value(1)
-    yControlOutput = yRow.value(4)
+    yProp = yRow.value(3)
+    yInteg = yRow.value(6)
+    yControlOutput = yRow.value(8)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         controls.append(Component('pos_input', xmid, yPosInput))
         controls.append(Component('neg_input', xmid, yNegInput))
+        AddControlGroup(pl, controls, font, 'proportional', 'PROP', xmid, yProp)
+        AddControlGroup(pl, controls, font, 'integral', 'INTEG', xmid, yInteg)
         controls.append(Component('control_output', xmid, yControlOutput))
     return Save(panel, svgFileName)
 

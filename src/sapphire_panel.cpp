@@ -239,8 +239,14 @@ namespace Sapphire
         { "opal", {
             {"_panel",                 {  20.320,  128.500}},
             {"control_output",         {  10.160,  114.000}},
-            {"neg_input",              {  10.160,   45.000}},
+            {"integral_atten",         {   5.160,  102.000}},
+            {"integral_cv",            {  15.160,  102.000}},
+            {"integral_knob",          {  10.160,   91.000}},
+            {"neg_input",              {  10.160,   33.500}},
             {"pos_input",              {  10.160,   22.000}},
+            {"proportional_atten",     {   5.160,   67.500}},
+            {"proportional_cv",        {  15.160,   67.500}},
+            {"proportional_knob",      {  10.160,   56.500}},
             }},
         { "pivot", {
             {"_panel",                 {  20.320,  128.500}},
