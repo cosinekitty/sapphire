@@ -136,6 +136,21 @@ def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
+def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.5) -> Path:
+    path = ''
+    if text == '+':
+        path += Move(x-ds, y)
+        path += Line(x+ds, y)
+        path += Move(x, y-ds)
+        path += Line(x, y+ds)
+    elif text == '-':
+        path += Move(x-ds, y)
+        path += Line(x+ds, y)
+    else:
+        raise Error('Undefined symbol: "{}"'.format(text))
+    return Path(path, SYMBOL_TEXT_STYLE, id, 'none')
+
+
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     PANEL_WIDTH = 6
     name = 'chaops'
@@ -1942,15 +1957,19 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     yProp = yRow.value(3)
     yInteg = yRow.value(6)
     yControlOutput = yRow.value(8)
+    dxPortText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+        pl.append(SymbolArtPath('+', xmid + dxPortText, yPosInput, 'pos_text'))
+        pl.append(SymbolArtPath('-', xmid + dxPortText, yNegInput, 'neg_text'))
         controls.append(Component('pos_input', xmid, yPosInput))
         controls.append(Component('neg_input', xmid, yNegInput))
         AddControlGroup(pl, controls, font, 'proportional', 'PROP', xmid, yProp)
         AddControlGroup(pl, controls, font, 'integral', 'INTEG', xmid, yInteg)
         controls.append(Component('control_output', xmid, yControlOutput))
+        pl.append(CenteredControlTextPath(font, 'C', xmid - dxPortText, yControlOutput, 'control_text'))
     return Save(panel, svgFileName)
 
 
