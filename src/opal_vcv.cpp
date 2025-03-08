@@ -74,12 +74,15 @@ namespace Sapphire
                 }
                 else
                 {
+                    float vpos = 0;
+                    float vneg = 0;
                     float cvProp = 0;
                     float cvInteg = 0;
                     outputs[CONTROL_OUTPUT].setChannels(nc);
                     for (int c = 0; c < nc; ++c)
                     {
-                        float error = inputs[POS_INPUT].getVoltage(c) - inputs[NEG_INPUT].getVoltage(c);
+                        nextChannelInputVoltage(vpos, POS_INPUT, c);
+                        nextChannelInputVoltage(vneg, NEG_INPUT, c);
 
                         nextChannelInputVoltage(cvProp, PROPORTIONAL_CV_INPUT, c);
                         float prop = cvGetControlValue(PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, cvProp, -1, +1);
@@ -87,9 +90,9 @@ namespace Sapphire
                         nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
                         float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
 
-                        fbc[c].setIntegralFactor(prop);
-                        fbc[c].setProportionalFactor(integ);
-                        float response = fbc[c].process(error, args.sampleRate);
+                        fbc[c].setProportionalFactor(prop);
+                        fbc[c].setIntegralFactor(integ);
+                        float response = fbc[c].process(vpos-vneg, args.sampleRate);
                         outputs[CONTROL_OUTPUT].setVoltage(response, c);
                     }
                 }
