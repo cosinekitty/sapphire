@@ -60,7 +60,7 @@ namespace Sapphire
             if (std::abs(response) < limit)
                 accum += smooth / (kIntegral * sampleRateHz);
 
-            value_t rough = std::clamp(kProportional*(smooth + accum), -limit, +limit);
+            value_t rough = std::clamp(-kProportional*(smooth + accum), -limit, +limit);
             outFilter.SetCutoffFrequency(100);
             outFilter.Update(rough, sampleRateHz);
             response = outFilter.LoPass();
