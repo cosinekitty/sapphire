@@ -1951,7 +1951,7 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
-    yRow = FencePost(22.0, 114.0, 9)
+    yRow = FencePost(16.0, 114.0, 9)
     yPosInput = yRow.value(0)
     yNegInput = yRow.value(1)
     yProp = yRow.value(3)
