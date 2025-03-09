@@ -1954,8 +1954,8 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     yRow = FencePost(16.0, 114.0, 9)
     yPosInput = yRow.value(0)
     yNegInput = yRow.value(1)
-    yProp = yRow.value(3)
-    yInteg = yRow.value(6)
+    yProp = yRow.value(2.65)
+    yInteg = yRow.value(5)
     yControlOutput = yRow.value(8)
     dxPortText = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:

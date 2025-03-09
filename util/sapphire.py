@@ -138,7 +138,7 @@ class FencePost:
         self.nItems = nItems
         self.delta = (highValue - lowValue) / (nItems - 1)
 
-    def value(self, itemIndex: int) -> float:
+    def value(self, itemIndex: float) -> float:
         return self.lowValue + (itemIndex * self.delta)
 
 
