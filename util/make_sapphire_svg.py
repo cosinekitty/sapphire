@@ -1944,7 +1944,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
 
 def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     name = 'opal'
-    PANEL_WIDTH = 4
+    PANEL_WIDTH = 6
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
