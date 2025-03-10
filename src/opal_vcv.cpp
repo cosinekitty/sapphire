@@ -27,6 +27,7 @@ namespace Sapphire
         enum OutputId
         {
             CONTROL_OUTPUT,
+            GATE_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -47,6 +48,7 @@ namespace Sapphire
                 configInput(POS_INPUT, "Positive");
                 configInput(NEG_INPUT, "Negative");
                 configOutput(CONTROL_OUTPUT, "Control");
+                configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 configControlGroup("Integral response", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
                 initialize();
@@ -92,8 +94,9 @@ namespace Sapphire
 
                         fbc[c].setProportionalFactor(prop);
                         fbc[c].setIntegralFactor(integ);
-                        float response = fbc[c].process(vpos-vneg, args.sampleRate);
-                        outputs[CONTROL_OUTPUT].setVoltage(response, c);
+                        auto f = fbc[c].process(vpos-vneg, args.sampleRate);
+                        outputs[CONTROL_OUTPUT].setVoltage(f.response, c);
+                        outputs[GATE_OUTPUT].setVoltage(f.bounded?10:0, c);
                     }
                 }
             }
@@ -112,6 +115,7 @@ namespace Sapphire
                 addSapphireInput(POS_INPUT, "pos_input");
                 addSapphireInput(NEG_INPUT, "neg_input");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
+                addSapphireOutput(GATE_OUTPUT, "gate_output");
                 addSapphireFlatControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 addSapphireFlatControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
             }

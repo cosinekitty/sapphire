@@ -8,6 +8,20 @@ namespace Sapphire
     // See the following for more info about proportional-integral feedback controllers:
     // https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralControl
 
+
+    template <typename value_t>
+    struct FeedbackControllerResult
+    {
+        value_t response;
+        bool    bounded;    // is the feedback controller operating within the bounds [-limit, +limit]?
+
+        explicit FeedbackControllerResult(value_t _response, bool _bounded)
+            : response(_response)
+            , bounded(_bounded)
+            {}
+    };
+
+
     template <typename value_t>
     class FeedbackController
     {
@@ -20,6 +34,8 @@ namespace Sapphire
 
         LoHiPassFilter<value_t> inFilter;
         LoHiPassFilter<value_t> outFilter;
+
+        int unstableCountdown;
 
     public:
         FeedbackController()
@@ -35,6 +51,7 @@ namespace Sapphire
             response = 0;
             inFilter.Reset();
             outFilter.Reset();
+            unstableCountdown = 0;
         }
 
         void setProportionalFactor(value_t knob = 0)
@@ -49,7 +66,7 @@ namespace Sapphire
             kIntegral = TenToPower<value_t>(-(k + 1.35));
         }
 
-        value_t process(value_t error, float sampleRateHz)
+        FeedbackControllerResult<value_t> process(value_t error, float sampleRateHz)
         {
             inFilter.SetCutoffFrequency(100);
             inFilter.Update(error, sampleRateHz);
@@ -57,14 +74,22 @@ namespace Sapphire
 
             // Do not keep integrating error if we have saturated the output level.
             // This conditional logic is called "anti-reset windup".
-            if (std::abs(response) < limit)
+            if (std::abs(response) < 0.98 * limit)
+            {
                 accum += smooth / (kIntegral * sampleRateHz);
+                if (unstableCountdown > 0)
+                    --unstableCountdown;
+            }
+            else
+            {
+                unstableCountdown = static_cast<int>(sampleRateHz / 10);
+            }
 
             value_t rough = std::clamp(-kProportional*(smooth + accum), -limit, +limit);
             outFilter.SetCutoffFrequency(100);
             outFilter.Update(rough, sampleRateHz);
             response = outFilter.LoPass();
-            return response;
+            return FeedbackControllerResult(response, unstableCountdown==0);
         }
     };
 }

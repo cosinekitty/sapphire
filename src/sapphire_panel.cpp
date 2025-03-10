@@ -238,7 +238,8 @@ namespace Sapphire
             }},
         { "opal", {
             {"_panel",                 {  30.480,  128.500}},
-            {"control_output",         {  15.240,  114.000}},
+            {"control_output",         {   8.740,  114.000}},
+            {"gate_output",            {  21.740,  114.000}},
             {"integral_atten",         {  15.240,   44.000}},
             {"integral_cv",            {   6.240,   44.000}},
             {"integral_knob",          {  24.240,   44.000}},
