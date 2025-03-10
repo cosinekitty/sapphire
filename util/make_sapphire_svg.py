@@ -136,7 +136,7 @@ def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
-def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.5) -> Path:
+def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> Path:
     path = ''
     if text == '+':
         path += Move(x-ds, y)
@@ -1952,24 +1952,25 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     yRow = FencePost(16.0, 114.0, 8)
-    yPosInput = yRow.value(0.0)
-    yNegInput = yRow.value(0.75)
-    yProp = yRow.value(2)
-    yInteg = yRow.value(3)
+    yInputPorts = yRow.value(0)
+    yProp = yRow.value(1)
+    yInteg = yRow.value(2)
     yControlOutput = yRow.value(7)
-    dxPortText = 6.5
+    dxInputPort = 6.5
+    dxPortText = 6.0
     dyText = 5.8
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
-        pl.append(SymbolArtPath('+', xmid + dxPortText, yPosInput, 'pos_text'))
-        pl.append(SymbolArtPath('-', xmid + dxPortText, yNegInput, 'neg_text'))
-        controls.append(Component('pos_input', xmid, yPosInput))
-        controls.append(Component('neg_input', xmid, yNegInput))
+        pl.append(SymbolArtPath('+', xmid - dxInputPort - dxPortText, yInputPorts, 'pos_text'))
+        pl.append(SymbolArtPath('-', xmid + dxInputPort + dxPortText, yInputPorts, 'neg_text'))
+        pl.append(HorizontalLine(xmid - dxInputPort, xmid + dxInputPort, yInputPorts, 'pos_neg_connector'))
+        controls.append(Component('pos_input', xmid - dxInputPort, yInputPorts))
+        controls.append(Component('neg_input', xmid + dxInputPort, yInputPorts))
         AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
         AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
-        pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp  - dyText))
+        pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp - dyText))
         pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
         controls.append(Component('control_output', xmid, yControlOutput))
         pl.append(CenteredControlTextPath(font, 'C', xmid - dxPortText, yControlOutput, 'control_text'))
