@@ -112,8 +112,8 @@ namespace Sapphire
                 addSapphireInput(POS_INPUT, "pos_input");
                 addSapphireInput(NEG_INPUT, "neg_input");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
-                addSapphireControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
-                addSapphireControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
+                addSapphireFlatControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
+                addSapphireFlatControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
             }
         };
     }

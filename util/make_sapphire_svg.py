@@ -1951,13 +1951,14 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     xmid = panel.mmWidth / 2
-    yRow = FencePost(16.0, 114.0, 9)
-    yPosInput = yRow.value(0)
-    yNegInput = yRow.value(1)
-    yProp = yRow.value(2.65)
-    yInteg = yRow.value(5)
-    yControlOutput = yRow.value(8)
+    yRow = FencePost(16.0, 114.0, 8)
+    yPosInput = yRow.value(0.0)
+    yNegInput = yRow.value(0.75)
+    yProp = yRow.value(2)
+    yInteg = yRow.value(3)
+    yControlOutput = yRow.value(7)
     dxPortText = 6.5
+    dyText = 5.8
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
@@ -1966,8 +1967,10 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
         pl.append(SymbolArtPath('-', xmid + dxPortText, yNegInput, 'neg_text'))
         controls.append(Component('pos_input', xmid, yPosInput))
         controls.append(Component('neg_input', xmid, yNegInput))
-        AddControlGroup(pl, controls, font, 'proportional', 'PROP', xmid, yProp)
-        AddControlGroup(pl, controls, font, 'integral', 'INTEG', xmid, yInteg)
+        AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
+        AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
+        pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp  - dyText))
+        pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
         controls.append(Component('control_output', xmid, yControlOutput))
         pl.append(CenteredControlTextPath(font, 'C', xmid - dxPortText, yControlOutput, 'control_text'))
     return Save(panel, svgFileName)
