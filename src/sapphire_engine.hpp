@@ -36,6 +36,12 @@ namespace Sapphire
         return s * s;
     }
 
+    template <typename value_t>
+    inline value_t TenToPower(value_t x)
+    {
+        return std::pow(static_cast<value_t>(10), x);
+    }
+
     inline float CubicMix(float mix, float dry, float wet)
     {
         const float k = Cube(1-mix);

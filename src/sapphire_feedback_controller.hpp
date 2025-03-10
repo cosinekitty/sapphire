@@ -40,13 +40,13 @@ namespace Sapphire
         void setProportionalFactor(value_t knob = 0)
         {
             value_t k = std::clamp(knob, static_cast<value_t>(-1), static_cast<value_t>(+1));
-            kProportional = std::pow(static_cast<value_t>(10), 2*k + 1);
+            kProportional = TenToPower<value_t>(2*(k + 0.15));
         }
 
         void setIntegralFactor(value_t knob = 0)
         {
             value_t k = std::clamp(knob, static_cast<value_t>(-1), static_cast<value_t>(+1));
-            kIntegral = std::pow(static_cast<value_t>(10), -k-2);
+            kIntegral = TenToPower<value_t>(-(k + 1.35));
         }
 
         value_t process(value_t error, float sampleRateHz)
