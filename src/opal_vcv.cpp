@@ -73,6 +73,9 @@ namespace Sapphire
                 {
                     outputs[CONTROL_OUTPUT].setChannels(1);
                     outputs[CONTROL_OUTPUT].setVoltage(0, 0);
+
+                    outputs[GATE_OUTPUT].setChannels(1);
+                    outputs[GATE_OUTPUT].setVoltage(0, 0);
                 }
                 else
                 {

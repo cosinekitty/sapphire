@@ -89,7 +89,7 @@ namespace Sapphire
             outFilter.SetCutoffFrequency(100);
             outFilter.Update(rough, sampleRateHz);
             response = outFilter.LoPass();
-            return FeedbackControllerResult(response, unstableCountdown==0);
+            return FeedbackControllerResult<value_t>(response, unstableCountdown==0);
         }
     };
 }
