@@ -84,6 +84,7 @@ namespace Sapphire
                     float cvProp = 0;
                     float cvInteg = 0;
                     outputs[CONTROL_OUTPUT].setChannels(nc);
+                    outputs[GATE_OUTPUT].setChannels(nc);
                     for (int c = 0; c < nc; ++c)
                     {
                         nextChannelInputVoltage(vpos, POS_INPUT, c);
