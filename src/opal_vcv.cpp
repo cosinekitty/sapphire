@@ -68,7 +68,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                int nc = std::max(inputs[POS_INPUT].getChannels(), inputs[NEG_INPUT].getChannels());
+                int nc = numOutputChannels(INPUTS_LEN, 0);
                 if (nc == 0)
                 {
                     outputs[CONTROL_OUTPUT].setChannels(1);

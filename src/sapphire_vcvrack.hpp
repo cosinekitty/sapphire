@@ -909,12 +909,12 @@ namespace Sapphire
             );
         }
 
-        int numOutputChannels(int numInputs)
+        int numOutputChannels(int numInputs, int minChannels)
         {
-            int nc = 0;
+            int nc = minChannels;
             for (int i = 0; i < numInputs; ++i)
                 nc = std::max(nc, inputs[i].getChannels());
-            return std::min(PORT_MAX_CHANNELS, nc);
+            return std::clamp(nc, 0, PORT_MAX_CHANNELS);
         }
 
         float nextChannelInputVoltage(float& voltage, int inputId, int channel)

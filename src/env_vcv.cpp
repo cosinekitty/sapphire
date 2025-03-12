@@ -108,11 +108,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                int nc = inputs[AUDIO_INPUT].getChannels();
-                nc = std::max(nc, inputs[FREQ_CV_INPUT].getChannels());
-                nc = std::max(nc, inputs[RES_CV_INPUT].getChannels());
-                nc = std::max(nc, inputs[SPEED_CV_INPUT].getChannels());
-                nc = std::max(nc, inputs[THRESHOLD_CV_INPUT].getChannels());
+                int nc = numOutputChannels(INPUTS_LEN, 0);
                 if (nc <= 0)
                 {
                     const float zero = 0;
