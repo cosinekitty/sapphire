@@ -131,6 +131,16 @@ The output can be used for control voltages or audio signals.
 
 ---
 
+## Opal
+
+A proportional-integral feedback controller.
+
+<a href="doc/Opal.md">Sapphire Opal documentation</a>
+
+<a href="doc/Opal.md"><img src="doc/images/opal.png" /></a>
+
+---
+
 ## Sauce
 
 A polyphonic filter with CV-controllable frequency, resonance, mix, and gain.
