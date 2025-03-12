@@ -1955,6 +1955,7 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     yInputPorts = yRow.value(0)
     yProp = yRow.value(1)
     yInteg = yRow.value(2)
+    yMinMaxKnobs = yRow.value(6)
     yOutputPorts = yRow.value(7)
     dxPortPair = 6.5
     dxPortText = 6.0
@@ -1963,15 +1964,24 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+
         pl.append(SymbolArtPath('+', xmid - dxPortPair - dxPortText, yInputPorts, 'pos_text'))
         pl.append(SymbolArtPath('-', xmid + dxPortPair + dxPortText, yInputPorts, 'neg_text'))
         pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yInputPorts, 'pos_neg_connector'))
         controls.append(Component('pos_input', xmid - dxPortPair, yInputPorts))
         controls.append(Component('neg_input', xmid + dxPortPair, yInputPorts))
+
         AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
         AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
         pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp - dyText))
         pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
+
+        controls.append(Component('min_knob', xmid - dxPortPair, yMinMaxKnobs))
+        controls.append(Component('max_knob', xmid + dxPortPair, yMinMaxKnobs))
+        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yMinMaxKnobs, 'min_max_connector'))
+        pl.append(CenteredControlTextPath(font, 'MIN', xmid - dxPortPair, yMinMaxKnobs - dyText, 'min_text'))
+        pl.append(CenteredControlTextPath(font, 'MAX', xmid + dxPortPair, yMinMaxKnobs - dyText, 'max_text'))
+
         controls.append(Component('control_output', xmid - dxPortPair, yOutputPorts))
         controls.append(Component('gate_output', xmid + dxPortPair, yOutputPorts))
         pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yOutputPorts, 'control_gate_connector'))

@@ -243,6 +243,8 @@ namespace Sapphire
             {"integral_atten",         {  15.240,   44.000}},
             {"integral_cv",            {   6.240,   44.000}},
             {"integral_knob",          {  24.240,   44.000}},
+            {"max_knob",               {  21.740,  100.000}},
+            {"min_knob",               {   8.740,  100.000}},
             {"neg_input",              {  21.740,   16.000}},
             {"pos_input",              {   8.740,   16.000}},
             {"proportional_atten",     {  15.240,   30.000}},

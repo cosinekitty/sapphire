@@ -22,11 +22,15 @@ namespace Sapphire
     };
 
 
+    const int FeedbackControllerOutputLimit = 20;
+
+
     template <typename value_t>
     class FeedbackController
     {
     private:
-        value_t limit = 100;        // output absolute-value limit, just like an op-amp saturating
+        value_t vmin;
+        value_t vmax;
         value_t kProportional;
         value_t kIntegral;
         value_t accum;              // integral sum
@@ -42,6 +46,7 @@ namespace Sapphire
         {
             setProportionalFactor();
             setIntegralFactor();
+            setOutputRange(-FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit);
             initialize();
         }
 
@@ -66,15 +71,37 @@ namespace Sapphire
             kIntegral = TenToPower<value_t>(-(k + 1.35));
         }
 
+        void setOutputRange(value_t minLevel, value_t maxLevel)
+        {
+            if (maxLevel < minLevel)
+            {
+                vmin = maxLevel;
+                vmax = minLevel;
+            }
+            else
+            {
+                vmin = minLevel;
+                vmax = maxLevel;
+            }
+        }
+
         FeedbackControllerResult<value_t> process(value_t error, float sampleRateHz)
         {
             inFilter.SetCutoffFrequency(100);
             inFilter.Update(error, sampleRateHz);
             value_t smooth = inFilter.LoPass();
 
+            // Find the band of values inside the allowed range that represents
+            // most, but not all of that range, for detecting stability.
+            value_t fraction = 0.98;
+            value_t span = (vmax - vmin) / 2;
+            value_t vmid = (vmin + vmax) / 2;
+            value_t smax = vmid + fraction*span;
+            value_t smin = vmid - fraction*span;
+
             // Do not keep integrating error if we have saturated the output level.
             // This conditional logic is called "anti-reset windup".
-            if (std::abs(response) < 0.98 * limit)
+            if (response > smin && response < smax)
             {
                 accum += smooth / (kIntegral * sampleRateHz);
                 if (unstableCountdown > 0)
@@ -85,7 +112,7 @@ namespace Sapphire
                 unstableCountdown = static_cast<int>(sampleRateHz / 10);
             }
 
-            value_t rough = std::clamp(-kProportional*(smooth + accum), -limit, +limit);
+            value_t rough = std::clamp(-kProportional*(smooth + accum), vmin, vmax);
             outFilter.SetCutoffFrequency(100);
             outFilter.Update(rough, sampleRateHz);
             response = outFilter.LoPass();

@@ -12,6 +12,8 @@ namespace Sapphire
             PROPORTIONAL_ATTEN,
             INTEGRAL_PARAM,
             INTEGRAL_ATTEN,
+            MIN_PARAM,
+            MAX_PARAM,
             PARAMS_LEN
         };
 
@@ -47,6 +49,8 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(POS_INPUT, "Positive");
                 configInput(NEG_INPUT, "Negative");
+                configParam(MIN_PARAM, -FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, -FeedbackControllerOutputLimit, "Minimum control output voltage");
+                configParam(MAX_PARAM, -FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, "Maximum control output voltage");
                 configOutput(CONTROL_OUTPUT, "Control");
                 configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
@@ -68,11 +72,14 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                float vmin = params[MIN_PARAM].getValue();
+                float vmax = params[MAX_PARAM].getValue();
                 int nc = numOutputChannels(INPUTS_LEN, 0);
                 if (nc == 0)
                 {
+                    float vout = std::clamp(0.0f, vmin, vmax);
                     outputs[CONTROL_OUTPUT].setChannels(1);
-                    outputs[CONTROL_OUTPUT].setVoltage(0, 0);
+                    outputs[CONTROL_OUTPUT].setVoltage(0, vout);
 
                     outputs[GATE_OUTPUT].setChannels(1);
                     outputs[GATE_OUTPUT].setVoltage(0, 0);
@@ -96,6 +103,7 @@ namespace Sapphire
                         nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
                         float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
 
+                        fbc[c].setOutputRange(vmin, vmax);
                         fbc[c].setProportionalFactor(prop);
                         fbc[c].setIntegralFactor(integ);
                         auto f = fbc[c].process(vpos-vneg, args.sampleRate);
@@ -118,10 +126,12 @@ namespace Sapphire
                 setModule(module);
                 addSapphireInput(POS_INPUT, "pos_input");
                 addSapphireInput(NEG_INPUT, "neg_input");
-                addSapphireOutput(CONTROL_OUTPUT, "control_output");
-                addSapphireOutput(GATE_OUTPUT, "gate_output");
                 addSapphireFlatControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 addSapphireFlatControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
+                addKnob<Trimpot>(MIN_PARAM, "min_knob");
+                addKnob<Trimpot>(MAX_PARAM, "max_knob");
+                addSapphireOutput(CONTROL_OUTPUT, "control_output");
+                addSapphireOutput(GATE_OUTPUT, "gate_output");
             }
         };
     }
