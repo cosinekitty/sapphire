@@ -168,6 +168,37 @@ namespace Sapphire
         };
 
 
+        void addOutputModeMenuItems(OpalModule* opalModule, Menu* menu)
+        {
+            std::vector<std::string> labels {
+                "Gate when CTRL within min..max",   // GateOnBounded
+                "Gate when CTRL outside min..max"   // GateOnUnbounded
+            };
+
+            menu->addChild(createIndexSubmenuItem(
+                "Output gate mode",
+                labels,
+                [=]() { return opalModule->getGateOutputMode(); },
+                [=](size_t mode) { opalModule->setGateOutputMode(mode); }
+            ));
+        }
+
+
+        struct OpalGatePort : SapphirePort
+        {
+            void appendContextMenu(ui::Menu* menu) override
+            {
+                SapphirePort::appendContextMenu(menu);
+                OpalModule* opalModule = dynamic_cast<OpalModule*>(module);
+                if (opalModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    addOutputModeMenuItems(opalModule, menu);
+                }
+            }
+        };
+
+
         struct OpalWidget : SapphireWidget
         {
             OpalModule* opalModule{};
@@ -184,7 +215,8 @@ namespace Sapphire
                 addKnob<Trimpot>(MIN_PARAM, "min_knob");
                 addKnob<Trimpot>(MAX_PARAM, "max_knob");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
-                addSapphireOutput(GATE_OUTPUT, "gate_output");
+                OpalGatePort *gatePort = addSapphireOutput<OpalGatePort>(GATE_OUTPUT, "gate_output");
+                gatePort->module = module;
             }
 
             void appendContextMenu(Menu* menu) override
@@ -192,23 +224,8 @@ namespace Sapphire
                 if (opalModule != nullptr)
                 {
                     menu->addChild(new MenuSeparator);
-                    addOutputModeMenuItems(menu);
+                    addOutputModeMenuItems(opalModule, menu);
                 }
-            }
-
-            void addOutputModeMenuItems(Menu* menu)
-            {
-                std::vector<std::string> labels {
-                    "Gate when CTRL within min..max",   // GateOnBounded
-                    "Gate when CTRL outside min..max"   // GateOnUnbounded
-                };
-
-                menu->addChild(createIndexSubmenuItem(
-                    "Output gate mode",
-                    labels,
-                    [=]() { return opalModule->getGateOutputMode(); },
-                    [=](size_t mode) { opalModule->setGateOutputMode(mode); }
-                ));
             }
         };
     }
