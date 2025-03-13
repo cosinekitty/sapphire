@@ -39,9 +39,17 @@ namespace Sapphire
         };
 
 
+        enum class GateOutputMode
+        {
+            GateOnBounded,
+            GateOnUnbounded,
+        };
+
+
         struct OpalModule : SapphireModule
         {
             FeedbackController<float> fbc[PORT_MAX_CHANNELS];
+            GateOutputMode gateMode = GateOutputMode::GateOnBounded;
 
             OpalModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -70,6 +78,24 @@ namespace Sapphire
                 initialize();
             }
 
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                json_object_set_new(root, "gateOutputMode", json_integer(getGateOutputMode()));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                json_t* mode = json_object_get(root, "gateOutputMode");
+                if (json_is_integer(mode))
+                {
+                    size_t index = json_integer_value(mode);
+                    setGateOutputMode(index);
+                }
+            }
+
             void process(const ProcessArgs& args) override
             {
                 float vmin = params[MIN_PARAM].getValue();
@@ -82,7 +108,7 @@ namespace Sapphire
                     outputs[CONTROL_OUTPUT].setVoltage(0, vout);
 
                     outputs[GATE_OUTPUT].setChannels(1);
-                    outputs[GATE_OUTPUT].setVoltage(0, 0);
+                    setOutputGate(false, 0);
                 }
                 else
                 {
@@ -108,9 +134,36 @@ namespace Sapphire
                         fbc[c].setIntegralFactor(integ);
                         auto f = fbc[c].process(vpos-vneg, args.sampleRate);
                         outputs[CONTROL_OUTPUT].setVoltage(f.response, c);
-                        outputs[GATE_OUTPUT].setVoltage(f.bounded?10:0, c);
+                        setOutputGate(f.bounded, c);
                     }
                 }
+            }
+
+            void setOutputGate(bool isControlOutputBounded, int channel)
+            {
+                float voltage;
+                switch (gateMode)
+                {
+                case GateOutputMode::GateOnBounded:
+                default:
+                    voltage = isControlOutputBounded ? 10 : 0;
+                    break;
+
+                case GateOutputMode::GateOnUnbounded:
+                    voltage = isControlOutputBounded ? 0 : 10;
+                    break;
+                }
+                outputs[GATE_OUTPUT].setVoltage(voltage, channel);
+            }
+
+            size_t getGateOutputMode() const
+            {
+                return static_cast<size_t>(gateMode);
+            }
+
+            void setGateOutputMode(size_t index)
+            {
+                gateMode = static_cast<GateOutputMode>(index);
             }
         };
 
@@ -132,6 +185,30 @@ namespace Sapphire
                 addKnob<Trimpot>(MAX_PARAM, "max_knob");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
                 addSapphireOutput(GATE_OUTPUT, "gate_output");
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (opalModule != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    addOutputModeMenuItems(menu);
+                }
+            }
+
+            void addOutputModeMenuItems(Menu* menu)
+            {
+                std::vector<std::string> labels {
+                    "Gate when CTRL within min..max",   // GateOnBounded
+                    "Gate when CTRL outside min..max"   // GateOnUnbounded
+                };
+
+                menu->addChild(createIndexSubmenuItem(
+                    "Output gate mode",
+                    labels,
+                    [=]() { return opalModule->getGateOutputMode(); },
+                    [=](size_t mode) { opalModule->setGateOutputMode(mode); }
+                ));
             }
         };
     }
