@@ -93,11 +93,12 @@ namespace Sapphire
 
             // Find the band of values inside the allowed range that represents
             // most, but not all of that range, for detecting stability.
-            value_t fraction = 0.98;
+            value_t sFraction = 0.95;               // hysteresis: stable below this fraction
+            value_t uFraction = 0.98;               // hysteresis: unstable above this fraction
             value_t span = (vmax - vmin) / 2;
             value_t vmid = (vmin + vmax) / 2;
-            value_t smax = vmid + fraction*span;
-            value_t smin = vmid - fraction*span;
+            value_t smax = vmid + sFraction*span;
+            value_t smin = vmid - sFraction*span;
 
             // Do not keep integrating error if we have saturated the output level.
             // This conditional logic is called "anti-reset windup".
@@ -109,7 +110,13 @@ namespace Sapphire
             }
             else
             {
-                unstableCountdown = static_cast<int>(sampleRateHz / 10);
+                value_t umax = vmid + uFraction*span;
+                value_t umin = vmid - uFraction*span;
+                if (response < umin || response > umax)
+                {
+                    // We are definitely outside stable control bounds.
+                    unstableCountdown = static_cast<int>(sampleRateHz / 4);
+                }
             }
 
             value_t rough = std::clamp(-kProportional*(smooth + accum), vmin, vmax);
