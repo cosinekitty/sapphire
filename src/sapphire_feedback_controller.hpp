@@ -87,14 +87,15 @@ namespace Sapphire
 
         FeedbackControllerResult<value_t> process(value_t error, float sampleRateHz)
         {
+            static constexpr value_t sFraction = 0.95;    // hysteresis: stable below this fraction
+            static constexpr value_t uFraction = 0.98;    // hysteresis: unstable above this fraction
+
             inFilter.SetCutoffFrequency(100);
             inFilter.Update(error, sampleRateHz);
             value_t smooth = inFilter.LoPass();
 
             // Find the band of values inside the allowed range that represents
             // most, but not all of that range, for detecting stability.
-            value_t sFraction = 0.95;               // hysteresis: stable below this fraction
-            value_t uFraction = 0.98;               // hysteresis: unstable above this fraction
             value_t span = (vmax - vmin) / 2;
             value_t vmid = (vmin + vmax) / 2;
             value_t smax = vmid + sFraction*span;
