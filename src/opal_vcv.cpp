@@ -66,7 +66,7 @@ namespace Sapphire
                 configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 configControlGroup("Integral response", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
-                configControlGroup("High cutoff frequency", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, -4, +4, 0, " Hz", 2, FeedbackControllerDefaultHiCutHz);
+                configControlGroup("High cutoff frequency", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, -FeedbackControllerOctaveLimit, +FeedbackControllerOctaveLimit, 0, " Hz", 2, FeedbackControllerDefaultHiCutHz);
                 initialize();
             }
 
@@ -135,7 +135,7 @@ namespace Sapphire
                         float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
 
                         nextChannelInputVoltage(cvHiCut, HICUT_CV_INPUT, c);
-                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -4, +4);
+                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -FeedbackControllerOctaveLimit, +FeedbackControllerOctaveLimit);
 
                         fbc[c].setOutputRange(vmin, vmax);
                         fbc[c].setProportionalFactor(prop);

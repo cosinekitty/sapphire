@@ -24,6 +24,7 @@ namespace Sapphire
 
     const int FeedbackControllerOutputLimit = 20;
     constexpr float FeedbackControllerDefaultHiCutHz = 16;
+    constexpr float FeedbackControllerOctaveLimit = 4;
 
 
     template <typename value_t>
@@ -76,7 +77,7 @@ namespace Sapphire
 
         void setHiCutFrequency(value_t knob = 0)
         {
-            value_t k = std::clamp(knob, static_cast<value_t>(-4), static_cast<value_t>(+4));
+            value_t k = std::clamp(knob, static_cast<value_t>(-FeedbackControllerOctaveLimit), static_cast<value_t>(+FeedbackControllerOctaveLimit));
             hicut = FeedbackControllerDefaultHiCutHz * TwoToPower(k);
         }
 
