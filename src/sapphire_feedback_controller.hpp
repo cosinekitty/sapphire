@@ -133,7 +133,7 @@ namespace Sapphire
             value_t rough = std::clamp(-kProportional*(smooth + accum), vmin, vmax);
             outFilter.SetCutoffFrequency(hicut);
             outFilter.Update(rough, sampleRateHz);
-            response = outFilter.LoPass();
+            response = std::clamp(outFilter.LoPass(), vmin, vmax);
             return FeedbackControllerResult<value_t>(response, unstableCountdown==0);
         }
     };
