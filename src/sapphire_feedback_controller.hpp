@@ -9,6 +9,14 @@ namespace Sapphire
     // https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralControl
 
 
+    namespace Opal
+    {
+        const int VoltageLimit = 20;
+        constexpr float DefaultHiCutHz = 16;
+        constexpr float OctaveLimit = 4;
+    }
+
+
     template <typename value_t>
     struct FeedbackControllerResult
     {
@@ -20,11 +28,6 @@ namespace Sapphire
             , bounded(_bounded)
             {}
     };
-
-
-    const int FeedbackControllerOutputLimit = 20;
-    constexpr float FeedbackControllerDefaultHiCutHz = 16;
-    constexpr float FeedbackControllerOctaveLimit = 4;
 
 
     template <typename value_t>
@@ -49,7 +52,7 @@ namespace Sapphire
         {
             setProportionalFactor();
             setIntegralFactor();
-            setOutputRange(-FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit);
+            setOutputRange(-Opal::VoltageLimit, +Opal::VoltageLimit);
             setHiCutFrequency();
             initialize();
         }
@@ -65,20 +68,21 @@ namespace Sapphire
 
         void setProportionalFactor(value_t knob = 0)
         {
-            value_t k = std::clamp(knob, static_cast<value_t>(-1), static_cast<value_t>(+1));
+            value_t k = std::clamp<value_t>(knob, -1, +1);
             kProportional = TenToPower<value_t>(2*(k + 0.15));
         }
 
         void setIntegralFactor(value_t knob = 0)
         {
-            value_t k = std::clamp(knob, static_cast<value_t>(-1), static_cast<value_t>(+1));
+            value_t k = std::clamp<value_t>(knob, -1, +1);
             kIntegral = TenToPower<value_t>(-(k + 1.35));
         }
 
         void setHiCutFrequency(value_t knob = 0)
         {
-            value_t k = std::clamp(knob, static_cast<value_t>(-FeedbackControllerOctaveLimit), static_cast<value_t>(+FeedbackControllerOctaveLimit));
-            hicut = FeedbackControllerDefaultHiCutHz * TwoToPower(k);
+            using namespace Opal;
+            value_t k = std::clamp<value_t>(knob, -OctaveLimit, +OctaveLimit);
+            hicut = DefaultHiCutHz * TwoToPower(k);
         }
 
         void setOutputRange(value_t minLevel, value_t maxLevel)
@@ -130,10 +134,10 @@ namespace Sapphire
                 }
             }
 
-            value_t rough = std::clamp(-kProportional*(smooth + accum), vmin, vmax);
+            value_t rough = std::clamp<value_t>(-kProportional*(smooth + accum), vmin, vmax);
             outFilter.SetCutoffFrequency(hicut);
             outFilter.Update(rough, sampleRateHz);
-            response = std::clamp(outFilter.LoPass(), vmin, vmax);
+            response = std::clamp<value_t>(outFilter.LoPass(), vmin, vmax);
             return FeedbackControllerResult<value_t>(response, unstableCountdown==0);
         }
     };

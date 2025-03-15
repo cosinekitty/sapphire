@@ -14,7 +14,7 @@ namespace Sapphire
     template <typename value_t>
     inline value_t ClampInt(value_t x, int lo, int hi)
     {
-        return std::clamp(x, static_cast<value_t>(lo), static_cast<value_t>(hi));
+        return std::clamp<value_t>(x, lo, hi);
     }
 
     template <typename value_t>
@@ -39,13 +39,15 @@ namespace Sapphire
     template <typename value_t>
     inline value_t TwoToPower(value_t x)
     {
-        return std::pow(static_cast<value_t>(2), x);
+        constexpr value_t L = 0.6931471805599453;    // ln(2)
+        return std::exp(static_cast<value_t>(L*x));
     }
 
     template <typename value_t>
     inline value_t TenToPower(value_t x)
     {
-        return std::pow(static_cast<value_t>(10), x);
+        constexpr value_t L = 2.302585092994046;    // ln(10)
+        return std::exp(static_cast<value_t>(L*x));
     }
 
     inline float CubicMix(float mix, float dry, float wet)
@@ -458,7 +460,7 @@ namespace Sapphire
             // If the requested number of samples is invalid, clamp it to the valid range.
             // Essentially, we do the best we can, but exact pitch control is only possible
             // within certain bounds.
-            std::size_t nsamples = std::clamp(requestedSamples, static_cast<std::size_t>(1), getMaxLength());
+            std::size_t nsamples = std::clamp<std::size_t>(requestedSamples, 1, getMaxLength());
 
             // Leave `front` where it is. Adjust `back` forward or backward as needed.
             // If `front` and `back` are the same, then the length is 1 sample,

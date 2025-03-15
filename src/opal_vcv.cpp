@@ -60,13 +60,13 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(POS_INPUT, "Positive");
                 configInput(NEG_INPUT, "Negative");
-                configParam(MIN_PARAM, -FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, -FeedbackControllerOutputLimit, "Minimum control output voltage");
-                configParam(MAX_PARAM, -FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit, "Maximum control output voltage");
+                configParam(MIN_PARAM, -VoltageLimit, +VoltageLimit, -VoltageLimit, "Minimum control output voltage");
+                configParam(MAX_PARAM, -VoltageLimit, +VoltageLimit, +VoltageLimit, "Maximum control output voltage");
                 configOutput(CONTROL_OUTPUT, "Control");
                 configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 configControlGroup("Integral response", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
-                configControlGroup("High cutoff frequency", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, -FeedbackControllerOctaveLimit, +FeedbackControllerOctaveLimit, 0, " Hz", 2, FeedbackControllerDefaultHiCutHz);
+                configControlGroup("High cutoff frequency", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, -OctaveLimit, +OctaveLimit, 0, " Hz", 2, DefaultHiCutHz);
                 initialize();
             }
 
@@ -135,7 +135,7 @@ namespace Sapphire
                         float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
 
                         nextChannelInputVoltage(cvHiCut, HICUT_CV_INPUT, c);
-                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -FeedbackControllerOctaveLimit, +FeedbackControllerOctaveLimit);
+                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -OctaveLimit, +OctaveLimit);
 
                         fbc[c].setOutputRange(vmin, vmax);
                         fbc[c].setProportionalFactor(prop);

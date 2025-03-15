@@ -96,7 +96,7 @@ namespace Sapphire
 
         void setSpeed(value_t knob)
         {
-            value_t qs = std::clamp(knob, static_cast<value_t>(0), static_cast<value_t>(1));
+            value_t qs = std::clamp<value_t>(knob, 0, 1);
             qs *= qs;   // square
             qs *= qs;   // fourth power
             static constexpr value_t alpha = 0.99999;
@@ -106,8 +106,8 @@ namespace Sapphire
 
         value_t setThreshold(value_t knob)
         {
-            value_t db = std::clamp(knob, static_cast<value_t>(Env::MinThreshold), static_cast<value_t>(Env::MaxThreshold));
-            threshold = std::pow(static_cast<value_t>(10), static_cast<value_t>(db/20));
+            value_t db = std::clamp<value_t>(knob, Env::MinThreshold, Env::MaxThreshold);
+            threshold = TenToPower<value_t>(db/20);
             return threshold;
         }
     };
@@ -271,7 +271,7 @@ namespace Sapphire
             value_t* outEnvelope,       // output array [numChannels]
             value_t* outPitchVoct)      // output array [numChannels]
         {
-            const int nc = std::clamp(numChannels, 0, maxChannels);
+            const int nc = std::clamp<int>(numChannels, 0, maxChannels);
             if (nc > 0)    // avoid division by zero later
             {
                 // Initialize output to whatever we deem a quiet state.

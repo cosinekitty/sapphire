@@ -60,12 +60,6 @@ namespace Sapphire
     };
 
 
-    inline float TenToPower(float x)
-    {
-        return std::exp(2.302585092994046f * x);
-    }
-
-
     class ElastikaEngine
     {
     private:
