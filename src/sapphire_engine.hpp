@@ -37,6 +37,12 @@ namespace Sapphire
     }
 
     template <typename value_t>
+    inline value_t TwoToPower(value_t x)
+    {
+        return std::pow(static_cast<value_t>(2), x);
+    }
+
+    template <typename value_t>
     inline value_t TenToPower(value_t x)
     {
         return std::pow(static_cast<value_t>(10), x);

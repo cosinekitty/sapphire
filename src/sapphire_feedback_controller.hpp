@@ -23,6 +23,7 @@ namespace Sapphire
 
 
     const int FeedbackControllerOutputLimit = 20;
+    constexpr float FeedbackControllerDefaultHiCutHz = 16;
 
 
     template <typename value_t>
@@ -35,6 +36,7 @@ namespace Sapphire
         value_t kIntegral;
         value_t accum;              // integral sum
         value_t response;           // holds previous output for limit detection
+        value_t hicut;              // lowpass filter corner frequency in Hz
 
         LoHiPassFilter<value_t> inFilter;
         LoHiPassFilter<value_t> outFilter;
@@ -47,6 +49,7 @@ namespace Sapphire
             setProportionalFactor();
             setIntegralFactor();
             setOutputRange(-FeedbackControllerOutputLimit, +FeedbackControllerOutputLimit);
+            setHiCutFrequency();
             initialize();
         }
 
@@ -71,6 +74,12 @@ namespace Sapphire
             kIntegral = TenToPower<value_t>(-(k + 1.35));
         }
 
+        void setHiCutFrequency(value_t knob = 0)
+        {
+            value_t k = std::clamp(knob, static_cast<value_t>(-4), static_cast<value_t>(+4));
+            hicut = FeedbackControllerDefaultHiCutHz * TwoToPower(k);
+        }
+
         void setOutputRange(value_t minLevel, value_t maxLevel)
         {
             if (maxLevel < minLevel)
@@ -90,7 +99,7 @@ namespace Sapphire
             static constexpr value_t sFraction = 0.95;    // hysteresis: stable below this fraction
             static constexpr value_t uFraction = 0.98;    // hysteresis: unstable above this fraction
 
-            inFilter.SetCutoffFrequency(100);
+            inFilter.SetCutoffFrequency(hicut);
             inFilter.Update(error, sampleRateHz);
             value_t smooth = inFilter.LoPass();
 
@@ -121,7 +130,7 @@ namespace Sapphire
             }
 
             value_t rough = std::clamp(-kProportional*(smooth + accum), vmin, vmax);
-            outFilter.SetCutoffFrequency(100);
+            outFilter.SetCutoffFrequency(hicut);
             outFilter.Update(rough, sampleRateHz);
             response = outFilter.LoPass();
             return FeedbackControllerResult<value_t>(response, unstableCountdown==0);

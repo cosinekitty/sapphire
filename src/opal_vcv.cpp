@@ -14,6 +14,8 @@ namespace Sapphire
             INTEGRAL_ATTEN,
             MIN_PARAM,
             MAX_PARAM,
+            HICUT_PARAM,
+            HICUT_ATTEN,
             PARAMS_LEN
         };
 
@@ -23,6 +25,7 @@ namespace Sapphire
             NEG_INPUT,
             PROPORTIONAL_CV_INPUT,
             INTEGRAL_CV_INPUT,
+            HICUT_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -63,6 +66,7 @@ namespace Sapphire
                 configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 configControlGroup("Integral response", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
+                configControlGroup("High cutoff frequency", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT, -4, +4, 0, " Hz", 2, FeedbackControllerDefaultHiCutHz);
                 initialize();
             }
 
@@ -116,6 +120,7 @@ namespace Sapphire
                     float vneg = 0;
                     float cvProp = 0;
                     float cvInteg = 0;
+                    float cvHiCut = 0;
                     outputs[CONTROL_OUTPUT].setChannels(nc);
                     outputs[GATE_OUTPUT].setChannels(nc);
                     for (int c = 0; c < nc; ++c)
@@ -129,10 +134,14 @@ namespace Sapphire
                         nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
                         float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
 
+                        nextChannelInputVoltage(cvHiCut, HICUT_CV_INPUT, c);
+                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -4, +4);
+
                         fbc[c].setOutputRange(vmin, vmax);
                         fbc[c].setProportionalFactor(prop);
                         fbc[c].setIntegralFactor(integ);
-                        auto f = fbc[c].process(vpos-vneg, args.sampleRate);
+                        fbc[c].setHiCutFrequency(hicutVoct);
+                        FeedbackControllerResult<float> f = fbc[c].process(vpos-vneg, args.sampleRate);
                         outputs[CONTROL_OUTPUT].setVoltage(f.response, c);
                         setOutputGate(f.bounded, c);
                     }
@@ -212,6 +221,7 @@ namespace Sapphire
                 addSapphireInput(NEG_INPUT, "neg_input");
                 addSapphireFlatControlGroup("proportional", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
                 addSapphireFlatControlGroup("integral", INTEGRAL_PARAM, INTEGRAL_ATTEN, INTEGRAL_CV_INPUT);
+                addSapphireFlatControlGroup("hicut", HICUT_PARAM, HICUT_ATTEN, HICUT_CV_INPUT);
                 addKnob<Trimpot>(MIN_PARAM, "min_knob");
                 addKnob<Trimpot>(MAX_PARAM, "max_knob");
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");

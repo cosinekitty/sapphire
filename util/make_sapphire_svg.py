@@ -1955,6 +1955,7 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     yInputPorts = yRow.value(0)
     yProp = yRow.value(1)
     yInteg = yRow.value(2)
+    yHiCut = yRow.value(3)
     yMinMaxKnobs = yRow.value(6)
     yOutputPorts = yRow.value(7)
     dxPortPair = 6.5
@@ -1973,8 +1974,10 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
         AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
+        AddFlatControlGroup(pl, controls, xmid, yHiCut, 'hicut')
         pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp - dyText))
         pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
+        pl.append(CenteredControlTextPath(font, 'HI CUT', xmid, yHiCut - dyText))
 
         controls.append(Component('min_knob', xmid - dxPortPair, yMinMaxKnobs))
         controls.append(Component('max_knob', xmid + dxPortPair, yMinMaxKnobs))
