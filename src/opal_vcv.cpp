@@ -107,7 +107,7 @@ namespace Sapphire
                 int nc = numOutputChannels(INPUTS_LEN, 0);
                 if (nc == 0)
                 {
-                    float vout = std::clamp(0.0f, vmin, vmax);
+                    float vout = std::clamp<float>(0, vmin, vmax);
                     outputs[CONTROL_OUTPUT].setChannels(1);
                     outputs[CONTROL_OUTPUT].setVoltage(0, vout);
 

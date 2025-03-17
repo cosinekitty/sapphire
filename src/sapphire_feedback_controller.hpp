@@ -12,7 +12,7 @@ namespace Sapphire
     namespace Opal
     {
         const int VoltageLimit = 20;
-        constexpr float DefaultHiCutHz = 16;
+        constexpr float DefaultHiCutHz = C4_FREQUENCY_HZ;
         constexpr float OctaveLimit = 4;
     }
 

@@ -11,6 +11,8 @@
 
 namespace Sapphire
 {
+    constexpr double C4_FREQUENCY_HZ = 261.6255653005986;    // note C4 = (440 / (2**0.75)) Hz, because C4 is 3/4 octave below A4.
+
     template <typename value_t>
     inline value_t ClampInt(value_t x, int lo, int hi)
     {
