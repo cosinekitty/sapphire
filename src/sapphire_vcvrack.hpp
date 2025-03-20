@@ -1058,6 +1058,18 @@ namespace Sapphire
 
             return agcLevelQuantity;
         }
+
+        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId)
+        {
+            Input& input  = inputs.at(inputId);
+            Param& button = params.at(buttonParamId);
+
+            bool portActive = receiver.updateGate(input.getVoltageSum());
+            bool buttonActive = (button.getValue() > 0);
+
+            // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
+            return portActive ^ buttonActive;
+        }
     };
 
 

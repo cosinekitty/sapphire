@@ -130,14 +130,6 @@ namespace Sapphire
                 return buttonJustPressed || triggerFired;
             }
 
-            bool getFreezeGate()
-            {
-                bool portActive = freezeReceiver.updateGate(inputs[FREEZE_INPUT].getVoltageSum());
-                bool buttonActive = (params[FREEZE_BUTTON_PARAM].getValue() > 0);
-                // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
-                return portActive ^ buttonActive;
-            }
-
             static int flashDurationSamples(float sampleRate)
             {
                 const float flashDurationSeconds = 0.05;
@@ -154,7 +146,7 @@ namespace Sapphire
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
-                    message.freeze = frozen = getFreezeGate();
+                    message.freeze = frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM);
                     message.morph = getMorph();
                     sender.send(message);
 
@@ -213,20 +205,11 @@ namespace Sapphire
                 recallButton->initBaseColor(RECALL_BUTTON_COLOR);
                 addSapphireParam(recallButton, "recall_button");
 
-                auto freezeButton = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
-                freezeButton->momentary = false;
-                freezeButton->latch = true;
-                freezeButton->dxText = 7.5;
-                freezeButton->setCaption('F');
-                freezeButton->initBaseColor(SCHEME_BLUE);
-                addSapphireParam(freezeButton, "freeze_button");
-
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
-                addSapphireInput(FREEZE_INPUT, "freeze_input");
 
+                addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
                 addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
-
                 addSapphireChannelDisplay("memory_address_display");
             }
         };

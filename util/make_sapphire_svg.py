@@ -1932,7 +1932,8 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
     yProp = yRow.value(1)
     yInteg = yRow.value(2)
     yHiCut = yRow.value(3)
-    yMinMaxKnobs = yRow.value(6)
+    yMinMaxKnobs = yRow.value(5)
+    yEnableToggle = yRow.value(6)
     yOutputPorts = yRow.value(7)
     dxPortPair = 6.5
     dxPortText = 6.0
@@ -1960,6 +1961,8 @@ def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
         pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yMinMaxKnobs, 'min_max_connector'))
         pl.append(CenteredControlTextPath(font, 'MIN', xmid - dxPortPair, yMinMaxKnobs - dyText, 'min_text'))
         pl.append(CenteredControlTextPath(font, 'MAX', xmid + dxPortPair, yMinMaxKnobs - dyText, 'max_text'))
+
+        AddToggleGroup(pl, controls, font, 'ENABLE', 'enable', xmid - dxPortPair, xmid + dxPortPair, yEnableToggle, dyText)
 
         controls.append(Component('control_output', xmid - dxPortPair, yOutputPorts))
         controls.append(Component('gate_output', xmid + dxPortPair, yOutputPorts))

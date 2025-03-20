@@ -16,6 +16,7 @@ namespace Sapphire
             MAX_PARAM,
             HICUT_PARAM,
             HICUT_ATTEN,
+            ENABLE_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -26,6 +27,7 @@ namespace Sapphire
             PROPORTIONAL_CV_INPUT,
             INTEGRAL_CV_INPUT,
             HICUT_CV_INPUT,
+            ENABLE_INPUT,
             INPUTS_LEN
         };
 
@@ -38,6 +40,7 @@ namespace Sapphire
 
         enum LightId
         {
+            ENABLE_BUTTON_LIGHT,
             LIGHTS_LEN
         };
 
@@ -53,6 +56,8 @@ namespace Sapphire
         {
             FeedbackController<float> fbc[PORT_MAX_CHANNELS];
             GateOutputMode gateMode = GateOutputMode::GateOnBounded;
+            GateTriggerReceiver enableReceiver;
+            bool needClear = false;
 
             OpalModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -60,8 +65,10 @@ namespace Sapphire
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(POS_INPUT, "Positive");
                 configInput(NEG_INPUT, "Negative");
+                configInput(ENABLE_INPUT, "Enabler gate");
                 configParam(MIN_PARAM, -VoltageLimit, +VoltageLimit, -VoltageLimit, "Minimum control output voltage");
                 configParam(MAX_PARAM, -VoltageLimit, +VoltageLimit, +VoltageLimit, "Maximum control output voltage");
+                configButton(ENABLE_BUTTON_PARAM, "Manual enabler");
                 configOutput(CONTROL_OUTPUT, "Control");
                 configOutput(GATE_OUTPUT, "Gate");
                 configControlGroup("Proportional response", PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, PROPORTIONAL_CV_INPUT);
@@ -70,10 +77,18 @@ namespace Sapphire
                 initialize();
             }
 
-            void initialize()
+            void clear()
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     fbc[c].initialize();
+
+                needClear = false;
+            }
+
+            void initialize()
+            {
+                clear();
+                enableReceiver.initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -102,8 +117,13 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                bool enabled = false;
+
                 float vmin = params[MIN_PARAM].getValue();
                 float vmax = params[MAX_PARAM].getValue();
+                if (vmax < vmin)
+                    std::swap(vmax, vmin);
+
                 int nc = numOutputChannels(INPUTS_LEN, 0);
                 if (nc == 0)
                 {
@@ -113,39 +133,62 @@ namespace Sapphire
 
                     outputs[GATE_OUTPUT].setChannels(1);
                     setOutputGate(false, 0);
+
+                    needClear = true;
                 }
                 else
                 {
-                    float vpos = 0;
-                    float vneg = 0;
-                    float cvProp = 0;
-                    float cvInteg = 0;
-                    float cvHiCut = 0;
+                    enabled = updateToggleGroup(enableReceiver, ENABLE_INPUT, ENABLE_BUTTON_PARAM);
+
                     outputs[CONTROL_OUTPUT].setChannels(nc);
                     outputs[GATE_OUTPUT].setChannels(nc);
-                    for (int c = 0; c < nc; ++c)
+                    if (enabled)
                     {
-                        nextChannelInputVoltage(vpos, POS_INPUT, c);
-                        nextChannelInputVoltage(vneg, NEG_INPUT, c);
+                        if (needClear)
+                            clear();
 
-                        nextChannelInputVoltage(cvProp, PROPORTIONAL_CV_INPUT, c);
-                        float prop = cvGetControlValue(PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, cvProp, -1, +1);
+                        float vpos = 0;
+                        float vneg = 0;
+                        float cvProp = 0;
+                        float cvInteg = 0;
+                        float cvHiCut = 0;
 
-                        nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
-                        float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
+                        for (int c = 0; c < nc; ++c)
+                        {
+                            nextChannelInputVoltage(vpos, POS_INPUT, c);
+                            nextChannelInputVoltage(vneg, NEG_INPUT, c);
 
-                        nextChannelInputVoltage(cvHiCut, HICUT_CV_INPUT, c);
-                        float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -OctaveLimit, +OctaveLimit);
+                            nextChannelInputVoltage(cvProp, PROPORTIONAL_CV_INPUT, c);
+                            float prop = cvGetControlValue(PROPORTIONAL_PARAM, PROPORTIONAL_ATTEN, cvProp, -1, +1);
 
-                        fbc[c].setOutputRange(vmin, vmax);
-                        fbc[c].setProportionalFactor(prop);
-                        fbc[c].setIntegralFactor(integ);
-                        fbc[c].setHiCutFrequency(hicutVoct);
-                        FeedbackControllerResult<float> f = fbc[c].process(vpos-vneg, args.sampleRate);
-                        outputs[CONTROL_OUTPUT].setVoltage(f.response, c);
-                        setOutputGate(f.bounded, c);
+                            nextChannelInputVoltage(cvInteg, INTEGRAL_CV_INPUT, c);
+                            float integ = cvGetControlValue(INTEGRAL_PARAM, INTEGRAL_ATTEN, cvInteg, -1, +1);
+
+                            nextChannelInputVoltage(cvHiCut, HICUT_CV_INPUT, c);
+                            float hicutVoct = cvGetVoltPerOctave(HICUT_PARAM, HICUT_ATTEN, cvHiCut, -OctaveLimit, +OctaveLimit);
+
+                            fbc[c].setOutputRange(vmin, vmax);
+                            fbc[c].setProportionalFactor(prop);
+                            fbc[c].setIntegralFactor(integ);
+                            fbc[c].setHiCutFrequency(hicutVoct);
+                            FeedbackControllerResult<float> f = fbc[c].process(vpos-vneg, args.sampleRate);
+                            outputs[CONTROL_OUTPUT].setVoltage(f.response, c);
+                            setOutputGate(f.bounded, c);
+                        }
+                    }
+                    else
+                    {
+                        float vout = std::clamp<float>(0, vmin, vmax);
+                        for (int c = 0; c < nc; ++c)
+                        {
+                            outputs[CONTROL_OUTPUT].setVoltage(vout, c);
+                            setOutputGate(false, c);
+                        }
+                        needClear = true;
                     }
                 }
+
+                lights[ENABLE_BUTTON_LIGHT].setBrightness(enabled ? 1.0f : 0.06f);
             }
 
             void setOutputGate(bool isControlOutputBounded, int channel)
@@ -227,6 +270,8 @@ namespace Sapphire
                 addSapphireOutput(CONTROL_OUTPUT, "control_output");
                 OpalGatePort *gatePort = addSapphireOutput<OpalGatePort>(GATE_OUTPUT, "gate_output");
                 gatePort->module = module;
+                const NVGcolor buttonLightColor = nvgRGB(0xe0, 0xd0, 0x40);
+                addToggleGroup("enable", ENABLE_INPUT, ENABLE_BUTTON_PARAM, ENABLE_BUTTON_LIGHT, 'E', 8.4, buttonLightColor);
             }
 
             void appendContextMenu(Menu* menu) override
