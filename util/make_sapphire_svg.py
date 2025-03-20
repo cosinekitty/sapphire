@@ -115,27 +115,6 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
-def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str) -> Path:
-    path = ''
-    path += Move(x1, y1)
-    path += Line(x2, y2)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-
-def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
-    path = ''
-    path += Move(x1, y)
-    path += Line(x2, y)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-
-def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
-    path = ''
-    path += Move(x, y1)
-    path += Line(x, y2)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-
 def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> Path:
     path = ''
     if text == '+':
@@ -243,9 +222,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'MORPH',  xmid, yMorph - dyButtonText))
-        pl.append(HorizontalLine(xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, 'freeze_line_art'))
         pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
@@ -253,8 +230,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
         controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
-        controls.append(Component('freeze_button', xmid + dxFreezePortButton, yFreezeButton))
-        controls.append(Component('freeze_input',  xmid - dxFreezePortButton, yFreezeButton))
+        AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, dyButtonText, 'freeze_toggle_group')
         AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
     return Save(panel, svgFileName)
 
