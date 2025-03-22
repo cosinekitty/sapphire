@@ -88,6 +88,7 @@ namespace Sapphire
             void initialize()
             {
                 clear();
+                params[ENABLE_BUTTON_PARAM].setValue(1);
                 enableReceiver.initialize();
             }
 
@@ -117,7 +118,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                bool enabled = false;
+                bool enabled = updateToggleGroup(enableReceiver, ENABLE_INPUT, ENABLE_BUTTON_PARAM);
 
                 float vmin = params[MIN_PARAM].getValue();
                 float vmax = params[MAX_PARAM].getValue();
@@ -138,8 +139,6 @@ namespace Sapphire
                 }
                 else
                 {
-                    enabled = updateToggleGroup(enableReceiver, ENABLE_INPUT, ENABLE_BUTTON_PARAM);
-
                     outputs[CONTROL_OUTPUT].setChannels(nc);
                     outputs[GATE_OUTPUT].setChannels(nc);
                     if (enabled)
