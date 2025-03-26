@@ -181,7 +181,7 @@ namespace Sapphire
                 float bpOutput[PORT_MAX_CHANNELS];
                 float hpOutput[PORT_MAX_CHANNELS];
 
-                const int nc = numOutputChannels(INPUTS_LEN);
+                const int nc = numOutputChannels(INPUTS_LEN, 0);
 
                 if (limiterRecoveryCountdown > 0)
                 {

@@ -909,12 +909,12 @@ namespace Sapphire
             );
         }
 
-        int numOutputChannels(int numInputs)
+        int numOutputChannels(int numInputs, int minChannels)
         {
-            int nc = 0;
+            int nc = minChannels;
             for (int i = 0; i < numInputs; ++i)
                 nc = std::max(nc, inputs[i].getChannels());
-            return std::min(PORT_MAX_CHANNELS, nc);
+            return std::clamp(nc, 0, PORT_MAX_CHANNELS);
         }
 
         float nextChannelInputVoltage(float& voltage, int inputId, int channel)
@@ -1057,6 +1057,18 @@ namespace Sapphire
             agcLevelQuantity->disableMin = disableMin;
 
             return agcLevelQuantity;
+        }
+
+        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId)
+        {
+            Input& input  = inputs.at(inputId);
+            Param& button = params.at(buttonParamId);
+
+            bool portActive = receiver.updateGate(input.getVoltageSum());
+            bool buttonActive = (button.getValue() > 0);
+
+            // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
+            return portActive ^ buttonActive;
         }
     };
 

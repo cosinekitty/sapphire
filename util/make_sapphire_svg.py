@@ -115,25 +115,19 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
 
-def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str) -> Path:
+def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> Path:
     path = ''
-    path += Move(x1, y1)
-    path += Line(x2, y2)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-
-def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
-    path = ''
-    path += Move(x1, y)
-    path += Line(x2, y)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
-
-
-def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
-    path = ''
-    path += Move(x, y1)
-    path += Line(x, y2)
-    return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
+    if text == '+':
+        path += Move(x-ds, y)
+        path += Line(x+ds, y)
+        path += Move(x, y-ds)
+        path += Line(x, y+ds)
+    elif text == '-':
+        path += Move(x-ds, y)
+        path += Line(x+ds, y)
+    else:
+        raise Error('Undefined symbol: "{}"'.format(text))
+    return Path(path, SYMBOL_TEXT_STYLE, id, 'none')
 
 
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
@@ -228,9 +222,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'FREEZE', xmid, yFreezeButton - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'MORPH',  xmid, yMorph - dyButtonText))
-        pl.append(HorizontalLine(xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, 'freeze_line_art'))
         pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
@@ -238,8 +230,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
         controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
-        controls.append(Component('freeze_button', xmid + dxFreezePortButton, yFreezeButton))
-        controls.append(Component('freeze_input',  xmid - dxFreezePortButton, yFreezeButton))
+        AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, dyButtonText, 'freeze_toggle_group')
         AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
     return Save(panel, svgFileName)
 
@@ -1927,6 +1918,60 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
+    name = 'opal'
+    PANEL_WIDTH = 6
+    svgFileName = '../res/{}.svg'.format(name)
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    cdict[name] = controls = ControlLayer(panel)
+    xmid = panel.mmWidth / 2
+    yRow = FencePost(16.0, 114.0, 8)
+    yInputPorts = yRow.value(0)
+    yProp = yRow.value(1)
+    yInteg = yRow.value(2)
+    yHiCut = yRow.value(3)
+    yMinMaxKnobs = yRow.value(5)
+    yEnableToggle = yRow.value(6)
+    yOutputPorts = yRow.value(7)
+    dxPortPair = 6.5
+    dxPortText = 6.0
+    dyText = 5.8
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+
+        pl.append(SymbolArtPath('+', xmid - dxPortPair - dxPortText, yInputPorts, 'pos_text'))
+        pl.append(SymbolArtPath('-', xmid + dxPortPair + dxPortText, yInputPorts, 'neg_text'))
+        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yInputPorts, 'pos_neg_connector'))
+        controls.append(Component('pos_input', xmid - dxPortPair, yInputPorts))
+        controls.append(Component('neg_input', xmid + dxPortPair, yInputPorts))
+
+        AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
+        AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
+        AddFlatControlGroup(pl, controls, xmid, yHiCut, 'hicut')
+        pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp - dyText))
+        pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
+        pl.append(CenteredControlTextPath(font, 'HI CUT', xmid, yHiCut - dyText))
+
+        controls.append(Component('min_knob', xmid - dxPortPair, yMinMaxKnobs))
+        controls.append(Component('max_knob', xmid + dxPortPair, yMinMaxKnobs))
+        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yMinMaxKnobs, 'min_max_connector'))
+        pl.append(CenteredControlTextPath(font, 'MIN', xmid - dxPortPair, yMinMaxKnobs - dyText, 'min_text'))
+        pl.append(CenteredControlTextPath(font, 'MAX', xmid + dxPortPair, yMinMaxKnobs - dyText, 'max_text'))
+
+        AddToggleGroup(pl, controls, font, 'ENABLE', 'enable', xmid - dxPortPair, xmid + dxPortPair, yEnableToggle, dyText)
+
+        controls.append(Component('control_output', xmid - dxPortPair, yOutputPorts))
+        controls.append(Component('gate_output', xmid + dxPortPair, yOutputPorts))
+        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yOutputPorts, 'control_gate_connector'))
+        pl.append(CenteredControlTextPath(font, 'CTRL', xmid - dxPortPair, yOutputPorts - dyText, 'control_text'))
+        pl.append(CenteredControlTextPath(font, 'GATE', xmid + dxPortPair, yOutputPorts - dyText, 'gate_text'))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -1963,6 +2008,7 @@ if __name__ == '__main__':
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
         GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
+        GenerateOpalPanel(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

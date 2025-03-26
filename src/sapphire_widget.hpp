@@ -349,6 +349,26 @@ namespace Sapphire
             return knob;
         }
 
+        void addToggleGroup(
+            const std::string& prefix,
+            int inputId,
+            int buttonId,
+            int lightId,
+            char buttonLetter,
+            float dxText,
+            NVGcolor baseColor)
+        {
+            SapphireCaptionButton* button = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, buttonId, lightId);
+            button->momentary = false;
+            button->latch = true;
+            button->dxText = dxText;
+            button->setCaption(buttonLetter);
+            button->initBaseColor(baseColor);
+
+            addSapphireParam(button, prefix + "_button");
+            addSapphireInput(inputId, prefix + "_input");
+        }
+
         SvgOverlay* loadLabel(const char *svgFileName)
         {
             SvgOverlay* label = SvgOverlay::Load(svgFileName);

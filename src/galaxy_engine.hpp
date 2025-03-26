@@ -375,7 +375,7 @@ namespace Sapphire
             void process(double sampleRateHz, double inputSampleL, double inputSampleR, double& outputSampleL, double& outputSampleR)
             {
                 const double overallscale = sampleRateHz / 44100;
-                const int cycleEnd = std::clamp(static_cast<int>(std::floor(overallscale)), MinCycle, MAXCYCLE);
+                const int cycleEnd = std::clamp<int>(std::floor(overallscale), MinCycle, MAXCYCLE);
 
                 if (cycle > cycleEnd-1)
                     cycle = cycleEnd-1;

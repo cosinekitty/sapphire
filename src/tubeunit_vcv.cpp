@@ -222,11 +222,7 @@ namespace Sapphire
                 // Whichever input has the most channels selects the output channel count.
                 // Other inputs have their final supplied value (or default value if none)
                 // "normalled" to the remaining channels.
-                numActiveChannels = std::max(1, inputs[QUIET_GATE_INPUT].getChannels());
-                numActiveChannels = std::max(numActiveChannels, inputs[AUDIO_LEFT_INPUT].getChannels());
-                numActiveChannels = std::max(numActiveChannels, inputs[AUDIO_RIGHT_INPUT].getChannels());
-                for (const ControlGroup& cg : tubeUnitControls)
-                    numActiveChannels = std::max(numActiveChannels, inputs[cg.inputId].getChannels());
+                numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
 
                 outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
