@@ -1918,60 +1918,6 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateOpalPanel(cdict:Dict[str, ControlLayer]) -> int:
-    name = 'opal'
-    PANEL_WIDTH = 6
-    svgFileName = '../res/{}.svg'.format(name)
-    panel = Panel(PANEL_WIDTH)
-    pl = Element('g', 'PanelLayer')
-    panel.append(pl)
-    cdict[name] = controls = ControlLayer(panel)
-    xmid = panel.mmWidth / 2
-    yRow = FencePost(16.0, 114.0, 8)
-    yInputPorts = yRow.value(0)
-    yProp = yRow.value(1)
-    yInteg = yRow.value(2)
-    yHiCut = yRow.value(3)
-    yMinMaxKnobs = yRow.value(5)
-    yEnableToggle = yRow.value(6)
-    yOutputPorts = yRow.value(7)
-    dxPortPair = 6.5
-    dxPortText = 6.0
-    dyText = 5.8
-    with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(CenteredGemstone(panel))
-        pl.append(ModelNamePath(panel, font, name))
-
-        pl.append(SymbolArtPath('+', xmid - dxPortPair - dxPortText, yInputPorts, 'pos_text'))
-        pl.append(SymbolArtPath('-', xmid + dxPortPair + dxPortText, yInputPorts, 'neg_text'))
-        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yInputPorts, 'pos_neg_connector'))
-        controls.append(Component('pos_input', xmid - dxPortPair, yInputPorts))
-        controls.append(Component('neg_input', xmid + dxPortPair, yInputPorts))
-
-        AddFlatControlGroup(pl, controls, xmid, yProp, 'proportional')
-        AddFlatControlGroup(pl, controls, xmid, yInteg, 'integral')
-        AddFlatControlGroup(pl, controls, xmid, yHiCut, 'hicut')
-        pl.append(CenteredControlTextPath(font, 'PROP',  xmid, yProp - dyText))
-        pl.append(CenteredControlTextPath(font, 'INTEG', xmid, yInteg - dyText))
-        pl.append(CenteredControlTextPath(font, 'HI CUT', xmid, yHiCut - dyText))
-
-        controls.append(Component('min_knob', xmid - dxPortPair, yMinMaxKnobs))
-        controls.append(Component('max_knob', xmid + dxPortPair, yMinMaxKnobs))
-        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yMinMaxKnobs, 'min_max_connector'))
-        pl.append(CenteredControlTextPath(font, 'MIN', xmid - dxPortPair, yMinMaxKnobs - dyText, 'min_text'))
-        pl.append(CenteredControlTextPath(font, 'MAX', xmid + dxPortPair, yMinMaxKnobs - dyText, 'max_text'))
-
-        AddToggleGroup(pl, controls, font, 'ENABLE', 'enable', xmid - dxPortPair, xmid + dxPortPair, yEnableToggle, dyText)
-
-        controls.append(Component('control_output', xmid - dxPortPair, yOutputPorts))
-        controls.append(Component('gate_output', xmid + dxPortPair, yOutputPorts))
-        pl.append(HorizontalLine(xmid - dxPortPair, xmid + dxPortPair, yOutputPorts, 'control_gate_connector'))
-        pl.append(CenteredControlTextPath(font, 'CTRL', xmid - dxPortPair, yOutputPorts - dyText, 'control_text'))
-        pl.append(CenteredControlTextPath(font, 'GATE', xmid + dxPortPair, yOutputPorts - dyText, 'gate_text'))
-    return Save(panel, svgFileName)
-
-
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -2008,7 +1954,6 @@ if __name__ == '__main__':
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
         GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
-        GenerateOpalPanel(cdict) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )
