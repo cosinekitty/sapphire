@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">26 Mar 2025</td>
+<td align="center">2.5.9</td>
+<td align="left">
+    <ul>
+        <li>Fixed minor polyphony bug in Env: the number of channels in the GAIN control's CV input did not affect the number of output channels. This has been fixed.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">11 Feb 2025</td>
 <td align="center">2.5.8</td>
 <td align="left">
