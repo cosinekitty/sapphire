@@ -23,22 +23,22 @@ namespace Sapphire
                 {}
         };
 
-        inline bool IsModelType(Module* module, Model* model)
+        inline bool IsModelType(const Module* module, const Model* model)
         {
             return module && model && module->model == model;
         }
 
-        inline bool IsInLoop(Module* module)
+        inline bool IsInLoop(const Module* module)
         {
             return IsModelType(module, modelSapphireInLoop);
         }
 
-        inline bool IsLoop(Module* module)
+        inline bool IsLoop(const Module* module)
         {
             return IsModelType(module, modelSapphireLoop);
         }
 
-        inline bool IsOutLoop(Module* module)
+        inline bool IsOutLoop(const Module* module)
         {
             return IsModelType(module, modelSapphireOutLoop);
         }
@@ -72,6 +72,7 @@ namespace Sapphire
                     ? modelSapphireLoop
                     : modelSapphireOutLoop;
 
+                // Create the expander module.
                 AddExpander(model, this, ExpanderDirection::Right);
             }
         };

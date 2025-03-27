@@ -211,6 +211,7 @@ namespace Sapphire
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
+        int splashCount = 0;        // how many `step` frames left in a panel "splash" fader
 
         SvgOverlay* outputStereoLabelLR = nullptr;
         SvgOverlay* outputStereoLabel2  = nullptr;
@@ -405,6 +406,10 @@ namespace Sapphire
             return sapphireModule->inputStereoMode;
         }
 
+        void beginSplash();
+        void drawSplash(NVGcontext* vg);
+        void drawLayer(const DrawArgs& args, int layer) override;
+
         void step() override
         {
             ModuleWidget::step();
@@ -428,4 +433,31 @@ namespace Sapphire
             }
         }
     };
+
+    inline SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir)
+    {
+        Module* rawModule = model->createModule();
+        assert(rawModule != nullptr);
+        SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
+        assert(expanderModule != nullptr);
+        APP->engine->addModule(expanderModule);
+        ModuleWidget* rawWidget = model->createModuleWidget(expanderModule);
+        assert(rawWidget != nullptr);
+        SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
+        assert(sapphireWidget != nullptr);
+        int dx = (dir == ExpanderDirection::Left) ? -sapphireWidget->box.size.x : parentModWidget->box.size.x;
+        APP->scene->rack->setModulePosForce(sapphireWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
+        APP->scene->rack->addModule(sapphireWidget);
+
+        // Push this module creation action onto undo/redo stack.
+        auto h = new history::ModuleAdd;
+        h->name = "create " + model->name;
+        h->setModule(sapphireWidget);
+        APP->history->push(h);
+
+        // Animate the first few frames of the new panel, like a splash screen.
+        sapphireWidget->beginSplash();
+
+        return expanderModule;
+    }
 }
