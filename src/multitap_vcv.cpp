@@ -66,7 +66,7 @@ namespace Sapphire
                 // Otherwise, assume we are at the end of a chain that is not terminated by
                 // an OutLoop, so insert an OutLoop.
 
-                Module* right = module->rightExpander.module;
+                const Module* right = module->rightExpander.module;
                 Model* model =
                     (IsLoop(right) || IsOutLoop(right))
                     ? modelSapphireLoop
