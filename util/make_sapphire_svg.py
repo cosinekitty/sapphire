@@ -1918,9 +1918,77 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    name = 'inloop'
+    PANEL_WIDTH = 6
+    svgFileName = SvgFileName(name, Target.VcvRack)
+    panel = Panel(PANEL_WIDTH)
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    xmid = panel.mmWidth / 2
+    dxInsertButton = 10.0
+    yInsertButton = 20.0
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(CenteredGemstone(panel))
+        controls.append(Component('insert_button', xmid + dxInsertButton, yInsertButton))
+    return Save(panel, svgFileName)
+
+
+def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    name = 'loop'
+    PANEL_WIDTH = 4
+    svgFileName = SvgFileName(name, Target.VcvRack)
+    panel = Panel(PANEL_WIDTH)
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    xmid = panel.mmWidth / 2
+    dxInsertButton = 10.0
+    yInsertButton = 20.0
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(CenteredGemstone(panel))
+        controls.append(Component('insert_button', xmid + dxInsertButton, yInsertButton))
+    return Save(panel, svgFileName)
+
+
+def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    name = 'outloop'
+    PANEL_WIDTH = 3
+    svgFileName = SvgFileName(name, Target.VcvRack)
+    panel = Panel(PANEL_WIDTH)
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(ModelNamePath(panel, font, 'out'))
+        pl.append(CenteredGemstone(panel))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
+    return (
+        GenerateInloopPanel(cdict) or
+        GenerateLoopPanel(cdict) or
+        GenerateOutloopPanel(cdict)
+    )
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
+        GenerateMultiTapPanels(cdict) or
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
