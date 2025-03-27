@@ -23,6 +23,26 @@ namespace Sapphire
                 {}
         };
 
+        inline bool IsModelType(Module* module, Model* model)
+        {
+            return module && model && module->model == model;
+        }
+
+        inline bool IsInLoop(Module* module)
+        {
+            return IsModelType(module, modelSapphireInLoop);
+        }
+
+        inline bool IsLoop(Module* module)
+        {
+            return IsModelType(module, modelSapphireLoop);
+        }
+
+        inline bool IsOutLoop(Module* module)
+        {
+            return IsModelType(module, modelSapphireOutLoop);
+        }
+
         struct LoopWidget : SapphireWidget
         {
             explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
@@ -35,6 +55,25 @@ namespace Sapphire
                 button->loopWidget = this;
                 addSapphireParam(button, "insert_button");
             }
+
+            void insertExpander()
+            {
+                if (module == nullptr)
+                    return;
+
+                // We either insert a "Loop" module or an "OutLoop" module, depending on the situation.
+                // If the module to the right is a Loop or an OutLoop, insert another Loop.
+                // Otherwise, assume we are at the end of a chain that is not terminated by
+                // an OutLoop, so insert an OutLoop.
+
+                Module* right = module->rightExpander.module;
+                Model* model =
+                    (IsLoop(right) || IsOutLoop(right))
+                    ? modelSapphireLoop
+                    : modelSapphireOutLoop;
+
+                AddExpander(model, this, ExpanderDirection::Right);
+            }
         };
 
 
@@ -44,7 +83,7 @@ namespace Sapphire
             if (loopWidget != nullptr)
             {
                 if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
-                    AddExpander(modelSapphireLoop, loopWidget, ExpanderDirection::Right);
+                    loopWidget->insertExpander();
             }
         }
 
