@@ -98,6 +98,15 @@
       ]
     },
     {
+      "slug": "InLoop",
+      "name": "InLoop",
+      "description": "The input module in an expander chain of delay loops.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
+      "tags": [
+        "Delay"
+      ]
+    },
+    {
       "slug": "Lark",
       "name": "Lark",
       "description": "Chaotic oscillator based on the Dequan Li Attractor.",

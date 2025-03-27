@@ -19,6 +19,7 @@ void init(Plugin* p)
     p->addModel(modelSapphireGlee);
     p->addModel(modelSapphireGravy);
     p->addModel(modelSapphireHiss);
+    p->addModel(modelSapphireInLoop);
     p->addModel(modelSapphireMoots);
     p->addModel(modelSapphireLark);
     p->addModel(modelSapphireNucleus);
