@@ -151,6 +151,16 @@
       ]
     },
     {
+      "slug": "OutLoop",
+      "name": "OutLoop",
+      "description": "Expander that terminates a chain of delay loops.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
+      "tags": [
+        "Delay",
+        "Expander"
+      ]
+    },
+    {
       "slug": "Pivot",
       "name": "Pivot",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Pivot.md",

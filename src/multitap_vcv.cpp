@@ -132,6 +132,65 @@ namespace Sapphire
                 }
             };
         }
+
+        namespace OutLoop
+        {
+            enum ParamId
+            {
+                PARAMS_LEN
+            };
+
+            enum InputId
+            {
+                INPUTS_LEN
+            };
+
+            enum OutputId
+            {
+                OUTPUTS_LEN
+            };
+
+            enum LightId
+            {
+                LIGHTS_LEN
+            };
+
+            struct Mod : SapphireModule
+            {
+                Mod()
+                    : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                {
+                    config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    initialize();
+                }
+
+                void initialize()
+                {
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    Module::onReset(e);
+                    initialize();
+                }
+
+                void process(const ProcessArgs& args) override
+                {
+                }
+            };
+
+            struct Wid : SapphireWidget
+            {
+                Mod* outLoopModule{};
+
+                explicit Wid(Mod* module)
+                    : SapphireWidget("outloop", asset::plugin(pluginInstance, "res/outloop.svg"))
+                    , outLoopModule(module)
+                {
+                    setModule(module);
+                }
+            };
+        }
     }
 }
 
@@ -143,5 +202,10 @@ Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::Mod
 
 Model* modelSapphireLoop = createSapphireModel<Sapphire::MultiTap::Loop::Mod, Sapphire::MultiTap::Loop::Wid>(
     "Loop",
+    Sapphire::ExpanderRole::MultiTap
+);
+
+Model* modelSapphireOutLoop = createSapphireModel<Sapphire::MultiTap::OutLoop::Mod, Sapphire::MultiTap::OutLoop::Wid>(
+    "OutLoop",
     Sapphire::ExpanderRole::MultiTap
 );

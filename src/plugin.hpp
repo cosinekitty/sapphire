@@ -22,6 +22,7 @@ extern Model* modelSapphireLark;
 extern Model* modelSapphireLoop;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;
+extern Model* modelSapphireOutLoop;
 extern Model* modelSapphirePivot;
 extern Model* modelSapphirePolynucleus;
 extern Model* modelSapphirePop;

@@ -24,6 +24,7 @@ void init(Plugin* p)
     p->addModel(modelSapphireLark);
     p->addModel(modelSapphireLoop);
     p->addModel(modelSapphireNucleus);
+    p->addModel(modelSapphireOutLoop);
     p->addModel(modelSapphirePivot);
     p->addModel(modelSapphirePolynucleus);
     p->addModel(modelSapphirePop);
