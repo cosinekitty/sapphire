@@ -118,6 +118,16 @@
       ]
     },
     {
+      "slug": "Loop",
+      "name": "Loop",
+      "description": "Expander that adds another link in a chain of delay loops.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
+      "tags": [
+        "Delay",
+        "Expander"
+      ]
+    },
+    {
       "slug": "Moots",
       "name": "Moots",
       "description": "Plugs/unplugs polyphonic cables.",

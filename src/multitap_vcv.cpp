@@ -68,11 +68,80 @@ namespace Sapphire
                 }
             };
         }
+
+        namespace Loop
+        {
+            enum ParamId
+            {
+                INSERT_BUTTON_PARAM,
+                PARAMS_LEN
+            };
+
+            enum InputId
+            {
+                INPUTS_LEN
+            };
+
+            enum OutputId
+            {
+                OUTPUTS_LEN
+            };
+
+            enum LightId
+            {
+                INSERT_BUTTON_LIGHT,
+                LIGHTS_LEN
+            };
+
+            struct Mod : SapphireModule
+            {
+                Mod()
+                    : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                {
+                    config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
+                    initialize();
+                }
+
+                void initialize()
+                {
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    Module::onReset(e);
+                    initialize();
+                }
+
+                void process(const ProcessArgs& args) override
+                {
+                }
+            };
+
+            struct Wid : SapphireWidget
+            {
+                Mod* loopModule{};
+
+                explicit Wid(Mod* module)
+                    : SapphireWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
+                    , loopModule(module)
+                {
+                    setModule(module);
+                    auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addSapphireParam(toggle, "insert_button");
+                }
+            };
+        }
     }
 }
 
 
 Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::Mod, Sapphire::MultiTap::InLoop::Wid>(
     "InLoop",
+    Sapphire::ExpanderRole::MultiTap
+);
+
+Model* modelSapphireLoop = createSapphireModel<Sapphire::MultiTap::Loop::Mod, Sapphire::MultiTap::Loop::Wid>(
+    "Loop",
     Sapphire::ExpanderRole::MultiTap
 );

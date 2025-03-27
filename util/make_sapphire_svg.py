@@ -1928,14 +1928,13 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    xmid = panel.mmWidth / 2
-    dxInsertButton = 10.0
+    xInsertButton = panel.mmWidth - 5.0
     yInsertButton = 20.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('insert_button', xmid + dxInsertButton, yInsertButton))
+        controls.append(Component('insert_button', xInsertButton, yInsertButton))
     return Save(panel, svgFileName)
 
 
@@ -1949,14 +1948,13 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    xmid = panel.mmWidth / 2
-    dxInsertButton = 10.0
+    xInsertButton = panel.mmWidth - 5.0
     yInsertButton = 20.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('insert_button', xmid + dxInsertButton, yInsertButton))
+        controls.append(Component('insert_button', xInsertButton, yInsertButton))
     return Save(panel, svgFileName)
 
 

@@ -191,7 +191,7 @@ namespace Sapphire
             }},
         { "inloop", {
             {"_panel",                 {  30.480,  128.500}},
-            {"insert_button",          {  25.240,   20.000}},
+            {"insert_button",          {  25.480,   20.000}},
             }},
         { "lark", {
             {"_panel",                 {  20.320,  128.500}},
@@ -208,7 +208,7 @@ namespace Sapphire
             }},
         { "loop", {
             {"_panel",                 {  20.320,  128.500}},
-            {"insert_button",          {  20.160,   20.000}},
+            {"insert_button",          {  15.320,   20.000}},
             }},
         { "nucleus", {
             {"_panel",                 {  81.280,  128.500}},
