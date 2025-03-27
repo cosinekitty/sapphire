@@ -5,7 +5,7 @@ namespace Sapphire
 {
     namespace MultiTap
     {
-        struct InLoopModule : SapphireModule
+        namespace InLoop
         {
             enum ParamId
             {
@@ -29,48 +29,50 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            InLoopModule()
-                : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+            struct Mod : SapphireModule
             {
-                config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
-                initialize();
-            }
+                Mod()
+                    : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                {
+                    config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
+                    initialize();
+                }
 
-            void initialize()
+                void initialize()
+                {
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    Module::onReset(e);
+                    initialize();
+                }
+
+                void process(const ProcessArgs& args) override
+                {
+                }
+            };
+
+            struct Wid : SapphireWidget
             {
-            }
+                Mod* inLoopModule{};
 
-            void onReset(const ResetEvent& e) override
-            {
-                Module::onReset(e);
-                initialize();
-            }
-
-            void process(const ProcessArgs& args) override
-            {
-            }
-        };
-
-
-        struct InLoopWidget : SapphireWidget
-        {
-            InLoopModule* inLoopModule{};
-
-            explicit InLoopWidget(InLoopModule* module)
-                : SapphireWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
-                , inLoopModule(module)
-            {
-                setModule(module);
-                auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, InLoopModule::INSERT_BUTTON_PARAM, InLoopModule::INSERT_BUTTON_LIGHT);
-                addSapphireParam(toggle, "insert_button");
-            }
-        };
+                explicit Wid(Mod* module)
+                    : SapphireWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
+                    , inLoopModule(module)
+                {
+                    setModule(module);
+                    auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addSapphireParam(toggle, "insert_button");
+                }
+            };
+        }
     }
 }
 
 
-Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoopModule, Sapphire::MultiTap::InLoopWidget>(
+Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::Mod, Sapphire::MultiTap::InLoop::Wid>(
     "InLoop",
     Sapphire::ExpanderRole::MultiTap
 );
