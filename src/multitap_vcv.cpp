@@ -43,7 +43,7 @@ namespace Sapphire
             insert_button_base_t::onButton(e);
             if (loopWidget != nullptr)
             {
-                if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT)
+                if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
                     AddExpander(modelSapphireLoop, loopWidget, ExpanderDirection::Right);
             }
         }
