@@ -5,6 +5,50 @@ namespace Sapphire
 {
     namespace MultiTap
     {
+        using insert_button_base_t = VCVLightBezel<WhiteLight>;
+
+        struct LoopWidget;
+
+        struct InsertButton : insert_button_base_t
+        {
+            LoopWidget* loopWidget{};
+
+            void onButton(const event::Button& e) override;
+        };
+
+        struct LoopModule : SapphireModule
+        {
+            explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
+                : SapphireModule(nParams, nOutputPorts)
+                {}
+        };
+
+        struct LoopWidget : SapphireWidget
+        {
+            explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+                : SapphireWidget(moduleCode, panelSvgFileName)
+                {}
+
+            void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
+            {
+                auto button = createLightParamCentered<InsertButton>(Vec{}, loopModule, paramId, lightId);
+                button->loopWidget = this;
+                addSapphireParam(button, "insert_button");
+            }
+        };
+
+
+        void InsertButton::onButton(const event::Button& e)
+        {
+            insert_button_base_t::onButton(e);
+            if (loopWidget != nullptr)
+            {
+                if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT)
+                    AddExpander(modelSapphireLoop, loopWidget, ExpanderDirection::Right);
+            }
+        }
+
+
         namespace InLoop
         {
             enum ParamId
@@ -29,10 +73,10 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct Mod : SapphireModule
+            struct Mod : LoopModule
             {
                 Mod()
-                    : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                    : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
@@ -54,17 +98,16 @@ namespace Sapphire
                 }
             };
 
-            struct Wid : SapphireWidget
+            struct Wid : LoopWidget
             {
                 Mod* inLoopModule{};
 
                 explicit Wid(Mod* module)
-                    : SapphireWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
+                    : LoopWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
                     , inLoopModule(module)
                 {
                     setModule(module);
-                    auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addSapphireParam(toggle, "insert_button");
+                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                 }
             };
         }
@@ -93,10 +136,10 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct Mod : SapphireModule
+            struct Mod : LoopModule
             {
                 Mod()
-                    : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                    : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
@@ -118,17 +161,16 @@ namespace Sapphire
                 }
             };
 
-            struct Wid : SapphireWidget
+            struct Wid : LoopWidget
             {
                 Mod* loopModule{};
 
                 explicit Wid(Mod* module)
-                    : SapphireWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
+                    : LoopWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
                     , loopModule(module)
                 {
                     setModule(module);
-                    auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addSapphireParam(toggle, "insert_button");
+                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                 }
             };
         }

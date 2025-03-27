@@ -1183,6 +1183,30 @@ namespace Sapphire
             return elapsed;
         }
     };
+
+
+    enum class ExpanderDirection
+    {
+        Left,
+        Right,
+    };
+
+
+    // The following function is based on code from Dave Benham's Venom plugin:
+    // https://github.com/DaveBenham/VenomModules/blob/e16c04d2e57c8065ce2db2a8cce2224aba7269e6/src/plugin.hpp#L561C8-L561C19
+    inline void AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir)
+    {
+        Module* module = model->createModule();
+        APP->engine->addModule(module);
+        ModuleWidget* modWidget = model->createModuleWidget(module);
+        int dx = (dir == ExpanderDirection::Left) ? -modWidget->box.size.x : parentModWidget->box.size.x;
+        APP->scene->rack->setModulePosForce(modWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
+        APP->scene->rack->addModule(modWidget);
+        auto h = new history::ModuleAdd;
+        h->name = "create " + model->name;
+        h->setModule(modWidget);
+        APP->history->push(h);
+    }
 }
 
 
