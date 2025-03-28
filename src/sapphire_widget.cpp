@@ -3,24 +3,34 @@
 
 namespace Sapphire
 {
-    void SapphireWidget::beginSplash()
-    {
-        splashCount = 128;
-    }
-
     void SapphireWidget::drawSplash(NVGcontext* vg)
     {
-        if (splashCount > 0)
-        {
-            // Draw a box over the whole panel with gradually decreasing opacity.
-            NVGcolor color = nvgRGBA(0xa5, 0x1f, 0xde, splashCount);
-            nvgBeginPath(vg);
-            nvgRect(vg, 0, 0, box.size.x, box.size.y);
-            nvgFillColor(vg, color);
-            nvgFill(vg);
+        if (!splash.active)
+            return;
 
-            // Prepare for next frame of the animation.
-            splashCount = std::max(0, splashCount - 8);
+        double remaining = splash.remainingTime();
+        if (remaining > 0)
+        {
+            double frac = splash.emphasis*(remaining / splash.durationSeconds);
+            int opacity = std::clamp<int>(
+                static_cast<int>(std::round(255*frac)),
+                0,
+                255
+            );
+
+            if (opacity > 0)
+            {
+                // Draw a box over the whole panel with gradually decreasing opacity.
+                NVGcolor color = nvgRGBA(0xa5, 0x1f, 0xde, opacity);
+                nvgBeginPath(vg);
+                nvgRect(vg, 0, 0, box.size.x, box.size.y);
+                nvgFillColor(vg, color);
+                nvgFill(vg);
+            }
+        }
+        else
+        {
+            splash.end();
         }
     }
 

@@ -208,10 +208,42 @@ namespace Sapphire
     };
 
 
+    struct SplashState
+    {
+        bool active = false;
+        Stopwatch stopwatch;
+        double durationSeconds = 0;
+        double emphasis = 0;
+
+        void begin(double _durationSeconds = 0.25, double _emphasis = 0.5)
+        {
+            stopwatch.restart();
+            durationSeconds = std::clamp<double>(_durationSeconds, 0.01, 10.0);
+            emphasis = std::clamp<double>(_emphasis, 0, 1);
+            active = true;
+        }
+
+        void end()
+        {
+            stopwatch.reset();
+            active = false;
+        }
+
+        double remainingTime()
+        {
+            if (!active)
+                return 0;
+
+            double seconds = stopwatch.elapsedSeconds();
+            return std::max<double>(0, durationSeconds - seconds);
+        }
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
-        int splashCount = 0;        // how many `step` frames left in a panel "splash" fader
+        SplashState splash;
 
         SvgOverlay* outputStereoLabelLR = nullptr;
         SvgOverlay* outputStereoLabel2  = nullptr;
@@ -406,7 +438,6 @@ namespace Sapphire
             return sapphireModule->inputStereoMode;
         }
 
-        void beginSplash();
         void drawSplash(NVGcontext* vg);
         void drawLayer(const DrawArgs& args, int layer) override;
 
@@ -456,7 +487,7 @@ namespace Sapphire
         APP->history->push(h);
 
         // Animate the first few frames of the new panel, like a splash screen.
-        sapphireWidget->beginSplash();
+        sapphireWidget->splash.begin();
 
         return expanderModule;
     }
