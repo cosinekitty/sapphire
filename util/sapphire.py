@@ -30,6 +30,7 @@ ARROW_LINE_STYLE = 'stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke
 SIGNAL_LINE_STYLE = 'stroke:#66065c;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
 SYMBOL_TEXT_STYLE = 'stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none'
 
+DY_STEREO_PORTS = 10.0
 
 class SapphireGemstone(Element):
     mmWidth = 5.43

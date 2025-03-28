@@ -1930,11 +1930,19 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     xInsertButton = panel.mmWidth - 5.0
     yInsertButton = 20.0
+    xInputPorts = 7.0
+    yLeftInput = 100.0
+    yRightInput = yLeftInput + DY_STEREO_PORTS
+    dxPortLabel = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, name))
+        pl.append(ModelNamePath(panel, font, 'djinn'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        controls.append(Component('audio_left_input' , xInputPorts, yLeftInput))
+        controls.append(Component('audio_right_input', xInputPorts, yRightInput))
+        pl.append(CenteredControlTextPath(font, 'L', xInputPorts + dxPortLabel, yLeftInput))
+        pl.append(CenteredControlTextPath(font, 'R', xInputPorts + dxPortLabel, yRightInput))
     return Save(panel, svgFileName)
 
 
@@ -1952,7 +1960,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yInsertButton = 20.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, name))
+        #pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
     return Save(panel, svgFileName)
@@ -1970,7 +1978,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
-        pl.append(ModelNamePath(panel, font, 'out'))
+        #pl.append(ModelNamePath(panel, font, 'out'))
         pl.append(CenteredGemstone(panel))
     return Save(panel, svgFileName)
 

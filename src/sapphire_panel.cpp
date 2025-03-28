@@ -191,6 +191,8 @@ namespace Sapphire
             }},
         { "inloop", {
             {"_panel",                 {  30.480,  128.500}},
+            {"audio_left_input",       {   7.000,  100.000}},
+            {"audio_right_input",      {   7.000,  110.000}},
             {"insert_button",          {  25.480,   20.000}},
             }},
         { "lark", {

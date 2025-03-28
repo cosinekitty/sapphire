@@ -99,6 +99,8 @@ namespace Sapphire
 
             enum InputId
             {
+                AUDIO_LEFT_INPUT,
+                AUDIO_RIGHT_INPUT,
                 INPUTS_LEN
             };
 
@@ -120,6 +122,8 @@ namespace Sapphire
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
+                    configInput(AUDIO_LEFT_INPUT,  "Left audio");
+                    configInput(AUDIO_RIGHT_INPUT, "Right audio");
                     initialize();
                 }
 
@@ -148,6 +152,8 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addSapphireInput(AUDIO_LEFT_INPUT,  "audio_left_input");
+                    addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
                 }
             };
         }
