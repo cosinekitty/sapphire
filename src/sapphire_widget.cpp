@@ -40,4 +40,32 @@ namespace Sapphire
         if (layer == 1)
             drawSplash(args.vg);
     }
+
+
+    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir)
+    {
+        Module* rawModule = model->createModule();
+        assert(rawModule != nullptr);
+        SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
+        assert(expanderModule != nullptr);
+        APP->engine->addModule(expanderModule);
+        ModuleWidget* rawWidget = model->createModuleWidget(expanderModule);
+        assert(rawWidget != nullptr);
+        SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
+        assert(sapphireWidget != nullptr);
+        int dx = (dir == ExpanderDirection::Left) ? -sapphireWidget->box.size.x : parentModWidget->box.size.x;
+        APP->scene->rack->setModulePosForce(sapphireWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
+        APP->scene->rack->addModule(sapphireWidget);
+
+        // Push this module creation action onto undo/redo stack.
+        auto h = new history::ModuleAdd;
+        h->name = "create " + model->name;
+        h->setModule(sapphireWidget);
+        APP->history->push(h);
+
+        // Animate the first few frames of the new panel, like a splash screen.
+        sapphireWidget->splash.begin();
+
+        return expanderModule;
+    }
 }
