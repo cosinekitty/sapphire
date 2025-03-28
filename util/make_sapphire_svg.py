@@ -1918,8 +1918,8 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
-def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xInputPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str) -> None:
-    dxPortLabel = 6.5
+def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, direction:float, xInputPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str) -> None:
+    dxPortLabel = direction * 6.5
     yRightPort = yLeftPort + DY_STEREO_PORTS
     controls.append(Component(leftPortSymbol,  xInputPorts, yLeftPort))
     controls.append(Component(rightPortSymbol, xInputPorts, yRightPort))
@@ -1946,7 +1946,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePath(panel, font, 'djinn'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        AddVerticalStereoPorts(font, pl, controls, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+        AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
     return Save(panel, svgFileName)
 
 
@@ -1972,7 +1972,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
 def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     name = 'outloop'
-    PANEL_WIDTH = 3
+    PANEL_WIDTH = 4
     svgFileName = SvgFileName(name, Target.VcvRack)
     panel = Panel(PANEL_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
@@ -1980,10 +1980,14 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
+    xmid = panel.mmWidth / 2
+    xOutputPorts = xmid
+    yLeftOutput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         #pl.append(ModelNamePath(panel, font, 'out'))
         pl.append(CenteredGemstone(panel))
+        AddVerticalStereoPorts(font, pl, controls, -1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
     return Save(panel, svgFileName)
 
 

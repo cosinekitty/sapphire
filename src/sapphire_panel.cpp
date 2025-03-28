@@ -247,7 +247,9 @@ namespace Sapphire
             {"z_input",                {  41.140,   58.000}},
             }},
         { "outloop", {
-            {"_panel",                 {  15.240,  128.500}},
+            {"_panel",                 {  20.320,  128.500}},
+            {"audio_left_output",      {  10.160,  100.000}},
+            {"audio_right_output",     {  10.160,  110.000}},
             }},
         { "pivot", {
             {"_panel",                 {  20.320,  128.500}},

@@ -235,6 +235,8 @@ namespace Sapphire
 
             enum OutputId
             {
+                AUDIO_LEFT_OUTPUT,
+                AUDIO_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -249,6 +251,8 @@ namespace Sapphire
                     : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+                    configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                     initialize();
                 }
 
@@ -276,6 +280,8 @@ namespace Sapphire
                     , outLoopModule(module)
                 {
                     setModule(module);
+                    addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                    addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }
             };
         }
