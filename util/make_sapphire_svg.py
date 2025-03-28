@@ -1918,6 +1918,15 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xInputPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str) -> None:
+    dxPortLabel = 6.5
+    yRightPort = yLeftPort + DY_STEREO_PORTS
+    controls.append(Component(leftPortSymbol,  xInputPorts, yLeftPort))
+    controls.append(Component(rightPortSymbol, xInputPorts, yRightPort))
+    pl.append(CenteredControlTextPath(font, 'L', xInputPorts + dxPortLabel, yLeftPort))
+    pl.append(CenteredControlTextPath(font, 'R', xInputPorts + dxPortLabel, yRightPort))
+
+
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     name = 'inloop'
     PANEL_WIDTH = 6
@@ -1932,17 +1941,12 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yInsertButton = 20.0
     xInputPorts = 7.0
     yLeftInput = 100.0
-    yRightInput = yLeftInput + DY_STEREO_PORTS
-    dxPortLabel = 6.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         pl.append(ModelNamePath(panel, font, 'djinn'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        controls.append(Component('audio_left_input' , xInputPorts, yLeftInput))
-        controls.append(Component('audio_right_input', xInputPorts, yRightInput))
-        pl.append(CenteredControlTextPath(font, 'L', xInputPorts + dxPortLabel, yLeftInput))
-        pl.append(CenteredControlTextPath(font, 'R', xInputPorts + dxPortLabel, yRightInput))
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
     return Save(panel, svgFileName)
 
 
