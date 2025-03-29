@@ -1965,7 +1965,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         #pl.append(ModelNamePath(panel, font, name))
-        pl.append(CenteredGemstone(panel))
+        #pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
     return Save(panel, svgFileName)
 
@@ -1986,7 +1986,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
         #pl.append(ModelNamePath(panel, font, 'out'))
-        pl.append(CenteredGemstone(panel))
+        #pl.append(CenteredGemstone(panel))
         AddVerticalStereoPorts(font, pl, controls, -1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
     return Save(panel, svgFileName)
 
