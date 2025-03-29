@@ -4,30 +4,9 @@ namespace Sapphire
 {
     namespace MultiTap
     {
-        using insert_button_base_t = VCVLightBezel<WhiteLight>;
-
-        inline bool IsModelType(const Module* module, const Model* model)
-        {
-            return module && model && module->model == model;
-        }
-
-        inline bool IsInLoop(const Module* module)
-        {
-            return IsModelType(module, modelSapphireInLoop);
-        }
-
-        inline bool IsLoop(const Module* module)
-        {
-            return IsModelType(module, modelSapphireLoop);
-        }
-
-        inline bool IsOutLoop(const Module* module)
-        {
-            return IsModelType(module, modelSapphireOutLoop);
-        }
-
         struct LoopWidget;
 
+        using insert_button_base_t = VCVLightBezel<WhiteLight>;
         struct InsertButton : insert_button_base_t
         {
             LoopWidget* loopWidget{};
@@ -56,16 +35,16 @@ namespace Sapphire
             {
                 Message& message = rightMessageBuffer();
 
-                message.nchannels = std::clamp(nchannels, 0, PORT_MAX_CHANNELS);
-                for (int c = 0; c < message.nchannels; ++c)
-                    message.audio[c] = audio[c];
+                message.audio.nchannels = std::clamp(nchannels, 0, PORT_MAX_CHANNELS);
+                for (int c = 0; c < message.audio.nchannels; ++c)
+                    message.audio.sample[c] = audio[c];
 
                 rightExpander.requestMessageFlip();
             }
 
             void sendMessage(const Message& message)
             {
-                return sendMessage(message.nchannels, message.audio);
+                return sendMessage(message.audio.nchannels, message.audio.sample);
             }
 
             const Message* receiveMessage()
@@ -84,7 +63,43 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
                 {}
+
+            Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
+            {
+                // As an experiment, I take a completely functional-programming
+                // approach here, calculating a Result as a function of
+                // Message and InputState.
+                // The caller performs actual mutations such as forwarding the message
+                // and applying updates to output ports.
+
+                Result result;
+                OutputState output;
+
+                // FIXFIXFIX: do some actual processing here!!!
+                // For now, mix input audio with bus-message audio.
+                result.message.audio = inMessage.audio + input.audio;
+                result.output = output;
+
+                return result;
+            }
+
+            virtual InputState getInputs() = 0;
+            virtual void setOutputs(const OutputState& output) = 0;
+
+            void process(const ProcessArgs& args) override
+            {
+                Message inMessage;
+                const Message* ptr = receiveMessage();
+                if (ptr != nullptr)
+                    inMessage = *ptr;
+
+                InputState input = getInputs();
+                Result result = calculate(args.sampleRate, inMessage, input);
+                setOutputs(result.output);
+                sendMessage(result.message);
+            }
         };
+
 
         struct LoopWidget : SapphireWidget
         {
@@ -180,15 +195,20 @@ namespace Sapphire
                     initialize();
                 }
 
-                void process(const ProcessArgs& args) override
+                InputState getInputs() override
                 {
                     Input& audioLeftInput = inputs.at(AUDIO_LEFT_INPUT);
                     Input& audioRightInput = inputs.at(AUDIO_RIGHT_INPUT);
 
-                    float frame[2];
-                    frame[0] = audioLeftInput.getVoltageSum();
-                    frame[1] = audioRightInput.getVoltageSum();
-                    sendMessage(2, frame);
+                    InputState state;
+                    state.audio.nchannels = 2;
+                    state.audio.sample[0] = audioLeftInput.getVoltageSum();
+                    state.audio.sample[1] = audioRightInput.getVoltageSum();
+                    return state;
+                }
+
+                void setOutputs(const OutputState& output) override
+                {
                 }
             };
 
@@ -252,18 +272,14 @@ namespace Sapphire
                     initialize();
                 }
 
-                void process(const ProcessArgs& args) override
+                InputState getInputs() override
                 {
-                    Message outMessage;     // null message with 0 audio channels
+                    InputState state;
+                    return state;
+                }
 
-                    const Message* inMessage = receiveMessage();
-                    if (inMessage != nullptr)
-                    {
-                        // FIXFIXFIX: for now we just copy the audio over. later we feed into a delay loop!
-                        outMessage = *inMessage;
-                    }
-
-                    sendMessage(outMessage);
+                void setOutputs(const OutputState& output) override
+                {
                 }
             };
 
@@ -334,11 +350,11 @@ namespace Sapphire
                     const Message* message = receiveMessage();
                     if (message != nullptr)
                     {
-                        if (message->nchannels > 0)
-                            left = message->audio[0];
+                        if (message->audio.nchannels > 0)
+                            left = message->audio.sample[0];
 
-                        if (message->nchannels > 1)
-                            right = message->audio[1];
+                        if (message->audio.nchannels > 1)
+                            right = message->audio.sample[1];
                     }
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);

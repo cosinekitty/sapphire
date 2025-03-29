@@ -1190,6 +1190,15 @@ namespace Sapphire
         Left,
         Right,
     };
+
+
+    inline bool IsModelType(const Module* module, const Model* model)
+    {
+        // This function is useful for recognizing our own modules in
+        // an expander chain.
+        // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
+        return module && model && module->model == model;
+    }
 }
 
 
