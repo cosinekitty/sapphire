@@ -341,7 +341,7 @@ class Rectangle(Element):
 
 
 class BorderRect(Element):
-    """A filled rectangle with border for the bottom layer of your panel design."""
+    """A filled rectangle for the base layer of your panel design."""
     def __init__(self, hpWidth:int, fillColor:str, borderColor:str, mmHeight:float = PANEL_HEIGHT_MM) -> None:
         super().__init__('rect', 'border_rect')
         if hpWidth <= 0:
@@ -350,7 +350,7 @@ class BorderRect(Element):
         self.setAttribFloat('height', mmHeight)
         self.setAttrib('x', '0')
         self.setAttrib('y', '0')
-        self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
+        self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;stroke:none;'.format(fillColor))
 
 
 class LinearGradient(Element):

@@ -51,15 +51,11 @@ namespace Sapphire
 
     void SapphireWidget::updateBorders(NVGcontext* vg)
     {
-        SapphireModule* smod = getSapphireModule();
-        if (smod != nullptr)
-        {
-            if (smod->hideLeftBorder)
-                eraseBorder(vg, 0);
+        if (isLeftBorderHidden())
+            eraseBorder(vg, 0);
 
-            if (smod->hideRightBorder)
-                eraseBorder(vg, 1);
-        }
+        if (isRightBorderHidden())
+            eraseBorder(vg, 1);
     }
 
 
