@@ -34,11 +34,44 @@ namespace Sapphire
         }
     }
 
+    void SapphireWidget::eraseBorder(NVGcontext* vg, int side)
+    {
+        const NVGcolor sapphirePanelColor = nvgRGB(0x4f, 0x8d, 0xf2);
+
+        // Draw a vertical line using the background panel color.
+        const float xMargin = 1;
+        const float yMargin = 2;
+        const float extra = 0.25;
+        float x1 = side*(box.size.x - xMargin);
+
+        nvgBeginPath(vg);
+        nvgRect(vg, x1, yMargin, xMargin + extra, box.size.y - 2*yMargin);
+        nvgFillColor(vg, sapphirePanelColor);
+        nvgFill(vg);
+    }
+
+    void SapphireWidget::updateBorders(NVGcontext* vg)
+    {
+        SapphireModule* smod = getSapphireModule();
+        if (smod != nullptr)
+        {
+            if (smod->hideLeftBorder)
+                eraseBorder(vg, 0);
+
+            if (smod->hideRightBorder)
+                eraseBorder(vg, 1);
+        }
+}
+
     void SapphireWidget::drawLayer(const DrawArgs& args, int layer)
     {
         ModuleWidget::drawLayer(args, layer);
+
         if (layer == 1)
+        {
+            updateBorders(args.vg);
             drawSplash(args.vg);
+        }
     }
 
 

@@ -62,7 +62,10 @@ namespace Sapphire
         {
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
-                {}
+            {
+                hideLeftBorder = true;
+                hideRightBorder = true;
+            }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
             {

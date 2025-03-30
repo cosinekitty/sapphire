@@ -440,6 +440,8 @@ namespace Sapphire
 
         void drawSplash(NVGcontext* vg);
         void drawLayer(const DrawArgs& args, int layer) override;
+        void eraseBorder(NVGcontext* vg, int side);
+        void updateBorders(NVGcontext* vg);
 
         void step() override
         {

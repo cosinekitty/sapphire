@@ -610,6 +610,8 @@ namespace Sapphire
         bool shouldClearTricorder = false;     // used only by modules that send vectors to Tricorder for display
         bool provideModelResampler = false;
         int modelSampleRate = 0;
+        bool hideLeftBorder  = false;
+        bool hideRightBorder = false;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
