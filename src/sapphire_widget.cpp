@@ -40,12 +40,11 @@ namespace Sapphire
 
         // Draw a vertical line using the background panel color.
         const float xMargin = 1;
-        const float yMargin = 2;
-        const float extra = 0.25;
+        const float yMargin = 1;
         float x1 = side*(box.size.x - xMargin);
 
         nvgBeginPath(vg);
-        nvgRect(vg, x1, yMargin, xMargin + extra, box.size.y - 2*yMargin);
+        nvgRect(vg, x1, yMargin, xMargin + DxRemoveGap, box.size.y - 2*yMargin);
         nvgFillColor(vg, sapphirePanelColor);
         nvgFill(vg);
     }
@@ -61,7 +60,32 @@ namespace Sapphire
             if (smod->hideRightBorder)
                 eraseBorder(vg, 1);
         }
-}
+    }
+
+
+    void SapphireWidget::draw(const DrawArgs& args)
+    {
+        DrawArgs newDrawArgs = args;
+
+        if (isRightBorderHidden())
+        {
+            // Eliminate the hairline gap between adjacent modules in some cases.
+            // A trick borrowed from the MindMeld plugin: when we want a seamless
+            // connection between two adjacent panels (e.g. for expanders),
+            // tweak the clip box so we are allowed to draw 0.3 mm to the right
+            // of our own panel.
+            newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
+        }
+
+        if (isLeftBorderHidden())
+        {
+            newDrawArgs.clipBox.pos.x  -= mm2px(DxRemoveGap);
+            newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
+        }
+
+        ModuleWidget::draw(newDrawArgs);
+    }
+
 
     void SapphireWidget::drawLayer(const DrawArgs& args, int layer)
     {

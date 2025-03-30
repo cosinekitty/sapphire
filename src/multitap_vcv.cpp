@@ -63,8 +63,6 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
-                hideLeftBorder = true;
-                hideRightBorder = true;
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -135,6 +133,24 @@ namespace Sapphire
 
                 // Create the expander module.
                 AddExpander(model, this, ExpanderDirection::Right);
+            }
+
+            virtual bool isConnectedOnLeft() const = 0;
+
+            bool isConnectedOnRight() const
+            {
+                return module && (IsLoop(module->rightExpander.module) || IsOutLoop(module->rightExpander.module));
+            }
+
+            void step() override
+            {
+                SapphireWidget::step();
+                SapphireModule* smod = getSapphireModule();
+                if (smod != nullptr)
+                {
+                    smod->hideLeftBorder  = isConnectedOnLeft();
+                    smod->hideRightBorder = isConnectedOnRight();
+                }
             }
         };
 
@@ -228,6 +244,11 @@ namespace Sapphire
                     addSapphireInput(AUDIO_LEFT_INPUT,  "audio_left_input");
                     addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
                 }
+
+                bool isConnectedOnLeft() const override
+                {
+                    return false;
+                }
             };
         }
 
@@ -296,6 +317,11 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                }
+
+                bool isConnectedOnLeft() const override
+                {
+                    return module && (IsInLoop(module->leftExpander.module) || IsLoop(module->leftExpander.module));
                 }
             };
         }
@@ -382,6 +408,19 @@ namespace Sapphire
                     setModule(module);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                }
+
+                bool isConnectedOnLeft() const
+                {
+                    return module && (IsInLoop(module->leftExpander.module) || IsLoop(module->leftExpander.module));
+                }
+
+                void step() override
+                {
+                    SapphireWidget::step();
+                    SapphireModule* smod = getSapphireModule();
+                    if (smod != nullptr)
+                        smod->hideLeftBorder = isConnectedOnLeft();
                 }
             };
         }

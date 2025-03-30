@@ -240,6 +240,9 @@ namespace Sapphire
     };
 
 
+    constexpr float DxRemoveGap = 0.3f;
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -345,6 +348,11 @@ namespace Sapphire
                 throw std::logic_error("Invalid usage of a non-Sapphire module.");
 
             return sapphireModule;
+        }
+
+        const SapphireModule* getSapphireModule() const
+        {
+            return const_cast<const SapphireModule*>(const_cast<SapphireWidget*>(this)->getSapphireModule());
         }
 
         template <typename knob_t = SapphireAttenuverterKnob>
@@ -465,6 +473,20 @@ namespace Sapphire
                 inputStereoLabelR2->setVisible(mode == InputStereoMode::Right2);
             }
         }
+
+        bool isRightBorderHidden() const
+        {
+            const SapphireModule* smod = getSapphireModule();
+            return (smod != nullptr) && smod->hideRightBorder;
+        }
+
+        bool isLeftBorderHidden() const
+        {
+            const SapphireModule* smod = getSapphireModule();
+            return (smod != nullptr) && smod->hideLeftBorder;
+        }
+
+        void draw(const DrawArgs& args) override;
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir);
