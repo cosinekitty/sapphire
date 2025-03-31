@@ -1,6 +1,7 @@
 #pragma once
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "multitap_inloop_panel.hpp"
 
 namespace Sapphire
 {

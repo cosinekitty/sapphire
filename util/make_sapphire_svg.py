@@ -1944,6 +1944,19 @@ def MakeLoopControlFence() -> FencePost:
     return FencePost(22.0, 87.0, 5)
 
 
+def MultiTapInLoopHeaderText(xAdjust:float) -> str:
+    text  = '// *** GENERATED CODE *** DO NOT EDIT ***\n'
+    text += '#pragma once\n'
+    text += 'namespace Sapphire\n'
+    text += '{\n'
+    text += '    namespace MultiTap\n'
+    text += '    {\n'
+    text += '        constexpr float INLOOP_XSHIFT_MM = {:0.3f};\n'.format(xAdjust)
+    text += '    }\n'
+    text += '}\n'
+    return text
+
+
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'inloop'
@@ -1956,7 +1969,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     pl.append(defs)
     panel.append(pl)
     hpdiff = MULTITAP_INLOOP_HP_WIDTH - MULTITAP_LOOP_HP_WIDTH
-    xControlCenter = xmid + (HP_WIDTH_MM * hpdiff/2)
+    xAdjust = (HP_WIDTH_MM * hpdiff/2)
+    xControlCenter = xmid + xAdjust
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xInputPorts = 11.0
@@ -1974,6 +1988,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
         pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
         AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+    UpdateFileIfChanged('../src/multitap_inloop_panel.hpp', MultiTapInLoopHeaderText(xAdjust))
     return Save(panel, svgFileName)
 
 

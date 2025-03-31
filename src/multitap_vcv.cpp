@@ -182,7 +182,7 @@ namespace Sapphire
 
             void drawChainIndex(NVGcontext* vg, int chainIndex)
             {
-                if (chainIndex < 2)
+                if (chainIndex < 1)
                     return;
 
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
@@ -204,6 +204,10 @@ namespace Sapphire
                     float height = bounds[3] - bounds[1];
                     float x1 = ((box.size.x - width) / 2);
                     float y1 = mm2px(yCenter_mm) - height/2;
+
+                    if (chainIndex == 1)
+                        x1 += mm2px(INLOOP_XSHIFT_MM);     // shift right on the InLoop module, because it is wider
+
                     nvgText(vg, x1, y1, text, nullptr);
                 }
             }
