@@ -2037,7 +2037,7 @@ def GenerateMultiTapButtons() -> int:
     cx = (panel.mmWidth / 2) - 0.4
     cy = panel.mmHeight / 2
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        panel.append(CenteredControlTextPath(font, '+', cx, cy, pointSize = 12.0))
+        panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
 
 
