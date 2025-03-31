@@ -28,6 +28,7 @@ namespace Sapphire
 
         struct Message
         {
+            int chainIndex = -1;
             Frame audio;
         };
 

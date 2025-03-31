@@ -17,6 +17,7 @@ namespace Sapphire
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
+            int chainIndex = -1;        // when participating in a chain, InLoop=0, Loop=1..N, OutLoop=N+1
 
             explicit MultiTapModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -33,21 +34,24 @@ namespace Sapphire
 
             void sendMessage(int nchannels, const float* audio)
             {
-                Message& message = rightMessageBuffer();
+                Message message;
 
                 message.audio.nchannels = std::clamp(nchannels, 0, PORT_MAX_CHANNELS);
                 for (int c = 0; c < message.audio.nchannels; ++c)
                     message.audio.sample[c] = audio[c];
 
+                sendMessage(message);
+            }
+
+            void sendMessage(const Message& inMessage)
+            {
+                Message& outMessage = rightMessageBuffer();
+                outMessage = inMessage;
+                outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
                 rightExpander.requestMessageFlip();
             }
 
-            void sendMessage(const Message& message)
-            {
-                return sendMessage(message.audio.nchannels, message.audio.sample);
-            }
-
-            const Message* receiveMessage()
+            virtual const Message* receiveMessage()
             {
                 // Look to the left for an InLoop or Loop module.
                 const Module* left = leftExpander.module;
@@ -94,6 +98,9 @@ namespace Sapphire
                 if (ptr != nullptr)
                     inMessage = *ptr;
 
+                if (IsLoop(this))
+                    chainIndex = inMessage.chainIndex;
+
                 InputState input = getInputs();
                 Result result = calculate(args.sampleRate, inMessage, input);
                 setOutputs(result.output);
@@ -104,6 +111,8 @@ namespace Sapphire
 
         struct LoopWidget : SapphireWidget
         {
+            const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
+
             explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
                 : SapphireWidget(moduleCode, panelSvgFileName)
                 {}
@@ -125,11 +134,20 @@ namespace Sapphire
                 // Otherwise, assume we are at the end of a chain that is not terminated by
                 // an OutLoop, so insert an OutLoop.
 
-                const Module* right = module->rightExpander.module;
+                Module* right = module->rightExpander.module;
+
                 Model* model =
                     (IsLoop(right) || IsOutLoop(right))
                     ? modelSapphireLoop
                     : modelSapphireOutLoop;
+
+                // Erase any obsolete chain indices already in the remaining modules.
+                // This prevents them briefly flashing on the screen before being replaced.
+                for (Module* node = right; IsLoop(node) || IsOutLoop(node); node = node->rightExpander.module)
+                {
+                    auto lmod = dynamic_cast<MultiTapModule*>(node);
+                    lmod->chainIndex = -1;
+                }
 
                 // Create the expander module.
                 AddExpander(model, this, ExpanderDirection::Right);
@@ -150,6 +168,47 @@ namespace Sapphire
                 {
                     smod->hideLeftBorder  = isConnectedOnLeft();
                     smod->hideRightBorder = isConnectedOnRight();
+                }
+            }
+
+            void drawChainIndex(NVGcontext* vg, int chainIndex)
+            {
+                if (chainIndex < 2)
+                    return;
+
+                std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
+                if (font)
+                {
+                    const float yCenter_mm = 11.0;
+                    const NVGcolor textColor = nvgRGB(0x66, 0x06, 0x5c);
+
+                    float bounds[4]{};  // [xmin, ymin, xmax, ymax]
+                    char text[20];
+                    snprintf(text, sizeof(text), "%d", chainIndex);
+
+                    nvgFontSize(vg, 18);
+                    nvgFontFaceId(vg, font->handle);
+                    nvgFillColor(vg, textColor);
+
+                    nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                    float width  = bounds[2] - bounds[0];
+                    float height = bounds[3] - bounds[1];
+                    float x1 = ((box.size.x - width) / 2);
+                    float y1 = mm2px(yCenter_mm) - height/2;
+                    nvgText(vg, x1, y1, text, nullptr);
+                }
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                SapphireWidget::drawLayer(args, layer);
+                if (layer == 1)
+                {
+                    const LoopModule *lmod = dynamic_cast<const LoopModule*>(module);
+                    if (lmod != nullptr)
+                    {
+                        drawChainIndex(args.vg, lmod->chainIndex);
+                    }
                 }
             }
         };
@@ -197,6 +256,7 @@ namespace Sapphire
                 Mod()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
+                    chainIndex = 1;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
                     configInput(AUDIO_LEFT_INPUT,  "Left audio");
@@ -212,6 +272,14 @@ namespace Sapphire
                 {
                     Module::onReset(e);
                     initialize();
+                }
+
+                const Message* receiveMessage() override
+                {
+                    // InLoop is the leftmost module in any chain, so it never
+                    // receives messages from the left expander.
+                    // Also, leave chainIndex unchanged at all times.
+                    return nullptr;
                 }
 
                 InputState getInputs() override
@@ -384,6 +452,12 @@ namespace Sapphire
 
                         if (message->audio.nchannels > 1)
                             right = message->audio.sample[1];
+
+                        chainIndex = message->chainIndex;
+                    }
+                    else
+                    {
+                        chainIndex = -1;
                     }
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
