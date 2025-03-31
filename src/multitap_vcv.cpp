@@ -182,8 +182,18 @@ namespace Sapphire
 
             void drawChainIndex(NVGcontext* vg, int chainIndex)
             {
+                if (module == nullptr)
+                    return;
+
                 if (chainIndex < 1)
                     return;
+
+                if (IsInLoop(module))
+                {
+                    const Module* right = module->rightExpander.module;
+                    if (!IsLoop(right) && !IsOutLoop(right))
+                        return;
+                }
 
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
                 if (font)
