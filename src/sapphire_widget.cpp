@@ -47,7 +47,7 @@ namespace Sapphire
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
         const NVGcolor panelColor  = nvgRGB(0x4f, 0x8d, 0xf2);
-        const NVGcolor borderColor = nvgRGB(0x50, 0x21, 0xd4);
+        const NVGcolor borderColor = nvgRGB(0x5d, 0x43, 0xa3);
 
         // Top border
         DrawBorder(vg, borderColor, 0, 0, box.size.x, margin);
