@@ -52,9 +52,9 @@ def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, i
     tp = ti.toPath(xcenter, ycenter, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE, id)
     return tp
 
-def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
+def ModelNamePath(panel:Panel, font:Font, name:str, xAdjust:float = 0.0) -> TextPath:
     ti = TextItem(name, font, MODEL_NAME_POINTS)
-    tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
+    tp = ti.toPath(xAdjust + panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
     return tp
 
 
@@ -112,9 +112,9 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     return insignia
 
 
-def CenteredGemstone(panel:Panel) -> SapphireGemstone:
+def CenteredGemstone(panel:Panel, xAdjust:float = 0.0) -> SapphireGemstone:
     '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
-    gem = SapphireGemstone((panel.mmWidth - SapphireGemstone.mmWidth)/2, 121.0)
+    gem = SapphireGemstone(xAdjust + (panel.mmWidth - SapphireGemstone.mmWidth)/2, 121.0)
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem

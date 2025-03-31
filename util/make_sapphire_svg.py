@@ -1959,15 +1959,15 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xControlCenter = xmid + (HP_WIDTH_MM * hpdiff/2)
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    xInputPorts = 7.0
+    xInputPorts = 11.0
     yLeftInput = 100.0
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
     yFeedbackControl = yLoopFence.value(1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
-        pl.append(ModelNamePath(panel, font, 'djinn'))
-        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
+        pl.append(CenteredGemstone(panel, -11.5))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
