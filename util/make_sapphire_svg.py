@@ -21,7 +21,7 @@ def Print(message:str) -> int:
     return 0
 
 
-def Save(panel:Panel, filename:str) -> int:
+def Save(panel:BasePanel, filename:str) -> int:
     panel.save(filename)
     return 0
 
@@ -2006,9 +2006,19 @@ def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
     )
 
 
+def GenerateMultiTapButtons() -> int:
+    svgFileName = '../res/extender_button.svg'
+    panel = BasePanel(3.0, 3.0)
+    cx = panel.mmWidth / 2
+    cy = panel.mmHeight / 2
+    panel.append(Rectangle(cx, cy, panel.mmWidth, panel.mmHeight, 'none', 0.0, 'blue'))
+    return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
+        GenerateMultiTapButtons() or
         GenerateMultiTapPanels(cdict) or
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or

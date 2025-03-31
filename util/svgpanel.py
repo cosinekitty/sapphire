@@ -408,13 +408,10 @@ def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     return True
 
 
-class Panel(Element):
-    """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
-    def __init__(self, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> None:
+class BasePanel(Element):
+    def __init__(self, mmWidth:float, mmHeight:float) -> None:
         super().__init__('svg')
-        if hpWidth <= 0:
-            raise Error('Invalid hpWidth={}'.format(hpWidth))
-        self.mmWidth = HP_WIDTH_MM * hpWidth
+        self.mmWidth = mmWidth
         self.mmHeight = mmHeight
         self.setAttrib('xmlns', 'http://www.w3.org/2000/svg')
         self.setAttrib('width', '{:0.2f}mm'.format(self.mmWidth))
@@ -434,3 +431,12 @@ class Panel(Element):
     def save(self, outFileName:str, indent:str = '    ') -> bool:
         """Write this panel to an SVG file."""
         return UpdateFileIfChanged(outFileName, self.svg(indent))
+
+
+class Panel(BasePanel):
+    """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
+    def __init__(self, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> None:
+        if hpWidth <= 0:
+            raise Error('Invalid hpWidth={}'.format(hpWidth))
+        super().__init__(HP_WIDTH_MM * hpWidth, mmHeight)
+

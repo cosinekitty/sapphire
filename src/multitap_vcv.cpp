@@ -6,10 +6,16 @@ namespace Sapphire
     {
         struct LoopWidget;
 
-        using insert_button_base_t = VCVLightBezel<WhiteLight>;
+        using insert_button_base_t = app::SvgSwitch;
         struct InsertButton : insert_button_base_t
         {
             LoopWidget* loopWidget{};
+
+            explicit InsertButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/extender_button.svg")));
+            }
 
             void onButton(const event::Button& e) override;
         };
@@ -17,7 +23,7 @@ namespace Sapphire
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
-            int chainIndex = -1;        // when participating in a chain, InLoop=0, Loop=1..N, OutLoop=N+1
+            int chainIndex = -1;
 
             explicit MultiTapModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -122,7 +128,7 @@ namespace Sapphire
 
             void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
             {
-                auto button = createLightParamCentered<InsertButton>(Vec{}, loopModule, paramId, lightId);
+                auto button = createParamCentered<InsertButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
                 addSapphireParam(button, "insert_button");
             }
