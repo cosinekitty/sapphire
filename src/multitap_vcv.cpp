@@ -51,13 +51,16 @@ namespace Sapphire
                 rightExpander.requestMessageFlip();
             }
 
-            virtual const Message* receiveMessage()
+            const Message* receiveMessage()
             {
-                // Look to the left for an InLoop or Loop module.
-                const Module* left = leftExpander.module;
-                if (IsInLoop(left) || IsLoop(left))
-                    return static_cast<const Message*>(left->rightExpander.consumerMessage);
-
+                // InLoop modules do not receive expander messages.
+                if (!IsInLoop(this))
+                {
+                    // Look to the left for an InLoop or Loop module.
+                    const Module* left = leftExpander.module;
+                    if (IsInLoop(left) || IsLoop(left))
+                        return static_cast<const Message*>(left->rightExpander.consumerMessage);
+                }
                 return nullptr;
             }
         };
@@ -272,14 +275,6 @@ namespace Sapphire
                 {
                     Module::onReset(e);
                     initialize();
-                }
-
-                const Message* receiveMessage() override
-                {
-                    // InLoop is the leftmost module in any chain, so it never
-                    // receives messages from the left expander.
-                    // Also, leave chainIndex unchanged at all times.
-                    return nullptr;
                 }
 
                 InputState getInputs() override
