@@ -239,6 +239,10 @@ namespace Sapphire
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
+                TIME_PARAM,
+                TIME_ATTEN,
+                FEEDBACK_PARAM,
+                FEEDBACK_ATTEN,
                 PARAMS_LEN
             };
 
@@ -246,6 +250,8 @@ namespace Sapphire
             {
                 AUDIO_LEFT_INPUT,
                 AUDIO_RIGHT_INPUT,
+                TIME_CV_INPUT,
+                FEEDBACK_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -270,6 +276,12 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configInput(AUDIO_LEFT_INPUT,  "Left audio");
                     configInput(AUDIO_RIGHT_INPUT, "Right audio");
+                    configParam(TIME_PARAM, 0, 1, 0, "Delay time");
+                    configParam(TIME_ATTEN, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
+                    configInput(TIME_CV_INPUT, "Delay time CV");
+                    configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
+                    configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
+                    configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
                     initialize();
                 }
 
@@ -312,6 +324,8 @@ namespace Sapphire
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addSapphireInput(AUDIO_LEFT_INPUT,  "audio_left_input");
                     addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
+                    addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
@@ -326,11 +340,17 @@ namespace Sapphire
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
+                TIME_PARAM,
+                TIME_ATTEN,
+                FEEDBACK_PARAM,
+                FEEDBACK_ATTEN,
                 PARAMS_LEN
             };
 
             enum InputId
             {
+                TIME_CV_INPUT,
+                FEEDBACK_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -352,6 +372,12 @@ namespace Sapphire
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
+                    configParam(TIME_PARAM, 0, 1, 0, "Delay time");
+                    configParam(TIME_ATTEN, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
+                    configInput(TIME_CV_INPUT, "Delay time CV");
+                    configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
+                    configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
+                    configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
                     initialize();
                 }
 
@@ -386,6 +412,8 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override

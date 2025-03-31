@@ -1936,27 +1936,43 @@ MULTITAP_INSERT_BUTTON_DY    = 4.0
 MULTITAP_INSERT_BUTTON_INSET = 3.0
 MULTITAP_INSERT_BUTTON_Y1    = 6.0
 
+MULTITAP_INLOOP_HP_WIDTH = 9
+MULTITAP_LOOP_HP_WIDTH   = 6
+MULTITAP_DY_CONTROL_LOOP_LABEL = 6.5
+
+def MakeLoopControlFence() -> FencePost:
+    return FencePost(22.0, 87.0, 5)
+
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'inloop'
-    PANEL_WIDTH = 6
     svgFileName = SvgFileName(name, Target.VcvRack)
-    panel = Panel(PANEL_WIDTH)
+    panel = Panel(MULTITAP_INLOOP_HP_WIDTH)
+    xmid = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
+    hpdiff = MULTITAP_INLOOP_HP_WIDTH - MULTITAP_LOOP_HP_WIDTH
+    xControlCenter = xmid + (HP_WIDTH_MM * hpdiff/2)
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xInputPorts = 7.0
     yLeftInput = 100.0
+    yLoopFence = MakeLoopControlFence()
+    yTimeControl = yLoopFence.value(0)
+    yFeedbackControl = yLoopFence.value(1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, PANEL_WIDTH))
+        pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
         pl.append(ModelNamePath(panel, font, 'djinn'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
+        pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
+        pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
         AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
     return Save(panel, svgFileName)
 
@@ -1964,9 +1980,9 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'loop'
-    PANEL_WIDTH = 4
     svgFileName = SvgFileName(name, Target.VcvRack)
-    panel = Panel(PANEL_WIDTH)
+    panel = Panel(MULTITAP_LOOP_HP_WIDTH)
+    xmid = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
@@ -1974,9 +1990,16 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+    yLoopFence = MakeLoopControlFence()
+    yTimeControl = yLoopFence.value(0)
+    yFeedbackControl = yLoopFence.value(1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, PANEL_WIDTH))
+        pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        AddFlatControlGroup(pl, controls, xmid, yTimeControl, 'time')
+        pl.append(CenteredControlTextPath(font, 'TIME', xmid, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddFlatControlGroup(pl, controls, xmid, yFeedbackControl, 'feedback')
+        pl.append(CenteredControlTextPath(font, 'FDBK', xmid, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
 
