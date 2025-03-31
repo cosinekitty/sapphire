@@ -242,6 +242,13 @@ namespace Sapphire
 
     constexpr float DxRemoveGap = 0.3f;
 
+    inline SvgOverlay* MakeSapphirePanel(const std::string& panelSvgFileName)
+    {
+        return new SvgOverlay(window::Svg::load(panelSvgFileName));
+    }
+
+    void DrawBorders(NVGcontext* vg, const Rect& box, bool hideLeft = false, bool hideRight = false);
+
 
     struct SapphireWidget : ModuleWidget
     {
@@ -258,8 +265,7 @@ namespace Sapphire
         explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
             : modcode(moduleCode)
         {
-            app::SvgPanel* svgPanel = createPanel(panelSvgFileName);
-            setPanel(svgPanel);
+            setPanel(MakeSapphirePanel(panelSvgFileName));
         }
 
         void position(Widget* widget, const std::string& label)
@@ -448,8 +454,6 @@ namespace Sapphire
 
         void drawSplash(NVGcontext* vg);
         void drawLayer(const DrawArgs& args, int layer) override;
-        void eraseBorder(NVGcontext* vg, int side);
-        void updateBorders(NVGcontext* vg);
 
         void step() override
         {

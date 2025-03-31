@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_engine.hpp"
+#include "sapphire_widget.hpp"
 
 // Sapphire Moots for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -349,7 +350,7 @@ namespace Sapphire
                 : mootsModule(module)
             {
                 setModule(module);
-                setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
+                setPanel(MakeSapphirePanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
                 gateLabel = SvgOverlay::Load("res/moots_label_gate.svg");
                 addChild(gateLabel);
@@ -381,6 +382,13 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  60.25)), module, OUTAUDIO3_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  81.75)), module, OUTAUDIO4_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                ModuleWidget::drawLayer(args, layer);
+                if (layer == 1)
+                    DrawBorders(args.vg, box);
             }
 
             void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)

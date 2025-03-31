@@ -350,7 +350,10 @@ class BorderRect(Element):
         self.setAttribFloat('height', mmHeight)
         self.setAttrib('x', '0')
         self.setAttrib('y', '0')
-        self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;stroke:none;'.format(fillColor))
+        if borderColor:
+            self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
+        else:
+            self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;stroke:none;'.format(fillColor))
 
 
 class LinearGradient(Element):

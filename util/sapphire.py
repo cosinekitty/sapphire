@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import enum
 from svgpanel import *
 from typing import List
 
@@ -203,3 +204,20 @@ def AddToggleGroup(
     controls.append(Component(prefix + '_button', x2, yControl))
     return group
 
+
+@enum.unique
+class Target(enum.Enum):
+    VcvRack = 1
+    Lite = 2
+
+class TargetError(Error):
+    def __init__(self, target:Target):
+        Error.__init__(self, 'Unsupported target platform: ' + target.name)
+
+
+def MakeBorder(target:Target, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> BorderRect:
+    if target == Target.VcvRack:
+        borderColor = ''
+    else:
+        borderColor = SAPPHIRE_BORDER_COLOR
+    return BorderRect(hpWidth, SAPPHIRE_PANEL_COLOR, borderColor, mmHeight)

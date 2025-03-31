@@ -8,7 +8,6 @@
 #
 import sys
 import math
-import enum
 from typing import List, Tuple, Dict
 from svgpanel import *
 from sapphire import *
@@ -16,15 +15,6 @@ from sapphire import *
 
 previewComponentPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
 
-
-@enum.unique
-class Target(enum.Enum):
-    VcvRack = 1
-    Lite = 2
-
-class TargetError(Error):
-    def __init__(self, target:Target):
-        Error.__init__(self, 'Unsupported target platform: ' + target.name)
 
 def Print(message:str) -> int:
     print('make_sapphire_svg.py:', message)
@@ -131,6 +121,7 @@ def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> P
 
 
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 6
     name = 'chaops'
     svgFileName = '../res/{}.svg'.format(name)
@@ -213,7 +204,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(ControlGroupArt(name, artworkId, panel, y1, y2, gradientId))
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR,   SAPPHIRE_PANEL_COLOR, 'memory')
         AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,    SAPPHIRE_PANEL_COLOR, 'freeze')
         AddGradient(y1MorphGradient,  y2MorphGradient,  SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'morph')
@@ -236,6 +227,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -245,7 +237,7 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         outputPortY1 = 88.0
@@ -283,18 +275,20 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
 
 
 def GenerateTricorderPanel() -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 25
     svgFileName = '../res/tricorder.svg'
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(SapphireModelInsignia(panel, font, 'tricorder'))
     panel.append(pl)
     return Save(panel, svgFileName)
 
 
 def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -322,7 +316,7 @@ def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabe
     defs.append(Gradient(levelGradY1, levelGradY2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_level'))
     defs.append(Gradient(clearGradY1, clearGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_clear'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         pl.append(ControlGroupArt(name, 'io_art', panel, ioPortsGradY1, ioPortsGradY2, 'gradient_io'))
@@ -385,6 +379,7 @@ def GradientStyle(gradientId:str, opacity:float) -> str:
 
 
 def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'nucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -443,7 +438,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     UpdateFileIfChanged(headerFileName, headerText)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
@@ -497,6 +492,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'polynucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -559,7 +555,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     UpdateFileIfChanged(headerFileName, headerText)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
@@ -607,6 +603,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     numOutputs = 10      # Keep in sync with src/hiss.cpp ! Sapphire::Hiss::NumOutputs
     svgFileName = '../res/hiss.svg'
     PANEL_WIDTH = 3
@@ -623,7 +620,7 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
     dyGradientSpacing = 6.0
     dyOut = (ybottom - ytop) / (numOutputs - 1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         defs.append(Gradient(ytop - dyGradientSpacing, panel.mmHeight - 15.0, '#1058ef', SAPPHIRE_PANEL_COLOR, 'gradient_hiss'))
         pl.append(ControlGroupArt('hiss', 'hiss_art', panel, ytop - dyGradientSpacing, panel.mmHeight - 15.0, 'gradient_hiss'))
         pl.append(CenteredGemstone(panel))
@@ -640,11 +637,11 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
 MootsPanelLayerXml = r'''
 <g id="sapphire_moots_legacy_panel">
     <rect
-       style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.401661;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
-       width="50.384171"
-       height="128.0802"
-       x="0.20660542"
-       y="0.2061476"/>
+       style="display:inline;fill:#4f8df2;fill-opacity:1;stroke:none;"
+       width="50.8"
+       height="128.5"
+       x="0"
+       y="0"/>
     <path style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
        d="M 2.9716623,17.689808 9.6879004,11.709386 H 40.513186 l 6.732173,5.520255 -17.048685,12.535574 -9.948611,5.39e-4 z"
     />
@@ -796,7 +793,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
     dyGrad = 6.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -882,7 +879,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
     dyGrad = 6.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -939,6 +936,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
 
 
 def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+    target = Target.VcvRack
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
@@ -966,7 +964,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     dxOutPortText = 7.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -1007,6 +1005,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
 
 
 def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'rotini'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1025,7 +1024,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
     outputPortDY =  9.0
     outPortY = 88.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('a_input',  xmid, yRow.value(0)))
@@ -1063,6 +1062,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'pivot'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1080,7 +1080,7 @@ def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
     outputPortDY =  9.0
     outPortY = 88.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('a_input',  xmid, yRow))
@@ -1159,6 +1159,7 @@ def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
 
 
 def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     svgFileName = '../res/sam.svg'
     PANEL_WIDTH = 2
     panel = Panel(PANEL_WIDTH)
@@ -1175,7 +1176,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     xmid = panel.mmWidth / 2.0
     yChannelDisplay = 14.75
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, 's'))
         pl.append(CenteredGemstone(panel))
 
@@ -1202,6 +1203,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'pop'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1233,7 +1235,7 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     ySyncPort = yTriggerPort - syncDy
     yChannelDisplay = 80.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
@@ -1515,7 +1517,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_mass'))
     defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR, height))
+        pl.append(MakeBorder(target, PANEL_WIDTH, height))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(ElastikaShape(font,  0, 'fric', target))
@@ -1665,7 +1667,7 @@ def TubeUnitPortArtwork() -> Element:
     return group
 
 
-def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
+def TubeUnitMainPanel(target:Target, title:str) -> Tuple[Panel, Element]:
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
 
     defs = Element('defs')
@@ -1676,7 +1678,7 @@ def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
     panel.append(defs)
 
     pl = Element('g', 'PanelLayer')
-    pl.append(BorderRect(TUBE_UNIT_PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+    pl.append(MakeBorder(target, TUBE_UNIT_PANEL_WIDTH))
 
     # Pentagons that surround all 8 control groups.
     PentDx1 = 14.0
@@ -1706,10 +1708,11 @@ def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
 
 
 def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
-    panel, pl = TubeUnitMainPanel(title)
+    target = Target.VcvRack
+    panel, pl = TubeUnitMainPanel(target, title)
     pl.append(TubeUnitPortArtwork())
     return (
-        PlaceTubeUnitControls(cdict, pl, Target.VcvRack) or
+        PlaceTubeUnitControls(cdict, pl, target) or
         Save(panel, '../res/{}.svg'.format(symbol))
     )
 
@@ -1823,10 +1826,11 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
 
 def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
-    panel, pl = TubeUnitMainPanel(title)
+    target = Target.Lite
+    panel, pl = TubeUnitMainPanel(target, title)
     pl.append(TubeUnitLabelGroupLite())
     return (
-        PlaceTubeUnitControls(cdict, pl, Target.Lite) or
+        PlaceTubeUnitControls(cdict, pl, target) or
         Save(panel, '../export/{}.svg'.format(symbol))
     )
 
@@ -1874,7 +1878,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     dxEnvGate = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
 
         defs.append(Gradient(yThresh-artSpaceAboveKnob, yRes+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
         defs.append(Gradient(yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
@@ -1928,6 +1932,7 @@ def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, directi
 
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'inloop'
     PANEL_WIDTH = 6
     svgFileName = SvgFileName(name, Target.VcvRack)
@@ -1942,7 +1947,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xInputPorts = 7.0
     yLeftInput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, 'djinn'))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
@@ -1951,6 +1956,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
 
 def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'loop'
     PANEL_WIDTH = 4
     svgFileName = SvgFileName(name, Target.VcvRack)
@@ -1963,7 +1969,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xInsertButton = panel.mmWidth - 5.0
     yInsertButton = 20.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         #pl.append(ModelNamePath(panel, font, name))
         #pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
@@ -1971,6 +1977,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
 
 def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'outloop'
     PANEL_WIDTH = 4
     svgFileName = SvgFileName(name, Target.VcvRack)
@@ -1984,7 +1991,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xOutputPorts = xmid
     yLeftOutput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         #pl.append(ModelNamePath(panel, font, 'out'))
         #pl.append(CenteredGemstone(panel))
         AddVerticalStereoPorts(font, pl, controls, -1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
@@ -2035,7 +2042,6 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
-        GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

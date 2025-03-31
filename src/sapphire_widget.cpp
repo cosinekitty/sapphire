@@ -34,28 +34,38 @@ namespace Sapphire
         }
     }
 
-    void SapphireWidget::eraseBorder(NVGcontext* vg, int side)
+    static void DrawBorder(NVGcontext* vg, NVGcolor color, float x1, float y1, float dx, float dy)
     {
-        const NVGcolor sapphirePanelColor = nvgRGB(0x4f, 0x8d, 0xf2);
-
-        // Draw a vertical line using the background panel color.
-        const float xMargin = 1;
-        const float yMargin = 1;
-        float x1 = side*(box.size.x - xMargin);
-
         nvgBeginPath(vg);
-        nvgRect(vg, x1, yMargin, xMargin + DxRemoveGap, box.size.y - 2*yMargin);
-        nvgFillColor(vg, sapphirePanelColor);
+        nvgRect(vg, x1, y1, dx, dy);
+        nvgFillColor(vg, color);
         nvgFill(vg);
     }
 
-    void SapphireWidget::updateBorders(NVGcontext* vg)
+    void DrawBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
     {
-        if (isLeftBorderHidden())
-            eraseBorder(vg, 0);
+        const float margin = 1;
+        const float vertical = box.size.y - 2*margin;
+        const NVGcolor panelColor  = nvgRGB(0x4f, 0x8d, 0xf2);
+        const NVGcolor borderColor = nvgRGB(0x50, 0x21, 0xd4);
 
-        if (isRightBorderHidden())
-            eraseBorder(vg, 1);
+        // Top border
+        DrawBorder(vg, borderColor, 0, 0, box.size.x, margin);
+
+        // Bottom border
+        DrawBorder(vg, borderColor, 0, box.size.y - margin, box.size.x, margin);
+
+        // Left border
+        if (hideLeft)
+            DrawBorder(vg, panelColor, 0, margin, margin, vertical);
+        else
+            DrawBorder(vg, borderColor, 0, margin, margin, vertical);
+
+        // Right border
+        if (hideRight)
+            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin + DxRemoveGap, vertical);
+        else
+            DrawBorder(vg, borderColor, box.size.x - margin, margin, margin, vertical);
     }
 
 
@@ -63,21 +73,10 @@ namespace Sapphire
     {
         DrawArgs newDrawArgs = args;
 
-        if (isRightBorderHidden())
-        {
-            // Eliminate the hairline gap between adjacent modules in some cases.
-            // A trick borrowed from the MindMeld plugin: when we want a seamless
-            // connection between two adjacent panels (e.g. for expanders),
-            // tweak the clip box so we are allowed to draw 0.3 mm to the right
-            // of our own panel.
-            newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
-        }
-
-        if (isLeftBorderHidden())
-        {
-            newDrawArgs.clipBox.pos.x  -= mm2px(DxRemoveGap);
-            newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
-        }
+        // Eliminate the hairline gap between adjacent modules.
+        // A trick borrowed from the MindMeld plugin:
+        // tweak the clip box so we are allowed to draw 0.3 mm to the right of our own panel.
+        newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
 
         ModuleWidget::draw(newDrawArgs);
     }
@@ -89,7 +88,7 @@ namespace Sapphire
 
         if (layer == 1)
         {
-            updateBorders(args.vg);
+            DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
             drawSplash(args.vg);
         }
     }

@@ -336,7 +336,7 @@ namespace Sapphire
                 : tubeUnitModule(module)
             {
                 setModule(module);
-                setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
+                setPanel(MakeSapphirePanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
                 ventLabel = SvgOverlay::Load("res/tubeunit_vent.svg");
                 addChild(ventLabel);
@@ -447,6 +447,13 @@ namespace Sapphire
                 }
 
                 ModuleWidget::step();
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                ModuleWidget::drawLayer(args, layer);
+                if (layer == 1)
+                    DrawBorders(args.vg, box);
             }
         };
 

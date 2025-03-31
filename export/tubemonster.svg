@@ -19,7 +19,7 @@
         </linearGradient>
     </defs>
     <g id="PanelLayer">
-        <rect id="border_rect" width="60.96" height="128.5" x="0" y="0" style="display:inline;fill:#4f8df2;fill-opacity:1;stroke:none;" />
+        <rect id="border_rect" width="60.96" height="128.5" x="0" y="0" style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto" />
         <path style="fill:url(#gradient_0);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" d="M 4.50,22.50 L 26.50,22.50 L 34.50,33.00 L 26.50,43.50 L 4.50,43.50 z M 56.50,12.00 L 34.50,12.00 L 26.50,22.50 L 34.50,33.00 L 56.50,33.00 z " />
         <path style="fill:url(#gradient_1);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" d="M 4.50,43.50 L 26.50,43.50 L 34.50,54.00 L 26.50,64.50 L 4.50,64.50 z M 56.50,33.00 L 34.50,33.00 L 26.50,43.50 L 34.50,54.00 L 56.50,54.00 z " />
         <path style="fill:url(#gradient_2);fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" d="M 4.50,64.50 L 26.50,64.50 L 34.50,75.00 L 26.50,85.50 L 4.50,85.50 z M 56.50,54.00 L 34.50,54.00 L 26.50,64.50 L 34.50,75.00 L 56.50,75.00 z " />
