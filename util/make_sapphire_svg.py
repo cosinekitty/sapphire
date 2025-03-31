@@ -1931,6 +1931,12 @@ def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, directi
     pl.append(CenteredControlTextPath(font, 'R', xInputPorts + dxPortLabel, yRightPort))
 
 
+MULTITAP_INSERT_BUTTON_DX    = 4.0
+MULTITAP_INSERT_BUTTON_DY    = 4.0
+MULTITAP_INSERT_BUTTON_INSET = 3.0
+MULTITAP_INSERT_BUTTON_Y1    = 6.0
+
+
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'inloop'
@@ -1942,8 +1948,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    xInsertButton = panel.mmWidth - 5.0
-    yInsertButton = 20.0
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xInputPorts = 7.0
     yLeftInput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -1966,12 +1972,10 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    xInsertButton = panel.mmWidth - 5.0
-    yInsertButton = 20.0
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        #pl.append(ModelNamePath(panel, font, name))
-        #pl.append(CenteredGemstone(panel))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
     return Save(panel, svgFileName)
 
@@ -1992,8 +1996,6 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLeftOutput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        #pl.append(ModelNamePath(panel, font, 'out'))
-        #pl.append(CenteredGemstone(panel))
         AddVerticalStereoPorts(font, pl, controls, -1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
     return Save(panel, svgFileName)
 
@@ -2008,10 +2010,11 @@ def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
 
 def GenerateMultiTapButtons() -> int:
     svgFileName = '../res/extender_button.svg'
-    panel = BasePanel(3.0, 3.0)
-    cx = panel.mmWidth / 2
+    panel = BasePanel(MULTITAP_INSERT_BUTTON_DX, MULTITAP_INSERT_BUTTON_DY)
+    cx = (panel.mmWidth / 2) - 0.4
     cy = panel.mmHeight / 2
-    panel.append(Rectangle(cx, cy, panel.mmWidth, panel.mmHeight, 'none', 0.0, 'blue'))
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        panel.append(CenteredControlTextPath(font, '+', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
 
 

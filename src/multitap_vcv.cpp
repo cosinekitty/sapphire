@@ -267,7 +267,7 @@ namespace Sapphire
                 {
                     chainIndex = 1;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                    configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
+                    configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configInput(AUDIO_LEFT_INPUT,  "Left audio");
                     configInput(AUDIO_RIGHT_INPUT, "Right audio");
                     initialize();
@@ -351,7 +351,7 @@ namespace Sapphire
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                    configButton(INSERT_BUTTON_PARAM, "Insert loop expander");
+                    configButton(INSERT_BUTTON_PARAM, "Add tap");
                     initialize();
                 }
 

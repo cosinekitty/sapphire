@@ -193,7 +193,7 @@ namespace Sapphire
             {"_panel",                 {  30.480,  128.500}},
             {"audio_left_input",       {   7.000,  100.000}},
             {"audio_right_input",      {   7.000,  110.000}},
-            {"insert_button",          {  25.480,   20.000}},
+            {"insert_button",          {  27.480,    6.000}},
             }},
         { "lark", {
             {"_panel",                 {  20.320,  128.500}},
@@ -210,7 +210,7 @@ namespace Sapphire
             }},
         { "loop", {
             {"_panel",                 {  20.320,  128.500}},
-            {"insert_button",          {  15.320,   20.000}},
+            {"insert_button",          {  17.320,    6.000}},
             }},
         { "nucleus", {
             {"_panel",                 {  81.280,  128.500}},
