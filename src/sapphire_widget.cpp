@@ -77,20 +77,17 @@ namespace Sapphire
         // A trick borrowed from the MindMeld plugin:
         // tweak the clip box so we are allowed to draw 0.3 mm to the right of our own panel.
         newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
-
         ModuleWidget::draw(newDrawArgs);
+
+        DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
     }
 
 
     void SapphireWidget::drawLayer(const DrawArgs& args, int layer)
     {
         ModuleWidget::drawLayer(args, layer);
-
         if (layer == 1)
-        {
-            DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
             drawSplash(args.vg);
-        }
     }
 
 

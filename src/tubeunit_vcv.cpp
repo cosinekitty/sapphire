@@ -449,11 +449,10 @@ namespace Sapphire
                 ModuleWidget::step();
             }
 
-            void drawLayer(const DrawArgs& args, int layer) override
+            void draw(const DrawArgs& args) override
             {
-                ModuleWidget::drawLayer(args, layer);
-                if (layer == 1)
-                    DrawBorders(args.vg, box);
+                ModuleWidget::draw(args);
+                DrawBorders(args.vg, box);
             }
         };
 

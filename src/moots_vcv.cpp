@@ -384,11 +384,10 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
             }
 
-            void drawLayer(const DrawArgs& args, int layer) override
+            void draw(const DrawArgs& args) override
             {
-                ModuleWidget::drawLayer(args, layer);
-                if (layer == 1)
-                    DrawBorders(args.vg, box);
+                ModuleWidget::draw(args);
+                DrawBorders(args.vg, box);
             }
 
             void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)
