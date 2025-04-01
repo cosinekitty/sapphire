@@ -56,12 +56,13 @@ def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element
     return elem
 
 
-def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float, gradientId: str) -> Path:
+def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float, gradientId: str, x1: float = -1.0, x2: float = -1.0) -> Path:
     path = ''
-    xMargin = 0.38
     arcRadius = 4.0
-    x1 = xMargin
-    x2 = panel.mmWidth - xMargin
+    if x1 < 0:
+        xMargin = 0.38
+        x1 = xMargin
+        x2 = panel.mmWidth - xMargin
     path += Move(x1, y2)
     path += Line(x1, y1 + arcRadius)
     # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
@@ -1939,6 +1940,8 @@ MULTITAP_INSERT_BUTTON_Y1    = 6.0
 MULTITAP_INLOOP_HP_WIDTH = 9
 MULTITAP_LOOP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.5
+MULTITAP_DY_GRADIENT = 10.0
+MULTITAP_DX_GRADIENT = 15.0
 
 def MakeLoopControlFence() -> FencePost:
     return FencePost(22.0, 87.0, 5)
@@ -1956,6 +1959,19 @@ def MultiTapInLoopHeaderText(xAdjust:float) -> str:
     text += '}\n'
     return text
 
+
+def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
+    defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+    pl.append(ControlGroupArt(
+        'multitap',
+        'controls_art',
+        panel,
+        y1 - MULTITAP_DY_GRADIENT,
+        y2,
+        'gradient_controls',
+        xCenter - MULTITAP_DX_GRADIENT,
+        xCenter + MULTITAP_DX_GRADIENT
+    ))
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
@@ -1980,6 +1996,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFeedbackControl = yLoopFence.value(1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
         pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
         pl.append(CenteredGemstone(panel, -11.5))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
@@ -2010,6 +2027,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFeedbackControl = yLoopFence.value(1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
+        AddMultiTapControlGradient(panel, defs, pl, xmid, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
         AddFlatControlGroup(pl, controls, xmid, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xmid, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

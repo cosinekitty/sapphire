@@ -80,9 +80,7 @@ namespace Sapphire
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
             {
-                // As an experiment, I take a completely functional-programming
-                // approach here, calculating a Result as a function of
-                // Message and InputState.
+                // Calculating and return a Result as a function of Message and InputState.
                 // The caller performs actual mutations such as forwarding the message
                 // and applying updates to output ports.
 
