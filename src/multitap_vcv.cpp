@@ -115,6 +115,15 @@ namespace Sapphire
                 setOutputs(result.output);
                 sendMessage(result.message);
             }
+
+            void configTimeControls(int timeParamId, int timeAttenId, int timeCvInputId)
+            {
+                const float L1 = std::log2(0.025);
+                const float L2 = std::log2(10.0);
+                configParam(timeParamId, L1, L2, -1, "Delay time", " sec", 2, 1);
+                configParam(timeAttenId, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
+                configInput(timeCvInputId, "Delay time CV");
+            }
         };
 
 
@@ -290,9 +299,7 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configInput(AUDIO_LEFT_INPUT,  "Left audio");
                     configInput(AUDIO_RIGHT_INPUT, "Right audio");
-                    configParam(TIME_PARAM, 0, 1, 0, "Delay time");
-                    configParam(TIME_ATTEN, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
-                    configInput(TIME_CV_INPUT, "Delay time CV");
+                    configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
                     configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
                     configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
@@ -386,9 +393,7 @@ namespace Sapphire
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
-                    configParam(TIME_PARAM, 0, 1, 0, "Delay time");
-                    configParam(TIME_ATTEN, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
-                    configInput(TIME_CV_INPUT, "Delay time CV");
+                    configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
                     configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
                     configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
