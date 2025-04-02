@@ -114,13 +114,41 @@ namespace Sapphire
                 sendMessage(result.message);
             }
 
-            void configTimeControls(int timeParamId, int timeAttenId, int timeCvInputId)
+            void configTimeControls(int paramId, int attenId, int cvInputId)
             {
                 const float L1 = std::log2(0.025);
                 const float L2 = std::log2(10.0);
-                configParam(timeParamId, L1, L2, -1, "Delay time", " sec", 2, 1);
-                configParam(timeAttenId, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
-                configInput(timeCvInputId, "Delay time CV");
+                configParam(paramId, L1, L2, -1, "Delay time", " sec", 2, 1);
+                configParam(attenId, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Delay time CV");
+            }
+
+            void configFeedbackControls(int paramId, int attenId, int cvInputId)
+            {
+                configParam(paramId, 0, 1, 0, "Feedback amount", "%", 0, 100);
+                configParam(attenId, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Feedback amount CV");
+            }
+
+            void configPanControls(int paramId, int attenId, int cvInputId)
+            {
+                configParam(paramId, -1, +1, 0, "Panning", "%", 0, 100);
+                configParam(attenId, -1, +1, 0, "Panning attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Panning CV");
+            }
+
+            void configMixControls(int paramId, int attenId, int cvInputId)
+            {
+                configParam(paramId, 0, 1, 1, "Mix", "%", 0, 100);
+                configParam(attenId, -1, +1, 0, "Mix attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Mix CV");
+            }
+
+            void configGainControls(int paramId, int attenId, int cvInputId)
+            {
+                configParam(paramId, 0, 1, 1, "Gain", " dB", -10, 20);
+                configParam(attenId, -1, +1, 0, "Gain attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Gain CV");
             }
         };
 
@@ -264,6 +292,12 @@ namespace Sapphire
                 TIME_ATTEN,
                 FEEDBACK_PARAM,
                 FEEDBACK_ATTEN,
+                PAN_PARAM,
+                PAN_ATTEN,
+                MIX_PARAM,
+                MIX_ATTEN,
+                GAIN_PARAM,
+                GAIN_ATTEN,
                 PARAMS_LEN
             };
 
@@ -273,6 +307,9 @@ namespace Sapphire
                 AUDIO_RIGHT_INPUT,
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
+                PAN_CV_INPUT,
+                MIX_CV_INPUT,
+                GAIN_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -298,9 +335,10 @@ namespace Sapphire
                     configInput(AUDIO_LEFT_INPUT,  "Left audio");
                     configInput(AUDIO_RIGHT_INPUT, "Right audio");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
-                    configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
-                    configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
+                    configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                    configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     initialize();
                 }
 
@@ -345,6 +383,9 @@ namespace Sapphire
                     addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
                     addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                    addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
@@ -363,6 +404,12 @@ namespace Sapphire
                 TIME_ATTEN,
                 FEEDBACK_PARAM,
                 FEEDBACK_ATTEN,
+                PAN_PARAM,
+                PAN_ATTEN,
+                MIX_PARAM,
+                MIX_ATTEN,
+                GAIN_PARAM,
+                GAIN_ATTEN,
                 PARAMS_LEN
             };
 
@@ -370,6 +417,9 @@ namespace Sapphire
             {
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
+                PAN_CV_INPUT,
+                MIX_CV_INPUT,
+                GAIN_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -392,9 +442,10 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    configParam(FEEDBACK_PARAM, 0, 1, 0, "Feedback amount", "%", 0, 100);
-                    configParam(FEEDBACK_ATTEN, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
-                    configInput(FEEDBACK_CV_INPUT, "Feedback amount CV");
+                    configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                    configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     initialize();
                 }
 
@@ -431,6 +482,9 @@ namespace Sapphire
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                    addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override

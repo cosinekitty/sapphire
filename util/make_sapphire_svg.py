@@ -1994,17 +1994,34 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
     yFeedbackControl = yLoopFence.value(1)
+    yPanControl = yLoopFence.value(2)
+    yMixControl = yLoopFence.value(3)
+    yGainControl = yLoopFence.value(4)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
         pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
         pl.append(CenteredGemstone(panel, -11.5))
+
+        AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
         AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
         pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
-        AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yMixControl, 'mix')
+        pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        pl.append(CenteredControlTextPath(font, 'GAIN', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
     UpdateFileIfChanged('../src/multitap_inloop_panel.hpp', MultiTapInLoopHeaderText(xAdjust))
     return Save(panel, svgFileName)
 
@@ -2014,7 +2031,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     name = 'loop'
     svgFileName = SvgFileName(name, Target.VcvRack)
     panel = Panel(MULTITAP_LOOP_HP_WIDTH)
-    xmid = panel.mmWidth / 2
+    xControlCenter = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
@@ -2025,14 +2042,28 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
     yFeedbackControl = yLoopFence.value(1)
+    yPanControl = yLoopFence.value(2)
+    yMixControl = yLoopFence.value(3)
+    yGainControl = yLoopFence.value(4)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
-        AddMultiTapControlGradient(panel, defs, pl, xmid, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        AddFlatControlGroup(pl, controls, xmid, yTimeControl, 'time')
-        pl.append(CenteredControlTextPath(font, 'TIME', xmid, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
-        AddFlatControlGroup(pl, controls, xmid, yFeedbackControl, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK', xmid, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
+        pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
+        pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yMixControl, 'mix')
+        pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        pl.append(CenteredControlTextPath(font, 'GAIN', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
 
