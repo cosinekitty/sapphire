@@ -1989,7 +1989,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xControlCenter = xmid + xAdjust
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    xInputPorts = 11.0
+    xInputPorts = 10.0
     yLeftInput = 100.0
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
@@ -2003,7 +2003,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
         pl.append(CenteredGemstone(panel, -11.5))
 
-        AddVerticalStereoPorts(font, pl, controls, +1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+        AddVerticalStereoPorts(font, pl, controls, -1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
@@ -2083,7 +2083,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLeftOutput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        AddVerticalStereoPorts(font, pl, controls, -1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
+        AddVerticalStereoPorts(font, pl, controls, +1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
     return Save(panel, svgFileName)
 
 
