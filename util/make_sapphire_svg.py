@@ -1939,12 +1939,12 @@ MULTITAP_INSERT_BUTTON_Y1    = 6.0
 
 MULTITAP_INLOOP_HP_WIDTH = 9
 MULTITAP_LOOP_HP_WIDTH   = 6
-MULTITAP_DY_CONTROL_LOOP_LABEL = 6.5
+MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
 MULTITAP_DY_GRADIENT = 10.0
 MULTITAP_DX_GRADIENT = 15.0
 
 def MakeLoopControlFence() -> FencePost:
-    return FencePost(22.0, 87.0, 5)
+    return FencePost(22.0, 82.0, 5)
 
 
 def MultiTapInLoopHeaderText(xAdjust:float) -> str:
