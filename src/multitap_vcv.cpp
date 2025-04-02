@@ -310,11 +310,15 @@ namespace Sapphire
                 PAN_CV_INPUT,
                 MIX_CV_INPUT,
                 GAIN_CV_INPUT,
+                RETURN_LEFT_INPUT,
+                RETURN_RIGHT_INPUT,
                 INPUTS_LEN
             };
 
             enum OutputId
             {
+                SEND_LEFT_OUTPUT,
+                SEND_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -332,8 +336,9 @@ namespace Sapphire
                     chainIndex = 1;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
-                    configInput(AUDIO_LEFT_INPUT,  "Left audio");
-                    configInput(AUDIO_RIGHT_INPUT, "Right audio");
+                    configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
+                    configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
+                    configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
@@ -379,8 +384,9 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addSapphireInput(AUDIO_LEFT_INPUT,  "audio_left_input");
-                    addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
+                    addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
+                    addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
+                    addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
@@ -420,11 +426,15 @@ namespace Sapphire
                 PAN_CV_INPUT,
                 MIX_CV_INPUT,
                 GAIN_CV_INPUT,
+                RETURN_LEFT_INPUT,
+                RETURN_RIGHT_INPUT,
                 INPUTS_LEN
             };
 
             enum OutputId
             {
+                SEND_LEFT_OUTPUT,
+                SEND_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -440,6 +450,8 @@ namespace Sapphire
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
+                    configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
@@ -480,6 +492,8 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
+                    addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);

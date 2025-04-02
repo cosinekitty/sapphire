@@ -179,7 +179,7 @@ def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
-def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
+def VerticalLine(x:float, y1:float, y2:float, id:str = '') -> Path:
     path = ''
     path += Move(x, y1)
     path += Line(x, y2)

@@ -307,6 +307,18 @@ namespace Sapphire
             return port;
         }
 
+        void addStereoInputPorts(int leftPortId, int rightPortId, const std::string& prefix)
+        {
+            addSapphireInput(leftPortId,  prefix + "_left_input");
+            addSapphireInput(rightPortId, prefix + "_right_input");
+        }
+
+        void addStereoOutputPorts(int leftPortId, int rightPortId, const std::string& prefix)
+        {
+            addSapphireOutput(leftPortId,  prefix + "_left_output");
+            addSapphireOutput(rightPortId, prefix + "_right_output");
+        }
+
         template <typename knob_t = RoundLargeBlackKnob>
         knob_t *addKnob(int paramId, const std::string& label)
         {

@@ -928,6 +928,18 @@ namespace Sapphire
             return voltage;
         }
 
+        void configStereoInputs(int leftPortId, int rightPortId, const std::string& suffix)
+        {
+            configInput(leftPortId, "Left " + suffix);
+            configInput(rightPortId, "Right " + suffix);
+        }
+
+        void configStereoOutputs(int leftPortId, int rightPortId, const std::string& suffix)
+        {
+            configOutput(leftPortId, "Left " + suffix);
+            configOutput(rightPortId, "Right " + suffix);
+        }
+
         void configControlGroup(
             const std::string& name,
             int paramId,

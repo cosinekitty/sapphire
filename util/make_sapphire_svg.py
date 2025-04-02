@@ -1923,13 +1923,19 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
-def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, direction:float, xInputPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str) -> None:
-    dxPortLabel = direction * 6.5
+def AddVerticalStereoLabels(font:Font, pl:Element, xLabel:float, yLeftPort:float) -> None:
     yRightPort = yLeftPort + DY_STEREO_PORTS
-    controls.append(Component(leftPortSymbol,  xInputPorts, yLeftPort))
-    controls.append(Component(rightPortSymbol, xInputPorts, yRightPort))
-    pl.append(CenteredControlTextPath(font, 'L', xInputPorts + dxPortLabel, yLeftPort))
-    pl.append(CenteredControlTextPath(font, 'R', xInputPorts + dxPortLabel, yRightPort))
+    pl.append(CenteredControlTextPath(font, 'L', xLabel, yLeftPort))
+    pl.append(CenteredControlTextPath(font, 'R', xLabel, yRightPort))
+
+
+def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str, caption:str, dyCaption:float = 6.5) -> None:
+    yRightPort = yLeftPort + DY_STEREO_PORTS
+    controls.append(Component(leftPortSymbol,  xPorts, yLeftPort))
+    controls.append(Component(rightPortSymbol, xPorts, yRightPort))
+    pl.append(VerticalLine(xPorts, yLeftPort, yRightPort))
+    if caption:
+        pl.append(CenteredControlTextPath(font, caption, xPorts, yLeftPort - dyCaption))
 
 
 MULTITAP_INSERT_BUTTON_DX    = 4.0
@@ -1942,6 +1948,9 @@ MULTITAP_LOOP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
 MULTITAP_DY_GRADIENT = 10.0
 MULTITAP_DX_GRADIENT = 15.0
+
+MULTIMAP_DX_SEND_RETURN = 7.0
+MULTIMAP_AUDIO_PORTS_Y1 = 100.0
 
 def MakeLoopControlFence() -> FencePost:
     return FencePost(22.0, 82.0, 5)
@@ -1961,17 +1970,34 @@ def MultiTapInLoopHeaderText(xAdjust:float) -> str:
 
 
 def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
-    defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+    gradname = 'gradient_controls'
+    defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, gradname))
     pl.append(ControlGroupArt(
         'multitap',
         'controls_art',
         panel,
         y1 - MULTITAP_DY_GRADIENT,
         y2,
-        'gradient_controls',
+        gradname,
         xCenter - MULTITAP_DX_GRADIENT,
         xCenter + MULTITAP_DX_GRADIENT
     ))
+
+
+def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
+    gradname = 'gradient_send_return'
+    defs.append(Gradient(y1, y2, '#8a72cf', SAPPHIRE_PANEL_COLOR, gradname))
+    pl.append(ControlGroupArt(
+        'multitap',
+        'send_return_art',
+        panel,
+        y1 - MULTITAP_DY_GRADIENT,
+        y2,
+        gradname,
+        xCenter - MULTITAP_DX_GRADIENT,
+        xCenter + MULTITAP_DX_GRADIENT
+    ))
+
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
@@ -1989,8 +2015,9 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xControlCenter = xmid + xAdjust
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    xInputPorts = 10.0
-    yLeftInput = 100.0
+    xInputPorts  = 10.0
+    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
+    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
     yFeedbackControl = yLoopFence.value(1)
@@ -1999,11 +2026,17 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yGainControl = yLoopFence.value(4)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
-        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
-        pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
-        pl.append(CenteredGemstone(panel, -11.5))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
+        AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
 
-        AddVerticalStereoPorts(font, pl, controls, -1, xInputPorts, yLeftInput, 'audio_left_input', 'audio_right_input')
+        pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
+        pl.append(CenteredGemstone(panel, -13.0))
+
+        AddVerticalStereoLabels(font, pl, xInputPorts - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
+        AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
+        AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
@@ -2045,10 +2078,17 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yPanControl = yLoopFence.value(2)
     yMixControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
+    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
+    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
-        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), yLoopFence.value(yLoopFence.nItems-1))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
+        AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+
+        AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
+        AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
+        AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2080,10 +2120,10 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     xmid = panel.mmWidth / 2
     xOutputPorts = xmid
-    yLeftOutput = 100.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        AddVerticalStereoPorts(font, pl, controls, +1, xOutputPorts, yLeftOutput, 'audio_left_output', 'audio_right_output')
+        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
     return Save(panel, svgFileName)
 
 
