@@ -257,16 +257,14 @@ namespace Sapphire
                 }
             }
 
-            void drawLayer(const DrawArgs& args, int layer) override
+            void draw(const DrawArgs& args) override
             {
-                SapphireWidget::drawLayer(args, layer);
-                if (layer == 1)
+                SapphireWidget::draw(args);
+
+                const LoopModule *lmod = dynamic_cast<const LoopModule*>(module);
+                if (lmod != nullptr)
                 {
-                    const LoopModule *lmod = dynamic_cast<const LoopModule*>(module);
-                    if (lmod != nullptr)
-                    {
-                        drawChainIndex(args.vg, lmod->chainIndex);
-                    }
+                    drawChainIndex(args.vg, lmod->chainIndex);
                 }
             }
         };
