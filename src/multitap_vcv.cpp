@@ -261,10 +261,22 @@ namespace Sapphire
             {
                 SapphireWidget::draw(args);
 
-                const LoopModule *lmod = dynamic_cast<const LoopModule*>(module);
+                auto lmod = dynamic_cast<const LoopModule*>(module);
                 if (lmod != nullptr)
                 {
                     drawChainIndex(args.vg, lmod->chainIndex);
+                }
+            }
+
+            void appendContextMenu(Menu *menu) override
+            {
+                SapphireWidget::appendContextMenu(menu);
+
+                auto lmod = dynamic_cast<LoopModule*>(module);
+                if (lmod != nullptr)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                 }
             }
         };
