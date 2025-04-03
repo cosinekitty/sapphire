@@ -32,21 +32,20 @@ namespace Sapphire
                 rightExpander.consumerMessage = &messageBuffer[1];
             }
 
+            virtual void initialize()
+            {
+            }
+
+            void onReset(const ResetEvent& e) override
+            {
+                SapphireModule::onReset(e);
+                initialize();
+            }
+
             Message& rightMessageBuffer()
             {
                 assert(rightExpander.producerMessage == &messageBuffer[0] || rightExpander.producerMessage == &messageBuffer[1]);
                 return *static_cast<Message*>(rightExpander.producerMessage);
-            }
-
-            void sendMessage(int nchannels, const float* audio)
-            {
-                Message message;
-
-                message.audio.nchannels = std::clamp(nchannels, 0, PORT_MAX_CHANNELS);
-                for (int c = 0; c < message.audio.nchannels; ++c)
-                    message.audio.sample[c] = audio[c];
-
-                sendMessage(message);
             }
 
             void sendMessage(const Message& inMessage)
@@ -69,6 +68,20 @@ namespace Sapphire
                 }
                 return nullptr;
             }
+
+            Frame readFrame(int leftInputId, int rightInputId)
+            {
+                Frame frame;
+
+                Input& inLeft  = inputs.at(leftInputId);
+                Input& inRight = inputs.at(rightInputId);
+
+                frame.nchannels = 2;
+                frame.sample[0] = inLeft.getVoltageSum();
+                frame.sample[1] = inRight.getVoltageSum();
+
+                return frame;
+            }
         };
 
         struct LoopModule : MultiTapModule
@@ -76,6 +89,13 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
+                // DO NOT call initialize() here because it is virtual.
+                // Let derived classes call it!
+            }
+
+            void initialize() override
+            {
+                MultiTapModule::initialize();
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -85,18 +105,42 @@ namespace Sapphire
                 // and applying updates to output ports.
 
                 Result result;
-                OutputState output;
 
                 // FIXFIXFIX: do some actual processing here!!!
                 // For now, mix input audio with bus-message audio.
-                result.message.audio = inMessage.audio + input.audio;
-                result.output = output;
+
+                // In practice, one of the two audio inputs is zero and the other has a signal.
+                // We don't care which it is, we just want the signal.
+                // So add 0+x or x+0 to get x.
+                result.message.audio = inMessage.audio + input.inputAudio;
+
+                // FIXFIXFIX: hook up the real SEND audio.
+                // For now, copy the output audio into the SEND ports.
+                result.output.sendAudio = result.message.audio;
 
                 return result;
             }
 
+            Frame readReturn(int leftInputId, int rightInputId)
+            {
+                Input& inLeft  = inputs.at(leftInputId);
+                Input& inRight = inputs.at(rightInputId);
+
+                if (inLeft.isConnected() || inRight.isConnected())
+                    return readFrame(leftInputId, rightInputId);
+
+                // FIXFIXFIX - When not connected with cables, the default behavior is
+                // to copy the send output back into the return input.
+                // For now, return silence.
+                return Frame();
+            }
+
             virtual InputState getInputs() = 0;
-            virtual void setOutputs(const OutputState& output) = 0;
+
+            void setOutputs(const OutputState& output)
+            {
+                // FIXFIXFIX - do we need this???
+            }
 
             void process(const ProcessArgs& args) override
             {
@@ -357,30 +401,19 @@ namespace Sapphire
                     initialize();
                 }
 
-                void initialize()
+                void initialize() override
                 {
-                }
-
-                void onReset(const ResetEvent& e) override
-                {
-                    Module::onReset(e);
-                    initialize();
+                    LoopModule::initialize();
                 }
 
                 InputState getInputs() override
                 {
-                    Input& audioLeftInput = inputs.at(AUDIO_LEFT_INPUT);
-                    Input& audioRightInput = inputs.at(AUDIO_RIGHT_INPUT);
-
                     InputState state;
-                    state.audio.nchannels = 2;
-                    state.audio.sample[0] = audioLeftInput.getVoltageSum();
-                    state.audio.sample[1] = audioRightInput.getVoltageSum();
-                    return state;
-                }
 
-                void setOutputs(const OutputState& output) override
-                {
+                    state.inputAudio  = readFrame(AUDIO_LEFT_INPUT,  AUDIO_RIGHT_INPUT);
+                    state.returnAudio = readReturn(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT);
+
+                    return state;
                 }
             };
 
@@ -471,24 +504,15 @@ namespace Sapphire
                     initialize();
                 }
 
-                void initialize()
+                void initialize() override
                 {
-                }
-
-                void onReset(const ResetEvent& e) override
-                {
-                    Module::onReset(e);
-                    initialize();
+                    LoopModule::initialize();
                 }
 
                 InputState getInputs() override
                 {
                     InputState state;
                     return state;
-                }
-
-                void setOutputs(const OutputState& output) override
-                {
                 }
             };
 
@@ -553,14 +577,9 @@ namespace Sapphire
                     initialize();
                 }
 
-                void initialize()
+                void initialize() override
                 {
-                }
-
-                void onReset(const ResetEvent& e) override
-                {
-                    Module::onReset(e);
-                    initialize();
+                    MultiTapModule::initialize();
                 }
 
                 void process(const ProcessArgs& args) override

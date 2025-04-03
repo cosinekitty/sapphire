@@ -16,7 +16,7 @@ namespace Sapphire
         inline Frame operator+ (const Frame& a, const Frame& b)
         {
             Frame s;
-            s.nchannels = std::max(a.nchannels, b.nchannels);
+            s.nchannels = std::clamp(std::max(a.nchannels, b.nchannels), 0, PORT_MAX_CHANNELS);
 
             for (int c = 0; c < a.nchannels; ++c)
                 s.sample[c] += a.sample[c];
@@ -39,12 +39,14 @@ namespace Sapphire
             // to update the tape recorder model, while remaining module-agnostic.
             // This way different modules with different port IDs and parameter IDs
             // can share the complicated part of the code.
-            Frame audio;
+            Frame inputAudio;
+            Frame returnAudio;
         };
 
         struct OutputState
         {
             // Receives module-agnostic values for output ports.
+            Frame sendAudio;
         };
 
         struct Result
