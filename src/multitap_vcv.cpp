@@ -395,9 +395,9 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct Mod : LoopModule
+            struct InMod : LoopModule
             {
-                Mod()
+                InMod()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     chainIndex = 1;
@@ -436,11 +436,11 @@ namespace Sapphire
                 }
             };
 
-            struct Wid : LoopWidget
+            struct InWid : LoopWidget
             {
-                Mod* inLoopModule{};
+                InMod* inLoopModule{};
 
-                explicit Wid(Mod* module)
+                explicit InWid(InMod* module)
                     : LoopWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
                     , inLoopModule(module)
                 {
@@ -511,9 +511,9 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct Mod : LoopModule
+            struct TapMod : LoopModule
             {
-                Mod()
+                TapMod()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -545,11 +545,11 @@ namespace Sapphire
                 }
             };
 
-            struct Wid : LoopWidget
+            struct TapWid : LoopWidget
             {
-                Mod* loopModule{};
+                TapMod* loopModule{};
 
-                explicit Wid(Mod* module)
+                explicit TapWid(TapMod* module)
                     : LoopWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
                     , loopModule(module)
                 {
@@ -595,9 +595,9 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct Mod : MultiTapModule
+            struct OutMod : MultiTapModule
             {
-                Mod()
+                OutMod()
                     : MultiTapModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -648,11 +648,11 @@ namespace Sapphire
                 }
             };
 
-            struct Wid : SapphireWidget
+            struct OutWid : SapphireWidget
             {
-                Mod* outLoopModule{};
+                OutMod* outLoopModule{};
 
-                explicit Wid(Mod* module)
+                explicit OutWid(OutMod* module)
                     : SapphireWidget("outloop", asset::plugin(pluginInstance, "res/outloop.svg"))
                     , outLoopModule(module)
                 {
@@ -679,17 +679,17 @@ namespace Sapphire
 }
 
 
-Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::Mod, Sapphire::MultiTap::InLoop::Wid>(
+Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::InMod, Sapphire::MultiTap::InLoop::InWid>(
     "InLoop",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireLoop = createSapphireModel<Sapphire::MultiTap::Loop::Mod, Sapphire::MultiTap::Loop::Wid>(
+Model* modelSapphireLoop = createSapphireModel<Sapphire::MultiTap::Loop::TapMod, Sapphire::MultiTap::Loop::TapWid>(
     "Loop",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireOutLoop = createSapphireModel<Sapphire::MultiTap::OutLoop::Mod, Sapphire::MultiTap::OutLoop::Wid>(
+Model* modelSapphireOutLoop = createSapphireModel<Sapphire::MultiTap::OutLoop::OutMod, Sapphire::MultiTap::OutLoop::OutWid>(
     "OutLoop",
     Sapphire::ExpanderRole::MultiTap
 );

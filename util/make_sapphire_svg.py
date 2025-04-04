@@ -2017,7 +2017,6 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     xGlobalCenter = 3 * HP_WIDTH_MM
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    xInputPorts  = 10.0
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
     yLoopFence = MakeLoopControlFence()
@@ -2035,8 +2034,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'djinn'))
         pl.append(Gemstone(xGlobalCenter))
 
-        AddVerticalStereoLabels(font, pl, xInputPorts - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)

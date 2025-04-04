@@ -191,8 +191,8 @@ namespace Sapphire
             }},
         { "inloop", {
             {"_panel",                 {  60.960,  128.500}},
-            {"audio_left_input",       {  10.000,  100.000}},
-            {"audio_right_input",      {  10.000,  110.000}},
+            {"audio_left_input",       {  15.240,  100.000}},
+            {"audio_right_input",      {  15.240,  110.000}},
             {"feedback_atten",         {  15.240,   37.000}},
             {"feedback_cv",            {   6.240,   37.000}},
             {"feedback_knob",          {  24.240,   37.000}},
