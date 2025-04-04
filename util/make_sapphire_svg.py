@@ -2003,7 +2003,7 @@ def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'inloop'
-    svgFileName = SvgFileName(name, Target.VcvRack)
+    svgFileName = SvgFileName(name, target)
     panel = Panel(MULTITAP_INLOOP_HP_WIDTH)
     xmid = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
@@ -2066,7 +2066,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'loop'
-    svgFileName = SvgFileName(name, Target.VcvRack)
+    svgFileName = SvgFileName(name, target)
     panel = Panel(MULTITAP_LOOP_HP_WIDTH)
     xControlCenter = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
@@ -2114,7 +2114,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'outloop'
     PANEL_WIDTH = 4
-    svgFileName = SvgFileName(name, Target.VcvRack)
+    svgFileName = SvgFileName(name, target)
     panel = Panel(PANEL_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
