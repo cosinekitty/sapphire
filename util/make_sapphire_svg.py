@@ -2012,20 +2012,27 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     pl.append(defs)
     panel.append(pl)
     hpdiff = MULTITAP_INLOOP_HP_WIDTH - MULTITAP_LOOP_HP_WIDTH
+    xGlobalCenter = 3 * HP_WIDTH_MM
     xAdjust = (HP_WIDTH_MM * hpdiff/2)
     xControlCenter = xmid + xAdjust
-    xGlobalCenter = 3 * HP_WIDTH_MM
+    yLoopFence = MakeLoopControlFence()
+
+    # Global controls/ports (InLoop only)
+    yFeedbackControl = yLoopFence.value(0)
+
+    # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
-    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
-    yLoopFence = MakeLoopControlFence()
+
+    # Tap controls/ports
     yTimeControl = yLoopFence.value(0)
-    yFeedbackControl = yLoopFence.value(1)
     yReverseControl = yLoopFence.value(1)
     yPanControl = yLoopFence.value(2)
     yMixControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
+    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
+    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
@@ -2068,15 +2075,19 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     name = 'loop'
     svgFileName = SvgFileName(name, target)
     panel = Panel(MULTITAP_LOOP_HP_WIDTH)
-    xControlCenter = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
+    xControlCenter = panel.mmWidth / 2
+    yLoopFence = MakeLoopControlFence()
+
+    # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    yLoopFence = MakeLoopControlFence()
+
+    # Tap controls/ports
     yTimeControl = yLoopFence.value(0)
     yReverseControl = yLoopFence.value(1)
     yPanControl = yLoopFence.value(2)
@@ -2084,6 +2095,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
