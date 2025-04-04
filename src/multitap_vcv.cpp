@@ -200,9 +200,9 @@ namespace Sapphire
 
             void configGainControls(int paramId, int attenId, int cvInputId)
             {
-                configParam(paramId, 0, 1, 1, "Gain", " dB", -10, 20);
-                configParam(attenId, -1, +1, 0, "Gain attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Gain CV");
+                configParam(paramId, 0, 1, 1, "Level", " dB", -10, 20);
+                configParam(attenId, -1, +1, 0, "Level attenuverter", "%", 0, 100);
+                configInput(cvInputId, "Level CV");
             }
         };
 

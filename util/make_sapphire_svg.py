@@ -2066,7 +2066,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
-        pl.append(CenteredControlTextPath(font, 'GAIN', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         # Global stuff
         AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
@@ -2124,7 +2124,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
-        pl.append(CenteredControlTextPath(font, 'GAIN', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
 
