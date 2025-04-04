@@ -525,17 +525,17 @@ namespace Sapphire
                     configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
-                    Loop_initialize();
+                    Tap_initialize();
                 }
 
-                void Loop_initialize()
+                void Tap_initialize()
                 {
                 }
 
                 void initialize() override
                 {
                     LoopModule::initialize();
-                    Loop_initialize();
+                    Tap_initialize();
                 }
 
                 InputState getInputs() override
