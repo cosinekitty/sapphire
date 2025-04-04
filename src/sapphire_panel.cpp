@@ -193,6 +193,8 @@ namespace Sapphire
             {"_panel",                 {  60.960,  128.500}},
             {"audio_left_input",       {  15.240,  100.000}},
             {"audio_right_input",      {  15.240,  110.000}},
+            {"clear_button",           {  24.240,   52.000}},
+            {"clear_input",            {   6.240,   52.000}},
             {"feedback_atten",         {  15.240,   22.000}},
             {"feedback_cv",            {   6.240,   22.000}},
             {"feedback_knob",          {  24.240,   22.000}},

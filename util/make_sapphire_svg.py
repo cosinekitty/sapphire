@@ -2020,6 +2020,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     # Global controls/ports (InLoop only)
     yFeedbackControl = yLoopFence.value(0)
     yFreezeControl = yLoopFence.value(1)
+    yClearControl = yLoopFence.value(2)
 
     # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2069,6 +2070,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         # Global stuff
         AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
+        AddToggleGroup(pl, controls, font, 'CLEAR',   'clear', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
 
     UpdateFileIfChanged('../src/multitap_inloop_panel.hpp', MultiTapInLoopHeaderText(xAdjust))
     return Save(panel, svgFileName)
