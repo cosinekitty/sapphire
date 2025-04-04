@@ -30,10 +30,16 @@ namespace Sapphire
             {
                 rightExpander.producerMessage = &messageBuffer[0];
                 rightExpander.consumerMessage = &messageBuffer[1];
+                MultiTap_initialize();
+            }
+
+            void MultiTap_initialize()
+            {
             }
 
             virtual void initialize()
             {
+                MultiTap_initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -89,13 +95,17 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
-                // DO NOT call initialize() here because it is virtual.
-                // Let derived classes call it!
+                Loop_initialize();
+            }
+
+            void Loop_initialize()
+            {
             }
 
             void initialize() override
             {
                 MultiTapModule::initialize();
+                Loop_initialize();
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -402,12 +412,17 @@ namespace Sapphire
                     configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
-                    initialize();
+                    InLoop_initialize();
+                }
+
+                void InLoop_initialize()
+                {
                 }
 
                 void initialize() override
                 {
                     LoopModule::initialize();
+                    InLoop_initialize();
                 }
 
                 InputState getInputs() override
@@ -510,12 +525,17 @@ namespace Sapphire
                     configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
-                    initialize();
+                    Loop_initialize();
+                }
+
+                void Loop_initialize()
+                {
                 }
 
                 void initialize() override
                 {
                     LoopModule::initialize();
+                    Loop_initialize();
                 }
 
                 InputState getInputs() override
@@ -583,12 +603,17 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                     configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
-                    initialize();
+                    OutLoop_initialize();
+                }
+
+                void OutLoop_initialize()
+                {
                 }
 
                 void initialize() override
                 {
                     MultiTapModule::initialize();
+                    OutLoop_initialize();
                 }
 
                 void process(const ProcessArgs& args) override
