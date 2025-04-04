@@ -382,6 +382,7 @@ namespace Sapphire
                 REVERSE_INPUT,
                 FREEZE_INPUT,
                 CLEAR_INPUT,
+                CLOCK_INPUT,
                 INPUTS_LEN
             };
 
@@ -420,6 +421,7 @@ namespace Sapphire
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
                     configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear");
+                    configInput(CLOCK_INPUT, "Clock");
                     InLoop_initialize();
                 }
 
@@ -460,6 +462,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
                     addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, 'C', 9.2, SCHEME_GREEN);
+                    addSapphireInput(CLOCK_INPUT, "clock_input");
 
                     // Per-tap controls/ports
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");

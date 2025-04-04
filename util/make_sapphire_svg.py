@@ -2018,9 +2018,10 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
 
     # Global controls/ports (InLoop only)
-    yFeedbackControl = yLoopFence.value(0)
-    yFreezeControl = yLoopFence.value(1)
-    yClearControl = yLoopFence.value(2)
+    yClockInput = yLoopFence.value(0)
+    yFeedbackControl = yLoopFence.value(1)
+    yFreezeControl = yLoopFence.value(2)
+    yClearControl = yLoopFence.value(3)
 
     # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2050,6 +2051,9 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+
+        controls.append(Component('clock_input', xGlobalCenter, yClockInput))
+        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockInput - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
