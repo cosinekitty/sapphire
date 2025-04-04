@@ -2001,11 +2001,15 @@ def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter
 
 
 def AddEnvGroup(font:Font, pl:Element, controls:ControlLayer, x1:float, x2:float) -> None:
+    xmid = (x1 + x2)/2
     y1 = MULTIMAP_ENV_PORTS_Y1
     y2 = MULTIMAP_ENV_PORTS_Y1 + DY_STEREO_PORTS/2
-    AddVerticalStereoPorts(font, pl, controls, x1, y1, 'env_left_output', 'env_right_output', '')
-    pl.append(CenteredControlTextPath(font, 'ENV', x2, y2 - MULTITAP_DY_CONTROL_LOOP_LABEL, 'env_label'))
-    controls.append(Component('env_gain_knob', x2, y2))
+    dxKnob = 1.0
+    dxLeftRightLabels = 5.7
+    pl.append(CenteredControlTextPath(font, 'ENV', xmid, y2, 'env_label'))
+    controls.append(Component('env_gain_knob', x1 - dxKnob, y2))
+    AddVerticalStereoPorts(font, pl, controls, x2, y1, 'env_left_output', 'env_right_output', '')
+    AddVerticalStereoLabels(font, pl, x2 + dxLeftRightLabels, y1)
 
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
