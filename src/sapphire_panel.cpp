@@ -196,6 +196,8 @@ namespace Sapphire
             {"feedback_atten",         {  15.240,   22.000}},
             {"feedback_cv",            {   6.240,   22.000}},
             {"feedback_knob",          {  24.240,   22.000}},
+            {"freeze_button",          {  24.240,   37.000}},
+            {"freeze_input",           {   6.240,   37.000}},
             {"gain_atten",             {  45.720,   82.000}},
             {"gain_cv",                {  36.720,   82.000}},
             {"gain_knob",              {  54.720,   82.000}},

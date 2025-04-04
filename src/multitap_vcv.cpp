@@ -363,6 +363,7 @@ namespace Sapphire
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
+                FREEZE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -378,6 +379,7 @@ namespace Sapphire
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
                 REVERSE_INPUT,
+                FREEZE_INPUT,
                 INPUTS_LEN
             };
 
@@ -392,6 +394,7 @@ namespace Sapphire
             {
                 INSERT_BUTTON_LIGHT,
                 REVERSE_BUTTON_LIGHT,
+                FREEZE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -412,6 +415,7 @@ namespace Sapphire
                     configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
+                    configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze");
                     InLoop_initialize();
                 }
 
@@ -450,6 +454,7 @@ namespace Sapphire
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
 
                     // Per-tap controls/ports
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
