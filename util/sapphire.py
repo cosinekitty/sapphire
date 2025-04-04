@@ -176,14 +176,14 @@ def AddFlatControlGrid(
         xIndex += 1
 
 
-def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str) -> Path:
+def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str = '') -> Path:
     path = ''
     path += Move(x1, y1)
     path += Line(x2, y2)
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
-def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
+def HorizontalLine(x1:float, x2:float, y:float, id:str = '') -> Path:
     path = ''
     path += Move(x1, y)
     path += Line(x2, y)

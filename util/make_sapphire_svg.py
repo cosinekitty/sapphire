@@ -1941,7 +1941,7 @@ def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:
 MULTITAP_INSERT_BUTTON_DX    = 4.0
 MULTITAP_INSERT_BUTTON_DY    = 4.0
 MULTITAP_INSERT_BUTTON_INSET = 3.0
-MULTITAP_INSERT_BUTTON_Y1    = 6.0
+MULTITAP_INSERT_BUTTON_Y1    = 5.0
 
 MULTITAP_INLOOP_HP_WIDTH = 12
 MULTITAP_LOOP_HP_WIDTH   = 6
@@ -1950,10 +1950,11 @@ MULTITAP_DY_GRADIENT = 10.0
 MULTITAP_DX_GRADIENT = 15.0
 
 MULTIMAP_DX_SEND_RETURN = 7.0
-MULTIMAP_AUDIO_PORTS_Y1 = 100.0
+MULTIMAP_AUDIO_PORTS_Y1 = 91.0
+MULTIMAP_ENV_PORTS_Y1 = MULTIMAP_AUDIO_PORTS_Y1 + 2*DY_STEREO_PORTS + 1.0
 
 def MakeLoopControlFence() -> FencePost:
-    return FencePost(22.0, 82.0, 5)
+    return FencePost(20.0, 74.0, 5)
 
 
 def MultiTapInLoopHeaderText(xAdjust:float) -> str:
@@ -1999,6 +2000,13 @@ def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter
     ))
 
 
+def AddEnvGroup(font:Font, pl:Element, controls:ControlLayer, x1:float, x2:float) -> None:
+    y1 = MULTIMAP_ENV_PORTS_Y1
+    y2 = MULTIMAP_ENV_PORTS_Y1 + DY_STEREO_PORTS/2
+    AddVerticalStereoPorts(font, pl, controls, x1, y1, 'env_left_output', 'env_right_output', '')
+    pl.append(CenteredControlTextPath(font, 'ENV', x2, y2 - MULTITAP_DY_CONTROL_LOOP_LABEL, 'env_label'))
+    controls.append(Component('env_gain_knob', x2, y2))
+
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
@@ -2018,7 +2026,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
 
     # Global controls/ports (InLoop only)
-    yClockInput = yLoopFence.value(0)
+    yClockInput = yLoopFence.value(4)
     yFeedbackControl = yLoopFence.value(1)
     yFreezeControl = yLoopFence.value(2)
     yClearControl = yLoopFence.value(3)
@@ -2050,6 +2058,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
+        AddEnvGroup(font, pl, controls, xSendPorts, xReturnPorts)
+
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
         controls.append(Component('clock_input', xGlobalCenter, yClockInput))
@@ -2061,7 +2071,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddToggleGroup(pl, controls, font, 'REVERSE', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
 
         AddFlatControlGroup(pl, controls, xGlobalCenter, yFeedbackControl, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FEEDBACK', xGlobalCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        pl.append(CenteredControlTextPath(font, 'FDBK', xGlobalCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2115,6 +2125,8 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+
+        AddEnvGroup(font, pl, controls, xSendPorts, xReturnPorts)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

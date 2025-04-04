@@ -287,7 +287,7 @@ namespace Sapphire
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
                 if (font)
                 {
-                    const float yCenter_mm = 11.0;
+                    const float yCenter_mm = 10.0;
                     const NVGcolor textColor = nvgRGB(0x66, 0x06, 0x5c);
 
                     float bounds[4]{};  // [xmin, ymin, xmax, ymax]
@@ -365,6 +365,7 @@ namespace Sapphire
                 REVERSE_BUTTON_PARAM,
                 FREEZE_BUTTON_PARAM,
                 CLEAR_BUTTON_PARAM,
+                ENV_GAIN_PARAM,
                 PARAMS_LEN
             };
 
@@ -390,6 +391,8 @@ namespace Sapphire
             {
                 SEND_LEFT_OUTPUT,
                 SEND_RIGHT_OUTPUT,
+                ENV_LEFT_OUTPUT,
+                ENV_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -412,6 +415,7 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
+                    configStereoOutputs(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
@@ -422,6 +426,7 @@ namespace Sapphire
                     configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear");
                     configInput(CLOCK_INPUT, "Clock");
+                    configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     InLoop_initialize();
                 }
 
@@ -472,6 +477,8 @@ namespace Sapphire
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    addStereoOutputPorts(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
+                    addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
                 bool isConnectedOnLeft() const override
@@ -495,6 +502,7 @@ namespace Sapphire
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
+                ENV_GAIN_PARAM,
                 PARAMS_LEN
             };
 
@@ -514,6 +522,8 @@ namespace Sapphire
             {
                 SEND_LEFT_OUTPUT,
                 SEND_RIGHT_OUTPUT,
+                ENV_LEFT_OUTPUT,
+                ENV_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -532,12 +542,14 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
+                    configStereoOutputs(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
+                    configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     Tap_initialize();
                 }
 
@@ -575,6 +587,8 @@ namespace Sapphire
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, 'R', 7.5, SCHEME_ORANGE);
+                    addStereoOutputPorts(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
+                    addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
                 bool isConnectedOnLeft() const override
