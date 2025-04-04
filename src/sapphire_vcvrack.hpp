@@ -957,6 +957,12 @@ namespace Sapphire
             configInput(cvInputId, name + " CV");
         }
 
+        void configToggleGroup(int inputId, int buttonParamId, const std::string& buttonCaption, const std::string& inputPrefix)
+        {
+            configButton(buttonParamId, buttonCaption);
+            configInput(inputId, inputPrefix);
+        }
+
         bool getVoltageFlipEnabled(int outputId) const
         {
             return

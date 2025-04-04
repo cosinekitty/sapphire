@@ -4,6 +4,6 @@ namespace Sapphire
 {
     namespace MultiTap
     {
-        constexpr float INLOOP_XSHIFT_MM = 7.620;
+        constexpr float INLOOP_XSHIFT_MM = 15.240;
     }
 }

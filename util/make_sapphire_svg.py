@@ -1943,7 +1943,7 @@ MULTITAP_INSERT_BUTTON_DY    = 4.0
 MULTITAP_INSERT_BUTTON_INSET = 3.0
 MULTITAP_INSERT_BUTTON_Y1    = 6.0
 
-MULTITAP_INLOOP_HP_WIDTH = 9
+MULTITAP_INLOOP_HP_WIDTH = 12
 MULTITAP_LOOP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
 MULTITAP_DY_GRADIENT = 10.0
@@ -1999,6 +1999,7 @@ def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter
     ))
 
 
+
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'inloop'
@@ -2013,6 +2014,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     hpdiff = MULTITAP_INLOOP_HP_WIDTH - MULTITAP_LOOP_HP_WIDTH
     xAdjust = (HP_WIDTH_MM * hpdiff/2)
     xControlCenter = xmid + xAdjust
+    xGlobalCenter = 3 * HP_WIDTH_MM
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xInputPorts  = 10.0
@@ -2021,6 +2023,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
     yFeedbackControl = yLoopFence.value(1)
+    yReverseControl = yLoopFence.value(1)
     yPanControl = yLoopFence.value(2)
     yMixControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
@@ -2029,8 +2032,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
 
-        pl.append(ModelNamePath(panel, font, 'djinn', -11.0))
-        pl.append(CenteredGemstone(panel, -13.0))
+        pl.append(ModelNamePathX(xGlobalCenter, font, 'djinn'))
+        pl.append(Gemstone(xGlobalCenter))
 
         AddVerticalStereoLabels(font, pl, xInputPorts - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
@@ -2043,8 +2046,10 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddToggleGroup(pl, controls, font, 'REVERSE', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
+
+        AddFlatControlGroup(pl, controls, xGlobalCenter, yFeedbackControl, 'feedback')
+        pl.append(CenteredControlTextPath(font, 'FEEDBACK', xGlobalCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2074,7 +2079,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     yLoopFence = MakeLoopControlFence()
     yTimeControl = yLoopFence.value(0)
-    yFeedbackControl = yLoopFence.value(1)
+    yReverseControl = yLoopFence.value(1)
     yPanControl = yLoopFence.value(2)
     yMixControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
@@ -2093,8 +2098,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddFlatControlGroup(pl, controls, xControlCenter, yFeedbackControl, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK', xControlCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddToggleGroup(pl, controls, font, 'REVERSE', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, MULTITAP_DY_CONTROL_LOOP_LABEL)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

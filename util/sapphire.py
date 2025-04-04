@@ -52,6 +52,11 @@ def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, i
     tp = ti.toPath(xcenter, ycenter, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE, id)
     return tp
 
+def ModelNamePathX(xCenter:float, font:Font, name:str) -> TextPath:
+    ti = TextItem(name, font, MODEL_NAME_POINTS)
+    tp = ti.toPath(xCenter, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
+    return tp
+
 def ModelNamePath(panel:Panel, font:Font, name:str, xAdjust:float = 0.0) -> TextPath:
     ti = TextItem(name, font, MODEL_NAME_POINTS)
     tp = ti.toPath(xAdjust + panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
@@ -111,21 +116,27 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
     return insignia
 
-
-def CenteredGemstone(panel:Panel, xAdjust:float = 0.0) -> SapphireGemstone:
-    '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
-    gem = SapphireGemstone(xAdjust + (panel.mmWidth - SapphireGemstone.mmWidth)/2, 121.0)
+def Gemstone(xCenter:float) -> SapphireGemstone:
+    '''Gemstone at the bottom of the panel with arbitrary horizontal position.'''
+    gem = SapphireGemstone(xCenter - SapphireGemstone.mmWidth/2, 121.0)
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem
+
+
+def CenteredGemstone(panel:Panel) -> SapphireGemstone:
+    '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
+    return Gemstone(panel.mmWidth/2)
 
 
 def HorizontalLinePath(x1:float, x2:float, y:float) -> Path:
     return Path(Move(x1,y) + Line(x2,y) + ClosePath(), CONNECTOR_LINE_STYLE)
 
 
+DX_FLAT_CONTROL_GROUP = 9.0
+
 def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
-    dx = 9.0
+    dx = DX_FLAT_CONTROL_GROUP
     controls.append(Component(symbol + '_cv', x - dx, y))
     controls.append(Component(symbol + '_atten', x, y))
     controls.append(Component(symbol + '_knob', x + dx, y))

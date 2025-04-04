@@ -66,13 +66,12 @@ namespace Sapphire
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
                 configButton(STORE_BUTTON_PARAM, "Store");
                 configButton(RECALL_BUTTON_PARAM, "Recall");
-                configButton(FREEZE_BUTTON_PARAM, "Freeze");
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
-                configInput(FREEZE_INPUT, "Freeze gate");
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configParam(MORPH_ATTEN, -1, +1, 0, "Morph attenuverter", "%", 0, 100);
                 configInput(MORPH_CV_INPUT, "Morph CV");
+                configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze gate");
                 initialize();
             }
 
