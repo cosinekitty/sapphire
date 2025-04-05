@@ -1953,7 +1953,7 @@ MULTITAP_DX_GRADIENT = 15.0
 MULTIMAP_DX_SEND_RETURN = 7.0
 MULTIMAP_AUDIO_PORTS_Y1 = 91.0
 MULTIMAP_INOUT_AUDIO_PORTS_Y1 = 91.0 + DY_STEREO_PORTS
-MULTIMAP_ENV_PORTS_Y1 = MULTIMAP_AUDIO_PORTS_Y1 + 2*DY_STEREO_PORTS + 1.0
+MULTIMAP_ENV_PORTS_Y1 = MULTIMAP_AUDIO_PORTS_Y1 + 2.5*DY_STEREO_PORTS + 1.0
 
 MULTIMAP_TOP_GROUP_FRACTION = 0.7
 
@@ -2022,16 +2022,18 @@ def AddMultiTapEnvGradient(panel:Panel, defs:Element, pl:Element, xCenter:float)
     ))
 
 
-def AddMultiTapEnvGroup(font:Font, pl:Element, controls:ControlLayer, x1:float, x2:float) -> None:
-    xmid = (x1 + x2)/2
-    y1 = MULTIMAP_ENV_PORTS_Y1
-    y2 = MULTIMAP_ENV_PORTS_Y1 + DY_STEREO_PORTS/2
-    dxKnob = 1.0
-    dxLeftRightLabels = 5.7
-    pl.append(CenteredControlTextPath(font, 'ENV', xmid, y2, 'env_label'))
-    controls.append(Component('env_gain_knob', x1 - dxKnob, y2))
-    AddVerticalStereoPorts(font, pl, controls, x2, y1, 'env_left_output', 'env_right_output', '')
-    AddVerticalStereoLabels(font, pl, x2 + dxLeftRightLabels, y1)
+def AddMultiTapEnvGroup(font:Font, pl:Element, controls:ControlLayer, xmid:float) -> None:
+    xKnob = xmid - DX_FLAT_CONTROL_GROUP
+    xPort = xmid + DX_FLAT_CONTROL_GROUP
+    rectWidth = 8.0
+    rectHeight = 4.5
+    y = MULTIMAP_ENV_PORTS_Y1
+    pl.append(CenteredControlTextPath(font, 'ENV', xmid, y, 'env_label'))
+    pl.append(Rectangle(xmid, y, rectWidth, rectHeight, strokeWidth=0.2))
+    pl.append(HorizontalLine(xKnob, xmid - rectWidth/2, y))
+    pl.append(HorizontalLine(xPort, xmid + rectWidth/2, y))
+    controls.append(Component('env_gain_knob', xKnob, y))
+    controls.append(Component('env_output', xPort, y))
 
 
 def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
@@ -2085,7 +2087,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
-        AddMultiTapEnvGroup(font, pl, controls, xSendPorts, xReturnPorts)
+        AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
@@ -2098,7 +2100,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         AddShortToggleGroup(pl, controls, font, 'REV', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
 
-        AddControlGroup(pl, controls, font, 'feedback', 'FEEDBACK', xGlobalCenter, yFeedbackControl)
+        AddControlGroup(pl, controls, font, 'feedback', 'FDBK', xGlobalCenter, yFeedbackControl)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2111,7 +2113,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         # Global stuff
         AddShortToggleGroup(pl, controls, font, 'FRZ', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl)
-        AddShortToggleGroup(pl, controls, font, 'CLR',   'clear', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl)
+        AddShortToggleGroup(pl, controls, font, 'CLR', 'clear' , xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl)
 
     UpdateFileIfChanged('../src/multitap_inloop_panel.hpp', MultiTapInLoopHeaderText(xAdjust))
     return Save(panel, svgFileName)
@@ -2154,7 +2156,7 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
-        AddMultiTapEnvGroup(font, pl, controls, xSendPorts, xReturnPorts)
+        AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

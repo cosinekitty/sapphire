@@ -391,8 +391,7 @@ namespace Sapphire
             {
                 SEND_LEFT_OUTPUT,
                 SEND_RIGHT_OUTPUT,
-                ENV_LEFT_OUTPUT,
-                ENV_RIGHT_OUTPUT,
+                ENV_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -415,7 +414,7 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
-                    configStereoOutputs(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "envelope follower");
+                    configOutput(ENV_OUTPUT, "Envelope follower");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
@@ -477,7 +476,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addStereoOutputPorts(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
+                    addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
@@ -522,8 +521,7 @@ namespace Sapphire
             {
                 SEND_LEFT_OUTPUT,
                 SEND_RIGHT_OUTPUT,
-                ENV_LEFT_OUTPUT,
-                ENV_RIGHT_OUTPUT,
+                ENV_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -542,7 +540,7 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
-                    configStereoOutputs(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "envelope follower");
+                    configOutput(ENV_OUTPUT, "Envelope follower");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
@@ -587,7 +585,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
-                    addStereoOutputPorts(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
+                    addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
