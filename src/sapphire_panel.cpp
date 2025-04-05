@@ -300,6 +300,9 @@ namespace Sapphire
             {"_panel",                 {  20.320,  128.500}},
             {"audio_left_output",      {  10.160,   91.000}},
             {"audio_right_output",     {  10.160,  101.000}},
+            {"global_mix_atten",       {   5.160,   69.000}},
+            {"global_mix_cv",          {  15.160,   69.000}},
+            {"global_mix_knob",        {  10.160,   58.000}},
             }},
         { "pivot", {
             {"_panel",                 {  20.320,  128.500}},

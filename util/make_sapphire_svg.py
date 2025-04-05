@@ -2182,10 +2182,12 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     xmid = panel.mmWidth / 2
     xOutputPorts = xmid
+    yFence = MakeLoopControlFence()
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
         AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(3))
     return Save(panel, svgFileName)
 
 

@@ -602,11 +602,14 @@ namespace Sapphire
         {
             enum ParamId
             {
+                GLOBAL_MIX_PARAM,
+                GLOBAL_MIX_ATTEN,
                 PARAMS_LEN
             };
 
             enum InputId
             {
+                GLOBAL_MIX_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -630,6 +633,7 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                     configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                    configControlGroup("Mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
                     OutLoop_initialize();
                 }
 
@@ -686,6 +690,7 @@ namespace Sapphire
                     setModule(module);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                    addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const
