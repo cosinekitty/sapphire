@@ -1952,6 +1952,7 @@ MULTITAP_DX_GRADIENT = 15.0
 
 MULTIMAP_DX_SEND_RETURN = 7.0
 MULTIMAP_AUDIO_PORTS_Y1 = 91.0
+MULTIMAP_INOUT_AUDIO_PORTS_Y1 = 91.0 + DY_STEREO_PORTS
 MULTIMAP_ENV_PORTS_Y1 = MULTIMAP_AUDIO_PORTS_Y1 + 2*DY_STEREO_PORTS + 1.0
 
 def MakeLoopControlFence() -> FencePost:
@@ -2049,10 +2050,10 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
 
     # Global controls/ports (InLoop only)
-    yClockInput = yLoopFence.value(4)
     yFeedbackControl = yLoopFence.value(0.5)
-    yFreezeControl = yLoopFence.value(1.5)
-    yClearControl = yLoopFence.value(2.5)
+    yFreezeControl = yLoopFence.value(2.5)
+    yClearControl = yLoopFence.value(3.5)
+    yClockInput = yLoopFence.value(4.75)
 
     # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2076,8 +2077,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'djinn'))
         pl.append(Gemstone(xGlobalCenter))
 
-        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_INOUT_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
@@ -2186,8 +2187,8 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFence = MakeLoopControlFence()
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_INOUT_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(0.5))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
     return Save(panel, svgFileName)
