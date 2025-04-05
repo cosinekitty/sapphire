@@ -329,7 +329,7 @@ class TextPath(Element):
 
 class Rectangle(Element):
     """SVG Rectangle"""
-    def __init__(self, cx:float, cy:float, width:float, height:float, stroke:str, strokeWidth:float, fill:str, id:str = '') -> None:
+    def __init__(self, cx:float, cy:float, width:float, height:float, stroke:str = 'black', strokeWidth:float = 0.1, fill:str = 'none', id:str = '') -> None:
         super().__init__('rect', id)
         self.setAttribFloat('x', cx - width/2)
         self.setAttribFloat('y', cy - height/2)

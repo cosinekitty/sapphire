@@ -1383,7 +1383,7 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
 def AddSlider(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float) -> None:
     controls.append(Component(name, xc, yc))
     if previewComponentPositions and (target == Target.Lite):
-        pl.append(Rectangle(xc, yc, 2.4, 28.0, 'black', 0.1, 'none'))
+        pl.append(Rectangle(xc, yc, 2.4, 28.0))
 
 
 def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, target:Target) -> None:
@@ -1585,7 +1585,7 @@ def AddLargeKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:
 def AddSwitch(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, width:float, height:float) -> None:
     controls.append(Component(name, xc, yc))
     if previewComponentPositions and (target == Target.Lite):
-        pl.append(Rectangle(xc, yc, width, height, 'black', 0.1, 'none'))
+        pl.append(Rectangle(xc, yc, width, height))
 
 
 def AddTubeUnitControl(controls:ControlLayer, target:Target, pl:Element, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
@@ -2087,7 +2087,8 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
         controls.append(Component('clock_input', xGlobalCenter, yClockInput))
-        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockInput - 6.5))
+        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockInput - 7.0))
+        pl.append(Rectangle(xGlobalCenter, yClockInput, 12.0, 9.0, strokeWidth=0.2))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
