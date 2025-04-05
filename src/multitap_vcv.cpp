@@ -464,7 +464,7 @@ namespace Sapphire
 
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
-                    addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                    addSapphireControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
                     addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, '\0', 0.0, SCHEME_GREEN);
                     addSapphireInput(CLOCK_INPUT, "clock_input");

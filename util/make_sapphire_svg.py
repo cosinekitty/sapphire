@@ -1955,6 +1955,8 @@ MULTIMAP_AUDIO_PORTS_Y1 = 91.0
 MULTIMAP_INOUT_AUDIO_PORTS_Y1 = 91.0 + DY_STEREO_PORTS
 MULTIMAP_ENV_PORTS_Y1 = MULTIMAP_AUDIO_PORTS_Y1 + 2*DY_STEREO_PORTS + 1.0
 
+MULTIMAP_TOP_GROUP_FRACTION = 0.7
+
 def MakeLoopControlFence() -> FencePost:
     return FencePost(16.0, 72.0, 5)
 
@@ -2050,10 +2052,10 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     yLoopFence = MakeLoopControlFence()
 
     # Global controls/ports (InLoop only)
-    yFeedbackControl = yLoopFence.value(0.5)
+    yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
     yFreezeControl = yLoopFence.value(2.5)
     yClearControl = yLoopFence.value(3.5)
-    yClockInput = yLoopFence.value(4.75)
+    yClockInput = yLoopFence.value(4.8)
 
     # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2096,8 +2098,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         AddShortToggleGroup(pl, controls, font, 'REV', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
 
-        AddFlatControlGroup(pl, controls, xGlobalCenter, yFeedbackControl, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK', xGlobalCenter, yFeedbackControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddControlGroup(pl, controls, font, 'feedback', 'FEEDBACK', xGlobalCenter, yFeedbackControl)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2189,7 +2190,7 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_INOUT_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
         AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
-        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(0.5))
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
     return Save(panel, svgFileName)
 
