@@ -216,6 +216,45 @@ def AddToggleGroup(
     return group
 
 
+def HexagonPath(x1:float, x2:float, dx:float, y1:float, y2:float, id:str = '') -> Path:
+    x3 = x1 + dx
+    x4 = x2 - dx
+    ym = (y1 + y2) / 2
+    text  = Move(x1, ym)
+    text += Line(x3, y1)
+    text += Line(x4, y1)
+    text += Line(x2, ym)
+    text += Line(x4, y2)
+    text += Line(x3, y2)
+    text += ClosePath()
+    return Path(text, CONNECTOR_LINE_STYLE, id, 'none')
+
+
+def AddShortToggleGroup(
+        pl: Element,
+        controls: ControlLayer,
+        font: Font,
+        caption: str,
+        prefix: str,
+        x1: float,
+        x2: float,
+        yControl: float,
+        id: str = '') -> Element:
+    group = Element('g', id)
+    pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl))
+
+    # Draw a hexagon around the caption. We do NOT fit to the caption.
+    inset = 4.0
+    nudge = 0.2
+    dy = 3.0
+    dx = 2.0
+    pl.append(HexagonPath(x1+inset+nudge, x2-inset, dx, yControl-dy, yControl+dy))
+
+    controls.append(Component(prefix + '_input',  x1, yControl))
+    controls.append(Component(prefix + '_button', x2, yControl))
+    return group
+
+
 @enum.unique
 class Target(enum.Enum):
     VcvRack = 1

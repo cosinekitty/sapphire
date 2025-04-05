@@ -465,15 +465,15 @@ namespace Sapphire
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
-                    addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
-                    addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, 'C', 9.2, SCHEME_GREEN);
+                    addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
+                    addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, '\0', 0.0, SCHEME_GREEN);
                     addSapphireInput(CLOCK_INPUT, "clock_input");
 
                     // Per-tap controls/ports
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, 'R', 7.5, SCHEME_ORANGE);
+                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
@@ -586,7 +586,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, 'R', 7.5, SCHEME_ORANGE);
+                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
                     addStereoOutputPorts(ENV_LEFT_OUTPUT, ENV_RIGHT_OUTPUT, "env");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
