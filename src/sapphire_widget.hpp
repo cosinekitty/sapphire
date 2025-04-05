@@ -327,9 +327,10 @@ namespace Sapphire
             return knob;
         }
 
-        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& label)
+        template <typename knob_t = RoundSmallBlackKnob>
+        knob_t *addSmallKnob(int paramId, const std::string& label)
         {
-            RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
+            knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
             addSapphireParam(knob, label);
             return knob;
         }
@@ -400,9 +401,10 @@ namespace Sapphire
             addSapphireInput(cvInputId, name + "_cv");
         }
 
-        RoundSmallBlackKnob* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        template <typename base_knob_t = RoundSmallBlackKnob>
+        base_knob_t* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
         {
-            RoundSmallBlackKnob* knob = addSmallKnob(knobId, prefix + "_knob");
+            base_knob_t* knob = addSmallKnob<base_knob_t>(knobId, prefix + "_knob");
             addSapphireAttenuverter(attenId, prefix + "_atten");
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;

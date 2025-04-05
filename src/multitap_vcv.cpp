@@ -6,6 +6,83 @@ namespace Sapphire
     {
         struct LoopWidget;
 
+        enum class
+        TimeMode
+        {
+            Seconds,
+            ClockSync,
+            LEN
+        };
+
+        using time_knob_base_t = RoundSmallBlackKnob;
+        struct TimeKnob : time_knob_base_t
+        {
+            TimeMode* mode = nullptr;     // should point into the module, when the module exists
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                time_knob_base_t::drawLayer(args, layer);
+
+                if (layer != 1)
+                    return;
+
+                if (mode == nullptr)
+                    return;
+
+                switch (*mode)
+                {
+                case TimeMode::Seconds:
+                default:
+                    // Do not draw anything on the knob
+                    break;
+
+                case TimeMode::ClockSync:
+                    drawClockSyncSymbol(args.vg);
+                    break;
+                }
+            }
+
+            void drawClockSyncSymbol(NVGcontext* vg)
+            {
+                float dx = 5.0;
+                float x2 = box.size.x / 2;
+                float x1 = x2 - dx;
+                float x3 = x2 + dx;
+
+                float dy = 4.0;
+                float ym = box.size.y / 2;
+                float y1 = ym - dy;
+                float y2 = ym + dy;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_GREEN);
+                nvgMoveTo(vg, x1, y1);
+                nvgLineTo(vg, x1, y2);
+                nvgLineTo(vg, x3, y2);
+                nvgLineTo(vg, x3, y1);
+                nvgLineTo(vg, x1, y1);
+                nvgStrokeWidth(vg, 0.75);
+                nvgStroke(vg);
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (mode == nullptr)
+                    return;
+
+                menu->addChild(new MenuSeparator);
+                menu->addChild(createIndexSubmenuItem(
+                    "Time mode",
+                    {
+                        "Seconds",
+                        "Clock sync"
+                    },
+                    [=](){ return static_cast<size_t>(*mode); },
+                    [=](size_t index){ *mode = static_cast<TimeMode>(index); }
+                ));
+            }
+        };
+
         using insert_button_base_t = app::SvgSwitch;
         struct InsertButton : insert_button_base_t
         {
@@ -92,6 +169,8 @@ namespace Sapphire
 
         struct LoopModule : MultiTapModule
         {
+            TimeMode timeMode = TimeMode::Seconds;
+
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
@@ -166,6 +245,21 @@ namespace Sapphire
                 Result result = calculate(args.sampleRate, inMessage, input);
                 setOutputs(result.output);
                 sendMessage(result.message);
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t* root = MultiTapModule::dataToJson();
+                json_object_set_new(root, "timeMode", json_integer(static_cast<int>(timeMode)));
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                MultiTapModule::dataFromJson(root);
+                json_t* jsTimeMode = json_object_get(root, "timeMode");
+                if (json_is_integer(jsTimeMode))
+                    timeMode = static_cast<TimeMode>(json_integer_value(jsTimeMode));
             }
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
@@ -333,6 +427,15 @@ namespace Sapphire
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                 }
             }
+
+            TimeKnob* addTimeControlGroup(int paramId, int attenId, int cvInputId)
+            {
+                TimeKnob* tk = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
+                auto lmod = dynamic_cast<LoopModule*>(module);
+                if (lmod != nullptr)
+                    tk->mode = &(lmod->timeMode);
+                return tk;
+            }
         };
 
 
@@ -471,7 +574,8 @@ namespace Sapphire
                     // Per-tap controls/ports
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
-                    addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+
                     addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
@@ -580,7 +684,7 @@ namespace Sapphire
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
-                    addSapphireFlatControlGroup("time", TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
