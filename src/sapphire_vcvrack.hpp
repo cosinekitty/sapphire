@@ -559,19 +559,10 @@ namespace Sapphire
         {
             bool trigger = tr.updateTrigger(voltage);
 
-            if (std::isfinite(sampleRateHz) && (sampleRateHz > 1000))
-            {
-                if (trigger)
-                    flashSecondsRemaining = FlashDurationSeconds;
-                else if (flashSecondsRemaining > 0)
-                    flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
-            }
-            else
-            {
-                // We are dealing with numeric weirdness in the sample rate.
-                // Keep the light turned off for now.
-                flashSecondsRemaining = 0;
-            }
+            if (trigger)
+                flashSecondsRemaining = FlashDurationSeconds;
+            else if (flashSecondsRemaining > 0)
+                flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
 
             return trigger;
         }
