@@ -401,16 +401,17 @@ namespace Sapphire
             addSapphireInput(cvInputId, name + "_cv");
         }
 
-        template <typename base_knob_t = RoundSmallBlackKnob>
-        base_knob_t* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        template <typename knob_t = RoundSmallBlackKnob>
+        knob_t* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
         {
-            base_knob_t* knob = addSmallKnob<base_knob_t>(knobId, prefix + "_knob");
+            knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
             addSapphireAttenuverter(attenId, prefix + "_atten");
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
 
-        void addToggleGroup(
+        template <typename caption_button_t = SapphireCaptionButton>
+        caption_button_t* addToggleGroup(
             const std::string& prefix,
             int inputId,
             int buttonId,
@@ -419,7 +420,7 @@ namespace Sapphire
             float dxText,
             NVGcolor baseColor)
         {
-            SapphireCaptionButton* button = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, buttonId, lightId);
+            caption_button_t* button = createLightParamCentered<caption_button_t>(Vec{}, module, buttonId, lightId);
             button->momentary = false;
             button->latch = true;
             button->dxText = dxText;
@@ -428,6 +429,8 @@ namespace Sapphire
 
             addSapphireParam(button, prefix + "_button");
             addSapphireInput(inputId, prefix + "_input");
+
+            return button;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)

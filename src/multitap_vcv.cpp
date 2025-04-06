@@ -231,6 +231,11 @@ namespace Sapphire
                 // FIXFIXFIX - do we need this???
             }
 
+            virtual bool isFrozen()
+            {
+                return false;
+            }
+
             void process(const ProcessArgs& args) override
             {
                 Message inMessage;
@@ -238,8 +243,22 @@ namespace Sapphire
                 if (ptr != nullptr)
                     inMessage = *ptr;
 
-                if (IsLoop(this))
+                if (IsInLoop(this))
+                {
+                    // Monitor the FRZ (freeze) toggle group.
+                    // We must always call isFrozen() for its side-effects.
+                    // Do not be tempted to "optimize".
+                    const bool frozen = isFrozen();
+                    (void)frozen; // FIXFIXFIX - do something here when frozen
+                }
+                else if (IsLoop(this))
+                {
                     chainIndex = inMessage.chainIndex;
+                }
+                else
+                {
+                    assert(false);
+                }
 
                 InputState input = getInputs();
                 Result result = calculate(args.sampleRate, inMessage, input);
@@ -509,6 +528,8 @@ namespace Sapphire
 
             struct InMod : LoopModule
             {
+                GateTriggerReceiver freezeReceiver;
+
                 InMod()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -534,6 +555,7 @@ namespace Sapphire
 
                 void InLoop_initialize()
                 {
+                    freezeReceiver.initialize();
                 }
 
                 void initialize() override
@@ -551,6 +573,13 @@ namespace Sapphire
 
                     return state;
                 }
+
+                bool isFrozen() override
+                {
+                    bool frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM);
+                    setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
+                    return frozen;
+                }
             };
 
             struct InWid : LoopWidget
@@ -567,7 +596,7 @@ namespace Sapphire
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
-                    addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
+                    addFreezeToggleGroup();
                     addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, '\0', 0.0, SCHEME_GREEN);
                     addSapphireInput(CLOCK_INPUT, "clock_input");
 
@@ -582,6 +611,12 @@ namespace Sapphire
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                }
+
+                SapphireCaptionButton* addFreezeToggleGroup()
+                {
+                    SapphireCaptionButton* freezeButton = addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
+                    return freezeButton;
                 }
 
                 bool isConnectedOnLeft() const override

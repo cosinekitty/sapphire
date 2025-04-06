@@ -1091,7 +1091,12 @@ namespace Sapphire
             // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
             return portActive ^ buttonActive;
         }
-    };
+
+        void setLightBrightness(int lightId, bool lit)
+        {
+            lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
+        }
+};
 
 
     class WarningLightWidget : public LightWidget

@@ -174,11 +174,6 @@ namespace Sapphire
                 setLightBrightness(RECALL_BUTTON_LIGHT, recallFlashCounter > 0);
                 setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
             }
-
-            void setLightBrightness(LightId lightId, bool lit)
-            {
-                lights[lightId].setBrightness(lit ? 1.0f : 0.06f);
-            }
         };
 
 
