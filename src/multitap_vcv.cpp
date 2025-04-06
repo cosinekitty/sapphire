@@ -254,11 +254,7 @@ namespace Sapphire
                 return flag;
             }
 
-            virtual bool updateFreezeState()
-            {
-                return false;
-            }
-
+            virtual bool updateFreezeState() = 0;
             virtual bool updateReverseState() = 0;
 
             void process(const ProcessArgs& args) override
@@ -628,7 +624,7 @@ namespace Sapphire
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
 
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
+                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
@@ -729,6 +725,11 @@ namespace Sapphire
                     return state;
                 }
 
+                bool updateFreezeState() override
+                {
+                    return false;       // there is no FREEZE toggle group in a tap; it is only in InLoop.
+                }
+
                 bool updateReverseState() override
                 {
                     return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
@@ -751,7 +752,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_ORANGE);
+                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
