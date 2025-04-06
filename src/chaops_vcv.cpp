@@ -131,8 +131,7 @@ namespace Sapphire
 
             static int flashDurationSamples(float sampleRate)
             {
-                const float flashDurationSeconds = 0.05;
-                return static_cast<int>(flashDurationSeconds * sampleRate);
+                return static_cast<int>(FlashDurationSeconds * sampleRate);
             }
 
             void process(const ProcessArgs& args) override

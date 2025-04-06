@@ -171,6 +171,7 @@ namespace Sapphire
         {
             bool frozen = false;
             bool reversed = false;
+            bool clearBufferRequested = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
 
@@ -185,6 +186,7 @@ namespace Sapphire
                 frozen = false;
                 reversed = false;
                 reverseReceiver.initialize();
+                clearBuffer();
             }
 
             void initialize() override
@@ -201,6 +203,11 @@ namespace Sapphire
             bool isReversed() const
             {
                 return reversed;
+            }
+
+            void clearBuffer()
+            {
+                clearBufferRequested = false;
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -254,7 +261,11 @@ namespace Sapphire
                 return flag;
             }
 
-            virtual bool updateFreezeState() = 0;
+            // Global controls
+            virtual bool updateFreezeState() { return false; }
+            virtual bool updateClearState(float sampleRateHz) { return false; }
+
+            // Tap controls
             virtual bool updateReverseState() = 0;
 
             void process(const ProcessArgs& args) override
@@ -275,6 +286,7 @@ namespace Sapphire
                 }
 
                 reversed = updateReverseState();
+                updateClearState(args.sampleRate);
 
                 InputState input = getInputs();
                 Result result = calculate(args.sampleRate, inMessage, input);
@@ -544,7 +556,9 @@ namespace Sapphire
 
             struct InMod : LoopModule
             {
+                // Global controls
                 GateTriggerReceiver freezeReceiver;
+                AnimatedTriggerReceiver clearReceiver;
 
                 InMod()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -572,6 +586,7 @@ namespace Sapphire
                 void InLoop_initialize()
                 {
                     freezeReceiver.initialize();
+                    clearReceiver.initialize();
                 }
 
                 void initialize() override
@@ -599,6 +614,17 @@ namespace Sapphire
                 {
                     return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
                 }
+
+                bool updateClearState(float sampleRateHz) override
+                {
+                    return updateTriggerGroup(
+                        sampleRateHz,
+                        clearReceiver,
+                        CLEAR_INPUT,
+                        CLEAR_BUTTON_PARAM,
+                        CLEAR_BUTTON_LIGHT
+                    );
+                }
             };
 
             struct InWid : LoopWidget
@@ -616,7 +642,7 @@ namespace Sapphire
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     addFreezeToggleGroup();
-                    addToggleGroup("clear", CLEAR_INPUT, CLEAR_BUTTON_PARAM, CLEAR_BUTTON_LIGHT, '\0', 0.0, SCHEME_GREEN);
+                    addClearTriggerGroup();
                     addSapphireInput(CLOCK_INPUT, "clock_input");
 
                     // Per-tap controls/ports
@@ -636,6 +662,20 @@ namespace Sapphire
                 {
                     SapphireCaptionButton* freezeButton = addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
                     return freezeButton;
+                }
+
+                void addClearTriggerGroup()
+                {
+                    addToggleGroup(
+                        "clear",
+                        CLEAR_INPUT,
+                        CLEAR_BUTTON_PARAM,
+                        CLEAR_BUTTON_LIGHT,
+                        '\0',
+                        0.0,
+                        SCHEME_GREEN,
+                        true
+                    );
                 }
 
                 bool isConnectedOnLeft() const override
@@ -723,11 +763,6 @@ namespace Sapphire
                 {
                     InputState state;
                     return state;
-                }
-
-                bool updateFreezeState() override
-                {
-                    return false;       // there is no FREEZE toggle group in a tap; it is only in InLoop.
                 }
 
                 bool updateReverseState() override

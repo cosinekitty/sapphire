@@ -539,6 +539,50 @@ namespace Sapphire
     };
 
 
+    constexpr float FlashDurationSeconds = 0.05;
+
+
+    class AnimatedTriggerReceiver
+    {
+    private:
+        GateTriggerReceiver tr;
+        float flashSecondsRemaining = 0;
+
+    public:
+        void initialize()
+        {
+            tr.initialize();
+            flashSecondsRemaining = 0;
+        }
+
+        bool updateTrigger(float voltage, float sampleRateHz)
+        {
+            bool trigger = tr.updateTrigger(voltage);
+
+            if (std::isfinite(sampleRateHz) && (sampleRateHz > 1000))
+            {
+                if (trigger)
+                    flashSecondsRemaining = FlashDurationSeconds;
+                else if (flashSecondsRemaining > 0)
+                    flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
+            }
+            else
+            {
+                // We are dealing with numeric weirdness in the sample rate.
+                // Keep the light turned off for now.
+                flashSecondsRemaining = 0;
+            }
+
+            return trigger;
+        }
+
+        bool lit() const
+        {
+            return flashSecondsRemaining > 0;
+        }
+    };
+
+
     class TriggerSender
     {
     private:
@@ -1080,7 +1124,7 @@ namespace Sapphire
             return agcLevelQuantity;
         }
 
-        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId)
+        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId, int buttonLightId = -1)
         {
             Input& input  = inputs.at(inputId);
             Param& button = params.at(buttonParamId);
@@ -1088,13 +1132,37 @@ namespace Sapphire
             bool portActive = receiver.updateGate(input.getVoltageSum());
             bool buttonActive = (button.getValue() > 0);
 
+            setLightBrightness(buttonActive, buttonLightId);
+
             // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
             return portActive ^ buttonActive;
         }
 
+        bool updateTriggerGroup(
+            float sampleRateHz,
+            AnimatedTriggerReceiver& receiver,
+            int inputId,
+            int buttonParamId,
+            int buttonLightId)
+        {
+            Input& input  = inputs.at(inputId);
+            Param& button = params.at(buttonParamId);
+
+            // We treat the button state as if it is a 0V/10V input voltage.
+            // Then we boolean-OR the logic levels of the input port and button.
+            float inputVoltage = input.getVoltageSum();
+            if (button.getValue() > 0)
+                inputVoltage = 10;
+
+            bool trigger = receiver.updateTrigger(inputVoltage, sampleRateHz);
+            setLightBrightness(buttonLightId, receiver.lit());
+            return trigger;
+        }
+
         void setLightBrightness(int lightId, bool lit)
         {
-            lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
+            if (lightId >= 0)
+                lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
         }
 };
 

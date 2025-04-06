@@ -418,11 +418,12 @@ namespace Sapphire
             int lightId,
             char buttonLetter,
             float dxText,
-            NVGcolor baseColor)
+            NVGcolor baseColor,
+            bool momentary = false)
         {
             caption_button_t* button = createLightParamCentered<caption_button_t>(Vec{}, module, buttonId, lightId);
-            button->momentary = false;
-            button->latch = true;
+            button->momentary = momentary;
+            button->latch = !momentary;
             button->dxText = dxText;
             button->setCaption(buttonLetter);
             button->initBaseColor(baseColor);
