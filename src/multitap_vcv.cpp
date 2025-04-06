@@ -216,13 +216,6 @@ namespace Sapphire
                 return flag;
             }
 
-            // Global controls
-            virtual bool updateFreezeState() { return false; }
-            virtual bool updateClearState(float sampleRateHz) { return false; }
-
-            // Tap controls
-            virtual bool updateReverseState() = 0;
-
             json_t* dataToJson() override
             {
                 json_t* root = MultiTapModule::dataToJson();
@@ -534,17 +527,27 @@ namespace Sapphire
                     sendMessage(outMessage);
                 }
 
-                bool updateFreezeState() override
+                bool updateFreezeState()
                 {
-                    return updateToggleState(freezeReceiver, FREEZE_BUTTON_PARAM, FREEZE_INPUT, FREEZE_BUTTON_LIGHT);
+                    return updateToggleState(
+                        freezeReceiver,
+                        FREEZE_BUTTON_PARAM,
+                        FREEZE_INPUT,
+                        FREEZE_BUTTON_LIGHT
+                    );
                 }
 
-                bool updateReverseState() override
+                bool updateReverseState()
                 {
-                    return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
+                    return updateToggleState(
+                        reverseReceiver,
+                        REVERSE_BUTTON_PARAM,
+                        REVERSE_INPUT,
+                        REVERSE_BUTTON_LIGHT
+                    );
                 }
 
-                bool updateClearState(float sampleRateHz) override
+                bool updateClearState(float sampleRateHz)
                 {
                     return updateTriggerGroup(
                         sampleRateHz,
@@ -701,14 +704,18 @@ namespace Sapphire
                     frozen = inMessage.frozen;
 
                     reversed = updateReverseState();
-                    updateClearState(args.sampleRate);
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
                     sendMessage(outMessage);
                 }
 
-                bool updateReverseState() override
+                bool updateReverseState()
                 {
-                    return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
+                    return updateToggleState(
+                        reverseReceiver,
+                        REVERSE_BUTTON_PARAM,
+                        REVERSE_INPUT,
+                        REVERSE_BUTTON_LIGHT
+                    );
                 }
             };
 
