@@ -31,6 +31,7 @@ namespace Sapphire
         {
             int chainIndex = -1;
             Frame audio;
+            bool frozen = false;
         };
 
         struct InputState

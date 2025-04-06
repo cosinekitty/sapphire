@@ -169,6 +169,7 @@ namespace Sapphire
 
         struct LoopModule : MultiTapModule
         {
+            bool frozen = false;
             TimeMode timeMode = TimeMode::Seconds;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
@@ -185,6 +186,11 @@ namespace Sapphire
             {
                 MultiTapModule::initialize();
                 Loop_initialize();
+            }
+
+            bool isFrozen() const
+            {
+                return frozen;
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -231,7 +237,7 @@ namespace Sapphire
                 // FIXFIXFIX - do we need this???
             }
 
-            virtual bool isFrozen()
+            virtual bool updateFreezeState()
             {
                 return false;
             }
@@ -245,19 +251,12 @@ namespace Sapphire
 
                 if (IsInLoop(this))
                 {
-                    // Monitor the FRZ (freeze) toggle group.
-                    // We must always call isFrozen() for its side-effects.
-                    // Do not be tempted to "optimize".
-                    const bool frozen = isFrozen();
-                    (void)frozen; // FIXFIXFIX - do something here when frozen
+                    frozen = inMessage.frozen = updateFreezeState();
                 }
                 else if (IsLoop(this))
                 {
                     chainIndex = inMessage.chainIndex;
-                }
-                else
-                {
-                    assert(false);
+                    frozen = inMessage.frozen;
                 }
 
                 InputState input = getInputs();
@@ -574,7 +573,7 @@ namespace Sapphire
                     return state;
                 }
 
-                bool isFrozen() override
+                bool updateFreezeState() override
                 {
                     bool frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM);
                     setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
