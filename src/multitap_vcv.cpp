@@ -166,6 +166,13 @@ namespace Sapphire
             }
         };
 
+        struct ChannelInfo
+        {
+            void initialize()
+            {
+            }
+        };
+
         struct LoopModule : MultiTapModule
         {
             bool frozen = false;
@@ -173,6 +180,8 @@ namespace Sapphire
             bool clearBufferRequested = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
+            EnvelopeFollower env;
+            ChannelInfo info[PORT_MAX_CHANNELS];
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -185,6 +194,8 @@ namespace Sapphire
                 frozen = false;
                 reversed = false;
                 reverseReceiver.initialize();
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    info[c].initialize();
                 clearBuffer();
             }
 
@@ -229,6 +240,19 @@ namespace Sapphire
                 json_t* jsTimeMode = json_object_get(root, "timeMode");
                 if (json_is_integer(jsTimeMode))
                     timeMode = static_cast<TimeMode>(json_integer_value(jsTimeMode));
+            }
+
+            void updateEnvelope(int outputId, float sampleRateHz, const Frame& audio)
+            {
+                const int nc = SafeChannelCount(audio.nchannels);
+                float sum = 0;
+                for (int c = 0; c < nc; ++c)
+                    sum += audio.sample[c];
+
+                float v = env.update(sum, sampleRateHz);
+                Output& envOutput = outputs.at(outputId);
+                envOutput.setChannels(1);
+                envOutput.setVoltage(v);
             }
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
@@ -526,6 +550,7 @@ namespace Sapphire
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.chainAudio = outMessage.originalAudio;
+                    updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
 
@@ -707,6 +732,7 @@ namespace Sapphire
 
                     reversed = updateReverseState();
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
+                    updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
 

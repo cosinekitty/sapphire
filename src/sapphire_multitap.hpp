@@ -7,6 +7,42 @@ namespace Sapphire
 {
     namespace MultiTap
     {
+        class EnvelopeFollower
+        {
+        private:
+            float prevSampleRate{};
+            float envAttack{};
+            float envDecay{};
+            float envelope{};
+
+        public:
+            void initialize()
+            {
+                envelope = 0;
+            }
+
+            float update(float signal, int sampleRate)
+            {
+                // Based on Surge XT Tree Monster's envelope follower:
+                // https://github.com/surge-synthesizer/sst-effects/blob/main/include/sst/effects-shared/TreemonsterCore.h
+                if (sampleRate != prevSampleRate)
+                {
+                    prevSampleRate = sampleRate;
+                    envAttack = std::pow(0.01, 1.0 / (0.005*sampleRate));
+                    envDecay  = std::pow(0.01, 1.0 / (0.500*sampleRate));
+                }
+                float v = std::abs(signal);
+                float k = (v > envelope) ? envAttack : envDecay;
+                envelope = k*(envelope - v) + v;
+                return envelope;
+            }
+        };
+
+        inline int SafeChannelCount(int count)
+        {
+            return std::clamp(count, 0, PORT_MAX_CHANNELS);
+        }
+
         struct Frame
         {
             int nchannels = 0;
@@ -16,7 +52,7 @@ namespace Sapphire
         inline Frame operator+ (const Frame& a, const Frame& b)
         {
             Frame s;
-            s.nchannels = std::clamp(std::max(a.nchannels, b.nchannels), 0, PORT_MAX_CHANNELS);
+            s.nchannels = SafeChannelCount(std::max(a.nchannels, b.nchannels));
 
             for (int c = 0; c < a.nchannels; ++c)
                 s.sample[c] += a.sample[c];
