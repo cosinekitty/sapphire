@@ -524,6 +524,8 @@ namespace Sapphire
                     reversed = updateReverseState();
                     updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
+                    outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    outMessage.chainAudio = outMessage.originalAudio;
                     sendMessage(outMessage);
                 }
 
