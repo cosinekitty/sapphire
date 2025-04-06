@@ -223,32 +223,6 @@ namespace Sapphire
             // Tap controls
             virtual bool updateReverseState() = 0;
 
-            void process(const ProcessArgs& args) override
-            {
-                Message inMessage;
-                const Message* ptr = receiveMessage();
-                if (ptr != nullptr)
-                    inMessage = *ptr;
-
-                // Copy input to output by default, then patch whatever is different.
-                Message outMessage = inMessage;
-
-                if (IsInLoop(this))
-                {
-                    frozen = outMessage.frozen = updateFreezeState();
-                }
-                else if (IsLoop(this))
-                {
-                    chainIndex = inMessage.chainIndex;
-                    frozen = inMessage.frozen;
-                }
-
-                reversed = updateReverseState();
-                updateClearState(args.sampleRate);
-                outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
-                sendMessage(outMessage);
-            }
-
             json_t* dataToJson() override
             {
                 json_t* root = MultiTapModule::dataToJson();
@@ -550,6 +524,16 @@ namespace Sapphire
                     InLoop_initialize();
                 }
 
+                void process(const ProcessArgs& args) override
+                {
+                    Message outMessage;
+                    frozen = outMessage.frozen = updateFreezeState();
+                    reversed = updateReverseState();
+                    updateClearState(args.sampleRate);
+                    outMessage.chainIndex = 2;
+                    sendMessage(outMessage);
+                }
+
                 bool updateFreezeState() override
                 {
                     return updateToggleState(freezeReceiver, FREEZE_BUTTON_PARAM, FREEZE_INPUT, FREEZE_BUTTON_LIGHT);
@@ -704,6 +688,24 @@ namespace Sapphire
                     Tap_initialize();
                 }
 
+                void process(const ProcessArgs& args) override
+                {
+                    Message inMessage;
+                    const Message* ptr = receiveMessage();
+                    if (ptr != nullptr)
+                        inMessage = *ptr;
+
+                    // Copy input to output by default, then patch whatever is different.
+                    Message outMessage = inMessage;
+                    chainIndex = inMessage.chainIndex;
+                    frozen = inMessage.frozen;
+
+                    reversed = updateReverseState();
+                    updateClearState(args.sampleRate);
+                    outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
+                    sendMessage(outMessage);
+                }
+
                 bool updateReverseState() override
                 {
                     return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
@@ -799,11 +801,11 @@ namespace Sapphire
                     const Message* message = receiveMessage();
                     if (message != nullptr)
                     {
-                        if (message->audio.nchannels > 0)
-                            left = message->audio.sample[0];
+                        if (message->chainAudio.nchannels > 0)
+                            left = message->chainAudio.sample[0];
 
-                        if (message->audio.nchannels > 1)
-                            right = message->audio.sample[1];
+                        if (message->chainAudio.nchannels > 1)
+                            right = message->chainAudio.sample[1];
 
                         chainIndex = message->chainIndex;
                     }

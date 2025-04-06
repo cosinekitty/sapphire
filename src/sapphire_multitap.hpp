@@ -30,7 +30,8 @@ namespace Sapphire
         struct Message
         {
             int chainIndex = -1;
-            Frame audio;
+            Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
+            Frame originalAudio;        // audio frame from the input module (for MIX)
             bool frozen = false;
         };
 
