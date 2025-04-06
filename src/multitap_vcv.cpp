@@ -131,11 +131,10 @@ namespace Sapphire
                 return *static_cast<Message*>(rightExpander.producerMessage);
             }
 
-            void sendMessage(const Message& inMessage)
+            void sendMessage(const Message& message)
             {
-                Message& outMessage = rightMessageBuffer();
-                outMessage = inMessage;
-                outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
+                Message& destination = rightMessageBuffer();
+                destination = message;
                 rightExpander.requestMessageFlip();
             }
 
@@ -210,50 +209,6 @@ namespace Sapphire
                 clearBufferRequested = false;
             }
 
-            Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
-            {
-                // Calculating and return a Result as a function of Message and InputState.
-                // The caller performs actual mutations such as forwarding the message
-                // and applying updates to output ports.
-
-                Result result;
-
-                // FIXFIXFIX: do some actual processing here!!!
-                // For now, mix input audio with bus-message audio.
-
-                // In practice, one of the two audio inputs is zero and the other has a signal.
-                // We don't care which it is, we just want the signal.
-                // So add 0+x or x+0 to get x.
-                result.message.audio = inMessage.audio + input.inputAudio;
-
-                // FIXFIXFIX: hook up the real SEND audio.
-                // For now, copy the output audio into the SEND ports.
-                result.output.sendAudio = result.message.audio;
-
-                return result;
-            }
-
-            Frame readReturn(int leftInputId, int rightInputId)
-            {
-                Input& inLeft  = inputs.at(leftInputId);
-                Input& inRight = inputs.at(rightInputId);
-
-                if (inLeft.isConnected() || inRight.isConnected())
-                    return readFrame(leftInputId, rightInputId);
-
-                // FIXFIXFIX - When not connected with cables, the default behavior is
-                // to copy the send output back into the return input.
-                // For now, return silence.
-                return Frame();
-            }
-
-            virtual InputState getInputs() = 0;
-
-            void setOutputs(const OutputState& output)
-            {
-                // FIXFIXFIX - do we need this???
-            }
-
             bool updateToggleState(GateTriggerReceiver& receiver, int buttonParamId, int inputId, int lightId)
             {
                 bool flag = updateToggleGroup(receiver, inputId, buttonParamId);
@@ -275,9 +230,12 @@ namespace Sapphire
                 if (ptr != nullptr)
                     inMessage = *ptr;
 
+                // Copy input to output by default, then patch whatever is different.
+                Message outMessage = inMessage;
+
                 if (IsInLoop(this))
                 {
-                    frozen = inMessage.frozen = updateFreezeState();
+                    frozen = outMessage.frozen = updateFreezeState();
                 }
                 else if (IsLoop(this))
                 {
@@ -287,11 +245,8 @@ namespace Sapphire
 
                 reversed = updateReverseState();
                 updateClearState(args.sampleRate);
-
-                InputState input = getInputs();
-                Result result = calculate(args.sampleRate, inMessage, input);
-                setOutputs(result.output);
-                sendMessage(result.message);
+                outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
+                sendMessage(outMessage);
             }
 
             json_t* dataToJson() override
@@ -595,16 +550,6 @@ namespace Sapphire
                     InLoop_initialize();
                 }
 
-                InputState getInputs() override
-                {
-                    InputState state;
-
-                    state.inputAudio  = readFrame(AUDIO_LEFT_INPUT,  AUDIO_RIGHT_INPUT);
-                    state.returnAudio = readReturn(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT);
-
-                    return state;
-                }
-
                 bool updateFreezeState() override
                 {
                     return updateToggleState(freezeReceiver, FREEZE_BUTTON_PARAM, FREEZE_INPUT, FREEZE_BUTTON_LIGHT);
@@ -757,12 +702,6 @@ namespace Sapphire
                 {
                     LoopModule::initialize();
                     Tap_initialize();
-                }
-
-                InputState getInputs() override
-                {
-                    InputState state;
-                    return state;
                 }
 
                 bool updateReverseState() override

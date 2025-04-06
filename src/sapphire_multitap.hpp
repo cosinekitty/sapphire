@@ -34,28 +34,6 @@ namespace Sapphire
             bool frozen = false;
         };
 
-        struct InputState
-        {
-            // Holds all the input port values and parameter values we need
-            // to update the tape recorder model, while remaining module-agnostic.
-            // This way different modules with different port IDs and parameter IDs
-            // can share the complicated part of the code.
-            Frame inputAudio;
-            Frame returnAudio;
-        };
-
-        struct OutputState
-        {
-            // Receives module-agnostic values for output ports.
-            Frame sendAudio;
-        };
-
-        struct Result
-        {
-            Message message;
-            OutputState output;
-        };
-
         //--------------------------------------------------------------------
         // Module recognition helper functions.
 
