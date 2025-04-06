@@ -170,7 +170,9 @@ namespace Sapphire
         struct LoopModule : MultiTapModule
         {
             bool frozen = false;
+            bool reversed = false;
             TimeMode timeMode = TimeMode::Seconds;
+            GateTriggerReceiver reverseReceiver;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -180,6 +182,9 @@ namespace Sapphire
 
             void Loop_initialize()
             {
+                frozen = false;
+                reversed = false;
+                reverseReceiver.initialize();
             }
 
             void initialize() override
@@ -191,6 +196,11 @@ namespace Sapphire
             bool isFrozen() const
             {
                 return frozen;
+            }
+
+            bool isReversed() const
+            {
+                return reversed;
             }
 
             Result calculate(float sampleRateHz, const Message& inMessage, const InputState& input) const
@@ -237,10 +247,19 @@ namespace Sapphire
                 // FIXFIXFIX - do we need this???
             }
 
+            bool updateToggleState(GateTriggerReceiver& receiver, int buttonParamId, int inputId, int lightId)
+            {
+                bool flag = updateToggleGroup(receiver, inputId, buttonParamId);
+                setLightBrightness(lightId, flag);
+                return flag;
+            }
+
             virtual bool updateFreezeState()
             {
                 return false;
             }
+
+            virtual bool updateReverseState() = 0;
 
             void process(const ProcessArgs& args) override
             {
@@ -258,6 +277,8 @@ namespace Sapphire
                     chainIndex = inMessage.chainIndex;
                     frozen = inMessage.frozen;
                 }
+
+                reversed = updateReverseState();
 
                 InputState input = getInputs();
                 Result result = calculate(args.sampleRate, inMessage, input);
@@ -575,9 +596,12 @@ namespace Sapphire
 
                 bool updateFreezeState() override
                 {
-                    bool frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM);
-                    setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
-                    return frozen;
+                    return updateToggleState(freezeReceiver, FREEZE_BUTTON_PARAM, FREEZE_INPUT, FREEZE_BUTTON_LIGHT);
+                }
+
+                bool updateReverseState() override
+                {
+                    return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
                 }
             };
 
@@ -703,6 +727,11 @@ namespace Sapphire
                 {
                     InputState state;
                     return state;
+                }
+
+                bool updateReverseState() override
+                {
+                    return updateToggleState(reverseReceiver, REVERSE_BUTTON_PARAM, REVERSE_INPUT, REVERSE_BUTTON_LIGHT);
                 }
             };
 
