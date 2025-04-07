@@ -95,9 +95,8 @@ namespace Sapphire
                 {
                     assert(cgLookup[cg.inputId] == nullptr);
                     cgLookup[cg.inputId] = &cg;
-                    configInput(cg.inputId, cg.name + " CV");
                     configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
-                    configAtten(cg.attenId, cg.name);
+                    configAttenCv(cg.attenId, cg.inputId, cg.name);
                 }
 
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");

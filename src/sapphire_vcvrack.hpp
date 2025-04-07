@@ -1009,8 +1009,7 @@ namespace Sapphire
             float displayMultiplier = 1)
         {
             configParam(paramId, minValue, maxValue, defValue, name, unit, displayBase, displayMultiplier);
-            configAtten(attenId, name);
-            configInput(cvInputId, name + " CV");
+            configAttenCv(attenId, cvInputId, name);
         }
 
         void configToggleGroup(int inputId, int buttonParamId, const std::string& buttonCaption, const std::string& inputPrefix)
