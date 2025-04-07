@@ -78,12 +78,12 @@ namespace Sapphire
             return true;
         }
 
-        float read(float secondsIntoPast)
+        float read(float secondsIntoPast) const
         {
-            float tSample = recordIndex - secondsIntoPast*sampleRateHz;
+            float index = recordIndex - secondsIntoPast*sampleRateHz;
 
             // FIXFIXFIX use interpolator - for now just snap to nearest integer index
-            int position = static_cast<int>(std::round(tSample));
+            int position = static_cast<int>(std::round(index));
             return at(position);
         }
 
