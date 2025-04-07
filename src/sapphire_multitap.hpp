@@ -1,4 +1,5 @@
 #pragma once
+#include <stdexcept>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_envelope_follower.hpp"
@@ -17,6 +18,22 @@ namespace Sapphire
             int safeChannelCount() const
             {
                 return VcvSafeChannelCount(nchannels);
+            }
+
+            float& at(int c)
+            {
+                const int nc = safeChannelCount();
+                if (c < 0 || c >= nc)
+                    throw std::out_of_range("invalid channel index in Frame");
+                return sample[c];
+            }
+
+            const float& at(int c) const
+            {
+                const int nc = safeChannelCount();
+                if (c < 0 || c >= nc)
+                    throw std::out_of_range("invalid channel index in Frame (const)");
+                return sample[c];
             }
         };
 
