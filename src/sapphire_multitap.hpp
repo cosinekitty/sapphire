@@ -13,6 +13,11 @@ namespace Sapphire
         {
             int nchannels = 0;
             float sample[PORT_MAX_CHANNELS]{};
+
+            int safeChannelCount() const
+            {
+                return VcvSafeChannelCount(nchannels);
+            }
         };
 
         inline Frame operator+ (const Frame& a, const Frame& b)

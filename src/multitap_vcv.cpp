@@ -11,7 +11,6 @@ namespace Sapphire
         {
             Seconds,
             ClockSync,
-            LEN
         };
 
         using time_knob_base_t = RoundSmallBlackKnob;
@@ -246,6 +245,25 @@ namespace Sapphire
                 Output& envOutput = outputs.at(outputId);
                 envOutput.setChannels(1);
                 envOutput.setVoltage(v);
+            }
+
+            Frame updateTapeLoops(const Frame& inAudio, float sampleRateHz)
+            {
+                const float feedback = 0.4;
+                const float delayTime = 0.5;
+                const int nc = inAudio.safeChannelCount();
+
+                Frame outAudio;
+                outAudio.nchannels = nc;
+                for (int c = 0; c < nc; ++c)
+                {
+                    ChannelInfo& q = info[c];
+                    q.loop.setDelayTime(delayTime, sampleRateHz);
+                    float echo = q.loop.read();
+                    outAudio.sample[c] = feedback*echo + (1-feedback)*inAudio.sample[c];
+                    q.loop.write(inAudio.sample[c]);
+                }
+                return outAudio;
             }
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
@@ -542,7 +560,7 @@ namespace Sapphire
                     updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
-                    outMessage.chainAudio = outMessage.originalAudio;
+                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
@@ -610,10 +628,17 @@ namespace Sapphire
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
-                SapphireCaptionButton* addFreezeToggleGroup()
+                void addFreezeToggleGroup()
                 {
-                    SapphireCaptionButton* freezeButton = addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, '\0', 0.0, SCHEME_BLUE);
-                    return freezeButton;
+                    addToggleGroup(
+                        "freeze",
+                        FREEZE_INPUT,
+                        FREEZE_BUTTON_PARAM,
+                        FREEZE_BUTTON_LIGHT,
+                        '\0',
+                        0.0,
+                        SCHEME_BLUE
+                    );
                 }
 
                 void addClearTriggerGroup()

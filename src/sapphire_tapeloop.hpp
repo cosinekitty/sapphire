@@ -16,19 +16,34 @@ namespace Sapphire
         float delayTimeSec = 0;
         float sampleRateHz = 0;
         int recordIndex = 0;
-        int tapeDirection = +1;         // +1 = forward, -1 = reverse
+        bool reverseTape = false;
         std::vector<float> buffer;
+
+        int getBufferLength() const
+        {
+            return static_cast<int>(buffer.size());
+        }
+
+        int getTapeDirection() const
+        {
+            return reverseTape ? -1 : +1;
+        }
+
+        int wrapIndex(int position) const
+        {
+            return MOD(position, getBufferLength());
+        }
 
         const float& at(int position) const         // allowed to wrap around in +/- directions
         {
-            const int length = static_cast<int>(buffer.size());
-            const int index = MOD(position, length);
+            const int index = wrapIndex(position);
             return buffer.at(index);
         }
 
         float& at(int position)
         {
-            return const_cast<float&>(const_cast<const TapeLoop*>(this)->at(position));
+            const int index = wrapIndex(position);
+            return buffer.at(index);
         }
 
         void resize()
@@ -79,7 +94,7 @@ namespace Sapphire
 
         float read(float secondsIntoPast) const
         {
-            float index = recordIndex - secondsIntoPast*sampleRateHz;
+            float index = recordIndex - (secondsIntoPast * sampleRateHz);
 
             // FIXFIXFIX use interpolator - for now just snap to nearest integer index
             int position = static_cast<int>(std::round(index));
@@ -94,17 +109,17 @@ namespace Sapphire
         void write(float sample)
         {
             buffer.at(recordIndex) = sample;
-            recordIndex += tapeDirection;
+            recordIndex = wrapIndex(recordIndex + getTapeDirection());
         }
 
         bool isReversed() const
         {
-            return tapeDirection < 0;
+            return reverseTape;
         }
 
         void setReversed(bool reverse)
         {
-            tapeDirection = reverse ? -1 : +1;
+            reverseTape = reverse;
         }
     };
 }
