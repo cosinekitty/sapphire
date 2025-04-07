@@ -1,43 +1,13 @@
 #pragma once
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_envelope_follower.hpp"
 #include "multitap_inloop_panel.hpp"
 
 namespace Sapphire
 {
     namespace MultiTap
     {
-        class EnvelopeFollower
-        {
-        private:
-            float prevSampleRate{};
-            float envAttack{};
-            float envDecay{};
-            float envelope{};
-
-        public:
-            void initialize()
-            {
-                envelope = 0;
-            }
-
-            float update(float signal, int sampleRate)
-            {
-                // Based on Surge XT Tree Monster's envelope follower:
-                // https://github.com/surge-synthesizer/sst-effects/blob/main/include/sst/effects-shared/TreemonsterCore.h
-                if (sampleRate != prevSampleRate)
-                {
-                    prevSampleRate = sampleRate;
-                    envAttack = std::pow(0.01, 1.0 / (0.005*sampleRate));
-                    envDecay  = std::pow(0.01, 1.0 / (0.500*sampleRate));
-                }
-                float v = std::abs(signal);
-                float k = (v > envelope) ? envAttack : envDecay;
-                envelope = k*(envelope - v) + v;
-                return envelope;
-            }
-        };
-
         inline int SafeChannelCount(int count)
         {
             return std::clamp(count, 0, PORT_MAX_CHANNELS);

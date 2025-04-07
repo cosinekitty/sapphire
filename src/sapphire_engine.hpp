@@ -191,7 +191,7 @@ namespace Sapphire
     private:
         value_t xprev {};
         value_t yprev {};
-        float fc {20.0f};
+        float fc = 20;
 
     public:
         void Snap(value_t xDcLevel)
