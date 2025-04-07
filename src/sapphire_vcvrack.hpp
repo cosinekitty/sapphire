@@ -962,8 +962,8 @@ namespace Sapphire
 
         float nextChannelInputVoltage(float& voltage, int inputId, int channel)
         {
-            rack::engine::Input& input = inputs.at(inputId);
-            if (channel < input.getChannels())
+            Input& input = inputs.at(inputId);
+            if (channel >= 0 && channel < input.getChannels())
                 voltage = input.getVoltage(channel);
             return voltage;
         }

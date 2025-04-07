@@ -167,6 +167,8 @@ namespace Sapphire
 
         struct LoopModule : MultiTapModule
         {
+            const float L1 = std::log2(0.025);
+            const float L2 = std::log2(10.0);
             bool frozen = false;
             bool reversed = false;
             bool clearBufferRequested = false;
@@ -174,6 +176,7 @@ namespace Sapphire
             GateTriggerReceiver reverseReceiver;
             EnvelopeFollower env;
             ChannelInfo info[PORT_MAX_CHANNELS];
+            PolyControls controls;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -250,16 +253,21 @@ namespace Sapphire
             Frame updateTapeLoops(const Frame& inAudio, float sampleRateHz)
             {
                 const float feedback = 0.75;
-                const float delayTime = 0.5;
                 const float mix = 0.9;
                 const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
 
                 Frame outAudio;
                 outAudio.nchannels = nc;
+                float cvDelayTime = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = info[c];
+
+                    nextChannelInputVoltage(cvDelayTime, controls.delayTime.cvInputId, c);
+                    float tExponent = cvGetVoltPerOctave(controls.delayTime.paramId, controls.delayTime.attenId, cvDelayTime, L1, L2);
+                    float delayTime = std::pow<float>(2, tExponent);
+
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
                     float echo = feedback*memory + (1-feedback)*inAudio.sample[c];
@@ -272,8 +280,6 @@ namespace Sapphire
             void configTimeControls(int paramId, int attenId, int cvInputId)
             {
                 const std::string name = "Delay time";
-                const float L1 = std::log2(0.025);
-                const float L2 = std::log2(10.0);
                 configParam(paramId, L1, L2, -1, name, " sec", 2, 1);
                 configAttenCv(attenId, cvInputId, name);
             }
@@ -525,6 +531,7 @@ namespace Sapphire
                 {
                     chainIndex = 1;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    defineControls();
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
@@ -553,6 +560,11 @@ namespace Sapphire
                 {
                     LoopModule::initialize();
                     InLoop_initialize();
+                }
+
+                void defineControls()
+                {
+                    controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -716,6 +728,7 @@ namespace Sapphire
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    defineControls();
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configOutput(ENV_OUTPUT, "Envelope follower");
@@ -737,6 +750,11 @@ namespace Sapphire
                 {
                     LoopModule::initialize();
                     Tap_initialize();
+                }
+
+                void defineControls()
+                {
+                    controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                 }
 
                 void process(const ProcessArgs& args) override
