@@ -166,13 +166,6 @@ namespace Sapphire
             }
         };
 
-        struct ChannelInfo
-        {
-            void initialize()
-            {
-            }
-        };
-
         struct LoopModule : MultiTapModule
         {
             bool frozen = false;
@@ -257,39 +250,39 @@ namespace Sapphire
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
             {
+                const std::string name = "Delay time";
                 const float L1 = std::log2(0.025);
                 const float L2 = std::log2(10.0);
-                configParam(paramId, L1, L2, -1, "Delay time", " sec", 2, 1);
-                configParam(attenId, -1, +1, 0, "Delay time attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Delay time CV");
+                configParam(paramId, L1, L2, -1, name, " sec", 2, 1);
+                configAttenCv(attenId, cvInputId, name);
             }
 
             void configFeedbackControls(int paramId, int attenId, int cvInputId)
             {
-                configParam(paramId, 0, 1, 0, "Feedback amount", "%", 0, 100);
-                configParam(attenId, -1, +1, 0, "Feedback amount attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Feedback amount CV");
+                const std::string name = "Feedback";
+                configParam(paramId, 0, 1, 0, name, "%", 0, 100);
+                configAttenCv(attenId, cvInputId, name);
             }
 
             void configPanControls(int paramId, int attenId, int cvInputId)
             {
-                configParam(paramId, -1, +1, 0, "Panning", "%", 0, 100);
-                configParam(attenId, -1, +1, 0, "Panning attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Panning CV");
+                const std::string name = "Panning";
+                configParam(paramId, -1, +1, 0, name, "%", 0, 100);
+                configAttenCv(attenId, cvInputId, name);
             }
 
             void configMixControls(int paramId, int attenId, int cvInputId)
             {
-                configParam(paramId, 0, 1, 1, "Mix", "%", 0, 100);
-                configParam(attenId, -1, +1, 0, "Mix attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Mix CV");
+                const std::string name = "Mix";
+                configParam(paramId, 0, 1, 1, name, "%", 0, 100);
+                configAttenCv(attenId, cvInputId, name);
             }
 
             void configGainControls(int paramId, int attenId, int cvInputId)
             {
-                configParam(paramId, 0, 1, 1, "Level", " dB", -10, 20);
-                configParam(attenId, -1, +1, 0, "Level attenuverter", "%", 0, 100);
-                configInput(cvInputId, "Level CV");
+                const std::string name = "Level";
+                configParam(paramId, 0, 1, 1, name, " dB", -10, 20);
+                configAttenCv(attenId, cvInputId, name);
             }
         };
 

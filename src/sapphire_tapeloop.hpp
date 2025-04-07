@@ -38,8 +38,7 @@ namespace Sapphire
             const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
             const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
             buffer.resize(maxSizeForSampleRate);
-            for (float& x : buffer)
-                x = 0;
+            clear();
         }
 
     public:

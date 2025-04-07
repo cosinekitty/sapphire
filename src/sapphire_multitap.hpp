@@ -2,6 +2,7 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_envelope_follower.hpp"
+#include "sapphire_tapeloop.hpp"
 #include "multitap_inloop_panel.hpp"
 
 namespace Sapphire
@@ -27,6 +28,18 @@ namespace Sapphire
 
             return s;
         }
+
+
+        struct ChannelInfo
+        {
+            TapeLoop loop;
+
+            void initialize()
+            {
+                loop.initialize();
+            }
+        };
+
 
         struct Message
         {

@@ -980,9 +980,20 @@ namespace Sapphire
             configOutput(rightPortId, "Right " + suffix);
         }
 
-        void configAtten(int attenId, const std::string& name)
+        ParamQuantity* configAtten(int attenId, const std::string& name)
         {
-            configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+            return configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+        }
+
+        PortInfo* configCvInput(int cvInputId, const std::string& name)
+        {
+            return configInput(cvInputId, name + " CV");
+        }
+
+        void configAttenCv(int attenId, int cvInputId, const std::string& name)
+        {
+            configAtten(attenId, name);
+            configCvInput(cvInputId, name);
         }
 
         void configControlGroup(
