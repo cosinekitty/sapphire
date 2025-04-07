@@ -956,13 +956,13 @@ namespace Sapphire
         {
             int nc = minChannels;
             for (int i = 0; i < numInputs; ++i)
-                nc = std::max(nc, inputs[i].getChannels());
+                nc = std::max(nc, inputs.at(i).getChannels());
             return std::clamp(nc, 0, PORT_MAX_CHANNELS);
         }
 
         float nextChannelInputVoltage(float& voltage, int inputId, int channel)
         {
-            rack::engine::Input& input = inputs[inputId];
+            rack::engine::Input& input = inputs.at(inputId);
             if (channel < input.getChannels())
                 voltage = input.getVoltage(channel);
             return voltage;
