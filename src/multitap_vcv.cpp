@@ -249,9 +249,9 @@ namespace Sapphire
 
             Frame updateTapeLoops(const Frame& inAudio, float sampleRateHz)
             {
-                const float feedback = 0.85;
+                const float feedback = 0.75;
                 const float delayTime = 0.5;
-                const float mix = 1.0;
+                const float mix = 0.9;
                 const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
 
@@ -753,6 +753,7 @@ namespace Sapphire
 
                     reversed = updateReverseState();
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
+                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
