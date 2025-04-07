@@ -46,15 +46,6 @@ namespace Sapphire
             return buffer.at(index);
         }
 
-        void resize()
-        {
-            // Make the buffer big enough to handle the maximum recording time at this sample rate.
-            const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
-            const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
-            buffer.resize(maxSizeForSampleRate);
-            clear();
-        }
-
     public:
         explicit TapeLoop()
         {
@@ -85,7 +76,10 @@ namespace Sapphire
                 // The first time we know the sample rate, or any time it changes,
                 // resize the buffer to allow the maximum possible number of samples
                 // as required by the new sample rate.
-                resize();
+                const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
+                const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
+                buffer.resize(maxSizeForSampleRate);
+                clear();
             }
 
             delayTimeSec = std::clamp(_delayTimeSec, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);

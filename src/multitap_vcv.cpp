@@ -249,8 +249,10 @@ namespace Sapphire
 
             Frame updateTapeLoops(const Frame& inAudio, float sampleRateHz)
             {
-                const float feedback = 0.4;
+                const float feedback = 0.85;
                 const float delayTime = 0.5;
+                const float mix = 1.0;
+                const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
 
                 Frame outAudio;
@@ -259,9 +261,10 @@ namespace Sapphire
                 {
                     ChannelInfo& q = info[c];
                     q.loop.setDelayTime(delayTime, sampleRateHz);
-                    float echo = q.loop.read();
-                    outAudio.sample[c] = feedback*echo + (1-feedback)*inAudio.sample[c];
-                    q.loop.write(inAudio.sample[c]);
+                    float memory = q.loop.read();
+                    float echo = feedback*memory + (1-feedback)*inAudio.sample[c];
+                    q.loop.write(echo);
+                    outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
                 return outAudio;
             }
