@@ -15,7 +15,6 @@ namespace Sapphire
     private:
         float delayTimeSec = 0;
         float sampleRateHz = 0;
-        float playbackIndex = 0;        // floating point index means we use sinc-interpolator for reads
         int recordIndex = 0;
         int tapeDirection = +1;         // +1 = forward, -1 = reverse
         std::vector<float> buffer;
