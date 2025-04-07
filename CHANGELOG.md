@@ -9,11 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">26 Mar 2025</td>
+<td align="center">7 Apr 2025</td>
 <td align="center">2.5.9</td>
 <td align="left">
     <ul>
         <li>Fixed minor polyphony bug in Env: the number of channels in the GAIN control's CV input did not affect the number of output channels. This has been fixed.</li>
+    </ul>
+    <ul>
+        <li>Gravy and Sauce had lowercase hover-text for their control groups, e.g. "resonance CV input". Now they follow the VCV Rack guidelines, e.g. "Resonance CV input".</li>
     </ul>
 </td>
 </tr>
