@@ -8,11 +8,6 @@ namespace Sapphire
 {
     namespace MultiTap
     {
-        inline int SafeChannelCount(int count)
-        {
-            return std::clamp(count, 0, PORT_MAX_CHANNELS);
-        }
-
         struct Frame
         {
             int nchannels = 0;
@@ -22,7 +17,7 @@ namespace Sapphire
         inline Frame operator+ (const Frame& a, const Frame& b)
         {
             Frame s;
-            s.nchannels = SafeChannelCount(std::max(a.nchannels, b.nchannels));
+            s.nchannels = VcvSafeChannelCount(std::max(a.nchannels, b.nchannels));
 
             for (int c = 0; c < a.nchannels; ++c)
                 s.sample[c] += a.sample[c];

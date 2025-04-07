@@ -4,6 +4,11 @@
 #include "plugin.hpp"
 namespace Sapphire
 {
+    inline int VcvSafeChannelCount(int count)
+    {
+        return std::clamp<int>(count, 0, PORT_MAX_CHANNELS);
+    }
+
     enum class ExpanderRole
     {
         None            = 0,
@@ -975,6 +980,11 @@ namespace Sapphire
             configOutput(rightPortId, "Right " + suffix);
         }
 
+        void configAtten(int attenId, const std::string& name)
+        {
+            configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+        }
+
         void configControlGroup(
             const std::string& name,
             int paramId,
@@ -988,7 +998,7 @@ namespace Sapphire
             float displayMultiplier = 1)
         {
             configParam(paramId, minValue, maxValue, defValue, name, unit, displayBase, displayMultiplier);
-            configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+            configAtten(attenId, name);
             configInput(cvInputId, name + " CV");
         }
 

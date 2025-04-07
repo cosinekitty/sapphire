@@ -61,15 +61,15 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configParam(MEMORY_SELECT_PARAM, 0, MemoryCount-1, 0, "Memory select");
-                paramQuantities[MEMORY_SELECT_PARAM]->snapEnabled = true;
-                configParam(MEMORY_SELECT_ATTEN, -1, +1, 0, "Memory select attenuverter", "%", 0, 100);
+                paramQuantities.at(MEMORY_SELECT_PARAM)->snapEnabled = true;
+                configAtten(MEMORY_SELECT_ATTEN, "Memory select");
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
                 configButton(STORE_BUTTON_PARAM, "Store");
                 configButton(RECALL_BUTTON_PARAM, "Recall");
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
-                configParam(MORPH_ATTEN, -1, +1, 0, "Morph attenuverter", "%", 0, 100);
+                configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
                 configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze gate");
                 initialize();

@@ -72,6 +72,18 @@ namespace Sapphire
         return x - (4*x*x*x)/(27*yLimit*yLimit);
     }
 
+    inline int MOD(int i, int n)    // Always returns 0..(n-1), even when i<0.
+    {
+        if (n <= 0)
+            throw std::out_of_range(std::string("Invalid denominator for MOD: ") + std::to_string(n));
+
+        const int m = ((i%n) + n) % n;
+        if (m < 0 || m >= n)
+            throw std::range_error("MOD internal failure.");
+
+        return m;
+    }
+
     class Slewer
     {
     private:

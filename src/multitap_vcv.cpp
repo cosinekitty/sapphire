@@ -244,7 +244,7 @@ namespace Sapphire
 
             void updateEnvelope(int outputId, float sampleRateHz, const Frame& audio)
             {
-                const int nc = SafeChannelCount(audio.nchannels);
+                const int nc = VcvSafeChannelCount(audio.nchannels);
                 float sum = 0;
                 for (int c = 0; c < nc; ++c)
                     sum += audio.sample[c];
