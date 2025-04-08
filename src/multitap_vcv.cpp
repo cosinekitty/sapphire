@@ -256,6 +256,7 @@ namespace Sapphire
                 const float mix = 0.9;
                 const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
+                const float two = 2;    // silly, but helps for portability to MAC/ARM
 
                 Frame outAudio;
                 outAudio.nchannels = nc;
@@ -264,7 +265,7 @@ namespace Sapphire
                 {
                     ChannelInfo& q = info[c];
 
-                    float delayTime = std::pow<float>(2, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
+                    float delayTime = std::pow(two, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
