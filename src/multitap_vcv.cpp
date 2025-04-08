@@ -256,9 +256,11 @@ namespace Sapphire
                 envOutput.setVoltage(v);
             }
 
-            Frame updateTapeLoops(const Frame& inAudio, float sampleRateHz)
+            Frame updateTapeLoops(
+                const Frame& inAudio,
+                float sampleRateHz,
+                const Frame& feedback)
             {
-                const float feedback = 0.75;
                 const float mix = 0.9;
                 const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
@@ -267,15 +269,19 @@ namespace Sapphire
                 Frame outAudio;
                 outAudio.nchannels = nc;
                 float cvDelayTime = 0;
+                float fbk = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = info[c];
+
+                    if (c < feedback.nchannels)
+                        fbk = feedback.sample[c];
 
                     float delayTime = std::pow(two, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
-                    float echo = feedback*memory + (1-feedback)*inAudio.sample[c];
+                    float echo = fbk*memory + inAudio.sample[c];
                     q.loop.write(echo);
                     outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
@@ -580,9 +586,25 @@ namespace Sapphire
                     updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
-                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate);
+                    outMessage.feedback = getFeedbackPoly();
+                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage.feedback);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
+                }
+
+                Frame getFeedbackPoly()
+                {
+                    Frame feedback;
+                    Input& cvInput = inputs.at(FEEDBACK_CV_INPUT);
+                    const int nc = VcvSafeChannelCount(cvInput.getChannels());
+                    feedback.nchannels = std::max(1, nc);
+                    float cv = 0;
+                    for (int c = 0; c < feedback.nchannels; ++c)
+                    {
+                        nextChannelInputVoltage(cv, FEEDBACK_CV_INPUT, c);
+                        feedback.sample[c] = cvGetVoltPerOctave(FEEDBACK_PARAM, FEEDBACK_ATTEN, cv, 0, 1);
+                    }
+                    return feedback;
                 }
 
                 bool updateFreezeState()
@@ -773,7 +795,7 @@ namespace Sapphire
 
                     reversed = updateReverseState();
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
-                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate);
+                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate, inMessage.feedback);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }

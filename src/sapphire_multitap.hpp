@@ -68,6 +68,7 @@ namespace Sapphire
             int chainIndex = -1;
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
             Frame originalAudio;        // audio frame from the input module (for MIX)
+            Frame feedback;             // polyphonic modulation for the feedback parameter
             bool frozen = false;
         };
 
