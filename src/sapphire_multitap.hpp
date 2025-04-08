@@ -96,6 +96,10 @@ namespace Sapphire
         struct PolyControls
         {
             ControlGroupIds delayTime;
+            int sendLeftOutputId = -1;
+            int sendRightOutputId = -1;
+            int returnLeftInputId = -1;
+            int returnRightInputId = -1;
         };
     }
 }

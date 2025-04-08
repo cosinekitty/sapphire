@@ -261,6 +261,11 @@ namespace Sapphire
                 const int nc = inAudio.safeChannelCount();
                 const float two = 2;    // silly, but helps for portability to MAC/ARM
 
+                Output& sendLeft   = outputs.at(controls.sendLeftOutputId);
+                Output& sendRight  = outputs.at(controls.sendRightOutputId);
+                Input& returnLeft  = inputs.at(controls.returnLeftInputId);
+                Input& returnRight = inputs.at(controls.returnRightInputId);
+
                 Frame outAudio;
                 outAudio.nchannels = nc;
                 float cvDelayTime = 0;
@@ -279,8 +284,29 @@ namespace Sapphire
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
+                    // FIXFIXFIX - add panning here
                     float echo = fbk*memory + inAudio.sample[c];
-                    q.loop.write(echo);
+
+                    // Always write to send ports.
+                    // FIXFIXFIX - update later when we support full polyphonic output option on left channels
+                    if (c == 0)
+                        sendLeft.setVoltage(echo);
+                    else if (c == 1)
+                        sendRight.setVoltage(echo);
+
+                    float ret = echo;     // implicit zero-sample delay connection from SEND to RTRN.
+                    if (returnLeft.isConnected() || returnRight.isConnected())
+                    {
+                        // FIXFIXFIX - update later when we support full polyphonic input option
+                        if (c == 0)
+                            ret = returnLeft.getVoltageSum();
+                        else if (c == 1)
+                            ret = returnRight.getVoltageSum();
+                        else
+                            ret = 0;
+                    }
+
+                    q.loop.write(ret);
                     outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
 
@@ -576,6 +602,10 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
+                    controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
+                    controls.returnLeftInputId  = RETURN_LEFT_INPUT;
+                    controls.returnRightInputId = RETURN_RIGHT_INPUT;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -782,6 +812,10 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
+                    controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
+                    controls.returnLeftInputId  = RETURN_LEFT_INPUT;
+                    controls.returnRightInputId = RETURN_RIGHT_INPUT;
                 }
 
                 void process(const ProcessArgs& args) override
