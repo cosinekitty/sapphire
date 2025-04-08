@@ -150,6 +150,12 @@ namespace Sapphire
                 return nullptr;
             }
 
+            Message receiveMessageOrDefault()
+            {
+                const Message* ptr = receiveMessage();
+                return ptr ? *ptr : Message{};
+            }
+
             Frame readFrame(int leftInputId, int rightInputId)
             {
                 Frame frame;
@@ -758,10 +764,7 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    Message inMessage;
-                    const Message* ptr = receiveMessage();
-                    if (ptr != nullptr)
-                        inMessage = *ptr;
+                    Message inMessage = receiveMessageOrDefault();
 
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
@@ -869,21 +872,11 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    Frame audio;
-
-                    const Message* message = receiveMessage();
-                    if (message != nullptr)
-                    {
-                        audio = message->chainAudio;
-                        chainIndex = message->chainIndex;
-                    }
-                    else
-                    {
-                        chainIndex = -1;
-                    }
+                    Message message = receiveMessageOrDefault();
+                    chainIndex = message.chainIndex;
 
                     float cvLevel = 0;
-
+                    Frame audio = message.chainAudio;
                     const int nc = audio.safeChannelCount();
                     for (int c = 0; c < nc; ++c)
                     {
