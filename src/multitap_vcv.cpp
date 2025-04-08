@@ -853,7 +853,7 @@ namespace Sapphire
                     configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                     configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
-                    configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*4);
+                    configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     OutLoop_initialize();
                 }
 
@@ -869,18 +869,12 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    float left = 0;
-                    float right = 0;
+                    Frame audio;
 
                     const Message* message = receiveMessage();
                     if (message != nullptr)
                     {
-                        if (message->chainAudio.nchannels > 0)
-                            left = message->chainAudio.sample[0];
-
-                        if (message->chainAudio.nchannels > 1)
-                            right = message->chainAudio.sample[1];
-
+                        audio = message->chainAudio;
                         chainIndex = message->chainIndex;
                     }
                     else
@@ -888,14 +882,24 @@ namespace Sapphire
                         chainIndex = -1;
                     }
 
+                    float cvLevel = 0;
+
+                    const int nc = audio.safeChannelCount();
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
+                        float gain = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2));
+                        audio.sample[c] *= gain;
+                    }
+
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
 
                     audioLeftOutput.setChannels(1);
-                    audioLeftOutput.setVoltage(left, 0);
+                    audioLeftOutput.setVoltage(audio.sample[0], 0);
 
                     audioRightOutput.setChannels(1);
-                    audioRightOutput.setVoltage(right, 0);
+                    audioRightOutput.setVoltage(audio.sample[1], 0);
                 }
             };
 
