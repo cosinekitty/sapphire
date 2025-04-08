@@ -268,7 +268,7 @@ namespace Sapphire
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = info[c];
-
+                    q.loop.setReversed(reversed);
                     if (clearBufferRequested)
                         q.loop.clear();
 
