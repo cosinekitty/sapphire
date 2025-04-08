@@ -91,25 +91,6 @@ namespace Sapphire
 
         //--------------------------------------------------------------------
 
-        struct ControlGroupIds
-        {
-            int paramId;
-            int attenId;
-            int cvInputId;
-
-            ControlGroupIds()
-                : paramId(-1)
-                , attenId(-1)
-                , cvInputId(-1)
-                {}
-
-            explicit ControlGroupIds(int _paramId, int _attenId, int _cvInputId)
-                : paramId(_paramId)
-                , attenId(_attenId)
-                , cvInputId(_cvInputId)
-                {}
-        };
-
         struct PolyControls
         {
             ControlGroupIds delayTime;

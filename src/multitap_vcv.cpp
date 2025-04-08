@@ -264,9 +264,7 @@ namespace Sapphire
                 {
                     ChannelInfo& q = info[c];
 
-                    nextChannelInputVoltage(cvDelayTime, controls.delayTime.cvInputId, c);
-                    float tExponent = cvGetVoltPerOctave(controls.delayTime.paramId, controls.delayTime.attenId, cvDelayTime, L1, L2);
-                    float delayTime = std::pow<float>(2, tExponent);
+                    float delayTime = std::pow<float>(2, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();

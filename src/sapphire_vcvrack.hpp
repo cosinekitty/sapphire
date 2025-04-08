@@ -632,6 +632,27 @@ namespace Sapphire
         Right2,
     };
 
+
+    struct ControlGroupIds
+    {
+        int paramId;
+        int attenId;
+        int cvInputId;
+
+        ControlGroupIds()
+            : paramId(-1)
+            , attenId(-1)
+            , cvInputId(-1)
+            {}
+
+        explicit ControlGroupIds(int _paramId, int _attenId, int _cvInputId)
+            : paramId(_paramId)
+            , attenId(_attenId)
+            , cvInputId(_cvInputId)
+            {}
+    };
+
+
     struct SapphireModule : public Module
     {
         Tricorder::VectorSender vectorSender;
@@ -662,13 +683,13 @@ namespace Sapphire
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
-            float slider = params[paramId].getValue();
+            float slider = params.at(paramId).getValue();
             // When the attenuverter is set to 100%, and the cv is +5V, we want
             // to swing a slider that is all the way down (minSlider)
             // to act like it is all the way up (maxSlider).
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
-            float attenu = params[attenId].getValue();
+            float attenu = params.at(attenId).getValue();
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
@@ -680,23 +701,29 @@ namespace Sapphire
             // Make it easy for a human to use this control voltage for V/OCT.
             // Just turn the attenuverter to +100%, disable "low sensitivity",
             // and each 1V change in CV is reflected in the return value (within clamping limits).
-            float slider = params[paramId].getValue();
-            float attenu = params[attenId].getValue();
+            float slider = params.at(paramId).getValue();
+            float attenu = params.at(attenId).getValue();
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu * cv;
             return std::clamp(slider, minValue, maxValue);
         }
 
+        float cvGetVoltPerOctave(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
+        {
+            nextChannelInputVoltage(cv, ids.cvInputId, channel);
+            return cvGetVoltPerOctave(ids.paramId, ids.attenId, cv, minValue, maxValue);
+        }
+
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
-            float cv = inputs[inputId].getVoltageSum();
+            float cv = inputs.at(inputId).getVoltageSum();
             return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
         float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
-            float cv = inputs[inputId].getVoltageSum();
+            float cv = inputs.at(inputId).getVoltageSum();
             return cvGetVoltPerOctave(paramId, attenId, cv, minValue, maxValue);
         }
 
