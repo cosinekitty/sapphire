@@ -197,7 +197,7 @@ namespace Sapphire
                 reverseReceiver.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
-                clearBuffer();
+                clearBufferRequested = true;
             }
 
             void initialize() override
@@ -214,11 +214,6 @@ namespace Sapphire
             bool isReversed() const
             {
                 return reversed;
-            }
-
-            void clearBuffer()
-            {
-                clearBufferRequested = false;
             }
 
             bool updateToggleState(GateTriggerReceiver& receiver, int buttonParamId, int inputId, int lightId)
@@ -259,7 +254,7 @@ namespace Sapphire
             Frame updateTapeLoops(
                 const Frame& inAudio,
                 float sampleRateHz,
-                const Frame& feedback)
+                const Message& message)
             {
                 const float mix = 0.9;
                 const float gain = 1.0;
@@ -274,8 +269,11 @@ namespace Sapphire
                 {
                     ChannelInfo& q = info[c];
 
-                    if (c < feedback.nchannels)
-                        fbk = feedback.sample[c];
+                    if (clearBufferRequested)
+                        q.loop.clear();
+
+                    if (c < message.feedback.nchannels)
+                        fbk = message.feedback.sample[c];
 
                     float delayTime = std::pow(two, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
 
@@ -285,6 +283,8 @@ namespace Sapphire
                     q.loop.write(echo);
                     outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
+
+                clearBufferRequested = false;
                 return outAudio;
             }
 
@@ -583,11 +583,11 @@ namespace Sapphire
                     Message outMessage;
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
-                    updateClearState(args.sampleRate);
+                    clearBufferRequested = outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.feedback = getFeedbackPoly();
-                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage.feedback);
+                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
@@ -794,8 +794,9 @@ namespace Sapphire
                     frozen = inMessage.frozen;
 
                     reversed = updateReverseState();
+                    clearBufferRequested = inMessage.clear;
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
-                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate, inMessage.feedback);
+                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate, outMessage);
                     updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }

@@ -70,6 +70,7 @@ namespace Sapphire
             Frame originalAudio;        // audio frame from the input module (for MIX)
             Frame feedback;             // polyphonic modulation for the feedback parameter
             bool frozen = false;
+            bool clear = false;
         };
 
         //--------------------------------------------------------------------
