@@ -941,14 +941,28 @@ namespace Sapphire
                     Message message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
 
+                    Frame audio;
+                    audio.nchannels = VcvSafeChannelCount(
+                        std::max(
+                            message.chainAudio.nchannels,
+                            message.originalAudio.nchannels
+                        )
+                    );
+
                     float cvLevel = 0;
-                    Frame audio = message.chainAudio;
-                    const int nc = audio.safeChannelCount();
-                    for (int c = 0; c < nc; ++c)
+                    float cvMix = 0;
+                    for (int c = 0; c < audio.nchannels; ++c)
                     {
                         nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
                         float gain = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2));
-                        audio.sample[c] *= gain;
+
+                        nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
+                        float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
+
+                        audio.sample[c] = gain * (
+                            (mix * message.chainAudio.sample[c]) +
+                            ((1-mix) * message.originalAudio.sample[c])
+                        );
                     }
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
