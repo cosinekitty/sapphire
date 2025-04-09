@@ -280,12 +280,14 @@ namespace Sapphire
                     if (c < message.feedback.nchannels)
                         fbk = message.feedback.sample[c];
 
+                    assert(fbk>=0 && fbk<=1);
+
                     float delayTime = std::pow(two, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
                     // FIXFIXFIX - add panning here
-                    float echo = fbk*memory + inAudio.sample[c];
+                    float echo = fbk*memory + (1-fbk)*inAudio.sample[c];
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
@@ -294,19 +296,18 @@ namespace Sapphire
                     else if (c == 1)
                         sendRight.setVoltage(echo);
 
-                    float ret = echo;     // implicit zero-sample delay connection from SEND to RTRN.
                     if (returnLeft.isConnected() || returnRight.isConnected())
                     {
                         // FIXFIXFIX - update later when we support full polyphonic input option
                         if (c == 0)
-                            ret = returnLeft.getVoltageSum();
+                            echo = returnLeft.getVoltageSum();
                         else if (c == 1)
-                            ret = returnRight.getVoltageSum();
+                            echo = returnRight.getVoltageSum();
                         else
-                            ret = 0;
+                            echo = 0;
                     }
 
-                    q.loop.write(ret);
+                    q.loop.write(echo);
                     outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
 
