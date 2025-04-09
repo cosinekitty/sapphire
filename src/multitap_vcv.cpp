@@ -298,7 +298,15 @@ namespace Sapphire
 
                     if (returnLeft.isConnected() || returnRight.isConnected())
                     {
-                        // FIXFIXFIX - update later when we support full polyphonic input option
+                        // When either RETURN input is connected to a cable,
+                        // use the audio input from both as a stereo pair to be
+                        // written to the delay line, instead of the raw echo
+                        // we calculated above. Because we wrote the raw stereo echo
+                        // to the SEND ports, the user has the opportunity to
+                        // pipe the audio through filters, reverbs, etc., before
+                        // being fed back into the delay line via the RETURN ports.
+
+                        // FIXFIXFIX - update port input later when we support full polyphonic input option
                         if (c == 0)
                             echo = returnLeft.getVoltageSum();
                         else if (c == 1)
@@ -307,7 +315,7 @@ namespace Sapphire
                             echo = 0;
                     }
 
-                    q.loop.write(echo);
+                    q.loop.write(echo, sampleRateHz);
                     outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
                 }
 

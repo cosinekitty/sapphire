@@ -9,6 +9,8 @@ namespace Sapphire
     constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.001;
     constexpr float TAPELOOP_MAX_DELAY_SECONDS = 10;
     constexpr float TAPELOOP_DEFAULT_DELAY_SECONDS = 1;
+    constexpr float TAPELOOP_RECORD_VOLTAGE_LIMIT = 100;
+    constexpr unsigned TAPELOOP_MIN_SAMPLE_RATE_HZ = 1000;
 
     class TapeLoop
     {
@@ -18,6 +20,7 @@ namespace Sapphire
         int recordIndex = 0;
         bool reverseTape = false;
         std::vector<float> buffer;
+        unsigned recoveryCountdown = 0;
 
         int getBufferLength() const
         {
@@ -53,6 +56,7 @@ namespace Sapphire
 
         void initialize()
         {
+            recoveryCountdown = 0;
         }
 
         void clear()
@@ -61,12 +65,17 @@ namespace Sapphire
                 x = 0;
         }
 
+        static bool IsValidSampleRate(float sr)
+        {
+            return std::isfinite(sr) && (sr >= TAPELOOP_MIN_SAMPLE_RATE_HZ);
+        }
+
         bool setDelayTime(float _delayTimeSec, float _sampleRateHz)
         {
             if (!std::isfinite(_delayTimeSec))
                 return false;
 
-            if (!std::isfinite(_sampleRateHz) || _sampleRateHz < 1000)
+            if (!IsValidSampleRate(_sampleRateHz))
                 return false;
 
             if (sampleRateHz != _sampleRateHz)
@@ -100,9 +109,39 @@ namespace Sapphire
             return read(delayTimeSec);
         }
 
-        void write(float sample)
+        void showRecorderError()
         {
-            buffer.at(recordIndex) = sample;
+            // FIXFIXFIX - light up some kind of error on the display
+        }
+
+        void hideRecorderError()
+        {
+            // FIXFIXFIX - clear the display of the error indicator, if it is active.
+        }
+
+        void write(float sample, float sampleRateHz)
+        {
+            // Protect the tape loop from NAN/infinite/crazy voltages.
+            float safe = 0;
+            if (recoveryCountdown > 0)
+            {
+                --recoveryCountdown;
+            }
+            else if (std::isfinite(sample) && std::abs(sample) <= TAPELOOP_RECORD_VOLTAGE_LIMIT)
+            {
+                hideRecorderError();
+                safe = sample;
+            }
+            else
+            {
+                showRecorderError();
+                if (IsValidSampleRate(sampleRateHz))
+                    recoveryCountdown = static_cast<unsigned>(sampleRateHz / 4);
+                else
+                    recoveryCountdown = TAPELOOP_MIN_SAMPLE_RATE_HZ / 4;
+            }
+
+            buffer.at(recordIndex) = safe;
             recordIndex = wrapIndex(recordIndex + getTapeDirection());
         }
 
