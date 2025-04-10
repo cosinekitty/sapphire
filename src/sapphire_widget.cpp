@@ -3,6 +3,26 @@
 
 namespace Sapphire
 {
+    std::vector<SapphireModule*> SapphireModule::All;
+
+    void SapphireWidget::ToggleAllNeonBorders()
+    {
+        // Vote: how many modules have neon mode enabled, and how many disabled?
+        int brightCount = 0;
+        int darkCount = 0;
+        for (const SapphireModule* smod : SapphireModule::All)
+            smod->neonMode ? ++brightCount : ++darkCount;
+
+        if (brightCount + darkCount > 0)
+        {
+            // If more than half are enabled, turn all off.
+            // Otherwise turn all on.
+            const bool neon = (2*brightCount <= darkCount);
+            for (SapphireModule* smod : SapphireModule::All)
+                smod->neonMode = neon;
+        }
+    }
+
     void SapphireWidget::drawSplash(NVGcontext* vg)
     {
         if (!splash.active)

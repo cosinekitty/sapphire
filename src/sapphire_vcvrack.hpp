@@ -655,6 +655,8 @@ namespace Sapphire
 
     struct SapphireModule : public Module
     {
+        static std::vector<SapphireModule*> All;
+
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
         std::vector<SapphireParamInfo> paramInfo;
@@ -808,6 +810,18 @@ namespace Sapphire
         bool isVectorSenderConnectedOnLeft() const
         {
             return vectorReceiver.isVectorSenderConnectedOnLeft();
+        }
+
+        void onAdd(const AddEvent& e) override
+        {
+            if (std::find(All.begin(), All.end(), this) == All.end())
+                All.push_back(this);
+        }
+
+        void onRemove(const RemoveEvent& e) override
+        {
+            // Delete all instances of `this` pointer in `All`.
+            All.erase(std::remove(All.begin(), All.end(), this), All.end());
         }
 
         json_t* dataToJson() override

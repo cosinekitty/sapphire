@@ -272,6 +272,8 @@ namespace Sapphire
             return (sm != nullptr) && sm->neonMode;
         }
 
+        static void ToggleAllNeonBorders();
+
         void appendContextMenu(Menu* menu) override
         {
             SapphireModule* sm = getSapphireModule();
@@ -279,7 +281,13 @@ namespace Sapphire
             {
                 menu->addChild(new MenuSeparator);
                 if (sm->includeNeonModeMenuItem)
-                    menu->addChild(createBoolPtrMenuItem<bool>("Sapphire neon mode", "", &(sm->neonMode)));
+                    menu->addChild(createBoolPtrMenuItem<bool>("Neon borders (this module only)", "", &(sm->neonMode)));
+
+                menu->addChild(createMenuItem(
+                    "Toggle neon borders in all Sapphire modules",
+                    "",
+                    []{ ToggleAllNeonBorders(); }
+                ));
             }
         }
 
