@@ -256,8 +256,6 @@ namespace Sapphire
                 float sampleRateHz,
                 const Message& message)
             {
-                const float mix = 0.9;
-                const float gain = 1.0;
                 const int nc = inAudio.safeChannelCount();
                 const float two = 2;    // silly, but helps for portability to MAC/ARM
 
@@ -269,6 +267,8 @@ namespace Sapphire
                 Frame outAudio;
                 outAudio.nchannels = nc;
                 float cvDelayTime = 0;
+                float cvMix = 0;
+                float cvGain = 0;
                 float fbk = 0;
                 for (int c = 0; c < nc; ++c)
                 {
@@ -282,7 +282,9 @@ namespace Sapphire
 
                     assert(fbk>=0 && fbk<=1);
 
-                    float delayTime = std::pow(two, cvGetVoltPerOctave(c, cvDelayTime, controls.delayTime, L1, L2));
+                    float delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+                    float mix = controlGroupAmpCv(c, cvMix, controls.mix, 0, 1);
+                    float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
@@ -611,6 +613,8 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;
@@ -821,6 +825,8 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
+                    controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;

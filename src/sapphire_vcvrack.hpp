@@ -709,10 +709,16 @@ namespace Sapphire
             return std::clamp(slider, minValue, maxValue);
         }
 
-        float cvGetVoltPerOctave(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
+        float controlGroupRawCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
         {
             nextChannelInputVoltage(cv, ids.cvInputId, channel);
             return cvGetVoltPerOctave(ids.paramId, ids.attenId, cv, minValue, maxValue);
+        }
+
+        float controlGroupAmpCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
+        {
+            nextChannelInputVoltage(cv, ids.cvInputId, channel);
+            return cvGetControlValue(ids.paramId, ids.attenId, cv, minValue, maxValue);
         }
 
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
