@@ -321,7 +321,7 @@ namespace Sapphire
                     }
 
                     q.loop.write(echo, sampleRateHz);
-                    outAudio.sample[c] = gain*(mix*echo + (1-mix)*inAudio.sample[c]);
+                    outAudio.sample[c] = gain * CubicMix(mix, inAudio.sample[c], echo);
                 }
 
                 clearBufferRequested = false;
@@ -974,9 +974,10 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
 
-                        audio.sample[c] = gain * (
-                            (mix * message.chainAudio.sample[c]) +
-                            ((1-mix) * message.originalAudio.sample[c])
+                        audio.sample[c] = gain * CubicMix(
+                            mix,
+                            message.originalAudio.sample[c],
+                            message.chainAudio.sample[c]
                         );
                     }
 
