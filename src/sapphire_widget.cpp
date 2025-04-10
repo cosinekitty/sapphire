@@ -79,7 +79,8 @@ namespace Sapphire
         newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
         ModuleWidget::draw(newDrawArgs);
 
-        DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
+        if (!isNeonModeActive())
+            DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
     }
 
 
@@ -87,7 +88,12 @@ namespace Sapphire
     {
         ModuleWidget::drawLayer(args, layer);
         if (layer == 1)
+        {
             drawSplash(args.vg);
+
+            if (isNeonModeActive())
+                DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
+        }
     }
 
 

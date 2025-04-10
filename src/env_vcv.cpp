@@ -247,10 +247,10 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (envModule == nullptr)
                     return;
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(envModule->createToggleAllSensitivityMenuItem());
                 AddPortModesToMenu(menu, envModule);
             }

@@ -673,6 +673,7 @@ namespace Sapphire
         int modelSampleRate = 0;
         bool hideLeftBorder  = false;
         bool hideRightBorder = false;
+        bool neonMode = false;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -838,6 +839,8 @@ namespace Sapphire
             if (provideModelResampler)
                 json_object_set_new(root, "modelSampleRate", json_integer(modelSampleRate));
 
+            json_object_set_new(root, "neonMode", json_boolean(neonMode));
+
             return root;
         }
 
@@ -908,6 +911,10 @@ namespace Sapphire
                 if (json_is_integer(rate))
                     modelSampleRate = json_integer_value(rate);
             }
+
+            json_t* jsNeonMode = json_object_get(root, "neonMode");
+            if (json_is_boolean(jsNeonMode))
+                neonMode = json_boolean_value(jsNeonMode);
         }
 
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)

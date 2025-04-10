@@ -377,6 +377,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (chaosModule == nullptr)
                     return;
 
@@ -386,7 +387,6 @@ namespace Sapphire
                 // people often explore the right-click menu of the
                 // panel, but don't think to do that for knobs.
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule, false);
             }

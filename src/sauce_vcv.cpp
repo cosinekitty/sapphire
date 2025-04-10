@@ -287,10 +287,11 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
+
                 if (gravyModule == nullptr)
                     return;
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
                 menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
                 menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));

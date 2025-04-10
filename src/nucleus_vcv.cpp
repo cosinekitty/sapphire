@@ -434,10 +434,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (nucleusModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
-
                     // Add slider to adjust the DC reject filter's corner frequency.
                     menu->addChild(new DcRejectSlider(nucleusModule->dcRejectQuantity));
 

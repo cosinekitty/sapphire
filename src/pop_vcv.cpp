@@ -206,9 +206,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (popModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
                     addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);
                     menu->addChild(createBoolPtrMenuItem<bool>("Send trigger on every reset", "", &popModule->sendTriggerOnReset));

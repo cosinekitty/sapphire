@@ -323,7 +323,7 @@ namespace Sapphire
         }
 
 
-        struct TubeUnitWidget : ModuleWidget
+        struct TubeUnitWidget : SapphireWidget
         {
             TubeUnitModule *tubeUnitModule;
             WarningLightWidget *warningLight = nullptr;
@@ -332,10 +332,10 @@ namespace Sapphire
             SvgOverlay *audioEmphasis = nullptr;
 
             explicit TubeUnitWidget(TubeUnitModule* module)
-                : tubeUnitModule(module)
+                : SapphireWidget("tubeunit", asset::plugin(pluginInstance, "res/tubeunit.svg"))
+                , tubeUnitModule(module)
             {
                 setModule(module);
-                setPanel(MakeSapphirePanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
                 ventLabel = SvgOverlay::Load("res/tubeunit_vent.svg");
                 addChild(ventLabel);
@@ -404,10 +404,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (tubeUnitModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
-
                     if (tubeUnitModule->agcLevelQuantity)
                     {
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
@@ -446,12 +445,6 @@ namespace Sapphire
                 }
 
                 ModuleWidget::step();
-            }
-
-            void draw(const DrawArgs& args) override
-            {
-                ModuleWidget::draw(args);
-                DrawBorders(args.vg, box);
             }
         };
 

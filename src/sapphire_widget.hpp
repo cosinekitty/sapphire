@@ -12,7 +12,7 @@ namespace Sapphire
     {
         bool* lowSensitivityMode = nullptr;
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             Trimpot::appendContextMenu(menu);
             if (lowSensitivityMode != nullptr)
@@ -266,6 +266,22 @@ namespace Sapphire
             : modcode(moduleCode)
         {
             setPanel(MakeSapphirePanel(panelSvgFileName));
+        }
+
+        bool isNeonModeActive()
+        {
+            SapphireModule* sm = getSapphireModule();
+            return (sm != nullptr) && sm->neonMode;
+        }
+
+        void appendContextMenu(Menu* menu) override
+        {
+            SapphireModule* sm = getSapphireModule();
+            if (sm != nullptr)
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(createBoolPtrMenuItem<bool>("Sapphire neon mode", "", &(sm->neonMode)));
+            }
         }
 
         void position(Widget* widget, const std::string& label)

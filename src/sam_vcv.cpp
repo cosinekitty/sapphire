@@ -162,9 +162,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (splitAddMergeModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
                     menu->addChild(new ChannelCountSlider(splitAddMergeModule->channelCountQuantity));
                 }
             }

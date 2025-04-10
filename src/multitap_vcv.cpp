@@ -485,7 +485,6 @@ namespace Sapphire
                 auto lmod = dynamic_cast<LoopModule*>(module);
                 if (lmod != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                 }
             }

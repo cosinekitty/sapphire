@@ -487,10 +487,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (elastikaModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
-
                     if (elastikaModule->dcRejectQuantity)
                     {
                         // Add slider that adjusts the DC-reject filter's corner frequency.

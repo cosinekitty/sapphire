@@ -340,17 +340,17 @@ namespace Sapphire
         };
 
 
-        struct MootsWidget : ModuleWidget
+        struct MootsWidget : SapphireWidget
         {
-            MootsModule* mootsModule{};
-            SvgOverlay* gateLabel{};
-            SvgOverlay* triggerLabel{};
+            MootsModule* mootsModule = nullptr;
+            SvgOverlay* gateLabel = nullptr;
+            SvgOverlay* triggerLabel = nullptr;
 
             explicit MootsWidget(MootsModule* module)
-                : mootsModule(module)
+                : SapphireWidget("moots", asset::plugin(pluginInstance, "res/moots.svg"))
+                , mootsModule(module)
             {
                 setModule(module);
-                setPanel(MakeSapphirePanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
                 gateLabel = SvgOverlay::Load("res/moots_label_gate.svg");
                 addChild(gateLabel);
@@ -384,12 +384,6 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
             }
 
-            void draw(const DrawArgs& args) override
-            {
-                ModuleWidget::draw(args);
-                DrawBorders(args.vg, box);
-            }
-
             void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)
             {
                 MootsButtonWidget* button = createLightParamCentered<MootsButtonWidget>(
@@ -405,13 +399,13 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
+
                 if (mootsModule == nullptr)
                     return;
 
                 //---------------------------------------------------------------------------
                 // Gate/Trigger control mode toggle
-
-                menu->addChild(new MenuSeparator);
 
                 menu->addChild(createBoolMenuItem(
                     "Use triggers for control",

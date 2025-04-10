@@ -1727,9 +1727,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (tricorderModule != nullptr)
                 {
-                    menu->addChild(new MenuSeparator);
                     menu->addChild(new RotationSpeedSlider(tricorderModule->rotationSpeedQuantity));
                 }
             }
