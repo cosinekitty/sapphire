@@ -97,8 +97,8 @@ namespace Sapphire
                 using namespace std;
 
                 float cv = inputs.at(MEMORY_SELECT_CV_INPUT).getVoltageSum();
-                float slider = params[MEMORY_SELECT_PARAM].getValue();
-                float attenu = 2 * params[MEMORY_SELECT_ATTEN].getValue();
+                float slider = params.at(MEMORY_SELECT_PARAM).getValue();
+                float attenu = 2 * params.at(MEMORY_SELECT_ATTEN).getValue();
                 if (isLowSensitive(MEMORY_SELECT_ATTEN))
                     attenu /= AttenuverterLowSensitivityDenom;
                 slider += attenu * cv;
@@ -113,7 +113,7 @@ namespace Sapphire
 
             bool getStoreTrigger()
             {
-                bool isButtonDown = (params[STORE_BUTTON_PARAM].getValue() > 0);
+                bool isButtonDown = (params.at(STORE_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !storeButtonPressed;
                 storeButtonPressed = isButtonDown;
                 bool triggerFired = storeReceiver.updateTrigger(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
@@ -122,7 +122,7 @@ namespace Sapphire
 
             bool getRecallTrigger()
             {
-                bool isButtonDown = (params[RECALL_BUTTON_PARAM].getValue() > 0);
+                bool isButtonDown = (params.at(RECALL_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !recallButtonPressed;
                 recallButtonPressed = isButtonDown;
                 bool triggerFired = recallReceiver.updateTrigger(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());

@@ -367,7 +367,7 @@ namespace Sapphire
                 chaosKnob->chaosModule = module;
 
                 auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
-                knob->atten = module ? &module->params[SPEED_ATTEN] : nullptr;
+                knob->atten = module ? &module->params.at(SPEED_ATTEN) : nullptr;
 
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 

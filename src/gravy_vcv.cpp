@@ -120,7 +120,7 @@ namespace Sapphire
 
             FilterMode getFilterMode()
             {
-                return static_cast<FilterMode>(params[FILTER_MODE_PARAM].getValue());
+                return static_cast<FilterMode>(params.at(FILTER_MODE_PARAM).getValue());
             }
 
             json_t* dataToJson() override

@@ -175,7 +175,7 @@ namespace Sapphire
                     else
                     {
                         // When no control input is connected, allow the manual pushbutton take control.
-                        isActive[i] = (params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f);
+                        isActive[i] = (params.at(TOGGLEBUTTON1_PARAM + i).getValue() > 0.0f);
                     }
 
                     // When a controller is turned on, make the push-button light bright,

@@ -206,7 +206,7 @@ namespace Sapphire
                 isPowerGateActive = true;
                 isQuiet = false;
                 slewer.enable(true);
-                params[POWER_TOGGLE_PARAM].setValue(1.0f);
+                params.at(POWER_TOGGLE_PARAM).setValue(1.0f);
                 enableLimiterWarning = true;
                 outputVectorSelectRight = false;
                 hamburger.initialize();
@@ -303,7 +303,7 @@ namespace Sapphire
                 else
                 {
                     // When no gate input is connected, allow the manual pushbutton take control.
-                    isPowerGateActive = (params[POWER_TOGGLE_PARAM].getValue() > 0.0f);
+                    isPowerGateActive = (params.at(POWER_TOGGLE_PARAM).getValue() > 0.0f);
                 }
 
                 // Set the pushbutton illumination to track the power state,
@@ -346,8 +346,8 @@ namespace Sapphire
                 float span = getControlValue(SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
                 float curl = getControlValue(CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
                 float mass = getControlValue(MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
-                float drive = params[DRIVE_KNOB_PARAM].getValue();
-                float gain  = params[LEVEL_KNOB_PARAM].getValue();
+                float drive = params.at(DRIVE_KNOB_PARAM).getValue();
+                float gain  = params.at(LEVEL_KNOB_PARAM).getValue();
                 float inTilt = getControlValue(INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
                 float outTilt = getControlValue(OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 

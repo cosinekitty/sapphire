@@ -183,7 +183,7 @@ namespace Sapphire
 
             void initialize()
             {
-                params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
+                params.at(AUDIO_MODE_BUTTON_PARAM).setValue(1.0f);
                 engine.initialize();
                 SetMinimumEnergy(engine);
                 dcRejectQuantity->value = DefaultCornerFrequencyHz;
@@ -229,7 +229,7 @@ namespace Sapphire
 
             bool isEnabledAudioMode() const
             {
-                return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
+                return params.at(AUDIO_MODE_BUTTON_PARAM).value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override

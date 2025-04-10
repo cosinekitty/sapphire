@@ -185,8 +185,8 @@ namespace Sapphire
             {
                 using namespace Nucleus;
 
-                params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
-                params[CLEAR_BUTTON_PARAM].setValue(0.0f);
+                params.at(AUDIO_MODE_BUTTON_PARAM).setValue(1.0f);
+                params.at(CLEAR_BUTTON_PARAM).setValue(0.0f);
 
                 engine.initialize();
                 SetMinimumEnergy(engine);
@@ -236,12 +236,12 @@ namespace Sapphire
 
             bool isEnabledAudioMode() const
             {
-                return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
+                return params.at(AUDIO_MODE_BUTTON_PARAM).value > 0.5f;
             }
 
             bool isClearButtonPressed() const
             {
-                return params[CLEAR_BUTTON_PARAM].value > 0.5f;
+                return params.at(CLEAR_BUTTON_PARAM).value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override

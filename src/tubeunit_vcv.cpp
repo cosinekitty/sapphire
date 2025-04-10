@@ -173,7 +173,7 @@ namespace Sapphire
             float getControlValue(InputId inputId, int cvChannel)
             {
                 const ControlGroup& cg = *cgLookup[inputId];
-                float slider = params[cg.paramId].getValue();
+                float slider = params.at(cg.paramId).getValue();
                 int nChannels = inputs.at(cg.inputId).getChannels();
                 if (nChannels > 0)
                 {
@@ -184,7 +184,7 @@ namespace Sapphire
                     // to act like it is all the way up (maxSlider).
                     // Thus we allow the complete range of control for any CV whose
                     // range is [-5, +5] volts.
-                    float attenu = params[cg.attenId].getValue();
+                    float attenu = params.at(cg.attenId).getValue();
                     if (isLowSensitive(cg.attenId))
                         attenu /= AttenuverterLowSensitivityDenom;
                     slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
@@ -239,7 +239,7 @@ namespace Sapphire
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     updateQuiet(c);
-                    engine[c].setGain(params[LEVEL_KNOB_PARAM].getValue());
+                    engine[c].setGain(params.at(LEVEL_KNOB_PARAM).getValue());
                     engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
                     engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
                     engine[c].setReflectionDecay(getControlValue(REFLECTION_DECAY_INPUT, c));
