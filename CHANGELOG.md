@@ -18,6 +18,9 @@
     <ul>
         <li>Gravy and Sauce had lowercase hover-text for their control groups, e.g. "resonance CV input". Now they follow the VCV Rack guidelines, e.g. "Resonance CV input".</li>
     </ul>
+    <ul>
+        <li>Added "neon mode" menu options to make the Sapphire panel glow. This effect is most visible when the room brightness is dim.</li>
+    </ul>
 </td>
 </tr>
 
