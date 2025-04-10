@@ -330,9 +330,9 @@ namespace Sapphire
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
                 Particle& input = engine.particle(0);
-                input.pos[0] = drive * inputs[A_INPUT].getVoltage(0);
-                input.pos[1] = drive * inputs[A_INPUT].getVoltage(1);
-                input.pos[2] = drive * inputs[A_INPUT].getVoltage(2);
+                input.pos[0] = drive * inputs.at(A_INPUT).getVoltage(0);
+                input.pos[1] = drive * inputs.at(A_INPUT).getVoltage(1);
+                input.pos[2] = drive * inputs.at(A_INPUT).getVoltage(2);
                 input.pos[3] = 0;
                 input.vel = PhysicsVector::zero();
 

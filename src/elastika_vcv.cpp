@@ -281,7 +281,7 @@ namespace Sapphire
                 // The user is allowed to turn off Elastika to reduce CPU usage.
                 // Check the gate input voltage first, and debounce it.
                 // If the gate is not connected, fall back to the pushbutton state.
-                auto& gate = inputs[POWER_GATE_INPUT];
+                auto& gate = inputs.at(POWER_GATE_INPUT);
                 if (gate.isConnected())
                 {
                     // If the gate input is connected, use the polyphonic sum

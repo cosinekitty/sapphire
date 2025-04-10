@@ -934,8 +934,8 @@ namespace Sapphire
 
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
         {
-            const int ncl = inputs[leftPortIndex ].channels;
-            const int ncr = inputs[rightPortIndex].channels;
+            const int ncl = inputs.at(leftPortIndex ).channels;
+            const int ncr = inputs.at(rightPortIndex).channels;
 
             if (enableStereoSplitter)
             {
@@ -944,16 +944,16 @@ namespace Sapphire
 
                 if (ncl >= 2 && ncr == 0)
                 {
-                    inLeft  = inputs[leftPortIndex].getVoltage(0);
-                    inRight = inputs[leftPortIndex].getVoltage(1);
+                    inLeft  = inputs.at(leftPortIndex).getVoltage(0);
+                    inRight = inputs.at(leftPortIndex).getVoltage(1);
                     inputStereoMode = InputStereoMode::Left2;
                     return;
                 }
 
                 if (ncr >= 2 && ncl == 0)
                 {
-                    inLeft  = inputs[rightPortIndex].getVoltage(0);
-                    inRight = inputs[rightPortIndex].getVoltage(1);
+                    inLeft  = inputs.at(rightPortIndex).getVoltage(0);
+                    inRight = inputs.at(rightPortIndex).getVoltage(1);
                     inputStereoMode = InputStereoMode::Right2;
                     return;
                 }
@@ -962,8 +962,8 @@ namespace Sapphire
             // Assume separate data fed to each input port.
             inputStereoMode = InputStereoMode::LeftRight;
 
-            inLeft  = inputs[leftPortIndex ].getVoltageSum();
-            inRight = inputs[rightPortIndex].getVoltageSum();
+            inLeft  = inputs.at(leftPortIndex ).getVoltageSum();
+            inRight = inputs.at(rightPortIndex).getVoltageSum();
 
             // But if only one of the two input ports has a cable,
             // split that cable's voltage equally between the left and right inputs.

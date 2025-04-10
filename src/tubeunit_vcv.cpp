@@ -174,11 +174,11 @@ namespace Sapphire
             {
                 const ControlGroup& cg = *cgLookup[inputId];
                 float slider = params[cg.paramId].getValue();
-                int nChannels = inputs[cg.inputId].getChannels();
+                int nChannels = inputs.at(cg.inputId).getChannels();
                 if (nChannels > 0)
                 {
                     int c = std::min(nChannels-1, cvChannel);
-                    float cv = inputs[cg.inputId].getVoltage(c);
+                    float cv = inputs.at(cg.inputId).getVoltage(c);
                     // When the attenuverter is set to 100%, and the cv is +5V, we want
                     // to swing a slider that is all the way down (minSlider)
                     // to act like it is all the way up (maxSlider).
@@ -195,10 +195,10 @@ namespace Sapphire
             void updateQuiet(int c)
             {
                 bool quiet{};
-                const int quietGateChannels = inputs[QUIET_GATE_INPUT].getChannels();
+                const int quietGateChannels = inputs.at(QUIET_GATE_INPUT).getChannels();
                 if (c < quietGateChannels)
                 {
-                    float qv = inputs[QUIET_GATE_INPUT].getVoltage(c);
+                    float qv = inputs.at(QUIET_GATE_INPUT).getVoltage(c);
                     if (qv >= 1.0f)
                         quiet = !isInvertedVentPort;
                     else if (qv < 0.1f)
@@ -249,11 +249,11 @@ namespace Sapphire
                     engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
                     engine[c].setVortex(getControlValue(VORTEX_INPUT, c));
 
-                    if (c < inputs[AUDIO_LEFT_INPUT].getChannels())
-                        leftIn = inputs[AUDIO_LEFT_INPUT].getVoltage(c) / 5.0f;
+                    if (c < inputs.at(AUDIO_LEFT_INPUT).getChannels())
+                        leftIn = inputs.at(AUDIO_LEFT_INPUT).getVoltage(c) / 5.0f;
 
-                    if (c < inputs[AUDIO_RIGHT_INPUT].getChannels())
-                        rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltage(c) / 5.0f;
+                    if (c < inputs.at(AUDIO_RIGHT_INPUT).getChannels())
+                        rightIn = inputs.at(AUDIO_RIGHT_INPUT).getVoltage(c) / 5.0f;
 
                     float leftOut, rightOut;
                     engine[c].process(leftOut, rightOut, leftIn, rightIn);
@@ -312,7 +312,7 @@ namespace Sapphire
 
             bool hasAudioInput()
             {
-                return inputs[AUDIO_LEFT_INPUT].getChannels() + inputs[AUDIO_RIGHT_INPUT].getChannels() > 0;
+                return inputs.at(AUDIO_LEFT_INPUT).getChannels() + inputs.at(AUDIO_RIGHT_INPUT).getChannels() > 0;
             }
         };
 

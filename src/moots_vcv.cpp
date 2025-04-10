@@ -156,7 +156,7 @@ namespace Sapphire
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
                 {
-                    auto & control = inputs[CONTROL1_INPUT + i];
+                    auto & control = inputs.at(CONTROL1_INPUT + i);
 
                     if (control.isConnected())
                     {
@@ -189,7 +189,7 @@ namespace Sapphire
 
                     if (slewer[i].update(isActive[i]))
                     {
-                        auto & inp = inputs[INAUDIO1_INPUT + i];
+                        auto & inp = inputs.at(INAUDIO1_INPUT + i);
                         inp.readVoltages(volts);
                         outp.channels = inp.getChannels();
                         slewer[i].process(volts, outp.channels);
@@ -277,7 +277,7 @@ namespace Sapphire
                 // from bypassing to the output correctly.
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
-                    outputs[OUTAUDIO1_OUTPUT + i].channels = inputs[INAUDIO1_INPUT + i].getChannels();
+                    outputs[OUTAUDIO1_OUTPUT + i].channels = inputs.at(INAUDIO1_INPUT + i).getChannels();
             }
         };
 
