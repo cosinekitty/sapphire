@@ -238,17 +238,18 @@ namespace Sapphire
                     timeMode = static_cast<TimeMode>(json_integer_value(jsTimeMode));
             }
 
-            void updateEnvelope(int outputId, float sampleRateHz, const Frame& audio)
+            void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
             {
                 const int nc = VcvSafeChannelCount(audio.nchannels);
                 float sum = 0;
                 for (int c = 0; c < nc; ++c)
                     sum += audio.sample[c];
 
-                float v = env.update(sum, sampleRateHz);
+                float knob = params.at(envGainParamId).getValue();
+                float v = FourthPower(knob) * env.update(sum, sampleRateHz);
                 Output& envOutput = outputs.at(outputId);
                 envOutput.setChannels(1);
-                envOutput.setVoltage(v);
+                envOutput.setVoltage(v, 0);
             }
 
             Frame updateTapeLoops(
@@ -631,7 +632,7 @@ namespace Sapphire
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.feedback = getFeedbackPoly();
                     outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
-                    updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
 
@@ -846,7 +847,7 @@ namespace Sapphire
                     clearBufferRequested = inMessage.clear;
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
                     outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate, outMessage);
-                    updateEnvelope(ENV_OUTPUT, args.sampleRate, outMessage.chainAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
 
