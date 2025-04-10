@@ -247,8 +247,6 @@ namespace Sapphire
         return new SvgOverlay(window::Svg::load(panelSvgFileName));
     }
 
-    void DrawBorders(NVGcontext* vg, const Rect& box, bool hideLeft = false, bool hideRight = false);
-
 
     struct SapphireWidget : ModuleWidget
     {
@@ -268,9 +266,9 @@ namespace Sapphire
             setPanel(MakeSapphirePanel(panelSvgFileName));
         }
 
-        bool isNeonModeActive()
+        bool isNeonModeActive() const
         {
-            SapphireModule* sm = getSapphireModule();
+            const SapphireModule* sm = getSapphireModule();
             return (sm != nullptr) && sm->neonMode;
         }
 
@@ -280,7 +278,8 @@ namespace Sapphire
             if (sm != nullptr)
             {
                 menu->addChild(new MenuSeparator);
-                menu->addChild(createBoolPtrMenuItem<bool>("Sapphire neon mode", "", &(sm->neonMode)));
+                if (sm->includeNeonModeMenuItem)
+                    menu->addChild(createBoolPtrMenuItem<bool>("Sapphire neon mode", "", &(sm->neonMode)));
             }
         }
 

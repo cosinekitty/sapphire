@@ -100,6 +100,7 @@ namespace Sapphire
         {
             Message messageBuffer[2];
             int chainIndex = -1;
+            bool receivedMessageFromLeft = false;
 
             explicit MultiTapModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -153,7 +154,8 @@ namespace Sapphire
             Message receiveMessageOrDefault()
             {
                 const Message* ptr = receiveMessage();
-                return ptr ? *ptr : Message{};
+                receivedMessageFromLeft = (ptr != nullptr);
+                return receivedMessageFromLeft ? *ptr : Message{};
             }
 
             Frame readFrame(int leftInputId, int rightInputId)
@@ -631,6 +633,7 @@ namespace Sapphire
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.feedback = getFeedbackPoly();
                     outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
+                    outMessage.neonMode = neonMode;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
@@ -841,7 +844,9 @@ namespace Sapphire
                     Message outMessage = inMessage;
                     chainIndex = inMessage.chainIndex;
                     frozen = inMessage.frozen;
-
+                    includeNeonModeMenuItem = !receivedMessageFromLeft;
+                    if (receivedMessageFromLeft)
+                        neonMode = inMessage.neonMode;
                     reversed = updateReverseState();
                     clearBufferRequested = inMessage.clear;
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
@@ -946,6 +951,10 @@ namespace Sapphire
                 {
                     Message message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
+
+                    includeNeonModeMenuItem = !receivedMessageFromLeft;
+                    if (receivedMessageFromLeft)
+                        neonMode = message.neonMode;
 
                     Frame audio;
                     audio.nchannels = VcvSafeChannelCount(

@@ -42,11 +42,43 @@ namespace Sapphire
         nvgFill(vg);
     }
 
-    void DrawBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
+
+    void DrawBorders(NVGcontext* vg, const Rect& box, bool neon, bool hideLeft, bool hideRight)
     {
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
         const NVGcolor panelColor  = nvgRGB(0x4f, 0x8d, 0xf2);
+        const NVGcolor borderColor = nvgRGB(0x5d, 0x43, 0xa3);
+
+        if (hideLeft)
+            DrawBorder(vg, panelColor, 0, margin, margin, vertical);
+
+        if (hideRight)
+            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin + DxRemoveGap, vertical);
+
+        if (!neon)
+        {
+            // Top border
+            DrawBorder(vg, borderColor, 0, 0, box.size.x, margin);
+
+            // Bottom border
+            DrawBorder(vg, borderColor, 0, box.size.y - margin, box.size.x, margin);
+
+            // Left border
+            if (!hideLeft)
+                DrawBorder(vg, borderColor, 0, margin, margin, vertical);
+
+            // Right border
+            if (!hideRight)
+                DrawBorder(vg, borderColor, box.size.x - margin, margin, margin, vertical);
+        }
+    }
+
+
+    void DrawGlowingBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
+    {
+        const float margin = 1;
+        const float vertical = box.size.y - 2*margin;
         const NVGcolor borderColor = nvgRGB(0x5d, 0x43, 0xa3);
 
         // Top border
@@ -56,15 +88,11 @@ namespace Sapphire
         DrawBorder(vg, borderColor, 0, box.size.y - margin, box.size.x, margin);
 
         // Left border
-        if (hideLeft)
-            DrawBorder(vg, panelColor, 0, margin, margin, vertical);
-        else
+        if (!hideLeft)
             DrawBorder(vg, borderColor, 0, margin, margin, vertical);
 
         // Right border
-        if (hideRight)
-            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin + DxRemoveGap, vertical);
-        else
+        if (!hideRight)
             DrawBorder(vg, borderColor, box.size.x - margin, margin, margin, vertical);
     }
 
@@ -78,9 +106,7 @@ namespace Sapphire
         // tweak the clip box so we are allowed to draw 0.3 mm to the right of our own panel.
         newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
         ModuleWidget::draw(newDrawArgs);
-
-        if (!isNeonModeActive())
-            DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
+        DrawBorders(args.vg, box, isNeonModeActive(), isLeftBorderHidden(), isRightBorderHidden());
     }
 
 
@@ -90,9 +116,8 @@ namespace Sapphire
         if (layer == 1)
         {
             drawSplash(args.vg);
-
             if (isNeonModeActive())
-                DrawBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
+                DrawGlowingBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
         }
     }
 

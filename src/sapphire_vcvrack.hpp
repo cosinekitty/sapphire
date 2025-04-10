@@ -674,6 +674,7 @@ namespace Sapphire
         bool hideLeftBorder  = false;
         bool hideRightBorder = false;
         bool neonMode = false;
+        bool includeNeonModeMenuItem = true;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)

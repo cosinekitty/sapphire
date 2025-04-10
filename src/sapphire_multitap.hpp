@@ -71,6 +71,7 @@ namespace Sapphire
             Frame feedback;             // polyphonic modulation for the feedback parameter
             bool frozen = false;
             bool clear = false;
+            bool neonMode = false;
         };
 
         //--------------------------------------------------------------------
