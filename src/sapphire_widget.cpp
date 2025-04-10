@@ -43,7 +43,7 @@ namespace Sapphire
     }
 
 
-    void DrawBorders(NVGcontext* vg, const Rect& box, bool neon, bool hideLeft, bool hideRight)
+    static void DrawOpaqueBorders(NVGcontext* vg, const Rect& box, bool neon, bool hideLeft, bool hideRight)
     {
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
@@ -75,25 +75,25 @@ namespace Sapphire
     }
 
 
-    void DrawGlowingBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
+    static void DrawGlowingBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
     {
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
-        const NVGcolor borderColor = nvgRGB(0x5d, 0x43, 0xa3);
+        const NVGcolor glowColor = nvgRGB(0xd4, 0x8f, 0xff);
 
         // Top border
-        DrawBorder(vg, borderColor, 0, 0, box.size.x, margin);
+        DrawBorder(vg, glowColor, 0, 0, box.size.x, margin);
 
         // Bottom border
-        DrawBorder(vg, borderColor, 0, box.size.y - margin, box.size.x, margin);
+        DrawBorder(vg, glowColor, 0, box.size.y - margin, box.size.x, margin);
 
         // Left border
         if (!hideLeft)
-            DrawBorder(vg, borderColor, 0, margin, margin, vertical);
+            DrawBorder(vg, glowColor, 0, margin, margin, vertical);
 
         // Right border
         if (!hideRight)
-            DrawBorder(vg, borderColor, box.size.x - margin, margin, margin, vertical);
+            DrawBorder(vg, glowColor, box.size.x - margin, margin, margin, vertical);
     }
 
 
@@ -106,7 +106,7 @@ namespace Sapphire
         // tweak the clip box so we are allowed to draw 0.3 mm to the right of our own panel.
         newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
         ModuleWidget::draw(newDrawArgs);
-        DrawBorders(args.vg, box, isNeonModeActive(), isLeftBorderHidden(), isRightBorderHidden());
+        DrawOpaqueBorders(args.vg, box, isNeonModeActive(), isLeftBorderHidden(), isRightBorderHidden());
     }
 
 
