@@ -183,7 +183,7 @@ namespace Sapphire
                     // When a controller is turned off, use a very dim light, but not
                     // complete darkness. Some users like turning room brightness
                     // down very low, yet they still want to see where all 5 buttons are.
-                    lights[MOOTLIGHT1 + i].setBrightness(isActive[i] ? 1.0f : 0.03f);
+                    lights.at(MOOTLIGHT1 + i).setBrightness(isActive[i] ? 1.0f : 0.03f);
 
                     auto & outp = outputs.at(OUTAUDIO1_OUTPUT + i);
 

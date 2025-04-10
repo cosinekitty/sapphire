@@ -304,7 +304,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                lights[CLEAR_BUTTON_LIGHT].setBrightness(isClearButtonPressed() ? 1.0f : 0.0f);
+                lights.at(CLEAR_BUTTON_LIGHT).setBrightness(isClearButtonPressed() ? 1.0f : 0.0f);
                 if (isClearButtonPressed())
                     resetSimulation();      // keep resetting as long as button is held down
 
@@ -367,7 +367,7 @@ namespace Sapphire
                 }
 
                 // Let the audio/cv toggle pushbutton light reflect its button state.
-                lights[AUDIO_MODE_BUTTON_LIGHT].setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
+                lights.at(AUDIO_MODE_BUTTON_LIGHT).setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
 
                 // Report all output voltages to VCV Rack.
 

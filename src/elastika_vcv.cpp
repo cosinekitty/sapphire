@@ -308,7 +308,7 @@ namespace Sapphire
 
                 // Set the pushbutton illumination to track the power state,
                 // whether the power state was set by the button itself or the power gate.
-                lights[POWER_LIGHT].setBrightness(isPowerGateActive ? 1.0f : 0.03f);
+                lights.at(POWER_LIGHT).setBrightness(isPowerGateActive ? 1.0f : 0.03f);
 
                 if (!slewer.update(isPowerGateActive))
                 {
