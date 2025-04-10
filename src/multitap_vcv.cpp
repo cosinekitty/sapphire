@@ -280,10 +280,10 @@ namespace Sapphire
                     if (clearBufferRequested)
                         q.loop.clear();
 
-                    if (c < message.feedback.nchannels)
-                        fbk = message.feedback.sample[c];
-
-                    assert(fbk>=0 && fbk<=1);
+                    if (frozen)
+                        fbk = 1;
+                    else if (c < message.feedback.nchannels)
+                        fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
                     float delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
                     float mix = controlGroupAmpCv(c, cvMix, controls.mix, 0, 1);
