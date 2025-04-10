@@ -313,8 +313,8 @@ namespace Sapphire
                 if (!slewer.update(isPowerGateActive))
                 {
                     // Output silent stereo signal without using any more CPU.
-                    outputs[AUDIO_LEFT_OUTPUT].setVoltage(0.0f);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(0.0f);
+                    outputs.at(AUDIO_LEFT_OUTPUT).setVoltage(0.0f);
+                    outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(0.0f);
 
                     // If this is the first sample since Elastika was turned off,
                     // force the mesh to go back to its starting state:

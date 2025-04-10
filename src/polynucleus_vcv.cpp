@@ -371,25 +371,25 @@ namespace Sapphire
 
                 // Report all output voltages to VCV Rack.
 
-                outputs[B_OUTPUT].setChannels(3);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 0), 0);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 1), 1);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 2), 2);
+                outputs.at(B_OUTPUT).setChannels(3);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 0), 0);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 1), 1);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 2), 2);
 
-                outputs[C_OUTPUT].setChannels(3);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 0), 0);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 1), 1);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 2), 2);
+                outputs.at(C_OUTPUT).setChannels(3);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 0), 0);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 1), 1);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 2), 2);
 
-                outputs[D_OUTPUT].setChannels(3);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 0), 0);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 1), 1);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 2), 2);
+                outputs.at(D_OUTPUT).setChannels(3);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 0), 0);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 1), 1);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 2), 2);
 
-                outputs[E_OUTPUT].setChannels(3);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 0), 0);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 1), 1);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 2), 2);
+                outputs.at(E_OUTPUT).setChannels(3);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 0), 0);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 1), 1);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 2), 2);
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
                 float tx = engine.output(tricorderOutputIndex, 0);

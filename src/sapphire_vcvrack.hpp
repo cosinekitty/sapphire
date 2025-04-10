@@ -979,20 +979,20 @@ namespace Sapphire
         {
             if (enableStereoMerge)
             {
-                outputs[leftPortIndex].setChannels(2);
-                outputs[leftPortIndex].setVoltage(outLeft,  0);
-                outputs[leftPortIndex].setVoltage(outRight, 1);
+                outputs.at(leftPortIndex).setChannels(2);
+                outputs.at(leftPortIndex).setVoltage(outLeft,  0);
+                outputs.at(leftPortIndex).setVoltage(outRight, 1);
 
-                outputs[rightPortIndex].setChannels(1);
-                outputs[rightPortIndex].setVoltage(0);
+                outputs.at(rightPortIndex).setChannels(1);
+                outputs.at(rightPortIndex).setVoltage(0);
             }
             else
             {
-                outputs[leftPortIndex].setChannels(1);
-                outputs[leftPortIndex ].setVoltage(outLeft);
+                outputs.at(leftPortIndex).setChannels(1);
+                outputs.at(leftPortIndex ).setVoltage(outLeft);
 
-                outputs[rightPortIndex].setChannels(1);
-                outputs[rightPortIndex].setVoltage(outRight);
+                outputs.at(rightPortIndex).setChannels(1);
+                outputs.at(rightPortIndex).setVoltage(outRight);
             }
         }
 
@@ -1096,7 +1096,7 @@ namespace Sapphire
             float voltage = originalVoltage;
             if (getVoltageFlipEnabled(outputId))
                 voltage = -voltage;
-            outputs[outputId].setVoltage(voltage);
+            outputs.at(outputId).setVoltage(voltage);
             return voltage;
         }
 

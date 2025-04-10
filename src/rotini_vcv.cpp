@@ -66,7 +66,7 @@ namespace Sapphire
             {
                 auto& a = inputs.at(A_INPUT);
                 auto& b = inputs.at(B_INPUT);
-                auto& c = outputs[C_OUTPUT];
+                auto& c = outputs.at(C_OUTPUT);
 
                 float ax = a.getVoltage(0);
                 float ay = a.getVoltage(1);

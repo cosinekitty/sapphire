@@ -335,21 +335,21 @@ namespace Sapphire
 
                 // Report all output voltages to VCV Rack.
 
-                outputs[X1_OUTPUT].setVoltage(engine.output(1, 0));
-                outputs[Y1_OUTPUT].setVoltage(engine.output(1, 1));
-                outputs[Z1_OUTPUT].setVoltage(engine.output(1, 2));
+                outputs.at(X1_OUTPUT).setVoltage(engine.output(1, 0));
+                outputs.at(Y1_OUTPUT).setVoltage(engine.output(1, 1));
+                outputs.at(Z1_OUTPUT).setVoltage(engine.output(1, 2));
 
-                outputs[X2_OUTPUT].setVoltage(engine.output(2, 0));
-                outputs[Y2_OUTPUT].setVoltage(engine.output(2, 1));
-                outputs[Z2_OUTPUT].setVoltage(engine.output(2, 2));
+                outputs.at(X2_OUTPUT).setVoltage(engine.output(2, 0));
+                outputs.at(Y2_OUTPUT).setVoltage(engine.output(2, 1));
+                outputs.at(Z2_OUTPUT).setVoltage(engine.output(2, 2));
 
-                outputs[X3_OUTPUT].setVoltage(engine.output(3, 0));
-                outputs[Y3_OUTPUT].setVoltage(engine.output(3, 1));
-                outputs[Z3_OUTPUT].setVoltage(engine.output(3, 2));
+                outputs.at(X3_OUTPUT).setVoltage(engine.output(3, 0));
+                outputs.at(Y3_OUTPUT).setVoltage(engine.output(3, 1));
+                outputs.at(Z3_OUTPUT).setVoltage(engine.output(3, 2));
 
-                outputs[X4_OUTPUT].setVoltage(engine.output(4, 0));
-                outputs[Y4_OUTPUT].setVoltage(engine.output(4, 1));
-                outputs[Z4_OUTPUT].setVoltage(engine.output(4, 2));
+                outputs.at(X4_OUTPUT).setVoltage(engine.output(4, 0));
+                outputs.at(Y4_OUTPUT).setVoltage(engine.output(4, 1));
+                outputs.at(Z4_OUTPUT).setVoltage(engine.output(4, 2));
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
                 float x = engine.output(tricorderOutputIndex, 0);

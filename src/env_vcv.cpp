@@ -174,9 +174,9 @@ namespace Sapphire
 
             void setPolyOutput(OutputId id, int nc, const float* volts)
             {
-                outputs[id].setChannels(nc);
+                outputs.at(id).setChannels(nc);
                 for (int c = 0; c < nc; ++c)
-                    outputs[id].setVoltage(volts[c], c);
+                    outputs.at(id).setVoltage(volts[c], c);
             }
 
             float gateOutputVoltage(float envelope, float threshold) const

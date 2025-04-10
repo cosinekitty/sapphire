@@ -115,10 +115,10 @@ namespace Sapphire
                 float sy = py + my;
                 float sz = pz + mz;
 
-                outputs[POLY_OUTPUT].setChannels(nc);
-                outputs[POLY_OUTPUT].setVoltage(sx, 0);
-                outputs[POLY_OUTPUT].setVoltage(sy, 1);
-                outputs[POLY_OUTPUT].setVoltage(sz, 2);
+                outputs.at(POLY_OUTPUT).setChannels(nc);
+                outputs.at(POLY_OUTPUT).setVoltage(sx, 0);
+                outputs.at(POLY_OUTPUT).setVoltage(sy, 1);
+                outputs.at(POLY_OUTPUT).setVoltage(sz, 2);
 
                 // If the user selects more than 3 output channels,
                 // copy poly input from higher channels also.
@@ -126,12 +126,12 @@ namespace Sapphire
                 for (int c = 3; c < nc; ++c)
                 {
                     float p = inputs.at(POLY_INPUT).getVoltage(c);
-                    outputs[POLY_OUTPUT].setVoltage(p, c);
+                    outputs.at(POLY_OUTPUT).setVoltage(p, c);
                 }
 
-                outputs[X_OUTPUT].setVoltage(sx);
-                outputs[Y_OUTPUT].setVoltage(sy);
-                outputs[Z_OUTPUT].setVoltage(sz);
+                outputs.at(X_OUTPUT).setVoltage(sx);
+                outputs.at(Y_OUTPUT).setVoltage(sy);
+                outputs.at(Z_OUTPUT).setVoltage(sz);
 
                 sendVector(sx, sy, sz, false);
 

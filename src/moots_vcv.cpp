@@ -185,7 +185,7 @@ namespace Sapphire
                     // down very low, yet they still want to see where all 5 buttons are.
                     lights[MOOTLIGHT1 + i].setBrightness(isActive[i] ? 1.0f : 0.03f);
 
-                    auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
+                    auto & outp = outputs.at(OUTAUDIO1_OUTPUT + i);
 
                     if (slewer[i].update(isActive[i]))
                     {
@@ -277,7 +277,7 @@ namespace Sapphire
                 // from bypassing to the output correctly.
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
-                    outputs[OUTAUDIO1_OUTPUT + i].channels = inputs.at(INAUDIO1_INPUT + i).getChannels();
+                    outputs.at(OUTAUDIO1_OUTPUT + i).channels = inputs.at(INAUDIO1_INPUT + i).getChannels();
             }
         };
 

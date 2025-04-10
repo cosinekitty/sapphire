@@ -208,10 +208,10 @@ namespace Sapphire
                 float ymix = setFlippableOutputVoltage(Y_OUTPUT, (1-morph)*circuit.ypos() + morph*vel.my);
                 float zmix = setFlippableOutputVoltage(Z_OUTPUT, (1-morph)*circuit.zpos() + morph*vel.mz);
 
-                outputs[POLY_OUTPUT].setChannels(3);
-                outputs[POLY_OUTPUT].setVoltage(xmix, 0);
-                outputs[POLY_OUTPUT].setVoltage(ymix, 1);
-                outputs[POLY_OUTPUT].setVoltage(zmix, 2);
+                outputs.at(POLY_OUTPUT).setChannels(3);
+                outputs.at(POLY_OUTPUT).setVoltage(xmix, 0);
+                outputs.at(POLY_OUTPUT).setVoltage(ymix, 1);
+                outputs.at(POLY_OUTPUT).setVoltage(zmix, 2);
 
                 sendVector(xmix, ymix, zmix, shouldClearTricorder);
 

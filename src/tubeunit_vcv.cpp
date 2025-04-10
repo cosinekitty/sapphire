@@ -223,8 +223,8 @@ namespace Sapphire
                 // "normalled" to the remaining channels.
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
 
-                outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
-                outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+                outputs.at(AUDIO_LEFT_OUTPUT ).setChannels(numActiveChannels);
+                outputs.at(AUDIO_RIGHT_OUTPUT).setChannels(numActiveChannels);
                 float leftIn = 0.0f;
                 float rightIn = 0.0f;
 
@@ -277,8 +277,8 @@ namespace Sapphire
                     }
 
                     // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
-                    outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * leftOut,  c);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * rightOut, c);
+                    outputs.at(AUDIO_LEFT_OUTPUT ).setVoltage(5.0f * leftOut,  c);
+                    outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(5.0f * rightOut, c);
                 }
 
                 if (allEnginesHaveFiniteOutput && limiterRecoveryCountdown > 0)

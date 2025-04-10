@@ -125,13 +125,13 @@ namespace Sapphire
 
                 double follower = 1.0;
 
-                if (outputs[AUDIO_LOWPASS_OUTPUT].isConnected())
+                if (outputs.at(AUDIO_LOWPASS_OUTPUT).isConnected())
                     follower = std::max(follower, agcLow.getFollower());
 
-                if (outputs[AUDIO_BANDPASS_OUTPUT].isConnected())
+                if (outputs.at(AUDIO_BANDPASS_OUTPUT).isConnected())
                     follower = std::max(follower, agcBand.getFollower());
 
-                if (outputs[AUDIO_HIGHPASS_OUTPUT].isConnected())
+                if (outputs.at(AUDIO_HIGHPASS_OUTPUT).isConnected())
                     follower = std::max(follower, agcHigh.getFollower());
 
                 return follower - 1.0;
@@ -245,14 +245,14 @@ namespace Sapphire
                     }
                 }
 
-                outputs[AUDIO_LOWPASS_OUTPUT ].setChannels(nc);
-                outputs[AUDIO_BANDPASS_OUTPUT].setChannels(nc);
-                outputs[AUDIO_HIGHPASS_OUTPUT].setChannels(nc);
+                outputs.at(AUDIO_LOWPASS_OUTPUT ).setChannels(nc);
+                outputs.at(AUDIO_BANDPASS_OUTPUT).setChannels(nc);
+                outputs.at(AUDIO_HIGHPASS_OUTPUT).setChannels(nc);
                 for (int c = 0; c < nc; ++c)
                 {
-                    outputs[AUDIO_LOWPASS_OUTPUT ].setVoltage(lpOutput[c], c);
-                    outputs[AUDIO_BANDPASS_OUTPUT].setVoltage(bpOutput[c], c);
-                    outputs[AUDIO_HIGHPASS_OUTPUT].setVoltage(hpOutput[c], c);
+                    outputs.at(AUDIO_LOWPASS_OUTPUT ).setVoltage(lpOutput[c], c);
+                    outputs.at(AUDIO_BANDPASS_OUTPUT).setVoltage(bpOutput[c], c);
+                    outputs.at(AUDIO_HIGHPASS_OUTPUT).setVoltage(hpOutput[c], c);
                 }
             }
         };

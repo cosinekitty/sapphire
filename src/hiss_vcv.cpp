@@ -95,7 +95,7 @@ namespace Sapphire
                 currentChannelCount = dim;
                 for (int i = 0; i < NumOutputs; ++i)
                 {
-                    Output& op = outputs[NOISE_OUTPUTS + i];
+                    Output& op = outputs.at(NOISE_OUTPUTS + i);
                     // Reduce CPU overhead by generating noise to connected output ports only.
                     if (op.isConnected())
                     {

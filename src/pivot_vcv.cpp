@@ -75,7 +75,7 @@ namespace Sapphire
             void process(const ProcessArgs& args) override
             {
                 auto& a = inputs.at(A_INPUT);
-                auto& c = outputs[C_OUTPUT];
+                auto& c = outputs.at(C_OUTPUT);
 
                 float ax = a.getVoltage(0);
                 float ay = a.getVoltage(1);
