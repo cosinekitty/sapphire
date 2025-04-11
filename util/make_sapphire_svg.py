@@ -2078,7 +2078,7 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
 
-        pl.append(ModelNamePathX(xGlobalCenter, font, 'djinn'))
+        pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
 
         AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
