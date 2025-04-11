@@ -291,8 +291,10 @@ namespace Sapphire
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     float memory = q.loop.read();
+
                     // FIXFIXFIX - add panning here
-                    float echo = fbk*memory + (1-fbk)*inAudio.sample[c];
+
+                    float echo = CubicMix(fbk, inAudio.sample[c], memory);
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
