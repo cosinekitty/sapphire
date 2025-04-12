@@ -294,7 +294,7 @@ namespace Sapphire
 
                     // FIXFIXFIX - add panning here
 
-                    float echo = CubicMix(fbk, inAudio.sample[c], memory);
+                    float echo = inAudio.sample[c] + (fbk * memory);
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
@@ -642,6 +642,7 @@ namespace Sapphire
 
                 Frame getFeedbackPoly()
                 {
+                    const float maxFeedbackRatio = 0.97;
                     Frame feedback;
                     Input& cvInput = inputs.at(FEEDBACK_CV_INPUT);
                     const int nc = VcvSafeChannelCount(cvInput.getChannels());
@@ -650,7 +651,7 @@ namespace Sapphire
                     for (int c = 0; c < feedback.nchannels; ++c)
                     {
                         nextChannelInputVoltage(cv, FEEDBACK_CV_INPUT, c);
-                        feedback.sample[c] = cvGetVoltPerOctave(FEEDBACK_PARAM, FEEDBACK_ATTEN, cv, 0, 1);
+                        feedback.sample[c] = maxFeedbackRatio * cvGetVoltPerOctave(FEEDBACK_PARAM, FEEDBACK_ATTEN, cv, 0, 1);
                     }
                     return feedback;
                 }
