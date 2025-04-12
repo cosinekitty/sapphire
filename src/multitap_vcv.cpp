@@ -370,6 +370,7 @@ namespace Sapphire
         struct LoopWidget : SapphireWidget
         {
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
+            const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
 
             explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
                 : SapphireWidget(moduleCode, panelSvgFileName)
@@ -465,7 +466,7 @@ namespace Sapphire
                     float y1 = mm2px(yCenter_mm) - height/2;
 
                     if (chainIndex == 1)
-                        x1 += mm2px(INLOOP_XSHIFT_MM);     // shift right on the Echo module, because it is wider
+                        x1 += mm2px(mmShiftFirstTap);
 
                     nvgText(vg, x1, y1, text, nullptr);
                 }

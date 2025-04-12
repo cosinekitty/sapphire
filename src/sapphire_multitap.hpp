@@ -4,7 +4,6 @@
 #include "sapphire_widget.hpp"
 #include "sapphire_envelope_follower.hpp"
 #include "sapphire_tapeloop.hpp"
-#include "multitap_inloop_panel.hpp"
 
 namespace Sapphire
 {

@@ -1961,19 +1961,6 @@ def MakeLoopControlFence() -> FencePost:
     return FencePost(16.0, 72.0, 5)
 
 
-def MultiTapInLoopHeaderText(xAdjust:float) -> str:
-    text  = '// *** GENERATED CODE *** DO NOT EDIT ***\n'
-    text += '#pragma once\n'
-    text += 'namespace Sapphire\n'
-    text += '{\n'
-    text += '    namespace MultiTap\n'
-    text += '    {\n'
-    text += '        constexpr float INLOOP_XSHIFT_MM = {:0.3f};\n'.format(xAdjust)
-    text += '    }\n'
-    text += '}\n'
-    return text
-
-
 def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
     gradname = 'gradient_controls'
     defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, gradname))
@@ -2115,7 +2102,6 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddShortToggleGroup(pl, controls, font, 'FRZ', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl)
         AddShortToggleGroup(pl, controls, font, 'CLR', 'clear' , xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl)
 
-    UpdateFileIfChanged('../src/multitap_inloop_panel.hpp', MultiTapInLoopHeaderText(xAdjust))
     return Save(panel, svgFileName)
 
 
