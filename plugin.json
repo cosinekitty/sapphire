@@ -23,6 +23,35 @@
       ]
     },
     {
+      "slug": "Echo",
+      "name": "Echo",
+      "description": "The input module in an expander chain of delay loops.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
+      "tags": [
+        "Delay"
+      ]
+    },
+    {
+      "slug": "EchoOut",
+      "name": "Echo Out",
+      "description": "Expander that mixes output from a chain of Echo modules.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
+      "tags": [
+        "Delay",
+        "Expander"
+      ]
+    },
+    {
+      "slug": "EchoTap",
+      "name": "Echo Tap",
+      "description": "Expander that adds another link in a chain of Echo modules.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
+      "tags": [
+        "Delay",
+        "Expander"
+      ]
+    },
+    {
       "slug": "Elastika",
       "name": "Elastika",
       "description": "Filters audio through a simulated network of balls and springs.",
@@ -98,15 +127,6 @@
       ]
     },
     {
-      "slug": "InLoop",
-      "name": "InLoop",
-      "description": "The input module in an expander chain of delay loops.",
-      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
-      "tags": [
-        "Delay"
-      ]
-    },
-    {
       "slug": "Lark",
       "name": "Lark",
       "description": "Chaotic oscillator based on the Dequan Li Attractor.",
@@ -115,16 +135,6 @@
         "Physical modeling",
         "Effect",
         "Low-frequency oscillator"
-      ]
-    },
-    {
-      "slug": "Loop",
-      "name": "Loop",
-      "description": "Expander that adds another link in a chain of delay loops.",
-      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
-      "tags": [
-        "Delay",
-        "Expander"
       ]
     },
     {
@@ -148,16 +158,6 @@
         "Effect",
         "Filter",
         "Reverb"
-      ]
-    },
-    {
-      "slug": "OutLoop",
-      "name": "OutLoop",
-      "description": "Expander that terminates a chain of delay loops.",
-      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/MultiTap.md",
-      "tags": [
-        "Delay",
-        "Expander"
       ]
     },
     {

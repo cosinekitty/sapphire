@@ -79,17 +79,17 @@ namespace Sapphire
 
         inline bool IsInLoop(const Module* module)
         {
-            return IsModelType(module, modelSapphireInLoop);
+            return IsModelType(module, modelSapphireEcho);
         }
 
         inline bool IsLoop(const Module* module)
         {
-            return IsModelType(module, modelSapphireLoop);
+            return IsModelType(module, modelSapphireEchoTap);
         }
 
         inline bool IsOutLoop(const Module* module)
         {
-            return IsModelType(module, modelSapphireOutLoop);
+            return IsModelType(module, modelSapphireEchoOut);
         }
 
         //--------------------------------------------------------------------

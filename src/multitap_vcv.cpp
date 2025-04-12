@@ -396,8 +396,8 @@ namespace Sapphire
 
                 Model* model =
                     (IsLoop(right) || IsOutLoop(right))
-                    ? modelSapphireLoop
-                    : modelSapphireOutLoop;
+                    ? modelSapphireEchoTap
+                    : modelSapphireEchoOut;
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
@@ -1027,17 +1027,17 @@ namespace Sapphire
 }
 
 
-Model* modelSapphireInLoop = createSapphireModel<Sapphire::MultiTap::InLoop::InMod, Sapphire::MultiTap::InLoop::InWid>(
-    "InLoop",
+Model* modelSapphireEcho = createSapphireModel<Sapphire::MultiTap::InLoop::InMod, Sapphire::MultiTap::InLoop::InWid>(
+    "Echo",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireLoop = createSapphireModel<Sapphire::MultiTap::Loop::TapMod, Sapphire::MultiTap::Loop::TapWid>(
-    "Loop",
+Model* modelSapphireEchoTap = createSapphireModel<Sapphire::MultiTap::Loop::TapMod, Sapphire::MultiTap::Loop::TapWid>(
+    "EchoTap",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireOutLoop = createSapphireModel<Sapphire::MultiTap::OutLoop::OutMod, Sapphire::MultiTap::OutLoop::OutWid>(
-    "OutLoop",
+Model* modelSapphireEchoOut = createSapphireModel<Sapphire::MultiTap::OutLoop::OutMod, Sapphire::MultiTap::OutLoop::OutWid>(
+    "EchoOut",
     Sapphire::ExpanderRole::MultiTap
 );

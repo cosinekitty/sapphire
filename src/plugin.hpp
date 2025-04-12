@@ -10,6 +10,9 @@ extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
 extern Model* modelSapphireChaops;
+extern Model* modelSapphireEcho;
+extern Model* modelSapphireEchoOut;
+extern Model* modelSapphireEchoTap;
 extern Model* modelSapphireElastika;
 extern Model* modelSapphireEnv;
 extern Model* modelSapphireFrolic;
@@ -17,12 +20,9 @@ extern Model* modelSapphireGalaxy;
 extern Model* modelSapphireGlee;
 extern Model* modelSapphireGravy;
 extern Model* modelSapphireHiss;
-extern Model* modelSapphireInLoop;
 extern Model* modelSapphireLark;
-extern Model* modelSapphireLoop;
 extern Model* modelSapphireMoots;
 extern Model* modelSapphireNucleus;
-extern Model* modelSapphireOutLoop;
 extern Model* modelSapphirePivot;
 extern Model* modelSapphirePolynucleus;
 extern Model* modelSapphirePop;

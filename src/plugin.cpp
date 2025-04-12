@@ -12,6 +12,9 @@ void init(Plugin* p)
     pluginInstance = p;
 
     p->addModel(modelSapphireChaops);
+    p->addModel(modelSapphireEcho);
+    p->addModel(modelSapphireEchoOut);
+    p->addModel(modelSapphireEchoTap);
     p->addModel(modelSapphireElastika);
     p->addModel(modelSapphireEnv);
     p->addModel(modelSapphireFrolic);
@@ -19,12 +22,9 @@ void init(Plugin* p)
     p->addModel(modelSapphireGlee);
     p->addModel(modelSapphireGravy);
     p->addModel(modelSapphireHiss);
-    p->addModel(modelSapphireInLoop);
     p->addModel(modelSapphireMoots);
     p->addModel(modelSapphireLark);
-    p->addModel(modelSapphireLoop);
     p->addModel(modelSapphireNucleus);
-    p->addModel(modelSapphireOutLoop);
     p->addModel(modelSapphirePivot);
     p->addModel(modelSapphirePolynucleus);
     p->addModel(modelSapphirePop);
