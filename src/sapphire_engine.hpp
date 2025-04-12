@@ -84,6 +84,30 @@ namespace Sapphire
         return m;
     }
 
+    inline std::size_t SafeIndex(
+        std::size_t length,
+        std::size_t index,
+        const char *sourceFileName,
+        int sourceLineNumber)
+    {
+        if (index >= length)
+        {
+            std::string message = sourceFileName;
+            message += "(";
+            message += std::to_string(sourceLineNumber);
+            message += "): index=";
+            message += std::to_string(index);
+            message += " for array[";
+            message += std::to_string(length);
+            message += "]";
+            throw std::out_of_range(message);
+        }
+        return index;
+    }
+
+#define SafeArray(ptr, length, index)   \
+    ptr[SafeIndex(length, index, __FILE__, __LINE__)]
+
     class Slewer
     {
     private:

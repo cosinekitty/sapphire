@@ -54,10 +54,14 @@ namespace Sapphire
         struct ChannelInfo
         {
             TapeLoop loop;
+            GateTriggerReceiver clockReceiver;
+            int samplesSinceClockTrigger = 0;
 
             void initialize()
             {
                 loop.initialize();
+                clockReceiver.initialize();
+                samplesSinceClockTrigger = 0;
             }
         };
 
@@ -68,6 +72,7 @@ namespace Sapphire
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
             Frame originalAudio;        // audio frame from the input module (for MIX)
             Frame feedback;             // polyphonic modulation for the feedback parameter
+            Frame clockVoltage;         // raw voltage read from the CLOCK port
             bool frozen = false;
             bool clear = false;
             bool neonMode = false;
@@ -102,6 +107,7 @@ namespace Sapphire
             int sendRightOutputId = -1;
             int returnLeftInputId = -1;
             int returnRightInputId = -1;
+            int clockInputId = -1;
         };
     }
 }

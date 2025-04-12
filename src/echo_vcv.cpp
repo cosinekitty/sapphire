@@ -254,7 +254,18 @@ namespace Sapphire
                 envOutput.setVoltage(v, 0);
             }
 
-            Frame updateTapeLoops(
+            ChannelInfo& getChannelInfo(int c)
+            {
+                return SafeArray(info, PORT_MAX_CHANNELS, c);
+            }
+
+            struct TapeLoopResult
+            {
+                Frame outAudio;
+                Frame clockVoltage;
+            };
+
+            TapeLoopResult updateTapeLoops(
                 const Frame& inAudio,
                 float sampleRateHz,
                 const Message& message)
@@ -267,15 +278,35 @@ namespace Sapphire
                 Input& returnLeft  = inputs.at(controls.returnLeftInputId);
                 Input& returnRight = inputs.at(controls.returnRightInputId);
 
-                Frame outAudio;
-                outAudio.nchannels = nc;
+                TapeLoopResult result;
+                result.outAudio.nchannels = nc;
+                result.clockVoltage.nchannels = nc;
+
                 float cvDelayTime = 0;
                 float cvMix = 0;
                 float cvGain = 0;
                 float fbk = 0;
+                float vClock = 0;
                 for (int c = 0; c < nc; ++c)
                 {
-                    ChannelInfo& q = info[c];
+                    float clockSyncTime = -1;
+                    ChannelInfo& q = getChannelInfo(c);
+                    if (controls.clockInputId < 0)
+                        vClock = message.clockVoltage.at(c);
+                    else
+                        vClock = nextChannelInputVoltage(vClock, controls.clockInputId, c);
+                    result.clockVoltage.at(c) = vClock;
+                    if (q.clockReceiver.updateTrigger(vClock))
+                    {
+                        // Clock sync. Measure the most recent time interval in samples.
+                        float raw = q.samplesSinceClockTrigger / sampleRateHz;
+                        clockSyncTime = std::clamp(raw, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                        q.samplesSinceClockTrigger = 0;
+                    }
+                    else
+                    {
+                        ++q.samplesSinceClockTrigger;
+                    }
                     q.loop.setReversed(reversed);
                     if (clearBufferRequested)
                         q.loop.clear();
@@ -285,7 +316,11 @@ namespace Sapphire
                     else if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
-                    float delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+                    float delayTime;
+                    if (clockSyncTime > 0)
+                        delayTime = clockSyncTime;      // FIXFIXFIX - use TIME knob as scalar multiplier
+                    else
+                        delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
                     float mix = controlGroupAmpCv(c, cvMix, controls.mix, 0, 1);
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
@@ -323,11 +358,11 @@ namespace Sapphire
                     }
 
                     q.loop.write(echo, sampleRateHz);
-                    outAudio.sample[c] = gain * CubicMix(mix, inAudio.sample[c], echo);
+                    result.outAudio.sample[c] = gain * CubicMix(mix, inAudio.sample[c], echo);
                 }
 
                 clearBufferRequested = false;
-                return outAudio;
+                return result;
             }
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
@@ -624,6 +659,7 @@ namespace Sapphire
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;
                     controls.returnRightInputId = RETURN_RIGHT_INPUT;
+                    controls.clockInputId = CLOCK_INPUT;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -635,7 +671,9 @@ namespace Sapphire
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.feedback = getFeedbackPoly();
-                    outMessage.chainAudio = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
+                    TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
+                    outMessage.chainAudio = result.outAudio;
+                    outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
@@ -854,7 +892,9 @@ namespace Sapphire
                     reversed = updateReverseState();
                     clearBufferRequested = inMessage.clear;
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
-                    outMessage.chainAudio = updateTapeLoops(inMessage.chainAudio, args.sampleRate, outMessage);
+                    TapeLoopResult result = updateTapeLoops(inMessage.chainAudio, args.sampleRate, outMessage);
+                    outMessage.chainAudio = result.outAudio;
+                    outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
