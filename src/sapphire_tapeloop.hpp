@@ -74,6 +74,7 @@ namespace Sapphire
             if (!IsValidSampleRate(_sampleRateHz))
                 return false;
 
+            const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
             if (sampleRateHz != _sampleRateHz)
             {
                 sampleRateHz = _sampleRateHz;
@@ -81,7 +82,6 @@ namespace Sapphire
                 // The first time we know the sample rate, or any time it changes,
                 // resize the buffer to allow the maximum possible number of samples
                 // as required by the new sample rate.
-                const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
 
                 // Because the tape loop is reversible, we need twice as much tape time as the maximum delay time.
 
@@ -91,7 +91,9 @@ namespace Sapphire
             }
 
             delayTimeSec = std::clamp(_delayTimeSec, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
-            totalLoopSamples = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
+            const int calculated = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
+            const int capacity = std::max(cushion, static_cast<int>(buffer.size()));
+            totalLoopSamples = std::clamp(calculated, cushion, capacity);
             return true;
         }
 
