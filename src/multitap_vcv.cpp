@@ -140,12 +140,12 @@ namespace Sapphire
 
             const Message* receiveMessage()
             {
-                // InLoop modules do not receive expander messages.
-                if (!IsInLoop(this))
+                // Echo modules do not receive expander messages.
+                if (!IsEcho(this))
                 {
-                    // Look to the left for an InLoop or Loop module.
+                    // Look to the left for an Echo or EchoTap module.
                     const Module* left = leftExpander.module;
-                    if (IsInLoop(left) || IsLoop(left))
+                    if (IsEcho(left) || IsEchoTap(left))
                         return static_cast<const Message*>(left->rightExpander.consumerMessage);
                 }
                 return nullptr;
@@ -387,21 +387,21 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                // We either insert a "Loop" module or an "OutLoop" module, depending on the situation.
-                // If the module to the right is a Loop or an OutLoop, insert another Loop.
+                // We either insert a "EchoTap" module or an "EchoOut" module, depending on the situation.
+                // If the module to the right is a EchoTap or an EchoOut, insert another EchoTap.
                 // Otherwise, assume we are at the end of a chain that is not terminated by
-                // an OutLoop, so insert an OutLoop.
+                // an EchoOut, so insert an EchoOut.
 
                 Module* right = module->rightExpander.module;
 
                 Model* model =
-                    (IsLoop(right) || IsOutLoop(right))
+                    (IsEchoTap(right) || IsEchoOut(right))
                     ? modelSapphireEchoTap
                     : modelSapphireEchoOut;
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
-                for (Module* node = right; IsLoop(node) || IsOutLoop(node); node = node->rightExpander.module)
+                for (Module* node = right; IsEchoTap(node) || IsEchoOut(node); node = node->rightExpander.module)
                 {
                     auto lmod = dynamic_cast<MultiTapModule*>(node);
                     lmod->chainIndex = -1;
@@ -415,7 +415,7 @@ namespace Sapphire
 
             bool isConnectedOnRight() const
             {
-                return module && (IsLoop(module->rightExpander.module) || IsOutLoop(module->rightExpander.module));
+                return module && (IsEchoTap(module->rightExpander.module) || IsEchoOut(module->rightExpander.module));
             }
 
             void step() override
@@ -437,10 +437,10 @@ namespace Sapphire
                 if (chainIndex < 1)
                     return;
 
-                if (IsInLoop(module))
+                if (IsEcho(module))
                 {
                     const Module* right = module->rightExpander.module;
-                    if (!IsLoop(right) && !IsOutLoop(right))
+                    if (!IsEchoTap(right) && !IsEchoOut(right))
                         return;
                 }
 
@@ -465,7 +465,7 @@ namespace Sapphire
                     float y1 = mm2px(yCenter_mm) - height/2;
 
                     if (chainIndex == 1)
-                        x1 += mm2px(INLOOP_XSHIFT_MM);     // shift right on the InLoop module, because it is wider
+                        x1 += mm2px(INLOOP_XSHIFT_MM);     // shift right on the Echo module, because it is wider
 
                     nvgText(vg, x1, y1, text, nullptr);
                 }
@@ -515,7 +515,7 @@ namespace Sapphire
         }
 
 
-        namespace InLoop
+        namespace Echo
         {
             enum ParamId
             {
@@ -572,13 +572,13 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct InMod : LoopModule
+            struct EchoModule : LoopModule
             {
                 // Global controls
                 GateTriggerReceiver freezeReceiver;
                 AnimatedTriggerReceiver clearReceiver;
 
-                InMod()
+                EchoModule()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     chainIndex = 1;
@@ -687,13 +687,13 @@ namespace Sapphire
                 }
             };
 
-            struct InWid : LoopWidget
+            struct EchoWidget : LoopWidget
             {
-                InMod* inLoopModule{};
+                EchoModule* echoModule{};
 
-                explicit InWid(InMod* module)
+                explicit EchoWidget(EchoModule* module)
                     : LoopWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
-                    , inLoopModule(module)
+                    , echoModule(module)
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
@@ -752,7 +752,7 @@ namespace Sapphire
             };
         }
 
-        namespace Loop
+        namespace EchoTap
         {
             enum ParamId
             {
@@ -797,9 +797,9 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct TapMod : LoopModule
+            struct EchoTapModule : LoopModule
             {
-                TapMod()
+                EchoTapModule()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -868,13 +868,13 @@ namespace Sapphire
                 }
             };
 
-            struct TapWid : LoopWidget
+            struct EchoTapWidget : LoopWidget
             {
-                TapMod* loopModule{};
+                EchoTapModule* echoTapModule{};
 
-                explicit TapWid(TapMod* module)
+                explicit EchoTapWidget(EchoTapModule* module)
                     : LoopWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
-                    , loopModule(module)
+                    , echoTapModule(module)
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
@@ -891,12 +891,12 @@ namespace Sapphire
 
                 bool isConnectedOnLeft() const override
                 {
-                    return module && (IsInLoop(module->leftExpander.module) || IsLoop(module->leftExpander.module));
+                    return module && (IsEcho(module->leftExpander.module) || IsEchoTap(module->leftExpander.module));
                 }
             };
         }
 
-        namespace OutLoop
+        namespace EchoOut
         {
             enum ParamId
             {
@@ -926,9 +926,9 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            struct OutMod : MultiTapModule
+            struct EchoOutModule : MultiTapModule
             {
-                OutMod()
+                EchoOutModule()
                     : MultiTapModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -994,13 +994,13 @@ namespace Sapphire
                 }
             };
 
-            struct OutWid : SapphireWidget
+            struct EchoOutWidget : SapphireWidget
             {
-                OutMod* outLoopModule{};
+                EchoOutModule* echoOutModule{};
 
-                explicit OutWid(OutMod* module)
+                explicit EchoOutWidget(EchoOutModule* module)
                     : SapphireWidget("outloop", asset::plugin(pluginInstance, "res/outloop.svg"))
-                    , outLoopModule(module)
+                    , echoOutModule(module)
                 {
                     setModule(module);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
@@ -1011,7 +1011,7 @@ namespace Sapphire
 
                 bool isConnectedOnLeft() const
                 {
-                    return module && (IsInLoop(module->leftExpander.module) || IsLoop(module->leftExpander.module));
+                    return module && (IsEcho(module->leftExpander.module) || IsEchoTap(module->leftExpander.module));
                 }
 
                 void step() override
@@ -1027,17 +1027,17 @@ namespace Sapphire
 }
 
 
-Model* modelSapphireEcho = createSapphireModel<Sapphire::MultiTap::InLoop::InMod, Sapphire::MultiTap::InLoop::InWid>(
+Model* modelSapphireEcho = createSapphireModel<Sapphire::MultiTap::Echo::EchoModule, Sapphire::MultiTap::Echo::EchoWidget>(
     "Echo",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireEchoTap = createSapphireModel<Sapphire::MultiTap::Loop::TapMod, Sapphire::MultiTap::Loop::TapWid>(
+Model* modelSapphireEchoTap = createSapphireModel<Sapphire::MultiTap::EchoTap::EchoTapModule, Sapphire::MultiTap::EchoTap::EchoTapWidget>(
     "EchoTap",
     Sapphire::ExpanderRole::MultiTap
 );
 
-Model* modelSapphireEchoOut = createSapphireModel<Sapphire::MultiTap::OutLoop::OutMod, Sapphire::MultiTap::OutLoop::OutWid>(
+Model* modelSapphireEchoOut = createSapphireModel<Sapphire::MultiTap::EchoOut::EchoOutModule, Sapphire::MultiTap::EchoOut::EchoOutWidget>(
     "EchoOut",
     Sapphire::ExpanderRole::MultiTap
 );

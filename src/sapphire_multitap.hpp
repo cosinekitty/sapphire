@@ -77,17 +77,17 @@ namespace Sapphire
         //--------------------------------------------------------------------
         // Module recognition helper functions.
 
-        inline bool IsInLoop(const Module* module)
+        inline bool IsEcho(const Module* module)
         {
             return IsModelType(module, modelSapphireEcho);
         }
 
-        inline bool IsLoop(const Module* module)
+        inline bool IsEchoTap(const Module* module)
         {
             return IsModelType(module, modelSapphireEchoTap);
         }
 
-        inline bool IsOutLoop(const Module* module)
+        inline bool IsEchoOut(const Module* module)
         {
             return IsModelType(module, modelSapphireEchoOut);
         }
