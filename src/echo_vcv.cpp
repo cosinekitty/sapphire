@@ -107,16 +107,16 @@ namespace Sapphire
             {
                 rightExpander.producerMessage = &messageBuffer[0];
                 rightExpander.consumerMessage = &messageBuffer[1];
-                MultiTap_initialize();
+                MultiTapModule_initialize();
             }
 
-            void MultiTap_initialize()
+            void MultiTapModule_initialize()
             {
             }
 
             virtual void initialize()
             {
-                MultiTap_initialize();
+                MultiTapModule_initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -189,10 +189,10 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
-                Loop_initialize();
+                LoopModule_initialize();
             }
 
-            void Loop_initialize()
+            void LoopModule_initialize()
             {
                 frozen = false;
                 reversed = false;
@@ -205,7 +205,7 @@ namespace Sapphire
             void initialize() override
             {
                 MultiTapModule::initialize();
-                Loop_initialize();
+                LoopModule_initialize();
             }
 
             bool isFrozen() const
@@ -600,10 +600,10 @@ namespace Sapphire
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear");
                     configInput(CLOCK_INPUT, "Clock");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
-                    InLoop_initialize();
+                    EchoModule_initialize();
                 }
 
-                void InLoop_initialize()
+                void EchoModule_initialize()
                 {
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
@@ -612,7 +612,7 @@ namespace Sapphire
                 void initialize() override
                 {
                     LoopModule::initialize();
-                    InLoop_initialize();
+                    EchoModule_initialize();
                 }
 
                 void defineControls()
@@ -816,17 +816,17 @@ namespace Sapphire
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
-                    Tap_initialize();
+                    EchoTapModule_initialize();
                 }
 
-                void Tap_initialize()
+                void EchoTapModule_initialize()
                 {
                 }
 
                 void initialize() override
                 {
                     LoopModule::initialize();
-                    Tap_initialize();
+                    EchoTapModule_initialize();
                 }
 
                 void defineControls()
@@ -938,17 +938,17 @@ namespace Sapphire
                     configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
-                    OutLoop_initialize();
+                    EchoOutModule_initialize();
                 }
 
-                void OutLoop_initialize()
+                void EchoOutModule_initialize()
                 {
                 }
 
                 void initialize() override
                 {
                     MultiTapModule::initialize();
-                    OutLoop_initialize();
+                    EchoOutModule_initialize();
                 }
 
                 void process(const ProcessArgs& args) override
