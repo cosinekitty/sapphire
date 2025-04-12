@@ -77,6 +77,12 @@ namespace Sapphire
             const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
             if (sampleRateHz != _sampleRateHz)
             {
+                const int maxSamples = static_cast<int>(std::ceil(2 * _sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
+                if (maxSamples <= 0)
+                    return false;
+
+                const std::size_t maxSize = static_cast<std::size_t>(cushion + maxSamples);
+
                 sampleRateHz = _sampleRateHz;
 
                 // The first time we know the sample rate, or any time it changes,
@@ -85,14 +91,15 @@ namespace Sapphire
 
                 // Because the tape loop is reversible, we need twice as much tape time as the maximum delay time.
 
-                const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(2 * sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
-                buffer.resize(maxSizeForSampleRate);
-                clear();
+                buffer.resize(maxSize);
+                clear();    // any audio in the buffer already is recorded at the wrong sample rate
             }
+
+            const int capacity = static_cast<int>(buffer.size());
+            assert(capacity >= cushion);
 
             delayTimeSec = std::clamp(_delayTimeSec, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
             const int calculated = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
-            const int capacity = std::max(cushion, static_cast<int>(buffer.size()));
             totalLoopSamples = std::clamp(calculated, cushion, capacity);
             return true;
         }
