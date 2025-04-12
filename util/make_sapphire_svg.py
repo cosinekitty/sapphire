@@ -2036,9 +2036,9 @@ def AddMultiTapEnvGroup(font:Font, pl:Element, controls:ControlLayer, xmid:float
     controls.append(Component('env_output', xPort, y))
 
 
-def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
-    name = 'inloop'
+    name = 'echo'
     svgFileName = SvgFileName(name, target)
     panel = Panel(MULTITAP_INLOOP_HP_WIDTH)
     xmid = panel.mmWidth / 2
@@ -2119,9 +2119,9 @@ def GenerateInloopPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
-    name = 'loop'
+    name = 'echotap'
     svgFileName = SvgFileName(name, target)
     panel = Panel(MULTITAP_LOOP_HP_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
@@ -2174,9 +2174,9 @@ def GenerateLoopPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
-    name = 'outloop'
+    name = 'echoout'
     PANEL_WIDTH = 4
     svgFileName = SvgFileName(name, target)
     panel = Panel(PANEL_WIDTH)
@@ -2199,9 +2199,9 @@ def GenerateOutloopPanel(cdict: Dict[str, ControlLayer]) -> int:
 
 def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
     return (
-        GenerateInloopPanel(cdict) or
-        GenerateLoopPanel(cdict) or
-        GenerateOutloopPanel(cdict)
+        GenerateEchoPanel(cdict) or
+        GenerateEchoTapPanel(cdict) or
+        GenerateEchoOutPanel(cdict)
     )
 
 

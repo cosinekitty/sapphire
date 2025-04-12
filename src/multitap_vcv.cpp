@@ -693,7 +693,7 @@ namespace Sapphire
                 EchoModule* echoModule{};
 
                 explicit EchoWidget(EchoModule* module)
-                    : LoopWidget("inloop", asset::plugin(pluginInstance, "res/inloop.svg"))
+                    : LoopWidget("echo", asset::plugin(pluginInstance, "res/echo.svg"))
                     , echoModule(module)
                 {
                     setModule(module);
@@ -874,7 +874,7 @@ namespace Sapphire
                 EchoTapModule* echoTapModule{};
 
                 explicit EchoTapWidget(EchoTapModule* module)
-                    : LoopWidget("loop", asset::plugin(pluginInstance, "res/loop.svg"))
+                    : LoopWidget("echotap", asset::plugin(pluginInstance, "res/echotap.svg"))
                     , echoTapModule(module)
                 {
                     setModule(module);
@@ -1000,7 +1000,7 @@ namespace Sapphire
                 EchoOutModule* echoOutModule{};
 
                 explicit EchoOutWidget(EchoOutModule* module)
-                    : SapphireWidget("outloop", asset::plugin(pluginInstance, "res/outloop.svg"))
+                    : SapphireWidget("echoout", asset::plugin(pluginInstance, "res/echoout.svg"))
                     , echoOutModule(module)
                 {
                     setModule(module);
