@@ -20,12 +20,8 @@ namespace Sapphire
         int recordIndex = 0;
         bool reverseTape = false;
         std::vector<float> buffer;
+        int totalLoopSamples = 0;           // (2*dt) expressed in samples, for wraparound logic
         unsigned recoveryCountdown = 0;
-
-        int getBufferLength() const
-        {
-            return static_cast<int>(buffer.size());
-        }
 
         int getTapeDirection() const
         {
@@ -34,7 +30,7 @@ namespace Sapphire
 
         int wrapIndex(int position) const
         {
-            return MOD(position, getBufferLength());
+            return MOD(position, totalLoopSamples);
         }
 
         const float& at(int position) const         // allowed to wrap around in +/- directions
@@ -86,12 +82,16 @@ namespace Sapphire
                 // resize the buffer to allow the maximum possible number of samples
                 // as required by the new sample rate.
                 const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
-                const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
+
+                // Because the tape loop is reversible, we need twice as much tape time as the maximum delay time.
+
+                const int maxSizeForSampleRate = cushion + static_cast<int>(std::ceil(2 * sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
                 buffer.resize(maxSizeForSampleRate);
                 clear();
             }
 
             delayTimeSec = std::clamp(_delayTimeSec, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+            totalLoopSamples = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
             return true;
         }
 
