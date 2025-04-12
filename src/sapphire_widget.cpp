@@ -142,8 +142,133 @@ namespace Sapphire
     }
 
 
+    struct PanelState
+    {
+        int64_t moduleId = -1;
+        Vec oldPos{};
+        Vec newPos{};
+
+        explicit PanelState(ModuleWidget* mw)
+            : moduleId(mw->module->id)
+            , oldPos(mw->getPosition())
+            {}
+    };
+
+
+    inline bool operator < (const PanelState& a, const PanelState& b)
+    {
+        if (a.oldPos.y != b.oldPos.y)
+            return a.oldPos.y < b.oldPos.y;
+
+        return a.oldPos.x < b.oldPos.x;
+    }
+
+
+    ModuleWidget* FindWidgetForId(int64_t moduleId)
+    {
+        for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+        {
+            auto mw = dynamic_cast<ModuleWidget*>(w);
+            if (mw && mw->module && mw->module->id == moduleId)
+                return mw;
+        }
+        return nullptr;
+    }
+
+
+    struct AddExpanderAction : history::Action
+    {
+        history::ModuleAdd addAction;
+        std::vector<PanelState> movedPanels;
+
+        explicit AddExpanderAction(
+            Model* model,
+            SapphireWidget* widget,
+            const std::vector<PanelState>& movedPanelList)
+        {
+            name = "insert expander " + model->name;
+            addAction.setModule(widget);
+            movedPanels = movedPanelList;
+        }
+
+        void undo() override
+        {
+            // Remove the expander that we inserted into the rack.
+            addAction.undo();
+
+            // Put any modules that were moved back where they came from.
+            // We do this in ascending x-order, so that each module has
+            // an empty space to land in.
+            for (PanelState& p : movedPanels)
+            {
+                ModuleWidget* widget = FindWidgetForId(p.moduleId);
+                if (widget != nullptr)
+                    APP->scene->rack->requestModulePos(widget, p.oldPos);
+            }
+        }
+
+        void redo() override
+        {
+            // Do everything in the same chronological that we did them originally.
+            // Move modules out of the way, the same way the force-position thing does.
+            // Move right-to-left by iterating in reverse order.
+            for (auto p = movedPanels.rbegin(); p != movedPanels.rend(); ++p)
+            {
+                ModuleWidget* widget = FindWidgetForId(p->moduleId);
+                if (widget != nullptr)
+                    APP->scene->rack->requestModulePos(widget, p->newPos);
+            }
+
+            // Put the expander back into the rack.
+            addAction.redo();
+        }
+    };
+
+
+    std::vector<PanelState> SnapshotPanelPositions()
+    {
+        std::vector<PanelState> list;
+        for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+        {
+            auto mw = dynamic_cast<ModuleWidget*>(w);
+            if (mw && mw->module)
+                list.push_back(PanelState(mw));
+        }
+        return list;
+    }
+
+
+    static std::vector<PanelState> FindMovedPanels(const std::vector<PanelState>& allPanelPositions)
+    {
+        std::vector<PanelState> moved;
+        for (const PanelState& p : allPanelPositions)
+        {
+            // Search for the matching module ID in the rack...
+            ModuleWidget* widget = APP->scene->rack->getModule(p.moduleId);
+            if (widget)
+            {
+                Vec newPos = widget->getPosition();
+                if (newPos != p.oldPos)
+                {
+                    PanelState updated = p;
+                    updated.newPos = newPos;
+                    moved.push_back(updated);
+                }
+            }
+        }
+
+        // Sort by y, then x, in ascending order.
+        // In practice, all the y values should be the same, so sort by x.
+        std::sort(moved.begin(), moved.end());
+
+        return moved;
+    }
+
+
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir)
     {
+        std::vector<PanelState> allPanelPositions = SnapshotPanelPositions();
+
         Module* rawModule = model->createModule();
         assert(rawModule != nullptr);
         SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
@@ -158,10 +283,8 @@ namespace Sapphire
         APP->scene->rack->addModule(sapphireWidget);
 
         // Push this module creation action onto undo/redo stack.
-        auto h = new history::ModuleAdd;
-        h->name = "create " + model->name;
-        h->setModule(sapphireWidget);
-        APP->history->push(h);
+        std::vector<PanelState> movedPanels = FindMovedPanels(allPanelPositions);
+        APP->history->push(new AddExpanderAction(model, sapphireWidget, movedPanels));
 
         // Animate the first few frames of the new panel, like a splash screen.
         sapphireWidget->splash.begin();
