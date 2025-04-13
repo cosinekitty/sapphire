@@ -16,9 +16,7 @@ namespace Sapphire
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
         const int PANEL_HP_WIDTH = 25;
-        const float HP_MM = 5.08f;
         const float PANEL_MM_WIDTH = PANEL_HP_WIDTH * HP_MM;
-        const float PANEL_MM_HEIGHT = 128.5f;
 
         const float DISPLAY_MM_MARGIN = 3.0f;
         const float DISPLAY_MM_WIDTH  = PANEL_MM_WIDTH - (2*DISPLAY_MM_MARGIN);
@@ -1132,7 +1130,7 @@ namespace Sapphire
                 : module(_module)
                 , fontPath(asset::system("res/fonts/ShareTechMono-Regular.ttf"))
             {
-                const float mmTopMargin  = PANEL_MM_HEIGHT - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
+                const float mmTopMargin  = PANEL_HEIGHT_MM - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
                 box.pos = mm2px(Vec(DISPLAY_MM_MARGIN, mmTopMargin));
                 box.size = mm2px(Vec(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT));
                 addButton(new TricorderButton_ToggleAxes(*this));

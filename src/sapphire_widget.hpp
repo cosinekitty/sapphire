@@ -8,6 +8,25 @@
 
 namespace Sapphire
 {
+    constexpr float HP_MM = 5.08;
+    constexpr float PANEL_HEIGHT_MM = 128.5;
+
+    inline int hpDistance(float mm)
+    {
+        return static_cast<int>(std::round(mm / HP_MM));
+    }
+
+    inline int railDistance(float mm)
+    {
+        return static_cast<int>(std::round(mm / PANEL_HEIGHT_MM));
+    }
+
+    inline float px2mm(float px)
+    {
+        constexpr float factor = 25.4 / 75;
+        return px * factor;
+    }
+
     struct SapphireAttenuverterKnob : Trimpot
     {
         bool* lowSensitivityMode = nullptr;
@@ -534,4 +553,5 @@ namespace Sapphire
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir);
+    const ModuleWidget* FindModuleClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
 }

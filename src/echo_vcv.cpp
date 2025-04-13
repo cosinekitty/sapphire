@@ -418,6 +418,23 @@ namespace Sapphire
                 addSapphireParam(button, "insert_button");
             }
 
+            bool echoWithSmallGapOnRight(const Module* right)
+            {
+                // Only works when there is a gap, i.e. no expander, to the right.
+                if (right == nullptr)
+                {
+                    // There is no module immediately to the right.
+                    // Search all modules in the Rack for anything to the right of this module.
+                    // Pick the module closest to this one, but only if it is within the width
+                    // we need for the hypothetical EchoTap we are about to insert.
+                    const int hpEchoTap = hpDistance(PanelWidth("echotap"));
+                    assert(hpEchoTap > 0);
+                    const ModuleWidget* closest = FindModuleClosestOnRight(this, hpEchoTap);
+                    return IsEchoTap(closest) || IsEchoOut(closest);
+                }
+                return false;
+            }
+
             void insertExpander()
             {
                 if (module == nullptr)
@@ -431,7 +448,7 @@ namespace Sapphire
                 Module* right = module->rightExpander.module;
 
                 Model* model =
-                    (IsEchoTap(right) || IsEchoOut(right))
+                    (IsEchoTap(right) || IsEchoOut(right) || echoWithSmallGapOnRight(right))
                     ? modelSapphireEchoTap
                     : modelSapphireEchoOut;
 

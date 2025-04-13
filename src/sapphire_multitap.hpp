@@ -97,6 +97,25 @@ namespace Sapphire
         }
 
         //--------------------------------------------------------------------
+        // Widget recognition helper functions.
+
+        inline bool IsEcho(const ModuleWidget* widget)
+        {
+            return IsModelType(widget, modelSapphireEcho);
+        }
+
+        inline bool IsEchoTap(const ModuleWidget* widget)
+        {
+            return IsModelType(widget, modelSapphireEchoTap);
+        }
+
+        inline bool IsEchoOut(const ModuleWidget* widget)
+        {
+            return IsModelType(widget, modelSapphireEchoOut);
+        }
+
+
+        //--------------------------------------------------------------------
 
         struct PolyControls
         {

@@ -238,6 +238,35 @@ namespace Sapphire
     }
 
 
+    const ModuleWidget* FindModuleClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit)
+    {
+        const ModuleWidget *best = nullptr;
+        if (origin != nullptr && hpDistanceLimit > 0)
+        {
+            const float ox = px2mm(origin->box.pos.x + origin->box.size.x);
+            const float oy = px2mm(origin->box.pos.y);
+            for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+            {
+                auto mw = dynamic_cast<const ModuleWidget*>(w);
+                if (mw && mw->module)
+                {
+                    const float mx = px2mm(mw->box.pos.x);
+                    const float my = px2mm(mw->box.pos.y);
+                    const int row = railDistance(my - oy);
+                    const int col = hpDistance(mx - ox);
+
+                    // Find the leftmost module that is to the right of `origin`.
+                    // Must be within hpDistanceLimit HP units to the right.
+                    if (row == 0 && col > 0 && col <= hpDistanceLimit)
+                        if (best == nullptr || mx < px2mm(best->box.pos.x))
+                            best = mw;
+                }
+            }
+        }
+        return best;
+    }
+
+
     static std::vector<PanelState> FindMovedPanels(const std::vector<PanelState>& allPanelPositions)
     {
         std::vector<PanelState> moved;

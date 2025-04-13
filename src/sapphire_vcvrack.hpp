@@ -1351,6 +1351,12 @@ namespace Sapphire
     };
 
 
+    inline bool IsModelType(const ModuleWidget* widget, const Model* model)
+    {
+        return widget && model && widget->model == model;
+    }
+
+
     inline bool IsModelType(const Module* module, const Model* model)
     {
         // This function is useful for recognizing our own modules in
