@@ -245,7 +245,7 @@ namespace Sapphire
         {
             const float ox = px2mm(origin->box.pos.x + origin->box.size.x);
             const float oy = px2mm(origin->box.pos.y);
-            for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+            for (const Widget* w : APP->scene->rack->getModuleContainer()->children)
             {
                 auto mw = dynamic_cast<const ModuleWidget*>(w);
                 if (mw && mw->module)
