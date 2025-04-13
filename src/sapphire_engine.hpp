@@ -106,7 +106,7 @@ namespace Sapphire
     }
 
 #define SafeArray(ptr, length, index)   \
-    ptr[SafeIndex(length, index, __FILE__, __LINE__)]
+    ((ptr)[SafeIndex(length, index, __FILE__, __LINE__)])
 
     class Slewer
     {

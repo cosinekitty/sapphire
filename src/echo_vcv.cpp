@@ -880,7 +880,7 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    Message inMessage = receiveMessageOrDefault();
+                    const Message inMessage = receiveMessageOrDefault();
 
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
@@ -993,7 +993,7 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    Message message = receiveMessageOrDefault();
+                    const Message message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
 
                     includeNeonModeMenuItem = !receivedMessageFromLeft;
