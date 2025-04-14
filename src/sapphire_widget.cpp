@@ -238,7 +238,7 @@ namespace Sapphire
     }
 
 
-    ModuleWidget* FindWidgetClosestOnRight(ModuleWidget* origin, int hpDistanceLimit)
+    ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit)
     {
         ModuleWidget *closest = nullptr;
         if (origin != nullptr && hpDistanceLimit > 0)
