@@ -305,9 +305,7 @@ namespace Sapphire
                     if (clearBufferRequested)
                         q.loop.clear();
 
-                    if (frozen)
-                        fbk = 1;
-                    else if (c < message.feedback.nchannels)
+                    if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
                     float delayTime;
@@ -323,7 +321,7 @@ namespace Sapphire
 
                     // FIXFIXFIX - add panning here
 
-                    float echo = inAudio.sample[c] + (fbk * memory);
+                    float echo = frozen ? memory : inAudio.sample[c] + (fbk * memory);
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
