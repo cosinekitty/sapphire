@@ -553,5 +553,5 @@ namespace Sapphire
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir);
-    const ModuleWidget* FindModuleClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
+    ModuleWidget* FindWidgetClosestOnRight(ModuleWidget* origin, int hpDistanceLimit);
 }

@@ -412,9 +412,16 @@ namespace Sapphire
                 addSapphireParam(button, "insert_button");
             }
 
-            bool echoWithSmallGapOnRight(const Module* right)
+            Module* echoReceiverWithinRange()
             {
-                // Only works when there is a gap, i.e. no expander, to the right.
+                if (module == nullptr)
+                    return nullptr;
+
+                Module* right = module->rightExpander.module;
+
+                if (IsEchoReceiver(right))
+                    return right;
+
                 if (right == nullptr)
                 {
                     // There is no module immediately to the right.
@@ -423,10 +430,12 @@ namespace Sapphire
                     // we need for the hypothetical EchoTap we are about to insert.
                     const int hpEchoTap = hpDistance(PanelWidth("echotap"));
                     assert(hpEchoTap > 0);
-                    const ModuleWidget* closest = FindModuleClosestOnRight(this, hpEchoTap);
-                    return IsEchoReceiver(closest);
+                    ModuleWidget* closestWidget = FindWidgetClosestOnRight(this, hpEchoTap);
+                    if (closestWidget && IsEchoReceiver(closestWidget->module))
+                        return closestWidget->module;
                 }
-                return false;
+
+                return nullptr;
             }
 
             void insertExpander()
@@ -439,12 +448,8 @@ namespace Sapphire
                 // Otherwise, assume we are at the end of a chain that is not terminated by
                 // an EchoOut, so insert an EchoOut.
 
-                Module* right = module->rightExpander.module;
-
-                Model* model =
-                    (IsEchoReceiver(right) || echoWithSmallGapOnRight(right))
-                    ? modelSapphireEchoTap
-                    : modelSapphireEchoOut;
+                Module* right = echoReceiverWithinRange();
+                Model* model = right ? modelSapphireEchoTap : modelSapphireEchoOut;
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.

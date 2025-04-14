@@ -238,16 +238,16 @@ namespace Sapphire
     }
 
 
-    const ModuleWidget* FindModuleClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit)
+    ModuleWidget* FindWidgetClosestOnRight(ModuleWidget* origin, int hpDistanceLimit)
     {
-        const ModuleWidget *best = nullptr;
+        ModuleWidget *closest = nullptr;
         if (origin != nullptr && hpDistanceLimit > 0)
         {
             const float ox = px2mm(origin->box.pos.x + origin->box.size.x);
             const float oy = px2mm(origin->box.pos.y);
-            for (const Widget* w : APP->scene->rack->getModuleContainer()->children)
+            for (Widget* w : APP->scene->rack->getModuleContainer()->children)
             {
-                auto mw = dynamic_cast<const ModuleWidget*>(w);
+                auto mw = dynamic_cast<ModuleWidget*>(w);
                 if (mw && mw->module)
                 {
                     const float mx = px2mm(mw->box.pos.x);
@@ -258,12 +258,12 @@ namespace Sapphire
                     // Find the leftmost module that is to the right of `origin`.
                     // Must be within hpDistanceLimit HP units to the right.
                     if (row == 0 && col > 0 && col <= hpDistanceLimit)
-                        if (best == nullptr || mx < px2mm(best->box.pos.x))
-                            best = mw;
+                        if (closest == nullptr || mx < px2mm(closest->box.pos.x))
+                            closest = mw;
                 }
             }
         }
-        return best;
+        return closest;
     }
 
 
