@@ -140,14 +140,8 @@ namespace Sapphire
 
             const Message* receiveMessage()
             {
-                // Echo modules do not receive expander messages.
-                if (!IsEcho(this))
-                {
-                    // Look to the left for an Echo or EchoTap module.
-                    const Module* left = leftExpander.module;
-                    if (IsEcho(left) || IsEchoTap(left))
-                        return static_cast<const Message*>(left->rightExpander.consumerMessage);
-                }
+                if (IsEchoReceiver(this) && IsEchoSender(leftExpander.module))
+                    return static_cast<const Message*>(leftExpander.module->rightExpander.consumerMessage);
                 return nullptr;
             }
 
@@ -430,7 +424,7 @@ namespace Sapphire
                     const int hpEchoTap = hpDistance(PanelWidth("echotap"));
                     assert(hpEchoTap > 0);
                     const ModuleWidget* closest = FindModuleClosestOnRight(this, hpEchoTap);
-                    return IsEchoTap(closest) || IsEchoOut(closest);
+                    return IsEchoReceiver(closest);
                 }
                 return false;
             }
@@ -448,13 +442,13 @@ namespace Sapphire
                 Module* right = module->rightExpander.module;
 
                 Model* model =
-                    (IsEchoTap(right) || IsEchoOut(right) || echoWithSmallGapOnRight(right))
+                    (IsEchoReceiver(right) || echoWithSmallGapOnRight(right))
                     ? modelSapphireEchoTap
                     : modelSapphireEchoOut;
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
-                for (Module* node = right; IsEchoTap(node) || IsEchoOut(node); node = node->rightExpander.module)
+                for (Module* node = right; IsEchoReceiver(node); node = node->rightExpander.module)
                 {
                     auto lmod = dynamic_cast<MultiTapModule*>(node);
                     lmod->chainIndex = -1;
@@ -468,7 +462,7 @@ namespace Sapphire
 
             bool isConnectedOnRight() const
             {
-                return module && (IsEchoTap(module->rightExpander.module) || IsEchoOut(module->rightExpander.module));
+                return module && IsEchoReceiver(module->rightExpander.module);
             }
 
             void step() override
@@ -490,12 +484,8 @@ namespace Sapphire
                 if (chainIndex < 1)
                     return;
 
-                if (IsEcho(module))
-                {
-                    const Module* right = module->rightExpander.module;
-                    if (!IsEchoTap(right) && !IsEchoOut(right))
-                        return;
-                }
+                if (IsEcho(module) && !IsEchoReceiver(module->rightExpander.module))
+                    return;
 
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
                 if (font)
@@ -950,7 +940,7 @@ namespace Sapphire
 
                 bool isConnectedOnLeft() const override
                 {
-                    return module && (IsEcho(module->leftExpander.module) || IsEchoTap(module->leftExpander.module));
+                    return module && IsEchoSender(module->leftExpander.module);
                 }
             };
         }
@@ -1070,7 +1060,7 @@ namespace Sapphire
 
                 bool isConnectedOnLeft() const
                 {
-                    return module && (IsEcho(module->leftExpander.module) || IsEchoTap(module->leftExpander.module));
+                    return module && IsEchoSender(module->leftExpander.module);
                 }
 
                 void step() override

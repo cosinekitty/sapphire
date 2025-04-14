@@ -96,6 +96,16 @@ namespace Sapphire
             return IsModelType(module, modelSapphireEchoOut);
         }
 
+        inline bool IsEchoReceiver(const Module* module)
+        {
+            return IsEchoTap(module) || IsEchoOut(module);
+        }
+
+        inline bool IsEchoSender(const Module* module)
+        {
+            return IsEcho(module) || IsEchoTap(module);
+        }
+
         //--------------------------------------------------------------------
         // Widget recognition helper functions.
 
@@ -114,6 +124,10 @@ namespace Sapphire
             return IsModelType(widget, modelSapphireEchoOut);
         }
 
+        inline bool IsEchoReceiver(const ModuleWidget* widget)
+        {
+            return IsEchoTap(widget) || IsEchoOut(widget);
+        }
 
         //--------------------------------------------------------------------
 
