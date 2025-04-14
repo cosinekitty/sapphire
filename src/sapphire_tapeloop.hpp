@@ -6,12 +6,54 @@
 
 namespace Sapphire
 {
-    constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.001;
+    constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.002;
     constexpr float TAPELOOP_MAX_DELAY_SECONDS = 10;
     static_assert(TAPELOOP_MAX_DELAY_SECONDS > TAPELOOP_MIN_DELAY_SECONDS);
 
     constexpr float TAPELOOP_RECORD_VOLTAGE_LIMIT = 100;
     constexpr unsigned TAPELOOP_MIN_SAMPLE_RATE_HZ = 1000;
+
+
+    class TapeDelayMotor
+    {
+    private:
+        // Limit the "motor speed", which is just a mental model of how fast the delay
+        // time (in seconds) is allowed to change (per second). Since we have seconds/second,
+        // we end up with a dimensionless "speed" limit.
+        float maxSpeed = 0.9;
+        float prevDelayTime = -1;
+        LoHiPassFilter<float> filter;
+
+    public:
+        void initialize()
+        {
+            filter.SetCutoffFrequency(5);
+            filter.Reset();
+            prevDelayTime = -1;
+        }
+
+        float process(float requestedDelayTime, float sampleRateHz)
+        {
+            float targetDelayTime = std::clamp(requestedDelayTime, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+            if (prevDelayTime < 0)
+            {
+                prevDelayTime = targetDelayTime;
+                filter.Snap(targetDelayTime);
+                return targetDelayTime;
+            }
+
+            filter.Update(targetDelayTime, sampleRateHz);
+            float rawDelayTime = filter.LoPass();
+            float speed = std::clamp(sampleRateHz * (rawDelayTime - prevDelayTime), -maxSpeed, +maxSpeed);
+            prevDelayTime = std::clamp(
+                prevDelayTime + (speed / sampleRateHz),
+                TAPELOOP_MIN_DELAY_SECONDS,
+                TAPELOOP_MAX_DELAY_SECONDS
+            );
+            return prevDelayTime;
+        }
+    };
+
 
     class TapeLoop
     {
@@ -23,6 +65,7 @@ namespace Sapphire
         std::vector<float> buffer;
         int totalLoopSamples = 0;           // (2*dt) expressed in samples, for wraparound logic
         unsigned recoveryCountdown = 0;
+        TapeDelayMotor tapeDelayMotor;
 
         int getTapeDirection() const
         {
@@ -54,6 +97,7 @@ namespace Sapphire
         void initialize()
         {
             recoveryCountdown = 0;
+            tapeDelayMotor.initialize();
         }
 
         void clear()
@@ -99,7 +143,7 @@ namespace Sapphire
             const int capacity = static_cast<int>(buffer.size());
             assert(capacity >= cushion);
 
-            delayTimeSec = std::clamp(_delayTimeSec, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+            delayTimeSec = tapeDelayMotor.process(_delayTimeSec, _sampleRateHz);
             const int calculated = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
             totalLoopSamples = std::clamp(calculated, cushion, capacity);
             return true;
