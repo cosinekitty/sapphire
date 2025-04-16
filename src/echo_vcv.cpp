@@ -411,11 +411,12 @@ namespace Sapphire
                 // All other channel counts should be left unmodified.
                 if (nc == 2)
                 {
+                    // Use a power law to smoothly transition from A or B dominating,
+                    // but with consistent power sum across both channels.
                     float x = getControlValue(controls.pan, -1, +1);
-                    if (x > 0)
-                        pannedAudio.sample[0] *= (1-x);     // pan right by attenuating the left channel
-                    else
-                        pannedAudio.sample[1] *= (1+x);     // pan left by attenuating the right channel
+                    float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
+                    pannedAudio.sample[0] *= M_SQRT2 * std::cos(theta);
+                    pannedAudio.sample[1] *= M_SQRT2 * std::sin(theta);
                 }
 
                 return pannedAudio;
