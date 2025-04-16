@@ -17,6 +17,17 @@ namespace Sapphire
         struct TimeKnob : time_knob_base_t
         {
             TimeMode* mode = nullptr;     // should point into the module, when the module exists
+            bool* isClockConnected = nullptr;
+
+            TimeMode getMode() const
+            {
+                return mode ? *mode : TimeMode::Seconds;
+            }
+
+            bool isClockCableConnected() const
+            {
+                return isClockConnected && *isClockConnected;
+            }
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
@@ -25,10 +36,7 @@ namespace Sapphire
                 if (layer != 1)
                     return;
 
-                if (mode == nullptr)
-                    return;
-
-                switch (*mode)
+                switch (getMode())
                 {
                 case TimeMode::Seconds:
                 default:
@@ -43,6 +51,8 @@ namespace Sapphire
 
             void drawClockSyncSymbol(NVGcontext* vg)
             {
+                const bool connected = isClockCableConnected();
+
                 float dx = 5.0;
                 float x2 = box.size.x / 2;
                 float x1 = x2 - dx;
@@ -53,14 +63,16 @@ namespace Sapphire
                 float y1 = ym - dy;
                 float y2 = ym + dy;
 
+                const NVGcolor inactiveColor = nvgRGB(0x90, 0x90, 0x90);
+
                 nvgBeginPath(vg);
-                nvgStrokeColor(vg, SCHEME_GREEN);
+                nvgStrokeColor(vg, connected ? SCHEME_CYAN : inactiveColor);
                 nvgMoveTo(vg, x1, y1);
                 nvgLineTo(vg, x1, y2);
                 nvgLineTo(vg, x3, y2);
                 nvgLineTo(vg, x3, y1);
                 nvgLineTo(vg, x1, y1);
-                nvgStrokeWidth(vg, 0.75);
+                nvgStrokeWidth(vg, connected ? 1.5 : 1.0);
                 nvgStroke(vg);
             }
 
@@ -81,6 +93,12 @@ namespace Sapphire
                 ));
             }
         };
+
+        struct TimeKnobParamQuantity : ParamQuantity
+        {
+            std::string getString() override;
+        };
+
 
         using insert_button_base_t = app::SvgSwitch;
         struct InsertButton : insert_button_base_t
@@ -169,11 +187,12 @@ namespace Sapphire
 
         struct LoopModule : MultiTapModule
         {
-            const float L1 = std::log2(0.025);
-            const float L2 = std::log2(10.0);
+            const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
+            const float L2 = std::log2(TAPELOOP_MAX_DELAY_SECONDS);
             bool frozen = false;
             bool reversed = false;
             bool clearBufferRequested = false;
+            bool isClockConnected = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
             EnvelopeFollower env;
@@ -210,6 +229,14 @@ namespace Sapphire
             bool isReversed() const
             {
                 return reversed;
+            }
+
+            bool isActivelyClocked() const
+            {
+                // Actively clocked means both are true:
+                // 1. The user enabled clocking on this tape loop.
+                // 2. There is a cable connected to the CLOCK input port.
+                return (timeMode == TimeMode::ClockSync) && isClockConnected;
             }
 
             bool updateToggleState(GateTriggerReceiver& receiver, int buttonParamId, int inputId, int lightId)
@@ -360,7 +387,7 @@ namespace Sapphire
             void configTimeControls(int paramId, int attenId, int cvInputId)
             {
                 const std::string name = "Delay time";
-                configParam(paramId, L1, L2, -1, name, " sec", 2, 1);
+                configParam<TimeKnobParamQuantity>(paramId, L1, L2, 0, name, "", 2, 1);
                 configAttenCv(attenId, cvInputId, name);
             }
 
@@ -544,7 +571,10 @@ namespace Sapphire
                 TimeKnob* tk = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
                 auto lmod = dynamic_cast<LoopModule*>(module);
                 if (lmod != nullptr)
+                {
                     tk->mode = &(lmod->timeMode);
+                    tk->isClockConnected = &(lmod->isClockConnected);
+                }
                 return tk;
             }
         };
@@ -558,6 +588,16 @@ namespace Sapphire
                 if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
                     loopWidget->insertExpander();
             }
+        }
+
+
+        std::string TimeKnobParamQuantity::getString()
+        {
+            std::string v = ParamQuantity::getDisplayValueString();
+            auto lmod = dynamic_cast<const LoopModule*>(module);
+            if (lmod && lmod->isActivelyClocked())
+                return "CLOCK x " + v;
+            return v + " sec";
         }
 
 
@@ -681,6 +721,7 @@ namespace Sapphire
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.feedback = getFeedbackPoly();
+                    isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
                     outMessage.chainAudio = result.outAudio;
                     outMessage.clockVoltage = result.clockVoltage;
@@ -896,6 +937,7 @@ namespace Sapphire
                     Message outMessage = inMessage;
                     chainIndex = inMessage.chainIndex;
                     frozen = inMessage.frozen;
+                    isClockConnected = inMessage.isClockConnected;
                     includeNeonModeMenuItem = !receivedMessageFromLeft;
                     if (receivedMessageFromLeft)
                         neonMode = inMessage.neonMode;

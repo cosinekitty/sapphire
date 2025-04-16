@@ -6,7 +6,7 @@
 
 namespace Sapphire
 {
-    constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.002;
+    constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.1;
     constexpr float TAPELOOP_MAX_DELAY_SECONDS = 10;
     static_assert(TAPELOOP_MAX_DELAY_SECONDS > TAPELOOP_MIN_DELAY_SECONDS);
 

@@ -75,6 +75,7 @@ namespace Sapphire
             Frame clockVoltage;         // raw voltage read from the CLOCK port
             bool frozen = false;
             bool clear = false;
+            bool isClockConnected = false;
             bool neonMode = false;
         };
 
