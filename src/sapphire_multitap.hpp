@@ -137,6 +137,7 @@ namespace Sapphire
             ControlGroupIds delayTime;
             ControlGroupIds mix;
             ControlGroupIds gain;
+            ControlGroupIds pan;
             int sendLeftOutputId = -1;
             int sendRightOutputId = -1;
             int returnLeftInputId = -1;

@@ -303,15 +303,16 @@ namespace Sapphire
                 result.outAudio.nchannels = nc;
                 result.clockVoltage.nchannels = nc;
 
+                // First pass: read delay line outputs from calculated times into the past.
+                Frame delayLineOutput;
+                delayLineOutput.nchannels = nc;
                 float cvDelayTime = 0;
-                float cvMix = 0;
-                float cvGain = 0;
-                float fbk = 0;
                 float vClock = 0;
                 for (int c = 0; c < nc; ++c)
                 {
-                    float clockSyncTime = -1;
                     ChannelInfo& q = getChannelInfo(c);
+
+                    float clockSyncTime = -1;
                     if (controls.clockInputId < 0)
                         vClock = message.clockVoltage.at(c);
                     else
@@ -332,56 +333,92 @@ namespace Sapphire
                     if (clearBufferRequested)
                         q.loop.clear();
 
-                    if (c < message.feedback.nchannels)
-                        fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
-
                     float delayTime;
                     if (clockSyncTime > 0)
                         delayTime = clockSyncTime;      // FIXFIXFIX - use TIME knob as scalar multiplier
                     else
                         delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+
+                    q.loop.setDelayTime(delayTime, sampleRateHz);
+                    delayLineOutput.at(c) = q.loop.read();
+                }
+
+                // Panning affects all channels at the same time.
+                // Therefore it cannot be a polyphonic control.
+                // We obtain a single panning signal based on the
+                // sum of all polyphonic CV input channels.
+                Frame preMixOutput = frozen ? delayLineOutput : panFrame(delayLineOutput);
+
+                // Second pass: send panned audio back into the feedback mixer.
+                float fbk = 0;
+                float cvMix = 0;
+                float cvGain = 0;
+                for (int c = 0; c < nc; ++c)
+                {
+                    ChannelInfo& q = getChannelInfo(c);
+
+                    if (c < message.feedback.nchannels)
+                        fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
+
                     float mix = controlGroupAmpCv(c, cvMix, controls.mix, 0, 1);
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
-                    q.loop.setDelayTime(delayTime, sampleRateHz);
-                    float memory = q.loop.read();
-
-                    // FIXFIXFIX - add panning here
-
-                    float echo = frozen ? memory : inAudio.sample[c] + (fbk * memory);
+                    float delayLineInput =
+                        frozen
+                        ? delayLineOutput.at(c)
+                        : inAudio.sample[c] + (fbk * preMixOutput.at(c));
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
                     if (c == 0)
-                        sendLeft.setVoltage(echo);
+                        sendLeft.setVoltage(delayLineInput);
                     else if (c == 1)
-                        sendRight.setVoltage(echo);
+                        sendRight.setVoltage(delayLineInput);
 
                     if (returnLeft.isConnected() || returnRight.isConnected())
                     {
                         // When either RETURN input is connected to a cable,
                         // use the audio input from both as a stereo pair to be
-                        // written to the delay line, instead of the raw echo
-                        // we calculated above. Because we wrote the raw stereo echo
+                        // written to the delay line, instead of the raw input
+                        // we calculated above. Because we wrote the raw stereo input
                         // to the SEND ports, the user has the opportunity to
                         // pipe the audio through filters, reverbs, etc., before
                         // being fed back into the delay line via the RETURN ports.
 
                         // FIXFIXFIX - update port input later when we support full polyphonic input option
                         if (c == 0)
-                            echo = returnLeft.getVoltageSum();
+                            delayLineInput = returnLeft.getVoltageSum();
                         else if (c == 1)
-                            echo = returnRight.getVoltageSum();
+                            delayLineInput = returnRight.getVoltageSum();
                         else
-                            echo = 0;
+                            delayLineInput = 0;
                     }
 
-                    q.loop.write(echo, sampleRateHz);
-                    result.outAudio.sample[c] = gain * CubicMix(mix, inAudio.sample[c], echo);
+                    q.loop.write(delayLineInput, sampleRateHz);
+                    result.outAudio.at(c) = gain * CubicMix(mix, inAudio.at(c), preMixOutput.at(c));
                 }
 
                 clearBufferRequested = false;
                 return result;
+            }
+
+            Frame panFrame(const Frame& rawAudio)
+            {
+                const int nc = rawAudio.safeChannelCount();
+                Frame pannedAudio = rawAudio;
+
+                // We currently support panning on stereo input only.
+                // All other channel counts should be left unmodified.
+                if (nc == 2)
+                {
+                    float x = getControlValue(controls.pan, -1, +1);
+                    if (x > 0)
+                        pannedAudio.sample[0] *= (1-x);     // pan right by attenuating the left channel
+                    else
+                        pannedAudio.sample[1] *= (1+x);     // pan left by attenuating the right channel
+                }
+
+                return pannedAudio;
             }
 
             void configTimeControls(int paramId, int attenId, int cvInputId)
@@ -705,6 +742,7 @@ namespace Sapphire
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;
@@ -923,6 +961,7 @@ namespace Sapphire
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;

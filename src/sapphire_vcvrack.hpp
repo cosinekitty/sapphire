@@ -731,6 +731,11 @@ namespace Sapphire
             return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
+        float getControlValue(const ControlGroupIds& ids, float minValue, float maxValue)
+        {
+            return getControlValue(ids.paramId, ids.attenId, ids.cvInputId, minValue, maxValue);
+        }
+
         float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
             float cv = inputs.at(inputId).getVoltageSum();
