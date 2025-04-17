@@ -550,7 +550,7 @@ namespace Sapphire
                 }
             }
 
-            void drawChainIndex(NVGcontext* vg, int chainIndex)
+            void drawChainIndex(NVGcontext* vg, int chainIndex, NVGcolor textColor)
             {
                 if (module == nullptr)
                     return;
@@ -565,7 +565,6 @@ namespace Sapphire
                 if (font)
                 {
                     const float yCenter_mm = 10.0;
-                    const NVGcolor textColor = nvgRGB(0x66, 0x06, 0x5c);
 
                     float bounds[4]{};  // [xmin, ymin, xmax, ymax]
                     char text[20];
@@ -595,7 +594,8 @@ namespace Sapphire
                 auto lmod = dynamic_cast<const LoopModule*>(module);
                 if (lmod)
                 {
-                    drawChainIndex(args.vg, lmod->chainIndex);
+                    if (!lmod->neonMode)
+                        drawChainIndex(args.vg, lmod->chainIndex, nvgRGB(0x66, 0x06, 0x5c));
                 }
             }
 
@@ -605,8 +605,14 @@ namespace Sapphire
                 if (layer == 1)
                 {
                     auto lmod = dynamic_cast<const LoopModule*>(module);
-                    if (lmod && lmod->unhappy)
-                        splash.begin(0xb0, 0x10, 0x00);
+                    if (lmod)
+                    {
+                        if (lmod->neonMode)
+                            drawChainIndex(args.vg, lmod->chainIndex, neonColor);
+
+                        if (lmod->unhappy)
+                            splash.begin(0xb0, 0x10, 0x00);
+                    }
                 }
             }
 

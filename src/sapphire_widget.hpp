@@ -275,6 +275,7 @@ namespace Sapphire
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
+        const static NVGcolor neonColor;
         SplashState splash;
 
         SvgOverlay* outputStereoLabelLR = nullptr;

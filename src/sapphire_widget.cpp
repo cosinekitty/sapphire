@@ -94,12 +94,14 @@ namespace Sapphire
         }
     }
 
+    const NVGcolor SapphireWidget::neonColor = nvgRGB(0xd4, 0x8f, 0xff);
+
 
     static void DrawGlowingBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
     {
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
-        const NVGcolor glowColor = nvgRGB(0xd4, 0x8f, 0xff);
+        const NVGcolor glowColor = SapphireWidget::neonColor;
 
         // Top border
         DrawBorder(vg, glowColor, 0, 0, box.size.x, margin);
