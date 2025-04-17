@@ -34,6 +34,7 @@
     {
       "slug": "EchoOut",
       "name": "Echo Out",
+      "hidden": true,
       "description": "Expander that mixes output from a chain of Echo modules.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
       "tags": [
@@ -44,6 +45,7 @@
     {
       "slug": "EchoTap",
       "name": "Echo Tap",
+      "hidden": true,
       "description": "Expander that adds another link in a chain of Echo modules.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
       "tags": [
