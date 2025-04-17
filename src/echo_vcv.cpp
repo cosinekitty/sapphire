@@ -830,6 +830,7 @@ namespace Sapphire
             struct EchoWidget : LoopWidget
             {
                 EchoModule* echoModule{};
+                int creationCountdown = 8;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget("echo", asset::plugin(pluginInstance, "res/echo.svg"))
@@ -888,6 +889,23 @@ namespace Sapphire
                 bool isConnectedOnLeft() const override
                 {
                     return false;
+                }
+
+                void step() override
+                {
+                    LoopWidget::step();
+
+                    // Automatically add an EchoOut expander when we first insert Echo.
+                    // But we have to wait more than one step call, because otherwise
+                    // it screws up the undo/redo history stack.
+
+                    if (module && creationCountdown > 0)
+                    {
+                        --creationCountdown;
+                        if (creationCountdown == 0)
+                            if (!IsEchoReceiver(module->rightExpander.module))
+                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
+                    }
                 }
             };
         }
