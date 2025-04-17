@@ -304,11 +304,15 @@ namespace Sapphire
                 result.outAudio.nchannels = nc;
                 result.clockVoltage.nchannels = nc;
 
-                // First pass: read delay line outputs from calculated times into the past.
+                Frame pannedAudio = panFrame(inAudio);
+
                 Frame delayLineOutput;
                 delayLineOutput.nchannels = nc;
                 float cvDelayTime = 0;
                 float vClock = 0;
+                float fbk = 0;
+                float cvGain = 0;
+                int unhappyCount = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = getChannelInfo(c);
@@ -342,20 +346,6 @@ namespace Sapphire
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     delayLineOutput.at(c) = q.loop.read();
-                }
-                clearBufferRequested = false;
-
-                // Panning applies across all channels, so we have to wait
-                // until all channels of delayLineOutput are finished.
-                Frame pannedAudio = panFrame(delayLineOutput);
-
-                // Second pass: send delayed audio back into the feedback mixer.
-                float fbk = 0;
-                float cvGain = 0;
-                int unhappyCount = 0;
-                for (int c = 0; c < nc; ++c)
-                {
-                    ChannelInfo& q = getChannelInfo(c);
 
                     if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
@@ -365,7 +355,7 @@ namespace Sapphire
                     float delayLineInput =
                         frozen
                         ? delayLineOutput.at(c)
-                        : inAudio.sample[c] + (fbk * delayLineOutput.at(c));
+                        : pannedAudio.sample[c] + (fbk * delayLineOutput.at(c));
 
                     // Always write to send ports.
                     if (c == 0)
@@ -393,8 +383,9 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.outAudio.at(c) = gain * pannedAudio.at(c);
+                    result.outAudio.at(c) = gain * delayLineOutput.at(c);
                 }
+                clearBufferRequested = false;
                 unhappy = (unhappyCount > 0);
                 return result;
             }
