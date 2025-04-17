@@ -769,6 +769,7 @@ namespace Sapphire
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
                     outMessage.chainAudio = result.outAudio;
+                    outMessage.summedAudio = result.outAudio;
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     outMessage.inputRouting = tapInputRouting;
@@ -1056,6 +1057,7 @@ namespace Sapphire
 
                     TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage);
                     outMessage.chainAudio = result.outAudio;
+                    outMessage.summedAudio += result.outAudio;
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
@@ -1182,7 +1184,7 @@ namespace Sapphire
                         audio.sample[c] = gain * LinearMix(
                             mix,
                             message.originalAudio.sample[c],
-                            message.chainAudio.sample[c]
+                            message.summedAudio.sample[c]
                         );
                     }
 

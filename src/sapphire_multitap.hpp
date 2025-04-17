@@ -34,6 +34,17 @@ namespace Sapphire
                     throw std::out_of_range("invalid channel index in Frame (const)");
                 return sample[c];
             }
+
+            Frame& operator += (const Frame& other)
+            {
+                nchannels = VcvSafeChannelCount(std::max(nchannels, other.nchannels));
+
+                const int nc = other.safeChannelCount();
+                for (int c = 0; c < nc; ++c)
+                    sample[c] += other.sample[c];
+
+                return *this;
+            }
         };
 
         inline Frame operator+ (const Frame& a, const Frame& b)
@@ -75,7 +86,8 @@ namespace Sapphire
         {
             int chainIndex = -1;
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
-            Frame originalAudio;        // audio frame from the input module (for MIX)
+            Frame originalAudio;        // audio frame from the input module (for final output mix)
+            Frame summedAudio;          // the sum of outputs from all taps to the left (for final output mix)
             Frame feedback;             // polyphonic modulation for the feedback parameter
             Frame clockVoltage;         // raw voltage read from the CLOCK port
             bool frozen = false;
