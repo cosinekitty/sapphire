@@ -6,8 +6,7 @@ namespace Sapphire
     {
         struct LoopWidget;
 
-        enum class
-        TimeMode
+        enum class TimeMode
         {
             Seconds,
             ClockSync,
@@ -337,19 +336,20 @@ namespace Sapphire
 
                     float delayTime;
                     if (clockSyncTime > 0)
-                        delayTime = clockSyncTime;      // FIXFIXFIX - use TIME knob as scalar multiplier
+                        delayTime = clockSyncTime;
                     else
                         delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     delayLineOutput.at(c) = q.loop.read();
                 }
+                clearBufferRequested = false;
 
                 // Panning applies across all channels, so we have to wait
                 // until all channels of delayLineOutput are finished.
                 Frame pannedAudio = panFrame(delayLineOutput);
 
-                // Second pass: send panned audio back into the feedback mixer.
+                // Second pass: send delayed audio back into the feedback mixer.
                 float fbk = 0;
                 float cvGain = 0;
                 int unhappyCount = 0;
@@ -368,7 +368,6 @@ namespace Sapphire
                         : inAudio.sample[c] + (fbk * delayLineOutput.at(c));
 
                     // Always write to send ports.
-                    // FIXFIXFIX - update later when we support full polyphonic output option on left channels
                     if (c == 0)
                         sendLeft.setVoltage(delayLineInput);
                     else if (c == 1)
@@ -383,8 +382,6 @@ namespace Sapphire
                         // to the SEND ports, the user has the opportunity to
                         // pipe the audio through filters, reverbs, etc., before
                         // being fed back into the delay line via the RETURN ports.
-
-                        // FIXFIXFIX - update port input later when we support full polyphonic input option
                         if (c == 0)
                             delayLineInput = returnLeft.getVoltageSum();
                         else if (c == 1)
@@ -398,9 +395,7 @@ namespace Sapphire
 
                     result.outAudio.at(c) = gain * pannedAudio.at(c);
                 }
-
                 unhappy = (unhappyCount > 0);
-                clearBufferRequested = false;
                 return result;
             }
 
@@ -713,6 +708,7 @@ namespace Sapphire
                 // Global controls
                 GateTriggerReceiver freezeReceiver;
                 AnimatedTriggerReceiver clearReceiver;
+                TapInputRouting tapInputRouting = TapInputRouting::Serial;
 
                 EchoModule()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -775,8 +771,24 @@ namespace Sapphire
                     outMessage.chainAudio = result.outAudio;
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
+                    outMessage.inputRouting = tapInputRouting;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
+                }
+
+                json_t* dataToJson() override
+                {
+                    json_t* root = LoopModule::dataToJson();
+                    json_object_set_new(root, "tapInputRouting", json_integer(static_cast<int>(tapInputRouting)));
+                    return root;
+                }
+
+                void dataFromJson(json_t* root) override
+                {
+                    LoopModule::dataFromJson(root);
+                    json_t* jsRouting = json_object_get(root, "tapInputRouting");
+                    if (json_is_integer(jsRouting))
+                        tapInputRouting = static_cast<TapInputRouting>(json_integer_value(jsRouting));
                 }
 
                 Frame getFeedbackPoly()
@@ -907,6 +919,24 @@ namespace Sapphire
                                 AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
                     }
                 }
+
+                void appendContextMenu(Menu* menu) override
+                {
+                    LoopWidget::appendContextMenu(menu);
+                    if (echoModule != nullptr)
+                    {
+                        menu->addChild(new MenuSeparator);
+                        menu->addChild(createIndexSubmenuItem(
+                            "Tap input routing",
+                            {
+                                "Serial",
+                                "Parallel"
+                            },
+                            [=](){ return static_cast<size_t>(echoModule->tapInputRouting); },
+                            [=](size_t index){ echoModule->tapInputRouting = static_cast<TapInputRouting>(index); }
+                        ));
+                    }
+                }
             };
         }
 
@@ -1010,7 +1040,21 @@ namespace Sapphire
                     reversed = updateReverseState();
                     clearBufferRequested = inMessage.clear;
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
-                    TapeLoopResult result = updateTapeLoops(inMessage.chainAudio, args.sampleRate, outMessage);
+
+                    Frame tapInputAudio;
+                    switch (inMessage.inputRouting)
+                    {
+                    case TapInputRouting::Serial:
+                    default:
+                        tapInputAudio = inMessage.chainAudio;
+                        break;
+
+                    case TapInputRouting::Parallel:
+                        tapInputAudio = inMessage.originalAudio;
+                        break;
+                    }
+
+                    TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage);
                     outMessage.chainAudio = result.outAudio;
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);

@@ -65,6 +65,11 @@ namespace Sapphire
             }
         };
 
+        enum class TapInputRouting
+        {
+            Serial,
+            Parallel,
+        };
 
         struct Message
         {
@@ -77,6 +82,7 @@ namespace Sapphire
             bool clear = false;
             bool isClockConnected = false;
             bool neonMode = false;
+            TapInputRouting inputRouting = TapInputRouting::Serial;
         };
 
         //--------------------------------------------------------------------
