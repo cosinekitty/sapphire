@@ -349,11 +349,10 @@ namespace Sapphire
                 // Therefore it cannot be a polyphonic control.
                 // We obtain a single panning signal based on the
                 // sum of all polyphonic CV input channels.
-                Frame preMixOutput = frozen ? delayLineOutput : panFrame(delayLineOutput);
+                Frame wetAudio = frozen ? delayLineOutput : panFrame(delayLineOutput);
 
                 // Second pass: send panned audio back into the feedback mixer.
                 float fbk = 0;
-                float cvMix = 0;
                 float cvGain = 0;
                 int unhappyCount = 0;
                 for (int c = 0; c < nc; ++c)
@@ -363,13 +362,12 @@ namespace Sapphire
                     if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
-                    float mix = controlGroupAmpCv(c, cvMix, controls.mix, 0, 1);
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
                     float delayLineInput =
                         frozen
                         ? delayLineOutput.at(c)
-                        : inAudio.sample[c] + (fbk * preMixOutput.at(c));
+                        : inAudio.sample[c] + (fbk * wetAudio.at(c));
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
@@ -400,7 +398,7 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.outAudio.at(c) = gain * LinearMix(mix, inAudio.at(c), preMixOutput.at(c));
+                    result.outAudio.at(c) = gain * wetAudio.at(c);
                 }
 
                 unhappy = (unhappyCount > 0);
@@ -446,13 +444,6 @@ namespace Sapphire
             {
                 const std::string name = "Panning";
                 configParam(paramId, -1, +1, 0, name, "%", 0, 100);
-                configAttenCv(attenId, cvInputId, name);
-            }
-
-            void configMixControls(int paramId, int attenId, int cvInputId)
-            {
-                const std::string name = "Mix";
-                configParam(paramId, 0, 1, 1, name, "%", 0, 100);
                 configAttenCv(attenId, cvInputId, name);
             }
 
@@ -673,8 +664,8 @@ namespace Sapphire
                 FEEDBACK_ATTEN,
                 PAN_PARAM,
                 PAN_ATTEN,
-                MIX_PARAM,
-                MIX_ATTEN,
+                OBSOLETE_MIX_PARAM,
+                OBSOLETE_MIX_ATTEN,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -691,7 +682,7 @@ namespace Sapphire
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
                 PAN_CV_INPUT,
-                MIX_CV_INPUT,
+                OBSOLETE_MIX_CV_INPUT,
                 GAIN_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
@@ -739,7 +730,6 @@ namespace Sapphire
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
                     configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze");
@@ -764,7 +754,6 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
@@ -866,7 +855,6 @@ namespace Sapphire
 
                     addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
@@ -915,8 +903,8 @@ namespace Sapphire
                 TIME_ATTEN,
                 PAN_PARAM,
                 PAN_ATTEN,
-                MIX_PARAM,
-                MIX_ATTEN,
+                OBSOLETE_MIX_PARAM,
+                OBSOLETE_MIX_ATTEN,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -928,7 +916,7 @@ namespace Sapphire
             {
                 TIME_CV_INPUT,
                 PAN_CV_INPUT,
-                MIX_CV_INPUT,
+                OBSOLETE_MIX_CV_INPUT,
                 GAIN_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
@@ -964,7 +952,6 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    configMixControls(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
@@ -984,7 +971,6 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    controls.mix = ControlGroupIds(MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
@@ -1040,7 +1026,6 @@ namespace Sapphire
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    addSapphireFlatControlGroup("mix", MIX_PARAM, MIX_ATTEN, MIX_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
                     addSapphireOutput(ENV_OUTPUT, "env_output");

@@ -2053,8 +2053,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
     yTimeControl = yLoopFence.value(1)
-    yPanControl = yLoopFence.value(2)
-    yMixControl = yLoopFence.value(3)
+    yPanControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
@@ -2092,9 +2091,6 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddFlatControlGroup(pl, controls, xControlCenter, yMixControl, 'mix')
-        pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
         pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
@@ -2125,8 +2121,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
     yTimeControl = yLoopFence.value(1)
-    yPanControl = yLoopFence.value(2)
-    yMixControl = yLoopFence.value(3)
+    yPanControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
@@ -2151,9 +2146,6 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
-        AddFlatControlGroup(pl, controls, xControlCenter, yMixControl, 'mix')
-        pl.append(CenteredControlTextPath(font, 'MIX', xControlCenter, yMixControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
         pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
