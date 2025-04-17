@@ -58,6 +58,11 @@ namespace Sapphire
         return k*dry + (1-k)*wet;
     }
 
+    inline float LinearMix(float mix, float dry, float wet)
+    {
+        return (1-mix)*dry + mix*wet;
+    }
+
     template <typename real_t>
     real_t BicubicLimiter(real_t x, real_t yLimit)
     {

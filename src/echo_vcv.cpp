@@ -400,7 +400,7 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.outAudio.at(c) = gain * CubicMix(mix, inAudio.at(c), preMixOutput.at(c));
+                    result.outAudio.at(c) = gain * LinearMix(mix, inAudio.at(c), preMixOutput.at(c));
                 }
 
                 unhappy = (unhappyCount > 0);
@@ -1134,7 +1134,7 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
 
-                        audio.sample[c] = gain * CubicMix(
+                        audio.sample[c] = gain * LinearMix(
                             mix,
                             message.originalAudio.sample[c],
                             message.chainAudio.sample[c]
