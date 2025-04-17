@@ -345,11 +345,9 @@ namespace Sapphire
                     delayLineOutput.at(c) = q.loop.read();
                 }
 
-                // Panning affects all channels at the same time.
-                // Therefore it cannot be a polyphonic control.
-                // We obtain a single panning signal based on the
-                // sum of all polyphonic CV input channels.
-                Frame wetAudio = frozen ? delayLineOutput : panFrame(delayLineOutput);
+                // Panning applies across all channels, so we have to wait
+                // until all channels of delayLineOutput are finished.
+                Frame pannedAudio = panFrame(delayLineOutput);
 
                 // Second pass: send panned audio back into the feedback mixer.
                 float fbk = 0;
@@ -367,7 +365,7 @@ namespace Sapphire
                     float delayLineInput =
                         frozen
                         ? delayLineOutput.at(c)
-                        : inAudio.sample[c] + (fbk * wetAudio.at(c));
+                        : inAudio.sample[c] + (fbk * delayLineOutput.at(c));
 
                     // Always write to send ports.
                     // FIXFIXFIX - update later when we support full polyphonic output option on left channels
@@ -398,7 +396,7 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.outAudio.at(c) = gain * wetAudio.at(c);
+                    result.outAudio.at(c) = gain * pannedAudio.at(c);
                 }
 
                 unhappy = (unhappyCount > 0);
