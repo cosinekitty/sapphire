@@ -189,6 +189,7 @@ namespace Sapphire
         {
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
             const float L2 = std::log2(TAPELOOP_MAX_DELAY_SECONDS);
+            bool unhappy = false;
             bool frozen = false;
             bool reversed = false;
             bool clearBufferRequested = false;
@@ -213,6 +214,7 @@ namespace Sapphire
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
                 clearBufferRequested = true;
+                unhappy = false;
             }
 
             void initialize() override
@@ -353,6 +355,7 @@ namespace Sapphire
                 float fbk = 0;
                 float cvMix = 0;
                 float cvGain = 0;
+                int unhappyCount = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = getChannelInfo(c);
@@ -394,10 +397,13 @@ namespace Sapphire
                             delayLineInput = 0;
                     }
 
-                    q.loop.write(delayLineInput, sampleRateHz);
+                    if (!q.loop.write(delayLineInput, sampleRateHz))
+                        ++unhappyCount;
+
                     result.outAudio.at(c) = gain * CubicMix(mix, inAudio.at(c), preMixOutput.at(c));
                 }
 
+                unhappy = (unhappyCount > 0);
                 clearBufferRequested = false;
                 return result;
             }
@@ -587,9 +593,20 @@ namespace Sapphire
                 SapphireWidget::draw(args);
 
                 auto lmod = dynamic_cast<const LoopModule*>(module);
-                if (lmod != nullptr)
+                if (lmod)
                 {
                     drawChainIndex(args.vg, lmod->chainIndex);
+                }
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                SapphireWidget::drawLayer(args, layer);
+                if (layer == 1)
+                {
+                    auto lmod = dynamic_cast<const LoopModule*>(module);
+                    if (lmod && lmod->unhappy)
+                        splash.begin(0xb0, 0x10, 0x00);
                 }
             }
 
@@ -825,6 +842,7 @@ namespace Sapphire
                     : LoopWidget("echo", asset::plugin(pluginInstance, "res/echo.svg"))
                     , echoModule(module)
                 {
+                    splash.x1 = 6 * HP_MM;
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
 

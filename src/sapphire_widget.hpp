@@ -233,9 +233,14 @@ namespace Sapphire
         Stopwatch stopwatch;
         double durationSeconds = 0;
         double emphasis = 0;
+        int rgb[3]{};
+        float x1 = 0;
 
-        void begin(double _durationSeconds = 0.25, double _emphasis = 0.5)
+        void begin(int red, int green, int blue, double _durationSeconds = 0.25, double _emphasis = 0.5)
         {
+            rgb[0] = red;
+            rgb[1] = green;
+            rgb[2] = blue;
             stopwatch.restart();
             durationSeconds = std::clamp<double>(_durationSeconds, 0.01, 10.0);
             emphasis = std::clamp<double>(_emphasis, 0, 1);
@@ -511,7 +516,7 @@ namespace Sapphire
             return sapphireModule->inputStereoMode;
         }
 
-        void drawSplash(NVGcontext* vg);
+        void drawSplash(NVGcontext* vg, float x1);
         void drawLayer(const DrawArgs& args, int layer) override;
 
         void step() override

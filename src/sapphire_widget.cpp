@@ -23,7 +23,7 @@ namespace Sapphire
         }
     }
 
-    void SapphireWidget::drawSplash(NVGcontext* vg)
+    void SapphireWidget::drawSplash(NVGcontext* vg, float x1)
     {
         if (!splash.active)
             return;
@@ -41,9 +41,9 @@ namespace Sapphire
             if (opacity > 0)
             {
                 // Draw a box over the whole panel with gradually decreasing opacity.
-                NVGcolor color = nvgRGBA(0xa5, 0x1f, 0xde, opacity);
+                NVGcolor color = nvgRGBA(splash.rgb[0], splash.rgb[1], splash.rgb[2], opacity);
                 nvgBeginPath(vg);
-                nvgRect(vg, 0, 0, box.size.x, box.size.y);
+                nvgRect(vg, mm2px(x1), 0, box.size.x - mm2px(x1), box.size.y);
                 nvgFillColor(vg, color);
                 nvgFill(vg);
             }
@@ -135,7 +135,7 @@ namespace Sapphire
         ModuleWidget::drawLayer(args, layer);
         if (layer == 1)
         {
-            drawSplash(args.vg);
+            drawSplash(args.vg, splash.x1);
             if (isNeonModeActive())
                 DrawGlowingBorders(args.vg, box, isLeftBorderHidden(), isRightBorderHidden());
         }
@@ -316,7 +316,7 @@ namespace Sapphire
         APP->history->push(new AddExpanderAction(model, sapphireWidget, movedPanels));
 
         // Animate the first few frames of the new panel, like a splash screen.
-        sapphireWidget->splash.begin();
+        sapphireWidget->splash.begin(0xa5, 0x1f, 0xde);
 
         return expanderModule;
     }

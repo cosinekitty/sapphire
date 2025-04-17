@@ -106,6 +106,11 @@ namespace Sapphire
                 x = 0;
         }
 
+        bool isRecoveringFromOverload() const
+        {
+            return recoveryCountdown > 0;
+        }
+
         static bool IsValidSampleRate(float sr)
         {
             return std::isfinite(sr) && (sr >= TAPELOOP_MIN_SAMPLE_RATE_HZ);
@@ -163,17 +168,7 @@ namespace Sapphire
             return read(delayTimeSec);
         }
 
-        void showRecorderError()
-        {
-            // FIXFIXFIX - light up some kind of error on the display
-        }
-
-        void hideRecorderError()
-        {
-            // FIXFIXFIX - clear the display of the error indicator, if it is active.
-        }
-
-        void write(float sample, float sampleRateHz)
+        bool write(float sample, float sampleRateHz)
         {
             // Protect the tape loop from NAN/infinite/crazy voltages.
             float safe = 0;
@@ -183,20 +178,20 @@ namespace Sapphire
             }
             else if (std::isfinite(sample) && std::abs(sample) <= TAPELOOP_RECORD_VOLTAGE_LIMIT)
             {
-                hideRecorderError();
                 safe = sample;
             }
             else
             {
-                showRecorderError();
+                clear();
                 if (IsValidSampleRate(sampleRateHz))
-                    recoveryCountdown = static_cast<unsigned>(sampleRateHz / 4);
+                    recoveryCountdown = static_cast<unsigned>(sampleRateHz);
                 else
-                    recoveryCountdown = TAPELOOP_MIN_SAMPLE_RATE_HZ / 4;
+                    recoveryCountdown = 48000;
             }
 
             buffer.at(recordIndex) = safe;
             recordIndex = wrapIndex(recordIndex + getTapeDirection());
+            return recoveryCountdown == 0;
         }
 
         bool isReversed() const
