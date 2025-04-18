@@ -648,8 +648,8 @@ namespace Sapphire
                 FEEDBACK_ATTEN,
                 PAN_PARAM,
                 PAN_ATTEN,
-                OBSOLETE_MIX_PARAM,
-                OBSOLETE_MIX_ATTEN,
+                DC_REJECT_PARAM,
+                _OBSOLETE_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -666,7 +666,7 @@ namespace Sapphire
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
                 PAN_CV_INPUT,
-                OBSOLETE_MIX_CV_INPUT,
+                _OBSOLETE_INPUT,
                 GAIN_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
@@ -701,6 +701,9 @@ namespace Sapphire
                 AnimatedTriggerReceiver clearReceiver;
                 TapInputRouting tapInputRouting = TapInputRouting::Serial;
 
+                using dc_reject_t = StagedFilter<float, 3>;
+                dc_reject_t inputFilter[PORT_MAX_CHANNELS];
+
                 EchoModule()
                     : LoopModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -721,6 +724,7 @@ namespace Sapphire
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear");
                     configInput(CLOCK_INPUT, "Clock");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
+                    addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
                 }
 
@@ -728,6 +732,7 @@ namespace Sapphire
                 {
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
+                    dcRejectQuantity->initialize();
                 }
 
                 void initialize() override
@@ -755,7 +760,7 @@ namespace Sapphire
                     reversed = updateReverseState();
                     clearBufferRequested = outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
-                    outMessage.originalAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    outMessage.originalAudio = readOriginalAudio(args.sampleRate);
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
@@ -766,6 +771,18 @@ namespace Sapphire
                     outMessage.inputRouting = tapInputRouting;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
+                }
+
+                Frame readOriginalAudio(float sampleRateHz)
+                {
+                    Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    const int nc = audio.safeChannelCount();
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        inputFilter[c].SetCutoffFrequency(dcRejectQuantity->value);
+                        audio.sample[c] = inputFilter[c].UpdateHiPass(audio.sample[c], sampleRateHz);
+                    }
+                    return audio;
                 }
 
                 json_t* dataToJson() override
@@ -785,7 +802,10 @@ namespace Sapphire
 
                 Frame getFeedbackPoly()
                 {
-                    const float maxFeedbackRatio = 0.97;
+                    // We don't actually allow 100% feedback because it
+                    // is completely unstable and will most often over-volt the record head.
+                    // So scale to maxFeedbackRatio as the true feedback ratio.
+                    const float maxFeedbackRatio = 0.9;
                     Frame feedback;
                     Input& cvInput = inputs.at(FEEDBACK_CV_INPUT);
                     const int nc = VcvSafeChannelCount(cvInput.getChannels());

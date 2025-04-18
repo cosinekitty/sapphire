@@ -359,9 +359,9 @@ namespace Sapphire
 
         bool isChangedOneShot()
         {
-            const bool isChanged = changed;
+            const bool wasChanged = changed;
             changed = false;
-            return isChanged;
+            return wasChanged;
         }
     };
 

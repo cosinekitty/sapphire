@@ -179,7 +179,6 @@ namespace Sapphire
                 engine.initialize();
                 SetMinimumEnergy(engine);
                 dcRejectQuantity->initialize();
-                engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;

@@ -190,8 +190,6 @@ namespace Sapphire
                 agcLevelQuantity->initialize();
                 dcRejectQuantity->initialize();
                 engine.initialize();
-                engine.setDcRejectFrequency(dcRejectQuantity->value);
-                dcRejectQuantity->changed = false;
                 reflectAgcSlider();
                 isPowerGateActive = true;
                 isQuiet = false;
@@ -317,13 +315,8 @@ namespace Sapphire
 
                 isQuiet = false;
 
-                // If the user has changed the DC cutoff via the right-click menu,
-                // update the output filter corner frequencies.
-                if (dcRejectQuantity->changed)
-                {
+                if (dcRejectQuantity->isChangedOneShot())
                     engine.setDcRejectFrequency(dcRejectQuantity->value);
-                    dcRejectQuantity->changed = false;
-                }
 
                 reflectAgcSlider();
 
