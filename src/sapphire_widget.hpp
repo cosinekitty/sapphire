@@ -305,6 +305,7 @@ namespace Sapphire
             if (sm != nullptr)
             {
                 menu->addChild(new MenuSeparator);
+
                 if (sm->includeNeonModeMenuItem)
                     menu->addChild(createBoolPtrMenuItem<bool>("Neon borders (this module only)", "", &(sm->neonMode)));
 
@@ -313,6 +314,9 @@ namespace Sapphire
                     "",
                     []{ ToggleAllNeonBorders(); }
                 ));
+
+                if (sm->dcRejectQuantity)
+                    menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
             }
         }
 

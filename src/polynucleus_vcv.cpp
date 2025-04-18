@@ -81,7 +81,6 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             bool resetTricorder{};
-            DcRejectQuantity *dcRejectQuantity{};
 
             PolynucleusModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -111,16 +110,6 @@ namespace Sapphire
                 configParam(SPIN_ATTEN_PARAM, -1, 1, 0, "Aether rotation attenuverter", "%", 0, 100);
 #endif
 
-                dcRejectQuantity = configParam<DcRejectQuantity>(
-                    DC_REJECT_PARAM,
-                    DC_REJECT_MIN_FREQ,
-                    DC_REJECT_MAX_FREQ,
-                    DefaultCornerFrequencyHz,
-                    "DC reject cutoff",
-                    " Hz"
-                );
-                dcRejectQuantity->setValue(DefaultCornerFrequencyHz);
-
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
                 configInput(MAGNET_CV_INPUT, "Magnetic coupling CV");
@@ -138,6 +127,7 @@ namespace Sapphire
                 configButton(CLEAR_BUTTON_PARAM, "Brings the simulation back to its quiet initial state");
 
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addDcRejectQuantity(DC_REJECT_PARAM, DefaultCornerFrequencyHz);
 
                 initialize();
             }
@@ -152,7 +142,6 @@ namespace Sapphire
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
-                dcRejectQuantity->save(root, "dcRejectFrequency");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
@@ -168,7 +157,6 @@ namespace Sapphire
                 enableLimiterWarning = !json_is_false(warningFlag);
 
                 agcLevelQuantity->load(root, "agcLevel");
-                dcRejectQuantity->load(root, "dcRejectFrequency");
 
                 resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
@@ -190,9 +178,8 @@ namespace Sapphire
 
                 engine.initialize();
                 SetMinimumEnergy(engine);
-                dcRejectQuantity->value = DefaultCornerFrequencyHz;
-                dcRejectQuantity->changed = false;
-                engine.setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
+                dcRejectQuantity->initialize();
+                engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
@@ -321,11 +308,8 @@ namespace Sapphire
                 engine.setAetherSpin(spin);
                 engine.setAetherVisc(visc);
 
-                if (dcRejectQuantity->changed)
-                {
+                if (dcRejectQuantity->isChangedOneShot())
                     engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
-                    dcRejectQuantity->changed = false;
-                }
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
@@ -484,9 +468,6 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (polynucleusModule != nullptr)
                 {
-                    // Add slider to adjust the DC reject filter's corner frequency.
-                    menu->addChild(new DcRejectSlider(polynucleusModule->dcRejectQuantity));
-
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(polynucleusModule->agcLevelQuantity));
 

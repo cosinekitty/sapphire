@@ -354,6 +354,14 @@ namespace Sapphire
         {
             float x = getDefaultValue();
             setValue(x);
+            changed = true;     // force initial update of this quantity's consumer
+        }
+
+        bool isChangedOneShot()
+        {
+            const bool isChanged = changed;
+            changed = false;
+            return isChanged;
         }
     };
 
@@ -677,6 +685,7 @@ namespace Sapphire
         bool hideRightBorder = false;
         bool neonMode = false;
         bool includeNeonModeMenuItem = true;
+        DcRejectQuantity *dcRejectQuantity = nullptr;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -861,6 +870,9 @@ namespace Sapphire
 
             json_object_set_new(root, "neonMode", json_boolean(neonMode));
 
+            if (dcRejectQuantity)
+                dcRejectQuantity->save(root, "dcRejectFrequency");
+
             return root;
         }
 
@@ -935,6 +947,9 @@ namespace Sapphire
             json_t* jsNeonMode = json_object_get(root, "neonMode");
             if (json_is_boolean(jsNeonMode))
                 neonMode = json_boolean_value(jsNeonMode);
+
+            if (dcRejectQuantity)
+                dcRejectQuantity->load(root, "dcRejectFrequency");
         }
 
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
@@ -1169,6 +1184,23 @@ namespace Sapphire
         static int limiterColorComponent(double scale, int lo, int hi)
         {
             return std::clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
+        }
+
+        void addDcRejectQuantity(int paramId, float defaultFrequencyHz)
+        {
+            assert(dcRejectQuantity == nullptr);    // do not initialize more than once
+
+            dcRejectQuantity = configParam<DcRejectQuantity>(
+                paramId,
+                DC_REJECT_MIN_FREQ,
+                DC_REJECT_MAX_FREQ,
+                defaultFrequencyHz,
+                "DC reject cutoff",
+                " Hz"
+            );
+
+            dcRejectQuantity->value = defaultFrequencyHz;
+            dcRejectQuantity->changed = true;
         }
 
         AgcLevelQuantity* makeAgcLevelQuantity(

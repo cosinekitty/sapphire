@@ -115,7 +115,6 @@ namespace Sapphire
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
-            DcRejectQuantity *dcRejectQuantity{};
             AgcLevelQuantity *agcLevelQuantity{};
             Slewer slewer;
             bool isPowerGateActive = true;
@@ -150,16 +149,7 @@ namespace Sapphire
                 configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle attenuverter", "%", 0, 100);
                 configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle attenuverter", "%", 0, 100);
 
-                dcRejectQuantity = configParam<DcRejectQuantity>(
-                    DC_REJECT_PARAM,
-                    DC_REJECT_MIN_FREQ,
-                    DC_REJECT_MAX_FREQ,
-                    DC_REJECT_DEFAULT_FREQ,
-                    "DC reject cutoff",
-                    " Hz"
-                );
-                dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
-
+                addDcRejectQuantity(DC_REJECT_PARAM, 20);
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
@@ -230,7 +220,6 @@ namespace Sapphire
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
-                dcRejectQuantity->save(root, "dcRejectFrequency");
                 return root;
             }
 
@@ -249,7 +238,6 @@ namespace Sapphire
                 outputVectorSelectRight = (0 != json_integer_value(selectFlag));
 
                 agcLevelQuantity->load(root, "agcLevel");
-                dcRejectQuantity->load(root, "dcRejectFrequency");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -490,12 +478,6 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (elastikaModule != nullptr)
                 {
-                    if (elastikaModule->dcRejectQuantity)
-                    {
-                        // Add slider that adjusts the DC-reject filter's corner frequency.
-                        menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
-                    }
-
                     if (elastikaModule->agcLevelQuantity)
                     {
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
