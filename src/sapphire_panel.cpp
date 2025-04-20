@@ -77,6 +77,7 @@ namespace Sapphire
             {"pan_atten",              {  15.240,   58.000}},
             {"pan_cv",                 {   6.240,   58.000}},
             {"pan_knob",               {  24.240,   58.000}},
+            {"remove_button",          {  15.240,  125.500}},
             {"return_left_input",      {  22.240,   91.000}},
             {"return_right_input",     {  22.240,  101.000}},
             {"reverse_button",         {  24.240,   16.000}},
