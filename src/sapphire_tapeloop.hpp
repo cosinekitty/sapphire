@@ -8,7 +8,9 @@ namespace Sapphire
 {
     constexpr float TAPELOOP_MIN_DELAY_SECONDS = 0.1;
     constexpr float TAPELOOP_MAX_DELAY_SECONDS = 10;
+    constexpr float TAPELOOP_CROSSOVER_SECONDS = 0.05;
     static_assert(TAPELOOP_MAX_DELAY_SECONDS > TAPELOOP_MIN_DELAY_SECONDS);
+    static_assert(TAPELOOP_CROSSOVER_SECONDS < TAPELOOP_MIN_DELAY_SECONDS);
 
     constexpr float TAPELOOP_RECORD_VOLTAGE_LIMIT = 100;
     constexpr unsigned TAPELOOP_MIN_SAMPLE_RATE_HZ = 1000;
@@ -60,21 +62,17 @@ namespace Sapphire
     private:
         float delayTimeSec = 0;
         float sampleRateHz = 0;
+        double playbackHead = 0;     // seconds behind record head
         int recordIndex = 0;
         bool reverseTape = false;
         std::vector<float> buffer;
-        int totalLoopSamples = 0;           // (2*dt) expressed in samples, for wraparound logic
         unsigned recoveryCountdown = 0;
         TapeDelayMotor tapeDelayMotor;
 
-        int getTapeDirection() const
-        {
-            return reverseTape ? -1 : +1;
-        }
-
         int wrapIndex(int position) const
         {
-            return MOD(position, totalLoopSamples);
+            const int length = static_cast<int>(buffer.size());
+            return MOD(position, length);
         }
 
         const float& at(int position) const         // allowed to wrap around in +/- directions
@@ -89,15 +87,27 @@ namespace Sapphire
             return buffer.at(index);
         }
 
+        float interpolate(float secondsIntoPast) const
+        {
+            float index = recordIndex - (secondsIntoPast * sampleRateHz);
+            // FIXFIXFIX use interpolator - for now just snap to nearest integer index
+            int position = static_cast<int>(std::round(index));
+            return at(position);
+        }
+
     public:
         explicit TapeLoop()
         {
+            initialize();
         }
 
         void initialize()
         {
+            recordIndex = 0;
+            playbackHead = 0;
             recoveryCountdown = 0;
             tapeDelayMotor.initialize();
+            clear();
         }
 
         void clear()
@@ -124,16 +134,16 @@ namespace Sapphire
             if (!IsValidSampleRate(_sampleRateHz))
                 return false;
 
-            const int cushion = 16;     // gives space to interpolate around the boundary and avoid weird cases
             if (sampleRateHz != _sampleRateHz)
             {
-                const int maxSamples = static_cast<int>(std::ceil(2 * _sampleRateHz * TAPELOOP_MAX_DELAY_SECONDS));
+                sampleRateHz = _sampleRateHz;
+
+                const float maxTime = TAPELOOP_MAX_DELAY_SECONDS + TAPELOOP_CROSSOVER_SECONDS;
+                const int maxSamples = static_cast<int>(std::ceil(_sampleRateHz * maxTime));
                 if (maxSamples <= 0)
                     return false;
 
-                const std::size_t maxSize = static_cast<std::size_t>(cushion + maxSamples);
-
-                sampleRateHz = _sampleRateHz;
+                const std::size_t maxSize = static_cast<std::size_t>(maxSamples);
 
                 // The first time we know the sample rate, or any time it changes,
                 // resize the buffer to allow the maximum possible number of samples
@@ -145,27 +155,36 @@ namespace Sapphire
                 clear();    // any audio in the buffer already is recorded at the wrong sample rate
             }
 
-            const int capacity = static_cast<int>(buffer.size());
-            assert(capacity >= cushion);
-
             delayTimeSec = tapeDelayMotor.process(_delayTimeSec, _sampleRateHz);
-            const int calculated = static_cast<int>(std::round(delayTimeSec * sampleRateHz));
-            totalLoopSamples = std::clamp(calculated, cushion, capacity);
             return true;
         }
 
-        float read(float secondsIntoPast) const
+        float recall(float secondsIntoPast) const
         {
-            float index = recordIndex - (secondsIntoPast * sampleRateHz);
+            const float offsetSeconds = FMOD(secondsIntoPast, delayTimeSec);
+            float newer = interpolate(offsetSeconds);
+            if (offsetSeconds >= TAPELOOP_CROSSOVER_SECONDS)
+                return newer;
 
-            // FIXFIXFIX use interpolator - for now just snap to nearest integer index
-            int position = static_cast<int>(std::round(index));
-            return at(position);
+            // We are slightly in the past, close behind the record head.
+            // Use crossover fading between newly recorded data and older data.
+            float older = interpolate(offsetSeconds + delayTimeSec);
+            float mix = offsetSeconds / TAPELOOP_CROSSOVER_SECONDS;
+            return mix*newer + (1-mix)*older;
         }
 
         float read()
         {
-            return read(delayTimeSec);
+            if (!IsValidSampleRate(sampleRateHz))
+                return 0;
+
+            float memory = recall(playbackHead);
+            if (reverseTape)
+            {
+                const double incr = 2.0 / static_cast<double>(sampleRateHz);
+                playbackHead = FMOD<double>(playbackHead + incr, delayTimeSec);
+            }
+            return memory;
         }
 
         bool write(float sample, float sampleRateHz)
@@ -190,7 +209,7 @@ namespace Sapphire
             }
 
             buffer.at(recordIndex) = safe;
-            recordIndex = wrapIndex(recordIndex + getTapeDirection());
+            recordIndex = wrapIndex(recordIndex + 1);
             return recoveryCountdown == 0;
         }
 

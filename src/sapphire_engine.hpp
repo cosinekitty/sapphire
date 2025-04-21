@@ -89,6 +89,19 @@ namespace Sapphire
         return m;
     }
 
+    template <typename real_t>
+    inline real_t FMOD(real_t x, real_t y)
+    {
+        if (y <= 0)
+            throw std::out_of_range(std::string("Invalid denominator for FMOD: ") + std::to_string(y));
+
+        const real_t m = std::fmod(y + std::fmod(x, y), y);
+        if (m < 0 || m >= y)
+            throw std::range_error("FMOD internal failure.");
+
+        return m;
+    }
+
     inline std::size_t SafeIndex(
         std::size_t length,
         std::size_t index,
