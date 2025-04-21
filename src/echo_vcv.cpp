@@ -917,9 +917,6 @@ namespace Sapphire
 
                 void drawClockSyncSymbol(NVGcontext* vg, NVGcolor color, float strokeWidth)
                 {
-                    // Python code that used to generate the rectangle in echo.svg:
-                    // pl.append(Rectangle(clock.cx, clock.cy, width=12.0, height=9.0, strokeWidth=0.2))
-
                     ComponentLocation clock = FindComponent(modcode, "clock_input");
 
                     float dx = 6.0;
