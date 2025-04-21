@@ -66,6 +66,9 @@ namespace Sapphire
     class TapeLoop
     {
     private:
+        static constexpr int windowSize = 3;
+        using interpolator_t = Interpolator<float, windowSize>;
+
         float delayTimeSec = 0;
         float sampleRateHz = 0;
         double playbackHead = 0;     // seconds behind record head
@@ -96,9 +99,13 @@ namespace Sapphire
         float interpolate(float secondsIntoPast) const
         {
             float index = recordIndex - (secondsIntoPast * sampleRateHz);
-            // FIXFIXFIX use interpolator - for now just snap to nearest integer index
             int position = static_cast<int>(std::round(index));
-            return at(position);
+
+            interpolator_t interp;
+            for (int w = -windowSize; w <= +windowSize; ++w)
+                interp.write(w, at(position + w));
+
+            return interp.read(index - position);
         }
 
     public:
