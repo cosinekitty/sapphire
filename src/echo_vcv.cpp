@@ -283,7 +283,8 @@ namespace Sapphire
 
             struct TapeLoopResult
             {
-                Frame outAudio;
+                Frame globalAudioOutput;
+                Frame chainAudioOutput;
                 Frame clockVoltage;
             };
 
@@ -301,10 +302,9 @@ namespace Sapphire
                 Input& returnRight = inputs.at(controls.returnRightInputId);
 
                 TapeLoopResult result;
-                result.outAudio.nchannels = nc;
+                result.globalAudioOutput.nchannels = nc;
+                result.chainAudioOutput.nchannels = nc;
                 result.clockVoltage.nchannels = nc;
-
-                Frame pannedAudio = panFrame(inAudio);
 
                 Frame delayLineOutput;
                 delayLineOutput.nchannels = nc;
@@ -355,7 +355,7 @@ namespace Sapphire
                     float delayLineInput =
                         frozen
                         ? delayLineOutput.at(c)
-                        : pannedAudio.sample[c] + (fbk * delayLineOutput.at(c));
+                        : inAudio.sample[c] + (fbk * delayLineOutput.at(c));
 
                     // Always write to send ports.
                     if (c == 0)
@@ -383,8 +383,11 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.outAudio.at(c) = gain * delayLineOutput.at(c);
+                    result.chainAudioOutput.at(c) = delayLineOutput.at(c);
+                    result.globalAudioOutput.at(c) = gain * delayLineOutput.at(c);
                 }
+
+                result.globalAudioOutput = panFrame(result.globalAudioOutput);
                 clearBufferRequested = false;
                 unhappy = (unhappyCount > 0);
                 return result;
@@ -764,8 +767,8 @@ namespace Sapphire
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
-                    outMessage.chainAudio = result.outAudio;
-                    outMessage.summedAudio = result.outAudio;
+                    outMessage.chainAudio = result.chainAudioOutput;
+                    outMessage.summedAudio = result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     outMessage.inputRouting = tapInputRouting;
@@ -1112,8 +1115,8 @@ namespace Sapphire
                     }
 
                     TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage);
-                    outMessage.chainAudio = result.outAudio;
-                    outMessage.summedAudio += result.outAudio;
+                    outMessage.chainAudio = result.chainAudioOutput;
+                    outMessage.summedAudio += result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
