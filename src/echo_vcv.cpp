@@ -171,14 +171,31 @@ namespace Sapphire
 
             Frame readFrame(int leftInputId, int rightInputId)
             {
-                Frame frame;
-
                 Input& inLeft  = inputs.at(leftInputId);
                 Input& inRight = inputs.at(rightInputId);
 
+                Frame frame;
                 frame.nchannels = 2;
                 frame.sample[0] = inLeft.getVoltageSum();
                 frame.sample[1] = inRight.getVoltageSum();
+
+                if (!inRight.isConnected())
+                {
+                    const int ncLeft = inLeft.getChannels();
+                    if (ncLeft == 1)
+                    {
+                        // Mono input, so split the energy across both channels.
+                        frame.sample[0] /= 2;
+                        frame.sample[1] = frame.sample[0];
+                    }
+                    else if (ncLeft > 1)
+                    {
+                        // Polyphonic mode!
+                        frame.nchannels = VcvSafeChannelCount(ncLeft);
+                        for (int c = 0; c < frame.nchannels; ++c)
+                            frame.sample[c] = inLeft.getVoltage(c);
+                    }
+                }
 
                 return frame;
             }
@@ -1249,12 +1266,24 @@ namespace Sapphire
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
+                    if (audio.nchannels == 2)
+                    {
+                        audioLeftOutput.setChannels(1);
+                        audioLeftOutput.setVoltage(audio.sample[0], 0);
 
-                    audioLeftOutput.setChannels(1);
-                    audioLeftOutput.setVoltage(audio.sample[0], 0);
+                        audioRightOutput.setChannels(1);
+                        audioRightOutput.setVoltage(audio.sample[1], 0);
+                    }
+                    else
+                    {
+                        // Polyphonic output to the L port only.
+                        audioLeftOutput.setChannels(audio.nchannels);
+                        for (int c = 0; c < audio.nchannels; ++c)
+                            audioLeftOutput.setVoltage(audio.sample[c], c);
 
-                    audioRightOutput.setChannels(1);
-                    audioRightOutput.setVoltage(audio.sample[1], 0);
+                        audioRightOutput.setChannels(1);
+                        audioRightOutput.setVoltage(0, 0);
+                    }
                 }
             };
 
