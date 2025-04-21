@@ -46,9 +46,15 @@ namespace Sapphire
 
             filter.Update(targetDelayTime, sampleRateHz);
             float rawDelayTime = filter.LoPass();
-            float speed = std::clamp(sampleRateHz * (rawDelayTime - prevDelayTime), -maxSpeed, +maxSpeed);
+
+            float delayTimeChange = std::clamp(
+                rawDelayTime - prevDelayTime,
+                -maxSpeed / sampleRateHz,
+                +maxSpeed / sampleRateHz
+            );
+
             prevDelayTime = std::clamp(
-                prevDelayTime + (speed / sampleRateHz),
+                prevDelayTime + delayTimeChange,
                 TAPELOOP_MIN_DELAY_SECONDS,
                 TAPELOOP_MAX_DELAY_SECONDS
             );
