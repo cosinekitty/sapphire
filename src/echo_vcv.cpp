@@ -915,6 +915,54 @@ namespace Sapphire
                     return false;
                 }
 
+                void drawClockSyncSymbol(NVGcontext* vg, NVGcolor color, float strokeWidth)
+                {
+                    // Python code that used to generate the rectangle in echo.svg:
+                    // pl.append(Rectangle(clock.cx, clock.cy, width=12.0, height=9.0, strokeWidth=0.2))
+
+                    ComponentLocation clock = FindComponent(modcode, "clock_input");
+
+                    float dx = 6.0;
+                    float dy = 4.5;
+                    float x1 = mm2px(clock.cx - dx);
+                    float x2 = mm2px(clock.cx + dx);
+                    float y1 = mm2px(clock.cy - dy);
+                    float y2 = mm2px(clock.cy + dy);
+
+                    nvgBeginPath(vg);
+                    nvgStrokeColor(vg, color);
+                    nvgMoveTo(vg, x1, y1);
+                    nvgLineTo(vg, x2, y1);
+                    nvgLineTo(vg, x2, y2);
+                    nvgLineTo(vg, x1, y2);
+                    nvgLineTo(vg, x1, y1);
+                    nvgStrokeWidth(vg, strokeWidth);
+                    nvgStroke(vg);
+                }
+
+                bool isClockPortConnected()
+                {
+                    return echoModule && echoModule->inputs.at(CLOCK_INPUT).isConnected();
+                }
+
+                void drawLayer(const DrawArgs& args, int layer) override
+                {
+                    // There is a rectangle around the CLOCK input port.
+                    // This rectangle should glow when one or more taps
+                    // have an active clock sync.
+                    // Otherwise it should be opaque black on the panel layer.
+                    LoopWidget::drawLayer(args, layer);
+                    if (layer == 1 && isClockPortConnected())
+                        drawClockSyncSymbol(args.vg, SCHEME_CYAN, 1.5);
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    LoopWidget::draw(args);
+                    if (!isClockPortConnected())
+                        drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.0);
+                }
+
                 void step() override
                 {
                     LoopWidget::step();
