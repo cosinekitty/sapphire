@@ -540,29 +540,29 @@ namespace Sapphire
                     return;
 
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
-                if (font)
-                {
-                    const float yCenter_mm = 10.0;
+                if (!font)
+                    return;
 
-                    float bounds[4]{};  // [xmin, ymin, xmax, ymax]
-                    char text[20];
-                    snprintf(text, sizeof(text), "%d", chainIndex);
+                const float yCenter_mm = 10.0;
 
-                    nvgFontSize(vg, 18);
-                    nvgFontFaceId(vg, font->handle);
-                    nvgFillColor(vg, textColor);
+                float bounds[4]{};  // [xmin, ymin, xmax, ymax]
+                char text[20];
+                snprintf(text, sizeof(text), "%d", chainIndex);
 
-                    nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
-                    float width  = bounds[2] - bounds[0];
-                    float height = bounds[3] - bounds[1];
-                    float x1 = ((box.size.x - width) / 2);
-                    float y1 = mm2px(yCenter_mm) - height/2;
+                nvgFontSize(vg, 18);
+                nvgFontFaceId(vg, font->handle);
+                nvgFillColor(vg, textColor);
 
-                    if (chainIndex == 1)
-                        x1 += mm2px(mmShiftFirstTap);
+                nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                float width  = bounds[2] - bounds[0];
+                float height = bounds[3] - bounds[1];
+                float x1 = ((box.size.x - width) / 2);
+                float y1 = mm2px(yCenter_mm) - height/2;
 
-                    nvgText(vg, x1, y1, text, nullptr);
-                }
+                if (chainIndex == 1)
+                    x1 += mm2px(mmShiftFirstTap);
+
+                nvgText(vg, x1, y1, text, nullptr);
             }
 
             void draw(const DrawArgs& args) override
