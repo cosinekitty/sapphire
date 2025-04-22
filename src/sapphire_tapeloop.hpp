@@ -63,6 +63,13 @@ namespace Sapphire
     };
 
 
+    struct TapeLoopReadResult
+    {
+        float playback{};       // the reversible signal that leaves the module
+        float feedback{};       // the feedback signal that goes back on the tape
+    };
+
+
     class TapeLoop
     {
     private:
@@ -186,18 +193,31 @@ namespace Sapphire
             return mix*newer + (1-mix)*older;
         }
 
-        float read()
+        TapeLoopReadResult read()
         {
+            TapeLoopReadResult result;
             if (!IsValidSampleRate(sampleRateHz))
-                return 0;
+                return result;
 
-            float memory = recall(playbackHead);
+            result.playback = recall(playbackHead);
             if (reverseTape)
             {
+                // Move in the opposite direction to play audio at exactly -1 speed.
                 const double incr = 2.0 / static_cast<double>(sampleRateHz);
                 playbackHead = FMOD<double>(playbackHead + incr, delayTimeSec);
+
+                // But the feedback signal needs to keep moving forward.
+                result.feedback = recall(0);
             }
-            return memory;
+            else
+            {
+                // Must re-sync exactly the right amount of time behind the record head.
+                // FIXFIXFIX: bring playback head gradually back to 0.
+                playbackHead = 0;   // in modular time, this is exactly the adjustable delay length
+
+                result.feedback = result.playback;
+            }
+            return result;
         }
 
         bool write(float sample, float sampleRateHz)

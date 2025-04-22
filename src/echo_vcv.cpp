@@ -323,8 +323,12 @@ namespace Sapphire
                 result.chainAudioOutput.nchannels = nc;
                 result.clockVoltage.nchannels = nc;
 
-                Frame delayLineOutput;
-                delayLineOutput.nchannels = nc;
+                Frame reversibleDelayLineOutput;
+                reversibleDelayLineOutput.nchannels = nc;
+
+                Frame delayLineFeedback;
+                delayLineFeedback.nchannels = nc;
+
                 float cvDelayTime = 0;
                 float vClock = 0;
                 float fbk = 0;
@@ -362,7 +366,9 @@ namespace Sapphire
                         delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
-                    delayLineOutput.at(c) = q.loop.read();
+                    TapeLoopReadResult rr = q.loop.read();
+                    reversibleDelayLineOutput.at(c) = rr.playback;
+                    delayLineFeedback.at(c) = rr.feedback;
 
                     if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
@@ -371,8 +377,8 @@ namespace Sapphire
 
                     float delayLineInput =
                         frozen
-                        ? delayLineOutput.at(c)
-                        : inAudio.sample[c] + (fbk * delayLineOutput.at(c));
+                        ? delayLineFeedback.at(c)
+                        : inAudio.sample[c] + (fbk * delayLineFeedback.at(c));
 
                     // Always write to send ports.
                     if (c == 0)
@@ -400,8 +406,8 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, sampleRateHz))
                         ++unhappyCount;
 
-                    result.chainAudioOutput.at(c) = delayLineOutput.at(c);
-                    result.globalAudioOutput.at(c) = gain * delayLineOutput.at(c);
+                    result.chainAudioOutput.at(c) = reversibleDelayLineOutput.at(c);
+                    result.globalAudioOutput.at(c) = gain * reversibleDelayLineOutput.at(c);
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
