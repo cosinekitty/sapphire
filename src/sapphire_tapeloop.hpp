@@ -70,11 +70,18 @@ namespace Sapphire
     };
 
 
+    enum class InterpolatorKind
+    {
+        Linear,
+        Sinc,
+    };
+
+
     class TapeLoop
     {
     private:
         static constexpr int windowSize = 3;
-        using interpolator_t = Interpolator<float, windowSize>;
+        using sinc_interpolator_t = Interpolator<float, windowSize>;
 
         float delayTimeSec = 0;
         float sampleRateHz = 0;
@@ -84,6 +91,7 @@ namespace Sapphire
         std::vector<float> buffer;
         unsigned recoveryCountdown = 0;
         TapeDelayMotor tapeDelayMotor;
+        InterpolatorKind ikind = InterpolatorKind::Linear;
 
         int wrapIndex(int position) const
         {
@@ -107,12 +115,37 @@ namespace Sapphire
         {
             float index = recordIndex - (secondsIntoPast * sampleRateHz);
             int position = static_cast<int>(std::round(index));
+            float offset = index - position;
+            assert(std::abs(offset) <= 0.501);
 
-            interpolator_t interp;
-            for (int w = -windowSize; w <= +windowSize; ++w)
-                interp.write(w, at(position + w));
+            switch (ikind)
+            {
+                case InterpolatorKind::Linear:
+                default:
+                {
+                    float yc = at(position);    // center signal
+                    float yn;   // next signal, in direction of `offset`
+                    if (offset >= 0)
+                    {
+                        yn = at(position+1);
+                    }
+                    else
+                    {
+                        yn = at(position-1);
+                        offset = -offset;       // toggle sign to force positive
+                    }
+                    return (1-offset)*yc + offset*yn;
+                }
 
-            return interp.read(index - position);
+                case InterpolatorKind::Sinc:
+                {
+                    sinc_interpolator_t interp;
+                    for (int w = -windowSize; w <= +windowSize; ++w)
+                        interp.write(w, at(position + w));
+
+                    return interp.read(offset);
+                }
+            }
         }
 
     public:
@@ -144,6 +177,11 @@ namespace Sapphire
         static bool IsValidSampleRate(float sr)
         {
             return std::isfinite(sr) && (sr >= TAPELOOP_MIN_SAMPLE_RATE_HZ);
+        }
+
+        void setInterpolatorKind(InterpolatorKind kind)
+        {
+            ikind = kind;
         }
 
         bool setDelayTime(float _delayTimeSec, float _sampleRateHz)

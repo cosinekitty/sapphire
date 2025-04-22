@@ -95,6 +95,7 @@ namespace Sapphire
             bool isClockConnected = false;
             bool neonMode = false;
             TapInputRouting inputRouting = TapInputRouting::Serial;
+            InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
         };
 
         //--------------------------------------------------------------------

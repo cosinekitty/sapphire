@@ -366,6 +366,7 @@ namespace Sapphire
                         delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
+                    q.loop.setInterpolatorKind(message.interpolatorKind);
                     TapeLoopReadResult rr = q.loop.read();
                     reversibleDelayLineOutput.at(c) = rr.playback;
                     delayLineFeedback.at(c) = rr.feedback;
@@ -726,6 +727,7 @@ namespace Sapphire
                 GateTriggerReceiver freezeReceiver;
                 AnimatedTriggerReceiver clearReceiver;
                 TapInputRouting tapInputRouting = TapInputRouting::Serial;
+                InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -789,6 +791,7 @@ namespace Sapphire
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate);
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
+                    outMessage.interpolatorKind = interpolatorKind;
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio = result.globalAudioOutput;
@@ -815,15 +818,21 @@ namespace Sapphire
                 {
                     json_t* root = LoopModule::dataToJson();
                     json_object_set_new(root, "tapInputRouting", json_integer(static_cast<int>(tapInputRouting)));
+                    json_object_set_new(root, "interpolatorKind", json_integer(static_cast<int>(interpolatorKind)));
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     LoopModule::dataFromJson(root);
+
                     json_t* jsRouting = json_object_get(root, "tapInputRouting");
                     if (json_is_integer(jsRouting))
                         tapInputRouting = static_cast<TapInputRouting>(json_integer_value(jsRouting));
+
+                    json_t* jsInterpKind = json_object_get(root, "interpolatorKind");
+                    if (json_is_integer(jsInterpKind))
+                        interpolatorKind = static_cast<InterpolatorKind>(json_integer_value(jsInterpKind));
                 }
 
                 Frame getFeedbackPoly()
@@ -1009,6 +1018,7 @@ namespace Sapphire
                     if (echoModule != nullptr)
                     {
                         menu->addChild(new MenuSeparator);
+
                         menu->addChild(createIndexSubmenuItem(
                             "Tap input routing",
                             {
@@ -1017,6 +1027,16 @@ namespace Sapphire
                             },
                             [=](){ return static_cast<size_t>(echoModule->tapInputRouting); },
                             [=](size_t index){ echoModule->tapInputRouting = static_cast<TapInputRouting>(index); }
+                        ));
+
+                        menu->addChild(createIndexSubmenuItem(
+                            "Interpolator",
+                            {
+                                "Linear (uses less CPU)",
+                                "Sinc (cleaner audio)"
+                            },
+                            [=](){ return static_cast<size_t>(echoModule->interpolatorKind); },
+                            [=](size_t index){ echoModule->interpolatorKind = static_cast<InterpolatorKind>(index); }
                         ));
                     }
                 }
