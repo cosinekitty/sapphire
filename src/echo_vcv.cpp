@@ -215,6 +215,7 @@ namespace Sapphire
             EnvelopeFollower env;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
+            ReverseOutput reverseOutput = ReverseOutput::Mix;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -267,16 +268,16 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = MultiTapModule::dataToJson();
-                json_object_set_new(root, "timeMode", json_integer(static_cast<int>(timeMode)));
+                jsonSetEnum(root, "timeMode", timeMode);
+                jsonSetEnum(root, "reverseOutput", reverseOutput);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 MultiTapModule::dataFromJson(root);
-                json_t* jsTimeMode = json_object_get(root, "timeMode");
-                if (json_is_integer(jsTimeMode))
-                    timeMode = static_cast<TimeMode>(json_integer_value(jsTimeMode));
+                jsonLoadEnum(root, "timeMode", timeMode);
+                jsonLoadEnum(root, "reverseOutput", reverseOutput);
             }
 
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
@@ -326,9 +327,6 @@ namespace Sapphire
                 Frame reversibleDelayLineOutput;
                 reversibleDelayLineOutput.nchannels = nc;
 
-                Frame delayLineFeedback;
-                delayLineFeedback.nchannels = nc;
-
                 float cvDelayTime = 0;
                 float vClock = 0;
                 float fbk = 0;
@@ -369,7 +367,6 @@ namespace Sapphire
                     q.loop.setInterpolatorKind(message.interpolatorKind);
                     TapeLoopReadResult rr = q.loop.read();
                     reversibleDelayLineOutput.at(c) = rr.playback;
-                    delayLineFeedback.at(c) = rr.feedback;
 
                     if (c < message.feedback.nchannels)
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
@@ -378,8 +375,8 @@ namespace Sapphire
 
                     float delayLineInput =
                         frozen
-                        ? delayLineFeedback.at(c)
-                        : inAudio.sample[c] + (fbk * delayLineFeedback.at(c));
+                        ? rr.feedback
+                        : inAudio.sample[c] + (fbk * rr.feedback);
 
                     // Always write to send ports.
                     if (c == 0)
@@ -407,7 +404,18 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput))
                         ++unhappyCount;
 
-                    result.chainAudioOutput.at(c) = reversibleDelayLineOutput.at(c);
+                    switch (reverseOutput)
+                    {
+                    case ReverseOutput::Mix:
+                    default:
+                        result.chainAudioOutput.at(c) = rr.feedback;
+                        break;
+
+                    case ReverseOutput::MixAndChain:
+                        result.chainAudioOutput.at(c) = reversibleDelayLineOutput.at(c);
+                        break;
+                    }
+
                     result.globalAudioOutput.at(c) = gain * reversibleDelayLineOutput.at(c);
                 }
 
@@ -817,22 +825,16 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = LoopModule::dataToJson();
-                    json_object_set_new(root, "tapInputRouting", json_integer(static_cast<int>(tapInputRouting)));
-                    json_object_set_new(root, "interpolatorKind", json_integer(static_cast<int>(interpolatorKind)));
+                    jsonSetEnum(root, "tapInputRouting", tapInputRouting);
+                    jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     LoopModule::dataFromJson(root);
-
-                    json_t* jsRouting = json_object_get(root, "tapInputRouting");
-                    if (json_is_integer(jsRouting))
-                        tapInputRouting = static_cast<TapInputRouting>(json_integer_value(jsRouting));
-
-                    json_t* jsInterpKind = json_object_get(root, "interpolatorKind");
-                    if (json_is_integer(jsInterpKind))
-                        interpolatorKind = static_cast<InterpolatorKind>(json_integer_value(jsInterpKind));
+                    jsonLoadEnum(root, "tapInputRouting", tapInputRouting);
+                    jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                 }
 
                 Frame getFeedbackPoly()

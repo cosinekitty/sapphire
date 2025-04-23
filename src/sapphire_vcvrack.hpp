@@ -1401,6 +1401,20 @@ namespace Sapphire
         // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
         return module && model && module->model == model;
     }
+
+    template <typename enum_t>
+    void jsonSetEnum(json_t* root, const char *key, enum_t value)
+    {
+        json_object_set_new(root, key, json_integer(static_cast<int>(value)));
+    }
+
+    template <typename enum_t>
+    void jsonLoadEnum(json_t* root, const char *key, enum_t& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_integer(js))
+            value = static_cast<enum_t>(json_integer_value(js));
+    }
 }
 
 

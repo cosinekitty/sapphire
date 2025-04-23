@@ -82,6 +82,12 @@ namespace Sapphire
             Parallel,
         };
 
+        enum class ReverseOutput
+        {
+            Mix,            // if reversed, the backwards audio goes to the output mix only
+            MixAndChain,    // if reversed, the backwards audio also goes to the next tap in the chain
+        };
+
         struct Message
         {
             int chainIndex = -1;
