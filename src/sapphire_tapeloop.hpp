@@ -258,7 +258,7 @@ namespace Sapphire
             return result;
         }
 
-        bool write(float sample, float sampleRateHz)
+        bool write(float sample)
         {
             // Protect the tape loop from NAN/infinite/crazy voltages.
             float safe = 0;

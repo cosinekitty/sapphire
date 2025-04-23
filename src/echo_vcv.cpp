@@ -404,7 +404,7 @@ namespace Sapphire
                             delayLineInput = 0;
                     }
 
-                    if (!q.loop.write(delayLineInput, sampleRateHz))
+                    if (!q.loop.write(delayLineInput))
                         ++unhappyCount;
 
                     result.chainAudioOutput.at(c) = reversibleDelayLineOutput.at(c);
