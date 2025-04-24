@@ -3,7 +3,7 @@
 
 namespace Sapphire
 {
-    constexpr double DefaultCrossfadeDurationSeconds = 0.1;
+    constexpr double DefaultCrossfadeDurationSeconds = 0.01;
 
     class Crossfader
     {
