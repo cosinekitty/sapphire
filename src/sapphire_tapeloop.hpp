@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include "sapphire_engine.hpp"
+#include "sapphire_crossfader.hpp"
 
 namespace Sapphire
 {
@@ -85,13 +86,14 @@ namespace Sapphire
 
         float delayTimeSec = 0;
         float sampleRateHz = 0;
-        double playbackHead = 0;     // seconds behind record head
+        double reversePlaybackHead = 0;
         int recordIndex = 0;
         bool reverseTape = false;
         std::vector<float> buffer;
         unsigned recoveryCountdown = 0;
         TapeDelayMotor tapeDelayMotor;
         InterpolatorKind ikind = InterpolatorKind::Linear;
+        Crossfader reverseToggleFader;
 
         int wrapIndex(int position) const
         {
@@ -157,9 +159,10 @@ namespace Sapphire
         void initialize()
         {
             recordIndex = 0;
-            playbackHead = 0;
+            reversePlaybackHead = 0;
             recoveryCountdown = 0;
             tapeDelayMotor.initialize();
+            reverseToggleFader.snapToFront();
             clear();
         }
 
@@ -237,23 +240,23 @@ namespace Sapphire
             if (!IsValidSampleRate(sampleRateHz))
                 return result;
 
-            result.playback = recall(playbackHead);
-            if (reverseTape)
+            result.feedback = recall(0);
+            result.playback = reverseToggleFader.process(
+                sampleRateHz,
+                [=]() { return result.feedback; },
+                [=]() { return recall(reversePlaybackHead); }
+            );
+
+            if (reverseTape || reverseToggleFader.inTransition())
             {
                 // Move in the opposite direction to play audio at exactly -1 speed.
                 const double incr = 2.0 / static_cast<double>(sampleRateHz);
-                playbackHead = FMOD<double>(playbackHead + incr, delayTimeSec);
-
-                // But the feedback signal needs to keep moving forward.
-                result.feedback = recall(0);
+                reversePlaybackHead = FMOD<double>(reversePlaybackHead + incr, delayTimeSec);
             }
             else
             {
                 // Must re-sync exactly the right amount of time behind the record head.
-                // FIXFIXFIX: bring playback head gradually back to 0.
-                playbackHead = 0;   // in modular time, this is exactly the adjustable delay length
-
-                result.feedback = result.playback;
+                reversePlaybackHead = 0;
             }
             return result;
         }
@@ -291,7 +294,14 @@ namespace Sapphire
 
         void setReversed(bool reverse)
         {
-            reverseTape = reverse;
+            if (reverse != reverseTape)
+            {
+                reverseTape = reverse;
+                if (reverse)
+                    reverseToggleFader.beginFadeToBack();
+                else
+                    reverseToggleFader.beginFadeToFront();
+            }
         }
     };
 }
