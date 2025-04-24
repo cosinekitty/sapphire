@@ -227,6 +227,7 @@ namespace Sapphire
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             ReverseOutput reverseOutput = ReverseOutput::Mix;
+            TapInputRouting inputRouting{};
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -323,6 +324,8 @@ namespace Sapphire
                 float sampleRateHz,
                 const Message& message)
             {
+                inputRouting = message.inputRouting;
+
                 const int nc = inAudio.safeChannelCount();
                 const float two = 2;    // silly, but helps for portability to MAC/ARM
 
@@ -644,7 +647,11 @@ namespace Sapphire
                 }
             }
 
-            void drawChainIndex(NVGcontext* vg, int chainIndex, NVGcolor textColor)
+            void drawChainIndex(
+                NVGcontext* vg,
+                int chainIndex,
+                TapInputRouting routing,
+                NVGcolor textColor)
             {
                 if (module == nullptr)
                     return;
@@ -679,6 +686,17 @@ namespace Sapphire
                     x1 += mm2px(mmShiftFirstTap);
 
                 nvgText(vg, x1, y1, text, nullptr);
+
+                // Hack: also draw serial/parallel option if this is the Echo panel.
+                if (chainIndex == 1)
+                {
+                    text[0] = InputRoutingChar(routing);
+                    text[1] = '\0';
+                    nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                    width  = bounds[2] - bounds[0];
+                    x1 = mm2px(FindComponent(modcode, "reverse_input").cx) - width/2;
+                    nvgText(vg, x1, y1, text, nullptr);
+                }
             }
 
             void draw(const DrawArgs& args) override
@@ -689,7 +707,7 @@ namespace Sapphire
                 if (lmod)
                 {
                     if (!lmod->neonMode)
-                        drawChainIndex(args.vg, lmod->chainIndex, nvgRGB(0x66, 0x06, 0x5c));
+                        drawChainIndex(args.vg, lmod->chainIndex, lmod->inputRouting, nvgRGB(0x66, 0x06, 0x5c));
                 }
             }
 
@@ -702,7 +720,7 @@ namespace Sapphire
                     if (lmod)
                     {
                         if (lmod->neonMode)
-                            drawChainIndex(args.vg, lmod->chainIndex, neonColor);
+                            drawChainIndex(args.vg, lmod->chainIndex, lmod->inputRouting, neonColor);
 
                         if (lmod->unhappy)
                             splash.begin(0xb0, 0x10, 0x00);

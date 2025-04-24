@@ -82,6 +82,19 @@ namespace Sapphire
             Parallel,
         };
 
+        inline char InputRoutingChar(TapInputRouting routing)
+        {
+            switch (routing)
+            {
+            case TapInputRouting::Serial:
+                return 'S';
+            case TapInputRouting::Parallel:
+                return 'P';
+            default:
+                return '?';
+            }
+        }
+
         enum class ReverseOutput
         {
             Mix,            // if reversed, the backwards audio goes to the output mix only
