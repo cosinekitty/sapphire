@@ -94,16 +94,14 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t *root = SapphireModule::dataToJson();
-                json_object_set_new(root, "gatePortMode", json_integer(static_cast<int>(gatePortMode)));
+                jsonSetEnum(root, "gatePortMode", gatePortMode);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                json_t* epm = json_object_get(root, "gatePortMode");
-                if (json_is_integer(epm))
-                    gatePortMode = static_cast<GatePortMode>(json_integer_value(epm));
+                jsonLoadEnum(root, "gatePortMode", gatePortMode);
             }
 
             void process(const ProcessArgs& args) override
