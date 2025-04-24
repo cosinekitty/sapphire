@@ -180,6 +180,37 @@ namespace Sapphire
                 return receivedMessageFromLeft ? *ptr : Message{};
             }
 
+            float readSample(float normal, Input& inLeft, Input& inRight, int c)
+            {
+                if (inLeft.isConnected())
+                {
+                    if (inRight.isConnected())
+                    {
+                        // Stereo input
+                        if (c == 0)
+                            return inLeft.getVoltageSum();
+                        if (c == 1)
+                            return inRight.getVoltageSum();
+                        return 0;
+                    }
+
+                    const int ncLeft = inLeft.getChannels();
+                    if (ncLeft > 1)
+                    {
+                        // Polyphonic input
+                        if (0 <= c && c < ncLeft)
+                            return inLeft.getVoltage(c);
+                        return 0;
+                    }
+
+                    // Mono input, so split the energy across stereo channels.
+                    if (c==0 || c==1)
+                        return inLeft.getVoltageSum() / 2;
+                    return 0;
+                }
+                return normal;
+            }
+
             Frame readFrame(int leftInputId, int rightInputId)
             {
                 Input& inLeft  = inputs.at(leftInputId);
@@ -319,6 +350,7 @@ namespace Sapphire
                 Frame clockVoltage;
             };
 
+
             TapeLoopResult updateTapeLoops(
                 const Frame& inAudio,
                 float sampleRateHz,
@@ -404,22 +436,7 @@ namespace Sapphire
                     else if (c == 1)
                         sendRight.setVoltage(delayLineInput);
 
-                    if (returnLeft.isConnected() || returnRight.isConnected())
-                    {
-                        // When either RETURN input is connected to a cable,
-                        // use the audio input from both as a stereo pair to be
-                        // written to the delay line, instead of the raw input
-                        // we calculated above. Because we wrote the raw stereo input
-                        // to the SEND ports, the user has the opportunity to
-                        // pipe the audio through filters, reverbs, etc., before
-                        // being fed back into the delay line via the RETURN ports.
-                        if (c == 0)
-                            delayLineInput = returnLeft.getVoltageSum();
-                        else if (c == 1)
-                            delayLineInput = returnRight.getVoltageSum();
-                        else
-                            delayLineInput = 0;
-                    }
+                    delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
 
                     if (!q.loop.write(delayLineInput))
                         ++unhappyCount;
