@@ -344,6 +344,11 @@ namespace Sapphire
                 float fbk = 0;
                 float cvGain = 0;
                 int unhappyCount = 0;
+
+                const bool allowFeedback =
+                    (message.inputRouting == TapInputRouting::Parallel) ||
+                    !IsEchoTap(rightExpander.module);
+
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = getChannelInfo(c);
@@ -380,7 +385,7 @@ namespace Sapphire
                     TapeLoopReadResult rr = q.loop.read();
                     reversibleDelayLineOutput.at(c) = rr.playback;
 
-                    if (c < message.feedback.nchannels)
+                    if (allowFeedback && (c < message.feedback.nchannels))
                         fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
@@ -871,6 +876,7 @@ namespace Sapphire
                 void process(const ProcessArgs& args) override
                 {
                     Message outMessage;
+                    outMessage.inputRouting = tapInputRouting;
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
                     clearBufferRequested = outMessage.clear = updateClearState(args.sampleRate);
@@ -884,7 +890,6 @@ namespace Sapphire
                     outMessage.summedAudio = result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
-                    outMessage.inputRouting = tapInputRouting;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
                 }
