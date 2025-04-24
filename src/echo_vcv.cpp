@@ -4,6 +4,7 @@ namespace Sapphire
 {
     namespace MultiTap
     {
+        struct LoopModule;
         struct LoopWidget;
 
         enum class TimeMode
@@ -81,14 +82,13 @@ namespace Sapphire
                     return;
 
                 menu->addChild(new MenuSeparator);
-                menu->addChild(createIndexSubmenuItem(
+                menu->addChild(createEnumMenuItem(
                     "Time mode",
                     {
                         "Seconds",
                         "Clock sync"
                     },
-                    [=](){ return static_cast<size_t>(*mode); },
-                    [=](size_t index){ *mode = static_cast<TimeMode>(index); }
+                    *mode
                 ));
             }
         };
@@ -112,6 +112,17 @@ namespace Sapphire
 
             void onButton(const event::Button& e) override;
         };
+
+
+        struct ReverseButton : SapphireCaptionButton
+        {
+            LoopModule* loopModule{};
+
+            ReverseOutput getReverseOutputMode() const;
+            void appendContextMenu(Menu* menu) override;
+            void drawLayer(const DrawArgs& args, int layer) override;
+        };
+
 
         struct MultiTapModule : SapphireModule
         {
@@ -232,6 +243,7 @@ namespace Sapphire
                     info[c].initialize();
                 clearBufferRequested = true;
                 unhappy = false;
+                reverseOutput = ReverseOutput::Mix;
             }
 
             void initialize() override
@@ -472,7 +484,59 @@ namespace Sapphire
                 configParam(paramId, 0, 1, 1, name, " dB", -10, 20);
                 configAttenCv(attenId, cvInputId, name);
             }
+
+            MenuItem* createReverseOutputMenuItem()
+            {
+                return createEnumMenuItem(
+                    "Output to:",
+                    {
+                        "Mixer",
+                        "Mixer + next tap",
+                    },
+                    reverseOutput
+                );
+            }
         };
+
+
+        ReverseOutput ReverseButton::getReverseOutputMode() const
+        {
+            return loopModule ? loopModule->reverseOutput : ReverseOutput::Mix;
+        }
+
+
+        void ReverseButton::appendContextMenu(Menu* menu)
+        {
+            if (loopModule)
+                menu->addChild(loopModule->createReverseOutputMenuItem());
+        }
+
+
+        void ReverseButton::drawLayer(const DrawArgs& args, int layer)
+        {
+            if (layer == 1)
+            {
+                switch (getReverseOutputMode())
+                {
+                case ReverseOutput::Mix:
+                    caption[0] = '\0';
+                    break;
+
+                case ReverseOutput::MixAndChain:
+                    caption[0] = '>';
+                    dxText = 9.0;
+                    dyText = 8.5;
+                    break;
+
+                default:
+                    caption[0] = '?';
+                    dxText = 7.0;
+                    dyText = 9.5;
+                    break;
+                }
+            }
+            SapphireCaptionButton::drawLayer(args, layer);
+        }
 
 
         struct LoopWidget : SapphireWidget
@@ -489,6 +553,21 @@ namespace Sapphire
                 auto button = createParamCentered<InsertButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
                 addSapphireParam(button, "insert_button");
+            }
+
+            void addReverseToggleGroup(int inputId, int buttonParamId, int buttonLightId)
+            {
+                auto reverseButton = addToggleGroup<ReverseButton>(
+                    "reverse",
+                    inputId,
+                    buttonParamId,
+                    buttonLightId,
+                    '\0',
+                    7.0,
+                    SCHEME_PURPLE
+                );
+
+                reverseButton->loopModule = dynamic_cast<LoopModule*>(module);
             }
 
             Module* echoReceiverWithinRange()
@@ -912,8 +991,7 @@ namespace Sapphire
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
+                    addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
@@ -1017,28 +1095,26 @@ namespace Sapphire
                 void appendContextMenu(Menu* menu) override
                 {
                     LoopWidget::appendContextMenu(menu);
-                    if (echoModule != nullptr)
+                    if (echoModule)
                     {
                         menu->addChild(new MenuSeparator);
 
-                        menu->addChild(createIndexSubmenuItem(
+                        menu->addChild(createEnumMenuItem(
                             "Tap input routing",
                             {
                                 "Serial",
                                 "Parallel"
                             },
-                            [=](){ return static_cast<size_t>(echoModule->tapInputRouting); },
-                            [=](size_t index){ echoModule->tapInputRouting = static_cast<TapInputRouting>(index); }
+                            echoModule->tapInputRouting
                         ));
 
-                        menu->addChild(createIndexSubmenuItem(
+                        menu->addChild(createEnumMenuItem(
                             "Interpolator",
                             {
                                 "Linear (uses less CPU)",
                                 "Sinc (cleaner audio)"
                             },
-                            [=](){ return static_cast<size_t>(echoModule->interpolatorKind); },
-                            [=](size_t index){ echoModule->interpolatorKind = static_cast<InterpolatorKind>(index); }
+                            echoModule->interpolatorKind
                         ));
                     }
                 }
@@ -1178,6 +1254,7 @@ namespace Sapphire
                 }
             };
 
+
             struct EchoTapWidget : LoopWidget
             {
                 EchoTapModule* echoTapModule{};
@@ -1191,9 +1268,9 @@ namespace Sapphire
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
+                    addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addToggleGroup("reverse", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, '\0', 0.0, SCHEME_PURPLE);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }

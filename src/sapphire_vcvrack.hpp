@@ -1415,6 +1415,20 @@ namespace Sapphire
         if (json_is_integer(js))
             value = static_cast<enum_t>(json_integer_value(js));
     }
+
+    template <typename enum_t>
+    ui::MenuItem* createEnumMenuItem(
+        std::string text,
+        std::vector<std::string> labels,
+        enum_t& option)
+    {
+        return createIndexSubmenuItem(
+            text,
+            labels,
+            [&option]() { return static_cast<std::size_t>(option); },
+            [&option](size_t index) { option = static_cast<enum_t>(index); }
+        );
+    }
 }
 
 
