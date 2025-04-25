@@ -9,16 +9,14 @@
 </tr>
 
 <tr valign="top">
-<td align="center">7 Apr 2025</td>
+<td align="center">25 Apr 2025</td>
 <td align="center">2.5.9</td>
 <td align="left">
     <ul>
+        <li>New module: Echo</li>
+        <li>Chaops did not reset the FREEZE button on initialize. This has been fixed.</li>
         <li>Fixed minor polyphony bug in Env: the number of channels in the GAIN control's CV input did not affect the number of output channels. This has been fixed.</li>
-    </ul>
-    <ul>
         <li>Gravy and Sauce had lowercase hover-text for their control groups, e.g. "resonance CV input". Now they follow the VCV Rack guidelines, e.g. "Resonance CV input".</li>
-    </ul>
-    <ul>
         <li>Added "neon mode" menu options to make the Sapphire panel glow. This effect is most visible when the room brightness is dim.</li>
     </ul>
 </td>

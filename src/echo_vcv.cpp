@@ -914,6 +914,9 @@ namespace Sapphire
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
                     dcRejectQuantity->initialize();
+                    params.at(REVERSE_BUTTON_PARAM).setValue(0);
+                    params.at(FREEZE_BUTTON_PARAM).setValue(0);
+                    params.at(CLEAR_BUTTON_PARAM).setValue(0);
                 }
 
                 void initialize() override
@@ -1305,6 +1308,7 @@ namespace Sapphire
 
                 void EchoTapModule_initialize()
                 {
+                    params.at(REVERSE_BUTTON_PARAM).setValue(0);
                 }
 
                 void initialize() override

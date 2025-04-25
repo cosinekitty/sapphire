@@ -84,6 +84,7 @@ namespace Sapphire
                 storeReceiver.initialize();
                 recallReceiver.initialize();
                 freezeReceiver.initialize();
+                params.at(FREEZE_BUTTON_PARAM).setValue(0);
             }
 
             void onReset(const ResetEvent& e) override
