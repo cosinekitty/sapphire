@@ -115,6 +115,7 @@ namespace Sapphire
             bool neonMode = false;
             TapInputRouting inputRouting = TapInputRouting::Serial;
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
+            bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
         };
 
         //--------------------------------------------------------------------

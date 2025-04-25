@@ -180,6 +180,30 @@ namespace Sapphire
                 return receivedMessageFromLeft ? *ptr : Message{};
             }
 
+            void writeSample(float voltage, Output& outLeft, Output& outRight, int c, int nc, bool polyphonic)
+            {
+                if (nc==2 && !polyphonic)
+                {
+                    // Stereo output.
+                    if (c == 0)
+                    {
+                        outLeft.setChannels(1);
+                        outLeft.setVoltage(voltage);
+                    }
+                    else if (c == 1)
+                    {
+                        outRight.setVoltage(voltage);
+                    }
+                }
+                else if (nc > 0)
+                {
+                    // Polyphonic output.
+                    outLeft.setChannels(nc);
+                    if (0 <= c && c < nc)
+                        outLeft.setVoltage(voltage, c);
+                }
+            }
+
             float readSample(float normal, Input& inLeft, Input& inRight, int c)
             {
                 if (inLeft.isConnected())
@@ -203,12 +227,19 @@ namespace Sapphire
                         return 0;
                     }
 
-                    // Mono input, so split the energy across stereo channels.
+                    // Mono input, so split the signal across both stereo output channels.
                     if (c==0 || c==1)
                         return inLeft.getVoltageSum() / 2;
                     return 0;
                 }
                 return normal;
+            }
+
+            bool isPolyphonic(int leftInputId, int rightInputId)
+            {
+                Input& inLeft  = inputs.at(leftInputId);
+                Input& inRight = inputs.at(rightInputId);
+                return !inRight.isConnected() && (inLeft.getChannels() > 1);
             }
 
             Frame readFrame(int leftInputId, int rightInputId)
@@ -226,7 +257,7 @@ namespace Sapphire
                     const int ncLeft = inLeft.getChannels();
                     if (ncLeft == 1)
                     {
-                        // Mono input, so split the energy across both channels.
+                        // Mono input, so split the signal across both stereo output channels.
                         frame.sample[0] /= 2;
                         frame.sample[1] = frame.sample[0];
                     }
@@ -430,12 +461,7 @@ namespace Sapphire
                         ? rr.feedback
                         : inAudio.sample[c] + (fbk * rr.feedback);
 
-                    // Always write to send ports.
-                    if (c == 0)
-                        sendLeft.setVoltage(delayLineInput);
-                    else if (c == 1)
-                        sendRight.setVoltage(delayLineInput);
-
+                    writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
                     delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
 
                     if (!q.loop.write(delayLineInput))
@@ -912,6 +938,7 @@ namespace Sapphire
                 {
                     Message outMessage;
                     outMessage.inputRouting = tapInputRouting;
+                    outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
                     clearBufferRequested = outMessage.clear = updateClearState(args.sampleRate);
@@ -1411,7 +1438,7 @@ namespace Sapphire
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
-                    if (audio.nchannels == 2)
+                    if (!message.polyphonic && audio.nchannels == 2)
                     {
                         audioLeftOutput.setChannels(1);
                         audioLeftOutput.setVoltage(audio.sample[0], 0);
