@@ -1183,9 +1183,60 @@ namespace Sapphire
                             },
                             echoModule->interpolatorKind
                         ));
+
+                        menu->addChild(createMenuItem(
+                            "Initialize Echo expander chain",
+                            "",
+                            [=]{ initializeExpanderChain(); }
+                        ));
+                    }
+                }
+
+                void initializeExpanderChain()
+                {
+                    if (echoModule)
+                    {
+                        // We need to create a history item for the undo/redo stack.
+                        // This item has to remember the json-serialized form of each module
+                        // before we reset it. We do not need to remember the reset state, because
+                        // we can always reset again!
+
+                        std::vector<InitChainNode> list;
+                        list.push_back(InitChainNode(echoModule));
+                        APP->engine->resetModule(echoModule);
+
+                        Module* module = echoModule->rightExpander.module;
+                        while (IsEchoReceiver(module))
+                        {
+                            list.push_back(InitChainNode(module));
+                            APP->engine->resetModule(module);
+                            module = module->rightExpander.module;
+                        }
+
+                        APP->history->push(new InitChainAction(list));
                     }
                 }
             };
+        }
+
+        void InitChainAction::undo()
+        {
+            for (const InitChainNode& node : list)
+            {
+                Module* module = APP->engine->getModule(node.moduleId);
+                if (module)
+                    APP->engine->moduleFromJson(module, node.json);
+            }
+        }
+
+        void InitChainAction::redo()
+        {
+            for (const InitChainNode& node : list)
+            {
+                Module* module = APP->engine->getModule(node.moduleId);
+                if (module)
+                    APP->engine->resetModule(module);
+            }
         }
 
         namespace EchoTap

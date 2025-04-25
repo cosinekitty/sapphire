@@ -182,5 +182,39 @@ namespace Sapphire
             int returnRightInputId = -1;
             int clockInputId = -1;
         };
+
+        //--------------------------------------------------------------------
+
+        struct InitChainNode
+        {
+            json_t* json;
+            int64_t moduleId;
+
+            explicit InitChainNode(Module* module)
+                : json(module->toJson())
+                , moduleId(module->id)
+                {}
+        };
+
+
+        struct InitChainAction : history::Action
+        {
+            std::vector<InitChainNode> list;
+
+            explicit InitChainAction(const std::vector<InitChainNode>& _list)
+                : list(_list)
+            {
+                name = "initialize Echo expander chain";
+            }
+
+            virtual ~InitChainAction()
+            {
+                for (const InitChainNode& node : list)
+                    json_decref(node.json);
+            }
+
+            void undo() override;
+            void redo() override;
+        };
     }
 }
