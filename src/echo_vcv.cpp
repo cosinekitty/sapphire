@@ -1192,6 +1192,12 @@ namespace Sapphire
                             "",
                             [=]{ initializeExpanderChain(); }
                         ));
+
+                        menu->addChild(createMenuItem(
+                            "Toggle all clock sync",
+                            "",
+                            [=]{ toggleAllClockSync(); }
+                        ));
                     }
                 }
 
@@ -1217,6 +1223,44 @@ namespace Sapphire
                         }
 
                         APP->history->push(new InitChainAction(list));
+                    }
+                }
+
+                void toggleAllClockSync()
+                {
+                    if (echoModule)
+                    {
+                        int totalCount = 1;
+                        int clockCount = 0;
+                        if (echoModule->timeMode == TimeMode::ClockSync)
+                            ++clockCount;
+
+                        Module* module = echoModule->rightExpander.module;
+                        while (IsEchoReceiver(module))
+                        {
+                            auto lmod = dynamic_cast<LoopModule*>(module);
+                            if (lmod)
+                            {
+                                ++totalCount;
+                                if (lmod->timeMode == TimeMode::ClockSync)
+                                    ++clockCount;
+                            }
+                            module = module->rightExpander.module;
+                        }
+
+                        echoModule->timeMode =
+                            (2*clockCount > totalCount) ?
+                            TimeMode::Seconds :
+                            TimeMode::ClockSync;
+
+                        module = echoModule->rightExpander.module;
+                        while (IsEchoReceiver(module))
+                        {
+                            auto lmod = dynamic_cast<LoopModule*>(module);
+                            if (lmod)
+                                lmod->timeMode = echoModule->timeMode;
+                            module = module->rightExpander.module;
+                        }
                     }
                 }
             };
