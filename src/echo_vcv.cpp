@@ -1238,7 +1238,7 @@ namespace Sapphire
                         Module* module = echoModule->rightExpander.module;
                         while (IsEchoReceiver(module))
                         {
-                            auto lmod = dynamic_cast<LoopModule*>(module);
+                            auto lmod = dynamic_cast<const LoopModule*>(module);
                             if (lmod)
                             {
                                 ++totalCount;
