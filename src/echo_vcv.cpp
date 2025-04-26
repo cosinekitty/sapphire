@@ -127,6 +127,7 @@ namespace Sapphire
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
+            BackwardMessage backwardMessageBuffer[2];
             int chainIndex = -1;
             bool receivedMessageFromLeft = false;
 
@@ -135,6 +136,10 @@ namespace Sapphire
             {
                 rightExpander.producerMessage = &messageBuffer[0];
                 rightExpander.consumerMessage = &messageBuffer[1];
+
+                leftExpander.producerMessage = &backwardMessageBuffer[0];
+                leftExpander.consumerMessage = &backwardMessageBuffer[1];
+
                 MultiTapModule_initialize();
             }
 
@@ -178,6 +183,26 @@ namespace Sapphire
                 const Message* ptr = receiveMessage();
                 receivedMessageFromLeft = (ptr != nullptr);
                 return receivedMessageFromLeft ? *ptr : Message{};
+            }
+
+            void sendBackwardMessage(const BackwardMessage& backMessage)
+            {
+                BackwardMessage& destination = *static_cast<BackwardMessage*>(leftExpander.producerMessage);
+                destination = backMessage;
+                leftExpander.requestMessageFlip();
+            }
+
+            const BackwardMessage* receiveBackwardMessage()
+            {
+                if (IsEchoTap(rightExpander.module))
+                    return static_cast<const BackwardMessage*>(rightExpander.module->leftExpander.consumerMessage);
+                return nullptr;
+            }
+
+            BackwardMessage receiveBackwardMessageOrDefault()
+            {
+                const BackwardMessage* ptr = receiveBackwardMessage();
+                return ptr ? *ptr : BackwardMessage{};
             }
 
             void writeSample(float voltage, Output& outLeft, Output& outRight, int c, int nc, bool polyphonic)
@@ -385,7 +410,8 @@ namespace Sapphire
             TapeLoopResult updateTapeLoops(
                 const Frame& inAudio,
                 float sampleRateHz,
-                const Message& message)
+                const Message& message,
+                const BackwardMessage& backMessage)
             {
                 inputRouting = message.inputRouting;
 
@@ -411,9 +437,22 @@ namespace Sapphire
                 float cvGain = 0;
                 int unhappyCount = 0;
 
-                const bool allowFeedback =
-                    (message.inputRouting == TapInputRouting::Parallel) ||
-                    !IsEchoTap(rightExpander.module);
+                bool allowFeedback;
+                switch (message.inputRouting)
+                {
+                case TapInputRouting::Serial:
+                    allowFeedback = !IsEchoTap(rightExpander.module);
+                    break;
+
+                case TapInputRouting::Loop:
+                    allowFeedback = IsEcho(this);
+                    break;
+
+                case TapInputRouting::Parallel:
+                default:
+                    allowFeedback = true;
+                    break;
+                }
 
                 for (int c = 0; c < nc; ++c)
                 {
@@ -451,15 +490,27 @@ namespace Sapphire
                     TapeLoopReadResult rr = q.loop.read();
                     reversibleDelayLineOutput.at(c) = rr.playback;
 
-                    if (allowFeedback && (c < message.feedback.nchannels))
-                        fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
+                    float feedbackSample = rr.feedback;
+                    if (allowFeedback)
+                    {
+                        if (c < message.feedback.nchannels)
+                            fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
+
+                        if (message.inputRouting == TapInputRouting::Loop)
+                        {
+                            if (c < backMessage.loopAudio.nchannels)
+                                feedbackSample = backMessage.loopAudio.sample[c];
+                            else
+                                feedbackSample = 0;
+                        }
+                    }
 
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
                     float delayLineInput =
                         frozen
-                        ? rr.feedback
-                        : inAudio.sample[c] + (fbk * rr.feedback);
+                        ? feedbackSample
+                        : inAudio.sample[c] + (fbk * feedbackSample);
 
                     writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
                     delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
@@ -879,8 +930,8 @@ namespace Sapphire
                 // Global controls
                 GateTriggerReceiver freezeReceiver;
                 AnimatedTriggerReceiver clearReceiver;
-                TapInputRouting tapInputRouting = TapInputRouting::Serial;
-                InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
+                TapInputRouting tapInputRouting{};
+                InterpolatorKind interpolatorKind{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -911,6 +962,8 @@ namespace Sapphire
 
                 void EchoModule_initialize()
                 {
+                    tapInputRouting = TapInputRouting::Parallel;
+                    interpolatorKind = InterpolatorKind::Linear;
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
                     dcRejectQuantity->initialize();
@@ -940,6 +993,7 @@ namespace Sapphire
                 void process(const ProcessArgs& args) override
                 {
                     Message outMessage;
+                    const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
                     outMessage.inputRouting = tapInputRouting;
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     frozen = outMessage.frozen = updateFreezeState();
@@ -950,7 +1004,7 @@ namespace Sapphire
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
-                    TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage);
+                    TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage, inBackMessage);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio = result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
@@ -1173,7 +1227,8 @@ namespace Sapphire
                             "Tap input routing",
                             {
                                 "Serial",
-                                "Parallel"
+                                "Parallel",
+                                "Loop"
                             },
                             echoModule->tapInputRouting
                         ));
@@ -1375,6 +1430,7 @@ namespace Sapphire
                 void process(const ProcessArgs& args) override
                 {
                     const Message inMessage = receiveMessageOrDefault();
+                    const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
 
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
@@ -1401,12 +1457,19 @@ namespace Sapphire
                         break;
                     }
 
-                    TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage);
+                    TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage, inBackMessage);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio += result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
                     sendMessage(outMessage);
+
+                    BackwardMessage outBackMessage;
+                    if (IsEchoTap(rightExpander.module))
+                        outBackMessage = inBackMessage;
+                    else
+                        outBackMessage.loopAudio = result.chainAudioOutput;
+                    sendBackwardMessage(outBackMessage);
                 }
 
                 bool updateReverseState()

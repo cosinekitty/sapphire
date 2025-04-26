@@ -80,6 +80,8 @@ namespace Sapphire
         {
             Serial,
             Parallel,
+            Loop,
+            LEN
         };
 
         inline char InputRoutingChar(TapInputRouting routing)
@@ -90,6 +92,8 @@ namespace Sapphire
                 return 'S';
             case TapInputRouting::Parallel:
                 return 'P';
+            case TapInputRouting::Loop:
+                return 'L';
             default:
                 return '?';
             }
@@ -101,7 +105,7 @@ namespace Sapphire
             MixAndChain,    // if reversed, the backwards audio also goes to the next tap in the chain
         };
 
-        struct Message
+        struct Message      // data that flows through the expander chain left-to-right.
         {
             int chainIndex = -1;
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
@@ -116,6 +120,11 @@ namespace Sapphire
             TapInputRouting inputRouting = TapInputRouting::Serial;
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
+        };
+
+        struct BackwardMessage      // data that flows through the expander chain right-to-left.
+        {
+            Frame loopAudio;        // the chain output from the rightmost EchoTap (used for Loop mode)
         };
 
         //--------------------------------------------------------------------
