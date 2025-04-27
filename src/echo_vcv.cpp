@@ -741,6 +741,15 @@ namespace Sapphire
                 }
             }
 
+            void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
+            {
+                float bounds[4]{};
+                nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                float width = bounds[2] - bounds[0];
+                float height = bounds[3] - bounds[1];
+                nvgText(vg, xCenter - width/2, yCenter - height/2, text, nullptr);
+            }
+
             void drawChainIndex(
                 NVGcontext* vg,
                 int chainIndex,
@@ -750,46 +759,36 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                if (chainIndex < 1)
-                    return;
-
-                if (IsEcho(module) && !IsEchoReceiver(module->rightExpander.module))
-                    return;
-
                 std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
                 if (!font)
                     return;
-
-                const float yCenter_mm = 10.0;
-
-                float bounds[4]{};  // [xmin, ymin, xmax, ymax]
-                char text[20];
-                snprintf(text, sizeof(text), "%d", chainIndex);
 
                 nvgFontSize(vg, 18);
                 nvgFontFaceId(vg, font->handle);
                 nvgFillColor(vg, textColor);
 
-                nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
-                float width  = bounds[2] - bounds[0];
-                float height = bounds[3] - bounds[1];
-                float x1 = ((box.size.x - width) / 2);
-                float y1 = mm2px(yCenter_mm) - height/2;
+                const bool isEcho = IsEcho(module);
 
-                if (chainIndex == 1)
-                    x1 += mm2px(mmShiftFirstTap);
+                float yCenter = mm2px(10.0);
+                float xCenter = box.size.x/2;
+                if (isEcho)
+                    xCenter += mm2px(mmShiftFirstTap);
 
-                nvgText(vg, x1, y1, text, nullptr);
+                char text[20];
 
-                // Hack: also draw serial/parallel option if this is the Echo panel.
-                if (chainIndex == 1)
+                const bool isDisconnectedEcho = isEcho && !IsEchoReceiver(module->rightExpander.module);
+                if ((chainIndex > 0) && !isDisconnectedEcho)
+                {
+                    snprintf(text, sizeof(text), "%d", chainIndex);
+                    drawCenteredText(vg, xCenter, yCenter, text);
+                }
+
+                if (isEcho)
                 {
                     text[0] = InputRoutingChar(routing);
                     text[1] = '\0';
-                    nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
-                    width  = bounds[2] - bounds[0];
-                    x1 = mm2px(FindComponent(modcode, "reverse_input").cx) - width/2;
-                    nvgText(vg, x1, y1, text, nullptr);
+                    float xOption = mm2px(FindComponent(modcode, "reverse_input").cx);
+                    drawCenteredText(vg, xOption, yCenter, text);
                 }
             }
 
