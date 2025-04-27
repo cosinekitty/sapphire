@@ -103,6 +103,7 @@ namespace Sapphire
         {
             Mix,            // if reversed, the backwards audio goes to the output mix only
             MixAndChain,    // if reversed, the backwards audio also goes to the next tap in the chain
+            LEN
         };
 
         struct Message      // data that flows through the expander chain left-to-right.

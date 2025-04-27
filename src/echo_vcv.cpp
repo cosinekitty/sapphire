@@ -121,6 +121,7 @@ namespace Sapphire
             ReverseOutput getReverseOutputMode() const;
             void appendContextMenu(Menu* menu) override;
             void drawLayer(const DrawArgs& args, int layer) override;
+            void onButton(const ButtonEvent& e) override;
         };
 
 
@@ -642,6 +643,22 @@ namespace Sapphire
                 }
             }
             SapphireCaptionButton::drawLayer(args, layer);
+        }
+
+
+        void ReverseButton::onButton(const ButtonEvent& e)
+        {
+            if (loopModule)
+            {
+                // If the user holds SHIFT while clicking the button,
+                // toggle the reverse-output mode.
+                if ((e.mods & GLFW_MOD_SHIFT) && (e.action == GLFW_PRESS) && (e.button == GLFW_MOUSE_BUTTON_LEFT))
+                {
+                    loopModule->reverseOutput = NextEnumValue(loopModule->reverseOutput);
+                }
+            }
+
+            SapphireCaptionButton::onButton(e);
         }
 
 
@@ -1170,15 +1187,8 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    int index = static_cast<int>(tapInputRouting);
-                    int length = static_cast<int>(TapInputRouting::LEN);
-                    setTapInputRouting(static_cast<TapInputRouting>((index+1) % length));
-                }
-
-                void setTapInputRouting(TapInputRouting newRouting)
-                {
-                    // FIXFIXFIX_ANTICLICK
-                    tapInputRouting = newRouting;
+                    // FIXFIXFIX_ANTICLICK : fix this in the TapeLoop class, just like we did for reverse toggle.
+                    tapInputRouting = NextEnumValue(tapInputRouting);
                 }
             };
 

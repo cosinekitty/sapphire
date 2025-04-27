@@ -102,6 +102,16 @@ namespace Sapphire
         return m;
     }
 
+    template <typename enum_t>
+    inline enum_t NextEnumValue(enum_t e, int increment = +1)
+    {
+        static constexpr int length = static_cast<int>(enum_t::LEN);
+        static_assert(length > 0);
+        const int value = static_cast<int>(e);
+        const int next = MOD(value + increment, length);
+        return static_cast<enum_t>(next);
+    }
+
     inline std::size_t SafeIndex(
         std::size_t length,
         std::size_t index,
