@@ -30,6 +30,7 @@ namespace Sapphire
             {"audio_right_input",      {  15.240,  111.000}},
             {"clear_button",           {  24.240,   65.000}},
             {"clear_input",            {   6.240,   65.000}},
+            {"clock_button",           {  25.240,   83.200}},
             {"clock_input",            {  15.240,   83.200}},
             {"env_gain_knob",          {  36.720,  115.000}},
             {"env_output",             {  54.720,  115.000}},

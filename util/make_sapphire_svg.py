@@ -1943,6 +1943,9 @@ MULTITAP_INSERT_BUTTON_DY    = 4.0
 MULTITAP_INSERT_BUTTON_INSET = 3.0
 MULTITAP_INSERT_BUTTON_Y1    = 4.5
 
+MULTITAP_CLOCK_BUTTON_DX = 3.0
+MULTITAP_CLOCK_BUTTON_DY = 3.0
+
 MULTITAP_INLOOP_HP_WIDTH = 12
 MULTITAP_LOOP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
@@ -2044,7 +2047,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
     yFreezeControl = yLoopFence.value(2.5)
     yClearControl = yLoopFence.value(3.5)
-    yClockInput = yLoopFence.value(4.8)
+    yClockControls = yLoopFence.value(4.8)
 
     # Insert/delete controls in upper right corner
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2057,6 +2060,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+    xClockInput = xGlobalCenter
+    xToggleClockSyncButton = xClockInput + 10.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
@@ -2077,8 +2082,9 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
-        controls.append(Component('clock_input', xGlobalCenter, yClockInput))
-        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockInput - 7.0))
+        controls.append(Component('clock_input', xClockInput, yClockControls))
+        controls.append(Component('clock_button', xToggleClockSyncButton, yClockControls))
+        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockControls - 7.0))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2182,7 +2188,7 @@ def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
     )
 
 
-def GenerateMultiTapButtons() -> int:
+def GenerateMultiTapExtenderButton() -> int:
     svgFileName = '../res/extender_button.svg'
     panel = BasePanel(MULTITAP_INSERT_BUTTON_DX, MULTITAP_INSERT_BUTTON_DY)
     cx = (panel.mmWidth / 2) - 0.4
@@ -2190,6 +2196,26 @@ def GenerateMultiTapButtons() -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
+
+
+def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/clock_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapButtons() -> int:
+    return (
+        GenerateMultiTapExtenderButton() or
+        GenerateMultiTapClockButton(0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535')
+    )
 
 
 if __name__ == '__main__':

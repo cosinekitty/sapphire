@@ -7,6 +7,11 @@ namespace Sapphire
         struct LoopModule;
         struct LoopWidget;
 
+        namespace Echo
+        {
+            struct EchoWidget;
+        }
+
         enum class TimeMode
         {
             Seconds,
@@ -111,6 +116,22 @@ namespace Sapphire
             }
 
             void onButton(const event::Button& e) override;
+        };
+
+
+        using clock_button_base_t = app::SvgSwitch;
+        struct ClockButton : clock_button_base_t
+        {
+            Echo::EchoWidget* echoWidget{};
+
+            explicit ClockButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+
+            void onButton(const ButtonEvent& e) override;
         };
 
 
@@ -982,6 +1003,7 @@ namespace Sapphire
                 FREEZE_BUTTON_PARAM,
                 CLEAR_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
+                CLOCK_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1050,6 +1072,7 @@ namespace Sapphire
                     configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear");
                     configInput(CLOCK_INPUT, "Clock");
+                    configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1211,6 +1234,7 @@ namespace Sapphire
                     addFreezeToggleGroup();
                     addClearTriggerGroup();
                     addSapphireInput(CLOCK_INPUT, "clock_input");
+                    addClockButton();
 
                     // Per-tap controls/ports
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
@@ -1221,6 +1245,13 @@ namespace Sapphire
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addSapphireOutput(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                }
+
+                void addClockButton()
+                {
+                    auto button = createParamCentered<ClockButton>(Vec{}, echoModule, CLOCK_BUTTON_PARAM);
+                    button->echoWidget = this;
+                    addSapphireParam(button, "clock_button");
                 }
 
                 void addFreezeToggleGroup()
@@ -1420,6 +1451,16 @@ namespace Sapphire
                     }
                 }
             };
+        }
+
+        void ClockButton::onButton(const ButtonEvent& e)
+        {
+            if (echoWidget)
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT && (e.action == GLFW_PRESS))
+                    echoWidget->toggleAllClockSync();
+            }
+            clock_button_base_t::onButton(e);
         }
 
         void InitChainAction::undo()
