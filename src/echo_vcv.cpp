@@ -314,7 +314,7 @@ namespace Sapphire
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             ReverseOutput reverseOutput = ReverseOutput::Mix;
-            TapInputRouting inputRouting{};
+            TapInputRouting receivedInputRouting{};
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -406,6 +406,10 @@ namespace Sapphire
                 Frame clockVoltage;
             };
 
+            virtual void bumpTapInputRouting()
+            {
+                // Do nothing... only EchoModule uses this.
+            }
 
             TapeLoopResult updateTapeLoops(
                 const Frame& inAudio,
@@ -413,7 +417,7 @@ namespace Sapphire
                 const Message& message,
                 const BackwardMessage& backMessage)
             {
-                inputRouting = message.inputRouting;
+                receivedInputRouting = message.inputRouting;
 
                 const int nc = inAudio.safeChannelCount();
                 const float two = 2;    // silly, but helps for portability to MAC/ARM
@@ -645,6 +649,9 @@ namespace Sapphire
         {
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
+            const float mmModeButtonRadius = 3.5;
+            const float mmChainIndexCenterY = 4.5;
+            bool hilightInputRoutingButton = false;
 
             explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
                 : SapphireWidget(moduleCode, panelSvgFileName)
@@ -745,9 +752,75 @@ namespace Sapphire
             {
                 float bounds[4]{};
                 nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
+                //                xmin       ymin       xmax      ymax
                 float width = bounds[2] - bounds[0];
-                float height = bounds[3] - bounds[1];
-                nvgText(vg, xCenter - width/2, yCenter - height/2, text, nullptr);
+                float ascent = -bounds[1];
+                nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
+            }
+
+            Vec getChainIndexCenterPos() const
+            {
+                float yCenter = mm2px(mmChainIndexCenterY);
+                float xCenter = box.size.x/2;
+                if (IsEcho(module))
+                    xCenter += mm2px(mmShiftFirstTap);
+                return Vec(xCenter, yCenter);
+            }
+
+            Vec getTapInputRoutingPos() const
+            {
+                float yCenter = mm2px(mmChainIndexCenterY);
+                float xCenter = mm2px(FindComponent(modcode, "reverse_input").cx);
+                return Vec(xCenter, yCenter);
+            }
+
+            bool isInsideInputRoutingButton(Vec pos) const
+            {
+                if (!IsEcho(module))
+                    return false;
+                Vec center = getTapInputRoutingPos();
+                float distance = center.minus(pos).norm();
+                return distance <= mm2px(mmModeButtonRadius);
+            }
+
+            void onMousePress(const ButtonEvent& e)
+            {
+            }
+
+            void onMouseRelease(const ButtonEvent& e)
+            {
+                auto lmod = dynamic_cast<LoopModule*>(module);
+                if (lmod)
+                {
+                    if (isInsideInputRoutingButton(e.pos))
+                        lmod->bumpTapInputRouting();
+                }
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    switch (e.action)
+                    {
+                    case GLFW_PRESS:    onMousePress(e);     break;
+                    case GLFW_RELEASE:  onMouseRelease(e);   break;
+                    }
+                }
+                SapphireWidget::onButton(e);
+            }
+
+            void onHover(const HoverEvent& e) override
+            {
+                hilightInputRoutingButton = isInsideInputRoutingButton(e.pos);
+                SapphireWidget::onHover(e);
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                hilightInputRoutingButton = false;
+                SapphireWidget::onLeave(e);
             }
 
             void drawChainIndex(
@@ -768,27 +841,33 @@ namespace Sapphire
                 nvgFillColor(vg, textColor);
 
                 const bool isEcho = IsEcho(module);
-
-                float yCenter = mm2px(10.0);
-                float xCenter = box.size.x/2;
-                if (isEcho)
-                    xCenter += mm2px(mmShiftFirstTap);
+                const bool isDisconnectedEcho = isEcho && !IsEchoReceiver(module->rightExpander.module);
+                const bool shouldDrawNumber = (chainIndex > 0) && !isDisconnectedEcho;
 
                 char text[20];
-
-                const bool isDisconnectedEcho = isEcho && !IsEchoReceiver(module->rightExpander.module);
-                if ((chainIndex > 0) && !isDisconnectedEcho)
+                if (shouldDrawNumber)
                 {
                     snprintf(text, sizeof(text), "%d", chainIndex);
-                    drawCenteredText(vg, xCenter, yCenter, text);
+                    Vec center = getChainIndexCenterPos();
+                    drawCenteredText(vg, center.x, center.y, text);
                 }
 
                 if (isEcho)
                 {
                     text[0] = InputRoutingChar(routing);
                     text[1] = '\0';
-                    float xOption = mm2px(FindComponent(modcode, "reverse_input").cx);
-                    drawCenteredText(vg, xOption, yCenter, text);
+                    Vec center = getTapInputRoutingPos();
+                    drawCenteredText(vg, center.x, center.y, text);
+                    if (hilightInputRoutingButton)
+                    {
+                        const float mmAdjustY = 0.4;
+
+                        nvgBeginPath(vg);
+                        nvgStrokeColor(vg, textColor);
+                        nvgStrokeWidth(vg, 1.0);
+                        nvgCircle(vg, center.x, center.y + mm2px(mmAdjustY), mm2px(mmModeButtonRadius));
+                        nvgStroke(vg);
+                    }
                 }
             }
 
@@ -800,7 +879,7 @@ namespace Sapphire
                 if (lmod)
                 {
                     if (!lmod->neonMode)
-                        drawChainIndex(args.vg, lmod->chainIndex, lmod->inputRouting, nvgRGB(0x66, 0x06, 0x5c));
+                        drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
                 }
             }
 
@@ -813,7 +892,7 @@ namespace Sapphire
                     if (lmod)
                     {
                         if (lmod->neonMode)
-                            drawChainIndex(args.vg, lmod->chainIndex, lmod->inputRouting, neonColor);
+                            drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, neonColor);
 
                         if (lmod->unhappy)
                             splash.begin(0xb0, 0x10, 0x00);
@@ -1088,6 +1167,19 @@ namespace Sapphire
                         CLEAR_BUTTON_LIGHT
                     );
                 }
+
+                void bumpTapInputRouting() override
+                {
+                    int index = static_cast<int>(tapInputRouting);
+                    int length = static_cast<int>(TapInputRouting::LEN);
+                    setTapInputRouting(static_cast<TapInputRouting>((index+1) % length));
+                }
+
+                void setTapInputRouting(TapInputRouting newRouting)
+                {
+                    // FIXFIXFIX_ANTICLICK
+                    tapInputRouting = newRouting;
+                }
             };
 
             struct EchoWidget : LoopWidget
@@ -1222,7 +1314,7 @@ namespace Sapphire
                     {
                         menu->addChild(new MenuSeparator);
 
-                        menu->addChild(createEnumMenuItem(
+                        menu->addChild(createEnumMenuItem(      // FIXFIXFIX_ANTICLICK
                             "Tap input routing",
                             {
                                 "Serial",
