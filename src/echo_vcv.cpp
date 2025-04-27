@@ -123,6 +123,7 @@ namespace Sapphire
         struct ClockButton : clock_button_base_t
         {
             Echo::EchoWidget* echoWidget{};
+            Stopwatch stopwatch;
 
             explicit ClockButton()
             {
@@ -132,6 +133,7 @@ namespace Sapphire
             }
 
             void onButton(const ButtonEvent& e) override;
+            void step() override;
         };
 
 
@@ -1458,9 +1460,25 @@ namespace Sapphire
             if (echoWidget)
             {
                 if (e.button == GLFW_MOUSE_BUTTON_LEFT && (e.action == GLFW_PRESS))
+                {
                     echoWidget->toggleAllClockSync();
+                    stopwatch.restart();
+                }
             }
             clock_button_base_t::onButton(e);
+        }
+
+        void ClockButton::step()
+        {
+            clock_button_base_t::step();
+            const float blinkTime = 0.02;
+            if (stopwatch.elapsedSeconds() >= blinkTime)
+            {
+                stopwatch.reset();
+                ParamQuantity *quantity = getParamQuantity();
+                if (quantity && quantity->getValue() > 0)
+                    quantity->setValue(0);
+            }
         }
 
         void InitChainAction::undo()
