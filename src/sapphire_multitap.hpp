@@ -4,6 +4,7 @@
 #include "sapphire_widget.hpp"
 #include "sapphire_envelope_follower.hpp"
 #include "sapphire_tapeloop.hpp"
+#include "sapphire_smoother.hpp"
 
 namespace Sapphire
 {
@@ -119,6 +120,7 @@ namespace Sapphire
             bool isClockConnected = false;
             bool neonMode = false;
             TapInputRouting inputRouting = TapInputRouting::Serial;
+            float routingSmooth = 1;    // ducking factor just before/after changing inputRouting
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
         };

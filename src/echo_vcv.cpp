@@ -540,6 +540,7 @@ namespace Sapphire
                         ? feedbackSample
                         : inAudio.sample[c] + (fbk * feedbackSample);
 
+                    delayLineInput *= message.routingSmooth;    // ducking for mode changes
                     writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
                     delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
 
@@ -1044,12 +1045,47 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
+            class RoutingSmoother : public Smoother
+            {
+            public:
+                TapInputRouting routing{};
+                TapInputRouting nextRouting{};
+
+                void initialize() override
+                {
+                    Smoother::initialize();
+                    routing = nextRouting = TapInputRouting::Parallel;
+                }
+
+                void beginRoutingChange(TapInputRouting target)
+                {
+                    nextRouting = target;
+                }
+
+                void beginBumpRouting()
+                {
+                    nextRouting = NextEnumValue(routing);
+                }
+
+                void onSilent() override
+                {
+                    routing = nextRouting;
+                }
+
+                double process(double sampleRateHz) override
+                {
+                    if ((routing != nextRouting) && isStable())
+                        fire();
+                    return Smoother::process(sampleRateHz);
+                }
+            };
+
             struct EchoModule : LoopModule
             {
                 // Global controls
                 GateTriggerReceiver freezeReceiver;
                 AnimatedTriggerReceiver clearReceiver;
-                TapInputRouting tapInputRouting{};
+                RoutingSmoother routingSmoother;
                 InterpolatorKind interpolatorKind{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
@@ -1082,7 +1118,7 @@ namespace Sapphire
 
                 void EchoModule_initialize()
                 {
-                    tapInputRouting = TapInputRouting::Parallel;
+                    routingSmoother.initialize();
                     interpolatorKind = InterpolatorKind::Linear;
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
@@ -1114,7 +1150,8 @@ namespace Sapphire
                 {
                     Message outMessage;
                     const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
-                    outMessage.inputRouting = tapInputRouting;
+                    outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
+                    outMessage.inputRouting = routingSmoother.routing;
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
@@ -1148,7 +1185,7 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = LoopModule::dataToJson();
-                    jsonSetEnum(root, "tapInputRouting", tapInputRouting);
+                    jsonSetEnum(root, "tapInputRouting", routingSmoother.routing);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     return root;
                 }
@@ -1156,7 +1193,8 @@ namespace Sapphire
                 void dataFromJson(json_t* root) override
                 {
                     LoopModule::dataFromJson(root);
-                    jsonLoadEnum(root, "tapInputRouting", tapInputRouting);
+                    jsonLoadEnum(root, "tapInputRouting", routingSmoother.routing);
+                    routingSmoother.nextRouting = routingSmoother.routing;  // prevent update
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                 }
 
@@ -1212,8 +1250,7 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    // FIXFIXFIX_ANTICLICK : fix this in the TapeLoop class, just like we did for reverse toggle.
-                    tapInputRouting = NextEnumValue(tapInputRouting);
+                    routingSmoother.beginBumpRouting();
                 }
             };
 
@@ -1357,14 +1394,14 @@ namespace Sapphire
                     {
                         menu->addChild(new MenuSeparator);
 
-                        menu->addChild(createEnumMenuItem(      // FIXFIXFIX_ANTICLICK
+                        menu->addChild(createEnumMenuItem(
                             "Tap input routing",
                             {
                                 "Serial",
                                 "Parallel",
                                 "Loop"
                             },
-                            echoModule->tapInputRouting
+                            echoModule->routingSmoother.nextRouting
                         ));
 
                         menu->addChild(createEnumMenuItem(
