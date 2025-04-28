@@ -4,6 +4,7 @@
 #include <vector>
 #include "sapphire_engine.hpp"
 #include "sapphire_crossfader.hpp"
+#include "sapphire_smoother.hpp"
 
 namespace Sapphire
 {
@@ -94,6 +95,7 @@ namespace Sapphire
         TapeDelayMotor tapeDelayMotor;
         InterpolatorKind ikind = InterpolatorKind::Linear;
         Crossfader reverseToggleFader;
+        Smoother clearSmoother;
 
         int wrapIndex(int position) const
         {
@@ -163,6 +165,7 @@ namespace Sapphire
             recoveryCountdown = 0;
             tapeDelayMotor.initialize();
             reverseToggleFader.snapToFront();
+            clearSmoother.initialize();
             clear();
         }
 
@@ -170,6 +173,11 @@ namespace Sapphire
         {
             for (float& x : buffer)
                 x = 0;
+        }
+
+        void beginClear()
+        {
+            clearSmoother.fire();
         }
 
         bool isRecoveringFromOverload() const
@@ -240,8 +248,12 @@ namespace Sapphire
             if (!IsValidSampleRate(sampleRateHz))
                 return result;
 
-            result.feedback = recall(0);
-            result.playback = reverseToggleFader.process(
+            float csGain = clearSmoother.process(sampleRateHz);
+            if (clearSmoother.isDelayedActionReady())
+                clear();
+
+            result.feedback = csGain * recall(0);
+            result.playback = csGain * reverseToggleFader.process(
                 sampleRateHz,
                 [=]() { return result.feedback; },
                 [=]() { return recall(reversePlaybackHead); }

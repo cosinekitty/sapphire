@@ -11,18 +11,23 @@ namespace Sapphire
     private:
         enum class State { Stable, Fading, Ramping };
 
+        const double rampSeconds;
+
         State state;
         double gain;
-        const double rampSeconds;
+        bool trigger;
 
         void Smoother_initialize()
         {
             state = State::Stable;
             gain = 1;
+            trigger = false;
         }
 
     public:
-        explicit Smoother(double _rampSeconds)
+        static constexpr double DefaultRampSeconds = 0.005;
+
+        explicit Smoother(double _rampSeconds = DefaultRampSeconds)
             : rampSeconds(_rampSeconds)
         {
             Smoother_initialize();
@@ -51,6 +56,11 @@ namespace Sapphire
             return false;
         }
 
+        bool isDelayedActionReady() const
+        {
+            return trigger;
+        }
+
         virtual double process(double sampleRateHz)
         {
             if (isStable())
@@ -61,6 +71,7 @@ namespace Sapphire
                 fire();
             }
 
+            trigger = false;
             const double change = 1/(rampSeconds*sampleRateHz);
             if (state == State::Fading)
             {
@@ -68,6 +79,7 @@ namespace Sapphire
                 if (gain == 0)
                 {
                     state = State::Ramping;
+                    trigger = true;
                     onSilent();
                 }
             }
@@ -97,7 +109,7 @@ namespace Sapphire
         enum_t currentValue;
         enum_t targetValue;
 
-        explicit EnumSmoother(enum_t init, const char *key, double _rampSeconds = 0.005)
+        explicit EnumSmoother(enum_t init, const char *key, double _rampSeconds = DefaultRampSeconds)
             : Smoother(_rampSeconds)
             , initialValue(init)
             , jsonKey(key)

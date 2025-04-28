@@ -516,7 +516,7 @@ namespace Sapphire
                     }
                     q.loop.setReversed(reversed);
                     if (clearBufferRequested)
-                        q.loop.clear();
+                        q.loop.beginClear();
 
                     float delayTime;
                     if (clockSyncTime > 0)
