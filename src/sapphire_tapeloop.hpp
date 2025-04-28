@@ -4,7 +4,6 @@
 #include <vector>
 #include "sapphire_engine.hpp"
 #include "sapphire_crossfader.hpp"
-#include "sapphire_smoother.hpp"
 
 namespace Sapphire
 {
@@ -211,7 +210,7 @@ namespace Sapphire
                 // resize the buffer to allow the maximum possible number of samples
                 // as required by the new sample rate.
 
-                // Because the tape loop is reversible, we need twice as much tape time as the maximum delay time.
+                // Because the tape loop is reversible, we need twice as: much tape time as the maximum delay time.
 
                 buffer.resize(maxSize);
                 clear();    // any audio in the buffer already is recorded at the wrong sample rate
@@ -235,18 +234,14 @@ namespace Sapphire
             return mix*newer + (1-mix)*older;
         }
 
-        TapeLoopReadResult read(const Smoother& clearSmoother)
+        TapeLoopReadResult read(float clearSmootherGain)
         {
             TapeLoopReadResult result;
             if (!IsValidSampleRate(sampleRateHz))
                 return result;
 
-            float csGain = clearSmoother.getGain();
-            if (clearSmoother.isDelayedActionReady())
-                clear();
-
-            result.feedback = csGain * recall(0);
-            result.playback = csGain * reverseToggleFader.process(
+            result.feedback = recall(0);
+            result.playback = reverseToggleFader.process(
                 sampleRateHz,
                 [=]() { return result.feedback; },
                 [=]() { return recall(reversePlaybackHead); }
@@ -263,10 +258,13 @@ namespace Sapphire
                 // Must re-sync exactly the right amount of time behind the record head.
                 reversePlaybackHead = 0;
             }
+
+            result.feedback *= clearSmootherGain;
+            result.playback *= clearSmootherGain;
             return result;
         }
 
-        bool write(float sample, const Smoother& clearSmoother)
+        bool write(float sample, float clearSmootherGain)
         {
             // Protect the tape loop from NAN/infinite/crazy voltages.
             float safe = 0;
@@ -287,7 +285,7 @@ namespace Sapphire
                     recoveryCountdown = 48000;
             }
 
-            buffer.at(recordIndex) = safe * clearSmoother.getGain();
+            buffer.at(recordIndex) = safe * clearSmootherGain;
             recordIndex = wrapIndex(recordIndex + 1);
             return recoveryCountdown == 0;
         }

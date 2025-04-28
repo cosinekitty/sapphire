@@ -533,7 +533,9 @@ namespace Sapphire
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
-                    TapeLoopReadResult rr = q.loop.read(clearSmoother);
+                    if (clearSmoother.isDelayedActionReady())
+                        q.loop.clear();
+                    TapeLoopReadResult rr = q.loop.read(clearSmoother.getGain());
                     reversibleDelayLineOutput.at(c) = rr.playback;
 
                     float feedbackSample = rr.feedback;
@@ -562,7 +564,7 @@ namespace Sapphire
                     writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
                     delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
 
-                    if (!q.loop.write(delayLineInput, clearSmoother))
+                    if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;
 
                     float ca = rsGain;
