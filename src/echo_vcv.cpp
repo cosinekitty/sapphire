@@ -1047,14 +1047,25 @@ namespace Sapphire
 
             class RoutingSmoother : public Smoother
             {
+            private:
+                void RoutingSmoother_initialize()
+                {
+                    routing = nextRouting = TapInputRouting::Parallel;
+                }
+
             public:
-                TapInputRouting routing{};
-                TapInputRouting nextRouting{};
+                TapInputRouting routing;
+                TapInputRouting nextRouting;
+
+                explicit RoutingSmoother()
+                {
+                    RoutingSmoother_initialize();
+                }
 
                 void initialize() override
                 {
                     Smoother::initialize();
-                    routing = nextRouting = TapInputRouting::Parallel;
+                    RoutingSmoother_initialize();
                 }
 
                 void beginRoutingChange(TapInputRouting target)

@@ -9,9 +9,15 @@ namespace Sapphire
     private:
         enum class State { Stable, Fading, Ramping };
 
-        State state = State::Stable;
-        double gain = 1;
+        State state;
+        double gain;
         const double rampSeconds;
+
+        void Smoother_initialize()
+        {
+            state = State::Stable;
+            gain = 1;
+        }
 
     public:
         virtual void onSilent() {}   // called once at the silence in the middle of the ducking period
@@ -20,13 +26,12 @@ namespace Sapphire
         explicit Smoother(double rampTimeInSeconds = 0.005)
             : rampSeconds(rampTimeInSeconds)
         {
-            initialize();
+            Smoother_initialize();
         }
 
         virtual void initialize()
         {
-            state = State::Stable;
-            gain = 1;
+            Smoother_initialize();
         }
 
         bool isStable() const
