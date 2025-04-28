@@ -341,7 +341,6 @@ namespace Sapphire
             bool unhappy = false;
             bool frozen = false;
             bool reversed = false;
-            bool clearBufferRequested = false;
             bool isClockConnected = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
@@ -368,7 +367,6 @@ namespace Sapphire
                 unhappy = false;
                 reverseOutputModeSmoother.initialize();
                 clearSmoother.initialize();
-                clearBufferRequested = false;
             }
 
             void initialize() override
@@ -454,11 +452,6 @@ namespace Sapphire
                 const Message& message,
                 const BackwardMessage& backMessage)
             {
-                if (clearBufferRequested)
-                {
-                    clearSmoother.begin();
-                    clearBufferRequested = false;
-                }
                 clearSmoother.process(sampleRateHz);
                 const float rsGain = reverseOutputModeSmoother.process(sampleRateHz);
 
@@ -1146,7 +1139,7 @@ namespace Sapphire
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
-                    clearBufferRequested = outMessage.clear = updateClearState(args.sampleRate);
+                    outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate);
                     outMessage.feedback = getFeedbackPoly();
@@ -1229,13 +1222,18 @@ namespace Sapphire
 
                 bool updateClearState(float sampleRateHz)
                 {
-                    return updateTriggerGroup(
+                    const bool clearRequested = updateTriggerGroup(
                         sampleRateHz,
                         clearReceiver,
                         CLEAR_INPUT,
                         CLEAR_BUTTON_PARAM,
                         CLEAR_BUTTON_LIGHT
                     );
+
+                    if (clearRequested)
+                        clearSmoother.begin();
+
+                    return clearRequested;
                 }
 
                 void bumpTapInputRouting() override
@@ -1639,7 +1637,9 @@ namespace Sapphire
                     if (receivedMessageFromLeft)
                         neonMode = inMessage.neonMode;
                     reversed = updateReverseState();
-                    clearBufferRequested = inMessage.clear;
+                    if (inMessage.clear)
+                        clearSmoother.begin();
+
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
 
                     Frame tapInputAudio;
