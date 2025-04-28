@@ -64,6 +64,11 @@ namespace Sapphire
             target = 1;
         }
 
+        void beginFade(bool back)
+        {
+            target = back ? 1 : 0;
+        }
+
         float process(
             double sampleRateHz,
             std::function<float()> getFrontValue,
@@ -86,6 +91,15 @@ namespace Sapphire
                 mix = std::clamp<double>(mix - incr, 0, 1);
 
             return value;
+        }
+
+        float process(double sampleRateHz, float frontValue, float backValue)
+        {
+            return process(
+                sampleRateHz,
+                [=]{ return frontValue; },
+                [=]{ return backValue; }
+            );
         }
     };
 }

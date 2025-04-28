@@ -339,7 +339,6 @@ namespace Sapphire
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
             const float L2 = std::log2(TAPELOOP_MAX_DELAY_SECONDS);
             bool unhappy = false;
-            bool frozen = false;
             bool reversed = false;
             bool isClockConnected = false;
             TimeMode timeMode = TimeMode::Seconds;
@@ -359,7 +358,6 @@ namespace Sapphire
 
             void LoopModule_initialize()
             {
-                frozen = false;
                 reversed = false;
                 reverseReceiver.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
@@ -373,16 +371,6 @@ namespace Sapphire
             {
                 MultiTapModule::initialize();
                 LoopModule_initialize();
-            }
-
-            bool isFrozen() const
-            {
-                return frozen;
-            }
-
-            bool isReversed() const
-            {
-                return reversed;
             }
 
             bool isActivelyClocked() const
@@ -548,10 +536,11 @@ namespace Sapphire
 
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);
 
-                    float delayLineInput =
-                        frozen
-                        ? feedbackSample
-                        : inAudio.sample[c] + (fbk * feedbackSample);
+                    float delayLineInput = LinearMix(
+                        message.freezeMix,
+                        inAudio.sample[c] + (fbk * feedbackSample),
+                        feedbackSample
+                    );
 
                     delayLineInput *= message.routingSmooth;    // ducking for mode changes
                     writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
@@ -1071,6 +1060,7 @@ namespace Sapphire
                 AnimatedTriggerReceiver clearReceiver;
                 RoutingSmoother routingSmoother;
                 InterpolatorKind interpolatorKind{};
+                Crossfader freezeFader;
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -1110,6 +1100,7 @@ namespace Sapphire
                     params.at(REVERSE_BUTTON_PARAM).setValue(0);
                     params.at(FREEZE_BUTTON_PARAM).setValue(0);
                     params.at(CLEAR_BUTTON_PARAM).setValue(0);
+                    freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 
                 void initialize() override
@@ -1137,7 +1128,7 @@ namespace Sapphire
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
                     outMessage.inputRouting = routingSmoother.currentValue;
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
-                    frozen = outMessage.frozen = updateFreezeState();
+                    outMessage.freezeMix = updateFreezeState(args.sampleRate);
                     reversed = updateReverseState();
                     outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
@@ -1200,14 +1191,16 @@ namespace Sapphire
                     return feedback;
                 }
 
-                bool updateFreezeState()
+                float updateFreezeState(float sampleRateHz)
                 {
-                    return updateToggleState(
+                    const bool freezeGate = updateToggleState(
                         freezeReceiver,
                         FREEZE_BUTTON_PARAM,
                         FREEZE_INPUT,
                         FREEZE_BUTTON_LIGHT
                     );
+                    freezeFader.beginFade(freezeGate);
+                    return freezeFader.process(sampleRateHz, 0, 1);
                 }
 
                 bool updateReverseState()
@@ -1631,7 +1624,6 @@ namespace Sapphire
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
                     chainIndex = inMessage.chainIndex;
-                    frozen = inMessage.frozen;
                     isClockConnected = inMessage.isClockConnected;
                     includeNeonModeMenuItem = !receivedMessageFromLeft;
                     if (receivedMessageFromLeft)

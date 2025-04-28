@@ -115,7 +115,7 @@ namespace Sapphire
             Frame summedAudio;          // the sum of outputs from all taps to the left (for final output mix)
             Frame feedback;             // polyphonic modulation for the feedback parameter
             Frame clockVoltage;         // raw voltage read from the CLOCK port
-            bool frozen = false;
+            float freezeMix = 0;        // 0=thawed, 1=frozen, in between for linear crossfade
             bool clear = false;
             bool isClockConnected = false;
             bool neonMode = false;
