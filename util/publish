@@ -7,6 +7,9 @@
 ./verify_clean || exit 1
 ./prebuild || exit 1
 ./verify_clean || exit 1
+cd ..
+make || exit 1
+cd util
 ./runtests || exit 1
 ./verify_clean || exit 1
 git push || exit 1
