@@ -1339,6 +1339,10 @@ namespace Sapphire
                 void drawClockSyncSymbol(NVGcontext* vg, NVGcolor color, float strokeWidth)
                 {
                     ComponentLocation clock = FindComponent(modcode, "clock_input");
+                    ComponentLocation button = FindComponent(modcode, "clock_button");
+                    static constexpr float MULTITAP_CLOCK_BUTTON_DY = 3.0;
+                    float bx = mm2px(button.cx - MULTITAP_CLOCK_BUTTON_DY/2);
+                    float by = mm2px(button.cy);
 
                     float dx = 6.0;
                     float dy = 4.5;
@@ -1348,12 +1352,19 @@ namespace Sapphire
                     float y2 = mm2px(clock.cy + dy);
 
                     nvgBeginPath(vg);
+
                     nvgStrokeColor(vg, color);
                     nvgMoveTo(vg, x1, y1);
                     nvgLineTo(vg, x2, y1);
                     nvgLineTo(vg, x2, y2);
                     nvgLineTo(vg, x1, y2);
                     nvgLineTo(vg, x1, y1);
+
+                    // Draw connector line from right edge of rectangle
+                    // to the edge of the clock-sync toggle button.
+                    nvgMoveTo(vg, x2, by);
+                    nvgLineTo(vg, bx, by);
+
                     nvgStrokeWidth(vg, strokeWidth);
                     nvgStroke(vg);
                 }
