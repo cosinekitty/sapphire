@@ -323,6 +323,17 @@ namespace Sapphire
             }
         };
 
+
+        class ReverseOutputModeSmoother : public EnumSmoother<ReverseOutput>
+        {
+        public:
+            ReverseOutputModeSmoother()
+                : EnumSmoother(ReverseOutput::Mix, "reverseOutput")
+            {
+            }
+        };
+
+
         struct LoopModule : MultiTapModule
         {
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
@@ -337,7 +348,7 @@ namespace Sapphire
             EnvelopeFollower env;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
-            ReverseOutput reverseOutput = ReverseOutput::Mix;
+            ReverseOutputModeSmoother reverseOutputModeSmoother;
             TapInputRouting receivedInputRouting{};
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
@@ -355,7 +366,7 @@ namespace Sapphire
                     info[c].initialize();
                 clearBufferRequested = true;
                 unhappy = false;
-                reverseOutput = ReverseOutput::Mix;
+                reverseOutputModeSmoother.initialize();
             }
 
             void initialize() override
@@ -393,7 +404,7 @@ namespace Sapphire
             {
                 json_t* root = MultiTapModule::dataToJson();
                 jsonSetEnum(root, "timeMode", timeMode);
-                jsonSetEnum(root, "reverseOutput", reverseOutput);
+                reverseOutputModeSmoother.jsonSave(root);
                 return root;
             }
 
@@ -401,7 +412,7 @@ namespace Sapphire
             {
                 MultiTapModule::dataFromJson(root);
                 jsonLoadEnum(root, "timeMode", timeMode);
-                jsonLoadEnum(root, "reverseOutput", reverseOutput);
+                reverseOutputModeSmoother.jsonLoad(root);
             }
 
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
@@ -547,15 +558,16 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput))
                         ++unhappyCount;
 
-                    switch (reverseOutput)
+                    float rsGain = reverseOutputModeSmoother.process(sampleRateHz);
+                    switch (reverseOutputModeSmoother.currentValue)
                     {
                     case ReverseOutput::Mix:
                     default:
-                        result.chainAudioOutput.at(c) = rr.feedback;
+                        result.chainAudioOutput.at(c) = rsGain * rr.feedback;
                         break;
 
                     case ReverseOutput::MixAndChain:
-                        result.chainAudioOutput.at(c) = reversibleDelayLineOutput.at(c);
+                        result.chainAudioOutput.at(c) = rsGain * reversibleDelayLineOutput.at(c);
                         break;
                     }
 
@@ -624,7 +636,7 @@ namespace Sapphire
                         "Mixer",
                         "Mixer + next tap",
                     },
-                    reverseOutput
+                    reverseOutputModeSmoother.targetValue
                 );
             }
         };
@@ -632,7 +644,7 @@ namespace Sapphire
 
         ReverseOutput ReverseButton::getReverseOutputMode() const
         {
-            return loopModule ? loopModule->reverseOutput : ReverseOutput::Mix;
+            return loopModule ? loopModule->reverseOutputModeSmoother.currentValue : ReverseOutput::Mix;
         }
 
 
@@ -677,9 +689,7 @@ namespace Sapphire
                 // If the user holds SHIFT while clicking the button,
                 // toggle the reverse-output mode.
                 if ((e.mods & GLFW_MOD_SHIFT) && (e.action == GLFW_PRESS) && (e.button == GLFW_MOUSE_BUTTON_LEFT))
-                {
-                    loopModule->reverseOutput = NextEnumValue(loopModule->reverseOutput);
-                }
+                    loopModule->reverseOutputModeSmoother.beginBumpEnum();
             }
 
             SapphireCaptionButton::onButton(e);
@@ -1045,50 +1055,12 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            class RoutingSmoother : public Smoother
+            class RoutingSmoother : public EnumSmoother<TapInputRouting>
             {
-            private:
-                void RoutingSmoother_initialize()
-                {
-                    routing = nextRouting = TapInputRouting::Parallel;
-                }
-
             public:
-                TapInputRouting routing;
-                TapInputRouting nextRouting;
-
                 explicit RoutingSmoother()
-                {
-                    RoutingSmoother_initialize();
-                }
-
-                void initialize() override
-                {
-                    Smoother::initialize();
-                    RoutingSmoother_initialize();
-                }
-
-                void beginRoutingChange(TapInputRouting target)
-                {
-                    nextRouting = target;
-                }
-
-                void beginBumpRouting()
-                {
-                    nextRouting = NextEnumValue(routing);
-                }
-
-                void onSilent() override
-                {
-                    routing = nextRouting;
-                }
-
-                double process(double sampleRateHz) override
-                {
-                    if ((routing != nextRouting) && isStable())
-                        fire();
-                    return Smoother::process(sampleRateHz);
-                }
+                    : EnumSmoother(TapInputRouting::Parallel, "tapInputRouting")
+                    {}
             };
 
             struct EchoModule : LoopModule
@@ -1162,7 +1134,7 @@ namespace Sapphire
                     Message outMessage;
                     const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
-                    outMessage.inputRouting = routingSmoother.routing;
+                    outMessage.inputRouting = routingSmoother.currentValue;
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     frozen = outMessage.frozen = updateFreezeState();
                     reversed = updateReverseState();
@@ -1196,7 +1168,7 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = LoopModule::dataToJson();
-                    jsonSetEnum(root, "tapInputRouting", routingSmoother.routing);
+                    routingSmoother.jsonSave(root);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     return root;
                 }
@@ -1204,8 +1176,7 @@ namespace Sapphire
                 void dataFromJson(json_t* root) override
                 {
                     LoopModule::dataFromJson(root);
-                    jsonLoadEnum(root, "tapInputRouting", routingSmoother.routing);
-                    routingSmoother.nextRouting = routingSmoother.routing;  // prevent update
+                    routingSmoother.jsonLoad(root);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                 }
 
@@ -1261,7 +1232,7 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    routingSmoother.beginBumpRouting();
+                    routingSmoother.beginBumpEnum();
                 }
             };
 
@@ -1423,7 +1394,7 @@ namespace Sapphire
                                 "Parallel",
                                 "Loop"
                             },
-                            echoModule->routingSmoother.nextRouting
+                            echoModule->routingSmoother.targetValue
                         ));
 
                         menu->addChild(createEnumMenuItem(

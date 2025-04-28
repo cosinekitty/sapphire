@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <cassert>
+#include "sapphire_vcvrack.hpp"
+#include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
@@ -20,14 +22,14 @@ namespace Sapphire
         }
 
     public:
-        virtual void onSilent() {}   // called once at the silence in the middle of the ducking period
-        virtual void onStable() {}   // called when we are stable again after ducking
-
-        explicit Smoother(double rampTimeInSeconds = 0.005)
-            : rampSeconds(rampTimeInSeconds)
+        explicit Smoother(double _rampSeconds)
+            : rampSeconds(_rampSeconds)
         {
             Smoother_initialize();
         }
+
+        virtual void onSilent() {}   // called once at the silence in the middle of the ducking period
+        virtual void onStable() {}   // called when we are stable again after ducking
 
         virtual void initialize()
         {
@@ -44,10 +46,20 @@ namespace Sapphire
             state = State::Fading;
         }
 
+        virtual bool changed() const
+        {
+            return false;
+        }
+
         virtual double process(double sampleRateHz)
         {
-            if (state == State::Stable)
-                return 1;
+            if (isStable())
+            {
+                if (!changed())
+                    return 1;
+
+                fire();
+            }
 
             const double change = 1/(rampSeconds*sampleRateHz);
             if (state == State::Fading)
@@ -70,6 +82,65 @@ namespace Sapphire
             }
 
             return gain;
+        }
+    };
+
+
+    template <typename enum_t>
+    class EnumSmoother : public Smoother
+    {
+    private:
+        const enum_t initialValue;
+        const char *jsonKey;
+
+    public:
+        enum_t currentValue;
+        enum_t targetValue;
+
+        explicit EnumSmoother(enum_t init, const char *key, double _rampSeconds = 0.005)
+            : Smoother(_rampSeconds)
+            , initialValue(init)
+            , jsonKey(key)
+        {
+            EnumSmoother_initialize();
+        }
+
+        void initialize() override
+        {
+            Smoother::initialize();
+            EnumSmoother_initialize();
+        }
+
+        void EnumSmoother_initialize()
+        {
+            currentValue = initialValue;
+            targetValue  = initialValue;
+        }
+
+        bool changed() const override
+        {
+            return currentValue != targetValue;
+        }
+
+        void onSilent() override
+        {
+            currentValue = targetValue;
+        }
+
+        void jsonSave(json_t* root)
+        {
+            jsonSetEnum(root, jsonKey, currentValue);
+        }
+
+        void jsonLoad(json_t* root)
+        {
+            jsonLoadEnum(root, jsonKey, currentValue);
+            targetValue = currentValue;
+        }
+
+        void beginBumpEnum()
+        {
+            targetValue = NextEnumValue(currentValue);
         }
     };
 }
