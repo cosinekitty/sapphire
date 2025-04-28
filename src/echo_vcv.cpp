@@ -350,6 +350,7 @@ namespace Sapphire
             PolyControls controls;
             ReverseOutputModeSmoother reverseOutputModeSmoother;
             TapInputRouting receivedInputRouting{};
+            Smoother clearSmoother;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -364,9 +365,10 @@ namespace Sapphire
                 reverseReceiver.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
-                clearBufferRequested = true;
                 unhappy = false;
                 reverseOutputModeSmoother.initialize();
+                clearSmoother.initialize();
+                clearBufferRequested = false;
             }
 
             void initialize() override
@@ -452,6 +454,14 @@ namespace Sapphire
                 const Message& message,
                 const BackwardMessage& backMessage)
             {
+                if (clearBufferRequested)
+                {
+                    clearSmoother.begin();
+                    clearBufferRequested = false;
+                }
+                clearSmoother.process(sampleRateHz);
+                const float rsGain = reverseOutputModeSmoother.process(sampleRateHz);
+
                 receivedInputRouting = message.inputRouting;
 
                 const int nc = inAudio.safeChannelCount();
@@ -515,9 +525,6 @@ namespace Sapphire
                         ++q.samplesSinceClockTrigger;
                     }
                     q.loop.setReversed(reversed);
-                    if (clearBufferRequested)
-                        q.loop.beginClear();
-
                     float delayTime;
                     if (clockSyncTime > 0)
                         delayTime = clockSyncTime;
@@ -526,7 +533,7 @@ namespace Sapphire
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
-                    TapeLoopReadResult rr = q.loop.read();
+                    TapeLoopReadResult rr = q.loop.read(clearSmoother);
                     reversibleDelayLineOutput.at(c) = rr.playback;
 
                     float feedbackSample = rr.feedback;
@@ -555,27 +562,26 @@ namespace Sapphire
                     writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
                     delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
 
-                    if (!q.loop.write(delayLineInput))
+                    if (!q.loop.write(delayLineInput, clearSmoother))
                         ++unhappyCount;
 
-                    float rsGain = reverseOutputModeSmoother.process(sampleRateHz);
+                    float ca = rsGain;
                     switch (reverseOutputModeSmoother.currentValue)
                     {
                     case ReverseOutput::Mix:
                     default:
-                        result.chainAudioOutput.at(c) = rsGain * rr.feedback;
+                        ca *= rr.feedback;
                         break;
 
                     case ReverseOutput::MixAndChain:
-                        result.chainAudioOutput.at(c) = rsGain * reversibleDelayLineOutput.at(c);
+                        ca *= reversibleDelayLineOutput.at(c);
                         break;
                     }
-
-                    result.globalAudioOutput.at(c) = gain * reversibleDelayLineOutput.at(c);
+                    result.chainAudioOutput.at(c) = ca;
+                    result.globalAudioOutput.at(c) = gain * ca;
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
-                clearBufferRequested = false;
                 unhappy = (unhappyCount > 0);
                 return result;
             }

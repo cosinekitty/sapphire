@@ -46,7 +46,12 @@ namespace Sapphire
             return state == State::Stable;
         }
 
-        void fire()
+        double getGain() const
+        {
+            return gain;
+        }
+
+        void begin()
         {
             state = State::Fading;
         }
@@ -66,9 +71,9 @@ namespace Sapphire
             if (isStable())
             {
                 if (!changed())
-                    return 1;
+                    return gain;
 
-                fire();
+                begin();
             }
 
             trigger = false;

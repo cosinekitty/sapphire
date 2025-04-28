@@ -95,7 +95,6 @@ namespace Sapphire
         TapeDelayMotor tapeDelayMotor;
         InterpolatorKind ikind = InterpolatorKind::Linear;
         Crossfader reverseToggleFader;
-        Smoother clearSmoother;
 
         int wrapIndex(int position) const
         {
@@ -165,7 +164,6 @@ namespace Sapphire
             recoveryCountdown = 0;
             tapeDelayMotor.initialize();
             reverseToggleFader.snapToFront();
-            clearSmoother.initialize();
             clear();
         }
 
@@ -173,11 +171,6 @@ namespace Sapphire
         {
             for (float& x : buffer)
                 x = 0;
-        }
-
-        void beginClear()
-        {
-            clearSmoother.fire();
         }
 
         bool isRecoveringFromOverload() const
@@ -242,13 +235,13 @@ namespace Sapphire
             return mix*newer + (1-mix)*older;
         }
 
-        TapeLoopReadResult read()
+        TapeLoopReadResult read(const Smoother& clearSmoother)
         {
             TapeLoopReadResult result;
             if (!IsValidSampleRate(sampleRateHz))
                 return result;
 
-            float csGain = clearSmoother.process(sampleRateHz);
+            float csGain = clearSmoother.getGain();
             if (clearSmoother.isDelayedActionReady())
                 clear();
 
@@ -273,7 +266,7 @@ namespace Sapphire
             return result;
         }
 
-        bool write(float sample)
+        bool write(float sample, const Smoother& clearSmoother)
         {
             // Protect the tape loop from NAN/infinite/crazy voltages.
             float safe = 0;
@@ -294,7 +287,7 @@ namespace Sapphire
                     recoveryCountdown = 48000;
             }
 
-            buffer.at(recordIndex) = safe;
+            buffer.at(recordIndex) = safe * clearSmoother.getGain();
             recordIndex = wrapIndex(recordIndex + 1);
             return recoveryCountdown == 0;
         }
