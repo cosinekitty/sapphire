@@ -155,9 +155,9 @@ namespace Sapphire
             targetValue = currentValue;
         }
 
-        void beginBumpEnum()
+        void beginBumpEnum(int increment = +1)
         {
-            targetValue = NextEnumValue(currentValue);
+            targetValue = NextEnumValue(currentValue, increment);
         }
     };
 }
