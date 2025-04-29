@@ -25,10 +25,11 @@
     {
       "slug": "Echo",
       "name": "Echo",
-      "description": "The input module in an expander chain of delay loops.",
+      "description": "A multi-layer stereo/polyphonic delay looper.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
       "tags": [
-        "Delay"
+        "Delay",
+        "Polyphonic"
       ]
     },
     {
@@ -39,6 +40,7 @@
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
       "tags": [
         "Delay",
+        "Polyphonic",
         "Expander"
       ]
     },
@@ -50,6 +52,7 @@
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Echo.md",
       "tags": [
         "Delay",
+        "Polyphonic",
         "Expander"
       ]
     },
