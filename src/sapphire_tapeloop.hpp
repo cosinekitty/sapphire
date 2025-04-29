@@ -300,10 +300,7 @@ namespace Sapphire
             if (reverse != reverseTape)
             {
                 reverseTape = reverse;
-                if (reverse)
-                    reverseToggleFader.beginFadeToBack();
-                else
-                    reverseToggleFader.beginFadeToFront();
+                reverseToggleFader.beginFade(reverse);
             }
         }
     };

@@ -507,7 +507,7 @@ namespace Sapphire
                     }
                     q.loop.setReversed(reversed);
                     float delayTime;
-                    if (clockSyncTime > 0)
+                    if (clockSyncTime > 0 && isActivelyClocked())
                         delayTime = clockSyncTime;
                     else
                         delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
