@@ -550,19 +550,30 @@ namespace Sapphire
                         ++unhappyCount;
 
                     float ca = rsGain;
-                    switch (reverseOutputModeSmoother.currentValue)
+                    float ga = rsGain * gain;
+                    if (reversed)
                     {
-                    case ReverseOutput::Mix:
-                    default:
-                        ca *= rr.feedback;
-                        break;
+                        switch (reverseOutputModeSmoother.currentValue)
+                        {
+                        case ReverseOutput::Mix:
+                        default:
+                            ca *= rr.feedback;
+                            ga *= rr.playback;
+                            break;
 
-                    case ReverseOutput::MixAndChain:
-                        ca *= reversibleDelayLineOutput.at(c);
-                        break;
+                        case ReverseOutput::MixAndChain:
+                            ca *= rr.playback;
+                            ga *= rr.playback;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        ca *= rr.feedback;
+                        ga *= rr.playback;
                     }
                     result.chainAudioOutput.at(c) = ca;
-                    result.globalAudioOutput.at(c) = gain * ca;
+                    result.globalAudioOutput.at(c) = ga;
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
