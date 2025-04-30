@@ -312,7 +312,7 @@ namespace Sapphire
                 menu->addChild(createMenuItem(
                     "Toggle neon borders in all Sapphire modules",
                     "",
-                    []{ ToggleAllNeonBorders(); }
+                    ToggleAllNeonBorders
                 ));
 
                 if (sm->dcRejectQuantity)
