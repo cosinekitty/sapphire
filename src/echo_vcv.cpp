@@ -16,6 +16,7 @@ namespace Sapphire
         {
             Seconds,
             ClockSync,
+            LEN
         };
 
         using time_knob_base_t = RoundSmallBlackKnob;
@@ -471,10 +472,6 @@ namespace Sapphire
                 switch (message.inputRouting)
                 {
                 case TapInputRouting::Serial:
-                    allowFeedback = !IsEchoTap(rightExpander.module);
-                    break;
-
-                case TapInputRouting::Loop:
                     allowFeedback = IsEcho(this);
                     break;
 
@@ -525,7 +522,7 @@ namespace Sapphire
                         if (c < message.feedback.nchannels)
                             fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
 
-                        if (message.inputRouting == TapInputRouting::Loop)
+                        if (message.inputRouting == TapInputRouting::Serial)
                         {
                             if (c < backMessage.loopAudio.nchannels)
                                 feedbackSample = backMessage.loopAudio.sample[c];
@@ -1398,11 +1395,10 @@ namespace Sapphire
                         menu->addChild(new MenuSeparator);
 
                         menu->addChild(createEnumMenuItem(
-                            "Tap input routing",
+                            "Signal routing",
                             {
-                                "Serial",
                                 "Parallel",
-                                "Loop"
+                                "Serial"
                             },
                             echoModule->routingSmoother.targetValue
                         ));
@@ -1645,18 +1641,10 @@ namespace Sapphire
 
                     outMessage.chainIndex = (chainIndex < 0) ? -1 : (1 + chainIndex);
 
-                    Frame tapInputAudio;
-                    switch (inMessage.inputRouting)
-                    {
-                    case TapInputRouting::Serial:
-                    default:
-                        tapInputAudio = inMessage.chainAudio;
-                        break;
-
-                    case TapInputRouting::Parallel:
-                        tapInputAudio = inMessage.originalAudio;
-                        break;
-                    }
+                    const Frame& tapInputAudio =
+                        (inMessage.inputRouting == TapInputRouting::Parallel) ?
+                        inMessage.originalAudio :
+                        inMessage.chainAudio;
 
                     TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage, inBackMessage);
                     outMessage.chainAudio = result.chainAudioOutput;

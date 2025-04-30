@@ -79,9 +79,8 @@ namespace Sapphire
 
         enum class TapInputRouting
         {
-            Serial,
             Parallel,
-            Loop,
+            Serial,
             LEN
         };
 
@@ -89,12 +88,10 @@ namespace Sapphire
         {
             switch (routing)
             {
-            case TapInputRouting::Serial:
-                return 'S';
             case TapInputRouting::Parallel:
                 return 'P';
-            case TapInputRouting::Loop:
-                return 'L';
+            case TapInputRouting::Serial:
+                return 'S';
             default:
                 return '?';
             }
@@ -119,7 +116,7 @@ namespace Sapphire
             bool clear = false;
             bool isClockConnected = false;
             bool neonMode = false;
-            TapInputRouting inputRouting = TapInputRouting::Serial;
+            TapInputRouting inputRouting = TapInputRouting::Parallel;
             float routingSmooth = 1;    // ducking factor just before/after changing inputRouting
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
@@ -127,7 +124,7 @@ namespace Sapphire
 
         struct BackwardMessage      // data that flows through the expander chain right-to-left.
         {
-            Frame loopAudio;        // the chain output from the rightmost EchoTap (used for Loop mode)
+            Frame loopAudio;        // the chain output from the rightmost EchoTap (used for Serial mode)
         };
 
         //--------------------------------------------------------------------

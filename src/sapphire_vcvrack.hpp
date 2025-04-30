@@ -1422,6 +1422,8 @@ namespace Sapphire
         std::vector<std::string> labels,
         enum_t& option)
     {
+        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
+
         return createIndexSubmenuItem(
             text,
             labels,

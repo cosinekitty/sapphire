@@ -75,6 +75,7 @@ namespace Sapphire
     {
         Linear,
         Sinc,
+        LEN
     };
 
 
