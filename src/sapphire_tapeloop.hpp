@@ -64,13 +64,6 @@ namespace Sapphire
     };
 
 
-    struct TapeLoopReadResult
-    {
-        float playback{};       // the reversible signal that leaves the module
-        float feedback{};       // the feedback signal that goes back on the tape
-    };
-
-
     enum class InterpolatorKind
     {
         Linear,
@@ -89,12 +82,10 @@ namespace Sapphire
         float sampleRateHz = 0;
         double reversePlaybackHead = 0;
         int recordIndex = 0;
-        bool reverseTape = false;
         std::vector<float> buffer;
         unsigned recoveryCountdown = 0;
         TapeDelayMotor tapeDelayMotor;
         InterpolatorKind ikind = InterpolatorKind::Linear;
-        Crossfader reverseToggleFader;
 
         int wrapIndex(int position) const
         {
@@ -163,7 +154,6 @@ namespace Sapphire
             reversePlaybackHead = 0;
             recoveryCountdown = 0;
             tapeDelayMotor.initialize();
-            reverseToggleFader.snapToFront();
             clear();
         }
 
@@ -235,35 +225,24 @@ namespace Sapphire
             return mix*newer + (1-mix)*older;
         }
 
-        TapeLoopReadResult read(float clearSmootherGain)
+        float readForward()
         {
-            TapeLoopReadResult result;
-            if (!IsValidSampleRate(sampleRateHz))
-                return result;
-
-            result.feedback = recall(0);
-            result.playback = reverseToggleFader.process(
-                sampleRateHz,
-                [=]() { return result.feedback; },
-                [=]() { return recall(reversePlaybackHead); }
-            );
-
-            if (reverseTape || reverseToggleFader.inTransition())
-            {
-                // Move in the opposite direction to play audio at exactly -1 speed.
-                const double incr = 2.0 / static_cast<double>(sampleRateHz);
-                reversePlaybackHead = FMOD<double>(reversePlaybackHead + incr, delayTimeSec);
-            }
-            else
-            {
-                // Must re-sync exactly the right amount of time behind the record head.
-                reversePlaybackHead = 0;
-            }
-
-            result.feedback *= clearSmootherGain;
-            result.playback *= clearSmootherGain;
-            return result;
+            return recall(0);
         }
+
+
+        void updateReversePlaybackHead()
+        {
+            const double incr = 2.0 / static_cast<double>(sampleRateHz);
+            reversePlaybackHead = FMOD<double>(reversePlaybackHead + incr, delayTimeSec);
+        }
+
+
+        float readReverse()
+        {
+            return recall(reversePlaybackHead);
+        }
+
 
         bool write(float sample, float clearSmootherGain)
         {
@@ -289,20 +268,6 @@ namespace Sapphire
             buffer.at(recordIndex) = safe * clearSmootherGain;
             recordIndex = wrapIndex(recordIndex + 1);
             return recoveryCountdown == 0;
-        }
-
-        bool isReversed() const
-        {
-            return reverseTape;
-        }
-
-        void setReversed(bool reverse)
-        {
-            if (reverse != reverseTape)
-            {
-                reverseTape = reverse;
-                reverseToggleFader.beginFade(reverse);
-            }
         }
     };
 }

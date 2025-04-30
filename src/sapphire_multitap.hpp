@@ -97,13 +97,6 @@ namespace Sapphire
             }
         }
 
-        enum class ReverseOutput
-        {
-            Mix,            // if reversed, the backwards audio goes to the output mix only
-            MixAndChain,    // if reversed, the backwards audio also goes to the next tap in the chain
-            LEN
-        };
-
         struct Message      // data that flows through the expander chain left-to-right.
         {
             int chainIndex = -1;
@@ -224,6 +217,35 @@ namespace Sapphire
 
             void undo() override;
             void redo() override;
+        };
+
+        //--------------------------------------------------------------------
+
+        enum class PlaybackDirection
+        {
+            Forward,
+            Reverse,
+            LEN
+        };
+
+
+        class PlaybackDirectionSmoother : public EnumSmoother<PlaybackDirection>
+        {
+        public:
+            explicit PlaybackDirectionSmoother(const char *key)
+                : EnumSmoother(PlaybackDirection::Forward, key)
+                {}
+
+            float select(float forwardSample, float reverseSample) const
+            {
+                const float sample = (
+                    (currentValue == PlaybackDirection::Forward)
+                    ? forwardSample
+                    : reverseSample
+                );
+
+                return sample * getGain();
+            }
         };
     }
 }

@@ -1227,7 +1227,7 @@ namespace Sapphire
             return agcLevelQuantity;
         }
 
-        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId, int buttonLightId = -1)
+        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId, int buttonLightId)
         {
             Input& input  = inputs.at(inputId);
             Param& button = params.at(buttonParamId);
@@ -1235,10 +1235,10 @@ namespace Sapphire
             bool portActive = receiver.updateGate(input.getVoltageSum());
             bool buttonActive = (button.getValue() > 0);
 
-            setLightBrightness(buttonActive, buttonLightId);
-
             // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
-            return portActive ^ buttonActive;
+            bool active = portActive ^ buttonActive;
+            setLightBrightness(buttonLightId, active);
+            return active;
         }
 
         bool updateTriggerGroup(
@@ -1267,7 +1267,7 @@ namespace Sapphire
             if (lightId >= 0)
                 lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
         }
-};
+    };
 
 
     class WarningLightWidget : public LightWidget
