@@ -435,8 +435,6 @@ namespace Sapphire
                 receivedInputRouting = message.inputRouting;
 
                 const int nc = inAudio.safeChannelCount();
-                const float two = 2;    // silly, but helps for portability to MAC/ARM
-
                 Output& sendLeft   = outputs.at(controls.sendLeftOutputId);
                 Output& sendRight  = outputs.at(controls.sendRightOutputId);
                 Input& returnLeft  = inputs.at(controls.returnLeftInputId);
@@ -453,18 +451,7 @@ namespace Sapphire
                 float cvGain = 0;
                 int unhappyCount = 0;
 
-                bool allowFeedback;
-                switch (message.inputRouting)
-                {
-                case TapInputRouting::Serial:
-                    allowFeedback = IsEcho(this);
-                    break;
-
-                case TapInputRouting::Parallel:
-                default:
-                    allowFeedback = true;
-                    break;
-                }
+                const bool loopback = (message.inputRouting == TapInputRouting::Serial) && IsEcho(this);
 
                 for (int c = 0; c < nc; ++c)
                 {
@@ -491,7 +478,7 @@ namespace Sapphire
                     if (clockSyncTime > 0 && isActivelyClocked())
                         delayTime = clockSyncTime;
                     else
-                        delayTime = std::pow(two, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+                        delayTime = std::pow<float>(2, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
@@ -501,22 +488,17 @@ namespace Sapphire
                     float reverse = q.loop.readReverse() * clearSmoother.getGain();
                     q.loop.updateReversePlaybackHead();
 
-                    float feedbackSample = forward;
-                    if (allowFeedback)
-                    {
-                        if (c < message.feedback.nchannels)
-                            fbk = std::clamp<float>(message.feedback.sample[c], 0.0f, 1.0f);
-
-                        if (message.inputRouting == TapInputRouting::Serial)
-                        {
-                            if (c < backMessage.loopAudio.nchannels)
-                                feedbackSample = backMessage.loopAudio.sample[c];
-                            else
-                                feedbackSample = 0;
-                        }
-                    }
-
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);     // FIXFIXFIX: is 2 right? should it be 1? (0 dB max)
+                    result.globalAudioOutput.at(c) = gain * reverseSmoother.select(forward, reverse);
+                    result.chainAudioOutput.at(c) = flipSmoother.select(forward, reverse);
+
+                    const float feedbackSample =
+                        loopback
+                        ? backMessage.loopAudio.sample[c]
+                        : result.chainAudioOutput.sample[c];
+
+                    if (c < message.feedback.nchannels)
+                        fbk = message.feedback.sample[c];
 
                     float delayLineInput = LinearMix(
                         message.freezeMix,
@@ -524,15 +506,11 @@ namespace Sapphire
                         feedbackSample
                     );
 
-                    delayLineInput *= message.routingSmooth;    // ducking for mode changes
-                    writeSample(delayLineInput, sendLeft, sendRight, c, nc, message.polyphonic);
-                    delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c);
+                    writeSample(delayLineInput * message.routingSmooth, sendLeft, sendRight, c, nc, message.polyphonic);
+                    delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c) * message.routingSmooth;
 
                     if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;
-
-                    result.globalAudioOutput.at(c) = gain * reverseSmoother.select(forward, reverse);
-                    result.chainAudioOutput.at(c) = flipSmoother.select(forward, reverse);
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
