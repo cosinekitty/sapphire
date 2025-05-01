@@ -207,7 +207,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (popModule != nullptr)
+                if (popModule)
                 {
                     addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);

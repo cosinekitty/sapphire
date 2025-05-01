@@ -34,18 +34,18 @@ namespace Sapphire
         void appendContextMenu(Menu* menu) override
         {
             Trimpot::appendContextMenu(menu);
-            if (lowSensitivityMode != nullptr)
+            if (lowSensitivityMode)
                 menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
         }
 
         bool isLowSensitive() const
         {
-            return (lowSensitivityMode != nullptr) && *lowSensitivityMode;
+            return lowSensitivityMode && *lowSensitivityMode;
         }
 
         void setLowSensitive(bool s)
         {
-            if (lowSensitivityMode != nullptr)
+            if (lowSensitivityMode)
                 *lowSensitivityMode = s;
         }
 
@@ -294,7 +294,7 @@ namespace Sapphire
         bool isNeonModeActive() const
         {
             const SapphireModule* sm = getSapphireModule();
-            return (sm != nullptr) && sm->neonMode;
+            return sm && sm->neonMode;
         }
 
         static void ToggleAllNeonBorders();
@@ -302,7 +302,7 @@ namespace Sapphire
         void appendContextMenu(Menu* menu) override
         {
             SapphireModule* sm = getSapphireModule();
-            if (sm != nullptr)
+            if (sm)
             {
                 menu->addChild(new MenuSeparator);
 
@@ -433,7 +433,7 @@ namespace Sapphire
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, attenId);
             SapphireModule* sapphireModule = getSapphireModule();
 
-            if (sapphireModule != nullptr)
+            if (sapphireModule)
             {
                 // Restore the persisted sensitivity state we loaded from JSON (or false if none).
                 knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
@@ -511,7 +511,7 @@ namespace Sapphire
         bool isOutputStereoMergeEnabled()
         {
             const SapphireModule *sapphireModule = getSapphireModule();
-            return (sapphireModule != nullptr) && sapphireModule->enableStereoMerge;
+            return sapphireModule && sapphireModule->enableStereoMerge;
         }
 
         InputStereoMode getInputStereoMode()
@@ -551,13 +551,13 @@ namespace Sapphire
         bool isRightBorderHidden() const
         {
             const SapphireModule* smod = getSapphireModule();
-            return (smod != nullptr) && smod->hideRightBorder;
+            return smod && smod->hideRightBorder;
         }
 
         bool isLeftBorderHidden() const
         {
             const SapphireModule* smod = getSapphireModule();
-            return (smod != nullptr) && smod->hideLeftBorder;
+            return smod && smod->hideLeftBorder;
         }
 
         void draw(const DrawArgs& args) override;

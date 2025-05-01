@@ -418,7 +418,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (nucleusModule != nullptr)
+                if (nucleusModule)
                 {
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
@@ -440,7 +440,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (nucleusModule != nullptr) && nucleusModule->isVectorReceiverConnectedOnRight();
+                return nucleusModule && nucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -601,7 +601,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (nucleusModule != nullptr)
+                if (nucleusModule)
                 {
                     // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
                     bool audio = nucleusModule->isEnabledAudioMode();

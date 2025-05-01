@@ -158,7 +158,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (galaxyModule != nullptr)
+                if (galaxyModule)
                 {
                     menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
                     menu->addChild(galaxyModule->createStereoSplitterMenuItem());

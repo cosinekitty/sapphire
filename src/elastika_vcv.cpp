@@ -469,7 +469,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (elastikaModule != nullptr)
+                if (elastikaModule)
                 {
                     if (elastikaModule->agcLevelQuantity)
                     {

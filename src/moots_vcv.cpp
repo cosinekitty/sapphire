@@ -217,7 +217,7 @@ namespace Sapphire
 
             static ControlMode ParseControl(const char *text)
             {
-                if (text != nullptr)
+                if (text)
                 {
                     if (!strcmp(text, "trigger"))
                         return ControlMode::Trigger;

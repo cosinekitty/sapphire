@@ -170,7 +170,7 @@ namespace Sapphire
                 float morph = 0;        // 0 = position, 1 = velocity
 
                 const Message* message = receiver.inboundMessage();
-                if (message != nullptr)
+                if (message)
                 {
                     if (message->freeze)
                         shouldUpdateCircuit = false;
@@ -264,13 +264,13 @@ namespace Sapphire
 
             char getCaption() const override
             {
-                if (chaosModule != nullptr)
+                if (chaosModule)
                 {
                     auto& c = chaosModule->circuit;
                     if (c.getModeCount() > 1)
                     {
                         const char *modeName = c.getModeName(c.getMode());
-                        if (modeName != nullptr)
+                        if (modeName)
                             return modeName[0];
                     }
                 }
@@ -304,7 +304,7 @@ namespace Sapphire
 
             char getCaption() const override
             {
-                if (chaosModule != nullptr && chaosModule->turboMode)
+                if (chaosModule && chaosModule->turboMode)
                     return 'T';
 
                 return '\0';
@@ -319,7 +319,7 @@ namespace Sapphire
             void appendContextMenu(ui::Menu* menu) override
             {
                 SapphireAttenuverterKnob::appendContextMenu(menu);
-                if (atten != nullptr)
+                if (atten)
                 {
                     // The following lambda is called every time the menu item is clicked.
                     auto onMenuItemSelected = [this]()

@@ -56,8 +56,8 @@ namespace Sapphire
 
         static ModelInfo* search(const Model *model)
         {
-            if (model != nullptr)
-                for (ModelInfo *info = front; info != nullptr; info = info->next)
+            if (model)
+                for (ModelInfo *info = front; info; info = info->next)
                     if (info->model == model)
                         return info;
 
@@ -125,7 +125,7 @@ namespace Sapphire
         inline bool IsValidMessage(const Message *message)
         {
             return
-                (message != nullptr) &&
+                message &&
                 (message->header.size >= sizeof(Message)) &&
                 (0 == memcmp(message->header.signature, "Tcdr", 4)) &&
                 (message->header.version >= 2);
@@ -405,7 +405,7 @@ namespace Sapphire
             // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
             // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
             auto ccq = static_cast<const ChannelCountQuantity*>(quantity);
-            if (ccq != nullptr)
+            if (ccq)
                 progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
 
             std::string text = quantity ? quantity->getString() : "";
@@ -890,7 +890,7 @@ namespace Sapphire
                 paramInfo.at(attenId).isLowSensitive = false;
 
             json_t* aList = json_object_get(root, "lowSensitivityAttenuverters");
-            if (aList != nullptr)
+            if (aList)
             {
                 std::size_t listLength = static_cast<int>(json_array_size(aList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
@@ -910,7 +910,7 @@ namespace Sapphire
                 outputPortInfo.at(outputId).flipVoltagePolarity = false;
 
             json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
-            if (oList != nullptr)
+            if (oList)
             {
                 std::size_t listLength = static_cast<int>(json_array_size(oList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)

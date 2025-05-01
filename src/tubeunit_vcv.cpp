@@ -372,7 +372,7 @@ namespace Sapphire
 
                     Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, -4.0)));
                     SapphireAttenuverterKnob* knob = createParamCentered<SapphireAttenuverterKnob>(attenCenter, tubeUnitModule, cg.attenId);
-                    if (module != nullptr)
+                    if (module)
                     {
                         // Allow Tube Unit's attenuverter knobs to participate in the "low-sensitivity" feature.
                         knob->lowSensitivityMode = module->lowSensitiveFlag(cg.attenId);
@@ -405,7 +405,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (tubeUnitModule != nullptr)
+                if (tubeUnitModule)
                 {
                     if (tubeUnitModule->agcLevelQuantity)
                     {
@@ -426,7 +426,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (tubeUnitModule != nullptr)
+                if (tubeUnitModule)
                 {
                     // Toggle between showing "SEAL" or "VENT" depending on the toggle state.
                     bool showSeal = tubeUnitModule->isInvertedVentPort;

@@ -726,7 +726,7 @@ namespace Sapphire
             {
                 SapphireWidget::step();
                 SapphireModule* smod = getSapphireModule();
-                if (smod != nullptr)
+                if (smod)
                 {
                     smod->hideLeftBorder  = isConnectedOnLeft();
                     smod->hideRightBorder = isConnectedOnRight();
@@ -893,7 +893,7 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
 
                 auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod != nullptr)
+                if (lmod)
                 {
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                     lmod->addPolyphonicEnvelopeMenuItem(menu);
@@ -904,7 +904,7 @@ namespace Sapphire
             {
                 TimeKnob* tk = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
                 auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod != nullptr)
+                if (lmod)
                 {
                     tk->mode = &(lmod->timeMode);
                     tk->isClockConnected = &(lmod->isClockConnected);
@@ -922,7 +922,7 @@ namespace Sapphire
         void InsertButton::onButton(const event::Button& e)
         {
             insert_button_base_t::onButton(e);
-            if (loopWidget != nullptr)
+            if (loopWidget)
             {
                 if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
                     loopWidget->insertExpander();
@@ -1772,7 +1772,7 @@ namespace Sapphire
                 {
                     SapphireWidget::step();
                     SapphireModule* smod = getSapphireModule();
-                    if (smod != nullptr)
+                    if (smod)
                         smod->hideLeftBorder = isConnectedOnLeft();
                 }
             };

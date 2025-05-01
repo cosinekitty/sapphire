@@ -465,7 +465,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (polynucleusModule != nullptr)
+                if (polynucleusModule)
                 {
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(polynucleusModule->agcLevelQuantity));
@@ -487,7 +487,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (polynucleusModule != nullptr) && polynucleusModule->isVectorReceiverConnectedOnRight();
+                return polynucleusModule && polynucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -637,7 +637,7 @@ namespace Sapphire
 
                 SapphireWidget::onButton(e);
 
-                if ((polynucleusModule != nullptr) && isVectorReceiverConnectedOnRight())
+                if (polynucleusModule && isVectorReceiverConnectedOnRight())
                 {
                     // See if the mouse click lands inside any of the mouse bounding boxes.
                     for (int row = 1; row < NUM_PARTICLES; ++row)
@@ -655,7 +655,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (polynucleusModule != nullptr)
+                if (polynucleusModule)
                 {
                     // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
                     bool audio = polynucleusModule->isEnabledAudioMode();

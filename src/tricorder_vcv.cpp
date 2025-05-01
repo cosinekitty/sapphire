@@ -1573,7 +1573,7 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                if (module != nullptr)
+                if (module)
                 {
                     // Stop auto-rotation if in effect.
                     module->selectRotationMode(0, 0);
@@ -1595,7 +1595,7 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                if (module != nullptr)
+                if (module)
                 {
                     // Adjust latitude/longitude angles based on mouse movement.
                     const float scale = (0.35 * module->zoomFactor()) / DISPLAY_SCALE;
@@ -1649,54 +1649,54 @@ namespace Sapphire
 
         void SelectRotationMode(const TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->selectRotationMode(longitudeDirection, latitudeDirection);
         }
 
 
         void ResetPerspective(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->resetPerspective();
         }
 
 
         void ToggleAxisVisibility(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->axesAreVisible = !display.module->axesAreVisible;
         }
 
 
         void ToggleNumbersVisibility(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->numbersAreVisible = !display.module->numbersAreVisible;
         }
 
 
         bool AxesAreVisible(const TricorderDisplay& display)
         {
-            return (display.module != nullptr) && display.module->axesAreVisible;
+            return display.module && display.module->axesAreVisible;
         }
 
 
         bool NumbersAreVisible(const TricorderDisplay& display)
         {
-            return (display.module != nullptr) && display.module->numbersAreVisible;
+            return display.module && display.module->numbersAreVisible;
         }
 
 
         void AdjustZoom(const TricorderDisplay& display, int adjust)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->adjustZoom(adjust);
         }
 
 
         void ClearPath(TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->resetPointList();
         }
 
@@ -1726,7 +1726,7 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (tricorderModule != nullptr)
+                if (tricorderModule)
                 {
                     menu->addChild(new RotationSpeedSlider(tricorderModule->rotationSpeedQuantity));
                 }

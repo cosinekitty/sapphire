@@ -204,7 +204,7 @@ namespace Sapphire
             for (PanelState& p : movedPanels)
             {
                 ModuleWidget* widget = FindWidgetForId(p.moduleId);
-                if (widget != nullptr)
+                if (widget)
                     APP->scene->rack->requestModulePos(widget, p.oldPos);
             }
         }
@@ -217,7 +217,7 @@ namespace Sapphire
             for (auto p = movedPanels.rbegin(); p != movedPanels.rend(); ++p)
             {
                 ModuleWidget* widget = FindWidgetForId(p->moduleId);
-                if (widget != nullptr)
+                if (widget)
                     APP->scene->rack->requestModulePos(widget, p->newPos);
             }
 
@@ -243,7 +243,7 @@ namespace Sapphire
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit)
     {
         ModuleWidget *closest = nullptr;
-        if (origin != nullptr && hpDistanceLimit > 0)
+        if (origin && hpDistanceLimit > 0)
         {
             const float ox = px2mm(origin->box.pos.x + origin->box.size.x);
             const float oy = px2mm(origin->box.pos.y);
@@ -301,14 +301,14 @@ namespace Sapphire
         std::vector<PanelState> allPanelPositions = SnapshotPanelPositions();
 
         Module* rawModule = model->createModule();
-        assert(rawModule != nullptr);
+        assert(rawModule);
         SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
-        assert(expanderModule != nullptr);
+        assert(expanderModule);
         APP->engine->addModule(expanderModule);
         ModuleWidget* rawWidget = model->createModuleWidget(expanderModule);
-        assert(rawWidget != nullptr);
+        assert(rawWidget);
         SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
-        assert(sapphireWidget != nullptr);
+        assert(sapphireWidget);
         int dx = (dir == ExpanderDirection::Left) ? -sapphireWidget->box.size.x : parentModWidget->box.size.x;
         APP->scene->rack->setModulePosForce(sapphireWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
         APP->scene->rack->addModule(sapphireWidget);

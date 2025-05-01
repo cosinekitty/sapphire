@@ -7,7 +7,7 @@ int UpdateFile(const char *programName, const char *tempFileName, const char *ke
     FILE *file1 = fopen(keptFileName, "rb");
     FILE *file2 = fopen(tempFileName, "rb");
     bool identical = false;
-    if (file1 != nullptr && file2 != nullptr)
+    if (file1 && file2)
     {
         identical = true;
         int c1 = 0;
@@ -23,8 +23,8 @@ int UpdateFile(const char *programName, const char *tempFileName, const char *ke
         }
 
     }
-    if (file1 != nullptr) fclose(file1);
-    if (file2 != nullptr) fclose(file2);
+    if (file1) fclose(file1);
+    if (file2) fclose(file2);
 
     if (identical)
     {
