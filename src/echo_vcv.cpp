@@ -594,6 +594,16 @@ namespace Sapphire
                 configParam(paramId, 0, 1, 1, name, " dB", -10, 20);
                 configAttenCv(attenId, cvInputId, name);
             }
+
+            void addPolyphonicEnvelopeMenuItem(ui::Menu* menu)
+            {
+                menu->addChild(createBoolMenuItem(
+                    "Polyphonic envelope output",
+                    "",
+                    [=]{ return polyphonicEnvelopeOutput; },
+                    [=](bool state){ polyphonicEnvelopeOutput = state; }
+                ));
+            }
         };
 
 
@@ -604,12 +614,7 @@ namespace Sapphire
             if (lmod)
             {
                 menu->addChild(new MenuSeparator);
-                menu->addChild(createBoolMenuItem(
-                    "Polyphonic envelope output",
-                    "",
-                    [=]{ return lmod->polyphonicEnvelopeOutput; },
-                    [=](bool state){ lmod->polyphonicEnvelopeOutput = state; }
-                ));
+                lmod->addPolyphonicEnvelopeMenuItem(menu);
             }
         }
 
@@ -891,6 +896,7 @@ namespace Sapphire
                 if (lmod != nullptr)
                 {
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
+                    lmod->addPolyphonicEnvelopeMenuItem(menu);
                 }
             }
 
