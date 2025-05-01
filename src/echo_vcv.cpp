@@ -452,6 +452,7 @@ namespace Sapphire
                 int unhappyCount = 0;
 
                 const bool loopback = (message.inputRouting == TapInputRouting::Serial) && IsEcho(this);
+                const bool flipFeedback = (message.inputRouting == TapInputRouting::Parallel);
 
                 for (int c = 0; c < nc; ++c)
                 {
@@ -495,7 +496,7 @@ namespace Sapphire
                     const float feedbackSample =
                         loopback
                         ? backMessage.loopAudio.sample[c]
-                        : result.chainAudioOutput.sample[c];
+                        : (flipFeedback ? result.chainAudioOutput.at(c) : forward);
 
                     if (c < message.feedback.nchannels)
                         fbk = message.feedback.sample[c];
