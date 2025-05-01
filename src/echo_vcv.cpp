@@ -498,7 +498,7 @@ namespace Sapphire
                     float reverse = q.loop.readReverse() * clearSmoother.getGain();
                     q.loop.updateReversePlaybackHead();
 
-                    float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 2);     // FIXFIXFIX: is 2 right? should it be 1? (0 dB max)
+                    float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 1);
                     result.globalAudioOutput.at(c) = gain * reverseSmoother.select(forward, reverse);
                     result.chainAudioOutput.at(c) = flipSmoother.select(forward, reverse);
 
