@@ -355,6 +355,7 @@ namespace Sapphire
         port_t* addSapphireOutput(int outputId, const std::string& label)
         {
             port_t *port = createOutputCentered<port_t>(Vec{}, module, outputId);
+            port->module = dynamic_cast<SapphireModule*>(module);
             addSapphireOutput(port, label);
             return port;
         }

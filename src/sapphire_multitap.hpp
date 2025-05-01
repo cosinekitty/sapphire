@@ -68,12 +68,14 @@ namespace Sapphire
             TapeLoop loop;
             GateTriggerReceiver clockReceiver;
             int samplesSinceClockTrigger = 0;
+            EnvelopeFollower env;
 
             void initialize()
             {
                 loop.initialize();
                 clockReceiver.initialize();
                 samplesSinceClockTrigger = 0;
+                env.initialize();
             }
         };
 
@@ -248,6 +250,12 @@ namespace Sapphire
 
                 return sample * getGain();
             }
+        };
+
+
+        struct EnvelopeOutputPort : SapphirePort
+        {
+            void appendContextMenu(ui::Menu* menu) override;
         };
     }
 }

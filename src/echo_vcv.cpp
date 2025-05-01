@@ -323,13 +323,13 @@ namespace Sapphire
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
             GateTriggerReceiver flipReceiver;
-            EnvelopeFollower env;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
             Smoother clearSmoother;
             PlaybackDirectionSmoother reverseSmoother{"mixerPlaybackDirection"};
             PlaybackDirectionSmoother flipSmoother{"chainPlaybackDirection"};
+            bool polyphonicEnvelopeOutput = true;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -347,6 +347,7 @@ namespace Sapphire
                     info[c].initialize();
                 unhappy = false;
                 clearSmoother.initialize();
+                polyphonicEnvelopeOutput = true;
             }
 
             void initialize() override
@@ -383,6 +384,7 @@ namespace Sapphire
                 jsonSetEnum(root, "timeMode", timeMode);
                 reverseSmoother.jsonSave(root);
                 flipSmoother.jsonSave(root);
+                jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 return root;
             }
 
@@ -392,20 +394,37 @@ namespace Sapphire
                 jsonLoadEnum(root, "timeMode", timeMode);
                 reverseSmoother.jsonLoad(root);
                 flipSmoother.jsonLoad(root);
+                jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
             }
 
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
             {
-                const int nc = VcvSafeChannelCount(audio.nchannels);
-                float sum = 0;
-                for (int c = 0; c < nc; ++c)
-                    sum += audio.sample[c];
-
-                float knob = params.at(envGainParamId).getValue();
-                float v = FourthPower(knob) * env.update(sum, sampleRateHz);
                 Output& envOutput = outputs.at(outputId);
-                envOutput.setChannels(1);
-                envOutput.setVoltage(v, 0);
+                if (envOutput.isConnected())
+                {
+                    const int nc = VcvSafeChannelCount(audio.nchannels);
+                    const float gain = FourthPower(params.at(envGainParamId).getValue());
+
+                    if (polyphonicEnvelopeOutput)
+                    {
+                        envOutput.setChannels(nc);
+                        for (int c = 0; c < nc; ++c)
+                        {
+                            float v = gain * info[c].env.update(audio.sample[c], sampleRateHz);
+                            envOutput.setVoltage(v, c);
+                        }
+                    }
+                    else
+                    {
+                        float sum = 0;
+                        for (int c = 0; c < nc; ++c)
+                            sum += audio.sample[c];
+
+                        float v = gain * info[0].env.update(sum, sampleRateHz);
+                        envOutput.setChannels(1);
+                        envOutput.setVoltage(v, 0);
+                    }
+                }
             }
 
             ChannelInfo& getChannelInfo(int c)
@@ -576,6 +595,23 @@ namespace Sapphire
                 configAttenCv(attenId, cvInputId, name);
             }
         };
+
+
+        void EnvelopeOutputPort::appendContextMenu(ui::Menu* menu)
+        {
+            SapphirePort::appendContextMenu(menu);
+            auto lmod = dynamic_cast<LoopModule*>(module);
+            if (lmod)
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(createBoolMenuItem(
+                    "Polyphonic envelope output",
+                    "",
+                    [=]{ return lmod->polyphonicEnvelopeOutput; },
+                    [=](bool state){ lmod->polyphonicEnvelopeOutput = state; }
+                ));
+            }
+        }
 
 
         struct LoopWidget : SapphireWidget
@@ -868,6 +904,11 @@ namespace Sapphire
                     tk->isClockConnected = &(lmod->isClockConnected);
                 }
                 return tk;
+            }
+
+            EnvelopeOutputPort* addEnvelopeOutput(int outputId)
+            {
+                return addSapphireOutput<EnvelopeOutputPort>(outputId, "env_output");
             }
         };
 
@@ -1164,7 +1205,7 @@ namespace Sapphire
                     addFlipToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addSapphireOutput(ENV_OUTPUT, "env_output");
+                    addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
@@ -1580,7 +1621,7 @@ namespace Sapphire
                     addFlipToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    addSapphireOutput(ENV_OUTPUT, "env_output");
+                    addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 

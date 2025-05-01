@@ -1416,6 +1416,18 @@ namespace Sapphire
             value = static_cast<enum_t>(json_integer_value(js));
     }
 
+    inline void jsonSetBool(json_t* root, const char *key, bool value)
+    {
+        json_object_set_new(root, key, json_boolean(value));
+    }
+
+    inline void jsonLoadBool(json_t* root, const char* key, bool& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_boolean(js))
+            value = json_boolean_value(js);
+    }
+
     template <typename enum_t>
     ui::MenuItem* createEnumMenuItem(
         std::string text,
