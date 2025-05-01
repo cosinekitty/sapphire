@@ -143,7 +143,6 @@ namespace Sapphire
             Message messageBuffer[2];
             BackwardMessage backwardMessageBuffer[2];
             int chainIndex = -1;
-            bool receivedMessageFromLeft = false;
 
             explicit MultiTapModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -182,6 +181,7 @@ namespace Sapphire
             {
                 Message& destination = rightMessageBuffer();
                 destination = message;
+                destination.valid = true;
                 rightExpander.requestMessageFlip();
             }
 
@@ -195,14 +195,14 @@ namespace Sapphire
             Message receiveMessageOrDefault()
             {
                 const Message* ptr = receiveMessage();
-                receivedMessageFromLeft = (ptr != nullptr);
-                return receivedMessageFromLeft ? *ptr : Message{};
+                return ptr ? *ptr : Message{};
             }
 
             void sendBackwardMessage(const BackwardMessage& backMessage)
             {
                 BackwardMessage& destination = *static_cast<BackwardMessage*>(leftExpander.producerMessage);
                 destination = backMessage;
+                destination.valid = true;
                 leftExpander.requestMessageFlip();
             }
 
@@ -451,8 +451,17 @@ namespace Sapphire
                 float cvGain = 0;
                 int unhappyCount = 0;
 
-                const bool loopback = (message.inputRouting == TapInputRouting::Serial) && IsEcho(this);
-                const bool flipFeedback = (message.inputRouting == TapInputRouting::Parallel);
+                const bool isFirstTap = IsEcho(this);
+
+                // In order to have consistent behavior when there is a single tap,
+                // parallel mode and serial mode should mean the same thing.
+                // It makes the code simpler to pretend like we are in parallel mode in that case.
+                const bool parallelMode = (
+                    (message.inputRouting == TapInputRouting::Parallel) ||
+                    (isFirstTap && !IsEchoTap(rightExpander.module))
+                );
+
+                const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
 
                 for (int c = 0; c < nc; ++c)
                 {
@@ -496,7 +505,7 @@ namespace Sapphire
                     const float feedbackSample =
                         loopback
                         ? backMessage.loopAudio.sample[c]
-                        : (flipFeedback ? result.chainAudioOutput.at(c) : forward);
+                        : (parallelMode ? result.chainAudioOutput.at(c) : forward);
 
                     if (c < message.feedback.nchannels)
                         fbk = message.feedback.sample[c];
@@ -721,16 +730,13 @@ namespace Sapphire
 
             void onMousePress(const ButtonEvent& e)
             {
+                auto lmod = dynamic_cast<LoopModule*>(module);
+                if (lmod && offerRoutingModeChange() && isInsideInputRoutingButton(e.pos))
+                    lmod->bumpTapInputRouting();
             }
 
             void onMouseRelease(const ButtonEvent& e)
             {
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
-                {
-                    if (isInsideInputRoutingButton(e.pos))
-                        lmod->bumpTapInputRouting();
-                }
             }
 
             void onButton(const ButtonEvent& e) override
@@ -758,6 +764,14 @@ namespace Sapphire
                 SapphireWidget::onLeave(e);
             }
 
+            bool offerRoutingModeChange() const
+            {
+                // Do not show S/P when the chain consists of a single Echo module.
+                // In this case, Serial and Parallel mean the exact same thing,
+                // so it would be confusing to offer a choice that has no effect.
+                return IsEcho(module) && IsEchoTap(module->rightExpander.module);
+            }
+
             void drawChainIndex(
                 NVGcontext* vg,
                 int chainIndex,
@@ -771,23 +785,21 @@ namespace Sapphire
                 if (!font)
                     return;
 
+                char text[20];
+
                 nvgFontSize(vg, 18);
                 nvgFontFaceId(vg, font->handle);
                 nvgFillColor(vg, textColor);
 
-                const bool isEcho = IsEcho(module);
-                const bool isDisconnectedEcho = isEcho && !IsEchoReceiver(module->rightExpander.module);
-                const bool shouldDrawNumber = (chainIndex > 0) && !isDisconnectedEcho;
-
-                char text[20];
-                if (shouldDrawNumber)
+                const bool isDisconnectedEcho = IsEcho(module) && !IsEchoReceiver(module->rightExpander.module);
+                if ((chainIndex > 0) && !isDisconnectedEcho)
                 {
                     snprintf(text, sizeof(text), "%d", chainIndex);
                     Vec center = getChainIndexCenterPos();
                     drawCenteredText(vg, center.x, center.y, text);
                 }
 
-                if (isEcho)
+                if (offerRoutingModeChange())
                 {
                     text[0] = InputRoutingChar(routing);
                     text[1] = '\0';
@@ -1516,9 +1528,9 @@ namespace Sapphire
                     Message outMessage = inMessage;
                     chainIndex = inMessage.chainIndex;
                     isClockConnected = inMessage.isClockConnected;
-                    includeNeonModeMenuItem = !receivedMessageFromLeft;
+                    includeNeonModeMenuItem = !inMessage.valid;
 
-                    if (receivedMessageFromLeft)
+                    if (inMessage.valid)
                         neonMode = inMessage.neonMode;
 
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
@@ -1542,7 +1554,7 @@ namespace Sapphire
                     sendMessage(outMessage);
 
                     BackwardMessage outBackMessage;
-                    if (IsEchoTap(rightExpander.module))
+                    if (inBackMessage.valid)
                         outBackMessage = inBackMessage;
                     else
                         outBackMessage.loopAudio = result.chainAudioOutput;
@@ -1637,8 +1649,8 @@ namespace Sapphire
                     const Message message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
 
-                    includeNeonModeMenuItem = !receivedMessageFromLeft;
-                    if (receivedMessageFromLeft)
+                    includeNeonModeMenuItem = !message.valid;
+                    if (message.valid)
                         neonMode = message.neonMode;
 
                     Frame audio;

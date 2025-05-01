@@ -99,6 +99,7 @@ namespace Sapphire
 
         struct Message      // data that flows through the expander chain left-to-right.
         {
+            bool valid = false;
             int chainIndex = -1;
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
             Frame originalAudio;        // audio frame from the input module (for final output mix)
@@ -117,6 +118,7 @@ namespace Sapphire
 
         struct BackwardMessage      // data that flows through the expander chain right-to-left.
         {
+            bool valid = false;
             Frame loopAudio;        // the chain output from the rightmost EchoTap (used for Serial mode)
         };
 
