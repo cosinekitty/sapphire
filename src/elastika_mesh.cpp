@@ -45,7 +45,7 @@ namespace Sapphire
 
     void ElastikaMesh::Dampen(float dt, float halflife)
     {
-        const float damp = std::pow(0.5f, dt/halflife);
+        const float damp = OneHalfToPower(dt/halflife);
         currBallList[ 0].vel *= damp;
         currBallList[ 1].vel *= damp;
         currBallList[ 2].vel *= damp;

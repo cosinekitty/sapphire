@@ -41,14 +41,20 @@ namespace Sapphire
     template <typename value_t>
     inline value_t TwoToPower(value_t x)
     {
-        constexpr value_t L = 0.6931471805599453;    // ln(2)
+        static constexpr value_t L = 0.6931471805599453;    // ln(2)
         return std::exp(static_cast<value_t>(L*x));
+    }
+
+    template <typename value_t>
+    inline value_t OneHalfToPower(value_t x)
+    {
+        return TwoToPower(-x);
     }
 
     template <typename value_t>
     inline value_t TenToPower(value_t x)
     {
-        constexpr value_t L = 2.302585092994046;    // ln(10)
+        static constexpr value_t L = 2.302585092994046;    // ln(10)
         return std::exp(static_cast<value_t>(L*x));
     }
 

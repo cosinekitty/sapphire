@@ -479,7 +479,7 @@ namespace Sapphire
                     if (clockSyncTime > 0 && isActivelyClocked())
                         delayTime = clockSyncTime;
                     else
-                        delayTime = std::pow<float>(2, controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+                        delayTime = TwoToPower(controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);

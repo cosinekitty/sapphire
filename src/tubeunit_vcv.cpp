@@ -241,10 +241,10 @@ namespace Sapphire
                     updateQuiet(c);
                     engine[c].setGain(params.at(LEVEL_KNOB_PARAM).getValue());
                     engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
-                    engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
+                    engine[c].setRootFrequency(4 * TwoToPower(getControlValue(ROOT_FREQUENCY_INPUT, c)));
                     engine[c].setReflectionDecay(getControlValue(REFLECTION_DECAY_INPUT, c));
                     engine[c].setReflectionAngle(M_PI * getControlValue(REFLECTION_ANGLE_INPUT, c));
-                    engine[c].setSpringConstant(0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_INPUT, c)));
+                    engine[c].setSpringConstant(0.005f * TenToPower(4.0f * getControlValue(STIFFNESS_INPUT, c)));
                     engine[c].setBypassWidth(getControlValue(BYPASS_WIDTH_INPUT, c));
                     engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
                     engine[c].setVortex(getControlValue(VORTEX_INPUT, c));

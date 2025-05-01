@@ -323,7 +323,7 @@ namespace Sapphire
 
             // Iterate the model over each oversampled step.
             const double et = dt / n;
-            const float friction = std::pow(0.5, static_cast<double>(et)/halflife);
+            const float friction = OneHalfToPower(et/halflife);
             for (int i = 0; i < n; ++i)
                 step(et, friction);
 

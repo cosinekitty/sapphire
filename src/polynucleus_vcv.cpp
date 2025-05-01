@@ -241,7 +241,7 @@ namespace Sapphire
                 float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
                 const int minExp = -3;    // 0.001
                 const int maxExp = +2;    // 100
-                return std::pow(10.0f, minExp + (maxExp - minExp)*knob);
+                return TenToPower(minExp + (maxExp - minExp)*knob);
             }
 
             float getInputDrive()
@@ -265,7 +265,7 @@ namespace Sapphire
             float getSpeedFactor()
             {
                 float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -6, +6);
-                float factor = std::pow(2.0f, knob-1 /* -7..+5 is a better range */);
+                float factor = TwoToPower(knob-1 /* -7..+5 is a better range */);
                 return factor;
             }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "sapphire_engine.hpp"
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_simd.hpp"
@@ -198,7 +199,7 @@ namespace Sapphire
                     float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     if (turboMode)
                         speed += 5;
-                    double dt = args.sampleTime * std::pow(2.0f, speed);
+                    double dt = args.sampleTime * TwoToPower(speed);
                     circuit.update(dt);
                 }
 

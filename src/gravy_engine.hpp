@@ -87,7 +87,7 @@ namespace Sapphire
                     nchannels = maxchannels;
 
                 const int nquads = (nchannels + 3) / 4;
-                float cornerFreqHz = std::pow(2.0f, freqKnob) * DefaultFrequencyHz;
+                float cornerFreqHz = TwoToPower(freqKnob) * DefaultFrequencyHz;
                 float gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
                 float mix = 1-Cube(1-mixKnob);
                 PhysicsVector x;
