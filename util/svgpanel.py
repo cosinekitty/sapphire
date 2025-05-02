@@ -11,6 +11,7 @@ from fontTools.ttLib import TTFont                          # type: ignore
 from fontTools.pens.svgPathPen import SVGPathPen            # type: ignore
 from fontTools.pens.transformPen import TransformPen        # type: ignore
 from fontTools.misc.transform import DecomposedTransform    # type: ignore
+import re
 
 # Prevent seeing lots of "ns0:" everywhere when we re-serialized the XML.
 et.register_namespace('', 'http://www.w3.org/2000/svg')
@@ -262,14 +263,92 @@ class Element:
 
 class LiteralXml(Element):
     """For supporting legacy SVG that was generated in InkScape."""
-    def __init__(self, panelXmlText:str, id:str = ''):
+    def __init__(self, root:et.Element, id:str = ''):
         super().__init__('g', id)
-        self.literal = et.fromstring(panelXmlText)
+        self.literal = root
 
     def xml(self) -> et.Element:
         if self.literal is None:
             raise Error('Internal error: missing ElementTree instance.')
         return self.literal
+
+    @staticmethod
+    def Parse(text:str, id:str = '') -> 'LiteralXml':
+        tree = et.fromstring(text)
+        return LiteralXml(tree, id)
+
+
+class SvgCoordinateTransformer:
+    def __init__(self, dx:float, dy:float, scale:float) -> None:
+        self.dx = dx
+        self.dy = dy
+        self.scale = scale
+
+    @staticmethod
+    def RemoveNamespace(tag:str) -> str:
+        # Convert '{http://www.w3.org/2000/svg}ellipse' -> 'ellipse'.
+        if tag.startswith('{'):
+            endTagIndex = tag.find('}')
+            if endTagIndex >= 0:
+                return tag[endTagIndex+1:]
+        return tag
+
+    def transformX(self, text: str) -> str:
+        return _FormatMillimeters((self.dx + float(text)) * self.scale)
+
+    def transformY(self, text: str) -> str:
+        return _FormatMillimeters((self.dy + float(text)) * self.scale)
+    
+    def transformRadius(self, text: str) -> str:
+        return _FormatMillimeters(self.scale * float(text))
+
+    def transformTransform(self, text:str) -> str:
+        # The only one we handle currently is transform="rotate(angle cx cy)"
+        m = re.match(r'^\s*rotate\s*\(\s*(?P<angle>[\-\+\.0-9]+)(\s+(?P<cx>[\-\+\.0-9]+)\s+((?P<cy>[\-\+\.0-9]+)))?', text)
+        if m:
+            angle = float(m.group('angle'))
+            cx = self.transformX(m.group('cx') or '0')
+            cy = self.transformY(m.group('cy') or '0')
+            print('angle={}, cx={}, cy={}'.format(angle, cx, cy))
+            return 'rotate=({} {} {})'.format(angle, cy, cy)
+        raise Error('Unsupported transformation: {}'.format(text))
+
+    def transformAttribEllipse(self, attrib:Dict[str, str]) -> Dict[str, str]:
+        tAttrib: Dict[str, str] = {}
+        for (k, v) in attrib.items():
+            if k == 'cx':
+                tAttrib[k] = self.transformX(v)
+            elif k == 'cy':
+                tAttrib[k] = self.transformY(v)
+            elif k in ['rx', 'ry']:
+                tAttrib[k] = self.transformRadius(v)
+            elif k == 'transform':
+                tAttrib[k] = self.transformTransform(v)
+            else:
+                tAttrib[k] = v
+        return tAttrib
+
+    def transformAttrib(self, shortTag:str, attrib:Dict[str, str]) -> Tuple[str, Dict[str, str]]:
+        print('tag=[{}], attrib={}'.format(shortTag, attrib))
+        if shortTag == 'ellipse':
+            return (shortTag, self.transformAttribEllipse(attrib))
+        elif shortTag == 'svg':
+            return ('g', {})
+        return (shortTag, attrib.copy())
+
+    def transformElem(self, element: et.Element) -> et.Element:
+        shortTag = SvgCoordinateTransformer.RemoveNamespace(element.tag)
+        xTag, xAttrib = self.transformAttrib(shortTag, element.attrib)
+        copy = et.Element(xTag, xAttrib)
+        copy.text = element.text
+        for child in element:
+            copy.append(self.transformElem(child))
+        return copy
+
+    def transform(self, xml:LiteralXml) -> LiteralXml:
+        if xml.literal is None:
+            raise Error('Missing XML literal')
+        return LiteralXml(self.transformElem(xml.literal))
 
 
 class Path(Element):
