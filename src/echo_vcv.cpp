@@ -1437,59 +1437,55 @@ namespace Sapphire
 
                 void toggleAllPolyphonicEnvelope()
                 {
-                    int countPoly = tallyTaps([](const LoopModule *lmod)
-                    {
-                        return lmod->polyphonicEnvelopeOutput;
-                    });
+                    const int countPoly = tallyTaps(
+                        [](const LoopModule *lmod)
+                        {
+                            return lmod->polyphonicEnvelopeOutput;
+                        }
+                    );
 
-                    int countMono = tallyTaps([](const LoopModule *lmod)
-                    {
-                        return !lmod->polyphonicEnvelopeOutput;
-                    });
+                    const int countMono = tallyTaps(
+                        [](const LoopModule *lmod)
+                        {
+                            return !lmod->polyphonicEnvelopeOutput;
+                        }
+                    );
 
-                    bool newPoly = (countPoly < countMono);
-                    visitTaps([=](LoopModule *lmod)
-                    {
-                        lmod->polyphonicEnvelopeOutput = newPoly;
-                    });
+                    const bool newPoly = (countPoly < countMono);
+                    visitTaps(
+                        [=](LoopModule *lmod)
+                        {
+                            lmod->polyphonicEnvelopeOutput = newPoly;
+                        }
+                    );
                 }
 
                 void toggleAllClockSync()
                 {
-                    if (echoModule)
+                    const int totalCount = tallyTaps(
+                        [](const LoopModule *lmod)
+                        {
+                            return true;
+                        }
+                    );
+
+                    const int clockCount = tallyTaps(
+                        [](const LoopModule *lmod)
+                        {
+                            return lmod->timeMode == TimeMode::ClockSync;
+                        }
+                    );
+
+                    const TimeMode timeMode = (
+                        (2*clockCount > totalCount) ?
+                        TimeMode::Seconds :
+                        TimeMode::ClockSync
+                    );
+
+                    visitTaps([=](LoopModule *lmod)
                     {
-                        int totalCount = 1;
-                        int clockCount = 0;
-                        if (echoModule->timeMode == TimeMode::ClockSync)
-                            ++clockCount;
-
-                        Module* module = echoModule->rightExpander.module;
-                        while (IsEchoReceiver(module))
-                        {
-                            auto lmod = dynamic_cast<const LoopModule*>(module);
-                            if (lmod)
-                            {
-                                ++totalCount;
-                                if (lmod->timeMode == TimeMode::ClockSync)
-                                    ++clockCount;
-                            }
-                            module = module->rightExpander.module;
-                        }
-
-                        echoModule->timeMode =
-                            (2*clockCount > totalCount) ?
-                            TimeMode::Seconds :
-                            TimeMode::ClockSync;
-
-                        module = echoModule->rightExpander.module;
-                        while (IsEchoReceiver(module))
-                        {
-                            auto lmod = dynamic_cast<LoopModule*>(module);
-                            if (lmod)
-                                lmod->timeMode = echoModule->timeMode;
-                            module = module->rightExpander.module;
-                        }
-                    }
+                        lmod->timeMode = timeMode;
+                    });
                 }
             };
         }
