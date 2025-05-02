@@ -293,12 +293,21 @@ class SvgCoordinateTransformer:
                 return tag[endTagIndex+1:]
         return tag
 
+    def tx(self, x:float) -> float:
+        return (self.dx + x) * self.scale
+
+    def ty(self, y:float) -> float:
+        return (self.dy + y) * self.scale
+
+    def tr(self, s:float) -> float:
+        return s * self.scale
+
     def transformX(self, text: str) -> str:
-        return _FormatMillimeters((self.dx + float(text)) * self.scale)
+        return _FormatMillimeters(self.tx(float(text)))
 
     def transformY(self, text: str) -> str:
-        return _FormatMillimeters((self.dy + float(text)) * self.scale)
-    
+        return _FormatMillimeters(self.ty(float(text)))
+
     def transformRadius(self, text: str) -> str:
         return _FormatMillimeters(self.scale * float(text))
 
@@ -309,7 +318,7 @@ class SvgCoordinateTransformer:
             angle = float(m.group('angle'))
             cx = self.transformX(m.group('cx') or '0')
             cy = self.transformY(m.group('cy') or '0')
-            print('angle={}, cx={}, cy={}'.format(angle, cx, cy))
+            #print('angle={}, cx={}, cy={}'.format(angle, cx, cy))
             return 'rotate=({} {} {})'.format(angle, cy, cy)
         raise Error('Unsupported transformation: {}'.format(text))
 
@@ -328,10 +337,148 @@ class SvgCoordinateTransformer:
                 tAttrib[k] = v
         return tAttrib
 
+    def splitDecimals(self, text:str) -> List[str]:
+        token: List[str] = []
+        parts = text.split('.')
+        if len(parts) <= 2:
+            token.append(text)
+        else:
+            token.append(parts[0] + '.' + parts[1])
+            p = 2
+            while p < len(parts):
+                token.append('.' + parts[p])
+                p += 1
+        #print('splitDecimals: {} => {}'.format(text, token))
+        return token
+
+    def addTokens(self, token:List[str], text:str) -> None:
+        text = text.strip()
+        while (minusIndex := text.find('-', 1)) >= 0:
+            first = text[:minusIndex]
+            if first:
+                token += self.splitDecimals(first)
+            text = text[minusIndex:]
+        if text:
+            token += self.splitDecimals(text)
+
+    def tokenize(self, text:str) -> List[str]:
+        # d="M448.532 510.199c-28.452 6.023-49.81 19.755-58.582 31.758-6.084 8.325-2.754 16.949 6.078 17.251 4.107.14 8.29-.231 12.464-1.163l90.538-20.202a53.841 53.841 0 0 0 20.417-9.344 2.459 2.459 0 0 0 .259-3.723c-7.71-7.595-22.757-24.827-71.174-14.577z"
+        # Split into tokens. A token is a letter or a number.
+        token:List[str] = []
+        buffer = ''
+        for c in text:
+            if re.match(r'[\s,]', c):
+                if buffer:
+                    self.addTokens(token, buffer)
+                    buffer = ''
+            elif re.match(r'[a-zA-Z]', c):
+                if buffer:
+                    self.addTokens(token, buffer)
+                    buffer = ''
+                token.append(c)
+                #print('COMMAND: ' + c)
+            else:
+                buffer += c
+        if buffer:
+            self.addTokens(token, buffer)
+        return token
+
+    def transformBatch(self, verb:str, batch:List[float]) -> List[float]:
+        if verb == 'M':
+            (x, y) = batch
+            return [self.tx(x), self.ty(y)]
+        if verb in ['c', 'l', 's', 'm', 'h', 'v']:
+            return [self.tr(x) for x in batch]
+        if verb == 'H':
+            (x,) = batch
+            return [self.tx(x)]
+        if verb == 'V':
+            (y,) = batch
+            return [self.ty(y)]
+        if verb == 'S':
+            (x2, y2, x, y) = batch
+            return [self.tx(x2), self.ty(y2), self.tx(x), self.ty(y)]
+        if verb == 'a':
+            [rx, ry, rotation, largeArcFlag, sweepFlag, dx, dy] = batch
+            return [
+                self.tr(rx),
+                self.tr(ry),
+                rotation,
+                largeArcFlag,
+                sweepFlag,
+                self.tr(dx),
+                self.tr(dy)
+            ]
+        if verb == 'z':
+            () = batch
+            return []
+        raise Error('Unknown SVG path verb: ' + verb)
+
+    def transformPathText(self, text:str) -> str:
+        token = self.tokenize(text)
+        s = ''
+        index = 0
+        while index < len(token):
+            # Get the next verb character, like M or c:
+            verb = token[index]
+            index += 1
+            s += verb
+
+            # Verbs can be followed by a variable number of numeric arguments.
+            # For example, 'c' can have multiple groups of six numbers each.
+            # Grab the next consecutive run of numeric tokens without expecting
+            # any particular number of tokens.
+            run:List[float] = []
+            while (index < len(token)) and (not re.match(r'[a-zA-Z]', token[index])):
+                run.append(float(token[index]))
+                index += 1
+
+            # Each verb expects a certain number of arguments per batch,
+            # with multiple batches allowed per verb.
+            expect: Dict[str, int] = {
+                'a': 7,     # a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
+                'c': 6,
+                'h': 1,
+                'H': 1,
+                'l': 2,
+                'm': 2,
+                'M': 2,
+                's': 4,     # s dx2 dy2 dx dy
+                'S': 4,     # S x2 y2 x y
+                'v': 1,
+                'V': 1,
+                'z': 0
+            }
+
+            if verb not in expect:
+                raise Error('Unexpected verb: ' + verb)
+
+            batchSize = expect[verb]
+            batch:List[float] = []
+            if batchSize > 0:
+                while len(run) >= batchSize:
+                    # transform another batch
+                    xbatch = self.transformBatch(verb, run[:batchSize])
+                    for x in xbatch:
+                        s += ' {:f}'.format(x)
+                    run = run[batchSize:]
+        return s
+
+    def transformPath(self, attrib:Dict[str, str]) -> Dict[str, str]:
+        tAttrib: Dict[str, str] = {}
+        for (k, v) in attrib.items():
+            if k == 'd':
+                tAttrib[k] = self.transformPathText(v)
+            else:
+                tAttrib[k] = v
+        return tAttrib
+
     def transformAttrib(self, shortTag:str, attrib:Dict[str, str]) -> Tuple[str, Dict[str, str]]:
-        print('tag=[{}], attrib={}'.format(shortTag, attrib))
+        #print('tag=[{}], attrib={}'.format(shortTag, attrib))
         if shortTag == 'ellipse':
             return (shortTag, self.transformAttribEllipse(attrib))
+        elif shortTag == 'path':
+            return (shortTag, self.transformPath(attrib))
         elif shortTag == 'svg':
             return ('g', {})
         return (shortTag, attrib.copy())
