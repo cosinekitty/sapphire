@@ -1334,6 +1334,12 @@ namespace Sapphire
                     {
                         menu->addChild(new MenuSeparator);
 
+                        menu->addChild(createMenuItem(
+                            "Initialize Echo expander chain",
+                            "",
+                            [=]{ initializeExpanderChain(); }
+                        ));
+
                         menu->addChild(createEnumMenuItem(
                             "Signal routing",
                             {
@@ -1353,15 +1359,15 @@ namespace Sapphire
                         ));
 
                         menu->addChild(createMenuItem(
-                            "Initialize Echo expander chain",
-                            "",
-                            [=]{ initializeExpanderChain(); }
-                        ));
-
-                        menu->addChild(createMenuItem(
                             "Toggle all clock sync",
                             "",
                             [=]{ toggleAllClockSync(); }
+                        ));
+
+                        menu->addChild(createMenuItem(
+                            "Toggle polyphonic/mono on all envelope followers",
+                            "",
+                            [=]{ toggleAllPolyphonicEnvelope(); }
                         ));
                     }
                 }
@@ -1389,6 +1395,63 @@ namespace Sapphire
 
                         APP->history->push(new InitChainAction(list));
                     }
+                }
+
+                int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
+                {
+                    int count = 0;
+                    if (echoModule)
+                    {
+                        if (predicate(echoModule))
+                            ++count;
+
+                        Module* module = echoModule->rightExpander.module;
+                        while (IsEchoTap(module))
+                        {
+                            auto lmod = dynamic_cast<const LoopModule*>(module);
+                            if (lmod && predicate(lmod))
+                                ++count;
+
+                            module = module->rightExpander.module;
+                        }
+                    }
+                    return count;
+                }
+
+                void visitTaps(std::function<void(LoopModule* lmod)> visit)
+                {
+                    if (echoModule)
+                    {
+                        visit(echoModule);
+                        Module* module = echoModule->rightExpander.module;
+                        while (IsEchoTap(module))
+                        {
+                            auto lmod = dynamic_cast<LoopModule*>(module);
+                            if (lmod)
+                                visit(lmod);
+
+                            module = module->rightExpander.module;
+                        }
+                    }
+                }
+
+                void toggleAllPolyphonicEnvelope()
+                {
+                    int countPoly = tallyTaps([](const LoopModule *lmod)
+                    {
+                        return lmod->polyphonicEnvelopeOutput;
+                    });
+
+                    int countMono = tallyTaps([](const LoopModule *lmod)
+                    {
+                        return !lmod->polyphonicEnvelopeOutput;
+                    });
+
+                    bool newPoly = (countPoly < countMono);
+                    visitTaps([=](LoopModule *lmod)
+                    {
+                        lmod->polyphonicEnvelopeOutput = newPoly;
+                    });
                 }
 
                 void toggleAllClockSync()
