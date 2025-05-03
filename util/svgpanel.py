@@ -313,7 +313,7 @@ class SvgCoordinateTransformer:
         return _FormatMillimeters(self.ty(float(text)))
 
     def transformRadius(self, text: str) -> str:
-        return _FormatMillimeters(self.scale * float(text))
+        return _FormatMillimeters(self.tr(float(text)))
 
     def transformTransform(self, text:str) -> str:
         # The only one we handle currently is transform="rotate(angle cx cy)"
@@ -322,7 +322,6 @@ class SvgCoordinateTransformer:
             angle = float(m.group('angle'))
             cx = self.transformX(m.group('cx') or '0')
             cy = self.transformY(m.group('cy') or '0')
-            #print('angle={}, cx={}, cy={}'.format(angle, cx, cy))
             return 'rotate=({} {} {})'.format(angle, cy, cy)
         raise Error('Unsupported transformation: {}'.format(text))
 
