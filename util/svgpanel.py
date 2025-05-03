@@ -418,14 +418,14 @@ class SvgCoordinateTransformer:
         raise Error('Unknown SVG path verb: ' + verb)
 
     def transformPathText(self, text:str) -> str:
-        token = self.tokenize(text)
         s = ''
+        token = self.tokenize(text)
         index = 0
+        first = True
         while index < len(token):
             # Get the next verb character, like M or c:
             verb = token[index]
             index += 1
-            s += verb
 
             # Verbs can be followed by a variable number of numeric arguments.
             # For example, 'c' can have multiple groups of six numbers each.
@@ -458,12 +458,20 @@ class SvgCoordinateTransformer:
 
             batchSize = expect[verb]
             if batchSize > 0:
+                if first:
+                    first = False
+                    if verb == 'm':
+                        s += 'M {:g} {:g}'.format(self.tx(0.0), self.ty(0.0))
+                s += verb
                 while len(run) >= batchSize:
-                    # transform another batch
                     batch = self.transformBatch(verb, run[:batchSize])
                     for x in batch:
                         s += ' {:g}'.format(x)
                     run = run[batchSize:]
+                if len(run) != 0:
+                    raise Error('Unexpected residual run = ' + str(run))
+            else:
+                s += verb
         return s
 
     def transformPath(self, attrib:Dict[str, str]) -> Dict[str, str]:
