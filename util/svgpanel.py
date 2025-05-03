@@ -322,7 +322,7 @@ class SvgCoordinateTransformer:
             angle = float(m.group('angle'))
             cx = self.transformX(m.group('cx') or '0')
             cy = self.transformY(m.group('cy') or '0')
-            return 'rotate=({} {} {})'.format(angle, cy, cy)
+            return 'rotate=({} {} {})'.format(angle, cx, cy)
         raise Error('Unsupported transformation: {}'.format(text))
 
     def transformAttribEllipse(self, attrib:Dict[str, str]) -> Dict[str, str]:
