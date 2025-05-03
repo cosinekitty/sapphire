@@ -225,7 +225,7 @@ namespace Sapphire
             return mix*newer + (1-mix)*older;
         }
 
-        float readForward()
+        float readForward() const
         {
             return recall(0);
         }
@@ -238,7 +238,7 @@ namespace Sapphire
         }
 
 
-        float readReverse()
+        float readReverse() const
         {
             return recall(reversePlaybackHead);
         }
