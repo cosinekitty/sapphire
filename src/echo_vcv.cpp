@@ -119,6 +119,20 @@ namespace Sapphire
             void onButton(const event::Button& e) override;
         };
 
+        using remove_button_base_t = app::SvgSwitch;
+        struct RemoveButton : remove_button_base_t
+        {
+            LoopWidget* loopWidget{};
+
+            explicit RemoveButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/remove_button.svg")));
+            }
+
+            void onButton(const event::Button& e) override;
+        };
+
 
         using clock_button_base_t = app::SvgSwitch;
         struct ClockButton : clock_button_base_t
@@ -664,6 +678,13 @@ namespace Sapphire
                 );
             }
 
+            void addExpanderRemoveButton(LoopModule* loopModule, int paramId, int lightId)
+            {
+                auto button = createParamCentered<RemoveButton>(Vec{}, loopModule, paramId);
+                button->loopWidget = this;
+                addSapphireParam(button, "remove_button");
+            }
+
             Module* echoReceiverWithinRange()
             {
                 if (module == nullptr)
@@ -926,6 +947,21 @@ namespace Sapphire
             {
                 if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
                     loopWidget->insertExpander();
+            }
+        }
+
+
+        void RemoveButton::onButton(const event::Button& e)
+        {
+            remove_button_base_t::onButton(e);
+            if (loopWidget != nullptr)
+            {
+                if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    // FIXFIXFIX: this does not push an undo/redo item on the history stack.
+                    APP->scene->rack->removeModule(loopWidget);
+                    loopWidget = nullptr;
+                }
             }
         }
 
@@ -1546,7 +1582,7 @@ namespace Sapphire
                 PAN_PARAM,
                 PAN_ATTEN,
                 FLIP_BUTTON_PARAM,
-                _OBSOLETE_PARAM,
+                REMOVE_BUTTON_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -1579,6 +1615,7 @@ namespace Sapphire
                 INSERT_BUTTON_LIGHT,
                 REVERSE_BUTTON_LIGHT,
                 FLIP_BUTTON_LIGHT,
+                REMOVE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -1593,6 +1630,7 @@ namespace Sapphire
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
+                    configButton(REMOVE_BUTTON_PARAM, "Remove tap");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
@@ -1679,6 +1717,7 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderRemoveButton(module, REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);

@@ -1946,6 +1946,9 @@ MULTITAP_INSERT_BUTTON_Y1    = 4.5
 MULTITAP_CLOCK_BUTTON_DX = 3.0
 MULTITAP_CLOCK_BUTTON_DY = 3.0
 
+MULTITAP_REMOVE_BUTTON_DX    = 4.0
+MULTITAP_REMOVE_BUTTON_DY    = 4.0
+
 MULTITAP_INLOOP_HP_WIDTH = 12
 MULTITAP_LOOP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
@@ -2049,7 +2052,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yClearControl = yLoopFence.value(3.5)
     yClockControls = yLoopFence.value(4.8)
 
-    # Insert/delete controls in upper right corner
+    # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
 
@@ -2121,9 +2124,13 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     xControlCenter = panel.mmWidth / 2
     yLoopFence = MakeLoopControlFence()
 
-    # Insert/delete controls in upper right corner
+    # "Add tap" button in the upper right corner.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+
+    # "Remove this tap" button at bottom center.
+    xRemoveButton = panel.mmWidth/2
+    yRemoveButton = panel.mmHeight - 3.0
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
@@ -2140,6 +2147,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        controls.append(Component('remove_button', xRemoveButton, yRemoveButton))
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
@@ -2216,6 +2224,15 @@ def GenerateMultiTapExtenderButton() -> int:
         panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
 
+def GenerateMultiTapRemoveButton() -> int:
+    svgFileName = '../res/remove_button.svg'
+    panel = BasePanel(MULTITAP_REMOVE_BUTTON_DX, MULTITAP_REMOVE_BUTTON_DY)
+    cx = (panel.mmWidth / 2)
+    cy = panel.mmHeight / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        panel.append(CenteredControlTextPath(font, 'x', cx, cy, pointSize = 12.0))
+    return Save(panel, svgFileName)
+
 
 def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
     svgFileName = '../res/clock_button_{:d}.svg'.format(step)
@@ -2233,7 +2250,8 @@ def GenerateMultiTapButtons() -> int:
     return (
         GenerateMultiTapExtenderButton() or
         GenerateMultiTapClockButton(0, '#585858', '#353535', '#434343', '#353535') or
-        GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535')
+        GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535') or
+        GenerateMultiTapRemoveButton()
     )
 
 
