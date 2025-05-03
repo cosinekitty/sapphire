@@ -2161,15 +2161,15 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def AddOmriLogo(pl:Element, dx:float = 0.0, dy:float = 0.0, scale:float = 0.05) -> None:
+def AddOmriLogo(pl:Element, xCenter:float, yCenter:float, scale:float = 0.017) -> None:
     inFileName = 'assets/Omri_Cohen_logo_crunched.svg'
     with open(inFileName, 'rt') as infile:
         text = infile.read()
     original = LiteralXml.Parse(text)
-    ex =  -300.0 + dx/scale
-    ey = +1900.0 + dy/scale
-    transformer = SvgCoordinateTransformer(ex, ey, scale)
+    dx1 = dy1 = -886 / 2        # from the original svg width attribute
+    transformer = SvgCoordinateTransformer(dx1, dy1, xCenter, yCenter, scale)
     logo = transformer.transform(original)
+    logo.setAttrib('id', 'omri_cohen_logo')
     pl.append(logo)
 
 
@@ -2193,7 +2193,7 @@ def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
-        AddOmriLogo(pl)
+        AddOmriLogo(pl, xmid, 121.0)
     return Save(panel, svgFileName)
 
 

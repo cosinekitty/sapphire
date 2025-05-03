@@ -279,10 +279,14 @@ class LiteralXml(Element):
 
 
 class SvgCoordinateTransformer:
-    def __init__(self, dx:float, dy:float, scale:float) -> None:
-        self.dx = dx
-        self.dy = dy
+    def __init__(self, dx1:float, dy1:float, dx2:float, dy2:float, scale:float) -> None:
+        self.dx1 = dx1
+        self.dy1 = dy1
+        self.dx2 = dx2
+        self.dy2 = dy2
         self.scale = scale
+        self.xvalid = False
+        self.yvalid = False
 
     @staticmethod
     def RemoveNamespace(tag:str) -> str:
@@ -294,10 +298,10 @@ class SvgCoordinateTransformer:
         return tag
 
     def tx(self, x:float) -> float:
-        return (self.dx + x) * self.scale
+        return (x + self.dx1)*self.scale + self.dx2
 
     def ty(self, y:float) -> float:
-        return (self.dy + y) * self.scale
+        return (y + self.dy1)*self.scale + self.dy2
 
     def tr(self, s:float) -> float:
         return s * self.scale
@@ -454,13 +458,12 @@ class SvgCoordinateTransformer:
                 raise Error('Unexpected verb: ' + verb)
 
             batchSize = expect[verb]
-            batch:List[float] = []
             if batchSize > 0:
                 while len(run) >= batchSize:
                     # transform another batch
-                    xbatch = self.transformBatch(verb, run[:batchSize])
-                    for x in xbatch:
-                        s += ' {:f}'.format(x)
+                    batch = self.transformBatch(verb, run[:batchSize])
+                    for x in batch:
+                        s += ' {:g}'.format(x)
                     run = run[batchSize:]
         return s
 
