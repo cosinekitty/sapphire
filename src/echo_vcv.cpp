@@ -385,14 +385,35 @@ namespace Sapphire
                             panelsInOrder.push_back(s);
                     }
 
-                    if (widgetsInOrder.size() != panelsInOrder.size())
-                        WARN("%d widgets, %d panels moved", (int)widgetsInOrder.size(), (int)panelsInOrder.size());
-
                     if (panelsInOrder.size() > 0)
                     {
                         // When we undo the movement, we have to execute them in reverse order.
                         std::reverse(panelsInOrder.begin(), panelsInOrder.end());
-                        APP->history->push(new MoveExpanderAction(panelsInOrder));
+
+                        // Instead of pushing a separate action onto the history stack,
+                        // try to inject the movement as part of the existing history action
+                        // that deleted the module.  This is a ComplexAction, as seen in
+                        // Rack/src/app/ModuleWidget.cpp, ModuleWidget::removeAction().
+
+                        history::ComplexAction* existingComplexAction = nullptr;
+                        if (!APP->history->actions.empty() && APP->history->actionIndex == (int)APP->history->actions.size())
+                        {
+                            history::Action* oldAction = APP->history->actions.back();
+                            existingComplexAction = dynamic_cast<history::ComplexAction*>(oldAction);
+                        }
+
+                        auto moveAction = new MoveExpanderAction(panelsInOrder);
+                        if (existingComplexAction)
+                        {
+                            // Good, we can extend the existing chain of actions.
+                            existingComplexAction->push(moveAction);
+                        }
+                        else
+                        {
+                            // In case something goes wrong, at least push as a separate action.
+                            // The user will have to undo twice to undo the deletion, but at least it is possible.
+                            APP->history->push(moveAction);
+                        }
                     }
                 }
             }

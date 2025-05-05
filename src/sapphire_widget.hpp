@@ -593,23 +593,14 @@ namespace Sapphire
         return a.oldPos.x < b.oldPos.x;
     }
 
-    inline bool RequestModulePosition(ModuleWidget* widget, Vec pos)
-    {
-        //INFO("Moving widget %p from (%g, %g) to (%g, %g)", widget, widget->box.pos.x, widget->box.pos.y, pos.x, pos.y);
-        bool moved = APP->scene->rack->requestModulePos(widget, pos);
-        if (!moved)
-            WARN("Failure to move widget %p to position (%g, %g)", widget, pos.x, pos.y);
-        return moved;
-    }
-
     struct MoveExpanderAction : history::Action
     {
         std::vector<PanelState> movedPanels;
 
         explicit MoveExpanderAction(const std::vector<PanelState>& movedPanelList)
+            : movedPanels(movedPanelList)
         {
             name = "move expander chain";
-            movedPanels = movedPanelList;
         }
 
         void undo() override
@@ -617,11 +608,11 @@ namespace Sapphire
             // Put any modules that were moved back where they came from.
             // We do this in ascending x-order, so that each module has
             // an empty space to land in.
-            for (PanelState& p : movedPanels)
+            for (const PanelState& p : movedPanels)
             {
                 ModuleWidget* widget = FindWidgetForId(p.moduleId);
                 if (widget)
-                    RequestModulePosition(widget, p.oldPos);
+                    APP->scene->rack->requestModulePos(widget, p.oldPos);
             }
         }
 
@@ -634,7 +625,7 @@ namespace Sapphire
             {
                 ModuleWidget* widget = FindWidgetForId(p->moduleId);
                 if (widget)
-                    RequestModulePosition(widget, p->newPos);
+                    APP->scene->rack->requestModulePos(widget, p->newPos);
             }
         }
     };
