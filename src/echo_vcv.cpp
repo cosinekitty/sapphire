@@ -362,7 +362,7 @@ namespace Sapphire
                     std::vector<MultiTapWidget*> widgetsInOrder;
                     for (Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
                     {
-                        auto otherModule =  dynamic_cast<MultiTapModule*>(node);
+                        auto otherModule =  dynamic_cast<const MultiTapModule*>(node);
                         if (otherModule)
                         {
                             for (MultiTapWidget* otherWidget : widgetsToRight)
