@@ -144,28 +144,6 @@ namespace Sapphire
     }
 
 
-    struct PanelState
-    {
-        int64_t moduleId = -1;
-        Vec oldPos{};
-        Vec newPos{};
-
-        explicit PanelState(ModuleWidget* mw)
-            : moduleId(mw->module->id)
-            , oldPos(mw->getPosition())
-            {}
-    };
-
-
-    inline bool operator < (const PanelState& a, const PanelState& b)
-    {
-        if (a.oldPos.y != b.oldPos.y)
-            return a.oldPos.y < b.oldPos.y;
-
-        return a.oldPos.x < b.oldPos.x;
-    }
-
-
     ModuleWidget* FindWidgetForId(int64_t moduleId)
     {
         for (Widget* w : APP->scene->rack->getModuleContainer()->children)
@@ -176,55 +154,6 @@ namespace Sapphire
         }
         return nullptr;
     }
-
-
-    struct AddExpanderAction : history::Action
-    {
-        history::ModuleAdd addAction;
-        std::vector<PanelState> movedPanels;
-
-        explicit AddExpanderAction(
-            Model* model,
-            SapphireWidget* widget,
-            const std::vector<PanelState>& movedPanelList)
-        {
-            name = "insert expander " + model->name;
-            addAction.setModule(widget);
-            movedPanels = movedPanelList;
-        }
-
-        void undo() override
-        {
-            // Remove the expander that we inserted into the rack.
-            addAction.undo();
-
-            // Put any modules that were moved back where they came from.
-            // We do this in ascending x-order, so that each module has
-            // an empty space to land in.
-            for (PanelState& p : movedPanels)
-            {
-                ModuleWidget* widget = FindWidgetForId(p.moduleId);
-                if (widget)
-                    APP->scene->rack->requestModulePos(widget, p.oldPos);
-            }
-        }
-
-        void redo() override
-        {
-            // Do everything in the same chronological that we did them originally.
-            // Move modules out of the way, the same way the force-position thing does.
-            // Move right-to-left by iterating in reverse order.
-            for (auto p = movedPanels.rbegin(); p != movedPanels.rend(); ++p)
-            {
-                ModuleWidget* widget = FindWidgetForId(p->moduleId);
-                if (widget)
-                    APP->scene->rack->requestModulePos(widget, p->newPos);
-            }
-
-            // Put the expander back into the rack.
-            addAction.redo();
-        }
-    };
 
 
     std::vector<PanelState> SnapshotPanelPositions()

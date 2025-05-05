@@ -157,6 +157,8 @@ namespace Sapphire
             Message messageBuffer[2];
             BackwardMessage backwardMessageBuffer[2];
             int chainIndex = -1;
+            float pendingMoveX{};
+            int pendingMoveStepCount = 0;
 
             explicit MultiTapModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -324,6 +326,75 @@ namespace Sapphire
                 }
 
                 return frame;
+            }
+
+            void beginMoveChain(float x)
+            {
+                pendingMoveX = x;
+                pendingMoveStepCount = 2;
+            }
+        };
+
+
+        struct MultiTapWidget : SapphireWidget
+        {
+            explicit MultiTapWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+                : SapphireWidget(moduleCode, panelSvgFileName)
+                {}
+
+            void step() override
+            {
+                SapphireWidget::step();
+
+                auto mmod = dynamic_cast<MultiTapModule*>(module);
+                if (mmod && OneShotCountdown(mmod->pendingMoveStepCount))
+                {
+                    // Make a list of all the widgets on the same row, here and to the right.
+                    std::vector<MultiTapWidget*> widgetsToRight;
+                    for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+                    {
+                        auto other = dynamic_cast<MultiTapWidget*>(w);
+                        if (other && other->box.pos.y == box.pos.y && other->box.pos.x >= box.pos.x)
+                            widgetsToRight.push_back(other);
+                    }
+
+                    // Make an ordered list of all the remaining widgets in the chain, before moving anything.
+                    std::vector<MultiTapWidget*> widgetsInOrder;
+                    for (Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
+                    {
+                        auto otherModule =  dynamic_cast<MultiTapModule*>(node);
+                        if (otherModule)
+                        {
+                            for (MultiTapWidget* otherWidget : widgetsToRight)
+                                if (otherWidget->module == otherModule)
+                                    widgetsInOrder.push_back(otherWidget);
+                        }
+                    }
+
+                    // Try to move everyone!
+
+                    std::vector<PanelState> panelsInOrder;
+
+                    const float dx = mmod->pendingMoveX - box.pos.x;
+                    for (MultiTapWidget* w : widgetsInOrder)
+                    {
+                        PanelState s{w};
+                        s.newPos = w->box.pos;
+                        s.newPos.x += dx;
+                        if (APP->scene->rack->requestModulePos(w, s.newPos))
+                            panelsInOrder.push_back(s);
+                    }
+
+                    if (widgetsInOrder.size() != panelsInOrder.size())
+                        WARN("%d widgets, %d panels moved", (int)widgetsInOrder.size(), (int)panelsInOrder.size());
+
+                    if (panelsInOrder.size() > 0)
+                    {
+                        // When we undo the movement, we have to execute them in reverse order.
+                        std::reverse(panelsInOrder.begin(), panelsInOrder.end());
+                        APP->history->push(new MoveExpanderAction(panelsInOrder));
+                    }
+                }
             }
         };
 
@@ -633,7 +704,7 @@ namespace Sapphire
         }
 
 
-        struct LoopWidget : SapphireWidget
+        struct LoopWidget : MultiTapWidget
         {
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
@@ -642,7 +713,7 @@ namespace Sapphire
             bool hilightInputRoutingButton = false;
 
             explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
-                : SapphireWidget(moduleCode, panelSvgFileName)
+                : MultiTapWidget(moduleCode, panelSvgFileName)
                 {}
 
             void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
@@ -736,6 +807,22 @@ namespace Sapphire
                 AddExpander(model, this, ExpanderDirection::Right);
             }
 
+            void removeExpander()
+            {
+                if (module == nullptr)
+                    return;
+
+                // Hand responsibility for moving the rest of the chain to the next module in the chain.
+                auto nextModule = dynamic_cast<MultiTapModule*>(module->rightExpander.module);
+                if (nextModule)
+                    nextModule->beginMoveChain(box.pos.x);
+
+                // *** DANGER DANGER DANGER ***
+                // The following code deletes `this`.
+                // Can't do anything more to this object!
+                removeAction();
+            }
+
             virtual bool isConnectedOnLeft() const = 0;
 
             bool isConnectedOnRight() const
@@ -745,7 +832,7 @@ namespace Sapphire
 
             void step() override
             {
-                SapphireWidget::step();
+                MultiTapWidget::step();
                 SapphireModule* smod = getSapphireModule();
                 if (smod)
                 {
@@ -811,19 +898,19 @@ namespace Sapphire
                     case GLFW_RELEASE:  onMouseRelease(e);   break;
                     }
                 }
-                SapphireWidget::onButton(e);
+                MultiTapWidget::onButton(e);
             }
 
             void onHover(const HoverEvent& e) override
             {
                 hilightInputRoutingButton = isInsideInputRoutingButton(e.pos);
-                SapphireWidget::onHover(e);
+                MultiTapWidget::onHover(e);
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 hilightInputRoutingButton = false;
-                SapphireWidget::onLeave(e);
+                MultiTapWidget::onLeave(e);
             }
 
             bool offerRoutingModeChange() const
@@ -882,7 +969,7 @@ namespace Sapphire
 
             void draw(const DrawArgs& args) override
             {
-                SapphireWidget::draw(args);
+                MultiTapWidget::draw(args);
 
                 auto lmod = dynamic_cast<const LoopModule*>(module);
                 if (lmod)
@@ -894,7 +981,7 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
-                SapphireWidget::drawLayer(args, layer);
+                MultiTapWidget::drawLayer(args, layer);
                 if (layer == 1)
                 {
                     auto lmod = dynamic_cast<const LoopModule*>(module);
@@ -911,7 +998,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu *menu) override
             {
-                SapphireWidget::appendContextMenu(menu);
+                MultiTapWidget::appendContextMenu(menu);
 
                 auto lmod = dynamic_cast<LoopModule*>(module);
                 if (lmod)
@@ -954,14 +1041,10 @@ namespace Sapphire
         void RemoveButton::onButton(const event::Button& e)
         {
             remove_button_base_t::onButton(e);
-            if (loopWidget != nullptr)
+            if (loopWidget)
             {
                 if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
-                {
-                    // FIXFIXFIX: this does not push an undo/redo item on the history stack.
-                    APP->scene->rack->removeModule(loopWidget);
-                    loopWidget = nullptr;
-                }
+                    loopWidget->removeExpander();
             }
         }
 
@@ -1846,12 +1929,12 @@ namespace Sapphire
                 }
             };
 
-            struct EchoOutWidget : SapphireWidget
+            struct EchoOutWidget : MultiTapWidget
             {
                 EchoOutModule* echoOutModule{};
 
                 explicit EchoOutWidget(EchoOutModule* module)
-                    : SapphireWidget("echoout", asset::plugin(pluginInstance, "res/echoout.svg"))
+                    : MultiTapWidget("echoout", asset::plugin(pluginInstance, "res/echoout.svg"))
                     , echoOutModule(module)
                 {
                     setModule(module);
@@ -1868,7 +1951,7 @@ namespace Sapphire
 
                 void step() override
                 {
-                    SapphireWidget::step();
+                    MultiTapWidget::step();
                     SapphireModule* smod = getSapphireModule();
                     if (smod)
                         smod->hideLeftBorder = isConnectedOnLeft();
