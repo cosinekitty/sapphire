@@ -360,7 +360,7 @@ namespace Sapphire
 
                     // Make an ordered list of all the remaining widgets in the chain, before moving anything.
                     std::vector<MultiTapWidget*> widgetsInOrder;
-                    for (Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
+                    for (const Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
                     {
                         auto otherModule =  dynamic_cast<const MultiTapModule*>(node);
                         if (otherModule)
