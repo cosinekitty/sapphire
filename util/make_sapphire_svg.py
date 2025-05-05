@@ -2227,10 +2227,11 @@ def GenerateMultiTapExtenderButton() -> int:
 def GenerateMultiTapRemoveButton() -> int:
     svgFileName = '../res/remove_button.svg'
     panel = BasePanel(MULTITAP_REMOVE_BUTTON_DX, MULTITAP_REMOVE_BUTTON_DY)
-    cx = (panel.mmWidth / 2)
+    cx = (panel.mmWidth / 2) - 0.4
     cy = panel.mmHeight / 2
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        panel.append(CenteredControlTextPath(font, 'x', cx, cy, pointSize = 12.0))
+        style = 'stroke:#9e0808;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
+        panel.append(CenteredControlTextPath(font, '<', cx, cy, pointSize = 12.0, style = style))
     return Save(panel, svgFileName)
 
 
