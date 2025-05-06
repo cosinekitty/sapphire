@@ -434,7 +434,10 @@ namespace Sapphire
             Smoother clearSmoother;
             ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput = true;
-            bool flip = true;
+            bool flip{};
+            bool prevFlip{};
+            bool controlsAreDirty{};
+            bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -452,12 +455,33 @@ namespace Sapphire
                 clearSmoother.initialize();
                 polyphonicEnvelopeOutput = true;
                 flip = true;
+                controlsAreDirty = true;   // signal we need to update tooltips / hovertext
             }
 
             void initialize() override
             {
                 MultiTapModule::initialize();
                 LoopModule_initialize();
+            }
+
+            void updateFlipControls()
+            {
+                const bool needUpdate = controlsAreDirty || (prevFlip != flip);
+                if (needUpdate && controlsAreReady)
+                {
+                    prevFlip = flip;
+                    controlsAreDirty = false;
+
+                    const char *name = flip ? "Flip" : "Reverse";
+                    getInputInfo(controls.revFlipInputId)->name = name;
+                    getParamQuantity(controls.revFlipButtonId)->name = name;
+                }
+            }
+
+            void toggleFlip()
+            {
+                flip = !flip;
+                controlsAreDirty = true;
             }
 
             bool isActivelyClocked() const
@@ -493,6 +517,7 @@ namespace Sapphire
                 jsonLoadEnum(root, "timeMode", timeMode);
                 jsonLoadBool(root, "flip", flip);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
+                updateFlipControls();
             }
 
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
@@ -886,6 +911,7 @@ namespace Sapphire
                     lmod->hideRightBorder = isConnectedOnRight();
                     flpLabel->setVisible(lmod->flip);
                     revLabel->setVisible(!lmod->flip);
+                    lmod->updateFlipControls();
                 }
             }
 
@@ -941,7 +967,7 @@ namespace Sapphire
                         lmod->bumpTapInputRouting();
 
                     if (isInsideFlipRevButton(e.pos))
-                        lmod->flip = !lmod->flip;
+                        lmod->toggleFlip();
                 }
             }
 
@@ -1221,6 +1247,7 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
+                    controlsAreReady = true;
                 }
 
                 void EchoModule_initialize()
@@ -1252,6 +1279,8 @@ namespace Sapphire
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;
                     controls.returnRightInputId = RETURN_RIGHT_INPUT;
                     controls.clockInputId = CLOCK_INPUT;
+                    controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
+                    controls.revFlipInputId = REVERSE_INPUT;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -1781,6 +1810,7 @@ namespace Sapphire
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     EchoTapModule_initialize();
+                    controlsAreReady = true;
                 }
 
                 void EchoTapModule_initialize()
@@ -1803,6 +1833,8 @@ namespace Sapphire
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
                     controls.returnLeftInputId  = RETURN_LEFT_INPUT;
                     controls.returnRightInputId = RETURN_RIGHT_INPUT;
+                    controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
+                    controls.revFlipInputId = REVERSE_INPUT;
                 }
 
                 void process(const ProcessArgs& args) override

@@ -189,6 +189,8 @@ namespace Sapphire
             int returnLeftInputId = -1;
             int returnRightInputId = -1;
             int clockInputId = -1;
+            int revFlipInputId = -1;
+            int revFlipButtonId = -1;
         };
 
         //--------------------------------------------------------------------
