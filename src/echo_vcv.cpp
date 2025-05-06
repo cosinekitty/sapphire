@@ -744,6 +744,9 @@ namespace Sapphire
             bool hilightInputRoutingButton = false;
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
+            Vec flpRevLabelPos;
+            float dxFlipRev{};
+            float dyFlipRev{};
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -760,6 +763,15 @@ namespace Sapphire
                 flpLabel = SvgOverlay::Load(flpSvgFileName);
                 addChild(flpLabel);
                 flpLabel->hide();
+
+                ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
+                flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
+
+                ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
+                ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
+                const float dxCushion = 8.0;
+                dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
+                dyFlipRev = mm2px(2.5);
             }
 
             void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
@@ -912,11 +924,24 @@ namespace Sapphire
                 return distance <= mm2px(mmModeButtonRadius);
             }
 
+            bool isInsideFlipRevButton(Vec pos) const
+            {
+                const float dx = pos.x - flpRevLabelPos.x;
+                const float dy = pos.y - flpRevLabelPos.y;
+                return (std::abs(dx) < dxFlipRev) && (std::abs(dy) < dyFlipRev);
+            }
+
             void onMousePress(const ButtonEvent& e)
             {
                 auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod && offerRoutingModeChange() && isInsideInputRoutingButton(e.pos))
-                    lmod->bumpTapInputRouting();
+                if (lmod)
+                {
+                    if (offerRoutingModeChange() && isInsideInputRoutingButton(e.pos))
+                        lmod->bumpTapInputRouting();
+
+                    if (isInsideFlipRevButton(e.pos))
+                        lmod->flip = !lmod->flip;
+                }
             }
 
             void onMouseRelease(const ButtonEvent& e)

@@ -2101,6 +2101,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
         if SaveCaption(SvgFileName('echo_rev', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
         if SaveCaption(SvgFileName('echo_flp', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
+        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
 
         AddControlGroup(pl, controls, font, 'feedback', 'FDBK', xGlobalCenter, yFeedbackControl)
 
@@ -2166,6 +2167,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
         if SaveCaption(SvgFileName('echotap_rev', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
         if SaveCaption(SvgFileName('echotap_flp', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
+        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
