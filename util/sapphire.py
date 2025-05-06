@@ -240,8 +240,11 @@ def AddShortToggleGroup(
         x2: float,
         yControl: float,
         id: str = '') -> Element:
+
     group = Element('g', id)
-    pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl))
+
+    if caption:
+        pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl))
 
     # Draw a hexagon around the caption. We do NOT fit to the caption.
     inset = 3.8

@@ -742,10 +742,25 @@ namespace Sapphire
             const float mmModeButtonRadius = 3.5;
             const float mmChainIndexCenterY = 4.5;
             bool hilightInputRoutingButton = false;
+            SvgOverlay* revLabel = nullptr;
+            SvgOverlay* flpLabel = nullptr;
 
-            explicit LoopWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+            explicit LoopWidget(
+                const std::string& moduleCode,
+                const std::string& panelSvgFileName,
+                const std::string& revSvgFileName,
+                const std::string& flpSvgFileName
+            )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
-                {}
+            {
+                revLabel = SvgOverlay::Load(revSvgFileName);
+                addChild(revLabel);
+                revLabel->hide();
+
+                flpLabel = SvgOverlay::Load(flpSvgFileName);
+                addChild(flpLabel);
+                flpLabel->hide();
+            }
 
             void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
             {
@@ -851,11 +866,13 @@ namespace Sapphire
             void step() override
             {
                 MultiTapWidget::step();
-                SapphireModule* smod = getSapphireModule();
-                if (smod)
+                auto lmod = dynamic_cast<LoopModule*>(module);
+                if (lmod)
                 {
-                    smod->hideLeftBorder  = isConnectedOnLeft();
-                    smod->hideRightBorder = isConnectedOnRight();
+                    lmod->hideLeftBorder  = isConnectedOnLeft();
+                    lmod->hideRightBorder = isConnectedOnRight();
+                    flpLabel->setVisible(lmod->flip);
+                    revLabel->setVisible(!lmod->flip);
                 }
             }
 
@@ -1322,7 +1339,12 @@ namespace Sapphire
                 int creationCountdown = 8;
 
                 explicit EchoWidget(EchoModule* module)
-                    : LoopWidget("echo", asset::plugin(pluginInstance, "res/echo.svg"))
+                    : LoopWidget(
+                        "echo",
+                        asset::plugin(pluginInstance, "res/echo.svg"),
+                        asset::plugin(pluginInstance, "res/echo_rev.svg"),
+                        asset::plugin(pluginInstance, "res/echo_flp.svg")
+                    )
                     , echoModule(module)
                 {
                     splash.x1 = 6 * HP_MM;
@@ -1806,7 +1828,12 @@ namespace Sapphire
                 EchoTapModule* echoTapModule{};
 
                 explicit EchoTapWidget(EchoTapModule* module)
-                    : LoopWidget("echotap", asset::plugin(pluginInstance, "res/echotap.svg"))
+                    : LoopWidget(
+                        "echotap",
+                        asset::plugin(pluginInstance, "res/echotap.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_rev.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_flp.svg")
+                    )
                     , echoTapModule(module)
                 {
                     setModule(module);
