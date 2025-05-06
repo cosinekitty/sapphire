@@ -649,7 +649,7 @@ namespace Sapphire
                     float delayLineInput = LinearMix(
                         message.freezeMix,
                         inAudio.sample[c] + (fbk * feedbackSample),
-                        feedbackSample
+                        forward     // when frozen, keep recycling audio from the tape without flipping or other effects
                     );
 
                     writeSample(delayLineInput * message.routingSmooth, sendLeft, sendRight, c, nc, message.polyphonic);
