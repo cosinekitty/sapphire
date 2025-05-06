@@ -2136,7 +2136,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # "Remove this tap" button at bottom center.
     xRemoveButton = panel.mmWidth/2
-    yRemoveButton = panel.mmHeight - 3.0
+    yRemoveButton = panel.mmHeight - 5.0
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
