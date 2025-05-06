@@ -532,6 +532,7 @@ namespace Sapphire
 
             struct TapeLoopResult
             {
+                Frame envelopeAudio;
                 Frame globalAudioOutput;
                 Frame chainAudioOutput;
                 Frame clockVoltage;
@@ -558,6 +559,7 @@ namespace Sapphire
                 Input& returnRight = inputs.at(controls.returnRightInputId);
 
                 TapeLoopResult result;
+                result.envelopeAudio.nchannels = nc;
                 result.globalAudioOutput.nchannels = nc;
                 result.chainAudioOutput.nchannels = nc;
                 result.clockVoltage.nchannels = nc;
@@ -619,11 +621,11 @@ namespace Sapphire
                     reverseComboSmoother.select(
                         forward,
                         reverse,
-                        result.globalAudioOutput.at(c),
+                        result.envelopeAudio.at(c),
                         result.chainAudioOutput.at(c)
                     );
 
-                    result.globalAudioOutput.at(c) *= gain;
+                    result.globalAudioOutput.at(c) = gain * result.envelopeAudio.at(c);
 
                     const float feedbackSample =
                         loopback
@@ -1230,7 +1232,7 @@ namespace Sapphire
                     outMessage.summedAudio = result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
                 }
 
@@ -1786,7 +1788,7 @@ namespace Sapphire
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio += result.globalAudioOutput;
                     outMessage.clockVoltage = result.clockVoltage;
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, outMessage.chainAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
 
                     BackwardMessage outBackMessage;
