@@ -1193,7 +1193,7 @@ namespace Sapphire
             {
             public:
                 explicit RoutingSmoother()
-                    : EnumSmoother(TapInputRouting::Parallel, "tapInputRouting")
+                    : EnumSmoother(TapInputRouting::Default, "tapInputRouting")
                     {}
             };
 

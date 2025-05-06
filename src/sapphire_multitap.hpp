@@ -83,7 +83,9 @@ namespace Sapphire
         {
             Parallel,
             Serial,
-            LEN
+            LEN,
+
+            Default = Serial,
         };
 
         inline char InputRoutingChar(TapInputRouting routing)
@@ -112,7 +114,7 @@ namespace Sapphire
             bool clear = false;
             bool isClockConnected = false;
             bool neonMode = false;
-            TapInputRouting inputRouting = TapInputRouting::Parallel;
+            TapInputRouting inputRouting = TapInputRouting::Default;
             float routingSmooth = 1;    // ducking factor just before/after changing inputRouting
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
