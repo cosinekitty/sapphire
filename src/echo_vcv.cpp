@@ -428,14 +428,13 @@ namespace Sapphire
             bool isClockConnected = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
-            GateTriggerReceiver flipReceiver;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
             Smoother clearSmoother;
-            PlaybackDirectionSmoother reverseSmoother{"mixerPlaybackDirection"};
-            PlaybackDirectionSmoother flipSmoother{"chainPlaybackDirection"};
+            ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput = true;
+            bool flip = true;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -445,15 +444,14 @@ namespace Sapphire
 
             void LoopModule_initialize()
             {
-                reverseSmoother.initialize();
+                reverseComboSmoother.initialize();
                 reverseReceiver.initialize();
-                flipSmoother.initialize();
-                flipReceiver.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
                 unhappy = false;
                 clearSmoother.initialize();
                 polyphonicEnvelopeOutput = true;
+                flip = true;
             }
 
             void initialize() override
@@ -472,24 +470,19 @@ namespace Sapphire
 
             void updateReverseState(int inputId, int buttonParamId, int lightId, float sampleRateHz)
             {
-                bool reverse = updateToggleGroup(reverseReceiver, inputId, buttonParamId, lightId);
-                reverseSmoother.targetValue = reverse ? PlaybackDirection::Reverse : PlaybackDirection::Forward;
-                reverseSmoother.process(sampleRateHz);
-            }
-
-            void updateFlipState(int inputId, int buttonParamId, int lightId, float sampleRateHz)
-            {
-                bool flip = updateToggleGroup(flipReceiver, inputId, buttonParamId, lightId);
-                flipSmoother.targetValue = flip ? PlaybackDirection::Reverse : PlaybackDirection::Forward;
-                flipSmoother.process(sampleRateHz);
+                bool active = updateToggleGroup(reverseReceiver, inputId, buttonParamId, lightId);
+                if (active)
+                    reverseComboSmoother.targetValue = flip ? ReverseFlipMode::Flip : ReverseFlipMode::Reverse;
+                else
+                    reverseComboSmoother.targetValue = ReverseFlipMode::Forward;
+                reverseComboSmoother.process(sampleRateHz);
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = MultiTapModule::dataToJson();
                 jsonSetEnum(root, "timeMode", timeMode);
-                reverseSmoother.jsonSave(root);
-                flipSmoother.jsonSave(root);
+                jsonSetBool(root, "flip", flip);
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 return root;
             }
@@ -498,8 +491,7 @@ namespace Sapphire
             {
                 MultiTapModule::dataFromJson(root);
                 jsonLoadEnum(root, "timeMode", timeMode);
-                reverseSmoother.jsonLoad(root);
-                flipSmoother.jsonLoad(root);
+                jsonLoadBool(root, "flip", flip);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
             }
 
@@ -624,8 +616,14 @@ namespace Sapphire
                     q.loop.updateReversePlaybackHead();
 
                     float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 1);
-                    result.globalAudioOutput.at(c) = gain * reverseSmoother.select(forward, reverse);
-                    result.chainAudioOutput.at(c) = flipSmoother.select(forward, reverse);
+                    reverseComboSmoother.select(
+                        forward,
+                        reverse,
+                        result.globalAudioOutput.at(c),
+                        result.chainAudioOutput.at(c)
+                    );
+
+                    result.globalAudioOutput.at(c) *= gain;
 
                     const float feedbackSample =
                         loopback
@@ -710,6 +708,16 @@ namespace Sapphire
                     [=](bool state){ polyphonicEnvelopeOutput = state; }
                 ));
             }
+
+            void addFlipMenuItem(ui::Menu* menu)
+            {
+                menu->addChild(createBoolMenuItem(
+                    "Flip: send reversed audio to loop instead of mixer",
+                    "",
+                    [=]{ return flip; },
+                    [=](bool state){ flip = state; }
+                ));
+            }
         };
 
 
@@ -748,19 +756,6 @@ namespace Sapphire
             {
                 addToggleGroup(
                     "reverse",
-                    inputId,
-                    buttonParamId,
-                    buttonLightId,
-                    '\0',
-                    7.0,
-                    SCHEME_PURPLE
-                );
-            }
-
-            void addFlipToggleGroup(int inputId, int buttonParamId, int buttonLightId)
-            {
-                addToggleGroup(
-                    "flip",
                     inputId,
                     buttonParamId,
                     buttonLightId,
@@ -1026,6 +1021,7 @@ namespace Sapphire
                 {
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                     lmod->addPolyphonicEnvelopeMenuItem(menu);
+                    lmod->addFlipMenuItem(menu);
                 }
             }
 
@@ -1092,7 +1088,7 @@ namespace Sapphire
                 PAN_PARAM,
                 PAN_ATTEN,
                 DC_REJECT_PARAM,
-                FLIP_BUTTON_PARAM,
+                _OBSOLETE_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -1110,7 +1106,7 @@ namespace Sapphire
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
                 PAN_CV_INPUT,
-                FLIP_INPUT,
+                _OBSOLETE_INPUT,
                 GAIN_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
@@ -1135,7 +1131,6 @@ namespace Sapphire
                 REVERSE_BUTTON_LIGHT,
                 FREEZE_BUTTON_LIGHT,
                 CLEAR_BUTTON_LIGHT,
-                FLIP_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -1175,7 +1170,6 @@ namespace Sapphire
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
-                    configToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, "Flip", "Flip gate");
                     configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze gate");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
@@ -1193,7 +1187,6 @@ namespace Sapphire
                     clearReceiver.initialize();
                     dcRejectQuantity->initialize();
                     params.at(REVERSE_BUTTON_PARAM).setValue(0);
-                    params.at(FLIP_BUTTON_PARAM).setValue(0);
                     params.at(FREEZE_BUTTON_PARAM).setValue(0);
                     params.at(CLEAR_BUTTON_PARAM).setValue(0);
                     freezeFader.snapToFront();      // front=false=0, back=true=1
@@ -1226,7 +1219,6 @@ namespace Sapphire
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                     outMessage.freezeMix = updateFreezeState(args.sampleRate);
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
-                    updateFlipState(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate);
@@ -1348,7 +1340,6 @@ namespace Sapphire
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
-                    addFlipToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);
@@ -1685,7 +1676,7 @@ namespace Sapphire
                 TIME_ATTEN,
                 PAN_PARAM,
                 PAN_ATTEN,
-                FLIP_BUTTON_PARAM,
+                _OBSOLETE_PARAM,
                 REMOVE_BUTTON_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
@@ -1698,7 +1689,7 @@ namespace Sapphire
             {
                 TIME_CV_INPUT,
                 PAN_CV_INPUT,
-                FLIP_INPUT,
+                _OBSOLETE_INPUT,
                 GAIN_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
@@ -1718,7 +1709,7 @@ namespace Sapphire
             {
                 INSERT_BUTTON_LIGHT,
                 REVERSE_BUTTON_LIGHT,
-                FLIP_BUTTON_LIGHT,
+                _OBSOLETE_LIGHT,
                 REMOVE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
@@ -1739,7 +1730,6 @@ namespace Sapphire
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
-                    configToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, "Flip", "Flip gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     EchoTapModule_initialize();
                 }
@@ -1747,7 +1737,6 @@ namespace Sapphire
                 void EchoTapModule_initialize()
                 {
                     params.at(REVERSE_BUTTON_PARAM).setValue(0);
-                    params.at(FLIP_BUTTON_PARAM).setValue(0);
                 }
 
                 void initialize() override
@@ -1782,7 +1771,6 @@ namespace Sapphire
                         neonMode = inMessage.neonMode;
 
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
-                    updateFlipState(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT, args.sampleRate);
 
                     if (inMessage.clear)
                         clearSmoother.begin();
@@ -1826,7 +1814,6 @@ namespace Sapphire
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
-                    addFlipToggleGroup(FLIP_INPUT, FLIP_BUTTON_PARAM, FLIP_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);

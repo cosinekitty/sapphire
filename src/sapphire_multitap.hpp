@@ -225,30 +225,45 @@ namespace Sapphire
 
         //--------------------------------------------------------------------
 
-        enum class PlaybackDirection
+
+        enum class ReverseFlipMode
         {
             Forward,
             Reverse,
-            LEN
+            Flip
         };
 
 
-        class PlaybackDirectionSmoother : public EnumSmoother<PlaybackDirection>
+        class ReverseComboSmoother : public EnumSmoother<ReverseFlipMode>
         {
         public:
-            explicit PlaybackDirectionSmoother(const char *key)
-                : EnumSmoother(PlaybackDirection::Forward, key)
+            explicit ReverseComboSmoother()
+                : EnumSmoother(ReverseFlipMode::Forward, "" /*not saved/loded via json*/)
                 {}
 
-            float select(float forwardSample, float reverseSample) const
+            void select(float forwardSample, float reverseSample, float& mixerSample, float& feedSample) const
             {
-                const float sample = (
-                    (currentValue == PlaybackDirection::Forward)
-                    ? forwardSample
-                    : reverseSample
-                );
+                switch (currentValue)
+                {
+                case ReverseFlipMode::Forward:
+                default:
+                    mixerSample = forwardSample;
+                    feedSample = forwardSample;
+                    break;
 
-                return sample * getGain();
+                case ReverseFlipMode::Reverse:
+                    mixerSample = reverseSample;
+                    feedSample = forwardSample;
+                    break;
+
+                case ReverseFlipMode::Flip:
+                    mixerSample = forwardSample;
+                    feedSample = reverseSample;
+                    break;
+                }
+
+                mixerSample *= getGain();
+                feedSample  *= getGain();
             }
         };
 

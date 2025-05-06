@@ -2058,7 +2058,6 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
-    yFlipControl = yLoopFence.value(1)
     yTimeControl = yLoopFence.value(2)
     yPanControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
@@ -2094,7 +2093,6 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddShortToggleGroup(pl, controls, font, 'REV', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
-        AddShortToggleGroup(pl, controls, font, 'FLP', 'flip',    xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yFlipControl)
 
         AddControlGroup(pl, controls, font, 'feedback', 'FDBK', xGlobalCenter, yFeedbackControl)
 
@@ -2134,7 +2132,6 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
-    yFlipControl = yLoopFence.value(1)
     yTimeControl = yLoopFence.value(2)
     yPanControl = yLoopFence.value(3)
     yGainControl = yLoopFence.value(4)
@@ -2159,7 +2156,6 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddShortToggleGroup(pl, controls, font, 'REV', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
-        AddShortToggleGroup(pl, controls, font, 'FLP', 'flip',    xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yFlipControl)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
