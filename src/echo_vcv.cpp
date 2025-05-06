@@ -721,16 +721,6 @@ namespace Sapphire
                     [=](bool state){ polyphonicEnvelopeOutput = state; }
                 ));
             }
-
-            void addFlipMenuItem(ui::Menu* menu)
-            {
-                menu->addChild(createBoolMenuItem(
-                    "Flip: send reversed audio to loop instead of mixer",
-                    "",
-                    [=]{ return flip; },
-                    [=](bool state){ flip = state; }
-                ));
-            }
         };
 
 
@@ -1076,7 +1066,6 @@ namespace Sapphire
                 {
                     menu->addChild(lmod->createToggleAllSensitivityMenuItem());
                     lmod->addPolyphonicEnvelopeMenuItem(menu);
-                    lmod->addFlipMenuItem(menu);
                 }
             }
 
