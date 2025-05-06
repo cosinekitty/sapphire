@@ -571,15 +571,12 @@ namespace Sapphire
                 int unhappyCount = 0;
 
                 const bool isFirstTap = IsEcho(this);
+                const bool isSingleTap = isFirstTap && !IsEchoTap(rightExpander.module);
 
                 // In order to have consistent behavior when there is a single tap,
                 // parallel mode and serial mode should mean the same thing.
                 // It makes the code simpler to pretend like we are in parallel mode in that case.
-                const bool parallelMode = (
-                    (message.inputRouting == TapInputRouting::Parallel) ||
-                    (isFirstTap && !IsEchoTap(rightExpander.module))
-                );
-
+                const bool parallelMode = isSingleTap || (message.inputRouting == TapInputRouting::Parallel);
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
 
                 for (int c = 0; c < nc; ++c)
@@ -627,10 +624,24 @@ namespace Sapphire
 
                     result.globalAudioOutput.at(c) = gain * result.envelopeAudio.at(c);
 
-                    const float feedbackSample =
-                        loopback
-                        ? backMessage.loopAudio.sample[c]
-                        : (parallelMode ? result.chainAudioOutput.at(c) : forward);
+                    float feedbackSample;
+                    if (loopback)
+                    {
+                        // When we are in serial mode with more than one tap,
+                        // feedback comes from the output of the final tap.
+                        feedbackSample = backMessage.loopAudio.sample[c];
+                    }
+                    else if (parallelMode)
+                    {
+                        // In parallel mode, or in serial mode when there is a single tap,
+                        // feedback comes from the same tap's chain output.
+                        feedbackSample = result.chainAudioOutput.at(c);
+                    }
+                    else
+                    {
+                        // In serial mode, every tap other than the first has NO FEEDBACK.
+                        feedbackSample = 0;
+                    }
 
                     if (c < message.feedback.nchannels)
                         fbk = message.feedback.sample[c];
