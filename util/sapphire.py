@@ -116,17 +116,19 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
     return insignia
 
-def Gemstone(xCenter:float) -> SapphireGemstone:
+GEMSTONE_DEFAULT_Y = 121.0
+
+def Gemstone(xCenter:float, yCenter:float = GEMSTONE_DEFAULT_Y) -> SapphireGemstone:
     '''Gemstone at the bottom of the panel with arbitrary horizontal position.'''
-    gem = SapphireGemstone(xCenter - SapphireGemstone.mmWidth/2, 121.0)
+    gem = SapphireGemstone(xCenter - SapphireGemstone.mmWidth/2, yCenter)
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem
 
 
-def CenteredGemstone(panel:Panel) -> SapphireGemstone:
+def CenteredGemstone(panel:Panel, yCenter:float = GEMSTONE_DEFAULT_Y) -> SapphireGemstone:
     '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
-    return Gemstone(panel.mmWidth/2)
+    return Gemstone(panel.mmWidth/2, yCenter)
 
 
 def HorizontalLinePath(x1:float, x2:float, y:float) -> Path:

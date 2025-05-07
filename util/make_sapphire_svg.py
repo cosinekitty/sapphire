@@ -2177,7 +2177,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def AddOmriLogo(pl:Element, xCenter:float, yCenter:float = 121.8, shrink:float = 70.0) -> None:
+def AddOmriLogo(pl:Element, xCenter:float, yCenter:float = 122.5, shrink:float = 70.0) -> None:
     #pl.append(Circle(xCenter, yCenter, 6.0, '', 0.0, '#505020'))
     inFileName = 'assets/Omri_Cohen_logo_crunched.svg'
     with open(inFileName, 'rt') as infile:
