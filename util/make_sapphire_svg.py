@@ -2053,9 +2053,9 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # Global controls/ports (InLoop only)
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
-    yFreezeControl = yLoopFence.value(2.5)
-    yClearControl = yLoopFence.value(3.25)
-    yClockControls = yLoopFence.value(4.3)
+    yFreezeControl = yLoopFence.value(2.25)
+    yClearControl = yLoopFence.value(3.0)
+    yClockControls = yLoopFence.value(4.25)
 
     # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
