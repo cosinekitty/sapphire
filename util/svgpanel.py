@@ -493,19 +493,21 @@ class SvgCoordinateTransformer:
             return ('g', {})
         return (shortTag, attrib.copy())
 
-    def transformElem(self, element: et.Element) -> et.Element:
+    def transformElem(self, element: et.Element, id:str = '') -> et.Element:
         shortTag = SvgCoordinateTransformer.RemoveNamespace(element.tag)
         xTag, xAttrib = self.transformAttrib(shortTag, element.attrib)
+        if id:
+            xAttrib['id'] = id
         copy = et.Element(xTag, xAttrib)
         copy.text = element.text
         for child in element:
             copy.append(self.transformElem(child))
         return copy
 
-    def transform(self, xml:LiteralXml) -> LiteralXml:
+    def transform(self, xml:LiteralXml, id:str = '') -> LiteralXml:
         if xml.literal is None:
             raise Error('Missing XML literal')
-        return LiteralXml(self.transformElem(xml.literal))
+        return LiteralXml(self.transformElem(xml.literal, id))
 
 
 class Path(Element):
