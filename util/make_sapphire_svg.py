@@ -1957,8 +1957,7 @@ MULTITAP_DY_SEND_RETURN_GRADIENT = 10.0
 MULTITAP_DX_GRADIENT = 15.0
 
 MULTIMAP_DX_SEND_RETURN = 7.0
-MULTIMAP_AUDIO_PORTS_Y1 = 91.0
-MULTIMAP_INOUT_AUDIO_PORTS_Y1 = 91.0 + DY_STEREO_PORTS
+MULTIMAP_AUDIO_PORTS_Y1 = 93.0
 MULTIMAP_ENV_PORTS_Y1 = 115.0
 
 MULTIMAP_TOP_GROUP_FRACTION = 0.7
@@ -2055,8 +2054,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     # Global controls/ports (InLoop only)
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
     yFreezeControl = yLoopFence.value(2.5)
-    yClearControl = yLoopFence.value(3.5)
-    yClockControls = yLoopFence.value(4.8)
+    yClearControl = yLoopFence.value(3.25)
+    yClockControls = yLoopFence.value(4.3)
 
     # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2081,8 +2080,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
 
-        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_INOUT_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
@@ -2205,8 +2204,8 @@ def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFence = MakeLoopControlFence()
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
-        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_INOUT_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_INOUT_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
         AddOmriLogo(pl, xmid)
