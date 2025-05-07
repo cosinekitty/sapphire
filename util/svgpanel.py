@@ -484,7 +484,6 @@ class SvgCoordinateTransformer:
         return tAttrib
 
     def transformAttrib(self, shortTag:str, attrib:Dict[str, str]) -> Tuple[str, Dict[str, str]]:
-        #print('tag=[{}], attrib={}'.format(shortTag, attrib))
         if shortTag == 'ellipse':
             return (shortTag, self.transformAttribEllipse(attrib))
         elif shortTag == 'path':
