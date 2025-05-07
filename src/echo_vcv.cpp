@@ -678,7 +678,17 @@ namespace Sapphire
                     );
 
                     writeSample(delayLineInput * message.routingSmooth, sendLeft, sendRight, c, nc, message.polyphonic);
-                    delayLineInput = readSample(delayLineInput, returnLeft, returnRight, c) * message.routingSmooth;
+
+                    if (message.freezeMix < 1)
+                    {
+                        // Not completely frozen right now, so read from the RTRN port if connected.
+                        // We skip this step when completely frozen because we would discard the value anyway.
+                        delayLineInput = LinearMix(
+                            message.freezeMix,
+                            message.routingSmooth * readSample(delayLineInput, returnLeft, returnRight, c),
+                            delayLineInput
+                        );
+                    }
 
                     if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;
