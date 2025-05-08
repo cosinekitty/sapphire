@@ -10,6 +10,14 @@ namespace Sapphire
 {
     namespace MultiTap
     {
+        enum class PortLabelMode
+        {
+            Stereo = -2,
+            Mono = -1,
+            Poly = 0,       // add the number of channels: +1..16
+        };
+
+
         struct Frame
         {
             int nchannels = 0;

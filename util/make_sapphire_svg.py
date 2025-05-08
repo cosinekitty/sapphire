@@ -1923,10 +1923,9 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
-def AddVerticalStereoLabels(font:Font, pl:Element, xLabel:float, yLeftPort:float) -> None:
-    yRightPort = yLeftPort + DY_STEREO_PORTS
-    pl.append(CenteredControlTextPath(font, 'L', xLabel, yLeftPort))
-    pl.append(CenteredControlTextPath(font, 'R', xLabel, yRightPort))
+def AddVerticalStereoLabels(controls:ControlLayer, idPrefix:str, xLabel:float, yLeftPort:float) -> None:
+    controls.append(Component(idPrefix + '_label_left',  xLabel, yLeftPort))
+    controls.append(Component(idPrefix + '_label_right', xLabel, yLeftPort + DY_STEREO_PORTS))
 
 
 def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str, caption:str, dyCaption:float = 6.5) -> None:
@@ -2087,11 +2086,11 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
 
-        AddVerticalStereoLabels(font, pl, xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoLabels(controls, 'input', xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
-        AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
@@ -2169,7 +2168,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
-        AddVerticalStereoLabels(font, pl, (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
@@ -2226,7 +2225,7 @@ def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(font, pl, xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoLabels(controls, 'output', xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
         AddOmriLogo(pl, xmid)

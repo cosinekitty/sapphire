@@ -297,8 +297,10 @@ namespace Sapphire
                 return !inRight.isConnected() && (inLeft.getChannels() > 1);
             }
 
-            Frame readFrame(int leftInputId, int rightInputId)
+            Frame readFrame(int leftInputId, int rightInputId, PortLabelMode& mode)
             {
+                mode = PortLabelMode::Stereo;
+
                 Input& inLeft  = inputs.at(leftInputId);
                 Input& inRight = inputs.at(rightInputId);
 
@@ -315,6 +317,7 @@ namespace Sapphire
                         // Mono input, so split the signal across both stereo output channels.
                         frame.sample[0] /= 2;
                         frame.sample[1] = frame.sample[0];
+                        mode = PortLabelMode::Mono;
                     }
                     else if (ncLeft > 1)
                     {
@@ -322,6 +325,7 @@ namespace Sapphire
                         frame.nchannels = VcvSafeChannelCount(ncLeft);
                         for (int c = 0; c < frame.nchannels; ++c)
                             frame.sample[c] = inLeft.getVoltage(c);
+                        mode = static_cast<PortLabelMode>(ncLeft);
                     }
                 }
 
@@ -338,6 +342,8 @@ namespace Sapphire
 
         struct MultiTapWidget : SapphireWidget
         {
+            const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
+
             explicit MultiTapWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
                 : SapphireWidget(moduleCode, panelSvgFileName)
                 {}
@@ -417,6 +423,75 @@ namespace Sapphire
                     }
                 }
             }
+
+            void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
+            {
+                float bounds[4]{};
+                nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+                // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
+                //                xmin       ymin       xmax      ymax
+                float width = bounds[2] - bounds[0];
+                float ascent = -bounds[1];
+                nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
+            }
+
+            void drawAudioPortLabels(
+                NVGcontext* vg,
+                PortLabelMode mode,
+                float xCenter_mm,
+                float yCenterL_mm,
+                float yCenterR_mm)
+            {
+                char left[3]{};
+                char right[3]{};
+
+                switch (mode)
+                {
+                case PortLabelMode::Mono:
+                    left[0] = 'M';
+                    break;
+
+                case PortLabelMode::Stereo:
+                    left[0] = 'L';
+                    right[0] = 'R';
+                    break;
+
+                default:
+                    const int nc = static_cast<int>(mode);
+                    if (nc >= 1 && nc <= 9)
+                    {
+                        left[0] = '0' + nc;
+                    }
+                    else if (nc >= 10 && nc <= 16)
+                    {
+                        left[0] = '1';
+                        left[1] = '0' + (nc % 10);
+                    }
+                    else
+                    {
+                        left[0] = '?';
+                    }
+                    break;
+                }
+
+                std::shared_ptr<Font> font = APP->window->loadFont(portLabelFontPath);
+                if (!font)
+                    return;
+
+                nvgFontSize(vg, 12);
+                nvgFontFaceId(vg, font->handle);
+                nvgFillColor(vg, SCHEME_BLACK);
+
+                float yNudge = -0.3;
+                float xc = mm2px(xCenter_mm);
+                float yL = mm2px(yCenterL_mm + yNudge);
+                float yR = mm2px(yCenterR_mm + yNudge);
+
+                drawCenteredText(vg, xc, yL, left);
+
+                if (right[0])
+                    drawCenteredText(vg, xc, yR, right);
+            }
         };
 
 
@@ -438,6 +513,7 @@ namespace Sapphire
             bool prevFlip{};
             bool controlsAreDirty{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
+            PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -574,6 +650,13 @@ namespace Sapphire
                 const Message& message,
                 const BackwardMessage& backMessage)
             {
+                if (inAudio.nchannels==2 && !message.polyphonic)
+                    sendReturnPortLabels = PortLabelMode::Stereo;
+                else if (inAudio.nchannels==1)
+                    sendReturnPortLabels = PortLabelMode::Mono;
+                else
+                    sendReturnPortLabels = static_cast<PortLabelMode>(inAudio.nchannels);
+
                 clearSmoother.process(sampleRateHz);
                 receivedInputRouting = message.inputRouting;
 
@@ -940,17 +1023,6 @@ namespace Sapphire
                 }
             }
 
-            void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
-            {
-                float bounds[4]{};
-                nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
-                // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
-                //                xmin       ymin       xmax      ymax
-                float width = bounds[2] - bounds[0];
-                float ascent = -bounds[1];
-                nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
-            }
-
             Vec getChainIndexCenterPos() const
             {
                 float yCenter = mm2px(mmChainIndexCenterY);
@@ -1090,6 +1162,10 @@ namespace Sapphire
                 {
                     if (!lmod->neonMode)
                         drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
+
+                    ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
+                    ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
+                    drawAudioPortLabels(args.vg, lmod->sendReturnPortLabels, L.cx, L.cy, R.cy);
                 }
             }
 
@@ -1247,6 +1323,7 @@ namespace Sapphire
                 RoutingSmoother routingSmoother;
                 InterpolatorKind interpolatorKind{};
                 Crossfader freezeFader;
+                PortLabelMode inputLabels{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -1321,7 +1398,7 @@ namespace Sapphire
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
-                    outMessage.originalAudio = readOriginalAudio(args.sampleRate);
+                    outMessage.originalAudio = readOriginalAudio(args.sampleRate, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
@@ -1334,9 +1411,9 @@ namespace Sapphire
                     sendMessage(outMessage);
                 }
 
-                Frame readOriginalAudio(float sampleRateHz)
+                Frame readOriginalAudio(float sampleRateHz, PortLabelMode& mode)
                 {
-                    Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, mode);
                     const int nc = audio.safeChannelCount();
                     for (int c = 0; c < nc; ++c)
                     {
@@ -1544,6 +1621,12 @@ namespace Sapphire
                 void draw(const DrawArgs& args) override
                 {
                     LoopWidget::draw(args);
+
+                    PortLabelMode label = echoModule ? echoModule->inputLabels : PortLabelMode::Stereo;
+                    ComponentLocation L = FindComponent(modcode, "input_label_left");
+                    ComponentLocation R = FindComponent(modcode, "input_label_right");
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cy);
+
                     if (!isClockPortConnected())
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.0);
                 }
@@ -1976,6 +2059,8 @@ namespace Sapphire
 
             struct EchoOutModule : MultiTapModule
             {
+                PortLabelMode outputLabels = PortLabelMode::Stereo;
+
                 EchoOutModule()
                     : MultiTapModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -2035,6 +2120,8 @@ namespace Sapphire
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
                     if (!message.polyphonic && audio.nchannels == 2)
                     {
+                        outputLabels = PortLabelMode::Stereo;
+
                         audioLeftOutput.setChannels(1);
                         audioLeftOutput.setVoltage(audio.sample[0], 0);
 
@@ -2044,6 +2131,9 @@ namespace Sapphire
                     else
                     {
                         // Polyphonic output to the L port only.
+
+                        outputLabels = static_cast<PortLabelMode>(audio.nchannels);
+
                         audioLeftOutput.setChannels(audio.nchannels);
                         for (int c = 0; c < audio.nchannels; ++c)
                             audioLeftOutput.setVoltage(audio.sample[c], c);
@@ -2080,6 +2170,15 @@ namespace Sapphire
                     SapphireModule* smod = getSapphireModule();
                     if (smod)
                         smod->hideLeftBorder = isConnectedOnLeft();
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    MultiTapWidget::draw(args);
+                    PortLabelMode label = echoOutModule ? echoOutModule->outputLabels : PortLabelMode::Stereo;
+                    ComponentLocation L = FindComponent(modcode, "output_label_left");
+                    ComponentLocation R = FindComponent(modcode, "output_label_right");
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cy);
                 }
             };
         }
