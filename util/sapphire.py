@@ -218,7 +218,7 @@ def AddToggleGroup(
     return group
 
 
-def HexagonPath(x1:float, x2:float, dx:float, y1:float, y2:float, id:str = '') -> Path:
+def HexagonPath(x1:float, x2:float, dx:float, y1:float, y2:float, id:str = '', style:str = CONNECTOR_LINE_STYLE) -> Path:
     x3 = x1 + dx
     x4 = x2 - dx
     ym = (y1 + y2) / 2
@@ -229,7 +229,15 @@ def HexagonPath(x1:float, x2:float, dx:float, y1:float, y2:float, id:str = '') -
     text += Line(x4, y2)
     text += Line(x3, y2)
     text += ClosePath()
-    return Path(text, CONNECTOR_LINE_STYLE, id, 'none')
+    return Path(text, style, id, 'none')
+
+
+def ShortHexagon(x1:float, x2:float, yControl:float, style:str = CONNECTOR_LINE_STYLE) -> Path:
+    inset = 3.8
+    nudge = 0.2
+    dy = 2.5
+    dx = 2.0
+    return HexagonPath(x1+inset+nudge, x2-inset, dx, yControl-dy, yControl+dy, style = style)
 
 
 def AddShortToggleGroup(
@@ -241,6 +249,7 @@ def AddShortToggleGroup(
         x1: float,
         x2: float,
         yControl: float,
+        drawHexagon: bool = True,
         id: str = '') -> Element:
 
     group = Element('g', id)
@@ -248,12 +257,8 @@ def AddShortToggleGroup(
     if caption:
         pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl))
 
-    # Draw a hexagon around the caption. We do NOT fit to the caption.
-    inset = 3.8
-    nudge = 0.2
-    dy = 2.5
-    dx = 2.0
-    pl.append(HexagonPath(x1+inset+nudge, x2-inset, dx, yControl-dy, yControl+dy))
+    if drawHexagon:
+        pl.append(ShortHexagon(x1, x2, yControl))
 
     controls.append(Component(prefix + '_input',  x1, yControl))
     controls.append(Component(prefix + '_button', x2, yControl))

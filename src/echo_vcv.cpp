@@ -778,8 +778,11 @@ namespace Sapphire
             const float mmModeButtonRadius = 3.5;
             const float mmChainIndexCenterY = 4.5;
             bool hilightInputRoutingButton = false;
+            bool hilightRevFlipButton = false;
             SvgOverlay* revLabel = nullptr;
+            SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
+            SvgOverlay* flpSelLabel = nullptr;
             Vec flpRevLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
@@ -788,7 +791,9 @@ namespace Sapphire
                 const std::string& moduleCode,
                 const std::string& panelSvgFileName,
                 const std::string& revSvgFileName,
-                const std::string& flpSvgFileName
+                const std::string& revSelSvgFileName,
+                const std::string& flpSvgFileName,
+                const std::string& flpSelSvgFileName
             )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
             {
@@ -796,9 +801,17 @@ namespace Sapphire
                 addChild(revLabel);
                 revLabel->hide();
 
+                revSelLabel = SvgOverlay::Load(revSelSvgFileName);
+                addChild(revSelLabel);
+                revSelLabel->hide();
+
                 flpLabel = SvgOverlay::Load(flpSvgFileName);
                 addChild(flpLabel);
                 flpLabel->hide();
+
+                flpSelLabel = SvgOverlay::Load(flpSelSvgFileName);
+                addChild(flpSelLabel);
+                flpSelLabel->hide();
 
                 ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
                 flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
@@ -919,8 +932,10 @@ namespace Sapphire
                 {
                     lmod->hideLeftBorder  = isConnectedOnLeft();
                     lmod->hideRightBorder = isConnectedOnRight();
-                    flpLabel->setVisible(lmod->flip);
-                    revLabel->setVisible(!lmod->flip);
+                    flpLabel->setVisible(lmod->flip && !hilightRevFlipButton);
+                    flpSelLabel->setVisible(lmod->flip && hilightRevFlipButton);
+                    revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
+                    revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
                     lmod->updateFlipControls();
                 }
             }
@@ -1001,12 +1016,14 @@ namespace Sapphire
             void onHover(const HoverEvent& e) override
             {
                 hilightInputRoutingButton = isInsideInputRoutingButton(e.pos);
+                hilightRevFlipButton = isInsideFlipRevButton(e.pos);
                 MultiTapWidget::onHover(e);
             }
 
             void onLeave(const LeaveEvent& e) override
             {
                 hilightInputRoutingButton = false;
+                hilightRevFlipButton = false;
                 MultiTapWidget::onLeave(e);
             }
 
@@ -1407,7 +1424,9 @@ namespace Sapphire
                         "echo",
                         asset::plugin(pluginInstance, "res/echo.svg"),
                         asset::plugin(pluginInstance, "res/echo_rev.svg"),
-                        asset::plugin(pluginInstance, "res/echo_flp.svg")
+                        asset::plugin(pluginInstance, "res/echo_rev_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echo_flp.svg"),
+                        asset::plugin(pluginInstance, "res/echo_flp_sel.svg")
                     )
                     , echoModule(module)
                 {
@@ -1899,7 +1918,9 @@ namespace Sapphire
                         "echotap",
                         asset::plugin(pluginInstance, "res/echotap.svg"),
                         asset::plugin(pluginInstance, "res/echotap_rev.svg"),
-                        asset::plugin(pluginInstance, "res/echotap_flp.svg")
+                        asset::plugin(pluginInstance, "res/echotap_rev_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_flp.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_flp_sel.svg")
                     )
                     , echoTapModule(module)
                 {

@@ -1962,6 +1962,12 @@ MULTIMAP_ENV_PORTS_Y1 = 115.0
 
 MULTIMAP_TOP_GROUP_FRACTION = 0.7
 
+def MultiTapControlStyle(color:str) -> str:
+    return 'stroke:{};stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'.format(color)
+
+MULTITAP_NORMAL_COLOR = MultiTapControlStyle('#000000')
+MULTITAP_HILITE_COLOR = MultiTapControlStyle('#6f02b8')
+
 def MakeLoopControlFence() -> FencePost:
     return FencePost(16.0, 72.0, 5)
 
@@ -2028,9 +2034,10 @@ def AddMultiTapEnvGroup(font:Font, pl:Element, controls:ControlLayer, xmid:float
     controls.append(Component('env_output', xPort, y))
 
 
-def SaveCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float) -> int:
+def SaveHexagonCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float, style:str = CONTROL_LABEL_STYLE) -> int:
     panel = BasePanel(mmWidth, mmHeight)
-    panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter))
+    panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter, style = style))
+    panel.append(ShortHexagon(xCenter - DX_FLAT_CONTROL_GROUP, xCenter + DX_FLAT_CONTROL_GROUP, yCenter, style = style))
     return Save(panel, svgFileName)
 
 
@@ -2097,9 +2104,15 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
-        if SaveCaption(SvgFileName('echo_rev', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
-        if SaveCaption(SvgFileName('echo_flp', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
+        AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, drawHexagon=False)
+
+        if (
+            SaveHexagonCaption(SvgFileName('echo_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_flp',     Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_flp_sel', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
         controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
 
         AddControlGroup(pl, controls, font, 'feedback', 'FDBK', xGlobalCenter, yFeedbackControl)
@@ -2163,9 +2176,17 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl)
-        if SaveCaption(SvgFileName('echotap_rev', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
-        if SaveCaption(SvgFileName('echotap_flp', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl): return 1
+        x1 = xControlCenter - DX_FLAT_CONTROL_GROUP
+        x2 = xControlCenter + DX_FLAT_CONTROL_GROUP
+        AddShortToggleGroup(pl, controls, font, '', 'reverse', x1, x2, yReverseControl, drawHexagon=False)
+
+        if (
+            SaveHexagonCaption(SvgFileName('echotap_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_flp',     Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_flp_sel', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
         controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
@@ -2228,6 +2249,7 @@ def GenerateMultiTapExtenderButton() -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
+
 
 def GenerateMultiTapRemoveButton() -> int:
     svgFileName = '../res/remove_button.svg'
