@@ -188,6 +188,10 @@ namespace Sapphire
 
             if (sampleRateHz != _sampleRateHz)
             {
+                // The first time we know the sample rate, or any time it changes,
+                // resize the buffer to allow the maximum possible number of samples
+                // as required by the new sample rate.
+
                 sampleRateHz = _sampleRateHz;
 
                 const float maxTime = TAPELOOP_MAX_DELAY_SECONDS + TAPELOOP_CROSSOVER_SECONDS;
@@ -196,12 +200,6 @@ namespace Sapphire
                     return false;
 
                 const std::size_t maxSize = static_cast<std::size_t>(maxSamples);
-
-                // The first time we know the sample rate, or any time it changes,
-                // resize the buffer to allow the maximum possible number of samples
-                // as required by the new sample rate.
-
-                // Because the tape loop is reversible, we need twice as: much tape time as the maximum delay time.
 
                 buffer.resize(maxSize);
                 clear();    // any audio in the buffer already is recorded at the wrong sample rate

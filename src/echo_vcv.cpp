@@ -691,7 +691,6 @@ namespace Sapphire
                 {
                     ChannelInfo& q = getChannelInfo(c);
 
-                    float clockSyncTime = -1;
                     if (controls.clockInputId < 0)
                         vClock = message.clockVoltage.at(c);
                     else
@@ -701,18 +700,20 @@ namespace Sapphire
                     {
                         // Clock sync. Measure the most recent time interval in samples.
                         float raw = q.samplesSinceClockTrigger / sampleRateHz;
-                        clockSyncTime = std::clamp(raw, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                        q.clockSyncTime = std::clamp(raw, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                         q.samplesSinceClockTrigger = 0;
                     }
                     else
                     {
                         ++q.samplesSinceClockTrigger;
                     }
-                    float delayTime;
-                    if (clockSyncTime > 0 && isActivelyClocked())
-                        delayTime = clockSyncTime;
-                    else
-                        delayTime = TwoToPower(controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+
+                    // Assume the delay time is in seconds.
+                    float delayTime = TwoToPower(controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
+
+                    // But it might be a dimensionless clock multiplier instead.
+                    if (q.clockSyncTime > 0 && isActivelyClocked())
+                        delayTime *= q.clockSyncTime;
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);

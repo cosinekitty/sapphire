@@ -76,6 +76,7 @@ namespace Sapphire
             TapeLoop loop;
             GateTriggerReceiver clockReceiver;
             int samplesSinceClockTrigger = 0;
+            float clockSyncTime = 0;
             EnvelopeFollower env;
 
             void initialize()
@@ -84,6 +85,7 @@ namespace Sapphire
                 clockReceiver.initialize();
                 samplesSinceClockTrigger = 0;
                 env.initialize();
+                clockSyncTime = 0;
             }
         };
 
