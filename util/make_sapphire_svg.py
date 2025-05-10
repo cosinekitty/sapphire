@@ -2074,6 +2074,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+    xSendReturnButton = (xSendPorts + xReturnPorts)/2
+    ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
     xClockInput = xGlobalCenter
     xToggleClockSyncButton = xClockInput + 10.0
 
@@ -2091,6 +2093,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
@@ -2157,6 +2160,8 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     yGainControl = yLoopFence.value(4)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+    xSendReturnButton = (xSendPorts + xReturnPorts)/2
+    ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
@@ -2169,6 +2174,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 

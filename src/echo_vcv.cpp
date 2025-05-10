@@ -152,6 +152,20 @@ namespace Sapphire
         };
 
 
+        using sendreturn_button_base_t = app::SvgSwitch;
+        struct SendReturnButton : sendreturn_button_base_t
+        {
+            LoopWidget* loopWidget{};
+
+            explicit SendReturnButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+        };
+
+
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
@@ -662,6 +676,12 @@ namespace Sapphire
                     sendReturnPortLabels = static_cast<PortLabelMode>(inAudio.nchannels);
 
                 clearSmoother.process(sampleRateHz);
+
+                sendReturnLocationSmoother.targetValue =
+                    (params.at(controls.sendReturnButtonId).getValue() < 0.5)
+                    ? SendReturnLocation::BeforeDelay
+                    : SendReturnLocation::AfterDelay;
+
                 sendReturnLocationSmoother.process(sampleRateHz);
                 const float srSmooth = sendReturnLocationSmoother.getGain();
                 const float smooth = srSmooth * message.routingSmooth;
@@ -909,6 +929,13 @@ namespace Sapphire
                 const float dxCushion = 8.0;
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
+            }
+
+            void addSendReturnButton(int buttonParamId)
+            {
+                auto button = createParamCentered<SendReturnButton>(Vec{}, module, buttonParamId);
+                button->loopWidget = this;
+                addSapphireParam(button, "sendreturn_button");
             }
 
             void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
@@ -1274,6 +1301,7 @@ namespace Sapphire
                 CLEAR_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
                 CLOCK_BUTTON_PARAM,
+                SEND_RETURN_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1353,6 +1381,7 @@ namespace Sapphire
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
+                    configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1390,6 +1419,7 @@ namespace Sapphire
                     controls.clockInputId = CLOCK_INPUT;
                     controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
                     controls.revFlipInputId = REVERSE_INPUT;
+                    controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -1525,6 +1555,7 @@ namespace Sapphire
                     addClockButton();
 
                     // Per-tap controls/ports
+                    addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
@@ -1820,7 +1851,7 @@ namespace Sapphire
         {
             if (echoWidget)
             {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && (e.action == GLFW_PRESS))
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
                 {
                     echoWidget->toggleAllClockSync();
                     stopwatch.restart();
@@ -1871,7 +1902,7 @@ namespace Sapphire
                 TIME_ATTEN,
                 PAN_PARAM,
                 PAN_ATTEN,
-                _OBSOLETE_PARAM,
+                SEND_RETURN_BUTTON_PARAM,
                 REMOVE_BUTTON_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
@@ -1921,6 +1952,7 @@ namespace Sapphire
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configButton(REMOVE_BUTTON_PARAM, "Remove tap");
+                    configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
@@ -1952,6 +1984,7 @@ namespace Sapphire
                     controls.returnRightInputId = RETURN_RIGHT_INPUT;
                     controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
                     controls.revFlipInputId = REVERSE_INPUT;
+                    controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2015,6 +2048,7 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addExpanderRemoveButton(module, REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
+                    addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);

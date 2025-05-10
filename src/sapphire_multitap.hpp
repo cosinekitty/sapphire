@@ -201,6 +201,7 @@ namespace Sapphire
             int clockInputId = -1;
             int revFlipInputId = -1;
             int revFlipButtonId = -1;
+            int sendReturnButtonId = -1;
         };
 
         //--------------------------------------------------------------------
