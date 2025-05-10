@@ -514,6 +514,7 @@ namespace Sapphire
             bool controlsAreDirty{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
+            SendReturnLocationSmoother sendReturnLocationSmoother;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -529,6 +530,7 @@ namespace Sapphire
                     info[c].initialize();
                 unhappy = false;
                 clearSmoother.initialize();
+                sendReturnLocationSmoother.initialize();
                 polyphonicEnvelopeOutput = true;
                 flip = true;
                 controlsAreDirty = true;   // signal we need to update tooltips / hovertext
@@ -584,6 +586,7 @@ namespace Sapphire
                 jsonSetEnum(root, "timeMode", timeMode);
                 jsonSetBool(root, "flip", flip);
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
+                sendReturnLocationSmoother.jsonSave(root);
                 return root;
             }
 
@@ -593,6 +596,7 @@ namespace Sapphire
                 jsonLoadEnum(root, "timeMode", timeMode);
                 jsonLoadBool(root, "flip", flip);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
+                sendReturnLocationSmoother.jsonLoad(root);
                 updateFlipControls();
             }
 
@@ -658,6 +662,9 @@ namespace Sapphire
                     sendReturnPortLabels = static_cast<PortLabelMode>(inAudio.nchannels);
 
                 clearSmoother.process(sampleRateHz);
+                sendReturnLocationSmoother.process(sampleRateHz);
+                const float srSmooth = sendReturnLocationSmoother.getGain();
+                const float smooth = srSmooth * message.routingSmooth;
                 receivedInputRouting = message.inputRouting;
 
                 const int nc = inAudio.safeChannelCount();
@@ -731,6 +738,13 @@ namespace Sapphire
                         result.chainAudioOutput.at(c)
                     );
 
+                    if (sendReturnLocationSmoother.currentValue == SendReturnLocation::AfterDelay)
+                    {
+                        writeSample(srSmooth * result.envelopeAudio.at(c), sendLeft, sendRight, c, nc, message.polyphonic);
+                        result.envelopeAudio.at(c) = readSample(result.envelopeAudio.at(c), returnLeft, returnRight, c);
+                    }
+                    result.envelopeAudio.at(c) *= srSmooth;
+
                     result.globalAudioOutput.at(c) = gain * result.envelopeAudio.at(c);
 
                     float feedbackSample;
@@ -755,24 +769,14 @@ namespace Sapphire
                     if (c < message.feedback.nchannels)
                         fbk = message.feedback.sample[c];
 
-                    float delayLineInput = LinearMix(
-                        message.freezeMix,
-                        inAudio.sample[c] + (fbk * feedbackSample),
-                        forward     // when frozen, keep recycling audio from the tape without flipping or other effects
-                    );
-
-                    writeSample(delayLineInput * message.routingSmooth, sendLeft, sendRight, c, nc, message.polyphonic);
-
-                    if (message.freezeMix < 1)
+                    const float loopAudio = inAudio.sample[c] + (fbk * feedbackSample);
+                    float delayLineInput = loopAudio;
+                    if (sendReturnLocationSmoother.currentValue == SendReturnLocation::BeforeDelay)
                     {
-                        // Not completely frozen right now, so read from the RTRN port if connected.
-                        // We skip this step when completely frozen because we would discard the value anyway.
-                        delayLineInput = LinearMix(
-                            message.freezeMix,
-                            message.routingSmooth * readSample(delayLineInput, returnLeft, returnRight, c),
-                            delayLineInput
-                        );
+                        writeSample(smooth * loopAudio, sendLeft, sendRight, c, nc, message.polyphonic);
+                        delayLineInput = readSample(loopAudio, returnLeft, returnRight, c);
                     }
+                    delayLineInput = smooth * LinearMix(message.freezeMix, delayLineInput, forward);
 
                     if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;

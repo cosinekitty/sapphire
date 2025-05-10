@@ -282,6 +282,22 @@ namespace Sapphire
         };
 
 
+        enum class SendReturnLocation
+        {
+            BeforeDelay,
+            AfterDelay,
+            LEN
+        };
+
+        class SendReturnLocationSmoother : public EnumSmoother<SendReturnLocation>
+        {
+        public:
+            explicit SendReturnLocationSmoother()
+                : EnumSmoother(SendReturnLocation::BeforeDelay, "sendReturnLocation")
+                {}
+        };
+
+
         struct EnvelopeOutputPort : SapphirePort
         {
             void appendContextMenu(ui::Menu* menu) override;
