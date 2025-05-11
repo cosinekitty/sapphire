@@ -509,6 +509,34 @@ namespace Sapphire
         };
 
 
+        struct BoolToggleAction : history::Action
+        {
+            bool& flag;
+            bool& dirty;
+
+            explicit BoolToggleAction(bool& _flag, bool& _dirty)
+                : flag(_flag)
+                , dirty(_dirty)
+                {}
+
+            void toggle()
+            {
+                flag = !flag;
+                dirty = true;
+            }
+
+            void undo() override
+            {
+                toggle();
+            }
+
+            void redo() override
+            {
+                toggle();
+            }
+        };
+
+
         struct LoopModule : MultiTapModule
         {
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
@@ -572,8 +600,9 @@ namespace Sapphire
 
             void toggleFlip()
             {
-                flip = !flip;
-                controlsAreDirty = true;
+                auto action = new BoolToggleAction(flip, controlsAreDirty);
+                action->redo();
+                APP->history->push(action);
             }
 
             bool isActivelyClocked() const
@@ -1541,6 +1570,7 @@ namespace Sapphire
                 void bumpTapInputRouting() override
                 {
                     routingSmoother.beginBumpEnum();
+                    APP->history->push(new BumpEnumAction(routingSmoother));
                 }
             };
 

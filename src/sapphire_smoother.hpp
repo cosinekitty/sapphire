@@ -160,4 +160,27 @@ namespace Sapphire
             targetValue = NextEnumValue(currentValue, increment);
         }
     };
+
+
+    template <typename enum_t>
+    struct BumpEnumAction : history::Action
+    {
+        EnumSmoother<enum_t>& smoother;
+        const int direction;
+
+        explicit BumpEnumAction(EnumSmoother<enum_t>& _smoother, int _direction = +1)
+            : smoother(_smoother)
+            , direction(_direction)
+            {}
+
+        void undo() override
+        {
+            smoother.beginBumpEnum(-direction);
+        }
+
+        void redo() override
+        {
+            smoother.beginBumpEnum(+direction);
+        }
+    };
 }
