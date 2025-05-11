@@ -1154,8 +1154,7 @@ namespace Sapphire
                 if (tooltip)
                     return;
 
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (!lmod)
+                if (!module)
                     return;
 
                 tooltip = new FloatingTooltip;
