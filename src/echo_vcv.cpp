@@ -879,27 +879,6 @@ namespace Sapphire
         }
 
 
-        struct FloatingTooltip : ui::Tooltip
-        {
-            bool isPositionLocked = false;
-            Vec lockedPos{};
-
-            void step() override
-            {
-                ui::Tooltip::step();
-                if (isPositionLocked)
-                {
-                    box.pos = lockedPos;
-                }
-                else
-                {
-                    lockedPos = box.pos;
-                    isPositionLocked = true;
-                }
-            }
-        };
-
-
         struct LoopWidget : MultiTapWidget
         {
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
@@ -915,8 +894,8 @@ namespace Sapphire
             Vec flpRevLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
-            FloatingTooltip* routingTooltip = nullptr;
-            FloatingTooltip* revFlipTooltip = nullptr;
+            SapphireTooltip* routingTooltip = nullptr;
+            SapphireTooltip* revFlipTooltip = nullptr;
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -1144,44 +1123,6 @@ namespace Sapphire
                     }
                 }
                 MultiTapWidget::onButton(e);
-            }
-
-            void createTooltip(FloatingTooltip*& tooltip, const std::string& text)
-            {
-                if (!settings::tooltips)
-                    return;
-
-                if (tooltip)
-                    return;
-
-                if (!module)
-                    return;
-
-                tooltip = new FloatingTooltip;
-                tooltip->text = text;
-                APP->scene->addChild(tooltip);
-            }
-
-            void destroyTooltip(FloatingTooltip*& tooltip)
-            {
-                if (tooltip)
-                {
-                    APP->scene->removeChild(tooltip);
-                    delete tooltip;
-                    tooltip = nullptr;
-                }
-            }
-
-            void updateTooltip(bool& flag, bool state, FloatingTooltip*& tooltip, const std::string& text)
-            {
-                if (state != flag)
-                {
-                    if (state)
-                        createTooltip(tooltip, text);
-                    else
-                        destroyTooltip(tooltip);
-                    flag = state;
-                }
             }
 
             void updateRoutingButton(bool state)

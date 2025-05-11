@@ -277,6 +277,27 @@ namespace Sapphire
     }
 
 
+    struct SapphireTooltip : ui::Tooltip
+    {
+        bool isPositionLocked = false;
+        Vec lockedPos{};
+
+        void step() override
+        {
+            ui::Tooltip::step();
+            if (isPositionLocked)
+            {
+                box.pos = lockedPos;
+            }
+            else
+            {
+                lockedPos = box.pos;
+                isPositionLocked = true;
+            }
+        }
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -566,6 +587,9 @@ namespace Sapphire
         }
 
         void draw(const DrawArgs& args) override;
+        void createTooltip(SapphireTooltip*& tooltip, const std::string& text);
+        void destroyTooltip(SapphireTooltip*& tooltip);
+        void updateTooltip(bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text);
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir);

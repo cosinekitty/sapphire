@@ -251,4 +251,44 @@ namespace Sapphire
 
         return expanderModule;
     }
+
+
+    void SapphireWidget::createTooltip(SapphireTooltip*& tooltip, const std::string& text)
+    {
+        if (!settings::tooltips)
+            return;
+
+        if (tooltip)
+            return;
+
+        if (!module)
+            return;
+
+        tooltip = new SapphireTooltip;
+        tooltip->text = text;
+        APP->scene->addChild(tooltip);
+    }
+
+    void SapphireWidget::destroyTooltip(SapphireTooltip*& tooltip)
+    {
+        if (tooltip)
+        {
+            APP->scene->removeChild(tooltip);
+            delete tooltip;
+            tooltip = nullptr;
+        }
+    }
+
+    void SapphireWidget::updateTooltip(
+        bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text)
+    {
+        if (state != flag)
+        {
+            if (state)
+                createTooltip(tooltip, text);
+            else
+                destroyTooltip(tooltip);
+            flag = state;
+        }
+    }
 }
