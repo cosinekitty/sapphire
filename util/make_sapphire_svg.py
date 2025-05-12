@@ -2062,6 +2062,9 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFreezeControl = yLoopFence.value(2.25)
     yClearControl = yLoopFence.value(3.0)
     yClockControls = yLoopFence.value(4.25)
+    dyClockButtons = 2.5
+    yClockButton    = yClockControls - dyClockButtons
+    yIntervalButton = yClockControls + dyClockButtons
 
     # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2077,7 +2080,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     xSendReturnButton = (xSendPorts + xReturnPorts)/2
     ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
     xClockInput = xGlobalCenter
-    xToggleClockSyncButton = xClockInput + 10.0
+    xClockButtons = xClockInput + 10.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
@@ -2100,7 +2103,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
         controls.append(Component('clock_input', xClockInput, yClockControls))
-        controls.append(Component('clock_button', xToggleClockSyncButton, yClockControls))
+        controls.append(Component('clock_button', xClockButtons, yClockButton))
+        controls.append(Component('interval_button', xClockButtons, yIntervalButton))
         pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockControls - 7.0))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
@@ -2279,11 +2283,25 @@ def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strok
     return Save(panel, svgFileName)
 
 
+def GenerateMultiTapIntervalButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/interval_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
 def GenerateMultiTapButtons() -> int:
     return (
         GenerateMultiTapExtenderButton() or
         GenerateMultiTapClockButton(0, '#585858', '#353535', '#434343', '#353535') or
         GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535') or
+        GenerateMultiTapIntervalButton(0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateMultiTapIntervalButton(1, '#edce1c', '#b59d14', '#356235', '#353535') or
         GenerateMultiTapRemoveButton()
     )
 

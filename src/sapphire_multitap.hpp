@@ -10,6 +10,40 @@ namespace Sapphire
 {
     namespace MultiTap
     {
+        struct Fraction
+        {
+            int numer;
+            int denom;
+            std::string name;
+
+            Fraction(int _numer, int _denom, const std::string& _name)
+                : numer(_numer)
+                , denom(_denom)
+                , name(_name)
+            {
+                assert(numer > 0);
+                assert(denom > 0);
+            }
+
+            float value() const
+            {
+                return static_cast<float>(numer) / static_cast<float>(denom);
+            }
+
+            std::string format() const
+            {
+                std::string text = std::to_string(numer);
+
+                if (denom > 1)
+                    text += "/" + std::to_string(denom);
+
+                text += "\n(" + name + ")";
+                return text;
+            }
+        };
+
+        const Fraction& PickClosestFraction(float ratio);
+
         enum class PortLabelMode
         {
             Stereo = -2,
@@ -128,6 +162,7 @@ namespace Sapphire
             float routingSmooth = 1;    // ducking factor just before/after changing inputRouting
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
+            bool musicalInterval = false;
         };
 
         struct BackwardMessage      // data that flows through the expander chain right-to-left.

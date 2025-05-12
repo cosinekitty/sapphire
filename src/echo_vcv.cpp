@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "sapphire_multitap.hpp"
 
 namespace Sapphire
@@ -24,6 +25,7 @@ namespace Sapphire
         {
             TimeMode* mode = nullptr;     // should point into the module, when the module exists
             bool* isClockConnected = nullptr;
+            bool* isMusicalInterval = nullptr;
 
             TimeMode getMode() const
             {
@@ -33,6 +35,11 @@ namespace Sapphire
             bool isClockCableConnected() const
             {
                 return isClockConnected && *isClockConnected;
+            }
+
+            bool snapMusicalIntervals() const
+            {
+                return isMusicalInterval && *isMusicalInterval;
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -51,14 +58,27 @@ namespace Sapphire
 
                 case TimeMode::ClockSync:
                     drawClockSyncSymbol(args.vg);
+                    if (snapMusicalIntervals())
+                        drawIntervalSnapDot(args.vg);
                     break;
                 }
             }
 
+            void drawIntervalSnapDot(NVGcontext* vg)
+            {
+                float xc = box.size.x/2;
+                float yc = 8.0 + (box.size.y/2);
+                const NVGcolor color = SCHEME_ORANGE;
+
+                nvgBeginPath(vg);
+                nvgCircle(vg, xc, yc, 0.5);
+                nvgStrokeColor(vg, color);
+                nvgStrokeWidth(vg, 1.25);
+                nvgStroke(vg);
+            }
+
             void drawClockSyncSymbol(NVGcontext* vg)
             {
-                const bool connected = isClockCableConnected();
-
                 float dx = 5.0;
                 float x2 = box.size.x / 2;
                 float x1 = x2 - dx;
@@ -70,15 +90,16 @@ namespace Sapphire
                 float y2 = ym + dy;
 
                 const NVGcolor inactiveColor = nvgRGB(0x90, 0x90, 0x90);
+                const NVGcolor color = isClockCableConnected() ? SCHEME_CYAN : inactiveColor;
 
                 nvgBeginPath(vg);
-                nvgStrokeColor(vg, connected ? SCHEME_CYAN : inactiveColor);
                 nvgMoveTo(vg, x1, y1);
                 nvgLineTo(vg, x1, y2);
                 nvgLineTo(vg, x3, y2);
                 nvgLineTo(vg, x3, y1);
                 nvgLineTo(vg, x1, y1);
-                nvgStrokeWidth(vg, connected ? 1.5 : 1.0);
+                nvgStrokeColor(vg, color);
+                nvgStrokeWidth(vg, 1.25);
                 nvgStroke(vg);
             }
 
@@ -149,6 +170,18 @@ namespace Sapphire
 
             void onButton(const ButtonEvent& e) override;
             void step() override;
+        };
+
+
+        using interval_button_base_t = app::SvgSwitch;
+        struct IntervalButton : interval_button_base_t
+        {
+            explicit IntervalButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+            }
         };
 
 
@@ -543,6 +576,7 @@ namespace Sapphire
             const float L2 = std::log2(TAPELOOP_MAX_DELAY_SECONDS);
             bool unhappy = false;
             bool isClockConnected = false;
+            bool isMusicalInterval = false;
             TimeMode timeMode = TimeMode::Seconds;
             GateTriggerReceiver reverseReceiver;
             ChannelInfo info[PORT_MAX_CHANNELS];
@@ -769,7 +803,12 @@ namespace Sapphire
 
                     // But it might be a dimensionless clock multiplier instead.
                     if (q.clockSyncTime > 0 && isActivelyClocked())
+                    {
+                        // Are musical intervals enabled? If so, snap to closest fraction.
+                        if (isMusicalInterval)
+                            delayTime = PickClosestFraction(delayTime).value();
                         delayTime *= q.clockSyncTime;
+                    }
 
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
@@ -1285,6 +1324,7 @@ namespace Sapphire
                 {
                     tk->mode = &(lmod->timeMode);
                     tk->isClockConnected = &(lmod->isClockConnected);
+                    tk->isMusicalInterval = &(lmod->isMusicalInterval);
                 }
                 return tk;
             }
@@ -1318,13 +1358,75 @@ namespace Sapphire
         }
 
 
+        static const std::vector<Fraction> MusicalFractions =
+        {
+            { 1,  8, "1/32 note"   },
+            { 1,  6, "1/16 trip"   },
+            { 3, 16, "1/32 dot"    },
+            { 1,  4, "1/16 note"   },
+            { 1,  3, "1/8 trip"    },
+            { 3,  8, "1/16 dot"    },
+            { 1,  2, "1/8 note"    },
+            { 2,  3, "1/4 trip"    },
+            { 3,  4, "1/8 dot"     },
+            { 1,  1, "1/4 note"    },
+            { 4,  3, "1/2 trip"    },
+            { 3,  2, "1/4 dot"     },
+            { 2,  1, "1/2 note"    },
+            { 3,  1, "1/2 dot"     },
+            { 4,  1, "whole note"  },
+            { 8,  1, "double note" },
+        };
+
+
+        const Fraction& PickClosestFraction(float ratio)
+        {
+            if (!std::isfinite(ratio) || ratio > 8.0)
+                return MusicalFractions.back();
+
+            if (ratio <= 0.0)
+                return MusicalFractions.front();
+
+            // It makes things simple if we can snap to closest integers.
+            // We have 16 in a denominator and 3. Multiply 3*16 = 48.
+            const Fraction* best = nullptr;
+            float bestScore = 0;
+
+            for (const Fraction& frac : MusicalFractions)
+            {
+                float diff = std::abs(ratio - frac.value());
+                if (best==nullptr || diff<bestScore)
+                {
+                    bestScore = diff;
+                    best = &frac;
+                }
+            }
+
+            if (best == nullptr)
+                throw std::logic_error("How could I not find a fraction?");
+
+            return *best;
+        }
+
+
         std::string TimeKnobParamQuantity::getString()
         {
-            std::string v = ParamQuantity::getDisplayValueString();
+            float value = rack::normalizeZero(getDisplayValue());
+            std::string text = rack::string::f("%.5g", value);
             auto lmod = dynamic_cast<const LoopModule*>(module);
-            if (lmod && lmod->isActivelyClocked())
-                return "CLOCK x " + v;
-            return v + " sec";
+            if (lmod)
+            {
+                if (lmod->isActivelyClocked())
+                {
+                    if (lmod->isMusicalInterval)
+                    {
+                        const Fraction& frac = PickClosestFraction(value);
+                        return "CLOCK x " + frac.format();
+                    }
+                    return "CLOCK x " + text;
+                }
+            }
+            return text + " sec";
         }
 
 
@@ -1340,7 +1442,7 @@ namespace Sapphire
                 PAN_PARAM,
                 PAN_ATTEN,
                 DC_REJECT_PARAM,
-                _OBSOLETE_PARAM,
+                INTERVAL_BUTTON_PARAM,
                 GAIN_PARAM,
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
@@ -1428,6 +1530,7 @@ namespace Sapphire
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
+                    configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
                     configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
@@ -1473,6 +1576,7 @@ namespace Sapphire
                 {
                     Message outMessage;
                     const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
+                    isMusicalInterval = outMessage.musicalInterval = (params.at(INTERVAL_BUTTON_PARAM).getValue() > 0.5);
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
                     outMessage.inputRouting = routingSmoother.currentValue;
                     outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
@@ -1601,6 +1705,7 @@ namespace Sapphire
                     addClearTriggerGroup();
                     addSapphireInput(CLOCK_INPUT, "clock_input");
                     addClockButton();
+                    addIntervalButton();
 
                     // Per-tap controls/ports
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
@@ -1619,6 +1724,12 @@ namespace Sapphire
                     auto button = createParamCentered<ClockButton>(Vec{}, echoModule, CLOCK_BUTTON_PARAM);
                     button->echoWidget = this;
                     addSapphireParam(button, "clock_button");
+                }
+
+                void addIntervalButton()
+                {
+                    auto button = createParamCentered<IntervalButton>(Vec{}, echoModule, INTERVAL_BUTTON_PARAM);
+                    addSapphireParam(button, "interval_button");
                 }
 
                 void addFreezeToggleGroup()
@@ -1656,10 +1767,14 @@ namespace Sapphire
                 void drawClockSyncSymbol(NVGcontext* vg, NVGcolor color, float strokeWidth)
                 {
                     ComponentLocation clock = FindComponent(modcode, "clock_input");
-                    ComponentLocation button = FindComponent(modcode, "clock_button");
-                    static constexpr float MULTITAP_CLOCK_BUTTON_DY = 3.0;
-                    float bx = mm2px(button.cx - MULTITAP_CLOCK_BUTTON_DY/2);
-                    float by = mm2px(button.cy);
+                    ComponentLocation syncButton = FindComponent(modcode, "clock_button");
+                    ComponentLocation intervalButton = FindComponent(modcode, "interval_button");
+                    static constexpr float MULTITAP_CLOCK_BUTTON_RADIUS = 1.5;
+                    float bx = mm2px(syncButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
+                    float by = mm2px(syncButton.cy);
+
+                    float cx = mm2px(intervalButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
+                    float cy = mm2px(intervalButton.cy);
 
                     float dx = 6.0;
                     float dy = 4.5;
@@ -1682,6 +1797,10 @@ namespace Sapphire
                     nvgMoveTo(vg, x2, by);
                     nvgLineTo(vg, bx, by);
 
+                    // Draw another connector line to the interval button.
+                    nvgMoveTo(vg, x2, cy);
+                    nvgLineTo(vg, cx, cy);
+
                     nvgStrokeWidth(vg, strokeWidth);
                     nvgStroke(vg);
                 }
@@ -1699,7 +1818,7 @@ namespace Sapphire
                     // Otherwise it should be opaque black on the panel layer.
                     LoopWidget::drawLayer(args, layer);
                     if (layer == 1 && isClockPortConnected())
-                        drawClockSyncSymbol(args.vg, SCHEME_CYAN, 1.5);
+                        drawClockSyncSymbol(args.vg, SCHEME_CYAN, 1.25);
                 }
 
                 void draw(const DrawArgs& args) override
@@ -1712,7 +1831,7 @@ namespace Sapphire
                     drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cy);
 
                     if (!isClockPortConnected())
-                        drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.0);
+                        drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
                 }
 
                 void step() override
@@ -2042,6 +2161,7 @@ namespace Sapphire
 
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
+                    isMusicalInterval = inMessage.musicalInterval;
                     chainIndex = inMessage.chainIndex;
                     isClockConnected = inMessage.isClockConnected;
                     includeNeonModeMenuItem = !inMessage.valid;
