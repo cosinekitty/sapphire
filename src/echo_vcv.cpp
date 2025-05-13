@@ -619,10 +619,11 @@ namespace Sapphire
             bool polyphonicEnvelopeOutput{};
             bool flip{};
             bool prevFlip{};
-            bool controlsAreDirty{};
+            bool flipControlsAreDirty{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
+            bool sendReturnControlsAreDirty{};
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -641,7 +642,8 @@ namespace Sapphire
                 sendReturnLocationSmoother.initialize();
                 polyphonicEnvelopeOutput = false;
                 flip = false;
-                controlsAreDirty = true;   // signal we need to update tooltips / hovertext
+                flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
+                sendReturnControlsAreDirty = true;
             }
 
             void initialize() override
@@ -652,11 +654,11 @@ namespace Sapphire
 
             void updateFlipControls()
             {
-                const bool needUpdate = controlsAreDirty || (prevFlip != flip);
+                const bool needUpdate = flipControlsAreDirty || (prevFlip != flip);
                 if (needUpdate && controlsAreReady)
                 {
                     prevFlip = flip;
-                    controlsAreDirty = false;
+                    flipControlsAreDirty = false;
 
                     const char *name = flip ? "Flip" : "Reverse";
                     getInputInfo(controls.revFlipInputId)->name = name;
@@ -664,9 +666,22 @@ namespace Sapphire
                 }
             }
 
+            void updateSendReturnControls()
+            {
+                if (sendReturnControlsAreDirty && controlsAreReady)
+                {
+                    sendReturnControlsAreDirty = false;
+                    ParamQuantity *qty = getParamQuantity(controls.sendReturnButtonId);
+                    if (qty)
+                    {
+                        qty->name = (qty->getValue() < 0.5) ? "Send/return before delay" : "Send/return after delay";
+                    }
+                }
+            }
+
             void toggleFlip()
             {
-                auto action = new BoolToggleAction(flip, controlsAreDirty);
+                auto action = new BoolToggleAction(flip, flipControlsAreDirty);
                 action->redo();
                 APP->history->push(action);
             }
@@ -778,6 +793,9 @@ namespace Sapphire
                     : SendReturnLocation::AfterDelay;
 
                 sendReturnLocationSmoother.process(sampleRateHz);
+                if (sendReturnLocationSmoother.isDelayedActionReady())
+                    sendReturnControlsAreDirty = true;
+
                 const float srSmooth = sendReturnLocationSmoother.getGain();
                 const float smooth = srSmooth * message.routingSmooth;
                 receivedInputRouting = message.inputRouting;
@@ -1160,6 +1178,7 @@ namespace Sapphire
                     revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
                     revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
                     lmod->updateFlipControls();
+                    lmod->updateSendReturnControls();
                 }
             }
 
@@ -1574,7 +1593,7 @@ namespace Sapphire
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
                     configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
-                    configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
+                    configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
@@ -2197,7 +2216,7 @@ namespace Sapphire
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configButton(INSERT_BUTTON_PARAM, "Add tap");
                     configButton(REMOVE_BUTTON_PARAM, "Remove tap");
-                    configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
+                    configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
