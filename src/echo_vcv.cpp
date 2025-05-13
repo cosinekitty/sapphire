@@ -616,7 +616,7 @@ namespace Sapphire
             TapInputRouting receivedInputRouting{};
             Smoother clearSmoother;
             ReverseComboSmoother reverseComboSmoother;
-            bool polyphonicEnvelopeOutput = true;
+            bool polyphonicEnvelopeOutput{};
             bool flip{};
             bool prevFlip{};
             bool controlsAreDirty{};
@@ -639,7 +639,7 @@ namespace Sapphire
                 unhappy = false;
                 clearSmoother.initialize();
                 sendReturnLocationSmoother.initialize();
-                polyphonicEnvelopeOutput = true;
+                polyphonicEnvelopeOutput = false;
                 flip = false;
                 controlsAreDirty = true;   // signal we need to update tooltips / hovertext
             }
