@@ -952,6 +952,10 @@ namespace Sapphire
                 dcRejectQuantity->load(root, "dcRejectFrequency");
         }
 
+        virtual void tryCopySettingsFrom(SapphireModule* other)
+        {
+        }
+
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
         {
             const int ncl = inputs.at(leftPortIndex ).channels;

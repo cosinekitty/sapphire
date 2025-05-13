@@ -592,7 +592,7 @@ namespace Sapphire
         void updateTooltip(bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text);
     };
 
-    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir);
+    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
     ModuleWidget* FindWidgetForId(int64_t moduleId);
 

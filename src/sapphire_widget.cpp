@@ -225,7 +225,7 @@ namespace Sapphire
     }
 
 
-    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir)
+    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone)
     {
         std::vector<PanelState> allPanelPositions = SnapshotPanelPositions();
 
@@ -233,6 +233,27 @@ namespace Sapphire
         assert(rawModule);
         SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
         assert(expanderModule);
+        if (clone && parentModWidget->module)
+        {
+            // The caller is asking us to copy settings from the parent module to the new module.
+            // We can do this generically if they are the same kind of module (if both have the same model)
+            // by serializing/deserializing JSON.
+            if (model == parentModWidget->model)
+            {
+                json_t* js = parentModWidget->module->toJson();
+                expanderModule->fromJson(js);
+                json_decref(js);
+            }
+            else
+            {
+                // Fallback for copying settings from different kinds of modules.
+                // Example: Echo can create an EchoTap, and the tape loop settings are the same.
+                // The virtual method tryCopySettingsFrom exists as a hack just for this case.
+                auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module);
+                if (parentModule)
+                    expanderModule->tryCopySettingsFrom(parentModule);
+            }
+        }
         APP->engine->addModule(expanderModule);
         ModuleWidget* rawWidget = model->createModuleWidget(expanderModule);
         assert(rawWidget);

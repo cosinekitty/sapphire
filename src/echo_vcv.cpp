@@ -2253,6 +2253,33 @@ namespace Sapphire
                     controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
                 }
 
+                void copyParamFrom(Echo::EchoModule* echoModule, EchoTap::ParamId targetId, Echo::ParamId sourceId)
+                {
+                    float x = echoModule->params.at(sourceId).getValue();
+                    params.at(targetId).setValue(x);
+                }
+
+                void tryCopySettingsFrom(SapphireModule* other) override
+                {
+                    auto emod = dynamic_cast<Echo::EchoModule*>(other);
+                    if (emod)
+                    {
+                        timeMode = emod->timeMode;
+                        polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
+                        flip = emod->flip;
+                        flipControlsAreDirty = true;
+                        sendReturnControlsAreDirty = true;
+                        copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
+                        copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
+                        copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);
+                        copyParamFrom(emod, SEND_RETURN_BUTTON_PARAM, Echo::SEND_RETURN_BUTTON_PARAM);
+                        copyParamFrom(emod, GAIN_PARAM, Echo::GAIN_PARAM);
+                        copyParamFrom(emod, GAIN_ATTEN, Echo::GAIN_ATTEN);
+                        copyParamFrom(emod, REVERSE_BUTTON_PARAM, Echo::REVERSE_BUTTON_PARAM);
+                        copyParamFrom(emod, ENV_GAIN_PARAM, Echo::ENV_GAIN_PARAM);
+                    }
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const Message inMessage = receiveMessageOrDefault();
