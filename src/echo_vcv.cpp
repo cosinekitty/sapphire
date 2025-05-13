@@ -640,7 +640,7 @@ namespace Sapphire
                 clearSmoother.initialize();
                 sendReturnLocationSmoother.initialize();
                 polyphonicEnvelopeOutput = true;
-                flip = true;
+                flip = false;
                 controlsAreDirty = true;   // signal we need to update tooltips / hovertext
             }
 
