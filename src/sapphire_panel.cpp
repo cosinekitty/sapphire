@@ -42,6 +42,7 @@ namespace Sapphire
             {"gain_atten",             {  45.720,   72.000}},
             {"gain_cv",                {  36.720,   72.000}},
             {"gain_knob",              {  54.720,   72.000}},
+            {"init_chain_button",      {  15.240,  115.000}},
             {"input_label_left",       {   8.740,   93.000}},
             {"input_label_right",      {   8.740,  103.000}},
             {"insert_button",          {  57.960,    4.500}},

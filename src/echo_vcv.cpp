@@ -185,6 +185,22 @@ namespace Sapphire
         };
 
 
+        using init_chain_button_base_t = app::SvgSwitch;
+        struct InitChainButton : init_chain_button_base_t
+        {
+            Echo::EchoWidget* echoWidget = nullptr;
+
+            explicit InitChainButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+
+            void onButton(const ButtonEvent& e) override;
+        };
+
+
         using sendreturn_button_base_t = app::SvgSwitch;
         struct SendReturnButton : sendreturn_button_base_t
         {
@@ -1375,6 +1391,7 @@ namespace Sapphire
             { 2,  1, "1/2 note"    },
             { 3,  1, "1/2 dot"     },
             { 4,  1, "whole note"  },
+            { 6,  1, "whole dot"   },
             { 8,  1, "double note" },
         };
 
@@ -1451,6 +1468,7 @@ namespace Sapphire
                 ENV_GAIN_PARAM,
                 CLOCK_BUTTON_PARAM,
                 SEND_RETURN_BUTTON_PARAM,
+                INIT_CHAIN_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1532,6 +1550,7 @@ namespace Sapphire
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
                     configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
                     configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
+                    configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1548,6 +1567,7 @@ namespace Sapphire
                     params.at(REVERSE_BUTTON_PARAM).setValue(0);
                     params.at(FREEZE_BUTTON_PARAM).setValue(0);
                     params.at(CLEAR_BUTTON_PARAM).setValue(0);
+                    params.at(INIT_CHAIN_BUTTON_PARAM).setValue(0);
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 
@@ -1706,6 +1726,7 @@ namespace Sapphire
                     addSapphireInput(CLOCK_INPUT, "clock_input");
                     addClockButton();
                     addIntervalButton();
+                    addInitChainButton();
 
                     // Per-tap controls/ports
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
@@ -1730,6 +1751,13 @@ namespace Sapphire
                 {
                     auto button = createParamCentered<IntervalButton>(Vec{}, echoModule, INTERVAL_BUTTON_PARAM);
                     addSapphireParam(button, "interval_button");
+                }
+
+                void addInitChainButton()
+                {
+                    auto button = createParamCentered<InitChainButton>(Vec{}, echoModule, INIT_CHAIN_BUTTON_PARAM);
+                    button->echoWidget = this;
+                    addSapphireParam(button, "init_chain_button");
                 }
 
                 void addFreezeToggleGroup()
@@ -2038,6 +2066,16 @@ namespace Sapphire
                 if (quantity && quantity->getValue() > 0)
                     quantity->setValue(0);
             }
+        }
+
+        void InitChainButton::onButton(const ButtonEvent& e)
+        {
+            if (echoWidget)
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+                    echoWidget->initializeExpanderChain();
+            }
+            init_chain_button_base_t::onButton(e);
         }
 
         void InitChainAction::undo()
