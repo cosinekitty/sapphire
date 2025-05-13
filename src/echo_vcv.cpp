@@ -201,6 +201,22 @@ namespace Sapphire
         };
 
 
+        using init_tap_button_base_t = app::SvgSwitch;
+        struct InitTapButton : init_tap_button_base_t
+        {
+            LoopWidget* loopWidget = nullptr;
+
+            explicit InitTapButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+
+            void onButton(const ButtonEvent& e) override;
+        };
+
+
         using sendreturn_button_base_t = app::SvgSwitch;
         struct SendReturnButton : sendreturn_button_base_t
         {
@@ -1349,6 +1365,14 @@ namespace Sapphire
             {
                 return addSapphireOutput<EnvelopeOutputPort>(outputId, "env_output");
             }
+
+            InitTapButton* addInitTapButton(int buttonParamId)
+            {
+                auto button = createParamCentered<InitTapButton>(Vec{}, module, buttonParamId);
+                button->loopWidget = this;
+                addSapphireParam(button, "init_tap_button");
+                return button;
+            }
         };
 
 
@@ -1469,6 +1493,7 @@ namespace Sapphire
                 CLOCK_BUTTON_PARAM,
                 SEND_RETURN_BUTTON_PARAM,
                 INIT_CHAIN_BUTTON_PARAM,
+                INIT_TAP_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1551,6 +1576,7 @@ namespace Sapphire
                     configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
                     configButton(SEND_RETURN_BUTTON_PARAM, "Toggle send/return location");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
+                    configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1568,6 +1594,7 @@ namespace Sapphire
                     params.at(FREEZE_BUTTON_PARAM).setValue(0);
                     params.at(CLEAR_BUTTON_PARAM).setValue(0);
                     params.at(INIT_CHAIN_BUTTON_PARAM).setValue(0);
+                    params.at(INIT_TAP_BUTTON_PARAM).setValue(0);
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 
@@ -1738,6 +1765,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                    addInitTapButton(INIT_TAP_BUTTON_PARAM);
                 }
 
                 void addClockButton()
@@ -2078,6 +2106,16 @@ namespace Sapphire
             init_chain_button_base_t::onButton(e);
         }
 
+        void InitTapButton::onButton(const ButtonEvent& e)
+        {
+            if (loopWidget)
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+                    loopWidget->resetAction();
+            }
+            init_chain_button_base_t::onButton(e);
+        }
+
         void InitChainAction::undo()
         {
             for (const InitChainNode& node : list)
@@ -2113,6 +2151,8 @@ namespace Sapphire
                 GAIN_ATTEN,
                 REVERSE_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
+                INIT_CHAIN_BUTTON_PARAM,
+                INIT_TAP_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -2163,6 +2203,8 @@ namespace Sapphire
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
+                    configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
+                    configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
                     EchoTapModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2263,6 +2305,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                    addInitTapButton(INIT_TAP_BUTTON_PARAM);
                 }
 
                 bool isConnectedOnLeft() const override

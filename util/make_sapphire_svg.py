@@ -2082,6 +2082,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     xClockInput = xGlobalCenter
     xClockButtons = xClockInput + 10.0
     yInitChainButton = MULTIMAP_ENV_PORTS_Y1
+    yBottomButtons = panel.mmHeight - 5.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
@@ -2099,6 +2100,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
         controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
         controls.append(Component('init_chain_button', xGlobalCenter, yInitChainButton))
+        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
@@ -2156,8 +2158,8 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
 
     # "Remove this tap" button at bottom center.
-    xRemoveButton = panel.mmWidth/2
-    yRemoveButton = panel.mmHeight - 5.0
+    xRemoveButton = xControlCenter - 9.0
+    yBottomButtons = panel.mmHeight - 5.0
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
@@ -2175,12 +2177,13 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        controls.append(Component('remove_button', xRemoveButton, yRemoveButton))
+        controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
         controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
+        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
         AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
 
