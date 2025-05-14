@@ -231,6 +231,20 @@ namespace Sapphire
         };
 
 
+        using input_mode_button_base_t = app::SvgSwitch;
+        struct InputModeButton : input_mode_button_base_t
+        {
+            Echo::EchoWidget* echoWidget{};
+
+            explicit InputModeButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+        };
+
+
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
@@ -369,14 +383,7 @@ namespace Sapphire
                 return normal;
             }
 
-            bool isPolyphonic(int leftInputId, int rightInputId)
-            {
-                Input& inLeft  = inputs.at(leftInputId);
-                Input& inRight = inputs.at(rightInputId);
-                return !inRight.isConnected() && (inLeft.getChannels() > 1);
-            }
-
-            Frame readFrame(int leftInputId, int rightInputId, PortLabelMode& mode)
+            Frame readFrame(int leftInputId, int rightInputId, bool polyphonic, PortLabelMode& mode)
             {
                 mode = PortLabelMode::Stereo;
 
@@ -391,20 +398,23 @@ namespace Sapphire
                 if (!inRight.isConnected())
                 {
                     const int ncLeft = inLeft.getChannels();
-                    if (ncLeft == 1)
+                    if (ncLeft > 0)
                     {
-                        // Mono input, so split the signal across both stereo output channels.
-                        frame.sample[0] /= 2;
-                        frame.sample[1] = frame.sample[0];
-                        mode = PortLabelMode::Mono;
-                    }
-                    else if (ncLeft > 1)
-                    {
-                        // Polyphonic mode!
-                        frame.nchannels = VcvSafeChannelCount(ncLeft);
-                        for (int c = 0; c < frame.nchannels; ++c)
-                            frame.sample[c] = inLeft.getVoltage(c);
-                        mode = static_cast<PortLabelMode>(ncLeft);
+                        if (ncLeft == 1 || (ncLeft >= 3 && !polyphonic))
+                        {
+                            // Mono input, so split the signal across both stereo output channels.
+                            frame.sample[0] /= 2;
+                            frame.sample[1] = frame.sample[0];
+                            mode = PortLabelMode::Mono;
+                        }
+                        else if (ncLeft == 2 || polyphonic)
+                        {
+                            // Polyphonic mode!
+                            frame.nchannels = VcvSafeChannelCount(ncLeft);
+                            for (int c = 0; c < frame.nchannels; ++c)
+                                frame.sample[c] = inLeft.getVoltage(c);
+                            mode = static_cast<PortLabelMode>(ncLeft);
+                        }
                     }
                 }
 
@@ -1513,6 +1523,7 @@ namespace Sapphire
                 SEND_RETURN_BUTTON_PARAM,
                 INIT_CHAIN_BUTTON_PARAM,
                 INIT_TAP_BUTTON_PARAM,
+                INPUT_MODE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1596,6 +1607,7 @@ namespace Sapphire
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
+                    configButton(INPUT_MODE_BUTTON_PARAM);      // tooltip changed dynamically
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1614,6 +1626,7 @@ namespace Sapphire
                     params.at(CLEAR_BUTTON_PARAM).setValue(0);
                     params.at(INIT_CHAIN_BUTTON_PARAM).setValue(0);
                     params.at(INIT_TAP_BUTTON_PARAM).setValue(0);
+                    params.at(INPUT_MODE_BUTTON_PARAM).setValue(0);
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 
@@ -1638,6 +1651,11 @@ namespace Sapphire
                     controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
                 }
 
+                bool polyphonicMode()
+                {
+                    return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     Message outMessage;
@@ -1645,12 +1663,12 @@ namespace Sapphire
                     isMusicalInterval = outMessage.musicalInterval = (params.at(INTERVAL_BUTTON_PARAM).getValue() > 0.5);
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
                     outMessage.inputRouting = routingSmoother.currentValue;
-                    outMessage.polyphonic = isPolyphonic(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
+                    outMessage.polyphonic = polyphonicMode();
                     outMessage.freezeMix = updateFreezeState(args.sampleRate);
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.chainIndex = 2;
-                    outMessage.originalAudio = readOriginalAudio(args.sampleRate, inputLabels);
+                    outMessage.originalAudio = readOriginalAudio(args.sampleRate, outMessage.polyphonic, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
@@ -1663,9 +1681,9 @@ namespace Sapphire
                     sendMessage(outMessage);
                 }
 
-                Frame readOriginalAudio(float sampleRateHz, PortLabelMode& mode)
+                Frame readOriginalAudio(float sampleRateHz, bool polyphonic, PortLabelMode& mode)
                 {
-                    Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, mode);
+                    Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, polyphonic, mode);
                     const int nc = audio.safeChannelCount();
                     for (int c = 0; c < nc; ++c)
                     {
@@ -1773,6 +1791,7 @@ namespace Sapphire
                     addClockButton();
                     addIntervalButton();
                     addInitChainButton();
+                    addInputModeButton();
 
                     // Per-tap controls/ports
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
@@ -1785,6 +1804,13 @@ namespace Sapphire
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
+                }
+
+                void addInputModeButton()
+                {
+                    auto button = createParamCentered<InputModeButton>(Vec{}, echoModule, INPUT_MODE_BUTTON_PARAM);
+                    button->echoWidget = this;
+                    addSapphireParam(button, "input_mode_button");
                 }
 
                 void addClockButton()
@@ -1912,6 +1938,12 @@ namespace Sapphire
                 void step() override
                 {
                     LoopWidget::step();
+
+                    if (echoModule)
+                    {
+                        ParamQuantity *qty = echoModule->getParamQuantity(INPUT_MODE_BUTTON_PARAM);
+                        qty->name = echoModule->polyphonicMode() ? "Polyphonic mode" : "Stereo mode";
+                    }
 
                     // Automatically add an EchoOut expander when we first insert Echo.
                     // But we have to wait more than one step call, because otherwise

@@ -46,6 +46,7 @@ namespace Sapphire
             {"init_tap_button",        {  45.720,  124.000}},
             {"input_label_left",       {   8.740,   93.000}},
             {"input_label_right",      {   8.740,  103.000}},
+            {"input_mode_button",      {   8.740,   98.000}},
             {"insert_button",          {  57.960,    4.500}},
             {"interval_button",        {  25.240,   78.000}},
             {"label_flp_rev",          {  45.720,   16.000}},

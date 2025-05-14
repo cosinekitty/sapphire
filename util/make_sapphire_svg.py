@@ -2083,6 +2083,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     xClockButtons = xClockInput + 10.0
     yInitChainButton = MULTIMAP_ENV_PORTS_Y1
     yBottomButtons = panel.mmHeight - 5.0
+    xInputLabels = xGlobalCenter - 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
@@ -2093,8 +2094,9 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
 
-        AddVerticalStereoLabels(controls, 'input', xGlobalCenter - 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        controls.append(Component('input_mode_button', xInputLabels, ySendReturnButton))
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)

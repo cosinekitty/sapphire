@@ -161,7 +161,7 @@ namespace Sapphire
             TapInputRouting inputRouting = TapInputRouting::Default;
             float routingSmooth = 1;    // ducking factor just before/after changing inputRouting
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
-            bool polyphonic = false;    // resolves stereo/polyphonic ambiguity when nchannels==2
+            bool polyphonic = false;    // selects desired output format: false=stereo(L,R), true=polyphonic(L)
             bool musicalInterval = false;
         };
 
