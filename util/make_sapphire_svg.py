@@ -2019,16 +2019,10 @@ def AddMultiTapEnvGradient(panel:Panel, defs:Element, pl:Element, xCenter:float)
     ))
 
 
-def AddMultiTapEnvGroup(font:Font, pl:Element, controls:ControlLayer, xmid:float) -> None:
+def AddMultiTapEnvGroup(controls:ControlLayer, xmid:float) -> None:
     xKnob = xmid - DX_FLAT_CONTROL_GROUP
     xPort = xmid + DX_FLAT_CONTROL_GROUP
-    rectWidth = 8.0
-    rectHeight = 4.5
     y = MULTIMAP_ENV_PORTS_Y1
-    pl.append(CenteredControlTextPath(font, 'ENV', xmid, y, 'env_label'))
-    pl.append(Rectangle(xmid, y, rectWidth, rectHeight, strokeWidth=0.2))
-    pl.append(HorizontalLine(xKnob, xmid - rectWidth/2, y))
-    pl.append(HorizontalLine(xPort, xmid + rectWidth/2, y))
     controls.append(Component('env_gain_knob', xKnob, y))
     controls.append(Component('env_output', xPort, y))
 
@@ -2037,6 +2031,19 @@ def SaveHexagonCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, m
     panel = BasePanel(mmWidth, mmHeight)
     panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter, style = style))
     panel.append(ShortHexagon(xCenter - DX_FLAT_CONTROL_GROUP, xCenter + DX_FLAT_CONTROL_GROUP, yCenter, style = style))
+    return Save(panel, svgFileName)
+
+
+def SaveRectangleCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xmid:float, y:float, style:str = CONTROL_LABEL_STYLE) -> int:
+    rectWidth = 8.0
+    rectHeight = 4.5
+    xKnob = xmid - DX_FLAT_CONTROL_GROUP
+    xPort = xmid + DX_FLAT_CONTROL_GROUP
+    panel = BasePanel(mmWidth, mmHeight)
+    panel.append(CenteredControlTextPath(font, caption, xmid, y, style = style))
+    panel.append(Rectangle(xmid, y, rectWidth, rectHeight, strokeWidth=0.2))
+    panel.append(HorizontalLine(xKnob, xmid - rectWidth/2, y))
+    panel.append(HorizontalLine(xPort, xmid + rectWidth/2, y))
     return Save(panel, svgFileName)
 
 
@@ -2113,7 +2120,14 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('init_chain_button', xGlobalCenter, yInitChainButton))
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
-        AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
+        AddMultiTapEnvGroup(controls, xControlCenter)
+        if (
+            SaveRectangleCaption(SvgFileName('echo_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_inv',     Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_inv_sel', Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+        ):
+            return 1
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
@@ -2197,7 +2211,14 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
-        AddMultiTapEnvGroup(font, pl, controls, xControlCenter)
+        AddMultiTapEnvGroup(controls, xControlCenter)
+        if (
+            SaveRectangleCaption(SvgFileName('echotap_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_inv',     Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_inv_sel', Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+        ):
+            return 1
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

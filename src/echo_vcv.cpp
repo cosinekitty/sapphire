@@ -654,6 +654,7 @@ namespace Sapphire
             ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput{};
             bool flip{};
+            bool duck{};
             bool prevFlip{};
             bool flipControlsAreDirty{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
@@ -681,6 +682,7 @@ namespace Sapphire
                 sendReturnLocationSmoother.initialize();
                 polyphonicEnvelopeOutput = false;
                 flip = false;
+                duck = false;
                 flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
                 sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
@@ -770,6 +772,7 @@ namespace Sapphire
                 json_t* root = MultiTapModule::dataToJson();
                 jsonSetEnum(root, "timeMode", timeMode);
                 jsonSetBool(root, "flip", flip);
+                jsonSetBool(root, "duck", duck);
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonSave(root);
                 return root;
@@ -780,6 +783,7 @@ namespace Sapphire
                 MultiTapModule::dataFromJson(root);
                 jsonLoadEnum(root, "timeMode", timeMode);
                 jsonLoadBool(root, "flip", flip);
+                jsonLoadBool(root, "duck", duck);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonLoad(root);
                 updateFlipControls();
@@ -1086,10 +1090,15 @@ namespace Sapphire
             const float mmChainIndexCenterY = 4.5;
             bool hilightInputRoutingButton = false;
             bool hilightRevFlipButton = false;
+            bool hilightEnvInvButton = false;
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
             SvgOverlay* flpSelLabel = nullptr;
+            SvgOverlay* envLabel = nullptr;
+            SvgOverlay* envSelLabel = nullptr;
+            SvgOverlay* invLabel = nullptr;
+            SvgOverlay* invSelLabel = nullptr;
             Vec flpRevLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
@@ -1102,7 +1111,11 @@ namespace Sapphire
                 const std::string& revSvgFileName,
                 const std::string& revSelSvgFileName,
                 const std::string& flpSvgFileName,
-                const std::string& flpSelSvgFileName
+                const std::string& flpSelSvgFileName,
+                const std::string& envSvgFileName,
+                const std::string& envSelSvgFileName,
+                const std::string& invSvgFileName,
+                const std::string& invSelSvgFileName
             )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
             {
@@ -1121,6 +1134,22 @@ namespace Sapphire
                 flpSelLabel = SvgOverlay::Load(flpSelSvgFileName);
                 addChild(flpSelLabel);
                 flpSelLabel->hide();
+
+                envLabel = SvgOverlay::Load(envSvgFileName);
+                addChild(envLabel);
+                envLabel->hide();
+
+                envSelLabel = SvgOverlay::Load(envSelSvgFileName);
+                addChild(envSelLabel);
+                envSelLabel->hide();
+
+                invLabel = SvgOverlay::Load(invSvgFileName);
+                addChild(invLabel);
+                invLabel->hide();
+
+                invSelLabel = SvgOverlay::Load(invSelSvgFileName);
+                addChild(invSelLabel);
+                invSelLabel->hide();
 
                 ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
                 flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
@@ -1248,6 +1277,22 @@ namespace Sapphire
                 return module && IsEchoReceiver(module->rightExpander.module);
             }
 
+            void updateFlipReverse(const LoopModule* lmod)
+            {
+                flpLabel->setVisible(lmod->flip && !hilightRevFlipButton);
+                flpSelLabel->setVisible(lmod->flip && hilightRevFlipButton);
+                revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
+                revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
+            }
+
+            void updateEnvInv(const LoopModule* lmod)
+            {
+                envLabel->setVisible(!lmod->duck && !hilightEnvInvButton);
+                envSelLabel->setVisible(!lmod->duck && hilightEnvInvButton);
+                invLabel->setVisible(lmod->duck && !hilightEnvInvButton);
+                invSelLabel->setVisible(lmod->duck && hilightEnvInvButton);
+            }
+
             void step() override
             {
                 MultiTapWidget::step();
@@ -1256,13 +1301,11 @@ namespace Sapphire
                 {
                     lmod->hideLeftBorder  = isConnectedOnLeft();
                     lmod->hideRightBorder = isConnectedOnRight();
-                    flpLabel->setVisible(lmod->flip && !hilightRevFlipButton);
-                    flpSelLabel->setVisible(lmod->flip && hilightRevFlipButton);
-                    revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
-                    revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
                     lmod->updateFlipControls();
                     lmod->updateSendReturnControls();
                     lmod->updateMuteSoloControls();
+                    updateFlipReverse(lmod);
+                    updateEnvInv(lmod);
                 }
             }
 
@@ -1878,7 +1921,11 @@ namespace Sapphire
                         asset::plugin(pluginInstance, "res/echo_rev.svg"),
                         asset::plugin(pluginInstance, "res/echo_rev_sel.svg"),
                         asset::plugin(pluginInstance, "res/echo_flp.svg"),
-                        asset::plugin(pluginInstance, "res/echo_flp_sel.svg")
+                        asset::plugin(pluginInstance, "res/echo_flp_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echo_env.svg"),
+                        asset::plugin(pluginInstance, "res/echo_env_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echo_inv.svg"),
+                        asset::plugin(pluginInstance, "res/echo_inv_sel.svg")
                     )
                     , echoModule(module)
                 {
@@ -2498,7 +2545,11 @@ namespace Sapphire
                         asset::plugin(pluginInstance, "res/echotap_rev.svg"),
                         asset::plugin(pluginInstance, "res/echotap_rev_sel.svg"),
                         asset::plugin(pluginInstance, "res/echotap_flp.svg"),
-                        asset::plugin(pluginInstance, "res/echotap_flp_sel.svg")
+                        asset::plugin(pluginInstance, "res/echotap_flp_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_env.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_env_sel.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_inv.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_inv_sel.svg")
                     )
                     , echoTapModule(module)
                 {
