@@ -245,6 +245,32 @@ namespace Sapphire
         };
 
 
+        struct MuteButton : app::SvgSwitch
+        {
+            LoopWidget* loopWidget{};
+
+            explicit MuteButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/mute_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/mute_button_1.svg")));
+            }
+        };
+
+
+        struct SoloButton : app::SvgSwitch
+        {
+            LoopWidget* loopWidget{};
+
+            explicit SoloButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+        };
+
+
         struct MultiTapModule : SapphireModule
         {
             Message messageBuffer[2];
@@ -767,6 +793,16 @@ namespace Sapphire
             ChannelInfo& getChannelInfo(int c)
             {
                 return SafeArray(info, PORT_MAX_CHANNELS, c);
+            }
+
+            int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId)
+            {
+                if (params.at(soloButtonParamId).getValue() > 0.5f)
+                {
+                    soloAudio += rawAudio;
+                    return 1;
+                }
+                return 0;
             }
 
             struct TapeLoopResult
@@ -1402,6 +1438,17 @@ namespace Sapphire
                 addSapphireParam(button, "init_tap_button");
                 return button;
             }
+
+            void addMuteSoloButtons(int muteButtonId, int soloButtonId)
+            {
+                auto muteButton = createParamCentered<MuteButton>(Vec{}, module, muteButtonId);
+                muteButton->loopWidget = this;
+                addSapphireParam(muteButton, "mute_button");
+
+                auto soloButton = createParamCentered<SoloButton>(Vec{}, module, soloButtonId);
+                soloButton->loopWidget = this;
+                addSapphireParam(soloButton, "solo_button");
+            }
         };
 
 
@@ -1524,6 +1571,8 @@ namespace Sapphire
                 INIT_CHAIN_BUTTON_PARAM,
                 INIT_TAP_BUTTON_PARAM,
                 INPUT_MODE_BUTTON_PARAM,
+                MUTE_BUTTON_PARAM,
+                SOLO_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1608,6 +1657,8 @@ namespace Sapphire
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
                     configButton(INPUT_MODE_BUTTON_PARAM);      // tooltip changed dynamically
+                    configButton(MUTE_BUTTON_PARAM, "Mute");
+                    configButton(SOLO_BUTTON_PARAM, "Solo");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1656,6 +1707,11 @@ namespace Sapphire
                     return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
+                bool isMuted()
+                {
+                    return params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     Message outMessage;
@@ -1673,8 +1729,11 @@ namespace Sapphire
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage, inBackMessage);
+                    if (isMuted())
+                        result.globalAudioOutput.clear();
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio = result.globalAudioOutput;
+                    outMessage.soloCount = updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
@@ -1804,6 +1863,7 @@ namespace Sapphire
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
+                    addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
                 }
 
                 void addInputModeButton()
@@ -2204,6 +2264,8 @@ namespace Sapphire
                 ENV_GAIN_PARAM,
                 INIT_CHAIN_BUTTON_PARAM,
                 INIT_TAP_BUTTON_PARAM,
+                MUTE_BUTTON_PARAM,
+                SOLO_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -2256,6 +2318,8 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
+                    configButton(MUTE_BUTTON_PARAM, "Mute");
+                    configButton(SOLO_BUTTON_PARAM, "Solo");
                     EchoTapModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2312,6 +2376,11 @@ namespace Sapphire
                     }
                 }
 
+                bool isMuted()
+                {
+                    return params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const Message inMessage = receiveMessageOrDefault();
@@ -2340,8 +2409,11 @@ namespace Sapphire
                         inMessage.chainAudio;
 
                     TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage, inBackMessage);
+                    if (isMuted())
+                        result.globalAudioOutput.clear();
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio += result.globalAudioOutput;
+                    outMessage.soloCount += updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
@@ -2384,6 +2456,7 @@ namespace Sapphire
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
+                    addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
                 }
 
                 bool isConnectedOnLeft() const override
@@ -2475,10 +2548,15 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
 
+                        float wetSample =
+                            message.soloCount > 0
+                            ? message.soloAudio.sample[c]
+                            : message.summedAudio.sample[c];
+
                         audio.sample[c] = gain * LinearMix(
                             mix,
                             message.originalAudio.sample[c],
-                            message.summedAudio.sample[c]
+                            wetSample
                         );
                     }
 

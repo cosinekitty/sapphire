@@ -88,6 +88,12 @@ namespace Sapphire
 
                 return *this;
             }
+
+            void clear()
+            {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    sample[c] = 0;
+            }
         };
 
         inline Frame operator+ (const Frame& a, const Frame& b)
@@ -152,6 +158,8 @@ namespace Sapphire
             Frame chainAudio;           // audio passed into the input layer of each tap through expander logic
             Frame originalAudio;        // audio frame from the input module (for final output mix)
             Frame summedAudio;          // the sum of outputs from all taps to the left (for final output mix)
+            int soloCount = 0;          // how many taps have solo enabled
+            Frame soloAudio;            // the sum of all output audio for taps with solo enabled
             Frame feedback;             // polyphonic modulation for the feedback parameter
             Frame clockVoltage;         // raw voltage read from the CLOCK port
             float freezeMix = 0;        // 0=thawed, 1=frozen, in between for linear crossfade

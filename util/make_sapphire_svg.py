@@ -2040,6 +2040,15 @@ def SaveHexagonCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, m
     return Save(panel, svgFileName)
 
 
+def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:float) -> None:
+    dx = 4.0
+    dy = 4.0
+    pl.append(GeneralLine(xKnob, yKnob, xKnob - dx, yKnob + dy))
+    pl.append(GeneralLine(xKnob, yKnob, xKnob + dx, yKnob + dy))
+    controls.append(Component('mute_button', xKnob - dx, yKnob + dy))
+    controls.append(Component('solo_button', xKnob + dx, yKnob + dy))
+
+
 def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'echo'
@@ -2133,6 +2142,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        AddMuteSoloButtons(pl, controls, xControlCenter, yGainControl)
         pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         # Global stuff
@@ -2209,6 +2219,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        AddMuteSoloButtons(pl, controls, xControlCenter, yGainControl)
         pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
@@ -2302,6 +2313,18 @@ def GenerateMultiTapIntervalButton(step: int, fillColor1:str, fillColor2:str, st
     return Save(panel, svgFileName)
 
 
+def GenerateMultiTapMuteButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/mute_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
 def GenerateMultiTapButtons() -> int:
     return (
         GenerateMultiTapExtenderButton() or
@@ -2309,6 +2332,8 @@ def GenerateMultiTapButtons() -> int:
         GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535') or
         GenerateMultiTapIntervalButton(0, '#585858', '#353535', '#434343', '#353535') or
         GenerateMultiTapIntervalButton(1, '#edce1c', '#b59d14', '#356235', '#353535') or
+        GenerateMultiTapMuteButton(0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
+        GenerateMultiTapMuteButton(1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
         GenerateMultiTapRemoveButton()
     )
 
