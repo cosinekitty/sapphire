@@ -722,10 +722,10 @@ namespace Sapphire
             return std::clamp(slider, minValue, maxValue);
         }
 
-        float controlGroupRawCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
+        float controlGroupRawCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue, float cvScalar = 1)
         {
             nextChannelInputVoltage(cv, ids.cvInputId, channel);
-            return cvGetVoltPerOctave(ids.paramId, ids.attenId, cv, minValue, maxValue);
+            return cvGetVoltPerOctave(ids.paramId, ids.attenId, cv * cvScalar, minValue, maxValue);
         }
 
         float controlGroupAmpCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
@@ -745,10 +745,15 @@ namespace Sapphire
             return getControlValue(ids.paramId, ids.attenId, ids.cvInputId, minValue, maxValue);
         }
 
-        float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
+        float getControlValueCustom(const ControlGroupIds& ids, float minValue, float maxValue, float cvScalar)
+        {
+            return getControlValueVoltPerOctave(ids.paramId, ids.attenId, ids.cvInputId, minValue, maxValue, cvScalar);
+        }
+
+        float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1, float cvScalar = 1)
         {
             float cv = inputs.at(inputId).getVoltageSum();
-            return cvGetVoltPerOctave(paramId, attenId, cv, minValue, maxValue);
+            return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
         void defineAttenuverterId(int attenId)

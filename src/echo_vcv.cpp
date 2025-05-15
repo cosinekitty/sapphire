@@ -947,7 +947,8 @@ namespace Sapphire
                     float reverse = q.loop.readReverse() * clearSmoother.getGain();
                     q.loop.updateReversePlaybackHead();
 
-                    float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 1);
+                    constexpr float sensitivity = 1.0 / 5.0;  // A 5V change in CV should cause swing of 1 knob unit.
+                    float gain = controlGroupRawCv(c, cvGain, controls.gain, 0, 1, sensitivity);
                     reverseComboSmoother.select(
                         forward,
                         reverse,
@@ -1015,7 +1016,8 @@ namespace Sapphire
                 {
                     // Use a power law to smoothly transition from A or B dominating,
                     // but with consistent power sum across both channels.
-                    float x = getControlValue(controls.pan, -1, +1);
+                    constexpr float sensitivity = 1.0 / 5.0;        // 1 knob unit per 5V at 100%
+                    float x = getControlValueCustom(controls.pan, -1, +1, sensitivity);
                     float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
                     pannedAudio.sample[0] *= M_SQRT2 * std::cos(theta);
                     pannedAudio.sample[1] *= M_SQRT2 * std::sin(theta);
@@ -1820,10 +1822,11 @@ namespace Sapphire
                     const int nc = VcvSafeChannelCount(cvInput.getChannels());
                     feedback.nchannels = std::max(1, nc);
                     float cv = 0;
+                    constexpr float sensitivity = 0.5 / 5.0;    // half of knob range per 5V change in CV
                     for (int c = 0; c < feedback.nchannels; ++c)
                     {
                         nextChannelInputVoltage(cv, FEEDBACK_CV_INPUT, c);
-                        feedback.sample[c] = maxFeedbackRatio * cvGetVoltPerOctave(FEEDBACK_PARAM, FEEDBACK_ATTEN, cv, 0, 1);
+                        feedback.sample[c] = maxFeedbackRatio * cvGetVoltPerOctave(FEEDBACK_PARAM, FEEDBACK_ATTEN, cv * sensitivity, 0, 1);
                     }
                     return feedback;
                 }
@@ -2604,15 +2607,17 @@ namespace Sapphire
                     firstSoloFader.setTarget(message.soloCount > 0);
                     float solo = firstSoloFader.process(args.sampleRate, 0, 1);
 
+                    constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
+                    constexpr float mixSensitivity  = 0.5 / 5.0;    // half a knob unit per 5V change in CV
                     float cvLevel = 0;
                     float cvMix = 0;
                     for (int c = 0; c < audio.nchannels; ++c)
                     {
                         nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
-                        float gain = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2));
+                        float gain = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
 
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
-                        float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
+                        float mix = cvGetVoltPerOctave(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix * mixSensitivity, 0, 1);
 
                         float wetSample = LinearMix(
                             solo,
