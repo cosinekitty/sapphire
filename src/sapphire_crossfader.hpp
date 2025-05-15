@@ -54,7 +54,7 @@ namespace Sapphire
             return target > 0.5;
         }
 
-        void beginFade(bool back)
+        void setTarget(bool back)
         {
             target = back ? 1 : 0;
         }

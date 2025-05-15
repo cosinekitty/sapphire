@@ -660,6 +660,7 @@ namespace Sapphire
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
             bool sendReturnControlsAreDirty{};
+            Crossfader muteFader;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -680,6 +681,7 @@ namespace Sapphire
                 flip = false;
                 flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
                 sendReturnControlsAreDirty = true;
+                muteFader.snapToFront();
             }
 
             void initialize() override
@@ -803,6 +805,12 @@ namespace Sapphire
                     return 1;
                 }
                 return 0;
+            }
+
+            float updateMuteState(float sampleRateHz, int muteButtonId)
+            {
+                muteFader.setTarget(params.at(muteButtonId).getValue() > 0.5f);
+                return muteFader.process(sampleRateHz, 1, 0);
             }
 
             struct TapeLoopResult
@@ -1707,11 +1715,6 @@ namespace Sapphire
                     return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
-                bool isMuted()
-                {
-                    return params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f;
-                }
-
                 void process(const ProcessArgs& args) override
                 {
                     Message outMessage;
@@ -1729,8 +1732,7 @@ namespace Sapphire
                     isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage, inBackMessage);
-                    if (isMuted())
-                        result.globalAudioOutput.clear();
+                    result.globalAudioOutput *= updateMuteState(args.sampleRate, MUTE_BUTTON_PARAM);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio = result.globalAudioOutput;
                     outMessage.soloCount = updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);
@@ -1794,7 +1796,7 @@ namespace Sapphire
                         FREEZE_BUTTON_PARAM,
                         FREEZE_BUTTON_LIGHT
                     );
-                    freezeFader.beginFade(freezeGate);
+                    freezeFader.setTarget(freezeGate);
                     return freezeFader.process(sampleRateHz, 0, 1);
                 }
 
@@ -2376,11 +2378,6 @@ namespace Sapphire
                     }
                 }
 
-                bool isMuted()
-                {
-                    return params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f;
-                }
-
                 void process(const ProcessArgs& args) override
                 {
                     const Message inMessage = receiveMessageOrDefault();
@@ -2409,8 +2406,7 @@ namespace Sapphire
                         inMessage.chainAudio;
 
                     TapeLoopResult result = updateTapeLoops(tapInputAudio, args.sampleRate, outMessage, inBackMessage);
-                    if (isMuted())
-                        result.globalAudioOutput.clear();
+                    result.globalAudioOutput *= updateMuteState(args.sampleRate, MUTE_BUTTON_PARAM);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio += result.globalAudioOutput;
                     outMessage.soloCount += updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);

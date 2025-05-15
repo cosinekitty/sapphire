@@ -89,6 +89,14 @@ namespace Sapphire
                 return *this;
             }
 
+            Frame& operator *= (float scalar)
+            {
+                const int nc = safeChannelCount();
+                for (int c = 0; c < nc; ++c)
+                    sample[c] *= scalar;
+                return *this;
+            }
+
             void clear()
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
