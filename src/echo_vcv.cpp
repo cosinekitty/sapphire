@@ -2060,10 +2060,7 @@ namespace Sapphire
                     LoopWidget::step();
 
                     if (echoModule)
-                    {
-                        ParamQuantity *qty = echoModule->getParamQuantity(INPUT_MODE_BUTTON_PARAM);
-                        qty->name = echoModule->polyphonicMode() ? "Polyphonic mode" : "Stereo mode";
-                    }
+                        echoModule->updateToggleButtonTooltip(INPUT_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
 
                     // Automatically add an EchoOut expander when we first insert Echo.
                     // But we have to wait more than one step call, because otherwise
