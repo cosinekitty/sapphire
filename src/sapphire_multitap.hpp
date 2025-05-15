@@ -119,6 +119,16 @@ namespace Sapphire
         }
 
 
+        inline Frame operator*(float scalar, const Frame& frame)
+        {
+            Frame product;
+            product.nchannels = frame.safeChannelCount();
+            for (int c = 0; c < product.nchannels; ++c)
+                product.sample[c] = scalar * frame.sample[c];
+            return product;
+        }
+
+
         struct ChannelInfo
         {
             TapeLoop loop;

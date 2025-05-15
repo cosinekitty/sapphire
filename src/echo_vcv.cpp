@@ -661,6 +661,7 @@ namespace Sapphire
             SendReturnLocationSmoother sendReturnLocationSmoother;
             bool sendReturnControlsAreDirty{};
             Crossfader muteFader;
+            Crossfader soloFader;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -682,6 +683,7 @@ namespace Sapphire
                 flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
                 sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
+                soloFader.snapToFront();
             }
 
             void initialize() override
@@ -797,11 +799,13 @@ namespace Sapphire
                 return SafeArray(info, PORT_MAX_CHANNELS, c);
             }
 
-            int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId)
+            int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId, float sampleRateHz)
             {
-                if (params.at(soloButtonParamId).getValue() > 0.5f)
+                soloFader.setTarget(params.at(soloButtonParamId).getValue() > 0.5f);
+                float factor = soloFader.process(sampleRateHz, 0, 1);
+                if (factor > 0)
                 {
-                    soloAudio += rawAudio;
+                    soloAudio += factor * rawAudio;
                     return 1;
                 }
                 return 0;
@@ -1735,7 +1739,7 @@ namespace Sapphire
                     result.globalAudioOutput *= updateMuteState(args.sampleRate, MUTE_BUTTON_PARAM);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio = result.globalAudioOutput;
-                    outMessage.soloCount = updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);
+                    outMessage.soloCount = updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM, args.sampleRate);
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
@@ -2409,7 +2413,7 @@ namespace Sapphire
                     result.globalAudioOutput *= updateMuteState(args.sampleRate, MUTE_BUTTON_PARAM);
                     outMessage.chainAudio = result.chainAudioOutput;
                     outMessage.summedAudio += result.globalAudioOutput;
-                    outMessage.soloCount += updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM);
+                    outMessage.soloCount += updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM, args.sampleRate);
                     outMessage.clockVoltage = result.clockVoltage;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
@@ -2495,6 +2499,7 @@ namespace Sapphire
             struct EchoOutModule : MultiTapModule
             {
                 PortLabelMode outputLabels = PortLabelMode::Stereo;
+                Crossfader firstSoloFader;      // crossfades the transition between muting everyone else or not
 
                 EchoOutModule()
                     : MultiTapModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -2509,6 +2514,7 @@ namespace Sapphire
 
                 void EchoOutModule_initialize()
                 {
+                    firstSoloFader.snapToFront();
                 }
 
                 void initialize() override
@@ -2534,6 +2540,9 @@ namespace Sapphire
                         )
                     );
 
+                    firstSoloFader.setTarget(message.soloCount > 0);
+                    float solo = firstSoloFader.process(args.sampleRate, 0, 1);
+
                     float cvLevel = 0;
                     float cvMix = 0;
                     for (int c = 0; c < audio.nchannels; ++c)
@@ -2544,10 +2553,11 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         float mix = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1);
 
-                        float wetSample =
-                            message.soloCount > 0
-                            ? message.soloAudio.sample[c]
-                            : message.summedAudio.sample[c];
+                        float wetSample = LinearMix(
+                            solo,
+                            message.summedAudio.sample[c],
+                            message.soloAudio.sample[c]
+                        );
 
                         audio.sample[c] = gain * LinearMix(
                             mix,
