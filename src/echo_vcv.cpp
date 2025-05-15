@@ -707,16 +707,36 @@ namespace Sapphire
                 }
             }
 
+            void updateToggleButtonTooltip(int buttonId, const char* offText, const char *onText)
+            {
+                if (buttonId >= 0 && buttonId < static_cast<int>(params.size()))
+                {
+                    ParamQuantity* qty = getParamQuantity(buttonId);
+                    if (qty)
+                        qty->name = (qty->getValue() < 0.5f) ? offText : onText;
+                }
+            }
+
             void updateSendReturnControls()
             {
                 if (sendReturnControlsAreDirty && controlsAreReady)
                 {
                     sendReturnControlsAreDirty = false;
-                    ParamQuantity *qty = getParamQuantity(controls.sendReturnButtonId);
-                    if (qty)
-                    {
-                        qty->name = (qty->getValue() < 0.5) ? "Send/return before delay" : "Send/return after delay";
-                    }
+
+                    updateToggleButtonTooltip(
+                        controls.sendReturnButtonId,
+                        "Send/return before delay",
+                        "Send/return after delay"
+                    );
+                }
+            }
+
+            void updateMuteSoloControls()
+            {
+                if (controlsAreReady)
+                {
+                    updateToggleButtonTooltip(controls.muteButtonId, "Mute: OFF", "Mute: ON");
+                    updateToggleButtonTooltip(controls.soloButtonId, "Solo: OFF", "Solo: ON");
                 }
             }
 
@@ -1240,6 +1260,7 @@ namespace Sapphire
                     revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
                     lmod->updateFlipControls();
                     lmod->updateSendReturnControls();
+                    lmod->updateMuteSoloControls();
                 }
             }
 
@@ -1672,8 +1693,8 @@ namespace Sapphire
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
                     configButton(INPUT_MODE_BUTTON_PARAM);      // tooltip changed dynamically
-                    configButton(MUTE_BUTTON_PARAM, "Mute");
-                    configButton(SOLO_BUTTON_PARAM, "Solo");
+                    configButton(MUTE_BUTTON_PARAM);            // tooltip changed dynamically
+                    configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     EchoModule_initialize();
@@ -1725,6 +1746,8 @@ namespace Sapphire
                     controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
                     controls.revFlipInputId = REVERSE_INPUT;
                     controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
+                    controls.muteButtonId = MUTE_BUTTON_PARAM;
+                    controls.soloButtonId = SOLO_BUTTON_PARAM;
                 }
 
                 bool polyphonicMode()
@@ -2355,8 +2378,8 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
-                    configButton(MUTE_BUTTON_PARAM, "Mute");
-                    configButton(SOLO_BUTTON_PARAM, "Solo");
+                    configButton(MUTE_BUTTON_PARAM);    // tooltip changed dynamically
+                    configButton(SOLO_BUTTON_PARAM);    // tooltip changed dynamically
                     EchoTapModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2384,6 +2407,8 @@ namespace Sapphire
                     controls.revFlipButtonId = REVERSE_BUTTON_PARAM;
                     controls.revFlipInputId = REVERSE_INPUT;
                     controls.sendReturnButtonId = SEND_RETURN_BUTTON_PARAM;
+                    controls.muteButtonId = MUTE_BUTTON_PARAM;
+                    controls.soloButtonId = SOLO_BUTTON_PARAM;
                 }
 
                 void copyParamFrom(Echo::EchoModule* echoModule, EchoTap::ParamId targetId, Echo::ParamId sourceId)

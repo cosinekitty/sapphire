@@ -263,6 +263,8 @@ namespace Sapphire
             int revFlipInputId = -1;
             int revFlipButtonId = -1;
             int sendReturnButtonId = -1;
+            int muteButtonId = -1;
+            int soloButtonId = -1;
         };
 
         //--------------------------------------------------------------------
