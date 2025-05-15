@@ -671,6 +671,7 @@ namespace Sapphire
 
             void LoopModule_initialize()
             {
+                timeMode = TimeMode::Seconds;
                 reverseComboSmoother.initialize();
                 reverseReceiver.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
@@ -2404,11 +2405,14 @@ namespace Sapphire
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
                         copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);
+                        copyParamFrom(emod, PAN_ATTEN, Echo::PAN_ATTEN);
                         copyParamFrom(emod, SEND_RETURN_BUTTON_PARAM, Echo::SEND_RETURN_BUTTON_PARAM);
                         copyParamFrom(emod, GAIN_PARAM, Echo::GAIN_PARAM);
                         copyParamFrom(emod, GAIN_ATTEN, Echo::GAIN_ATTEN);
                         copyParamFrom(emod, REVERSE_BUTTON_PARAM, Echo::REVERSE_BUTTON_PARAM);
                         copyParamFrom(emod, ENV_GAIN_PARAM, Echo::ENV_GAIN_PARAM);
+                        copyParamFrom(emod, MUTE_BUTTON_PARAM, Echo::MUTE_BUTTON_PARAM);
+                        copyParamFrom(emod, SOLO_BUTTON_PARAM, Echo::SOLO_BUTTON_PARAM);
                     }
                 }
 
