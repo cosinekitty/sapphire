@@ -1115,6 +1115,8 @@ namespace Sapphire
                 destroyTooltip(revFlipTooltip);
             }
 
+            virtual void resetTapAction() = 0;
+
             void addSendReturnButton(int buttonParamId)
             {
                 auto button = createParamCentered<SendReturnButton>(Vec{}, module, buttonParamId);
@@ -1684,13 +1686,23 @@ namespace Sapphire
                     freezeReceiver.initialize();
                     clearReceiver.initialize();
                     dcRejectQuantity->initialize();
-                    params.at(REVERSE_BUTTON_PARAM).setValue(0);
-                    params.at(FREEZE_BUTTON_PARAM).setValue(0);
-                    params.at(CLEAR_BUTTON_PARAM).setValue(0);
-                    params.at(INIT_CHAIN_BUTTON_PARAM).setValue(0);
-                    params.at(INIT_TAP_BUTTON_PARAM).setValue(0);
-                    params.at(INPUT_MODE_BUTTON_PARAM).setValue(0);
                     freezeFader.snapToFront();      // front=false=0, back=true=1
+                }
+
+                void resetTap()
+                {
+                    LoopModule_initialize();
+                    params.at(TIME_PARAM).setValue(0);
+                    params.at(TIME_ATTEN).setValue(0);
+                    params.at(PAN_PARAM).setValue(0);
+                    params.at(PAN_ATTEN).setValue(0);
+                    params.at(GAIN_PARAM).setValue(1);
+                    params.at(GAIN_ATTEN).setValue(0);
+                    params.at(REVERSE_BUTTON_PARAM).setValue(0);
+                    params.at(ENV_GAIN_PARAM).setValue(1);
+                    params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
+                    params.at(MUTE_BUTTON_PARAM).setValue(0);
+                    params.at(SOLO_BUTTON_PARAM).setValue(0);
                 }
 
                 void initialize() override
@@ -1870,6 +1882,24 @@ namespace Sapphire
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
                     addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
+                }
+
+                void resetTapAction() override
+                {
+                    if (!echoModule)
+                        return;
+
+                    // Preserve state before reset.
+                    auto h = new history::ModuleChange;
+                    h->name = "Initialize Echo tap";
+                    h->moduleId = echoModule->id;
+                    h->oldModuleJ = echoModule->toJson();
+
+                    // Reset tap controls only.
+                    echoModule->resetTap();
+
+                    h->newModuleJ = echoModule->toJson();
+                    APP->history->push(h);
                 }
 
                 void addInputModeButton()
@@ -2225,10 +2255,10 @@ namespace Sapphire
 
         void InitTapButton::onButton(const ButtonEvent& e)
         {
-            if (loopWidget)
+            if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
             {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-                    loopWidget->resetAction();
+                if (loopWidget)
+                    loopWidget->resetTapAction();
             }
             init_chain_button_base_t::onButton(e);
         }
@@ -2462,6 +2492,11 @@ namespace Sapphire
                 bool isConnectedOnLeft() const override
                 {
                     return module && IsEchoSender(module->leftExpander.module);
+                }
+
+                void resetTapAction() override
+                {
+                    resetAction();
                 }
             };
         }
