@@ -657,6 +657,7 @@ namespace Sapphire
             bool flipControlsAreDirty{};
             bool duck{};
             bool duckControlsAreDirty{};
+            Crossfader envDuckFader;
             bool prevFlip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
@@ -689,6 +690,7 @@ namespace Sapphire
                 sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
                 soloFader.snapToFront();
+                envDuckFader.snapToFront();
             }
 
             void initialize() override
@@ -798,13 +800,12 @@ namespace Sapphire
                 updateFlipControls();
             }
 
-            float scaleEnvelope(float env) const
+            float scaleEnvelope(float env, float sampleRateHz)
             {
                 constexpr float limit = 10;      // maximum voltage
                 float scale = BicubicLimiter(env, limit);
-                if (duck)
-                    scale = limit - scale;
-                return scale;
+                envDuckFader.setTarget(duck);
+                return envDuckFader.process(sampleRateHz, scale, limit - scale);
             }
 
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
@@ -821,7 +822,7 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             float v = gain * info[c].env.update(audio.sample[c], sampleRateHz);
-                            float s = scaleEnvelope(v);
+                            float s = scaleEnvelope(v, sampleRateHz);
                             envOutput.setVoltage(s, c);
                         }
                     }
@@ -832,7 +833,7 @@ namespace Sapphire
                             sum += audio.sample[c];
 
                         float v = gain * info[0].env.update(sum, sampleRateHz);
-                        float s = scaleEnvelope(v);
+                        float s = scaleEnvelope(v, sampleRateHz);
                         envOutput.setChannels(1);
                         envOutput.setVoltage(s, 0);
                     }
