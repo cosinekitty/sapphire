@@ -1175,63 +1175,62 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (layer != 1)
-                    return;
-
-                const int n = ActivePointCount(module);
-                if (n == 0)
-                    return;
-
-                renderList.clear();
-
-                if (AxesAreVisible(*this))
+                if (layer == 1)
                 {
-                    const float r = 4.0f;
-                    Point origin(0, 0, 0);
-                    addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
-                    drawLetterX(r);
-                    drawLetterY(r);
-                    drawLetterZ(r);
-                }
-
-                if (n < TRAIL_LENGTH)
-                {
-                    // The pointList has not yet reached full capacity.
-                    // Render from the front to the back.
-                    for (int i = 1; i < n; ++i)
+                    const int n = ActivePointCount(module);
+                    if (n > 0)
                     {
-                        const Point& p1 = module->pointList[i-1];
-                        const Point& p2 = module->pointList[i];
-                        addSegment(SegmentKind::Curve, i, p1, p2);
-                    }
-                    addTip(module->pointList[n-1]);
-                }
-                else
-                {
-                    // The pointList is full, so we treat it as a circular buffer.
-                    int curr = module->nextPointIndex;      // the oldest point in the list
-                    for (int i = 1; i < TRAIL_LENGTH; ++i)
-                    {
-                        int next = (curr + 1) % TRAIL_LENGTH;
-                        const Point& p1 = module->pointList[curr];
-                        const Point& p2 = module->pointList[next];
-                        addSegment(SegmentKind::Curve, i, p1, p2);
-                        curr = next;
-                    }
-                    addTip(module->pointList[curr]);
-                }
+                        renderList.clear();
 
-                nvgSave(args.vg);
-                Rect b = box.zeroPos();
-                nvgScissor(args.vg, RECT_ARGS(b));
-                render(args.vg, n);
-                if (NumbersAreVisible(*this))
-                    displayVoltageNumbers(args.vg);
-                nvgResetScissor(args.vg);
-                nvgRestore(args.vg);
+                        if (AxesAreVisible(*this))
+                        {
+                            const float r = 4.0f;
+                            Point origin(0, 0, 0);
+                            addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
+                            addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
+                            addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
+                            drawLetterX(r);
+                            drawLetterY(r);
+                            drawLetterZ(r);
+                        }
 
+                        if (n < TRAIL_LENGTH)
+                        {
+                            // The pointList has not yet reached full capacity.
+                            // Render from the front to the back.
+                            for (int i = 1; i < n; ++i)
+                            {
+                                const Point& p1 = module->pointList[i-1];
+                                const Point& p2 = module->pointList[i];
+                                addSegment(SegmentKind::Curve, i, p1, p2);
+                            }
+                            addTip(module->pointList[n-1]);
+                        }
+                        else
+                        {
+                            // The pointList is full, so we treat it as a circular buffer.
+                            int curr = module->nextPointIndex;      // the oldest point in the list
+                            for (int i = 1; i < TRAIL_LENGTH; ++i)
+                            {
+                                int next = (curr + 1) % TRAIL_LENGTH;
+                                const Point& p1 = module->pointList[curr];
+                                const Point& p2 = module->pointList[next];
+                                addSegment(SegmentKind::Curve, i, p1, p2);
+                                curr = next;
+                            }
+                            addTip(module->pointList[curr]);
+                        }
+
+                        nvgSave(args.vg);
+                        Rect b = box.zeroPos();
+                        nvgScissor(args.vg, RECT_ARGS(b));
+                        render(args.vg, n);
+                        if (NumbersAreVisible(*this))
+                            displayVoltageNumbers(args.vg);
+                        nvgResetScissor(args.vg);
+                        nvgRestore(args.vg);
+                    }
+                }
                 OpaqueWidget::drawLayer(args, layer);
             }
 
