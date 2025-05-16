@@ -800,7 +800,7 @@ namespace Sapphire
 
             float scaleEnvelope(float env) const
             {
-                constexpr float limit = 5;      // maximum voltage
+                constexpr float limit = 10;      // maximum voltage
                 float scale = BicubicLimiter(env, limit);
                 if (duck)
                     scale = limit - scale;
