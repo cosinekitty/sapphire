@@ -1969,8 +1969,8 @@ namespace Sapphire
                         asset::plugin(pluginInstance, "res/echo_flp_sel.svg"),
                         asset::plugin(pluginInstance, "res/echo_env.svg"),
                         asset::plugin(pluginInstance, "res/echo_env_sel.svg"),
-                        asset::plugin(pluginInstance, "res/echo_inv.svg"),
-                        asset::plugin(pluginInstance, "res/echo_inv_sel.svg")
+                        asset::plugin(pluginInstance, "res/echo_dck.svg"),
+                        asset::plugin(pluginInstance, "res/echo_dck_sel.svg")
                     )
                     , echoModule(module)
                 {
@@ -2594,8 +2594,8 @@ namespace Sapphire
                         asset::plugin(pluginInstance, "res/echotap_flp_sel.svg"),
                         asset::plugin(pluginInstance, "res/echotap_env.svg"),
                         asset::plugin(pluginInstance, "res/echotap_env_sel.svg"),
-                        asset::plugin(pluginInstance, "res/echotap_inv.svg"),
-                        asset::plugin(pluginInstance, "res/echotap_inv_sel.svg")
+                        asset::plugin(pluginInstance, "res/echotap_dck.svg"),
+                        asset::plugin(pluginInstance, "res/echotap_dck_sel.svg")
                     )
                     , echoTapModule(module)
                 {
