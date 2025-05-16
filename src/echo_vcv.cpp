@@ -654,9 +654,10 @@ namespace Sapphire
             ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput{};
             bool flip{};
-            bool duck{};
-            bool prevFlip{};
             bool flipControlsAreDirty{};
+            bool duck{};
+            bool duckControlsAreDirty{};
+            bool prevFlip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
@@ -684,6 +685,7 @@ namespace Sapphire
                 flip = false;
                 duck = false;
                 flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
+                duckControlsAreDirty = true;
                 sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
                 soloFader.snapToFront();
@@ -745,6 +747,13 @@ namespace Sapphire
             void toggleFlip()
             {
                 auto action = new BoolToggleAction(flip, flipControlsAreDirty);
+                action->redo();
+                APP->history->push(action);
+            }
+
+            void toggleEnvInv()
+            {
+                auto action = new BoolToggleAction(duck, duckControlsAreDirty);
                 action->redo();
                 APP->history->push(action);
             }
@@ -1100,10 +1109,12 @@ namespace Sapphire
             SvgOverlay* invLabel = nullptr;
             SvgOverlay* invSelLabel = nullptr;
             Vec flpRevLabelPos;
+            Vec envInvLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
+            SapphireTooltip* envInvTooltip = nullptr;
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -1154,6 +1165,9 @@ namespace Sapphire
                 ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
                 flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
 
+                centerLoc = FindComponent(modcode, "label_env_inv");
+                envInvLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
+
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
                 ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
                 const float dxCushion = 8.0;
@@ -1165,6 +1179,7 @@ namespace Sapphire
             {
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
+                destroyTooltip(envInvTooltip);
             }
 
             virtual void resetTapAction() = 0;
@@ -1341,6 +1356,15 @@ namespace Sapphire
                 return (std::abs(dx) < dxFlipRev) && (std::abs(dy) < dyFlipRev);
             }
 
+            bool isInsideEnvInvButton(Vec pos) const
+            {
+                const float dx = pos.x - envInvLabelPos.x;
+                const float dy = pos.y - envInvLabelPos.y;
+                const float rectWidth = mm2px(8.0);
+                const float rectHeight = mm2px(4.5);
+                return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
+            }
+
             void onMousePress(const ButtonEvent& e)
             {
                 auto lmod = dynamic_cast<LoopModule*>(module);
@@ -1351,6 +1375,9 @@ namespace Sapphire
 
                     if (isInsideFlipRevButton(e.pos))
                         lmod->toggleFlip();
+
+                    if (isInsideEnvInvButton(e.pos))
+                        lmod->toggleEnvInv();
                 }
             }
 
@@ -1381,10 +1408,16 @@ namespace Sapphire
                 updateTooltip(hilightRevFlipButton, state, revFlipTooltip, "Toggle reverse/flip");
             }
 
+            void updateEnvInvButton(bool state)
+            {
+                updateTooltip(hilightEnvInvButton, state, envInvTooltip, "Toggle positive/inverted envelope");
+            }
+
             void onHover(const HoverEvent& e) override
             {
                 updateRoutingButton(isInsideInputRoutingButton(e.pos));
                 updateFlipRevButton(isInsideFlipRevButton(e.pos));
+                updateEnvInvButton(isInsideEnvInvButton(e.pos));
                 MultiTapWidget::onHover(e);
             }
 
@@ -1392,6 +1425,7 @@ namespace Sapphire
             {
                 updateRoutingButton(false);
                 updateFlipRevButton(false);
+                updateEnvInvButton(false);
                 MultiTapWidget::onLeave(e);
             }
 
@@ -2472,6 +2506,7 @@ namespace Sapphire
                         timeMode = emod->timeMode;
                         polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
                         flip = emod->flip;
+                        duck = emod->duck;
                         flipControlsAreDirty = true;
                         sendReturnControlsAreDirty = true;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
