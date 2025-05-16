@@ -2121,12 +2121,12 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
         AddMultiTapEnvGroup(controls, xControlCenter)
-        controls.append(Component('label_env_inv', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
         if (
             SaveRectangleCaption(SvgFileName('echo_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('echo_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
-            SaveRectangleCaption(SvgFileName('echo_inv',     Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
-            SaveRectangleCaption(SvgFileName('echo_inv_sel', Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+            SaveRectangleCaption(SvgFileName('echo_inv',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_inv_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
@@ -2210,12 +2210,12 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
         AddMultiTapEnvGroup(controls, xControlCenter)
-        controls.append(Component('label_env_inv', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
         if (
             SaveRectangleCaption(SvgFileName('echotap_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('echotap_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
-            SaveRectangleCaption(SvgFileName('echotap_inv',     Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
-            SaveRectangleCaption(SvgFileName('echotap_inv_sel', Target.VcvRack), font, 'INV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+            SaveRectangleCaption(SvgFileName('echotap_inv',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_inv_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')

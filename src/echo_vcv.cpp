@@ -751,7 +751,7 @@ namespace Sapphire
                 APP->history->push(action);
             }
 
-            void toggleEnvInv()
+            void toggleEnvDuck()
             {
                 auto action = new BoolToggleAction(duck, duckControlsAreDirty);
                 action->redo();
@@ -1110,7 +1110,7 @@ namespace Sapphire
             const float mmChainIndexCenterY = 4.5;
             bool hilightInputRoutingButton = false;
             bool hilightRevFlipButton = false;
-            bool hilightEnvInvButton = false;
+            bool hilightEnvDuckButton = false;
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
@@ -1120,12 +1120,12 @@ namespace Sapphire
             SvgOverlay* invLabel = nullptr;
             SvgOverlay* invSelLabel = nullptr;
             Vec flpRevLabelPos;
-            Vec envInvLabelPos;
+            Vec envDuckLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
-            SapphireTooltip* envInvTooltip = nullptr;
+            SapphireTooltip* envDuckTooltip = nullptr;
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -1176,8 +1176,8 @@ namespace Sapphire
                 ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
                 flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
 
-                centerLoc = FindComponent(modcode, "label_env_inv");
-                envInvLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
+                centerLoc = FindComponent(modcode, "label_env_duck");
+                envDuckLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
 
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
                 ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
@@ -1190,7 +1190,7 @@ namespace Sapphire
             {
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
-                destroyTooltip(envInvTooltip);
+                destroyTooltip(envDuckTooltip);
             }
 
             virtual void resetTapAction() = 0;
@@ -1311,12 +1311,12 @@ namespace Sapphire
                 revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
             }
 
-            void updateEnvInv(const LoopModule* lmod)
+            void updateEnvDuck(const LoopModule* lmod)
             {
-                envLabel->setVisible(!lmod->duck && !hilightEnvInvButton);
-                envSelLabel->setVisible(!lmod->duck && hilightEnvInvButton);
-                invLabel->setVisible(lmod->duck && !hilightEnvInvButton);
-                invSelLabel->setVisible(lmod->duck && hilightEnvInvButton);
+                envLabel->setVisible(!lmod->duck && !hilightEnvDuckButton);
+                envSelLabel->setVisible(!lmod->duck && hilightEnvDuckButton);
+                invLabel->setVisible(lmod->duck && !hilightEnvDuckButton);
+                invSelLabel->setVisible(lmod->duck && hilightEnvDuckButton);
             }
 
             void step() override
@@ -1331,7 +1331,7 @@ namespace Sapphire
                     lmod->updateSendReturnControls();
                     lmod->updateMuteSoloControls();
                     updateFlipReverse(lmod);
-                    updateEnvInv(lmod);
+                    updateEnvDuck(lmod);
                 }
             }
 
@@ -1367,10 +1367,10 @@ namespace Sapphire
                 return (std::abs(dx) < dxFlipRev) && (std::abs(dy) < dyFlipRev);
             }
 
-            bool isInsideEnvInvButton(Vec pos) const
+            bool isInsideEnvDuckButton(Vec pos) const
             {
-                const float dx = pos.x - envInvLabelPos.x;
-                const float dy = pos.y - envInvLabelPos.y;
+                const float dx = pos.x - envDuckLabelPos.x;
+                const float dy = pos.y - envDuckLabelPos.y;
                 const float rectWidth = mm2px(8.0);
                 const float rectHeight = mm2px(4.5);
                 return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
@@ -1387,8 +1387,8 @@ namespace Sapphire
                     if (isInsideFlipRevButton(e.pos))
                         lmod->toggleFlip();
 
-                    if (isInsideEnvInvButton(e.pos))
-                        lmod->toggleEnvInv();
+                    if (isInsideEnvDuckButton(e.pos))
+                        lmod->toggleEnvDuck();
                 }
             }
 
@@ -1419,16 +1419,16 @@ namespace Sapphire
                 updateTooltip(hilightRevFlipButton, state, revFlipTooltip, "Toggle reverse/flip");
             }
 
-            void updateEnvInvButton(bool state)
+            void updateEnvDuckButton(bool state)
             {
-                updateTooltip(hilightEnvInvButton, state, envInvTooltip, "Toggle positive/inverted envelope");
+                updateTooltip(hilightEnvDuckButton, state, envDuckTooltip, "Toggle envelope follow/duck");
             }
 
             void onHover(const HoverEvent& e) override
             {
                 updateRoutingButton(isInsideInputRoutingButton(e.pos));
                 updateFlipRevButton(isInsideFlipRevButton(e.pos));
-                updateEnvInvButton(isInsideEnvInvButton(e.pos));
+                updateEnvDuckButton(isInsideEnvDuckButton(e.pos));
                 MultiTapWidget::onHover(e);
             }
 
@@ -1436,7 +1436,7 @@ namespace Sapphire
             {
                 updateRoutingButton(false);
                 updateFlipRevButton(false);
-                updateEnvInvButton(false);
+                updateEnvDuckButton(false);
                 MultiTapWidget::onLeave(e);
             }
 
