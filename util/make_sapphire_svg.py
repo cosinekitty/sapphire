@@ -1948,8 +1948,8 @@ MULTITAP_CLOCK_BUTTON_DY = 3.0
 MULTITAP_REMOVE_BUTTON_DX    = 4.0
 MULTITAP_REMOVE_BUTTON_DY    = 4.0
 
-MULTITAP_INLOOP_HP_WIDTH = 12
-MULTITAP_LOOP_HP_WIDTH   = 6
+MULTITAP_ECHO_HP_WIDTH = 12
+MULTITAP_ECHOTAP_HP_WIDTH   = 6
 MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
 MULTITAP_DY_CONTROL_GRADIENT = 6.0
 MULTITAP_DY_SEND_RETURN_GRADIENT = 10.0
@@ -2056,24 +2056,32 @@ def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:flo
     controls.append(Component('solo_button', xKnob + dx, yKnob + dy))
 
 
+def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
+    dx = (MULTITAP_ECHOTAP_HP_WIDTH * HP_WIDTH_MM) - 4.0
+    dy = 12.0
+    yCenter = 28.0
+    controls.append(Component('graph_upper_left',  xCenter - dx/2, yCenter - dy/2))
+    controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
+
+
 def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'echo'
     svgFileName = SvgFileName(name, target)
-    panel = Panel(MULTITAP_INLOOP_HP_WIDTH)
+    panel = Panel(MULTITAP_ECHO_HP_WIDTH)
     xmid = panel.mmWidth / 2
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
-    hpdiff = MULTITAP_INLOOP_HP_WIDTH - MULTITAP_LOOP_HP_WIDTH
+    hpdiff = MULTITAP_ECHO_HP_WIDTH - MULTITAP_ECHOTAP_HP_WIDTH
     xAdjust = (HP_WIDTH_MM * hpdiff/2)
     xControlCenter = xmid + xAdjust
     xGlobalCenter = 3 * HP_WIDTH_MM
     yLoopFence = MakeLoopControlFence()
 
-    # Global controls/ports (InLoop only)
+    # Global controls/ports (Echo module only)
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
     yFreezeControl = yLoopFence.value(2.25)
     yClearControl = yLoopFence.value(3.0)
@@ -2102,7 +2110,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     xInputLabels = xGlobalCenter - 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, MULTITAP_INLOOP_HP_WIDTH))
+        pl.append(MakeBorder(target, MULTITAP_ECHO_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
@@ -2134,6 +2142,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('clock_button', xClockButtons, yClockButton))
         controls.append(Component('interval_button', xClockButtons, yIntervalButton))
         pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockControls - 7.0))
+
+        AddGraphCorners(controls, xControlCenter)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2168,7 +2178,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     target = Target.VcvRack
     name = 'echotap'
     svgFileName = SvgFileName(name, target)
-    panel = Panel(MULTITAP_LOOP_HP_WIDTH)
+    panel = Panel(MULTITAP_ECHOTAP_HP_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
@@ -2196,7 +2206,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, MULTITAP_LOOP_HP_WIDTH))
+        pl.append(MakeBorder(target, MULTITAP_ECHOTAP_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
@@ -2217,6 +2227,8 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
             SaveRectangleCaption(SvgFileName('echotap_dck',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('echotap_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
+
+        AddGraphCorners(controls, xControlCenter)
 
         AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
         pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))

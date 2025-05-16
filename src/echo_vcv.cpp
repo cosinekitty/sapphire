@@ -1103,6 +1103,39 @@ namespace Sapphire
         }
 
 
+        struct GraphWidget : OpaqueWidget
+        {
+            LoopModule* loopModule;
+
+            explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
+                : loopModule(_loopModule)
+            {
+                box.pos.x  = mm2px(x1);
+                box.pos.y  = mm2px(y1);
+                box.size.x = mm2px(x2-x1);
+                box.size.y = mm2px(y2-y1);
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                math::Rect r = box.zeroPos();
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, RECT_ARGS(r));
+                nvgFillColor(args.vg, SCHEME_BLACK);
+                nvgFill(args.vg);
+                OpaqueWidget::draw(args);
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                if (layer == 1)
+                {
+                }
+                OpaqueWidget::drawLayer(args, layer);
+            }
+        };
+
+
         struct LoopWidget : MultiTapWidget
         {
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
@@ -1185,6 +1218,8 @@ namespace Sapphire
                 const float dxCushion = 8.0;
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
+
+                addGraphWidget();
             }
 
             virtual ~LoopWidget()
@@ -1221,6 +1256,15 @@ namespace Sapphire
                     7.0,
                     SCHEME_PURPLE
                 );
+            }
+
+            void addGraphWidget()
+            {
+                ComponentLocation upperLeft  = FindComponent(modcode, "graph_upper_left");
+                ComponentLocation lowerRight = FindComponent(modcode, "graph_lower_right");
+                auto loopModule = dynamic_cast<LoopModule*>(module);
+                auto graph = new GraphWidget(loopModule, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
+                addChild(graph);
             }
 
             void addExpanderRemoveButton(LoopModule* loopModule, int paramId, int lightId)
