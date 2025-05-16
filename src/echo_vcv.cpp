@@ -798,6 +798,15 @@ namespace Sapphire
                 updateFlipControls();
             }
 
+            float scaleEnvelope(float env) const
+            {
+                constexpr float limit = 5;      // maximum voltage
+                float scale = BicubicLimiter(env, limit);
+                if (duck)
+                    scale = limit - scale;
+                return scale;
+            }
+
             void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
             {
                 Output& envOutput = outputs.at(outputId);
@@ -812,7 +821,8 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             float v = gain * info[c].env.update(audio.sample[c], sampleRateHz);
-                            envOutput.setVoltage(v, c);
+                            float s = scaleEnvelope(v);
+                            envOutput.setVoltage(s, c);
                         }
                     }
                     else
@@ -822,8 +832,9 @@ namespace Sapphire
                             sum += audio.sample[c];
 
                         float v = gain * info[0].env.update(sum, sampleRateHz);
+                        float s = scaleEnvelope(v);
                         envOutput.setChannels(1);
-                        envOutput.setVoltage(v, 0);
+                        envOutput.setVoltage(s, 0);
                     }
                 }
             }
