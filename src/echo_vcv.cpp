@@ -638,6 +638,172 @@ namespace Sapphire
         };
 
 
+        constexpr unsigned GraphSliceCount = 100;
+        constexpr float HorMarginPx = 2.0;
+        constexpr float VerMarginPx = 2.0;
+        constexpr float GraphVoltageLimit = 10;
+
+        constexpr unsigned SliceInc(unsigned sliceIndex)
+        {
+            return (sliceIndex + 1) % (GraphSliceCount + 1);
+        }
+
+
+        struct GraphSlice
+        {
+            Frame sum;     // polyphonic sum-of-squares to measure mean power density in each slice
+            unsigned nsamples = 0;
+
+            void initialize()
+            {
+                sum.nchannels = 0;
+                sum.clear();
+                nsamples = 0;
+            }
+
+            void finalizePower()
+            {
+                if (nsamples > 0)
+                {
+                    // Convert the finished slice to a linear power envelope for graphing.
+                    const int nc = sum.safeChannelCount();
+                    for (int c = 0; c < nc; ++c)
+                        sum.sample[c] = std::sqrt(sum.sample[c]) / nsamples;
+                }
+            }
+        };
+
+
+        struct GraphWidget : OpaqueWidget
+        {
+            LoopModule* loopModule = nullptr;
+            std::vector<GraphSlice> sliceArray;      // each slice is an "envelope" frame that summarizes the energy in that slice
+            unsigned sliceIndex = 0;
+            double timeAccum = 0;
+            double delayTimeSeconds = 0;
+            int currentNumChannels = 0;
+
+            explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
+                : loopModule(_loopModule)
+            {
+                sliceArray.resize(GraphSliceCount+1);
+                box.pos.x  = mm2px(x1);
+                box.pos.y  = mm2px(y1);
+                box.size.x = mm2px(x2-x1);
+                box.size.y = mm2px(y2-y1);
+                initialize();
+            }
+
+            void initialize()
+            {
+                for (GraphSlice& slice : sliceArray)
+                    slice.initialize();
+
+                timeAccum = 0;
+                sliceIndex = 0;
+                currentNumChannels = 0;
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                math::Rect r = box.zeroPos();
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, RECT_ARGS(r));
+                nvgFillColor(args.vg, SCHEME_BLACK);
+                nvgFill(args.vg);
+                OpaqueWidget::draw(args);
+            }
+
+            Vec position(
+                unsigned s,  // slice offset: 0..(GraphSliceCount-1)
+                int c,       // channel: 0..(currentNumChannels-1)
+                float p      // relative position in column: (-1)..(+1)
+            ) const
+            {
+                if (currentNumChannels<=0 || currentNumChannels>=PORT_MAX_CHANNELS)
+                    return Vec{0, 0};
+
+                float pixelsPerChannel = box.size.x / currentNumChannels;
+                float xmid = (c + 0.5f)*pixelsPerChannel;
+                float pixelsPerUnit = pixelsPerChannel/2 - HorMarginPx;
+                float x = xmid + (pixelsPerUnit * std::clamp<float>(p, -1, +1));
+
+                unsigned safeSlice = std::clamp<unsigned>(s, 0, GraphSliceCount-1);
+                float yRatio = static_cast<float>(safeSlice) / static_cast<float>(GraphSliceCount-1);
+                float y = VerMarginPx + yRatio*(box.size.y - 2*VerMarginPx);
+
+                return Vec{x, y};
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override
+            {
+                if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
+                {
+                    unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
+                    const Frame& power = sliceArray.at(s).sum;
+                    for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
+                    {
+                        // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
+                        // Use a bicubic limiter to keep the numbers inside a desired range.
+                        for (int c = 0; c < currentNumChannels; ++c)
+                        {
+                            float p = BicubicLimiter<float>(power.sample[c], GraphVoltageLimit) / GraphVoltageLimit;
+                            assert(p >= 0.0f && p <= 1.0f);
+                            Vec left   = position(s, c, -p);
+                            Vec right  = position(s, c, +p);
+                            nvgBeginPath(args.vg);
+                            nvgStrokeColor(args.vg, SCHEME_GREEN);
+                            nvgMoveTo(args.vg, left.x, left.y);
+                            nvgLineTo(args.vg, right.x, right.y);
+                            nvgStroke(args.vg);
+                        }
+                    }
+                }
+                OpaqueWidget::drawLayer(args, layer);
+            }
+
+            void setDelayTime(float _delayTimeSeconds)
+            {
+                delayTimeSeconds = _delayTimeSeconds;
+            }
+
+            void process(const Frame& audio, double sampleRateHz)
+            {
+                // No graphics until we know the delay time!
+                if (!std::isfinite(delayTimeSeconds) || delayTimeSeconds<=0)
+                    return;
+
+                currentNumChannels = audio.safeChannelCount();
+
+                float sum = 0;
+                for (int c = 0; c < currentNumChannels; ++c)
+                    sum += audio.sample[c];
+
+                // To summarize "power" in a slice, we use RMS amplitude:
+                // root-mean-square = sqrt(s0^2 + s1^2 + ...)
+                // In each slice we store the running sum of squares.
+                GraphSlice& slice = sliceArray.at(sliceIndex);
+                ++slice.nsamples;
+                slice.sum.nchannels = audio.safeChannelCount();
+                for (int c = 0; c < slice.sum.nchannels; ++c)
+                    slice.sum.sample[c] += Square(audio.sample[c]);
+
+                timeAccum += 1/sampleRateHz;
+                if (timeAccum >= delayTimeSeconds/GraphSliceCount)
+                {
+                    // We have finished another slice!
+                    timeAccum = 0;
+                    slice.finalizePower();
+
+                    // Start fresh on the next slice.
+                    // Erase the old power value and start with a new sum-of-squares.
+                    sliceIndex = SliceInc(sliceIndex);
+                    sliceArray.at(sliceIndex).initialize();
+                }
+            }
+        };
+
+
         struct LoopModule : MultiTapModule
         {
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
@@ -665,6 +831,7 @@ namespace Sapphire
             bool sendReturnControlsAreDirty{};
             Crossfader muteFader;
             Crossfader soloFader;
+            GraphWidget* graph = nullptr;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -691,6 +858,8 @@ namespace Sapphire
                 muteFader.snapToFront();
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
+                if (graph)
+                    graph->initialize();
             }
 
             void initialize() override
@@ -921,6 +1090,7 @@ namespace Sapphire
                 float fbk = 0;
                 float cvGain = 0;
                 int unhappyCount = 0;
+                float delayTimeSum = 0;
 
                 const bool isFirstTap = IsEcho(this);
                 const bool isSingleTap = isFirstTap && !IsEchoTap(rightExpander.module);
@@ -964,6 +1134,7 @@ namespace Sapphire
                         delayTime *= q.clockSyncTime;
                     }
 
+                    delayTimeSum += delayTime;
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
                     if (clearSmoother.isDelayedActionReady())
@@ -1023,6 +1194,13 @@ namespace Sapphire
 
                     if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;
+                }
+
+                if (graph && nc>0 && delayTimeSum>0)
+                {
+                    const float meanDelayTime = delayTimeSum / nc;
+                    graph->setDelayTime(meanDelayTime);
+                    graph->process(result.envelopeAudio, sampleRateHz);
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
@@ -1103,41 +1281,9 @@ namespace Sapphire
         }
 
 
-        struct GraphWidget : OpaqueWidget
-        {
-            LoopModule* loopModule;
-
-            explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
-                : loopModule(_loopModule)
-            {
-                box.pos.x  = mm2px(x1);
-                box.pos.y  = mm2px(y1);
-                box.size.x = mm2px(x2-x1);
-                box.size.y = mm2px(y2-y1);
-            }
-
-            void draw(const DrawArgs& args) override
-            {
-                math::Rect r = box.zeroPos();
-                nvgBeginPath(args.vg);
-                nvgRect(args.vg, RECT_ARGS(r));
-                nvgFillColor(args.vg, SCHEME_BLACK);
-                nvgFill(args.vg);
-                OpaqueWidget::draw(args);
-            }
-
-            void drawLayer(const DrawArgs& args, int layer) override
-            {
-                if (layer == 1)
-                {
-                }
-                OpaqueWidget::drawLayer(args, layer);
-            }
-        };
-
-
         struct LoopWidget : MultiTapWidget
         {
+            LoopModule* loopModule{};
             const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
             const float mmModeButtonRadius = 3.5;
@@ -1163,6 +1309,7 @@ namespace Sapphire
 
             explicit LoopWidget(
                 const std::string& moduleCode,
+                LoopModule* lmod,
                 const std::string& panelSvgFileName,
                 const std::string& revSvgFileName,
                 const std::string& revSelSvgFileName,
@@ -1174,6 +1321,7 @@ namespace Sapphire
                 const std::string& invSelSvgFileName
             )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
+                , loopModule(lmod)
             {
                 revLabel = SvgOverlay::Load(revSvgFileName);
                 addChild(revLabel);
@@ -1262,8 +1410,9 @@ namespace Sapphire
             {
                 ComponentLocation upperLeft  = FindComponent(modcode, "graph_upper_left");
                 ComponentLocation lowerRight = FindComponent(modcode, "graph_lower_right");
-                auto loopModule = dynamic_cast<LoopModule*>(module);
                 auto graph = new GraphWidget(loopModule, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
+                if (loopModule)
+                    loopModule->graph = graph;
                 addChild(graph);
             }
 
@@ -2007,6 +2156,7 @@ namespace Sapphire
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
                         "echo",
+                        module,
                         asset::plugin(pluginInstance, "res/echo.svg"),
                         asset::plugin(pluginInstance, "res/echo_rev.svg"),
                         asset::plugin(pluginInstance, "res/echo_rev_sel.svg"),
@@ -2632,6 +2782,7 @@ namespace Sapphire
                 explicit EchoTapWidget(EchoTapModule* module)
                     : LoopWidget(
                         "echotap",
+                        module,
                         asset::plugin(pluginInstance, "res/echotap.svg"),
                         asset::plugin(pluginInstance, "res/echotap_rev.svg"),
                         asset::plugin(pluginInstance, "res/echotap_rev_sel.svg"),
