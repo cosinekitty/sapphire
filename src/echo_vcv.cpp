@@ -716,7 +716,7 @@ namespace Sapphire
             }
 
             Vec position(
-                unsigned s,  // slice offset: 0..GraphSliceCount
+                unsigned s,  // slice vertical position: 0..GraphSliceCount
                 int c,       // channel: 0..(currentNumChannels-1)
                 float p      // relative position in column: (-1)..(+1)
             ) const
@@ -1262,8 +1262,8 @@ namespace Sapphire
                         float zs = power.sample[c] * zoom;
                         float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
                         p = std::max(thinLine, p);
-                        Vec left   = position(s, c, -p);
-                        Vec right  = position(s, c, +p);
+                        Vec left   = position(k, c, -p);
+                        Vec right  = position(k, c, +p);
                         nvgBeginPath(args.vg);
                         nvgStrokeWidth(args.vg, strokeWidthPx);
                         nvgStrokeColor(args.vg, SCHEME_GREEN);
