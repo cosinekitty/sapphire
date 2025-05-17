@@ -1264,10 +1264,21 @@ namespace Sapphire
 
             if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
             {
-                NVGcolor signalColor = loopModule->isAudible() ? SCHEME_GREEN : mutedColor;
                 unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
                 for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
                 {
+                    NVGcolor signalColor = mutedColor;
+                    if (loopModule->isAudible())
+                    {
+                        const float prox = static_cast<float>(k) / static_cast<float>(GraphSliceCount+1);
+                        NVGcolor newColor = SCHEME_CYAN;
+                        NVGcolor oldColor = SCHEME_PURPLE;
+                        signalColor.a = 1;
+                        signalColor.r = prox*newColor.r + (1-prox)*oldColor.r;
+                        signalColor.g = prox*newColor.g + (1-prox)*oldColor.g;
+                        signalColor.b = prox*newColor.b + (1-prox)*oldColor.b;
+                    }
+
                     const Frame& power = sliceArray.at(s).sum;
                     // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
                     // Use a bicubic limiter to keep the numbers inside a desired range.
