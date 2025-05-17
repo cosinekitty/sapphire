@@ -1971,6 +1971,10 @@ def MakeLoopControlFence() -> FencePost:
     return FencePost(16.0, 75.0, 5)
 
 
+def MakeAnotherLoopControlFence() -> FencePost:
+    return FencePost(49.0, 75.0, 3)
+
+
 def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
     gradname = 'gradient_controls'
     defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, gradname))
@@ -2058,8 +2062,8 @@ def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:flo
 
 def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
     dx = (MULTITAP_ECHOTAP_HP_WIDTH * HP_WIDTH_MM) - 4.0
-    dy = 15.0
-    yCenter = 28.5
+    dy = 17.0
+    yCenter = 30.5
     controls.append(Component('graph_upper_left',  xCenter - dx/2, yCenter - dy/2))
     controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
 
@@ -2080,6 +2084,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     xControlCenter = xmid + xAdjust
     xGlobalCenter = 3 * HP_WIDTH_MM
     yLoopFence = MakeLoopControlFence()
+    yAnotherFence = MakeAnotherLoopControlFence()
 
     # Global controls/ports (Echo module only)
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
@@ -2096,9 +2101,9 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
-    yTimeControl = yLoopFence.value(2)
-    yPanControl = yLoopFence.value(3)
-    yGainControl = yLoopFence.value(4)
+    yTimeControl = yAnotherFence.value(0)
+    yPanControl  = yAnotherFence.value(1)
+    yGainControl = yAnotherFence.value(2)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
     xSendReturnButton = (xSendPorts + xReturnPorts)/2
@@ -2186,6 +2191,7 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel.append(pl)
     xControlCenter = panel.mmWidth / 2
     yLoopFence = MakeLoopControlFence()
+    yAnotherFence = MakeAnotherLoopControlFence()
 
     # "Add tap" button in the upper right corner.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2197,9 +2203,9 @@ def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
 
     # Tap controls/ports
     yReverseControl = yLoopFence.value(0)
-    yTimeControl = yLoopFence.value(2)
-    yPanControl = yLoopFence.value(3)
-    yGainControl = yLoopFence.value(4)
+    yTimeControl = yAnotherFence.value(0)
+    yPanControl  = yAnotherFence.value(1)
+    yGainControl = yAnotherFence.value(2)
     xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
     xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
     xSendReturnButton = (xSendPorts + xReturnPorts)/2

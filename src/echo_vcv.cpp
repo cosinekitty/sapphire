@@ -1290,6 +1290,7 @@ namespace Sapphire
                         Vec left   = position(k, c, -p);
                         Vec right  = position(k, c, +p);
                         nvgBeginPath(args.vg);
+                        nvgLineCap(args.vg, NVG_BUTT);
                         nvgStrokeWidth(args.vg, strokeWidthPx);
                         nvgStrokeColor(args.vg, signalColor);
                         nvgMoveTo(args.vg, left.x, left.y);
