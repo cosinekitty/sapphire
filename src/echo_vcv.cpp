@@ -804,6 +804,7 @@ namespace Sapphire
             Crossfader muteFader;
             Crossfader soloFader;
             GraphWidget* graph = nullptr;
+            int totalSoloCount = 0;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -830,6 +831,7 @@ namespace Sapphire
                 muteFader.snapToFront();
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
+                totalSoloCount = 0;
                 if (graph)
                     graph->initialize();
             }
@@ -1002,6 +1004,16 @@ namespace Sapphire
             {
                 muteFader.setTarget(params.at(muteButtonId).getValue() > 0.5f);
                 return muteFader.process(sampleRateHz, 1, 0);
+            }
+
+            bool isAudible() const
+            {
+                // If there is someone else doing a solo, but not us, they can't hear us!
+                if (totalSoloCount>0 && !soloFader.atBack())
+                    return false;
+
+                // If we are not muted, we are audible.
+                return !muteFader.atBack();
             }
 
             struct TapeLoopResult
@@ -1244,9 +1256,11 @@ namespace Sapphire
         {
             constexpr float thinLine = 0.01;
             constexpr float strokeWidthPx = 1.0;
+            const NVGcolor mutedColor = nvgRGB(0x40, 0x40, 0x40);
 
             if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
             {
+                NVGcolor signalColor = loopModule->isAudible() ? SCHEME_GREEN : mutedColor;
                 unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
                 for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
                 {
@@ -1262,7 +1276,7 @@ namespace Sapphire
                         Vec right  = position(k, c, +p);
                         nvgBeginPath(args.vg);
                         nvgStrokeWidth(args.vg, strokeWidthPx);
-                        nvgStrokeColor(args.vg, SCHEME_GREEN);
+                        nvgStrokeColor(args.vg, signalColor);
                         nvgMoveTo(args.vg, left.x, left.y);
                         nvgLineTo(args.vg, right.x, right.y);
                         nvgStroke(args.vg);
@@ -2046,6 +2060,7 @@ namespace Sapphire
                 {
                     Message outMessage;
                     const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
+                    totalSoloCount = inBackMessage.soloCount;
                     isMusicalInterval = outMessage.musicalInterval = (params.at(INTERVAL_BUTTON_PARAM).getValue() > 0.5);
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
                     outMessage.inputRouting = routingSmoother.currentValue;
@@ -2770,9 +2785,17 @@ namespace Sapphire
 
                     BackwardMessage outBackMessage;
                     if (inBackMessage.valid)
+                    {
+                        // We received a backward message from the right, so just copy it.
                         outBackMessage = inBackMessage;
+                    }
                     else
+                    {
+                        // I am the final EchoTap module, the ultimate source of truth!
                         outBackMessage.loopAudio = result.chainAudioOutput;
+                        outBackMessage.soloCount = outMessage.soloCount;
+                    }
+                    totalSoloCount = outMessage.soloCount;
                     sendBackwardMessage(outBackMessage);
                 }
             };

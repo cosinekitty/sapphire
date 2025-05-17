@@ -195,6 +195,7 @@ namespace Sapphire
         {
             bool valid = false;
             Frame loopAudio;        // the chain output from the rightmost EchoTap (used for Serial mode)
+            int soloCount = 0;      // how many taps are soloing right now
         };
 
         //--------------------------------------------------------------------
