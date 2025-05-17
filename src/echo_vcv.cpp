@@ -1246,6 +1246,8 @@ namespace Sapphire
 
         void GraphWidget::drawLayer(const DrawArgs& args, int layer)
         {
+            constexpr float thinLine = 0.01;
+
             if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
             {
                 unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
@@ -1259,6 +1261,7 @@ namespace Sapphire
                         float zs = power.sample[c] * zoom;
                         float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
                         assert(p >= 0.0f && p <= 1.0f);
+                        p = std::max(thinLine, p);
                         Vec left   = position(s, c, -p);
                         Vec right  = position(s, c, +p);
                         nvgBeginPath(args.vg);
