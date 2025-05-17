@@ -638,7 +638,7 @@ namespace Sapphire
         };
 
 
-        constexpr unsigned GraphSliceCount = 100;
+        constexpr unsigned GraphSliceCount = 200;
         constexpr float HorMarginPx = 2.0;
         constexpr float VerMarginPx = 2.0;
         constexpr float GraphVoltageLimit = 10;
@@ -749,10 +749,6 @@ namespace Sapphire
                     return;
 
                 currentNumChannels = audio.safeChannelCount();
-
-                float sum = 0;
-                for (int c = 0; c < currentNumChannels; ++c)
-                    sum += audio.sample[c];
 
                 // To summarize "power" in a slice, we use RMS amplitude:
                 // root-mean-square = sqrt(s0^2 + s1^2 + ...)
