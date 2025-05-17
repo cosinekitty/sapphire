@@ -668,7 +668,7 @@ namespace Sapphire
                     // Convert the finished slice to a linear power envelope for graphing.
                     const int nc = sum.safeChannelCount();
                     for (int c = 0; c < nc; ++c)
-                        sum.sample[c] = std::sqrt(sum.sample[c]) / nsamples;
+                        sum.sample[c] = std::sqrt(sum.sample[c] / nsamples);
                 }
             }
         };
@@ -682,6 +682,7 @@ namespace Sapphire
             double timeAccum = 0;
             double delayTimeSeconds = 0;
             int currentNumChannels = 0;
+            float gain = 1;     // FIXFIXFIX: allow zooming?
 
             explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
                 : loopModule(_loopModule)
@@ -715,7 +716,7 @@ namespace Sapphire
             }
 
             Vec position(
-                unsigned s,  // slice offset: 0..(GraphSliceCount-1)
+                unsigned s,  // slice offset: 0..GraphSliceCount
                 int c,       // channel: 0..(currentNumChannels-1)
                 float p      // relative position in column: (-1)..(+1)
             ) const
@@ -728,39 +729,13 @@ namespace Sapphire
                 float pixelsPerUnit = pixelsPerChannel/2 - HorMarginPx;
                 float x = xmid + (pixelsPerUnit * std::clamp<float>(p, -1, +1));
 
-                unsigned safeSlice = std::clamp<unsigned>(s, 0, GraphSliceCount-1);
-                float yRatio = static_cast<float>(safeSlice) / static_cast<float>(GraphSliceCount-1);
+                float yRatio = static_cast<float>(s) / static_cast<float>(GraphSliceCount);
                 float y = VerMarginPx + yRatio*(box.size.y - 2*VerMarginPx);
 
                 return Vec{x, y};
             }
 
-            void drawLayer(const DrawArgs& args, int layer) override
-            {
-                if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
-                {
-                    unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
-                    const Frame& power = sliceArray.at(s).sum;
-                    for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
-                    {
-                        // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
-                        // Use a bicubic limiter to keep the numbers inside a desired range.
-                        for (int c = 0; c < currentNumChannels; ++c)
-                        {
-                            float p = BicubicLimiter<float>(power.sample[c], GraphVoltageLimit) / GraphVoltageLimit;
-                            assert(p >= 0.0f && p <= 1.0f);
-                            Vec left   = position(s, c, -p);
-                            Vec right  = position(s, c, +p);
-                            nvgBeginPath(args.vg);
-                            nvgStrokeColor(args.vg, SCHEME_GREEN);
-                            nvgMoveTo(args.vg, left.x, left.y);
-                            nvgLineTo(args.vg, right.x, right.y);
-                            nvgStroke(args.vg);
-                        }
-                    }
-                }
-                OpaqueWidget::drawLayer(args, layer);
-            }
+            void drawLayer(const DrawArgs& args, int layer) override;
 
             void setDelayTime(float _delayTimeSeconds)
             {
@@ -789,7 +764,8 @@ namespace Sapphire
                     slice.sum.sample[c] += Square(audio.sample[c]);
 
                 timeAccum += 1/sampleRateHz;
-                if (timeAccum >= delayTimeSeconds/GraphSliceCount)
+                const float timeLimit = delayTimeSeconds/GraphSliceCount;
+                if (timeAccum >= timeLimit)
                 {
                     // We have finished another slice!
                     timeAccum = 0;
@@ -1268,6 +1244,33 @@ namespace Sapphire
             }
         };
 
+        void GraphWidget::drawLayer(const DrawArgs& args, int layer)
+        {
+            if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
+            {
+                unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
+                for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
+                {
+                    const Frame& power = sliceArray.at(s).sum;
+                    // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
+                    // Use a bicubic limiter to keep the numbers inside a desired range.
+                    for (int c = 0; c < currentNumChannels; ++c)
+                    {
+                        float p = BicubicLimiter<float>(power.sample[c], GraphVoltageLimit) / GraphVoltageLimit;
+                        assert(p >= 0.0f && p <= 1.0f);
+                        float pclamp = std::min<float>(1, gain*p);
+                        Vec left   = position(s, c, -pclamp);
+                        Vec right  = position(s, c, +pclamp);
+                        nvgBeginPath(args.vg);
+                        nvgStrokeColor(args.vg, SCHEME_GREEN);
+                        nvgMoveTo(args.vg, left.x, left.y);
+                        nvgLineTo(args.vg, right.x, right.y);
+                        nvgStroke(args.vg);
+                    }
+                }
+            }
+            OpaqueWidget::drawLayer(args, layer);
+        }
 
         void EnvelopeOutputPort::appendContextMenu(ui::Menu* menu)
         {
