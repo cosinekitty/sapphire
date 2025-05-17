@@ -638,9 +638,9 @@ namespace Sapphire
         };
 
 
-        constexpr unsigned GraphSliceCount = 200;
-        constexpr float HorMarginPx = 2.0;
-        constexpr float VerMarginPx = 2.0;
+        constexpr unsigned GraphSliceCount = 400;
+        constexpr float HorMarginPx = 1.0;
+        constexpr float VerMarginPx = 1.0;
         constexpr float GraphVoltageLimit = 10;
 
         constexpr unsigned SliceInc(unsigned sliceIndex)
@@ -676,6 +676,7 @@ namespace Sapphire
 
         struct GraphWidget : OpaqueWidget
         {
+            static constexpr float ThinLineFraction = 0.01;
             LoopModule* loopModule = nullptr;
             std::vector<GraphSlice> sliceArray;      // each slice is an "envelope" frame that summarizes the energy in that slice
             unsigned sliceIndex = 0;
@@ -721,12 +722,12 @@ namespace Sapphire
                 float p      // relative position in column: (-1)..(+1)
             ) const
             {
-                if (currentNumChannels<=0 || currentNumChannels>=PORT_MAX_CHANNELS)
+                if (currentNumChannels<=0 || currentNumChannels>PORT_MAX_CHANNELS)
                     return Vec{0, 0};
 
                 float pixelsPerChannel = box.size.x / currentNumChannels;
                 float xmid = (c + 0.5f)*pixelsPerChannel;
-                float pixelsPerUnit = pixelsPerChannel/2 - HorMarginPx;
+                float pixelsPerUnit = std::max<float>(2, pixelsPerChannel/2 - HorMarginPx/(1+currentNumChannels));
                 float x = xmid + (pixelsPerUnit * std::clamp<float>(p, -1, +1));
 
                 float yRatio = static_cast<float>(s) / static_cast<float>(GraphSliceCount);
@@ -1258,7 +1259,6 @@ namespace Sapphire
 
         void GraphWidget::drawLayer(const DrawArgs& args, int layer)
         {
-            constexpr float thinLine = 0.01;
             constexpr float strokeWidthPx = 1.0;
             const NVGcolor mutedColor = nvgRGB(0x40, 0x40, 0x40);
 
@@ -1286,7 +1286,7 @@ namespace Sapphire
                     {
                         float zs = power.sample[c] * zoom;
                         float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
-                        p = std::max(thinLine, p);
+                        p = std::max(ThinLineFraction, p);
                         Vec left   = position(k, c, -p);
                         Vec right  = position(k, c, +p);
                         nvgBeginPath(args.vg);

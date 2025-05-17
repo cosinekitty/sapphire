@@ -1968,7 +1968,7 @@ MULTITAP_NORMAL_COLOR = MultiTapControlStyle('#000000')
 MULTITAP_HILITE_COLOR = MultiTapControlStyle('#6f02b8')
 
 def MakeLoopControlFence() -> FencePost:
-    return FencePost(16.0, 72.0, 5)
+    return FencePost(16.0, 75.0, 5)
 
 
 def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
@@ -2058,8 +2058,8 @@ def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:flo
 
 def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
     dx = (MULTITAP_ECHOTAP_HP_WIDTH * HP_WIDTH_MM) - 4.0
-    dy = 12.0
-    yCenter = 28.0
+    dy = 15.0
+    yCenter = 28.5
     controls.append(Component('graph_upper_left',  xCenter - dx/2, yCenter - dy/2))
     controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
 
