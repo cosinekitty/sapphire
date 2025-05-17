@@ -682,7 +682,7 @@ namespace Sapphire
             double timeAccum = 0;
             double delayTimeSeconds = 0;
             int currentNumChannels = 0;
-            float gain = 1;     // FIXFIXFIX: allow zooming?
+            float gain = 5;     // FIXFIXFIX: allow zooming?
 
             explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
                 : loopModule(_loopModule)
