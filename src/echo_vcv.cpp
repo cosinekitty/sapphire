@@ -682,7 +682,7 @@ namespace Sapphire
             double timeAccum = 0;
             double delayTimeSeconds = 0;
             int currentNumChannels = 0;
-            float gain = 5;     // FIXFIXFIX: allow zooming?
+            float zoom = 5;     // FIXFIXFIX: allow zooming?
 
             explicit GraphWidget(LoopModule* _loopModule, float x1, float y1, float x2, float y2)
                 : loopModule(_loopModule)
@@ -1256,11 +1256,11 @@ namespace Sapphire
                     // Use a bicubic limiter to keep the numbers inside a desired range.
                     for (int c = 0; c < currentNumChannels; ++c)
                     {
-                        float p = BicubicLimiter<float>(power.sample[c], GraphVoltageLimit) / GraphVoltageLimit;
+                        float zs = power.sample[c] * zoom;
+                        float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
                         assert(p >= 0.0f && p <= 1.0f);
-                        float pclamp = std::min<float>(1, gain*p);
-                        Vec left   = position(s, c, -pclamp);
-                        Vec right  = position(s, c, +pclamp);
+                        Vec left   = position(s, c, -p);
+                        Vec right  = position(s, c, +p);
                         nvgBeginPath(args.vg);
                         nvgStrokeColor(args.vg, SCHEME_GREEN);
                         nvgMoveTo(args.vg, left.x, left.y);
