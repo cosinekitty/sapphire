@@ -1122,7 +1122,11 @@ namespace Sapphire
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
                     if (clearSmoother.isDelayedActionReady())
+                    {
                         q.loop.clear();
+                        if (graph)
+                            graph->initialize();
+                    }
                     float forward = q.loop.readForward() * clearSmoother.getGain();
                     float reverse = q.loop.readReverse() * clearSmoother.getGain();
                     q.loop.updateReversePlaybackHead();
