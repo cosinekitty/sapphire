@@ -2795,7 +2795,7 @@ namespace Sapphire
                         outBackMessage.loopAudio = result.chainAudioOutput;
                         outBackMessage.soloCount = outMessage.soloCount;
                     }
-                    totalSoloCount = outMessage.soloCount;
+                    totalSoloCount = outBackMessage.soloCount;
                     sendBackwardMessage(outBackMessage);
                 }
             };
