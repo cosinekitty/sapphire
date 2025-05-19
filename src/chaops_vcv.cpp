@@ -71,7 +71,7 @@ namespace Sapphire
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
-                freezeToggleGroup.config(this, FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
+                freezeToggleGroup.config(this, "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
                 initialize();
             }
 

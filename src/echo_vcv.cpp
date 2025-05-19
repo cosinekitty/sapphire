@@ -938,6 +938,7 @@ namespace Sapphire
                 jsonSetBool(root, "duck", duck);
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonSave(root);
+                reverseToggleGroup.jsonSave(root);
                 return root;
             }
 
@@ -949,6 +950,7 @@ namespace Sapphire
                 jsonLoadBool(root, "duck", duck);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonLoad(root);
+                reverseToggleGroup.jsonLoad(root);
                 updateFlipControls();
             }
 
@@ -2021,8 +2023,8 @@ namespace Sapphire
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    reverseToggleGroup.config(this, REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
-                    freezeToggleGroup.config(this, FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
+                    reverseToggleGroup.config(this, "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
+                    freezeToggleGroup.config(this, "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
@@ -2137,6 +2139,7 @@ namespace Sapphire
                 {
                     json_t* root = LoopModule::dataToJson();
                     routingSmoother.jsonSave(root);
+                    freezeToggleGroup.jsonSave(root);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     return root;
                 }
@@ -2145,6 +2148,7 @@ namespace Sapphire
                 {
                     LoopModule::dataFromJson(root);
                     routingSmoother.jsonLoad(root);
+                    freezeToggleGroup.jsonLoad(root);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                 }
 
@@ -2711,7 +2715,7 @@ namespace Sapphire
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    reverseToggleGroup.config(this, REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
+                    reverseToggleGroup.config(this, "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");

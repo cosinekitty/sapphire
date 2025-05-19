@@ -77,6 +77,32 @@ namespace Sapphire
         }
     };
 
+    template <typename enum_t>
+    void jsonSetEnum(json_t* root, const char *key, enum_t value)
+    {
+        json_object_set_new(root, key, json_integer(static_cast<int>(value)));
+    }
+
+    template <typename enum_t>
+    void jsonLoadEnum(json_t* root, const char *key, enum_t& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_integer(js))
+            value = static_cast<enum_t>(json_integer_value(js));
+    }
+
+    inline void jsonSetBool(json_t* root, const char *key, bool value)
+    {
+        json_object_set_new(root, key, json_boolean(value));
+    }
+
+    inline void jsonLoadBool(json_t* root, const char* key, bool& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_boolean(js))
+            value = json_boolean_value(js);
+    }
+
     namespace Tricorder
     {
         struct MessageHeader
@@ -1265,18 +1291,40 @@ namespace Sapphire
     };
 
 
+    enum class ToggleGroupMode
+    {
+        Gate,
+        Trigger,
+        LEN
+    };
+
+
     class ToggleGroup
     {
     private:
         SapphireModule* smod = nullptr;
+        const char *jsonKey = nullptr;
         int inputId = -1;
         int buttonParamId = -1;
         int buttonLightId = -1;
         GateTriggerReceiver receiver;
+        ToggleGroupMode mode{};
 
     public:
+        ToggleGroup()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            receiver.initialize();
+            mode = ToggleGroupMode::Gate;
+        }
+
         void config(
             SapphireModule* _smod,
+            const char *_jsonKey,
             int _inputId,
             int _buttonParamId,
             int _buttonLightId,
@@ -1284,6 +1332,7 @@ namespace Sapphire
             const std::string& inputPrefix)
         {
             smod = _smod;
+            jsonKey = _jsonKey;
             inputId = _inputId;
             buttonParamId = _buttonParamId;
             buttonLightId = _buttonLightId;
@@ -1291,14 +1340,29 @@ namespace Sapphire
                 _smod->configToggleGroup(_inputId, _buttonParamId, buttonCaption, inputPrefix);
         }
 
-        void initialize()
+        void jsonSave(json_t* root)
         {
-            receiver.initialize();
+            // Create a child object for this toggle group.
+            // Future-proofing: inside it we set whatever fields we want.
+            json_t* child = json_object();
+            json_object_set_new(root, jsonKey, child);
+
+            // For now, the mode is the only thing we need.
+            jsonSetEnum(child, "mode", mode);
+        }
+
+        void jsonLoad(json_t* root)
+        {
+            json_t* child = json_object_get(root, jsonKey);
+            if (json_is_object(child))
+            {
+                jsonLoadEnum(child, "mode", mode);
+            }
         }
 
         bool update()
         {
-            if (!smod)
+            if (!smod || inputId<0 || buttonParamId<0 || buttonLightId<0)
                 return false;
 
             Input& input = smod->inputs.at(inputId);
@@ -1444,32 +1508,6 @@ namespace Sapphire
         // an expander chain.
         // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
         return module && model && module->model == model;
-    }
-
-    template <typename enum_t>
-    void jsonSetEnum(json_t* root, const char *key, enum_t value)
-    {
-        json_object_set_new(root, key, json_integer(static_cast<int>(value)));
-    }
-
-    template <typename enum_t>
-    void jsonLoadEnum(json_t* root, const char *key, enum_t& value)
-    {
-        json_t* js = json_object_get(root, key);
-        if (json_is_integer(js))
-            value = static_cast<enum_t>(json_integer_value(js));
-    }
-
-    inline void jsonSetBool(json_t* root, const char *key, bool value)
-    {
-        json_object_set_new(root, key, json_boolean(value));
-    }
-
-    inline void jsonLoadBool(json_t* root, const char* key, bool& value)
-    {
-        json_t* js = json_object_get(root, key);
-        if (json_is_boolean(js))
-            value = json_boolean_value(js);
     }
 
     template <typename enum_t>
