@@ -1295,7 +1295,9 @@ namespace Sapphire
     {
         Gate,
         Trigger,
-        LEN
+        LEN,
+
+        Default = Gate,
     };
 
 
@@ -1303,12 +1305,14 @@ namespace Sapphire
     {
     private:
         SapphireModule* smod = nullptr;
+        std::string menuName;
         const char *jsonKey = nullptr;
         int inputId = -1;
         int buttonParamId = -1;
         int buttonLightId = -1;
         GateTriggerReceiver receiver;
-        ToggleGroupMode mode{};
+        ToggleGroupMode mode = ToggleGroupMode::Default;
+        bool portActive = false;
 
     public:
         ToggleGroup()
@@ -1319,11 +1323,13 @@ namespace Sapphire
         void initialize()
         {
             receiver.initialize();
-            mode = ToggleGroupMode::Gate;
+            mode = ToggleGroupMode::Default;
+            portActive = false;
         }
 
         void config(
             SapphireModule* _smod,
+            const std::string& _menuName,
             const char *_jsonKey,
             int _inputId,
             int _buttonParamId,
@@ -1332,6 +1338,7 @@ namespace Sapphire
             const std::string& inputPrefix)
         {
             smod = _smod;
+            menuName = _menuName;
             jsonKey = _jsonKey;
             inputId = _inputId;
             buttonParamId = _buttonParamId;
@@ -1367,13 +1374,35 @@ namespace Sapphire
 
             Input& input = smod->inputs.at(inputId);
             Param& button = smod->params.at(buttonParamId);
-            bool portActive = receiver.updateGate(input.getVoltageSum());
-            bool buttonActive = (button.getValue() > 0);
+            const bool buttonActive = (button.getValue() > 0);
+
+            receiver.update(input.getVoltageSum());
+            switch (mode)
+            {
+            case ToggleGroupMode::Gate:
+            default:
+                portActive = receiver.isGateActive();
+                break;
+
+            case ToggleGroupMode::Trigger:
+                portActive ^= receiver.isTriggerActive();
+                break;
+            }
 
             // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
             bool active = portActive ^ buttonActive;
             smod->setLightBrightness(buttonLightId, active);
             return active;
+        }
+
+        void addMenuItems(Menu* menu)
+        {
+            menu->addChild(createIndexSubmenuItem(
+                menuName + " input port mode",
+                { "Gate", "Trigger" },
+                [=]() { return static_cast<std::size_t>(mode); },
+                [=](size_t value) { mode = static_cast<ToggleGroupMode>(value); }
+            ));
         }
     };
 

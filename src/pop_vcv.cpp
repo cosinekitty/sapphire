@@ -227,14 +227,9 @@ namespace Sapphire
 
             void addOutputModeMenuItems(Menu* menu)
             {
-                std::vector<std::string> labels {
-                    "Triggers",
-                    "Gates"
-                };
-
                 menu->addChild(createIndexSubmenuItem(
                     "Output pulse mode",
-                    labels,
+                    { "Triggers", "Gates" },
                     [=]() { return popModule->getOutputMode(); },
                     [=](size_t mode) { popModule->setOutputMode(mode); }
                 ));
