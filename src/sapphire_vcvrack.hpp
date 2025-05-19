@@ -1360,7 +1360,7 @@ namespace Sapphire
             }
         }
 
-        bool update()
+        bool process()
         {
             if (!smod || inputId<0 || buttonParamId<0 || buttonLightId<0)
                 return false;

@@ -922,7 +922,7 @@ namespace Sapphire
 
             void updateReverseState(int inputId, int buttonParamId, int lightId, float sampleRateHz)
             {
-                bool active = reverseToggleGroup.update();
+                const bool active = reverseToggleGroup.process();
                 if (active)
                     reverseComboSmoother.targetValue = flip ? ReverseFlipMode::Flip : ReverseFlipMode::Reverse;
                 else
@@ -2174,8 +2174,8 @@ namespace Sapphire
 
                 float updateFreezeState(float sampleRateHz)
                 {
-                    const bool freezeGate = freezeToggleGroup.update();
-                    freezeFader.setTarget(freezeGate);
+                    const bool active = freezeToggleGroup.process();
+                    freezeFader.setTarget(active);
                     return freezeFader.process(sampleRateHz, 0, 1);
                 }
 

@@ -145,7 +145,7 @@ namespace Sapphire
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
-                    message.freeze = frozen = freezeToggleGroup.update();
+                    message.freeze = frozen = freezeToggleGroup.process();
                     message.morph = getMorph();
                     sender.send(message);
 
