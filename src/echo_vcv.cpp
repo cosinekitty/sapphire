@@ -815,6 +815,12 @@ namespace Sapphire
                 LoopModule_initialize();
             }
 
+            virtual ~LoopModule()
+            {
+                if (graph)
+                    graph->loopModule = nullptr;
+            }
+
             void LoopModule_initialize()
             {
                 timeMode = TimeMode::Seconds;
