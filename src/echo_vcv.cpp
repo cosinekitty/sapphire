@@ -696,6 +696,8 @@ namespace Sapphire
                 initialize();
             }
 
+            virtual ~GraphWidget();
+
             void initialize()
             {
                 for (GraphSlice& slice : sliceArray)
@@ -1257,6 +1259,19 @@ namespace Sapphire
             }
         };
 
+
+        GraphWidget::~GraphWidget()
+        {
+            if (loopModule)
+            {
+                // This grapher object is dying, so let the module know it should
+                // no longer try to access it. This fixes a crash/hang when deleting
+                // EchoTap modules.
+                loopModule->graph = nullptr;
+            }
+        }
+
+
         void GraphWidget::drawLayer(const DrawArgs& args, int layer)
         {
             constexpr float strokeWidthPx = 1.0;
@@ -1400,7 +1415,7 @@ namespace Sapphire
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
 
-                addGraphWidget();
+                addGraphWidget(lmod);
             }
 
             virtual ~LoopWidget()
@@ -1439,13 +1454,13 @@ namespace Sapphire
                 );
             }
 
-            void addGraphWidget()
+            void addGraphWidget(LoopModule* lmod)
             {
                 ComponentLocation upperLeft  = FindComponent(modcode, "graph_upper_left");
                 ComponentLocation lowerRight = FindComponent(modcode, "graph_lower_right");
-                auto graph = new GraphWidget(loopModule, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
-                if (loopModule)
-                    loopModule->graph = graph;
+                auto graph = new GraphWidget(lmod, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
+                if (lmod)
+                    lmod->graph = graph;
                 addChild(graph);
             }
 
