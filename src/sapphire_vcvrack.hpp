@@ -1236,20 +1236,6 @@ namespace Sapphire
             return agcLevelQuantity;
         }
 
-        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId, int buttonLightId)
-        {
-            Input& input  = inputs.at(inputId);
-            Param& button = params.at(buttonParamId);
-
-            bool portActive = receiver.updateGate(input.getVoltageSum());
-            bool buttonActive = (button.getValue() > 0);
-
-            // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
-            bool active = portActive ^ buttonActive;
-            setLightBrightness(buttonLightId, active);
-            return active;
-        }
-
         bool updateTriggerGroup(
             float sampleRateHz,
             AnimatedTriggerReceiver& receiver,
@@ -1275,6 +1261,55 @@ namespace Sapphire
         {
             if (lightId >= 0)
                 lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
+        }
+    };
+
+
+    class ToggleGroup
+    {
+    private:
+        SapphireModule* smod = nullptr;
+        int inputId = -1;
+        int buttonParamId = -1;
+        int buttonLightId = -1;
+        GateTriggerReceiver receiver;
+
+    public:
+        void config(
+            SapphireModule* _smod,
+            int _inputId,
+            int _buttonParamId,
+            int _buttonLightId,
+            const std::string& buttonCaption,
+            const std::string& inputPrefix)
+        {
+            smod = _smod;
+            inputId = _inputId;
+            buttonParamId = _buttonParamId;
+            buttonLightId = _buttonLightId;
+            if (_smod)
+                _smod->configToggleGroup(_inputId, _buttonParamId, buttonCaption, inputPrefix);
+        }
+
+        void initialize()
+        {
+            receiver.initialize();
+        }
+
+        bool update()
+        {
+            if (!smod)
+                return false;
+
+            Input& input = smod->inputs.at(inputId);
+            Param& button = smod->params.at(buttonParamId);
+            bool portActive = receiver.updateGate(input.getVoltageSum());
+            bool buttonActive = (button.getValue() > 0);
+
+            // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
+            bool active = portActive ^ buttonActive;
+            smod->setLightBrightness(buttonLightId, active);
+            return active;
         }
     };
 

@@ -787,7 +787,7 @@ namespace Sapphire
             bool isClockConnected = false;
             bool isMusicalInterval = false;
             TimeMode timeMode = TimeMode::Seconds;
-            GateTriggerReceiver reverseReceiver;
+            ToggleGroup reverseToggleGroup;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
@@ -825,7 +825,7 @@ namespace Sapphire
             {
                 timeMode = TimeMode::Seconds;
                 reverseComboSmoother.initialize();
-                reverseReceiver.initialize();
+                reverseToggleGroup.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
                 unhappy = false;
@@ -922,7 +922,7 @@ namespace Sapphire
 
             void updateReverseState(int inputId, int buttonParamId, int lightId, float sampleRateHz)
             {
-                bool active = updateToggleGroup(reverseReceiver, inputId, buttonParamId, lightId);
+                bool active = reverseToggleGroup.update();
                 if (active)
                     reverseComboSmoother.targetValue = flip ? ReverseFlipMode::Flip : ReverseFlipMode::Reverse;
                 else
@@ -1996,7 +1996,7 @@ namespace Sapphire
             struct EchoModule : LoopModule
             {
                 // Global controls
-                GateTriggerReceiver freezeReceiver;
+                ToggleGroup freezeToggleGroup;
                 AnimatedTriggerReceiver clearReceiver;
                 RoutingSmoother routingSmoother;
                 InterpolatorKind interpolatorKind{};
@@ -2021,8 +2021,8 @@ namespace Sapphire
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
-                    configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze gate");
+                    reverseToggleGroup.config(this, REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
+                    freezeToggleGroup.config(this, FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
@@ -2043,7 +2043,7 @@ namespace Sapphire
                 {
                     routingSmoother.initialize();
                     interpolatorKind = InterpolatorKind::Linear;
-                    freezeReceiver.initialize();
+                    freezeToggleGroup.initialize();
                     clearReceiver.initialize();
                     dcRejectQuantity->initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
@@ -2170,12 +2170,7 @@ namespace Sapphire
 
                 float updateFreezeState(float sampleRateHz)
                 {
-                    const bool freezeGate = updateToggleGroup(
-                        freezeReceiver,
-                        FREEZE_INPUT,
-                        FREEZE_BUTTON_PARAM,
-                        FREEZE_BUTTON_LIGHT
-                    );
+                    const bool freezeGate = freezeToggleGroup.update();
                     freezeFader.setTarget(freezeGate);
                     return freezeFader.process(sampleRateHz, 0, 1);
                 }
@@ -2716,7 +2711,7 @@ namespace Sapphire
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    configToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, "Reverse", "Reverse gate");
+                    reverseToggleGroup.config(this, REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");

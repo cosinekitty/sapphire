@@ -53,7 +53,7 @@ namespace Sapphire
             int recallFlashCounter = 0;
             GateTriggerReceiver storeReceiver;
             GateTriggerReceiver recallReceiver;
-            GateTriggerReceiver freezeReceiver;
+            ToggleGroup freezeToggleGroup;
 
             ChaopsModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -71,7 +71,7 @@ namespace Sapphire
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
-                configToggleGroup(FREEZE_INPUT, FREEZE_BUTTON_PARAM, "Freeze", "Freeze gate");
+                freezeToggleGroup.config(this, FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
                 initialize();
             }
 
@@ -83,7 +83,7 @@ namespace Sapphire
                 recallFlashCounter = 0;
                 storeReceiver.initialize();
                 recallReceiver.initialize();
-                freezeReceiver.initialize();
+                freezeToggleGroup.initialize();
                 params.at(FREEZE_BUTTON_PARAM).setValue(0);
             }
 
@@ -145,7 +145,7 @@ namespace Sapphire
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
-                    message.freeze = frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT);
+                    message.freeze = frozen = freezeToggleGroup.update();
                     message.morph = getMorph();
                     sender.send(message);
 
