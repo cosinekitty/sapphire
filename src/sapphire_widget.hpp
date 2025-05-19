@@ -365,10 +365,12 @@ namespace Sapphire
             position(input, label);
         }
 
-        void addSapphireInput(int inputId, const std::string& label)
+        template <typename port_t = SapphirePort>
+        port_t* addSapphireInput(int inputId, const std::string& label)
         {
-            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
+            port_t* port = createInputCentered<port_t>(Vec{}, module, inputId);
             addSapphireInput(port, label);
+            return port;
         }
 
         void addSapphireOutput(PortWidget* output, const std::string& label)
@@ -489,8 +491,9 @@ namespace Sapphire
             return knob;
         }
 
-        template <typename caption_button_t = SapphireCaptionButton>
-        caption_button_t* addToggleGroup(
+        template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
+        void addToggleGroup(
+            ToggleGroup* group,
             const std::string& prefix,
             int inputId,
             int buttonId,
@@ -507,9 +510,8 @@ namespace Sapphire
             button->initBaseColor(baseColor);
 
             addSapphireParam(button, prefix + "_button");
-            addSapphireInput(inputId, prefix + "_input");
-
-            return button;
+            input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
+            port->group = group;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)

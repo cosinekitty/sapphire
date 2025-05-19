@@ -202,7 +202,9 @@ namespace Sapphire
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
 
-                addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
+                ToggleGroup* freezeGroup = module ? &(module->freezeToggleGroup) : nullptr;
+                addToggleGroup(freezeGroup, "freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
+
                 addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
                 addSapphireChannelDisplay("memory_address_display");
             }

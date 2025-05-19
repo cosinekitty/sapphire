@@ -1451,7 +1451,10 @@ namespace Sapphire
 
             void addReverseToggleGroup(int inputId, int buttonParamId, int buttonLightId)
             {
+                ToggleGroup* group = loopModule ? &(loopModule->reverseToggleGroup) : nullptr;
+
                 addToggleGroup(
+                    group,
                     "reverse",
                     inputId,
                     buttonParamId,
@@ -2300,7 +2303,10 @@ namespace Sapphire
 
                 void addFreezeToggleGroup()
                 {
+                    ToggleGroup* group = echoModule ? &(echoModule->freezeToggleGroup) : nullptr;
+
                     addToggleGroup(
+                        group,
                         "freeze",
                         FREEZE_INPUT,
                         FREEZE_BUTTON_PARAM,
@@ -2314,6 +2320,7 @@ namespace Sapphire
                 void addClearTriggerGroup()
                 {
                     addToggleGroup(
+                        nullptr,
                         "clear",
                         CLEAR_INPUT,
                         CLEAR_BUTTON_PARAM,

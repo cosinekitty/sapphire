@@ -1465,6 +1465,19 @@ namespace Sapphire
     };
 
 
+    struct ToggleGroupInputPort : SapphirePort
+    {
+        ToggleGroup* group = nullptr;
+
+        void appendContextMenu(ui::Menu* menu) override
+        {
+            SapphirePort::appendContextMenu(menu);
+            if (group)
+                group->addMenuItems(menu);
+        }
+    };
+
+
     class Stopwatch     // Similar to the System.Diagnostics.Stopwatch class in C#
     {
     private:
