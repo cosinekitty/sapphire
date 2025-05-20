@@ -1851,53 +1851,80 @@ namespace Sapphire
 
         static const std::vector<Fraction> MusicalFractions =
         {
-            { 1,  8, "1/32 note"   },
-            { 1,  6, "1/16 trip"   },
-            { 3, 16, "1/32 dot"    },
-            { 1,  4, "1/16 note"   },
-            { 1,  3, "1/8 trip"    },
-            { 3,  8, "1/16 dot"    },
-            { 1,  2, "1/8 note"    },
-            { 2,  3, "1/4 trip"    },
-            { 3,  4, "1/8 dot"     },
-            { 1,  1, "1/4 note"    },
-            { 4,  3, "1/2 trip"    },
-            { 3,  2, "1/4 dot"     },
-            { 2,  1, "1/2 note"    },
-            { 3,  1, "1/2 dot"     },
-            { 4,  1, "whole note"  },
-            { 6,  1, "whole dot"   },
-            { 8,  1, "double note" },
+            { 1,  8, "1/32 note"   },   //  0
+            { 1,  6, "1/16 trip"   },   //  1
+            { 3, 16, "1/32 dot"    },   //  2
+            { 1,  4, "1/16 note"   },   //  3
+            { 1,  3, "1/8 trip"    },   //  4
+            { 3,  8, "1/16 dot"    },   //  5
+            { 1,  2, "1/8 note"    },   //  6
+            { 2,  3, "1/4 trip"    },   //  7
+            { 3,  4, "1/8 dot"     },   //  8
+            { 1,  1, "1/4 note"    },   //  9
+            { 4,  3, "1/2 trip"    },   // 10
+            { 3,  2, "1/4 dot"     },   // 11
+            { 2,  1, "1/2 note"    },   // 12
+            { 3,  1, "1/2 dot"     },   // 13
+            { 4,  1, "whole note"  },   // 14
+            { 6,  1, "whole dot"   },   // 15
+            { 8,  1, "double note" },   // 16
         };
 
 
         const Fraction& PickClosestFraction(float ratio)
         {
+            // Hand-rolled decision tree.
+
             if (!std::isfinite(ratio) || ratio > 8.0)
                 return MusicalFractions.back();
 
             if (ratio <= 0.0)
                 return MusicalFractions.front();
 
-            // It makes things simple if we can snap to closest integers.
-            // We have 16 in a denominator and 3. Multiply 3*16 = 48.
-            const Fraction* best = nullptr;
-            float bestScore = 0;
-
-            for (const Fraction& frac : MusicalFractions)
+            int index = 0;
+            const float x = ratio * 48;     // least common multiple for our musical denominators
+            if (x < 42)
             {
-                float diff = std::abs(ratio - frac.value());
-                if (best==nullptr || diff<bestScore)
+                if (x < 17)
                 {
-                    bestScore = diff;
-                    best = &frac;
+                    if (x < 10.5)
+                    {
+                        if (x < 8.5)
+                            index = (x < 7) ? 0 : 1;
+                        else
+                            index = 2;
+                    }
+                    else
+                    {
+                        index = (x < 14) ? 3 : 4;
+                    }
+                }
+                else
+                {
+                    if (x < 28)
+                        index = (x < 21) ? 5 : 6;
+                    else
+                        index = (x < 34) ? 7 : 8;
                 }
             }
-
-            if (best == nullptr)
-                throw std::logic_error("How could I not find a fraction?");
-
-            return *best;
+            else
+            {
+                if (x < 120)
+                {
+                    if (x < 68)
+                        index = (x < 56) ? 9 : 10;
+                    else
+                        index = (x < 84) ? 11 : 12;
+                }
+                else
+                {
+                    if (x < 240)
+                        index = (x < 168) ? 13 : 14;
+                    else
+                        index = (x < 336) ? 15 : 16;
+                }
+            }
+            return MusicalFractions.at(index);
         }
 
 

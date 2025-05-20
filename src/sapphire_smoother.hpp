@@ -41,11 +41,6 @@ namespace Sapphire
             Smoother_initialize();
         }
 
-        bool isStable() const
-        {
-            return state == State::Stable;
-        }
-
         double getGain() const
         {
             return gain;
@@ -68,12 +63,12 @@ namespace Sapphire
 
         virtual double process(double sampleRateHz)
         {
-            if (isStable())
+            if (state == State::Stable)
             {
                 if (!changed())
                     return gain;
 
-                begin();
+                state = State::Fading;
             }
 
             trigger = false;
