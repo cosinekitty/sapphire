@@ -1134,7 +1134,9 @@ namespace Sapphire
                             graph->initialize();
                     }
                     float forward = q.loop.readForward() * clearSmoother.getGain();
-                    float reverse = q.loop.readReverse() * clearSmoother.getGain();
+                    float reverse = 0;
+                    if (reverseComboSmoother.isReverseNeeded())
+                        reverse = q.loop.readReverse() * clearSmoother.getGain();
                     q.loop.updateReversePlaybackHead();
 
                     constexpr float sensitivity = 1.0 / 5.0;  // A 5V change in CV should cause swing of 1 knob unit.

@@ -344,6 +344,11 @@ namespace Sapphire
                 mixerSample *= getGain();
                 feedSample  *= getGain();
             }
+
+            bool isReverseNeeded() const
+            {
+                return currentValue != ReverseFlipMode::Forward;
+            }
         };
 
 
