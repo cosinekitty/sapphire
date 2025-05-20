@@ -994,11 +994,6 @@ namespace Sapphire
                 }
             }
 
-            ChannelInfo& getChannelInfo(int c)
-            {
-                return SafeArray(info, PORT_MAX_CHANNELS, c);
-            }
-
             int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId, float sampleRateHz)
             {
                 soloFader.setTarget(params.at(soloButtonParamId).getValue() > 0.5f);
@@ -1098,13 +1093,13 @@ namespace Sapphire
 
                 for (int c = 0; c < nc; ++c)
                 {
-                    ChannelInfo& q = getChannelInfo(c);
+                    ChannelInfo& q = info[c];
 
                     if (controls.clockInputId < 0)
-                        vClock = message.clockVoltage.at(c);
+                        vClock = message.clockVoltage.sample[c];
                     else
                         vClock = nextChannelInputVoltage(vClock, controls.clockInputId, c);
-                    result.clockVoltage.at(c) = vClock;
+                    result.clockVoltage.sample[c] = vClock;
                     if (q.clockReceiver.updateTrigger(vClock))
                     {
                         // Clock sync. Measure the most recent time interval in samples.
@@ -1147,18 +1142,18 @@ namespace Sapphire
                     reverseComboSmoother.select(
                         forward,
                         reverse,
-                        result.envelopeAudio.at(c),
-                        result.chainAudioOutput.at(c)
+                        result.envelopeAudio.sample[c],
+                        result.chainAudioOutput.sample[c]
                     );
 
                     if (sendReturnLocationSmoother.currentValue == SendReturnLocation::AfterDelay)
                     {
-                        writeSample(srSmooth * result.envelopeAudio.at(c), sendLeft, sendRight, c, nc, message.polyphonic);
-                        result.envelopeAudio.at(c) = readSample(result.envelopeAudio.at(c), returnLeft, returnRight, c);
+                        writeSample(srSmooth * result.envelopeAudio.sample[c], sendLeft, sendRight, c, nc, message.polyphonic);
+                        result.envelopeAudio.sample[c] = readSample(result.envelopeAudio.sample[c], returnLeft, returnRight, c);
                     }
-                    result.envelopeAudio.at(c) *= srSmooth;
+                    result.envelopeAudio.sample[c] *= srSmooth;
 
-                    result.globalAudioOutput.at(c) = gain * result.envelopeAudio.at(c);
+                    result.globalAudioOutput.sample[c] = gain * result.envelopeAudio.sample[c];
 
                     float feedbackSample;
                     if (loopback)
@@ -1171,7 +1166,7 @@ namespace Sapphire
                     {
                         // In parallel mode, or in serial mode when there is a single tap,
                         // feedback comes from the same tap's chain output.
-                        feedbackSample = result.chainAudioOutput.at(c);
+                        feedbackSample = result.chainAudioOutput.sample[c];
                     }
                     else
                     {
