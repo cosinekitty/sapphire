@@ -1090,6 +1090,7 @@ namespace Sapphire
                 // It makes the code simpler to pretend like we are in parallel mode in that case.
                 const bool parallelMode = isSingleTap || (message.inputRouting == TapInputRouting::Parallel);
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
+                const bool clocked = isActivelyClocked();
 
                 for (int c = 0; c < nc; ++c)
                 {
@@ -1100,28 +1101,49 @@ namespace Sapphire
                     else
                         vClock = nextChannelInputVoltage(vClock, controls.clockInputId, c);
                     result.clockVoltage.sample[c] = vClock;
-                    if (q.clockReceiver.updateTrigger(vClock))
-                    {
-                        // Clock sync. Measure the most recent time interval in samples.
-                        float raw = q.samplesSinceClockTrigger / sampleRateHz;
-                        q.clockSyncTime = std::clamp(raw, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
-                        q.samplesSinceClockTrigger = 0;
-                    }
-                    else
-                    {
-                        ++q.samplesSinceClockTrigger;
-                    }
+
 
                     // Assume the delay time is in seconds.
                     float delayTime = TwoToPower(controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     // But it might be a dimensionless clock multiplier instead.
-                    if (q.clockSyncTime > 0 && isActivelyClocked())
+                    if (clocked)
                     {
-                        // Are musical intervals enabled? If so, snap to closest fraction.
-                        if (isMusicalInterval)
-                            delayTime = PickClosestFraction(delayTime).value();
-                        delayTime *= q.clockSyncTime;
+                        if (q.clockReceiver.updateTrigger(vClock))
+                        {
+                            float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
+                            if (q.clockTriggerCount < 1)
+                            {
+                                ++q.clockTriggerCount;
+                            }
+                            else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
+                            {
+                                q.clockTriggerCount = 0;
+                            }
+                            else
+                            {
+                                q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                            }
+                            q.samplesSinceClockTrigger = 0;
+                        }
+                        else
+                        {
+                            ++q.samplesSinceClockTrigger;
+                        }
+
+                        if (q.clockSyncTime > 0)
+                        {
+                            // Are musical intervals enabled? If so, snap to closest fraction.
+                            if (isMusicalInterval)
+                                delayTime = PickClosestFraction(delayTime).value();
+                            delayTime *= q.clockSyncTime;
+                        }
+                    }
+                    else
+                    {
+                        q.samplesSinceClockTrigger = 0;
+                        q.clockTriggerCount = 0;
+                        q.clockSyncTime = 0;
                     }
 
                     delayTimeSum += delayTime;
