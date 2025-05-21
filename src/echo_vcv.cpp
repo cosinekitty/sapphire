@@ -26,6 +26,7 @@ namespace Sapphire
             TimeMode* mode = nullptr;     // should point into the module, when the module exists
             bool* isClockConnected = nullptr;
             bool* isMusicalInterval = nullptr;
+            int* deadClockCountdown = nullptr;
 
             TimeMode getMode() const
             {
@@ -40,6 +41,11 @@ namespace Sapphire
             bool snapMusicalIntervals() const
             {
                 return isMusicalInterval && *isMusicalInterval;
+            }
+
+            bool isClockWarningEnabled() const
+            {
+                return deadClockCountdown && (*deadClockCountdown > 0);
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -90,7 +96,11 @@ namespace Sapphire
                 float y2 = ym + dy;
 
                 const NVGcolor inactiveColor = nvgRGB(0x90, 0x90, 0x90);
-                const NVGcolor color = isClockCableConnected() ? SCHEME_CYAN : inactiveColor;
+                const NVGcolor happyColor = SCHEME_CYAN;
+                const NVGcolor warningColor = SCHEME_RED;
+                NVGcolor color = inactiveColor;
+                if (isClockCableConnected())
+                    color = isClockWarningEnabled() ? warningColor : happyColor;
 
                 nvgBeginPath(vg);
                 nvgMoveTo(vg, x1, y1);
@@ -786,6 +796,7 @@ namespace Sapphire
             bool unhappy = false;
             bool isClockConnected = false;
             bool isMusicalInterval = false;
+            int deadClockCountdown = 0;
             TimeMode timeMode = TimeMode::Seconds;
             ToggleGroup reverseToggleGroup;
             ChannelInfo info[PORT_MAX_CHANNELS];
@@ -841,6 +852,7 @@ namespace Sapphire
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
                 totalSoloCount = 0;
+                deadClockCountdown = 0;
                 if (graph)
                     graph->initialize();
             }
@@ -1092,6 +1104,7 @@ namespace Sapphire
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
                 const bool clocked = isActivelyClocked();
 
+                int numDeadClocks = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = info[c];
@@ -1102,16 +1115,15 @@ namespace Sapphire
                         vClock = nextChannelInputVoltage(vClock, controls.clockInputId, c);
                     result.clockVoltage.sample[c] = vClock;
 
-
                     // Assume the delay time is in seconds.
                     float delayTime = TwoToPower(controlGroupRawCv(c, cvDelayTime, controls.delayTime, L1, L2));
 
                     // But it might be a dimensionless clock multiplier instead.
                     if (clocked)
                     {
+                        float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
                         if (q.clockReceiver.updateTrigger(vClock))
                         {
-                            float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
                             if (q.clockTriggerCount < 1)
                             {
                                 ++q.clockTriggerCount;
@@ -1129,6 +1141,8 @@ namespace Sapphire
                         else
                         {
                             ++q.samplesSinceClockTrigger;
+                            if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
+                                ++numDeadClocks;
                         }
 
                         if (q.clockSyncTime > 0)
@@ -1213,6 +1227,11 @@ namespace Sapphire
                     if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
                         ++unhappyCount;
                 }
+
+                if (numDeadClocks > 0)
+                    deadClockCountdown = static_cast<int>(sampleRateHz / 2);
+                else if (deadClockCountdown > 0)
+                    --deadClockCountdown;
 
                 if (graph && nc>0 && delayTimeSum>0)
                 {
@@ -1821,6 +1840,7 @@ namespace Sapphire
                     tk->mode = &(lmod->timeMode);
                     tk->isClockConnected = &(lmod->isClockConnected);
                     tk->isMusicalInterval = &(lmod->isMusicalInterval);
+                    tk->deadClockCountdown = &(lmod->deadClockCountdown);
                 }
                 return tk;
             }
@@ -2436,8 +2456,14 @@ namespace Sapphire
                     // have an active clock sync.
                     // Otherwise it should be opaque black on the panel layer.
                     LoopWidget::drawLayer(args, layer);
-                    if (layer == 1 && isClockPortConnected())
-                        drawClockSyncSymbol(args.vg, SCHEME_CYAN, 1.25);
+
+                    if (layer==1 && isClockPortConnected())
+                    {
+                        const NVGcolor happyColor = SCHEME_CYAN;
+                        const NVGcolor warningColor = SCHEME_RED;
+                        NVGcolor color = (echoModule->deadClockCountdown > 0) ? warningColor : happyColor;
+                        drawClockSyncSymbol(args.vg, color, 1.25);
+                    }
                 }
 
                 void draw(const DrawArgs& args) override
