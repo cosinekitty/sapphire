@@ -134,7 +134,7 @@ namespace Sapphire
             TapeLoop loop;
             GateTriggerReceiver clockReceiver;
             int samplesSinceClockTrigger = 0;
-            int clockTriggerCount = 0;
+            bool isReceivingTriggers = false;
             float clockSyncTime = 0;
             EnvelopeFollower env;
 
@@ -143,7 +143,7 @@ namespace Sapphire
                 loop.initialize();
                 clockReceiver.initialize();
                 samplesSinceClockTrigger = 0;
-                clockTriggerCount = 0;
+                isReceivingTriggers = false;
                 env.initialize();
                 clockSyncTime = 0;
             }

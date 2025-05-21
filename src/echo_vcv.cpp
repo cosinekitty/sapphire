@@ -17,35 +17,65 @@ namespace Sapphire
         {
             Seconds,
             ClockSync,
-            LEN
+            LEN,
+
+            Default = Seconds,
         };
+
+
+        struct TimeKnobInfo
+        {
+            TimeMode timeMode = TimeMode::Default;
+            bool isMusicalInterval = false;
+            bool isClockConnected = false;
+            int deadClockCountdown = 0;
+            bool isReceivingClockTriggers = false;
+
+            void initialize()
+            {
+                timeMode = TimeMode::Default;
+                isClockConnected = false;
+                isMusicalInterval = false;
+                deadClockCountdown = 0;
+                isReceivingClockTriggers = false;
+            }
+
+            NVGcolor color() const
+            {
+                if (deadClockCountdown > 0)
+                    return SCHEME_RED;
+
+                if (isReceivingClockTriggers)
+                    return SCHEME_CYAN;
+
+                return nvgRGB(0xb0, 0xb0, 0x90);
+            }
+        };
+
 
         using time_knob_base_t = RoundSmallBlackKnob;
         struct TimeKnob : time_knob_base_t
         {
-            TimeMode* mode = nullptr;     // should point into the module, when the module exists
-            bool* isClockConnected = nullptr;
-            bool* isMusicalInterval = nullptr;
-            int* deadClockCountdown = nullptr;
+            TimeKnobInfo* info = nullptr;
 
             TimeMode getMode() const
             {
-                return mode ? *mode : TimeMode::Seconds;
+                return info ? info->timeMode : TimeMode::Default;
             }
 
             bool isClockCableConnected() const
             {
-                return isClockConnected && *isClockConnected;
+                return info && info->isClockConnected;
             }
 
             bool snapMusicalIntervals() const
             {
-                return isMusicalInterval && *isMusicalInterval;
+                return info && info->isMusicalInterval;
             }
 
             bool isClockWarningEnabled() const
             {
-                return deadClockCountdown && (*deadClockCountdown > 0);
+                return info && (info->deadClockCountdown > 0);
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -95,12 +125,7 @@ namespace Sapphire
                 float y1 = ym - dy;
                 float y2 = ym + dy;
 
-                const NVGcolor inactiveColor = nvgRGB(0x90, 0x90, 0x90);
-                const NVGcolor happyColor = SCHEME_CYAN;
-                const NVGcolor warningColor = SCHEME_RED;
-                NVGcolor color = inactiveColor;
-                if (isClockCableConnected())
-                    color = isClockWarningEnabled() ? warningColor : happyColor;
+                const NVGcolor color = info ? info->color() : nvgRGB(0x90, 0x90, 0x90);
 
                 nvgBeginPath(vg);
                 nvgMoveTo(vg, x1, y1);
@@ -115,18 +140,18 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (mode == nullptr)
-                    return;
-
-                menu->addChild(new MenuSeparator);
-                menu->addChild(createEnumMenuItem(
-                    "Time mode",
-                    {
-                        "Seconds",
-                        "Clock sync"
-                    },
-                    *mode
-                ));
+                if (info)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(createEnumMenuItem(
+                        "Time mode",
+                        {
+                            "Seconds",
+                            "Clock sync"
+                        },
+                        info->timeMode
+                    ));
+                }
             }
         };
 
@@ -793,11 +818,9 @@ namespace Sapphire
         {
             const float L1 = std::log2(TAPELOOP_MIN_DELAY_SECONDS);
             const float L2 = std::log2(TAPELOOP_MAX_DELAY_SECONDS);
-            bool unhappy = false;
-            bool isClockConnected = false;
-            bool isMusicalInterval = false;
-            int deadClockCountdown = 0;
-            TimeMode timeMode = TimeMode::Seconds;
+            bool recordingLevelOverflow = false;
+            TimeKnob* timeKnob = nullptr;
+            TimeKnobInfo timeKnobInfo;
             ToggleGroup reverseToggleGroup;
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
@@ -828,18 +851,24 @@ namespace Sapphire
 
             virtual ~LoopModule()
             {
+                // Before this object is freed, sever links from widgets into its memory.
+                // Otherwise, the widgets can access freed memory, causing crashes/hangs.
+
                 if (graph)
                     graph->loopModule = nullptr;
+
+                if (timeKnob)
+                    timeKnob->info = nullptr;
             }
 
             void LoopModule_initialize()
             {
-                timeMode = TimeMode::Seconds;
+                timeKnobInfo.initialize();
                 reverseComboSmoother.initialize();
                 reverseToggleGroup.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     info[c].initialize();
-                unhappy = false;
+                recordingLevelOverflow = false;
                 clearSmoother.initialize();
                 sendReturnLocationSmoother.initialize();
                 polyphonicEnvelopeOutput = false;
@@ -852,7 +881,6 @@ namespace Sapphire
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
                 totalSoloCount = 0;
-                deadClockCountdown = 0;
                 if (graph)
                     graph->initialize();
             }
@@ -929,7 +957,7 @@ namespace Sapphire
                 // Actively clocked means both are true:
                 // 1. The user enabled clocking on this tape loop.
                 // 2. There is a cable connected to the CLOCK input port.
-                return (timeMode == TimeMode::ClockSync) && isClockConnected;
+                return (timeKnobInfo.timeMode == TimeMode::ClockSync) && timeKnobInfo.isClockConnected;
             }
 
             void updateReverseState(int inputId, int buttonParamId, int lightId, float sampleRateHz)
@@ -945,7 +973,7 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = MultiTapModule::dataToJson();
-                jsonSetEnum(root, "timeMode", timeMode);
+                jsonSetEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonSetBool(root, "flip", flip);
                 jsonSetBool(root, "duck", duck);
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
@@ -957,7 +985,7 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 MultiTapModule::dataFromJson(root);
-                jsonLoadEnum(root, "timeMode", timeMode);
+                jsonLoadEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonLoadBool(root, "flip", flip);
                 jsonLoadBool(root, "duck", duck);
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
@@ -1105,6 +1133,7 @@ namespace Sapphire
                 const bool clocked = isActivelyClocked();
 
                 int numDeadClocks = 0;
+                int numReceivingTriggers = 0;
                 for (int c = 0; c < nc; ++c)
                 {
                     ChannelInfo& q = info[c];
@@ -1124,19 +1153,19 @@ namespace Sapphire
                         float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
                         if (q.clockReceiver.updateTrigger(vClock))
                         {
-                            if (q.clockTriggerCount < 1)
+                            q.samplesSinceClockTrigger = 0;
+                            if (!q.isReceivingTriggers)
                             {
-                                ++q.clockTriggerCount;
+                                q.isReceivingTriggers = true;
                             }
                             else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
                             {
-                                q.clockTriggerCount = 0;
+                                q.isReceivingTriggers = false;
                             }
                             else
                             {
                                 q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                             }
-                            q.samplesSinceClockTrigger = 0;
                         }
                         else
                         {
@@ -1148,15 +1177,18 @@ namespace Sapphire
                         if (q.clockSyncTime > 0)
                         {
                             // Are musical intervals enabled? If so, snap to closest fraction.
-                            if (isMusicalInterval)
+                            if (timeKnobInfo.isMusicalInterval)
                                 delayTime = PickClosestFraction(delayTime).value();
                             delayTime *= q.clockSyncTime;
                         }
+
+                        if (q.isReceivingTriggers)
+                            ++numReceivingTriggers;
                     }
                     else
                     {
                         q.samplesSinceClockTrigger = 0;
-                        q.clockTriggerCount = 0;
+                        q.isReceivingTriggers = false;
                         q.clockSyncTime = 0;
                     }
 
@@ -1229,9 +1261,11 @@ namespace Sapphire
                 }
 
                 if (numDeadClocks > 0)
-                    deadClockCountdown = static_cast<int>(sampleRateHz / 2);
-                else if (deadClockCountdown > 0)
-                    --deadClockCountdown;
+                    timeKnobInfo.deadClockCountdown = static_cast<int>(sampleRateHz / 4);
+                else if (timeKnobInfo.deadClockCountdown > 0)
+                    --timeKnobInfo.deadClockCountdown;
+
+                timeKnobInfo.isReceivingClockTriggers = (numReceivingTriggers > 0);
 
                 if (graph && nc>0 && delayTimeSum>0)
                 {
@@ -1241,7 +1275,7 @@ namespace Sapphire
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
-                unhappy = (unhappyCount > 0);
+                recordingLevelOverflow = (unhappyCount > 0);
                 return result;
             }
 
@@ -1812,7 +1846,7 @@ namespace Sapphire
                         if (lmod->neonMode)
                             drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, neonColor);
 
-                        if (lmod->unhappy)
+                        if (lmod->recordingLevelOverflow)
                             splash.begin(0xb0, 0x10, 0x00);
                     }
                 }
@@ -1831,18 +1865,15 @@ namespace Sapphire
                 }
             }
 
-            TimeKnob* addTimeControlGroup(int paramId, int attenId, int cvInputId)
+            void addTimeControlGroup(int paramId, int attenId, int cvInputId)
             {
-                TimeKnob* tk = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
+                TimeKnob* timeKnob = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
                 auto lmod = dynamic_cast<LoopModule*>(module);
                 if (lmod)
                 {
-                    tk->mode = &(lmod->timeMode);
-                    tk->isClockConnected = &(lmod->isClockConnected);
-                    tk->isMusicalInterval = &(lmod->isMusicalInterval);
-                    tk->deadClockCountdown = &(lmod->deadClockCountdown);
+                    lmod->timeKnob = timeKnob;
+                    timeKnob->info = &(lmod->timeKnobInfo);
                 }
-                return tk;
             }
 
             EnvelopeOutputPort* addEnvelopeOutput(int outputId)
@@ -1981,7 +2012,7 @@ namespace Sapphire
             {
                 if (lmod->isActivelyClocked())
                 {
-                    if (lmod->isMusicalInterval)
+                    if (lmod->timeKnobInfo.isMusicalInterval)
                     {
                         const Fraction& frac = PickClosestFraction(value);
                         return "CLOCK x " + frac.format();
@@ -2170,7 +2201,7 @@ namespace Sapphire
                     Message outMessage;
                     const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
                     totalSoloCount = inBackMessage.soloCount;
-                    isMusicalInterval = outMessage.musicalInterval = (params.at(INTERVAL_BUTTON_PARAM).getValue() > 0.5);
+                    timeKnobInfo.isMusicalInterval = outMessage.musicalInterval = (params.at(INTERVAL_BUTTON_PARAM).getValue() > 0.5);
                     outMessage.routingSmooth = routingSmoother.process(args.sampleRate);
                     outMessage.inputRouting = routingSmoother.currentValue;
                     outMessage.polyphonic = polyphonicMode();
@@ -2180,7 +2211,7 @@ namespace Sapphire
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate, outMessage.polyphonic, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
-                    isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
+                    timeKnobInfo.isClockConnected = outMessage.isClockConnected = inputs.at(CLOCK_INPUT).isConnected();
                     outMessage.interpolatorKind = interpolatorKind;
                     TapeLoopResult result = updateTapeLoops(outMessage.originalAudio, args.sampleRate, outMessage, inBackMessage);
                     result.globalAudioOutput *= updateMuteState(args.sampleRate, MUTE_BUTTON_PARAM);
@@ -2459,9 +2490,7 @@ namespace Sapphire
 
                     if (layer==1 && isClockPortConnected())
                     {
-                        const NVGcolor happyColor = SCHEME_CYAN;
-                        const NVGcolor warningColor = SCHEME_RED;
-                        NVGcolor color = (echoModule->deadClockCountdown > 0) ? warningColor : happyColor;
+                        NVGcolor color = echoModule->timeKnobInfo.color();
                         drawClockSyncSymbol(args.vg, color, 1.25);
                     }
                 }
@@ -2646,7 +2675,7 @@ namespace Sapphire
                     const int clockCount = tallyTaps(
                         [](const LoopModule *lmod)
                         {
-                            return lmod->timeMode == TimeMode::ClockSync;
+                            return lmod->timeKnobInfo.timeMode == TimeMode::ClockSync;
                         }
                     );
 
@@ -2658,7 +2687,7 @@ namespace Sapphire
 
                     visitTaps([=](LoopModule *lmod)
                     {
-                        lmod->timeMode = timeMode;
+                        lmod->timeKnobInfo.timeMode = timeMode;
                     });
                 }
             };
@@ -2845,7 +2874,7 @@ namespace Sapphire
                     auto emod = dynamic_cast<Echo::EchoModule*>(other);
                     if (emod)
                     {
-                        timeMode = emod->timeMode;
+                        timeKnobInfo = emod->timeKnobInfo;
                         polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
                         flip = emod->flip;
                         duck = emod->duck;
@@ -2872,9 +2901,9 @@ namespace Sapphire
 
                     // Copy input to output by default, then patch whatever is different.
                     Message outMessage = inMessage;
-                    isMusicalInterval = inMessage.musicalInterval;
+                    timeKnobInfo.isMusicalInterval = inMessage.musicalInterval;
                     chainIndex = inMessage.chainIndex;
-                    isClockConnected = inMessage.isClockConnected;
+                    timeKnobInfo.isClockConnected = inMessage.isClockConnected;
                     includeNeonModeMenuItem = !inMessage.valid;
 
                     if (inMessage.valid)
