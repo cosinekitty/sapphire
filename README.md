@@ -36,6 +36,16 @@ hexagonal mesh of balls and springs.
 
 ---
 
+## Echo
+
+A customizable multi-tap delay that lets you build your own unique delay setup, one tap at a time.
+
+<a href="doc/Echo.md">Sapphire Echo documentation</a>
+
+<a href="doc/Echo.md"><img src="doc/images/echo.png" /></a>
+
+---
+
 ## Env
 
 A polyphonic envelope follower and pitch detector.
