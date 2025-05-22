@@ -2090,7 +2090,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
     yFreezeControl = yLoopFence.value(2.25)
     yClearControl = yLoopFence.value(3.0)
-    yClockControls = yLoopFence.value(4.25)
+    yClockControls = yLoopFence.value(4.1)
     dyClockButtons = 2.5
     yClockButton    = yClockControls - dyClockButtons
     yIntervalButton = yClockControls + dyClockButtons
