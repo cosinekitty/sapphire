@@ -842,6 +842,7 @@ namespace Sapphire
             Crossfader soloFader;
             GraphWidget* graph = nullptr;
             int totalSoloCount = 0;
+            ClockSignalFormat clockSignalFormat = ClockSignalFormat::Default;
 
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
@@ -881,8 +882,8 @@ namespace Sapphire
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
                 totalSoloCount = 0;
-                if (graph)
-                    graph->initialize();
+                if (graph) graph->initialize();
+                clockSignalFormat = ClockSignalFormat::Default;
             }
 
             void initialize() override
@@ -1150,28 +1151,35 @@ namespace Sapphire
                     // But it might be a dimensionless clock multiplier instead.
                     if (clocked)
                     {
-                        float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
-                        if (q.clockReceiver.updateTrigger(vClock))
+                        if (clockSignalFormat == ClockSignalFormat::Pulses)
                         {
-                            q.samplesSinceClockTrigger = 0;
-                            if (!q.isReceivingTriggers)
+                            float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
+                            if (q.clockReceiver.updateTrigger(vClock))
                             {
-                                q.isReceivingTriggers = true;
-                            }
-                            else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
-                            {
-                                q.isReceivingTriggers = false;
+                                q.samplesSinceClockTrigger = 0;
+                                if (!q.isReceivingTriggers)
+                                    q.isReceivingTriggers = true;
+                                else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
+                                    q.isReceivingTriggers = false;
+                                else
+                                    q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                             }
                             else
                             {
-                                q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                                ++q.samplesSinceClockTrigger;
+                                if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
+                                    ++numDeadClocks;
                             }
+
+                            if (q.isReceivingTriggers)
+                                ++numReceivingTriggers;
                         }
-                        else
+                        else    // assume ClockSignalFormat::Voct
                         {
-                            ++q.samplesSinceClockTrigger;
-                            if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
-                                ++numDeadClocks;
+                            float timeSeconds = TwoToPower(-vClock);    // delay time goes down as V/OCT increases, so that frequency goes UP
+                            q.clockSyncTime = std::clamp(timeSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                            q.isReceivingTriggers = true;
+                            ++numReceivingTriggers;
                         }
 
                         if (q.clockSyncTime > 0)
@@ -1181,9 +1189,6 @@ namespace Sapphire
                                 delayTime = PickClosestFraction(delayTime).value();
                             delayTime *= q.clockSyncTime;
                         }
-
-                        if (q.isReceivingTriggers)
-                            ++numReceivingTriggers;
                     }
                     else
                     {
@@ -1451,37 +1456,14 @@ namespace Sapphire
                 : MultiTapWidget(moduleCode, panelSvgFileName)
                 , loopModule(lmod)
             {
-                revLabel = SvgOverlay::Load(revSvgFileName);
-                addChild(revLabel);
-                revLabel->hide();
-
-                revSelLabel = SvgOverlay::Load(revSelSvgFileName);
-                addChild(revSelLabel);
-                revSelLabel->hide();
-
-                flpLabel = SvgOverlay::Load(flpSvgFileName);
-                addChild(flpLabel);
-                flpLabel->hide();
-
-                flpSelLabel = SvgOverlay::Load(flpSelSvgFileName);
-                addChild(flpSelLabel);
-                flpSelLabel->hide();
-
-                envLabel = SvgOverlay::Load(envSvgFileName);
-                addChild(envLabel);
-                envLabel->hide();
-
-                envSelLabel = SvgOverlay::Load(envSelSvgFileName);
-                addChild(envSelLabel);
-                envSelLabel->hide();
-
-                invLabel = SvgOverlay::Load(invSvgFileName);
-                addChild(invLabel);
-                invLabel->hide();
-
-                invSelLabel = SvgOverlay::Load(invSelSvgFileName);
-                addChild(invSelLabel);
-                invSelLabel->hide();
+                revLabel    = addLabelOverlay(revSvgFileName);
+                revSelLabel = addLabelOverlay(revSelSvgFileName);
+                flpLabel    = addLabelOverlay(flpSvgFileName);
+                flpSelLabel = addLabelOverlay(flpSelSvgFileName);
+                envLabel    = addLabelOverlay(envSvgFileName);
+                envSelLabel = addLabelOverlay(envSelSvgFileName);
+                invLabel    = addLabelOverlay(invSvgFileName);
+                invSelLabel = addLabelOverlay(invSelSvgFileName);
 
                 ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
                 flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
@@ -1503,6 +1485,14 @@ namespace Sapphire
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
                 destroyTooltip(envDuckTooltip);
+            }
+
+            SvgOverlay* addLabelOverlay(const std::string& svgFileName)
+            {
+                SvgOverlay* overlay = SvgOverlay::Load(svgFileName);
+                addChild(overlay);
+                overlay->hide();
+                return overlay;
             }
 
             virtual void resetTapAction() = 0;
@@ -1701,7 +1691,7 @@ namespace Sapphire
                 return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
             }
 
-            void onMousePress(const ButtonEvent& e)
+            virtual void onMousePress(const ButtonEvent& e)
             {
                 auto lmod = dynamic_cast<LoopModule*>(module);
                 if (lmod)
@@ -2220,6 +2210,7 @@ namespace Sapphire
                     outMessage.soloCount = updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM, args.sampleRate);
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
+                    outMessage.clockSignalFormat = clockSignalFormat;
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
                 }
@@ -2242,6 +2233,7 @@ namespace Sapphire
                     routingSmoother.jsonSave(root);
                     freezeToggleGroup.jsonSave(root);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
+                    jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
                     return root;
                 }
 
@@ -2251,6 +2243,7 @@ namespace Sapphire
                     routingSmoother.jsonLoad(root);
                     freezeToggleGroup.jsonLoad(root);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
+                    jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
                 }
 
                 Frame getFeedbackPoly()
@@ -2303,10 +2296,17 @@ namespace Sapphire
                 }
             };
 
+
             struct EchoWidget : LoopWidget
             {
                 EchoModule* echoModule{};
                 int creationCountdown = 8;
+                SvgOverlay* clockLabel = nullptr;
+                SvgOverlay* clockSelLabel = nullptr;
+                SvgOverlay* voctLabel = nullptr;
+                SvgOverlay* voctSelLabel = nullptr;
+                Vec clockLabelPos;
+                bool isMouseInsideClockLabel = false;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2327,6 +2327,7 @@ namespace Sapphire
                     splash.x1 = 6 * HP_MM;
                     setModule(module);
                     addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addLabelOverlays();
 
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
@@ -2351,6 +2352,38 @@ namespace Sapphire
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
                     addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
+
+                    ComponentLocation labelLoc = FindComponent(modcode, "clock_label");
+                    clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
+                }
+
+                bool isInsideClockLabel(Vec pos) const
+                {
+                    const float dx = pos.x - clockLabelPos.x;
+                    const float dy = pos.y - clockLabelPos.y;
+                    const float width  = mm2px(8.0);
+                    const float height = mm2px(3.0);
+                    return (std::abs(dx) < width/2) && (std::abs(dy) < height/2);
+                }
+
+                void addLabelOverlays()
+                {
+                    clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"));
+                    clockSelLabel = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock_sel.svg"));
+                    voctLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
+                    voctSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
+                }
+
+                void onHover(const HoverEvent& e) override
+                {
+                    LoopWidget::onHover(e);
+                    isMouseInsideClockLabel = isInsideClockLabel(e.pos);
+                }
+
+                void onLeave(const LeaveEvent& e) override
+                {
+                    LoopWidget::onLeave(e);
+                    isMouseInsideClockLabel = false;
                 }
 
                 void resetTapAction() override
@@ -2508,23 +2541,40 @@ namespace Sapphire
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
                 }
 
+                void onMousePress(const ButtonEvent& e) override
+                {
+                    LoopWidget::onMousePress(e);
+                    if (echoModule)
+                    {
+                        if (isInsideClockLabel(e.pos))
+                            echoModule->clockSignalFormat = NextEnumValue(echoModule->clockSignalFormat);
+                    }
+                }
+
                 void step() override
                 {
                     LoopWidget::step();
 
                     if (echoModule)
+                    {
                         echoModule->updateToggleButtonTooltip(INPUT_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
 
-                    // Automatically add an EchoOut expander when we first insert Echo.
-                    // But we have to wait more than one step call, because otherwise
-                    // it screws up the undo/redo history stack.
+                        clockLabel   ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
+                        clockSelLabel->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
+                        voctLabel    ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
+                        voctSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
 
-                    if (module && creationCountdown > 0)
-                    {
-                        --creationCountdown;
-                        if (creationCountdown == 0)
-                            if (!IsEchoReceiver(module->rightExpander.module))
-                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
+                        // Automatically add an EchoOut expander when we first insert Echo.
+                        // But we have to wait more than one step call, because otherwise
+                        // it screws up the undo/redo history stack.
+
+                        if (creationCountdown > 0)
+                        {
+                            --creationCountdown;
+                            if (creationCountdown == 0)
+                                if (!IsEchoReceiver(module->rightExpander.module))
+                                    AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
+                        }
                     }
                 }
 
@@ -2878,6 +2928,7 @@ namespace Sapphire
                         polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
                         flip = emod->flip;
                         duck = emod->duck;
+                        clockSignalFormat = emod->clockSignalFormat;
                         flipControlsAreDirty = true;
                         sendReturnControlsAreDirty = true;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
@@ -2905,6 +2956,7 @@ namespace Sapphire
                     chainIndex = inMessage.chainIndex;
                     timeKnobInfo.isClockConnected = inMessage.isClockConnected;
                     includeNeonModeMenuItem = !inMessage.valid;
+                    clockSignalFormat = inMessage.clockSignalFormat;
 
                     if (inMessage.valid)
                         neonMode = inMessage.neonMode;

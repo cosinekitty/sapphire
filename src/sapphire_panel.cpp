@@ -32,6 +32,7 @@ namespace Sapphire
             {"clear_input",            {   6.240,   60.250}},
             {"clock_button",           {  25.240,   73.975}},
             {"clock_input",            {  15.240,   76.475}},
+            {"clock_label",            {  15.240,   69.475}},
             {"env_gain_knob",          {  36.720,  115.000}},
             {"env_output",             {  54.720,  115.000}},
             {"feedback_atten",         {  10.240,   37.325}},

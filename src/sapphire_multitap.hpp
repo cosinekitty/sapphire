@@ -171,6 +171,15 @@ namespace Sapphire
             }
         }
 
+        enum class ClockSignalFormat
+        {
+            Pulses,     // interval between rising edges defines the delay time
+            Voct,       // V/OCT signal where 0 volts = 1 Hz.
+            LEN,
+
+            Default = Pulses
+        };
+
         struct Message      // data that flows through the expander chain left-to-right.
         {
             bool valid = false;
@@ -185,6 +194,7 @@ namespace Sapphire
             float freezeMix = 0;        // 0=thawed, 1=frozen, in between for linear crossfade
             bool clear = false;
             bool isClockConnected = false;
+            ClockSignalFormat clockSignalFormat = ClockSignalFormat::Default;
             bool neonMode = false;
             TapInputRouting inputRouting = TapInputRouting::Default;
             float routingSmooth = 1;    // ducking factor just before/after changing inputRouting

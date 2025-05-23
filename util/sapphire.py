@@ -90,9 +90,9 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     insignia = Element('g', 'sapphire_insignia')
     gemSpacing = 3.0
     sapphireTextItem = TextItem('sapphire', font, BRAND_NAME_POINTS)
-    (sdx, sdy) = sapphireTextItem.measure()
+    (sdx, _) = sapphireTextItem.measure()
     modelTextItem = TextItem(modelName, font, MODEL_NAME_POINTS)
-    (mdx, mdy) = modelTextItem.measure()
+    (mdx, _) = modelTextItem.measure()
     # Render "* sapphire * model *", where * = gemstone.
     # We center this at the top of the panel.
     gdx = SapphireGemstone.mmWidth + gemSpacing

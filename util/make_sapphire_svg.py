@@ -2051,6 +2051,12 @@ def SaveRectangleCaption(svgFileName:str, font:Font, caption:str, mmWidth:float,
     return Save(panel, svgFileName)
 
 
+def SaveTextCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float, style:str = CONTROL_LABEL_STYLE) -> int:
+    panel = BasePanel(mmWidth, mmHeight)
+    panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter, style = style))
+    return Save(panel, svgFileName)
+
+
 def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:float) -> None:
     dx = 4.0
     dy = 4.0
@@ -2146,7 +2152,15 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         controls.append(Component('clock_input', xClockInput, yClockControls))
         controls.append(Component('clock_button', xClockButtons, yClockButton))
         controls.append(Component('interval_button', xClockButtons, yIntervalButton))
-        pl.append(CenteredControlTextPath(font, 'CLOCK', xGlobalCenter, yClockControls - 7.0))
+
+        yClockLabel = yClockControls - 7.0
+        if (
+            SaveTextCaption(SvgFileName('echo_clock',     Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
+            SaveTextCaption(SvgFileName('echo_clock_sel', Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR) or
+            SaveTextCaption(SvgFileName('echo_voct',      Target.VcvRack), font, 'V/OCT', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
+            SaveTextCaption(SvgFileName('echo_voct_sel',  Target.VcvRack), font, 'V/OCT', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+        controls.append(Component('clock_label', xGlobalCenter, yClockLabel))
 
         AddGraphCorners(controls, xControlCenter)
 
