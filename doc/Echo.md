@@ -207,3 +207,26 @@ The input ports for FRZ (freeze) and CLR (clear) are **not** polyphonic. They su
 When controlling the FRZ or REV controls using **gate mode** input voltages, you can click the associated push-button to toggle whether the gate must be high or low in order for the control to be active, that is, for the button to glow and the control to freeze or reverse audio. This is known as "exclusive-OR" or "XOR" boolean logic. This feature is handy to provide more flexibility in how you use your gate inputs.
 
 In **trigger mode**, pressing the button toggles the current state of the control, just like another trigger had arrived on the input port.
+
+#### V/OCT input for CLOCK
+
+By default, the CLOCK input port on the Echo module operates using pulses. The amount of time between consecutive rising edges (Schmitt logic transition from below 0.1V to above 1V) is used to determine the base delay time. Each tap's TIME control group is multiplied to the base delay time to produce the delay time for each tap/channel.
+
+However, for more agile control of the playback rate (and hence artifacts caused by changing the tap speeds), you can click on the CLOCK label and toggle it to V/OCT:
+
+![CLOCK label](images/echo_clock_sel.png)
+
+![V/OCT label](images/echo_voct_sel.png)
+
+V/OCT uses zero volts (0&nbsp;V) to represent 1&nbsp;Hz. Every unit volt increase doubles the frequency. Every unit in the negative voltage direction cuts the frequency in half.
+
+As always, the delay time is clamped to the range 0.1 seconds to 10 seconds. When converted to frequency, this means the allowed frequency range is:
+
+* 0.1 seconds &rarr; 10 Hz
+* 10 seconds &rarr; 0.1 Hz
+
+This means the usable range of the V/OCT input port is $\pm \log_2(10) \approx \pm3.32$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
+
+The reason V/OCT is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value (think of a physical tape drive with angular momentum speeding up or slowing down the reels/capstans).
+
+However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to V/OCT mode, thus delays its corrective response.
