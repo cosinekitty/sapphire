@@ -2095,6 +2095,7 @@ namespace Sapphire
                 InterpolatorKind interpolatorKind{};
                 Crossfader freezeFader;
                 PortLabelMode inputLabels{};
+                bool autoCreateOutputModule = true;
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -2234,6 +2235,7 @@ namespace Sapphire
                     freezeToggleGroup.jsonSave(root);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
+                    jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     return root;
                 }
 
@@ -2244,6 +2246,7 @@ namespace Sapphire
                     freezeToggleGroup.jsonLoad(root);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
+                    jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                 }
 
                 Frame getFeedbackPoly()
@@ -2568,12 +2571,15 @@ namespace Sapphire
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
 
-                        if (creationCountdown > 0)
+                        if (echoModule->autoCreateOutputModule && (creationCountdown > 0))
                         {
                             --creationCountdown;
                             if (creationCountdown == 0)
+                            {
+                                echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
                                 if (!IsEchoReceiver(module->rightExpander.module))
                                     AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
+                            }
                         }
                     }
                 }
