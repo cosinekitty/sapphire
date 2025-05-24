@@ -76,7 +76,7 @@ New taps are cloned from the one you used to add them, copying its settings for 
 Each tap has a REV button to reverse the playback direction for that specific tap.
 By default, REV does not enter the feedback path—it only affects playback from that tap.
 
-REV has a gate input (high = reversed), and you can switch it to trigger mode via the context menu or right-clicking the input. If you click the REV button, the gate input must be low for the tap's audio output to be reversed. See [Exclusive-OR logic on toggle buttons] for more details.
+REV has a gate input (high = reversed), and you can switch it to trigger mode via the context menu or right-clicking the input. If you click the REV button, the gate input must be low for the tap's audio output to be reversed. See [Exclusive-OR logic on toggle buttons](#exclusive-or-xor-logic-on-toggle-buttons) for more details.
 
 You can click the REV label to switch to FLP mode (Flip).
 Flip behaves differently—it reverses the signal within the feedback loop, not just on playback.
