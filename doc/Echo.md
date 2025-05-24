@@ -183,6 +183,7 @@ Many features can be accessed by **right-clicking** on the Echo, Echo Tap, or Ec
 * **Toggle polyphonic/mono on all envelope followers**: Changes the envelope output mode globally across all taps.
 * **Interpolator**: Adjusts audio quality. Higher settings sound better but use more CPU.
 
+<hr/>
 
 ### Advanced Topics
 
@@ -200,7 +201,7 @@ Sapphire Echo internally includes 16 independent delays per tap. So even the **T
 
 The input ports for FRZ (freeze) and CLR (clear) are **not** polyphonic. They sum input channels to a single value and apply the result uniformly across all channels, and across the entire signal chain.
 
-**CPU usage increases with the number of channels, and with the number of taps.** Use VCV Rack's [F3 key](https://vcvrack.com/manual/KeyCommands) to watch CPU usage. Each Echo, Echo Tap, and Echo Out module in the chain is a separate module with independent CPU statistics. To understand the overall CPU burder of the chain, you could add all the percentages together.
+**CPU usage** increases with the number of **channels**, and with the number of **taps**. Use VCV Rack's [F3 key](https://vcvrack.com/manual/KeyCommands) to watch CPU usage. Each Echo, Echo Tap, and Echo Out module in the chain is a separate module with independent CPU statistics. To understand the overall CPU burder of the chain, you can add all the percentages together.
 
 #### Exclusive-OR (XOR) logic on toggle buttons
 
@@ -229,4 +230,4 @@ This means the usable range of the V/OCT input port is $\pm \log_2(10) \approx \
 
 The reason V/OCT is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value (think of a physical tape drive with angular momentum speeding up or slowing down the reels/capstans).
 
-However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to V/OCT mode, thus delays its corrective response.
+However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to V/OCT mode, thus delaying its corrective response.
