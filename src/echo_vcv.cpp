@@ -1421,9 +1421,6 @@ namespace Sapphire
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
             const float mmModeButtonRadius = 3.5;
             const float mmChainIndexCenterY = 4.5;
-            bool hilightInputRoutingButton = false;
-            bool hilightRevFlipButton = false;
-            bool hilightEnvDuckButton = false;
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
@@ -1436,6 +1433,9 @@ namespace Sapphire
             Vec envDuckLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
+            bool hilightInputRoutingButton = false;
+            bool hilightRevFlipButton = false;
+            bool hilightEnvDuckButton = false;
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
             SapphireTooltip* envDuckTooltip = nullptr;
@@ -2310,6 +2310,8 @@ namespace Sapphire
                 SvgOverlay* voctSelLabel = nullptr;
                 Vec clockLabelPos;
                 bool isMouseInsideClockLabel = false;
+                bool hilightClockVoctButton = false;
+                SapphireTooltip* clockVoctTooltip = nullptr;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2360,12 +2362,17 @@ namespace Sapphire
                     clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
                 }
 
+                virtual ~EchoWidget()
+                {
+                    destroyTooltip(clockVoctTooltip);
+                }
+
                 bool isInsideClockLabel(Vec pos) const
                 {
                     const float dx = pos.x - clockLabelPos.x;
                     const float dy = pos.y - clockLabelPos.y;
-                    const float width  = mm2px(8.0);
-                    const float height = mm2px(3.0);
+                    const float width  = mm2px(12.0);
+                    const float height = mm2px(4.0);
                     return (std::abs(dx) < width/2) && (std::abs(dy) < height/2);
                 }
 
@@ -2375,6 +2382,11 @@ namespace Sapphire
                     clockSelLabel = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock_sel.svg"));
                     voctLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
                     voctSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
+                }
+
+                void updateClockVoctButton(bool state)
+                {
+                    updateTooltip(hilightClockVoctButton, state, clockVoctTooltip, "Toggle input format: CLOCK / V/OCT");
                 }
 
                 void onHover(const HoverEvent& e) override
@@ -2566,6 +2578,8 @@ namespace Sapphire
                         clockSelLabel->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
                         voctLabel    ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
                         voctSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
+
+                        updateClockVoctButton(isMouseInsideClockLabel);
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
