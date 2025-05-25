@@ -102,6 +102,22 @@ namespace Sapphire
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     sample[c] = 0;
             }
+
+            void initialize()
+            {
+                nchannels = 0;
+                clear();
+            }
+
+            void rootMeanSquare(unsigned nsamples)
+            {
+                if (nsamples > 0)
+                {
+                    const int nc = safeChannelCount();
+                    for (int c = 0; c < nc; ++c)
+                        sample[c] = std::sqrt(sample[c] / nsamples);
+                }
+            }
         };
 
         inline Frame operator+ (const Frame& a, const Frame& b)

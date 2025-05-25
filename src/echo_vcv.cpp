@@ -686,25 +686,16 @@ namespace Sapphire
 
         struct GraphSlice
         {
-            Frame sum;     // polyphonic sum-of-squares to measure mean power density in each slice
+            // Polyphonic sums-of-squares to measure mean power density in each slice.
             unsigned nsamples = 0;
+            Frame sumOutput;
+            Frame sumInput;
 
             void initialize()
             {
-                sum.nchannels = 0;
-                sum.clear();
                 nsamples = 0;
-            }
-
-            void finalizePower()
-            {
-                if (nsamples > 0)
-                {
-                    // Convert the finished slice to a linear power envelope for graphing.
-                    const int nc = sum.safeChannelCount();
-                    for (int c = 0; c < nc; ++c)
-                        sum.sample[c] = std::sqrt(sum.sample[c] / nsamples);
-                }
+                sumInput.initialize();
+                sumOutput.initialize();
             }
         };
 
@@ -743,6 +734,9 @@ namespace Sapphire
                 currentNumChannels = 0;
             }
 
+            void drawLayer(const DrawArgs& args, int layer) override;
+            void drawPowerFrame(NVGcontext* vg, const Frame& power, int sliceIndex, NVGcolor color, float left, float right);
+
             void draw(const DrawArgs& args) override
             {
                 math::Rect r = box.zeroPos();
@@ -773,37 +767,44 @@ namespace Sapphire
                 return Vec{x, y};
             }
 
-            void drawLayer(const DrawArgs& args, int layer) override;
-
             void setDelayTime(float _delayTimeSeconds)
             {
                 delayTimeSeconds = _delayTimeSeconds;
             }
 
-            void process(const Frame& audio, double sampleRateHz)
+            void process(const Frame& inputAudio, const Frame& outputAudio, double sampleRateHz)
             {
                 // No graphics until we know the delay time!
                 if (!std::isfinite(delayTimeSeconds) || delayTimeSeconds<=0)
                     return;
 
-                currentNumChannels = audio.safeChannelCount();
+                currentNumChannels = std::max(
+                    inputAudio.safeChannelCount(),
+                    outputAudio.safeChannelCount()
+                );
 
                 // To summarize "power" in a slice, we use RMS amplitude:
-                // root-mean-square = sqrt(s0^2 + s1^2 + ...)
+                // root-mean-square = sqrt((s0^2 + s1^2 + ...)/n)
                 // In each slice we store the running sum of squares.
                 GraphSlice& slice = sliceArray.at(sliceIndex);
                 ++slice.nsamples;
-                slice.sum.nchannels = audio.safeChannelCount();
-                for (int c = 0; c < slice.sum.nchannels; ++c)
-                    slice.sum.sample[c] += Square(audio.sample[c]);
+                slice.sumInput.nchannels = currentNumChannels;
+                slice.sumOutput.nchannels = currentNumChannels;
+                for (int c = 0; c < currentNumChannels; ++c)
+                {
+                    slice.sumInput.sample[c]  += Square(inputAudio.sample[c]);
+                    slice.sumOutput.sample[c] += Square(outputAudio.sample[c]);
+                }
 
                 timeAccum += 1/sampleRateHz;
-                const float timeLimit = delayTimeSeconds/GraphSliceCount;
+                const double timeLimit = delayTimeSeconds / GraphSliceCount;
                 if (timeAccum >= timeLimit)
                 {
                     // We have finished another slice!
+                    // Do the final RMS = sqrt(sum/nsamples) calculation for both input and output.
                     timeAccum = 0;
-                    slice.finalizePower();
+                    slice.sumInput.rootMeanSquare(slice.nsamples);
+                    slice.sumOutput.rootMeanSquare(slice.nsamples);
 
                     // Start fresh on the next slice.
                     // Erase the old power value and start with a new sum-of-squares.
@@ -1276,7 +1277,7 @@ namespace Sapphire
                 {
                     const float meanDelayTime = delayTimeSum / nc;
                     graph->setDelayTime(meanDelayTime);
-                    graph->process(result.envelopeAudio, sampleRateHz);
+                    graph->process(inAudio, result.envelopeAudio, sampleRateHz);
                 }
 
                 result.globalAudioOutput = panFrame(result.globalAudioOutput);
@@ -1357,50 +1358,67 @@ namespace Sapphire
         }
 
 
+        NVGcolor FadeColor(float fade, float intensity, NVGcolor c0, NVGcolor c1)
+        {
+            NVGcolor cm;
+            cm.a = 1;
+            cm.r = intensity * ((1-fade)*c0.r + fade*c1.r);
+            cm.g = intensity * ((1-fade)*c0.g + fade*c1.g);
+            cm.b = intensity * ((1-fade)*c0.b + fade*c1.b);
+            return cm;
+        }
+
+
         void GraphWidget::drawLayer(const DrawArgs& args, int layer)
         {
-            constexpr float strokeWidthPx = 1.0;
-            const NVGcolor mutedColor = nvgRGB(0x40, 0x40, 0x40);
+            const NVGcolor mutedColor = nvgRGB(0x20, 0x40, 0x50);
+            const NVGcolor oldInputColor = nvgRGB(0x56, 0xd1, 0x2a);
+            const NVGcolor newInputColor = nvgRGB(0xf5, 0xbc, 0x42);
 
             if (loopModule && layer==1 && currentNumChannels>0 && currentNumChannels<=PORT_MAX_CHANNELS)
             {
                 unsigned s = SliceInc(sliceIndex);  // skip currently active slice (not finalized yet)
                 for (unsigned k = 0; k < GraphSliceCount; ++k, s = SliceInc(s))
                 {
-                    NVGcolor signalColor = mutedColor;
+                    NVGcolor inputColor = mutedColor;
+                    NVGcolor outputColor = mutedColor;
                     if (loopModule->isAudible())
                     {
-                        const float prox = static_cast<float>(k) / static_cast<float>(GraphSliceCount+1);
-                        NVGcolor newColor = SCHEME_CYAN;
-                        NVGcolor oldColor = SCHEME_PURPLE;
-                        signalColor.a = 1;
-                        signalColor.r = prox*newColor.r + (1-prox)*oldColor.r;
-                        signalColor.g = prox*newColor.g + (1-prox)*oldColor.g;
-                        signalColor.b = prox*newColor.b + (1-prox)*oldColor.b;
+                        const float fade = static_cast<float>(k) / static_cast<float>(GraphSliceCount+1);
+                        inputColor  = FadeColor(fade, 1.0, oldInputColor, newInputColor);
+                        outputColor = FadeColor(fade, 1.0, SCHEME_PURPLE, SCHEME_CYAN);
                     }
-
-                    const Frame& power = sliceArray.at(s).sum;
-                    // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
-                    // Use a bicubic limiter to keep the numbers inside a desired range.
-                    for (int c = 0; c < currentNumChannels; ++c)
-                    {
-                        float zs = power.sample[c] * zoom;
-                        float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
-                        p = std::max(ThinLineFraction, p);
-                        Vec left   = position(k, c, -p);
-                        Vec right  = position(k, c, +p);
-                        nvgBeginPath(args.vg);
-                        nvgLineCap(args.vg, NVG_BUTT);
-                        nvgStrokeWidth(args.vg, strokeWidthPx);
-                        nvgStrokeColor(args.vg, signalColor);
-                        nvgMoveTo(args.vg, left.x, left.y);
-                        nvgLineTo(args.vg, right.x, right.y);
-                        nvgStroke(args.vg);
-                    }
+                    drawPowerFrame(args.vg, sliceArray.at(s).sumInput,  k, inputColor,  -1,  0);
+                    drawPowerFrame(args.vg, sliceArray.at(s).sumOutput, k, outputColor,  0, +1);
                 }
             }
             OpaqueWidget::drawLayer(args, layer);
         }
+
+
+        void GraphWidget::drawPowerFrame(NVGcontext* vg, const Frame& power, int sliceIndex, NVGcolor color, float leftLimit, float rightLimit)
+        {
+            // Draw a horizontal line segment for each channel at the corresponding y-coordinate.
+            // Use a bicubic limiter to keep the numbers inside a desired range.
+
+            constexpr float strokeWidthPx = 0.5;
+            for (int c = 0; c < currentNumChannels; ++c)
+            {
+                float zs = power.sample[c] * zoom;
+                float p = BicubicLimiter<float>(zs, GraphVoltageLimit) / GraphVoltageLimit;
+                p = std::max(ThinLineFraction, p);
+                Vec left   = position(sliceIndex, c, p*leftLimit);
+                Vec right  = position(sliceIndex, c, p*rightLimit);
+                nvgBeginPath(vg);
+                nvgLineCap(vg, NVG_BUTT);
+                nvgStrokeWidth(vg, strokeWidthPx);
+                nvgStrokeColor(vg, color);
+                nvgMoveTo(vg, left.x, left.y);
+                nvgLineTo(vg, right.x, right.y);
+                nvgStroke(vg);
+            }
+        }
+
 
         void EnvelopeOutputPort::appendContextMenu(ui::Menu* menu)
         {
