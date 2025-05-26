@@ -47,8 +47,10 @@ You can sync your delay taps to an external clock using this input. There are tw
 * **Toggle all clock sync**: enables or disables sync for all taps at once.
 * **Snap to musical intervals**: lets you choose musical divisions like eighth notes, dotted eighths, triplets, and more for synced delay times. This makes it easier to stay in rhythm without dialing in values manually.
 
+You can also click on the CLOCK label to toggle into a [volt-per-octave (V/OCT) mode](#voct-input-for-clock).
+
 #### IN (Input)
-This is your audio input. It’s **stereo**, with the left input normalled to the right if you're using only one cable. Echo also supports **polyphonic** signals of up to 16 channels.
+This is your audio input. It’s **stereo**, with the left input normalled to the right if you're using only one cable. Echo also supports **polyphonic** signals of up to 16 channels on the L port when the R port has no cable connected.
 
 <a name="stereo_poly_button"/></a>
 There’s a toggle button between the ports to switch between **Stereo mode** and **Polyphonic mode**:
@@ -117,7 +119,11 @@ SOLO mutes all others so you can focus on one tap’s behavior or processing.
 
 #### SEND / RTRN (Send and Return)
 
-Every tap has its own send and return ports, which open the door to powerful per-tap processing chains—reverb, filtering, distortion, whatever you want. You can even send taps into one another or into external FX chains.
+Every tap has its own send and return ports, which open the door to powerful per-tap processing chains—reverb, filtering, distortion, whatever you want. You can even send taps into one another or into external FX chains, even if you leave the RTRN ports disconnected.
+
+If the RTRN ports are not connected to any cables, then the send/return path is "shorted out"&mdash;it is as if the L send port is connected to the L return port and the R send port is connected to the R return port. If the left (L) RTRN port is connected, the short is "broken" for both left and right. This means voltages read from the RTRN ports will be used in the signal flow instead of the signal present on the SEND output ports.
+
+Whether or not send/return is "shorted" or routed externally through cables, the SEND ports always have valid output voltages. So you can use SEND voltages for other purposes in your patch. It is not necessary to use the RTRN ports in order to make the SEND ports operate.
 
 There are two operating modes:
 * **Send/Return before delay**: processed signal continues through the delay chain to the next tap.
@@ -136,6 +142,10 @@ In this mode, the envelope is inverted: loud audio produces a lower voltage.
 
 This is useful for classic ducking effects—automatically lowering the volume of another signal when this tap plays, for instance, using a VCA.
 
+Whether in ENV or DCK mode, this control always clamps output voltages to the range 0V...+10V. Before clamping, the input voltage is compressed using a bicubic limiter, which prevents harsh envelope clipping. This makes the output voltage more useful as unipolar CV for things like VCAs or gates.
+
+For readers who like mathematical precision: in DCK mode, the output signal is $D = 10\mathrm{V} - E$, where $D$ is the output voltage in DCK mode and $E$ is output voltage in ENV mode, assuming everything but the mode is the same.
+
 #### Initialize this tap only
 
 Resets just the selected tap to its default settings, leaving the others untouched.
@@ -149,6 +159,8 @@ Once you have more than one tap, an arrow will appear in the lower-left corner o
 ### Echo Out (Expander Module)
 
 **Echo Out** is always added automatically when you place the Echo module in your patch. Just make sure it stays to the right of the last Echo Tap module. If you add or remove taps, Echo Out will automatically shift to the correct position.
+
+If you accidentally delete the Echo Out module in your chain, you can fix it in one of two ways: (1) use undo (Ctrl+Z) if you notice immediately, or (2) press the "Add Tap" button on the final tap module. As a special case, when you press the Add Tap button on the final tap in the chain, and there is no Echo Out immediately to the right of that last tap, it will insert an Echo Out module instead of an Echo Tap.
 
 #### Mix
 Sets the overall wet/dry balance.
@@ -228,6 +240,6 @@ As always, the delay time is clamped to the range 0.1 seconds to 10 seconds. Whe
 
 This means the usable range of the V/OCT input port is $\pm \log_2(10) \approx \pm3.32$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
 
-The reason V/OCT is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value (think of a physical tape drive whose reels have angular momentum that limits how quickly you can speed up or slow down the playback rate).
+The reason V/OCT is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value; think of a physical tape drive whose reels have angular momentum that limits how quickly you can speed up or slow down the playback rate.
 
 However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to V/OCT mode, thus delaying its corrective response.
