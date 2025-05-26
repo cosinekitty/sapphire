@@ -1177,7 +1177,7 @@ namespace Sapphire
                         }
                         else    // assume ClockSignalFormat::Voct
                         {
-                            float timeSeconds = TwoToPower(-vClock);    // delay time goes down as V/OCT increases, so that frequency goes UP
+                            float timeSeconds = TwoToPower(-vClock);    // delay time goes down as RATE increases
                             q.clockSyncTime = std::clamp(timeSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                             q.isReceivingTriggers = true;
                             ++numReceivingTriggers;
@@ -2324,12 +2324,12 @@ namespace Sapphire
                 int creationCountdown = 8;
                 SvgOverlay* clockLabel = nullptr;
                 SvgOverlay* clockSelLabel = nullptr;
-                SvgOverlay* voctLabel = nullptr;
-                SvgOverlay* voctSelLabel = nullptr;
+                SvgOverlay* rateLabel = nullptr;
+                SvgOverlay* rateSelLabel = nullptr;
                 Vec clockLabelPos;
                 bool isMouseInsideClockLabel = false;
-                bool hilightClockVoctButton = false;
-                SapphireTooltip* clockVoctTooltip = nullptr;
+                bool hilightClockRateButton = false;
+                SapphireTooltip* clockRateTooltip = nullptr;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2382,7 +2382,7 @@ namespace Sapphire
 
                 virtual ~EchoWidget()
                 {
-                    destroyTooltip(clockVoctTooltip);
+                    destroyTooltip(clockRateTooltip);
                 }
 
                 bool isInsideClockLabel(Vec pos) const
@@ -2398,13 +2398,13 @@ namespace Sapphire
                 {
                     clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"));
                     clockSelLabel = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock_sel.svg"));
-                    voctLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
-                    voctSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
+                    rateLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
+                    rateSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
                 }
 
-                void updateClockVoctButton(bool state)
+                void updateClockRateButton(bool state)
                 {
-                    updateTooltip(hilightClockVoctButton, state, clockVoctTooltip, "Toggle input format: CLOCK / V/OCT");
+                    updateTooltip(hilightClockRateButton, state, clockRateTooltip, "Toggle input format: CLOCK/RATE");
                 }
 
                 void onHover(const HoverEvent& e) override
@@ -2594,10 +2594,10 @@ namespace Sapphire
 
                         clockLabel   ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
                         clockSelLabel->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
-                        voctLabel    ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
-                        voctSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
+                        rateLabel    ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
+                        rateSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
 
-                        updateClockVoctButton(isMouseInsideClockLabel);
+                        updateClockRateButton(isMouseInsideClockLabel);
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise

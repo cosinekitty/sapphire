@@ -2157,8 +2157,8 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
         if (
             SaveTextCaption(SvgFileName('echo_clock',     Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
             SaveTextCaption(SvgFileName('echo_clock_sel', Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR) or
-            SaveTextCaption(SvgFileName('echo_voct',      Target.VcvRack), font, 'V/OCT', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
-            SaveTextCaption(SvgFileName('echo_voct_sel',  Target.VcvRack), font, 'V/OCT', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR)
+            SaveTextCaption(SvgFileName('echo_voct',      Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
+            SaveTextCaption(SvgFileName('echo_voct_sel',  Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR)
         ): return 1
         controls.append(Component('clock_label', xGlobalCenter, yClockLabel))
 

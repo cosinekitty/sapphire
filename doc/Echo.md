@@ -47,7 +47,7 @@ You can sync your delay taps to an external clock using this input. There are tw
 * **Toggle all clock sync**: enables or disables sync for all taps at once.
 * **Snap to musical intervals**: lets you choose musical divisions like eighth notes, dotted eighths, triplets, and more for synced delay times. This makes it easier to stay in rhythm without dialing in values manually.
 
-You can also click on the CLOCK label to toggle into a [volt-per-octave (V/OCT) mode](#voct-input-for-clock).
+You can also click on the CLOCK label to toggle into [RATE mode](#voct-input-for-clock), which uses CV to continuously adjust the frequencies of all taps.
 
 #### IN (Input)
 This is your audio input. It’s **stereo**, with the left input normalled to the right if you're using only one cable. Echo also supports **polyphonic** signals of up to 16 channels on the L port when the R port has no cable connected.
@@ -221,25 +221,25 @@ When controlling the FRZ or REV controls using **gate mode** input voltages, you
 
 In **trigger mode**, pressing the button toggles the current state of the control, just like another trigger had arrived on the input port.
 
-#### V/OCT input for CLOCK
+#### Toggling CLOCK / RATE
 
 By default, the CLOCK input port on the Echo module operates using pulses. The amount of time between consecutive rising edges (Schmitt logic transition from below 0.1V to above 1V) is used to determine the base delay time. Each tap's TIME control group is multiplied to the base delay time to produce the delay time for each tap/channel.
 
-However, for more agile control of the playback rate (and hence artifacts caused by changing the tap speeds), you can click on the CLOCK label and toggle it to V/OCT:
+However, for more agile control of the playback rate (and hence artifacts caused by changing the tap speeds), you can click on the CLOCK label and toggle it to RATE:
 
 ![CLOCK label](images/echo_clock_sel.png)
 
-![V/OCT label](images/echo_voct_sel.png)
+![RATE label](images/echo_rate.png)
 
-V/OCT uses zero volts (0&nbsp;V) to represent 1&nbsp;Hz. Every unit volt increase doubles the frequency. Every unit in the negative voltage direction cuts the frequency in half.
+RATE uses a volt-per-octave scale with 0&nbsp;V representing 1&nbsp;Hz. Every unit volt increase doubles the frequency. Every unit in the negative voltage direction cuts the frequency in half.
 
 As always, the delay time is clamped to the range 0.1 seconds to 10 seconds. When converted to frequency, this means the allowed frequency range is:
 
 * 0.1 seconds &rarr; 10 Hz
 * 10 seconds &rarr; 0.1 Hz
 
-This means the usable range of the V/OCT input port is $\pm \log_2(10) \approx \pm3.32$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
+This means the usable range of the RATE input port is $\pm \log_2(10) \approx \pm3.32$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
 
-The reason V/OCT is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value; think of a physical tape drive whose reels have angular momentum that limits how quickly you can speed up or slow down the playback rate.
+The reason RATE is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value; think of a physical tape drive whose reels have angular momentum that limits how quickly you can speed up or slow down the playback rate.
 
-However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to V/OCT mode, thus delaying its corrective response.
+However, in CLOCK mode, Echo never knows the pace has changed until it receives the next pulse. Echo thus knows later that the pace has changed, compared to RATE mode, thus delaying its corrective response.
