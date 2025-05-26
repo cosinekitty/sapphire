@@ -47,7 +47,7 @@ You can sync your delay taps to an external clock using this input. There are tw
 * **Toggle all clock sync**: enables or disables sync for all taps at once.
 * **Snap to musical intervals**: lets you choose musical divisions like eighth notes, dotted eighths, triplets, and more for synced delay times. This makes it easier to stay in rhythm without dialing in values manually.
 
-You can also click on the CLOCK label to toggle into [RATE mode](#voct-input-for-clock), which uses CV to continuously adjust the frequencies of all taps.
+You can also click on the CLOCK label to toggle into [RATE mode](#toggling-clock--rate), which uses CV to continuously adjust the frequencies of all taps.
 
 #### IN (Input)
 This is your audio input. It’s **stereo**, with the left input normalled to the right if you're using only one cable. Echo also supports **polyphonic** signals of up to 16 channels on the L port when the R port has no cable connected.
