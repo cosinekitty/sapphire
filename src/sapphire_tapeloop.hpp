@@ -83,6 +83,7 @@ namespace Sapphire
         double reversePlaybackHead = 0;
         int recordIndex = 0;
         std::vector<float> buffer;
+        int bufferLength = 0;
         unsigned recoveryCountdown = 0;
         TapeDelayMotor tapeDelayMotor;
         InterpolatorKind ikind = InterpolatorKind::Linear;
@@ -95,14 +96,12 @@ namespace Sapphire
 
         const float& at(int position) const         // allowed to wrap around in +/- directions
         {
-            const int index = wrapIndex(position);
-            return buffer.at(index);
+            return buffer[wrapIndex(position)];
         }
 
         float& at(int position)
         {
-            const int index = wrapIndex(position);
-            return buffer.at(index);
+            return buffer[wrapIndex(position)];
         }
 
         float interpolate(float secondsIntoPast) const
@@ -199,9 +198,8 @@ namespace Sapphire
                 if (maxSamples <= 0)
                     return false;
 
-                const std::size_t maxSize = static_cast<std::size_t>(maxSamples);
-
-                buffer.resize(maxSize);
+                bufferLength = maxSamples;
+                buffer.resize(bufferLength);
                 clear();    // any audio in the buffer already is recorded at the wrong sample rate
             }
 
@@ -263,8 +261,8 @@ namespace Sapphire
                     recoveryCountdown = 48000;
             }
 
-            buffer.at(recordIndex) = safe * clearSmootherGain;
-            recordIndex = wrapIndex(recordIndex + 1);
+            buffer[recordIndex] = safe * clearSmootherGain;
+            recordIndex = (recordIndex + 1) % bufferLength;
             return recoveryCountdown == 0;
         }
     };

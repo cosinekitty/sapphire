@@ -1134,6 +1134,7 @@ namespace Sapphire
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
                 const bool clocked = isActivelyClocked();
 
+                float feedbackSample = 0;
                 int numDeadClocks = 0;
                 int numReceivingTriggers = 0;
                 for (int c = 0; c < nc; ++c)
@@ -1231,7 +1232,6 @@ namespace Sapphire
 
                     result.globalAudioOutput.sample[c] = gain * result.envelopeAudio.sample[c];
 
-                    float feedbackSample;
                     if (loopback)
                     {
                         // When we are in serial mode with more than one tap,
@@ -1246,8 +1246,8 @@ namespace Sapphire
                     }
                     else
                     {
-                        // In serial mode, every tap other than the first has NO FEEDBACK.
-                        feedbackSample = 0;
+                        // In serial mode, every tap other than the first has NO FEEDBACK;
+                        // feedbackSample started at zero and we don't change it.
                     }
 
                     if (c < message.feedback.nchannels)

@@ -34,7 +34,6 @@ namespace Sapphire
         }
 
         virtual void onSilent() {}   // called once at the silence in the middle of the ducking period
-        virtual void onStable() {}   // called when we are stable again after ducking
 
         virtual void initialize()
         {
@@ -61,7 +60,7 @@ namespace Sapphire
             return trigger;
         }
 
-        virtual double process(double sampleRateHz)
+        double process(double sampleRateHz)
         {
             if (state == State::Stable)
             {
@@ -87,10 +86,7 @@ namespace Sapphire
             {
                 gain = std::clamp<double>(gain + change, 0, 1);
                 if (gain == 1)
-                {
                     state = State::Stable;
-                    onStable();
-                }
             }
 
             return gain;
