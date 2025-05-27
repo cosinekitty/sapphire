@@ -2014,7 +2014,8 @@ namespace Sapphire
         std::string TimeKnobParamQuantity::getString()
         {
             float value = rack::normalizeZero(getDisplayValue());
-            std::string text = rack::string::f("%.5g", value);
+            std::string timeText = rack::string::f("%.5g", value);
+            std::string freqText = rack::string::f("%.5g", 1/value);
             auto lmod = dynamic_cast<const LoopModule*>(module);
             if (lmod)
             {
@@ -2025,10 +2026,11 @@ namespace Sapphire
                         const Fraction& frac = PickClosestFraction(value);
                         return frac.format();
                     }
-                    return "CLOCK x " + text;
+                    return "CLOCK x " + timeText + "\nRATE x " + freqText;
                 }
             }
-            return text + " sec";
+
+            return timeText + " sec\n" + freqText + " Hz";
         }
 
 

@@ -21,8 +21,8 @@ namespace Sapphire
                 , denom(_denom)
                 , name(_name)
             {
-                assert(numer > 0);
-                assert(denom > 0);
+                if (numer <= 0) throw std::out_of_range("Fraction numerator was not a positive integer.");
+                if (denom <= 0) throw std::out_of_range("Fraction denominator was not a positive integer.");
             }
 
             float value() const
