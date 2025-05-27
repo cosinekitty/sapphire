@@ -8,7 +8,6 @@
 #
 import sys
 import math
-import enum
 from typing import List, Tuple, Dict
 from svgpanel import *
 from sapphire import *
@@ -17,21 +16,12 @@ from sapphire import *
 previewComponentPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
 
 
-@enum.unique
-class Target(enum.Enum):
-    VcvRack = 1
-    Lite = 2
-
-class TargetError(Error):
-    def __init__(self, target:Target):
-        Error.__init__(self, 'Unsupported target platform: ' + target.name)
-
 def Print(message:str) -> int:
     print('make_sapphire_svg.py:', message)
     return 0
 
 
-def Save(panel:Panel, filename:str) -> int:
+def Save(panel:BasePanel, filename:str) -> int:
     panel.save(filename)
     return 0
 
@@ -66,12 +56,13 @@ def Gradient(y1: float, y2: float, color1: str, color2: str, id: str) -> Element
     return elem
 
 
-def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float, gradientId: str) -> Path:
+def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float, gradientId: str, x1: float = -1.0, x2: float = -1.0) -> Path:
     path = ''
-    xMargin = 0.38
     arcRadius = 4.0
-    x1 = xMargin
-    x2 = panel.mmWidth - xMargin
+    if x1 < 0:
+        xMargin = 0.38
+        x1 = xMargin
+        x2 = panel.mmWidth - xMargin
     path += Move(x1, y2)
     path += Line(x1, y1 + arcRadius)
     # https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
@@ -131,6 +122,7 @@ def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> P
 
 
 def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 6
     name = 'chaops'
     svgFileName = '../res/{}.svg'.format(name)
@@ -213,7 +205,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
         pl.append(ControlGroupArt(name, artworkId, panel, y1, y2, gradientId))
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR,   SAPPHIRE_PANEL_COLOR, 'memory')
         AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,    SAPPHIRE_PANEL_COLOR, 'freeze')
         AddGradient(y1MorphGradient,  y2MorphGradient,  SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'morph')
@@ -236,6 +228,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -245,7 +238,7 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         outputPortY1 = 88.0
@@ -283,18 +276,20 @@ def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
 
 
 def GenerateTricorderPanel() -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 25
     svgFileName = '../res/tricorder.svg'
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(SapphireModelInsignia(panel, font, 'tricorder'))
     panel.append(pl)
     return Save(panel, svgFileName)
 
 
 def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
+    target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
     panel = Panel(PANEL_WIDTH)
@@ -322,7 +317,7 @@ def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabe
     defs.append(Gradient(levelGradY1, levelGradY2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_level'))
     defs.append(Gradient(clearGradY1, clearGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_clear'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         pl.append(ControlGroupArt(name, 'io_art', panel, ioPortsGradY1, ioPortsGradY2, 'gradient_io'))
@@ -385,6 +380,7 @@ def GradientStyle(gradientId:str, opacity:float) -> str:
 
 
 def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'nucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -443,7 +439,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     UpdateFileIfChanged(headerFileName, headerText)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
@@ -497,6 +493,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'polynucleus'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 16
@@ -559,7 +556,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     UpdateFileIfChanged(headerFileName, headerText)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         # Rectangular bubbles are background patterns that visually group related controls/ports.
@@ -607,6 +604,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     numOutputs = 10      # Keep in sync with src/hiss.cpp ! Sapphire::Hiss::NumOutputs
     svgFileName = '../res/hiss.svg'
     PANEL_WIDTH = 3
@@ -623,7 +621,7 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
     dyGradientSpacing = 6.0
     dyOut = (ybottom - ytop) / (numOutputs - 1)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         defs.append(Gradient(ytop - dyGradientSpacing, panel.mmHeight - 15.0, '#1058ef', SAPPHIRE_PANEL_COLOR, 'gradient_hiss'))
         pl.append(ControlGroupArt('hiss', 'hiss_art', panel, ytop - dyGradientSpacing, panel.mmHeight - 15.0, 'gradient_hiss'))
         pl.append(CenteredGemstone(panel))
@@ -640,11 +638,11 @@ def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
 MootsPanelLayerXml = r'''
 <g id="sapphire_moots_legacy_panel">
     <rect
-       style="display:inline;fill:#4f8df2;fill-opacity:1;fill-rule:nonzero;stroke:#5021d4;stroke-width:0.401661;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
-       width="50.384171"
-       height="128.0802"
-       x="0.20660542"
-       y="0.2061476"/>
+       style="display:inline;fill:#4f8df2;fill-opacity:1;stroke:none;"
+       width="50.8"
+       height="128.5"
+       x="0"
+       y="0"/>
     <path style="fill:#29aab4;fill-opacity:1;stroke:#000000;stroke-width:0.290222;stroke-linecap:square"
        d="M 2.9716623,17.689808 9.6879004,11.709386 H 40.513186 l 6.732173,5.520255 -17.048685,12.535574 -9.948611,5.39e-4 z"
     />
@@ -710,7 +708,7 @@ def GenerateMootsPanel() -> int:
     panel = Panel(MOOTS_PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    pl.append(LiteralXml(MootsPanelLayerXml))
+    pl.append(LiteralXml.Parse(MootsPanelLayerXml))
     return Save(panel, svgFileName)
 
 
@@ -796,7 +794,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
     dyGrad = 6.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -882,7 +880,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
     dyGrad = 6.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -939,6 +937,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
 
 
 def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+    target = Target.VcvRack
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
@@ -966,7 +965,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
     dxOutPortText = 7.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
@@ -1007,6 +1006,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
 
 
 def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'rotini'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1025,7 +1025,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
     outputPortDY =  9.0
     outPortY = 88.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('a_input',  xmid, yRow.value(0)))
@@ -1063,6 +1063,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'pivot'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1080,7 +1081,7 @@ def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
     outputPortDY =  9.0
     outPortY = 88.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
         controls.append(Component('a_input',  xmid, yRow))
@@ -1159,6 +1160,7 @@ def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
 
 
 def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     svgFileName = '../res/sam.svg'
     PANEL_WIDTH = 2
     panel = Panel(PANEL_WIDTH)
@@ -1175,7 +1177,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     xmid = panel.mmWidth / 2.0
     yChannelDisplay = 14.75
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, 's'))
         pl.append(CenteredGemstone(panel))
 
@@ -1202,6 +1204,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
+    target = Target.VcvRack
     name = 'pop'
     svgFileName = '../res/{}.svg'.format(name)
     PANEL_WIDTH = 4
@@ -1233,7 +1236,7 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     ySyncPort = yTriggerPort - syncDy
     yChannelDisplay = 80.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
@@ -1380,7 +1383,7 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
 def AddSlider(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float) -> None:
     controls.append(Component(name, xc, yc))
     if previewComponentPositions and (target == Target.Lite):
-        pl.append(Rectangle(xc, yc, 2.4, 28.0, 'black', 0.1, 'none'))
+        pl.append(Rectangle(xc, yc, 2.4, 28.0))
 
 
 def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, target:Target) -> None:
@@ -1515,7 +1518,7 @@ def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     defs.append(Gradient(gy1, gy2, '#29aab4', SAPPHIRE_PANEL_COLOR, 'gradient_mass'))
     defs.append(Gradient(112.5, 90.0, '#b9818b', SAPPHIRE_PANEL_COLOR, 'gradient_power'))
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR, height))
+        pl.append(MakeBorder(target, PANEL_WIDTH, height))
         pl.append(ModelNamePath(panel, font, 'elastika'))
         pl.append(SapphireInsignia(panel, font))
         pl.append(ElastikaShape(font,  0, 'fric', target))
@@ -1582,7 +1585,7 @@ def AddLargeKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:
 def AddSwitch(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, width:float, height:float) -> None:
     controls.append(Component(name, xc, yc))
     if previewComponentPositions and (target == Target.Lite):
-        pl.append(Rectangle(xc, yc, width, height, 'black', 0.1, 'none'))
+        pl.append(Rectangle(xc, yc, width, height))
 
 
 def AddTubeUnitControl(controls:ControlLayer, target:Target, pl:Element, name:str, column:int, row:int, xofs:float = 0.0, yofs:float = 0.0) -> None:
@@ -1665,7 +1668,7 @@ def TubeUnitPortArtwork() -> Element:
     return group
 
 
-def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
+def TubeUnitMainPanel(target:Target, title:str) -> Tuple[Panel, Element]:
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
 
     defs = Element('defs')
@@ -1676,7 +1679,7 @@ def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
     panel.append(defs)
 
     pl = Element('g', 'PanelLayer')
-    pl.append(BorderRect(TUBE_UNIT_PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+    pl.append(MakeBorder(target, TUBE_UNIT_PANEL_WIDTH))
 
     # Pentagons that surround all 8 control groups.
     PentDx1 = 14.0
@@ -1706,10 +1709,11 @@ def TubeUnitMainPanel(title:str) -> Tuple[Panel, Element]:
 
 
 def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
-    panel, pl = TubeUnitMainPanel(title)
+    target = Target.VcvRack
+    panel, pl = TubeUnitMainPanel(target, title)
     pl.append(TubeUnitPortArtwork())
     return (
-        PlaceTubeUnitControls(cdict, pl, Target.VcvRack) or
+        PlaceTubeUnitControls(cdict, pl, target) or
         Save(panel, '../res/{}.svg'.format(symbol))
     )
 
@@ -1823,10 +1827,11 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
 
 def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
-    panel, pl = TubeUnitMainPanel(title)
+    target = Target.Lite
+    panel, pl = TubeUnitMainPanel(target, title)
     pl.append(TubeUnitLabelGroupLite())
     return (
-        PlaceTubeUnitControls(cdict, pl, Target.Lite) or
+        PlaceTubeUnitControls(cdict, pl, target) or
         Save(panel, '../export/{}.svg'.format(symbol))
     )
 
@@ -1874,7 +1879,7 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     dxEnvGate = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(BorderRect(PANEL_WIDTH, SAPPHIRE_PANEL_COLOR, SAPPHIRE_BORDER_COLOR))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
 
         defs.append(Gradient(yThresh-artSpaceAboveKnob, yRes+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
         defs.append(Gradient(yPolyAudioIn-artSpaceAboveKnob, yPolyAudioIn+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
@@ -1918,9 +1923,476 @@ def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def AddVerticalStereoLabels(controls:ControlLayer, idPrefix:str, xLabel:float, yLeftPort:float) -> None:
+    controls.append(Component(idPrefix + '_label_left',  xLabel, yLeftPort))
+    controls.append(Component(idPrefix + '_label_right', xLabel, yLeftPort + DY_STEREO_PORTS))
+
+
+def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str, caption:str, dyCaption:float = 6.5) -> None:
+    yRightPort = yLeftPort + DY_STEREO_PORTS
+    controls.append(Component(leftPortSymbol,  xPorts, yLeftPort))
+    controls.append(Component(rightPortSymbol, xPorts, yRightPort))
+    pl.append(VerticalLine(xPorts, yLeftPort, yRightPort))
+    if caption:
+        pl.append(CenteredControlTextPath(font, caption, xPorts, yLeftPort - dyCaption))
+
+
+MULTITAP_INSERT_BUTTON_DX    = 4.0
+MULTITAP_INSERT_BUTTON_DY    = 4.0
+MULTITAP_INSERT_BUTTON_INSET = 3.0
+MULTITAP_INSERT_BUTTON_Y1    = 4.5
+
+MULTITAP_CLOCK_BUTTON_DX = 3.0
+MULTITAP_CLOCK_BUTTON_DY = 3.0
+
+MULTITAP_REMOVE_BUTTON_DX    = 4.0
+MULTITAP_REMOVE_BUTTON_DY    = 4.0
+
+MULTITAP_ECHO_HP_WIDTH = 12
+MULTITAP_ECHOTAP_HP_WIDTH   = 6
+MULTITAP_DY_CONTROL_LOOP_LABEL = 6.0
+MULTITAP_DY_CONTROL_GRADIENT = 6.0
+MULTITAP_DY_SEND_RETURN_GRADIENT = 10.0
+MULTITAP_DX_GRADIENT = 15.0
+
+MULTIMAP_DX_SEND_RETURN = 7.0
+MULTIMAP_AUDIO_PORTS_Y1 = 93.0
+MULTIMAP_ENV_PORTS_Y1 = 115.0
+
+MULTIMAP_TOP_GROUP_FRACTION = 0.7
+
+def MultiTapControlStyle(color:str) -> str:
+    return 'stroke:{};stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'.format(color)
+
+MULTITAP_NORMAL_COLOR = MultiTapControlStyle('#000000')
+MULTITAP_HILITE_COLOR = MultiTapControlStyle('#6f02b8')
+
+def MakeLoopControlFence() -> FencePost:
+    return FencePost(16.0, 75.0, 5)
+
+
+def MakeAnotherLoopControlFence() -> FencePost:
+    return FencePost(49.0, 75.0, 3)
+
+
+def AddMultiTapControlGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
+    gradname = 'gradient_controls'
+    defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, gradname))
+    pl.append(ControlGroupArt(
+        'multitap',
+        'controls_art',
+        panel,
+        y1 - MULTITAP_DY_CONTROL_GRADIENT,
+        y2,
+        gradname,
+        xCenter - MULTITAP_DX_GRADIENT,
+        xCenter + MULTITAP_DX_GRADIENT
+    ))
+
+
+def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, y1:float, y2:float) -> None:
+    gradname = 'gradient_send_return'
+    defs.append(Gradient(y1, y2, '#8a72cf', SAPPHIRE_PANEL_COLOR, gradname))
+    pl.append(ControlGroupArt(
+        'multitap',
+        'send_return_art',
+        panel,
+        y1 - MULTITAP_DY_SEND_RETURN_GRADIENT,
+        y2,
+        gradname,
+        xCenter - MULTITAP_DX_GRADIENT,
+        xCenter + MULTITAP_DX_GRADIENT
+    ))
+
+
+def AddMultiTapEnvGradient(panel:Panel, defs:Element, pl:Element, xCenter:float) -> None:
+    y1 = MULTIMAP_ENV_PORTS_Y1
+    y2 = panel.mmHeight - 2.0
+    gradname = 'gradient_env'
+    gradientColor = '#4b9488'
+    defs.append(Gradient(y1, y2, gradientColor, SAPPHIRE_PANEL_COLOR, gradname))
+    pl.append(ControlGroupArt(
+        'multitap',
+        'env_art',
+        panel,
+        y1 - 5.0,
+        y2,
+        gradname,
+        xCenter - MULTITAP_DX_GRADIENT,
+        xCenter + MULTITAP_DX_GRADIENT
+    ))
+
+
+def AddMultiTapEnvGroup(controls:ControlLayer, xmid:float) -> None:
+    xKnob = xmid - DX_FLAT_CONTROL_GROUP
+    xPort = xmid + DX_FLAT_CONTROL_GROUP
+    y = MULTIMAP_ENV_PORTS_Y1
+    controls.append(Component('env_gain_knob', xKnob, y))
+    controls.append(Component('env_output', xPort, y))
+
+
+def SaveHexagonCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float, style:str = CONTROL_LABEL_STYLE) -> int:
+    panel = BasePanel(mmWidth, mmHeight)
+    panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter, style = style))
+    panel.append(ShortHexagon(xCenter - DX_FLAT_CONTROL_GROUP, xCenter + DX_FLAT_CONTROL_GROUP, yCenter, style = style))
+    return Save(panel, svgFileName)
+
+
+def SaveRectangleCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xmid:float, y:float, style:str = CONTROL_LABEL_STYLE) -> int:
+    rectWidth = 8.0
+    rectHeight = 4.5
+    xKnob = xmid - DX_FLAT_CONTROL_GROUP
+    xPort = xmid + DX_FLAT_CONTROL_GROUP
+    panel = BasePanel(mmWidth, mmHeight)
+    panel.append(CenteredControlTextPath(font, caption, xmid, y, style = style))
+    panel.append(Rectangle(xmid, y, rectWidth, rectHeight, strokeWidth=0.2))
+    panel.append(HorizontalLine(xKnob, xmid - rectWidth/2, y))
+    panel.append(HorizontalLine(xPort, xmid + rectWidth/2, y))
+    return Save(panel, svgFileName)
+
+
+def SaveTextCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float, style:str = CONTROL_LABEL_STYLE) -> int:
+    panel = BasePanel(mmWidth, mmHeight)
+    panel.append(CenteredControlTextPath(font, caption, xCenter, yCenter, style = style))
+    return Save(panel, svgFileName)
+
+
+def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:float) -> None:
+    dx = 4.0
+    dy = 4.0
+    pl.append(GeneralLine(xKnob, yKnob, xKnob - dx, yKnob + dy))
+    pl.append(GeneralLine(xKnob, yKnob, xKnob + dx, yKnob + dy))
+    controls.append(Component('mute_button', xKnob - dx, yKnob + dy))
+    controls.append(Component('solo_button', xKnob + dx, yKnob + dy))
+
+
+def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
+    dx = (MULTITAP_ECHOTAP_HP_WIDTH * HP_WIDTH_MM) - 4.0
+    dy = 17.0
+    yCenter = 30.5
+    controls.append(Component('graph_upper_left',  xCenter - dx/2, yCenter - dy/2))
+    controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
+
+
+def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
+    name = 'echo'
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(MULTITAP_ECHO_HP_WIDTH)
+    xmid = panel.mmWidth / 2
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    hpdiff = MULTITAP_ECHO_HP_WIDTH - MULTITAP_ECHOTAP_HP_WIDTH
+    xAdjust = (HP_WIDTH_MM * hpdiff/2)
+    xControlCenter = xmid + xAdjust
+    xGlobalCenter = 3 * HP_WIDTH_MM
+    yLoopFence = MakeLoopControlFence()
+    yAnotherFence = MakeAnotherLoopControlFence()
+
+    # Global controls/ports (Echo module only)
+    yFeedbackControl = yLoopFence.value(MULTIMAP_TOP_GROUP_FRACTION)
+    yFreezeControl = yLoopFence.value(2.25)
+    yClearControl = yLoopFence.value(3.0)
+    yClockControls = yLoopFence.value(4.1)
+    dyClockButtons = 2.5
+    yClockButton    = yClockControls - dyClockButtons
+    yIntervalButton = yClockControls + dyClockButtons
+
+    # Button to insert a new tap in the chain.
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+
+    # Tap controls/ports
+    yReverseControl = yLoopFence.value(0)
+    yTimeControl = yAnotherFence.value(0)
+    yPanControl  = yAnotherFence.value(1)
+    yGainControl = yAnotherFence.value(2)
+    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
+    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+    xSendReturnButton = (xSendPorts + xReturnPorts)/2
+    ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
+    xClockInput = xGlobalCenter
+    xClockButtons = xClockInput + 10.0
+    yInitChainButton = MULTIMAP_ENV_PORTS_Y1
+    yBottomButtons = panel.mmHeight - 5.0
+    xInputLabels = xGlobalCenter - 6.5
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, MULTITAP_ECHO_HP_WIDTH))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
+        AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
+        AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
+
+        pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
+        pl.append(Gemstone(xGlobalCenter))
+
+        AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        controls.append(Component('input_mode_button', xInputLabels, ySendReturnButton))
+        AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
+        AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
+        AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
+        controls.append(Component('init_chain_button', xGlobalCenter, yInitChainButton))
+        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
+
+        AddMultiTapEnvGroup(controls, xControlCenter)
+        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        if (
+            SaveRectangleCaption(SvgFileName('echo_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_dck',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echo_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
+        controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        controls.append(Component('clock_input', xClockInput, yClockControls))
+        controls.append(Component('clock_button', xClockButtons, yClockButton))
+        controls.append(Component('interval_button', xClockButtons, yIntervalButton))
+
+        yClockLabel = yClockControls - 7.0
+        if (
+            SaveTextCaption(SvgFileName('echo_clock',     Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
+            SaveTextCaption(SvgFileName('echo_clock_sel', Target.VcvRack), font, 'CLOCK', panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR) or
+            SaveTextCaption(SvgFileName('echo_voct',      Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
+            SaveTextCaption(SvgFileName('echo_voct_sel',  Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+        controls.append(Component('clock_label', xGlobalCenter, yClockLabel))
+
+        AddGraphCorners(controls, xControlCenter)
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
+        pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, drawHexagon=False)
+
+        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
+        if (
+            SaveHexagonCaption(SvgFileName('echo_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_flp',     Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echo_flp_sel', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
+        AddControlGroup(pl, controls, font, 'feedback', 'FDBK', xGlobalCenter, yFeedbackControl)
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        AddMuteSoloButtons(pl, controls, xControlCenter, yGainControl)
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        # Global stuff
+        AddShortToggleGroup(pl, controls, font, 'FRZ', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl)
+        AddShortToggleGroup(pl, controls, font, 'CLR', 'clear' , xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl)
+
+    return Save(panel, svgFileName)
+
+
+def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
+    name = 'echotap'
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(MULTITAP_ECHOTAP_HP_WIDTH)
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    xControlCenter = panel.mmWidth / 2
+    yLoopFence = MakeLoopControlFence()
+    yAnotherFence = MakeAnotherLoopControlFence()
+
+    # "Add tap" button in the upper right corner.
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+
+    # "Remove this tap" button at bottom center.
+    xRemoveButton = xControlCenter - 9.0
+    yBottomButtons = panel.mmHeight - 5.0
+
+    # Tap controls/ports
+    yReverseControl = yLoopFence.value(0)
+    yTimeControl = yAnotherFence.value(0)
+    yPanControl  = yAnotherFence.value(1)
+    yGainControl = yAnotherFence.value(2)
+    xSendPorts   = xControlCenter - MULTIMAP_DX_SEND_RETURN
+    xReturnPorts = xControlCenter + MULTIMAP_DX_SEND_RETURN
+    xSendReturnButton = (xSendPorts + xReturnPorts)/2
+    ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, MULTITAP_ECHOTAP_HP_WIDTH))
+        AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
+        AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
+        AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
+        controls.append(Component('insert_button', xInsertButton, yInsertButton))
+        controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
+
+        AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
+        AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
+        AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
+        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
+        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
+
+        AddMultiTapEnvGroup(controls, xControlCenter)
+        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        if (
+            SaveRectangleCaption(SvgFileName('echotap_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_dck',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('echotap_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
+        AddGraphCorners(controls, xControlCenter)
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yTimeControl, 'time')
+        pl.append(CenteredControlTextPath(font, 'TIME', xControlCenter, yTimeControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        x1 = xControlCenter - DX_FLAT_CONTROL_GROUP
+        x2 = xControlCenter + DX_FLAT_CONTROL_GROUP
+        AddShortToggleGroup(pl, controls, font, '', 'reverse', x1, x2, yReverseControl, drawHexagon=False)
+
+        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
+        if (
+            SaveHexagonCaption(SvgFileName('echotap_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_flp',     Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
+            SaveHexagonCaption(SvgFileName('echotap_flp_sel', Target.VcvRack), font, 'FLP', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR)
+        ): return 1
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yPanControl, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN', xControlCenter, yPanControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xControlCenter, yGainControl, 'gain')
+        AddMuteSoloButtons(pl, controls, xControlCenter, yGainControl)
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
+    return Save(panel, svgFileName)
+
+
+def AddOmriLogo(pl:Element, xCenter:float, yCenter:float = 122.5, shrink:float = 70.0) -> None:
+    inFileName = 'assets/Omri_Cohen_logo_crunched.svg'
+    with open(inFileName, 'rt') as infile:
+        text = infile.read()
+    original = LiteralXml.Parse(text)
+    dx1 = dy1 = -886 / 2        # from the original svg width, height attributes
+    scale = 1 / shrink
+    transformer = SvgCoordinateTransformer(dx1, dy1, xCenter, yCenter, scale)
+    logo = transformer.transform(original, 'omri_cohen_logo')
+    pl.append(logo)
+
+
+def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
+    target = Target.VcvRack
+    name = 'echoout'
+    PANEL_WIDTH = 4
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(PANEL_WIDTH)
+    cdict[name] = controls = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    defs = Element('defs')
+    pl.append(defs)
+    panel.append(pl)
+    xmid = panel.mmWidth / 2
+    xOutputPorts = xmid
+    yFence = MakeLoopControlFence()
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, PANEL_WIDTH))
+        AddVerticalStereoPorts(font, pl, controls, xOutputPorts, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(controls, 'output', xOutputPorts + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
+        AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
+        AddOmriLogo(pl, xmid)
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
+    return (
+        GenerateEchoPanel(cdict) or
+        GenerateEchoTapPanel(cdict) or
+        GenerateEchoOutPanel(cdict)
+    )
+
+
+def GenerateMultiTapExtenderButton() -> int:
+    svgFileName = '../res/extender_button.svg'
+    panel = BasePanel(MULTITAP_INSERT_BUTTON_DX, MULTITAP_INSERT_BUTTON_DY)
+    cx = (panel.mmWidth / 2) - 0.4
+    cy = panel.mmHeight / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapRemoveButton() -> int:
+    svgFileName = '../res/remove_button.svg'
+    panel = BasePanel(MULTITAP_REMOVE_BUTTON_DX, MULTITAP_REMOVE_BUTTON_DY)
+    cx = (panel.mmWidth / 2) - 0.4
+    cy = panel.mmHeight / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        style = 'stroke:#9e0808;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
+        panel.append(CenteredControlTextPath(font, '<', cx, cy, pointSize = 12.0, style = style))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/clock_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapIntervalButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/interval_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapMuteButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/mute_button_{:d}.svg'.format(step)
+    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
+    xc = MULTITAP_CLOCK_BUTTON_DX / 2
+    yc = MULTITAP_CLOCK_BUTTON_DY / 2
+    r1 = 0.77
+    r2 = 1.44
+    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
+    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
+    return Save(panel, svgFileName)
+
+
+def GenerateMultiTapButtons() -> int:
+    return (
+        GenerateMultiTapExtenderButton() or
+        GenerateMultiTapClockButton(0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535') or
+        GenerateMultiTapIntervalButton(0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateMultiTapIntervalButton(1, '#edce1c', '#b59d14', '#356235', '#353535') or
+        GenerateMultiTapMuteButton(0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
+        GenerateMultiTapMuteButton(1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
+        GenerateMultiTapRemoveButton()
+    )
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
+        GenerateMultiTapButtons() or
+        GenerateMultiTapPanels(cdict) or
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
@@ -1953,7 +2425,6 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
-        GenerateTubeUnit(cdict, 'tube monster', 'tubemonster') or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

@@ -16,9 +16,7 @@ namespace Sapphire
         const int TRAIL_LENGTH = 1000;      // how many (x, y, z) points are held for the 3D plot
 
         const int PANEL_HP_WIDTH = 25;
-        const float HP_MM = 5.08f;
         const float PANEL_MM_WIDTH = PANEL_HP_WIDTH * HP_MM;
-        const float PANEL_MM_HEIGHT = 128.5f;
 
         const float DISPLAY_MM_MARGIN = 3.0f;
         const float DISPLAY_MM_WIDTH  = PANEL_MM_WIDTH - (2*DISPLAY_MM_MARGIN);
@@ -1132,7 +1130,7 @@ namespace Sapphire
                 : module(_module)
                 , fontPath(asset::system("res/fonts/ShareTechMono-Regular.ttf"))
             {
-                const float mmTopMargin  = PANEL_MM_HEIGHT - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
+                const float mmTopMargin  = PANEL_HEIGHT_MM - (DISPLAY_MM_HEIGHT + DISPLAY_MM_MARGIN);
                 box.pos = mm2px(Vec(DISPLAY_MM_MARGIN, mmTopMargin));
                 box.size = mm2px(Vec(DISPLAY_MM_WIDTH, DISPLAY_MM_HEIGHT));
                 addButton(new TricorderButton_ToggleAxes(*this));
@@ -1177,63 +1175,62 @@ namespace Sapphire
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
-                if (layer != 1)
-                    return;
-
-                const int n = ActivePointCount(module);
-                if (n == 0)
-                    return;
-
-                renderList.clear();
-
-                if (AxesAreVisible(*this))
+                if (layer == 1)
                 {
-                    const float r = 4.0f;
-                    Point origin(0, 0, 0);
-                    addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
-                    addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
-                    drawLetterX(r);
-                    drawLetterY(r);
-                    drawLetterZ(r);
-                }
-
-                if (n < TRAIL_LENGTH)
-                {
-                    // The pointList has not yet reached full capacity.
-                    // Render from the front to the back.
-                    for (int i = 1; i < n; ++i)
+                    const int n = ActivePointCount(module);
+                    if (n > 0)
                     {
-                        const Point& p1 = module->pointList[i-1];
-                        const Point& p2 = module->pointList[i];
-                        addSegment(SegmentKind::Curve, i, p1, p2);
-                    }
-                    addTip(module->pointList[n-1]);
-                }
-                else
-                {
-                    // The pointList is full, so we treat it as a circular buffer.
-                    int curr = module->nextPointIndex;      // the oldest point in the list
-                    for (int i = 1; i < TRAIL_LENGTH; ++i)
-                    {
-                        int next = (curr + 1) % TRAIL_LENGTH;
-                        const Point& p1 = module->pointList[curr];
-                        const Point& p2 = module->pointList[next];
-                        addSegment(SegmentKind::Curve, i, p1, p2);
-                        curr = next;
-                    }
-                    addTip(module->pointList[curr]);
-                }
+                        renderList.clear();
 
-                nvgSave(args.vg);
-                Rect b = box.zeroPos();
-                nvgScissor(args.vg, RECT_ARGS(b));
-                render(args.vg, n);
-                if (NumbersAreVisible(*this))
-                    displayVoltageNumbers(args.vg);
-                nvgResetScissor(args.vg);
-                nvgRestore(args.vg);
+                        if (AxesAreVisible(*this))
+                        {
+                            const float r = 4.0f;
+                            Point origin(0, 0, 0);
+                            addSegment(SegmentKind::Axis, -1, origin, Point(r, 0, 0));
+                            addSegment(SegmentKind::Axis, -1, origin, Point(0, r, 0));
+                            addSegment(SegmentKind::Axis, -1, origin, Point(0, 0, r));
+                            drawLetterX(r);
+                            drawLetterY(r);
+                            drawLetterZ(r);
+                        }
 
+                        if (n < TRAIL_LENGTH)
+                        {
+                            // The pointList has not yet reached full capacity.
+                            // Render from the front to the back.
+                            for (int i = 1; i < n; ++i)
+                            {
+                                const Point& p1 = module->pointList[i-1];
+                                const Point& p2 = module->pointList[i];
+                                addSegment(SegmentKind::Curve, i, p1, p2);
+                            }
+                            addTip(module->pointList[n-1]);
+                        }
+                        else
+                        {
+                            // The pointList is full, so we treat it as a circular buffer.
+                            int curr = module->nextPointIndex;      // the oldest point in the list
+                            for (int i = 1; i < TRAIL_LENGTH; ++i)
+                            {
+                                int next = (curr + 1) % TRAIL_LENGTH;
+                                const Point& p1 = module->pointList[curr];
+                                const Point& p2 = module->pointList[next];
+                                addSegment(SegmentKind::Curve, i, p1, p2);
+                                curr = next;
+                            }
+                            addTip(module->pointList[curr]);
+                        }
+
+                        nvgSave(args.vg);
+                        Rect b = box.zeroPos();
+                        nvgScissor(args.vg, RECT_ARGS(b));
+                        render(args.vg, n);
+                        if (NumbersAreVisible(*this))
+                            displayVoltageNumbers(args.vg);
+                        nvgResetScissor(args.vg);
+                        nvgRestore(args.vg);
+                    }
+                }
                 OpaqueWidget::drawLayer(args, layer);
             }
 
@@ -1575,7 +1572,7 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                if (module != nullptr)
+                if (module)
                 {
                     // Stop auto-rotation if in effect.
                     module->selectRotationMode(0, 0);
@@ -1597,7 +1594,7 @@ namespace Sapphire
                 if (e.button != GLFW_MOUSE_BUTTON_LEFT)
                     return;
 
-                if (module != nullptr)
+                if (module)
                 {
                     // Adjust latitude/longitude angles based on mouse movement.
                     const float scale = (0.35 * module->zoomFactor()) / DISPLAY_SCALE;
@@ -1651,54 +1648,54 @@ namespace Sapphire
 
         void SelectRotationMode(const TricorderDisplay& display, int longitudeDirection, int latitudeDirection)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->selectRotationMode(longitudeDirection, latitudeDirection);
         }
 
 
         void ResetPerspective(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->resetPerspective();
         }
 
 
         void ToggleAxisVisibility(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->axesAreVisible = !display.module->axesAreVisible;
         }
 
 
         void ToggleNumbersVisibility(const TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->numbersAreVisible = !display.module->numbersAreVisible;
         }
 
 
         bool AxesAreVisible(const TricorderDisplay& display)
         {
-            return (display.module != nullptr) && display.module->axesAreVisible;
+            return display.module && display.module->axesAreVisible;
         }
 
 
         bool NumbersAreVisible(const TricorderDisplay& display)
         {
-            return (display.module != nullptr) && display.module->numbersAreVisible;
+            return display.module && display.module->numbersAreVisible;
         }
 
 
         void AdjustZoom(const TricorderDisplay& display, int adjust)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->adjustZoom(adjust);
         }
 
 
         void ClearPath(TricorderDisplay& display)
         {
-            if (display.module != nullptr)
+            if (display.module)
                 display.module->resetPointList();
         }
 
@@ -1727,9 +1724,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (tricorderModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (tricorderModule)
                 {
-                    menu->addChild(new MenuSeparator);
                     menu->addChild(new RotationSpeedSlider(tricorderModule->rotationSpeedQuantity));
                 }
             }

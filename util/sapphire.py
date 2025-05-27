@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import enum
 from svgpanel import *
 from typing import List
 
@@ -30,6 +31,7 @@ ARROW_LINE_STYLE = 'stroke:#000000;stroke-width:0.35;stroke-linecap:round;stroke
 SIGNAL_LINE_STYLE = 'stroke:#66065c;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none'
 SYMBOL_TEXT_STYLE = 'stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none'
 
+DY_STEREO_PORTS = 10.0
 
 class SapphireGemstone(Element):
     mmWidth = 5.43
@@ -45,14 +47,19 @@ def ControlTextPath(font:Font, text:str, xpos:float, ypos:float, id:str = '') ->
     tp.setAttrib('style', CONTROL_LABEL_STYLE)
     return tp
 
-def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, id:str = '', pointSize:float = CONTROL_LABEL_POINTS) -> TextPath:
+def CenteredControlTextPath(font:Font, text:str, xcenter:float, ycenter:float, id:str = '', pointSize:float = CONTROL_LABEL_POINTS, style:str = CONTROL_LABEL_STYLE) -> TextPath:
     ti = TextItem(text, font, pointSize)
-    tp = ti.toPath(xcenter, ycenter, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE, id)
+    tp = ti.toPath(xcenter, ycenter, HorizontalAlignment.Center, VerticalAlignment.Middle, style, id)
     return tp
 
-def ModelNamePath(panel:Panel, font:Font, name:str) -> TextPath:
+def ModelNamePathX(xCenter:float, font:Font, name:str) -> TextPath:
     ti = TextItem(name, font, MODEL_NAME_POINTS)
-    tp = ti.toPath(panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
+    tp = ti.toPath(xCenter, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
+    return tp
+
+def ModelNamePath(panel:Panel, font:Font, name:str, xAdjust:float = 0.0) -> TextPath:
+    ti = TextItem(name, font, MODEL_NAME_POINTS)
+    tp = ti.toPath(xAdjust + panel.mmWidth/2, 0.2, HorizontalAlignment.Center, VerticalAlignment.Top, MODEL_NAME_STYLE, 'model_name')
     return tp
 
 
@@ -83,9 +90,9 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     insignia = Element('g', 'sapphire_insignia')
     gemSpacing = 3.0
     sapphireTextItem = TextItem('sapphire', font, BRAND_NAME_POINTS)
-    (sdx, sdy) = sapphireTextItem.measure()
+    (sdx, _) = sapphireTextItem.measure()
     modelTextItem = TextItem(modelName, font, MODEL_NAME_POINTS)
-    (mdx, mdy) = modelTextItem.measure()
+    (mdx, _) = modelTextItem.measure()
     # Render "* sapphire * model *", where * = gemstone.
     # We center this at the top of the panel.
     gdx = SapphireGemstone.mmWidth + gemSpacing
@@ -109,21 +116,29 @@ def SapphireModelInsignia(panel:Panel, font:Font, modelName:str) -> Element:
     insignia.append(SapphireGemstone(x1, gy1).setAttrib('style', GEMSTONE_STYLE))
     return insignia
 
+GEMSTONE_DEFAULT_Y = 121.0
 
-def CenteredGemstone(panel:Panel) -> SapphireGemstone:
-    '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
-    gem = SapphireGemstone((panel.mmWidth - SapphireGemstone.mmWidth)/2, 121.0)
+def Gemstone(xCenter:float, yCenter:float = GEMSTONE_DEFAULT_Y) -> SapphireGemstone:
+    '''Gemstone at the bottom of the panel with arbitrary horizontal position.'''
+    gem = SapphireGemstone(xCenter - SapphireGemstone.mmWidth/2, yCenter)
     gem.setAttrib('id', 'sapphire_gemstone')
     gem.setAttrib('style', GEMSTONE_STYLE)
     return gem
+
+
+def CenteredGemstone(panel:Panel, yCenter:float = GEMSTONE_DEFAULT_Y) -> SapphireGemstone:
+    '''Use for Sapphire modules that are thin and have room only for a gemstone at the bottom.'''
+    return Gemstone(panel.mmWidth/2, yCenter)
 
 
 def HorizontalLinePath(x1:float, x2:float, y:float) -> Path:
     return Path(Move(x1,y) + Line(x2,y) + ClosePath(), CONNECTOR_LINE_STYLE)
 
 
+DX_FLAT_CONTROL_GROUP = 9.0
+
 def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
-    dx = 9.0
+    dx = DX_FLAT_CONTROL_GROUP
     controls.append(Component(symbol + '_cv', x - dx, y))
     controls.append(Component(symbol + '_atten', x, y))
     controls.append(Component(symbol + '_knob', x + dx, y))
@@ -163,21 +178,21 @@ def AddFlatControlGrid(
         xIndex += 1
 
 
-def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str) -> Path:
+def GeneralLine(x1:float, y1:float, x2:float, y2:float, id:str = '') -> Path:
     path = ''
     path += Move(x1, y1)
     path += Line(x2, y2)
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
-def HorizontalLine(x1:float, x2:float, y:float, id:str) -> Path:
+def HorizontalLine(x1:float, x2:float, y:float, id:str = '') -> Path:
     path = ''
     path += Move(x1, y)
     path += Line(x2, y)
     return Path(path, CONNECTOR_LINE_STYLE, id, 'none')
 
 
-def VerticalLine(x:float, y1:float, y2:float, id:str) -> Path:
+def VerticalLine(x:float, y1:float, y2:float, id:str = '') -> Path:
     path = ''
     path += Move(x, y1)
     path += Line(x, y2)
@@ -202,3 +217,67 @@ def AddToggleGroup(
     controls.append(Component(prefix + '_button', x2, yControl))
     return group
 
+
+def HexagonPath(x1:float, x2:float, dx:float, y1:float, y2:float, id:str = '', style:str = CONNECTOR_LINE_STYLE) -> Path:
+    x3 = x1 + dx
+    x4 = x2 - dx
+    ym = (y1 + y2) / 2
+    text  = Move(x1, ym)
+    text += Line(x3, y1)
+    text += Line(x4, y1)
+    text += Line(x2, ym)
+    text += Line(x4, y2)
+    text += Line(x3, y2)
+    text += ClosePath()
+    return Path(text, style, id, 'none')
+
+
+def ShortHexagon(x1:float, x2:float, yControl:float, style:str = CONNECTOR_LINE_STYLE) -> Path:
+    inset = 3.8
+    nudge = 0.2
+    dy = 2.5
+    dx = 2.0
+    return HexagonPath(x1+inset+nudge, x2-inset, dx, yControl-dy, yControl+dy, style = style)
+
+
+def AddShortToggleGroup(
+        pl: Element,
+        controls: ControlLayer,
+        font: Font,
+        caption: str,
+        prefix: str,
+        x1: float,
+        x2: float,
+        yControl: float,
+        drawHexagon: bool = True,
+        id: str = '') -> Element:
+
+    group = Element('g', id)
+
+    if caption:
+        pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl))
+
+    if drawHexagon:
+        pl.append(ShortHexagon(x1, x2, yControl))
+
+    controls.append(Component(prefix + '_input',  x1, yControl))
+    controls.append(Component(prefix + '_button', x2, yControl))
+    return group
+
+
+@enum.unique
+class Target(enum.Enum):
+    VcvRack = 1
+    Lite = 2
+
+class TargetError(Error):
+    def __init__(self, target:Target):
+        Error.__init__(self, 'Unsupported target platform: ' + target.name)
+
+
+def MakeBorder(target:Target, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> BorderRect:
+    if target == Target.VcvRack:
+        borderColor = ''
+    else:
+        borderColor = SAPPHIRE_BORDER_COLOR
+    return BorderRect(hpWidth, SAPPHIRE_PANEL_COLOR, borderColor, mmHeight)

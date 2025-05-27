@@ -53,7 +53,7 @@ namespace Sapphire
             int recallFlashCounter = 0;
             GateTriggerReceiver storeReceiver;
             GateTriggerReceiver recallReceiver;
-            GateTriggerReceiver freezeReceiver;
+            ToggleGroup freezeToggleGroup;
 
             ChaopsModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -61,18 +61,17 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configParam(MEMORY_SELECT_PARAM, 0, MemoryCount-1, 0, "Memory select");
-                paramQuantities[MEMORY_SELECT_PARAM]->snapEnabled = true;
-                configParam(MEMORY_SELECT_ATTEN, -1, +1, 0, "Memory select attenuverter", "%", 0, 100);
+                paramQuantities.at(MEMORY_SELECT_PARAM)->snapEnabled = true;
+                configAtten(MEMORY_SELECT_ATTEN, "Memory select");
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
                 configButton(STORE_BUTTON_PARAM, "Store");
                 configButton(RECALL_BUTTON_PARAM, "Recall");
-                configButton(FREEZE_BUTTON_PARAM, "Freeze");
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
-                configInput(FREEZE_INPUT, "Freeze gate");
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
-                configParam(MORPH_ATTEN, -1, +1, 0, "Morph attenuverter", "%", 0, 100);
+                configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
+                freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
                 initialize();
             }
 
@@ -84,7 +83,8 @@ namespace Sapphire
                 recallFlashCounter = 0;
                 storeReceiver.initialize();
                 recallReceiver.initialize();
-                freezeReceiver.initialize();
+                freezeToggleGroup.initialize();
+                params.at(FREEZE_BUTTON_PARAM).setValue(0);
             }
 
             void onReset(const ResetEvent& e) override
@@ -97,9 +97,9 @@ namespace Sapphire
             {
                 using namespace std;
 
-                float cv = inputs[MEMORY_SELECT_CV_INPUT].getVoltageSum();
-                float slider = params[MEMORY_SELECT_PARAM].getValue();
-                float attenu = 2 * params[MEMORY_SELECT_ATTEN].getValue();
+                float cv = inputs.at(MEMORY_SELECT_CV_INPUT).getVoltageSum();
+                float slider = params.at(MEMORY_SELECT_PARAM).getValue();
+                float attenu = 2 * params.at(MEMORY_SELECT_ATTEN).getValue();
                 if (isLowSensitive(MEMORY_SELECT_ATTEN))
                     attenu /= AttenuverterLowSensitivityDenom;
                 slider += attenu * cv;
@@ -114,26 +114,25 @@ namespace Sapphire
 
             bool getStoreTrigger()
             {
-                bool isButtonDown = (params[STORE_BUTTON_PARAM].getValue() > 0);
+                bool isButtonDown = (params.at(STORE_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !storeButtonPressed;
                 storeButtonPressed = isButtonDown;
-                bool triggerFired = storeReceiver.updateTrigger(inputs[STORE_TRIGGER_INPUT].getVoltageSum());
+                bool triggerFired = storeReceiver.updateTrigger(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
                 return buttonJustPressed || triggerFired;
             }
 
             bool getRecallTrigger()
             {
-                bool isButtonDown = (params[RECALL_BUTTON_PARAM].getValue() > 0);
+                bool isButtonDown = (params.at(RECALL_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !recallButtonPressed;
                 recallButtonPressed = isButtonDown;
-                bool triggerFired = recallReceiver.updateTrigger(inputs[RECALL_TRIGGER_INPUT].getVoltageSum());
+                bool triggerFired = recallReceiver.updateTrigger(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());
                 return buttonJustPressed || triggerFired;
             }
 
             static int flashDurationSamples(float sampleRate)
             {
-                const float flashDurationSeconds = 0.05;
-                return static_cast<int>(flashDurationSeconds * sampleRate);
+                return static_cast<int>(FlashDurationSeconds * sampleRate);
             }
 
             void process(const ProcessArgs& args) override
@@ -146,7 +145,7 @@ namespace Sapphire
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
-                    message.freeze = frozen = updateToggleGroup(freezeReceiver, FREEZE_INPUT, FREEZE_BUTTON_PARAM);
+                    message.freeze = frozen = freezeToggleGroup.process();
                     message.morph = getMorph();
                     sender.send(message);
 
@@ -174,11 +173,6 @@ namespace Sapphire
                 setLightBrightness(STORE_BUTTON_LIGHT, storeFlashCounter > 0);
                 setLightBrightness(RECALL_BUTTON_LIGHT, recallFlashCounter > 0);
                 setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
-            }
-
-            void setLightBrightness(LightId lightId, bool lit)
-            {
-                lights[lightId].setBrightness(lit ? 1.0f : 0.06f);
             }
         };
 
@@ -208,9 +202,17 @@ namespace Sapphire
                 addSapphireInput(STORE_TRIGGER_INPUT, "store_trigger");
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
 
-                addToggleGroup("freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
+                ToggleGroup* freezeGroup = module ? &(module->freezeToggleGroup) : nullptr;
+                addToggleGroup(freezeGroup, "freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
+
                 addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
                 addSapphireChannelDisplay("memory_address_display");
+            }
+
+            void appendContextMenu(ui::Menu* menu) override
+            {
+                if (chaopsModule)
+                    chaopsModule->freezeToggleGroup.addMenuItems(menu);
             }
         };
     }

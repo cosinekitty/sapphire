@@ -11,6 +11,7 @@ from fontTools.ttLib import TTFont                          # type: ignore
 from fontTools.pens.svgPathPen import SVGPathPen            # type: ignore
 from fontTools.pens.transformPen import TransformPen        # type: ignore
 from fontTools.misc.transform import DecomposedTransform    # type: ignore
+import re
 
 # Prevent seeing lots of "ns0:" everywhere when we re-serialized the XML.
 et.register_namespace('', 'http://www.w3.org/2000/svg')
@@ -262,14 +263,250 @@ class Element:
 
 class LiteralXml(Element):
     """For supporting legacy SVG that was generated in InkScape."""
-    def __init__(self, panelXmlText:str, id:str = ''):
+    def __init__(self, root:et.Element, id:str = ''):
         super().__init__('g', id)
-        self.literal = et.fromstring(panelXmlText)
+        self.literal = root
 
     def xml(self) -> et.Element:
         if self.literal is None:
             raise Error('Internal error: missing ElementTree instance.')
         return self.literal
+
+    @staticmethod
+    def Parse(text:str, id:str = '') -> 'LiteralXml':
+        tree = et.fromstring(text)
+        return LiteralXml(tree, id)
+
+
+class SvgCoordinateTransformer:
+    def __init__(self, dx1:float, dy1:float, dx2:float, dy2:float, scale:float) -> None:
+        self.dx1 = dx1
+        self.dy1 = dy1
+        self.dx2 = dx2
+        self.dy2 = dy2
+        self.scale = scale
+        self.xvalid = False
+        self.yvalid = False
+
+    @staticmethod
+    def RemoveNamespace(tag:str) -> str:
+        # Convert '{http://www.w3.org/2000/svg}ellipse' -> 'ellipse'.
+        if tag.startswith('{'):
+            endTagIndex = tag.find('}')
+            if endTagIndex >= 0:
+                return tag[endTagIndex+1:]
+        return tag
+
+    def tx(self, x:float) -> float:
+        return (x + self.dx1)*self.scale + self.dx2
+
+    def ty(self, y:float) -> float:
+        return (y + self.dy1)*self.scale + self.dy2
+
+    def tr(self, s:float) -> float:
+        return s * self.scale
+
+    def transformX(self, text: str) -> str:
+        return _FormatMillimeters(self.tx(float(text)))
+
+    def transformY(self, text: str) -> str:
+        return _FormatMillimeters(self.ty(float(text)))
+
+    def transformRadius(self, text: str) -> str:
+        return _FormatMillimeters(self.tr(float(text)))
+
+    def transformTransform(self, text:str) -> str:
+        # The only one we handle currently is transform="rotate(angle cx cy)"
+        m = re.match(r'^\s*rotate\s*\(\s*(?P<angle>[\-\+\.0-9]+)(\s+(?P<cx>[\-\+\.0-9]+)\s+((?P<cy>[\-\+\.0-9]+)))?', text)
+        if m:
+            angle = float(m.group('angle'))
+            cx = self.transformX(m.group('cx') or '0')
+            cy = self.transformY(m.group('cy') or '0')
+            return 'rotate=({} {} {})'.format(angle, cx, cy)
+        raise Error('Unsupported transformation: {}'.format(text))
+
+    def transformAttribEllipse(self, attrib:Dict[str, str]) -> Dict[str, str]:
+        tAttrib: Dict[str, str] = {}
+        for (k, v) in attrib.items():
+            if k == 'cx':
+                tAttrib[k] = self.transformX(v)
+            elif k == 'cy':
+                tAttrib[k] = self.transformY(v)
+            elif k in ['rx', 'ry']:
+                tAttrib[k] = self.transformRadius(v)
+            elif k == 'transform':
+                tAttrib[k] = self.transformTransform(v)
+            else:
+                tAttrib[k] = v
+        return tAttrib
+
+    def splitDecimals(self, text:str) -> List[str]:
+        token: List[str] = []
+        parts = text.split('.')
+        if len(parts) <= 2:
+            token.append(text)
+        else:
+            token.append(parts[0] + '.' + parts[1])
+            p = 2
+            while p < len(parts):
+                token.append('.' + parts[p])
+                p += 1
+        #print('splitDecimals: {} => {}'.format(text, token))
+        return token
+
+    def addTokens(self, token:List[str], text:str) -> None:
+        text = text.strip()
+        while (minusIndex := text.find('-', 1)) >= 0:
+            first = text[:minusIndex]
+            if first:
+                token += self.splitDecimals(first)
+            text = text[minusIndex:]
+        if text:
+            token += self.splitDecimals(text)
+
+    def tokenize(self, text:str) -> List[str]:
+        # d="M448.532 510.199c-28.452 6.023-49.81 19.755-58.582 31.758-6.084 8.325-2.754 16.949 6.078 17.251 4.107.14 8.29-.231 12.464-1.163l90.538-20.202a53.841 53.841 0 0 0 20.417-9.344 2.459 2.459 0 0 0 .259-3.723c-7.71-7.595-22.757-24.827-71.174-14.577z"
+        # Split into tokens. A token is a letter or a number.
+        token:List[str] = []
+        buffer = ''
+        for c in text:
+            if re.match(r'[\s,]', c):
+                if buffer:
+                    self.addTokens(token, buffer)
+                    buffer = ''
+            elif re.match(r'[a-zA-Z]', c):
+                if buffer:
+                    self.addTokens(token, buffer)
+                    buffer = ''
+                token.append(c)
+                #print('COMMAND: ' + c)
+            else:
+                buffer += c
+        if buffer:
+            self.addTokens(token, buffer)
+        return token
+
+    def transformBatch(self, verb:str, batch:List[float]) -> List[float]:
+        if verb == 'M':
+            (x, y) = batch
+            return [self.tx(x), self.ty(y)]
+        if verb in ['c', 'l', 's', 'm', 'h', 'v']:
+            return [self.tr(x) for x in batch]
+        if verb == 'H':
+            (x,) = batch
+            return [self.tx(x)]
+        if verb == 'V':
+            (y,) = batch
+            return [self.ty(y)]
+        if verb == 'S':
+            (x2, y2, x, y) = batch
+            return [self.tx(x2), self.ty(y2), self.tx(x), self.ty(y)]
+        if verb == 'a':
+            [rx, ry, rotation, largeArcFlag, sweepFlag, dx, dy] = batch
+            return [
+                self.tr(rx),
+                self.tr(ry),
+                rotation,
+                largeArcFlag,
+                sweepFlag,
+                self.tr(dx),
+                self.tr(dy)
+            ]
+        if verb == 'z':
+            () = batch
+            return []
+        raise Error('Unknown SVG path verb: ' + verb)
+
+    def transformPathText(self, text:str) -> str:
+        s = ''
+        token = self.tokenize(text)
+        index = 0
+        first = True
+        while index < len(token):
+            # Get the next verb character, like M or c:
+            verb = token[index]
+            index += 1
+
+            # Verbs can be followed by a variable number of numeric arguments.
+            # For example, 'c' can have multiple groups of six numbers each.
+            # Grab the next consecutive run of numeric tokens without expecting
+            # any particular number of tokens.
+            run:List[float] = []
+            while (index < len(token)) and (not re.match(r'[a-zA-Z]', token[index])):
+                run.append(float(token[index]))
+                index += 1
+
+            # Each verb expects a certain number of arguments per batch,
+            # with multiple batches allowed per verb.
+            expect: Dict[str, int] = {
+                'a': 7,     # a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
+                'c': 6,
+                'h': 1,
+                'H': 1,
+                'l': 2,
+                'm': 2,
+                'M': 2,
+                's': 4,     # s dx2 dy2 dx dy
+                'S': 4,     # S x2 y2 x y
+                'v': 1,
+                'V': 1,
+                'z': 0
+            }
+
+            if verb not in expect:
+                raise Error('Unexpected verb: ' + verb)
+
+            batchSize = expect[verb]
+            if batchSize > 0:
+                if first:
+                    first = False
+                    if verb == 'm':
+                        s += 'M {:g} {:g}'.format(self.tx(0.0), self.ty(0.0))
+                s += verb
+                while len(run) >= batchSize:
+                    batch = self.transformBatch(verb, run[:batchSize])
+                    for x in batch:
+                        s += ' {:g}'.format(x)
+                    run = run[batchSize:]
+                if len(run) != 0:
+                    raise Error('Unexpected residual run = ' + str(run))
+            else:
+                s += verb
+        return s
+
+    def transformPath(self, attrib:Dict[str, str]) -> Dict[str, str]:
+        tAttrib: Dict[str, str] = {}
+        for (k, v) in attrib.items():
+            if k == 'd':
+                tAttrib[k] = self.transformPathText(v)
+            else:
+                tAttrib[k] = v
+        return tAttrib
+
+    def transformAttrib(self, shortTag:str, attrib:Dict[str, str]) -> Tuple[str, Dict[str, str]]:
+        if shortTag == 'ellipse':
+            return (shortTag, self.transformAttribEllipse(attrib))
+        elif shortTag == 'path':
+            return (shortTag, self.transformPath(attrib))
+        elif shortTag == 'svg':
+            return ('g', {})
+        return (shortTag, attrib.copy())
+
+    def transformElem(self, element: et.Element, id:str = '') -> et.Element:
+        shortTag = SvgCoordinateTransformer.RemoveNamespace(element.tag)
+        xTag, xAttrib = self.transformAttrib(shortTag, element.attrib)
+        if id:
+            xAttrib['id'] = id
+        copy = et.Element(xTag, xAttrib)
+        copy.text = element.text
+        for child in element:
+            copy.append(self.transformElem(child))
+        return copy
+
+    def transform(self, xml:LiteralXml, id:str = '') -> LiteralXml:
+        if xml.literal is None:
+            raise Error('Missing XML literal')
+        return LiteralXml(self.transformElem(xml.literal, id))
 
 
 class Path(Element):
@@ -329,7 +566,7 @@ class TextPath(Element):
 
 class Rectangle(Element):
     """SVG Rectangle"""
-    def __init__(self, cx:float, cy:float, width:float, height:float, stroke:str, strokeWidth:float, fill:str, id:str = '') -> None:
+    def __init__(self, cx:float, cy:float, width:float, height:float, stroke:str = 'black', strokeWidth:float = 0.1, fill:str = 'none', id:str = '') -> None:
         super().__init__('rect', id)
         self.setAttribFloat('x', cx - width/2)
         self.setAttribFloat('y', cy - height/2)
@@ -341,7 +578,7 @@ class Rectangle(Element):
 
 
 class BorderRect(Element):
-    """A filled rectangle with border for the bottom layer of your panel design."""
+    """A filled rectangle for the base layer of your panel design."""
     def __init__(self, hpWidth:int, fillColor:str, borderColor:str, mmHeight:float = PANEL_HEIGHT_MM) -> None:
         super().__init__('rect', 'border_rect')
         if hpWidth <= 0:
@@ -350,7 +587,10 @@ class BorderRect(Element):
         self.setAttribFloat('height', mmHeight)
         self.setAttrib('x', '0')
         self.setAttrib('y', '0')
-        self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
+        if borderColor:
+            self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;fill-rule:nonzero;stroke:{};stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto'.format(fillColor, borderColor))
+        else:
+            self.setAttrib('style', 'display:inline;fill:{};fill-opacity:1;stroke:none;'.format(fillColor))
 
 
 class LinearGradient(Element):
@@ -405,13 +645,10 @@ def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     return True
 
 
-class Panel(Element):
-    """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
-    def __init__(self, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> None:
+class BasePanel(Element):
+    def __init__(self, mmWidth:float, mmHeight:float) -> None:
         super().__init__('svg')
-        if hpWidth <= 0:
-            raise Error('Invalid hpWidth={}'.format(hpWidth))
-        self.mmWidth = HP_WIDTH_MM * hpWidth
+        self.mmWidth = mmWidth
         self.mmHeight = mmHeight
         self.setAttrib('xmlns', 'http://www.w3.org/2000/svg')
         self.setAttrib('width', '{:0.2f}mm'.format(self.mmWidth))
@@ -431,3 +668,12 @@ class Panel(Element):
     def save(self, outFileName:str, indent:str = '    ') -> bool:
         """Write this panel to an SVG file."""
         return UpdateFileIfChanged(outFileName, self.svg(indent))
+
+
+class Panel(BasePanel):
+    """A rectangular region that can be either your panel's base layer or a transparent layer on top."""
+    def __init__(self, hpWidth:int, mmHeight:float = PANEL_HEIGHT_MM) -> None:
+        if hpWidth <= 0:
+            raise Error('Invalid hpWidth={}'.format(hpWidth))
+        super().__init__(HP_WIDTH_MM * hpWidth, mmHeight)
+

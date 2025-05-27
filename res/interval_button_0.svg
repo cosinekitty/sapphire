@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3.00mm" height="3.00mm" viewBox="0 0 3.00 3.00">
+    <circle cx="1.5" cy="1.5" r="1.44" stroke="#353535" stroke-width="0.11" fill="#353535" />
+    <circle cx="1.5" cy="1.5" r="0.77" stroke="#434343" stroke-width="0.06" fill="#585858" />
+</svg>

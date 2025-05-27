@@ -10,6 +10,9 @@ extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
 extern Model* modelSapphireChaops;
+extern Model* modelSapphireEcho;
+extern Model* modelSapphireEchoOut;
+extern Model* modelSapphireEchoTap;
 extern Model* modelSapphireElastika;
 extern Model* modelSapphireEnv;
 extern Model* modelSapphireFrolic;

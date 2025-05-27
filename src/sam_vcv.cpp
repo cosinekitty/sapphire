@@ -103,35 +103,35 @@ namespace Sapphire
             {
                 const int nc = desiredChannelCount();
 
-                float px = inputs[POLY_INPUT].getVoltage(0);
-                float py = inputs[POLY_INPUT].getVoltage(1);
-                float pz = inputs[POLY_INPUT].getVoltage(2);
+                float px = inputs.at(POLY_INPUT).getVoltage(0);
+                float py = inputs.at(POLY_INPUT).getVoltage(1);
+                float pz = inputs.at(POLY_INPUT).getVoltage(2);
 
-                float mx = inputs[X_INPUT].getVoltageSum();
-                float my = inputs[Y_INPUT].getVoltageSum();
-                float mz = inputs[Z_INPUT].getVoltageSum();
+                float mx = inputs.at(X_INPUT).getVoltageSum();
+                float my = inputs.at(Y_INPUT).getVoltageSum();
+                float mz = inputs.at(Z_INPUT).getVoltageSum();
 
                 float sx = px + mx;
                 float sy = py + my;
                 float sz = pz + mz;
 
-                outputs[POLY_OUTPUT].setChannels(nc);
-                outputs[POLY_OUTPUT].setVoltage(sx, 0);
-                outputs[POLY_OUTPUT].setVoltage(sy, 1);
-                outputs[POLY_OUTPUT].setVoltage(sz, 2);
+                outputs.at(POLY_OUTPUT).setChannels(nc);
+                outputs.at(POLY_OUTPUT).setVoltage(sx, 0);
+                outputs.at(POLY_OUTPUT).setVoltage(sy, 1);
+                outputs.at(POLY_OUTPUT).setVoltage(sz, 2);
 
                 // If the user selects more than 3 output channels,
                 // copy poly input from higher channels also.
                 // There are no mono (X, Y, Z) type ports to add with.
                 for (int c = 3; c < nc; ++c)
                 {
-                    float p = inputs[POLY_INPUT].getVoltage(c);
-                    outputs[POLY_OUTPUT].setVoltage(p, c);
+                    float p = inputs.at(POLY_INPUT).getVoltage(c);
+                    outputs.at(POLY_OUTPUT).setVoltage(p, c);
                 }
 
-                outputs[X_OUTPUT].setVoltage(sx);
-                outputs[Y_OUTPUT].setVoltage(sy);
-                outputs[Z_OUTPUT].setVoltage(sz);
+                outputs.at(X_OUTPUT).setVoltage(sx);
+                outputs.at(Y_OUTPUT).setVoltage(sy);
+                outputs.at(Z_OUTPUT).setVoltage(sz);
 
                 sendVector(sx, sy, sz, false);
 
@@ -162,9 +162,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (splitAddMergeModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (splitAddMergeModule)
                 {
-                    menu->addChild(new MenuSeparator);
                     menu->addChild(new ChannelCountSlider(splitAddMergeModule->channelCountQuantity));
                 }
             }

@@ -41,14 +41,20 @@ namespace Sapphire
     template <typename value_t>
     inline value_t TwoToPower(value_t x)
     {
-        constexpr value_t L = 0.6931471805599453;    // ln(2)
+        static constexpr value_t L = 0.6931471805599453;    // ln(2)
         return std::exp(static_cast<value_t>(L*x));
+    }
+
+    template <typename value_t>
+    inline value_t OneHalfToPower(value_t x)
+    {
+        return TwoToPower(-x);
     }
 
     template <typename value_t>
     inline value_t TenToPower(value_t x)
     {
-        constexpr value_t L = 2.302585092994046;    // ln(10)
+        static constexpr value_t L = 2.302585092994046;    // ln(10)
         return std::exp(static_cast<value_t>(L*x));
     }
 
@@ -56,6 +62,11 @@ namespace Sapphire
     {
         const float k = Cube(1-mix);
         return k*dry + (1-k)*wet;
+    }
+
+    inline float LinearMix(float mix, float dry, float wet)
+    {
+        return (1-mix)*dry + mix*wet;
     }
 
     template <typename real_t>
@@ -71,6 +82,65 @@ namespace Sapphire
 
         return x - (4*x*x*x)/(27*yLimit*yLimit);
     }
+
+    inline int MOD(int i, int n)    // Always returns 0..(n-1), even when i<0.
+    {
+        if (n <= 0)
+            throw std::out_of_range(std::string("Invalid denominator for MOD: ") + std::to_string(n));
+
+        const int m = ((i%n) + n) % n;
+        if (m < 0 || m >= n)
+            throw std::range_error("MOD internal failure.");
+
+        return m;
+    }
+
+    template <typename real_t>
+    inline real_t FMOD(real_t x, real_t y)
+    {
+        if (y <= 0)
+            throw std::out_of_range(std::string("Invalid denominator for FMOD: ") + std::to_string(y));
+
+        const real_t m = std::fmod(y + std::fmod(x, y), y);
+        if (m < 0 || m >= y)
+            throw std::range_error("FMOD internal failure.");
+
+        return m;
+    }
+
+    template <typename enum_t>
+    inline enum_t NextEnumValue(enum_t e, int increment = +1)
+    {
+        static constexpr int length = static_cast<int>(enum_t::LEN);
+        static_assert(length > 0);
+        const int value = static_cast<int>(e);
+        const int next = MOD(value + increment, length);
+        return static_cast<enum_t>(next);
+    }
+
+    inline std::size_t SafeIndex(
+        std::size_t length,
+        std::size_t index,
+        const char *sourceFileName,
+        int sourceLineNumber)
+    {
+        if (index >= length)
+        {
+            std::string message = sourceFileName;
+            message += "(";
+            message += std::to_string(sourceLineNumber);
+            message += "): index=";
+            message += std::to_string(index);
+            message += " for array[";
+            message += std::to_string(length);
+            message += "]";
+            throw std::out_of_range(message);
+        }
+        return index;
+    }
+
+#define SafeArray(ptr, length, index)   \
+    ((ptr)[SafeIndex(length, index, __FILE__, __LINE__)])
 
     class Slewer
     {
@@ -191,7 +261,7 @@ namespace Sapphire
     private:
         value_t xprev {};
         value_t yprev {};
-        float fc {20.0f};
+        float fc = 20;
 
     public:
         void Snap(value_t xDcLevel)

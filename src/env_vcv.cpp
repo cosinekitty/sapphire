@@ -94,16 +94,14 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t *root = SapphireModule::dataToJson();
-                json_object_set_new(root, "gatePortMode", json_integer(static_cast<int>(gatePortMode)));
+                jsonSetEnum(root, "gatePortMode", gatePortMode);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                json_t* epm = json_object_get(root, "gatePortMode");
-                if (json_is_integer(epm))
-                    gatePortMode = static_cast<GatePortMode>(json_integer_value(epm));
+                jsonLoadEnum(root, "gatePortMode", gatePortMode);
             }
 
             void process(const ProcessArgs& args) override
@@ -174,9 +172,9 @@ namespace Sapphire
 
             void setPolyOutput(OutputId id, int nc, const float* volts)
             {
-                outputs[id].setChannels(nc);
+                outputs.at(id).setChannels(nc);
                 for (int c = 0; c < nc; ++c)
-                    outputs[id].setVoltage(volts[c], c);
+                    outputs.at(id).setVoltage(volts[c], c);
             }
 
             float gateOutputVoltage(float envelope, float threshold) const
@@ -247,10 +245,10 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (envModule == nullptr)
                     return;
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(envModule->createToggleAllSensitivityMenuItem());
                 AddPortModesToMenu(menu, envModule);
             }

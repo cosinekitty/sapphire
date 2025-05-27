@@ -197,7 +197,7 @@ namespace Sapphire
                 fpd ^= fpd << 13;
                 fpd ^= fpd >> 17;
                 fpd ^= fpd << 5;
-                return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * std::pow((double)2, (double)expon+62));
+                return sample + ((double(fpd)-uint32_t(0x7fffffff)) * 5.5e-36l * TwoToPower(expon+62.0));
             }
 
             static int validateTankIndex(int tankIndex)

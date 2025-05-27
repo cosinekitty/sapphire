@@ -78,14 +78,14 @@ namespace Sapphire
                 // We also allow input from the polyphonic P input.
                 // To make either/both work, add voltages together.
 
-                float x = inputs[X_INPUT].getVoltageSum();
-                float y = inputs[Y_INPUT].getVoltageSum();
-                float z = inputs[Z_INPUT].getVoltageSum();
+                float x = inputs.at(X_INPUT).getVoltageSum();
+                float y = inputs.at(Y_INPUT).getVoltageSum();
+                float z = inputs.at(Z_INPUT).getVoltageSum();
 
-                int nc = inputs[POLY_INPUT].channels;
-                if (0 < nc) x += inputs[POLY_INPUT].getVoltage(0);
-                if (1 < nc) y += inputs[POLY_INPUT].getVoltage(1);
-                if (2 < nc) z += inputs[POLY_INPUT].getVoltage(2);
+                int nc = inputs.at(POLY_INPUT).channels;
+                if (0 < nc) x += inputs.at(POLY_INPUT).getVoltage(0);
+                if (1 < nc) y += inputs.at(POLY_INPUT).getVoltage(1);
+                if (2 < nc) z += inputs.at(POLY_INPUT).getVoltage(2);
 
                 float slider = getControlValue(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_INPUT, 0, +2);
                 float slider2 = slider * slider;
@@ -94,7 +94,7 @@ namespace Sapphire
                 y *= gain;
                 z *= gain;
 
-                bool reset = resetTrigger.updateTrigger(inputs[CLEAR_TRIGGER_INPUT].getVoltageSum());
+                bool reset = resetTrigger.updateTrigger(inputs.at(CLEAR_TRIGGER_INPUT).getVoltageSum());
                 sendVector(x, y, z, delay || reset);
                 if (delay)
                     --delay;

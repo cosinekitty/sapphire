@@ -58,7 +58,7 @@ namespace Sapphire
 
             FilterResult<value_t> process(value_t sampleRateHz, const value_t inSample)
             {
-                value_t cornerFreqHz = std::pow(static_cast<value_t>(2), freqKnob) * DefaultFrequencyHz;
+                value_t cornerFreqHz = TwoToPower(freqKnob) * DefaultFrequencyHz;
                 value_t gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
                 value_t mix = 1-Cube(1-mixKnob);
 

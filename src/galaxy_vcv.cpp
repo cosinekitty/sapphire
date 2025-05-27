@@ -157,13 +157,13 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (galaxyModule == nullptr)
-                    return;
-
-                menu->addChild(new MenuSeparator);
-                menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(galaxyModule->createStereoSplitterMenuItem());
-                menu->addChild(galaxyModule->createStereoMergeMenuItem());
+                SapphireWidget::appendContextMenu(menu);
+                if (galaxyModule)
+                {
+                    menu->addChild(galaxyModule->createToggleAllSensitivityMenuItem());
+                    menu->addChild(galaxyModule->createStereoSplitterMenuItem());
+                    menu->addChild(galaxyModule->createStereoMergeMenuItem());
+                }
             }
         };
     }

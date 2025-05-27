@@ -95,9 +95,8 @@ namespace Sapphire
                 {
                     assert(cgLookup[cg.inputId] == nullptr);
                     cgLookup[cg.inputId] = &cg;
-                    configInput(cg.inputId, cg.name + " CV");
                     configParam(cg.paramId, cg.minValue, cg.maxValue, cg.defaultValue, cg.name, cg.unit, cg.displayBase, cg.displayMultiplier);
-                    configParam(cg.attenId, -1, 1, 0, cg.name + " attenuverter", "%", 0, 100);
+                    configAttenCv(cg.attenId, cg.inputId, cg.name);
                 }
 
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -174,18 +173,18 @@ namespace Sapphire
             float getControlValue(InputId inputId, int cvChannel)
             {
                 const ControlGroup& cg = *cgLookup[inputId];
-                float slider = params[cg.paramId].getValue();
-                int nChannels = inputs[cg.inputId].getChannels();
+                float slider = params.at(cg.paramId).getValue();
+                int nChannels = inputs.at(cg.inputId).getChannels();
                 if (nChannels > 0)
                 {
                     int c = std::min(nChannels-1, cvChannel);
-                    float cv = inputs[cg.inputId].getVoltage(c);
+                    float cv = inputs.at(cg.inputId).getVoltage(c);
                     // When the attenuverter is set to 100%, and the cv is +5V, we want
                     // to swing a slider that is all the way down (minSlider)
                     // to act like it is all the way up (maxSlider).
                     // Thus we allow the complete range of control for any CV whose
                     // range is [-5, +5] volts.
-                    float attenu = params[cg.attenId].getValue();
+                    float attenu = params.at(cg.attenId).getValue();
                     if (isLowSensitive(cg.attenId))
                         attenu /= AttenuverterLowSensitivityDenom;
                     slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
@@ -196,10 +195,10 @@ namespace Sapphire
             void updateQuiet(int c)
             {
                 bool quiet{};
-                const int quietGateChannels = inputs[QUIET_GATE_INPUT].getChannels();
+                const int quietGateChannels = inputs.at(QUIET_GATE_INPUT).getChannels();
                 if (c < quietGateChannels)
                 {
-                    float qv = inputs[QUIET_GATE_INPUT].getVoltage(c);
+                    float qv = inputs.at(QUIET_GATE_INPUT).getVoltage(c);
                     if (qv >= 1.0f)
                         quiet = !isInvertedVentPort;
                     else if (qv < 0.1f)
@@ -224,8 +223,8 @@ namespace Sapphire
                 // "normalled" to the remaining channels.
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
 
-                outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
-                outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+                outputs.at(AUDIO_LEFT_OUTPUT ).setChannels(numActiveChannels);
+                outputs.at(AUDIO_RIGHT_OUTPUT).setChannels(numActiveChannels);
                 float leftIn = 0.0f;
                 float rightIn = 0.0f;
 
@@ -240,21 +239,21 @@ namespace Sapphire
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     updateQuiet(c);
-                    engine[c].setGain(params[LEVEL_KNOB_PARAM].getValue());
+                    engine[c].setGain(params.at(LEVEL_KNOB_PARAM).getValue());
                     engine[c].setAirflow(getControlValue(AIRFLOW_INPUT, c));
-                    engine[c].setRootFrequency(4 * std::pow(2.0f, getControlValue(ROOT_FREQUENCY_INPUT, c)));
+                    engine[c].setRootFrequency(4 * TwoToPower(getControlValue(ROOT_FREQUENCY_INPUT, c)));
                     engine[c].setReflectionDecay(getControlValue(REFLECTION_DECAY_INPUT, c));
                     engine[c].setReflectionAngle(M_PI * getControlValue(REFLECTION_ANGLE_INPUT, c));
-                    engine[c].setSpringConstant(0.005f * std::pow(10.0f, 4.0f * getControlValue(STIFFNESS_INPUT, c)));
+                    engine[c].setSpringConstant(0.005f * TenToPower(4.0f * getControlValue(STIFFNESS_INPUT, c)));
                     engine[c].setBypassWidth(getControlValue(BYPASS_WIDTH_INPUT, c));
                     engine[c].setBypassCenter(getControlValue(BYPASS_CENTER_INPUT, c));
                     engine[c].setVortex(getControlValue(VORTEX_INPUT, c));
 
-                    if (c < inputs[AUDIO_LEFT_INPUT].getChannels())
-                        leftIn = inputs[AUDIO_LEFT_INPUT].getVoltage(c) / 5.0f;
+                    if (c < inputs.at(AUDIO_LEFT_INPUT).getChannels())
+                        leftIn = inputs.at(AUDIO_LEFT_INPUT).getVoltage(c) / 5.0f;
 
-                    if (c < inputs[AUDIO_RIGHT_INPUT].getChannels())
-                        rightIn = inputs[AUDIO_RIGHT_INPUT].getVoltage(c) / 5.0f;
+                    if (c < inputs.at(AUDIO_RIGHT_INPUT).getChannels())
+                        rightIn = inputs.at(AUDIO_RIGHT_INPUT).getVoltage(c) / 5.0f;
 
                     float leftOut, rightOut;
                     engine[c].process(leftOut, rightOut, leftIn, rightIn);
@@ -278,8 +277,8 @@ namespace Sapphire
                     }
 
                     // Normalize TubeUnitEngine's dimensionless [-1, 1] output to VCV Rack's 5.0V peak amplitude.
-                    outputs[AUDIO_LEFT_OUTPUT ].setVoltage(5.0f * leftOut,  c);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(5.0f * rightOut, c);
+                    outputs.at(AUDIO_LEFT_OUTPUT ).setVoltage(5.0f * leftOut,  c);
+                    outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(5.0f * rightOut, c);
                 }
 
                 if (allEnginesHaveFiniteOutput && limiterRecoveryCountdown > 0)
@@ -313,7 +312,7 @@ namespace Sapphire
 
             bool hasAudioInput()
             {
-                return inputs[AUDIO_LEFT_INPUT].getChannels() + inputs[AUDIO_RIGHT_INPUT].getChannels() > 0;
+                return inputs.at(AUDIO_LEFT_INPUT).getChannels() + inputs.at(AUDIO_RIGHT_INPUT).getChannels() > 0;
             }
         };
 
@@ -324,7 +323,7 @@ namespace Sapphire
         }
 
 
-        struct TubeUnitWidget : ModuleWidget
+        struct TubeUnitWidget : SapphireWidget
         {
             TubeUnitModule *tubeUnitModule;
             WarningLightWidget *warningLight = nullptr;
@@ -333,10 +332,10 @@ namespace Sapphire
             SvgOverlay *audioEmphasis = nullptr;
 
             explicit TubeUnitWidget(TubeUnitModule* module)
-                : tubeUnitModule(module)
+                : SapphireWidget("tubeunit", asset::plugin(pluginInstance, "res/tubeunit.svg"))
+                , tubeUnitModule(module)
             {
                 setModule(module);
-                setPanel(createPanel(asset::plugin(pluginInstance, "res/tubeunit.svg")));
 
                 ventLabel = SvgOverlay::Load("res/tubeunit_vent.svg");
                 addChild(ventLabel);
@@ -373,7 +372,7 @@ namespace Sapphire
 
                     Vec attenCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, -4.0)));
                     SapphireAttenuverterKnob* knob = createParamCentered<SapphireAttenuverterKnob>(attenCenter, tubeUnitModule, cg.attenId);
-                    if (module != nullptr)
+                    if (module)
                     {
                         // Allow Tube Unit's attenuverter knobs to participate in the "low-sensitivity" feature.
                         knob->lowSensitivityMode = module->lowSensitiveFlag(cg.attenId);
@@ -405,10 +404,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (tubeUnitModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (tubeUnitModule)
                 {
-                    menu->addChild(new MenuSeparator);
-
                     if (tubeUnitModule->agcLevelQuantity)
                     {
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
@@ -428,7 +426,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (tubeUnitModule != nullptr)
+                if (tubeUnitModule)
                 {
                     // Toggle between showing "SEAL" or "VENT" depending on the toggle state.
                     bool showSeal = tubeUnitModule->isInvertedVentPort;

@@ -82,7 +82,7 @@ namespace Sapphire
                 // If a Tricoder-compatible vector sender exists to the left side,
                 // receive a vector from it.
                 const Message* message = vectorReceiver.inboundVectorMessage();
-                if (message != nullptr)
+                if (message)
                 {
                     x = message->x;
                     y = message->y;
@@ -100,17 +100,17 @@ namespace Sapphire
 
                 // Apply these values to the output ports.
 
-                outputs[X_OUTPUT].setVoltage(x);
-                outputs[Y_OUTPUT].setVoltage(y);
-                outputs[Z_OUTPUT].setVoltage(z);
+                outputs.at(X_OUTPUT).setVoltage(x);
+                outputs.at(Y_OUTPUT).setVoltage(y);
+                outputs.at(Z_OUTPUT).setVoltage(z);
 
-                outputs[POLY_OUTPUT].setChannels(3);
-                outputs[POLY_OUTPUT].setVoltage(x, 0);
-                outputs[POLY_OUTPUT].setVoltage(y, 1);
-                outputs[POLY_OUTPUT].setVoltage(z, 2);
+                outputs.at(POLY_OUTPUT).setChannels(3);
+                outputs.at(POLY_OUTPUT).setVoltage(x, 0);
+                outputs.at(POLY_OUTPUT).setVoltage(y, 1);
+                outputs.at(POLY_OUTPUT).setVoltage(z, 2);
 
                 float triggerVoltage = triggerSender.process(args.sampleTime, clear);
-                outputs[CLEAR_TRIGGER_OUTPUT].setVoltage(triggerVoltage);
+                outputs.at(CLEAR_TRIGGER_OUTPUT).setVoltage(triggerVoltage);
 
                 // Mirror the level-adjusted input to any module on the right.
                 sendVector(x, y, z, clear);

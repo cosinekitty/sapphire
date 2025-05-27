@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_engine.hpp"
+#include "sapphire_widget.hpp"
 
 // Sapphire Moots for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
@@ -155,7 +156,7 @@ namespace Sapphire
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
                 {
-                    auto & control = inputs[CONTROL1_INPUT + i];
+                    auto & control = inputs.at(CONTROL1_INPUT + i);
 
                     if (control.isConnected())
                     {
@@ -174,7 +175,7 @@ namespace Sapphire
                     else
                     {
                         // When no control input is connected, allow the manual pushbutton take control.
-                        isActive[i] = (params[TOGGLEBUTTON1_PARAM + i].getValue() > 0.0f);
+                        isActive[i] = (params.at(TOGGLEBUTTON1_PARAM + i).getValue() > 0.0f);
                     }
 
                     // When a controller is turned on, make the push-button light bright,
@@ -182,13 +183,13 @@ namespace Sapphire
                     // When a controller is turned off, use a very dim light, but not
                     // complete darkness. Some users like turning room brightness
                     // down very low, yet they still want to see where all 5 buttons are.
-                    lights[MOOTLIGHT1 + i].setBrightness(isActive[i] ? 1.0f : 0.03f);
+                    lights.at(MOOTLIGHT1 + i).setBrightness(isActive[i] ? 1.0f : 0.03f);
 
-                    auto & outp = outputs[OUTAUDIO1_OUTPUT + i];
+                    auto & outp = outputs.at(OUTAUDIO1_OUTPUT + i);
 
                     if (slewer[i].update(isActive[i]))
                     {
-                        auto & inp = inputs[INAUDIO1_INPUT + i];
+                        auto & inp = inputs.at(INAUDIO1_INPUT + i);
                         inp.readVoltages(volts);
                         outp.channels = inp.getChannels();
                         slewer[i].process(volts, outp.channels);
@@ -216,7 +217,7 @@ namespace Sapphire
 
             static ControlMode ParseControl(const char *text)
             {
-                if (text != nullptr)
+                if (text)
                 {
                     if (!strcmp(text, "trigger"))
                         return ControlMode::Trigger;
@@ -276,7 +277,7 @@ namespace Sapphire
                 // from bypassing to the output correctly.
 
                 for (int i = 0; i < NUM_CONTROLLERS; ++i)
-                    outputs[OUTAUDIO1_OUTPUT + i].channels = inputs[INAUDIO1_INPUT + i].getChannels();
+                    outputs.at(OUTAUDIO1_OUTPUT + i).channels = inputs.at(INAUDIO1_INPUT + i).getChannels();
             }
         };
 
@@ -339,17 +340,17 @@ namespace Sapphire
         };
 
 
-        struct MootsWidget : ModuleWidget
+        struct MootsWidget : SapphireWidget
         {
-            MootsModule* mootsModule{};
-            SvgOverlay* gateLabel{};
-            SvgOverlay* triggerLabel{};
+            MootsModule* mootsModule = nullptr;
+            SvgOverlay* gateLabel = nullptr;
+            SvgOverlay* triggerLabel = nullptr;
 
             explicit MootsWidget(MootsModule* module)
-                : mootsModule(module)
+                : SapphireWidget("moots", asset::plugin(pluginInstance, "res/moots.svg"))
+                , mootsModule(module)
             {
                 setModule(module);
-                setPanel(createPanel(asset::plugin(pluginInstance, "res/moots.svg")));
 
                 gateLabel = SvgOverlay::Load("res/moots_label_gate.svg");
                 addChild(gateLabel);
@@ -398,13 +399,13 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
+
                 if (mootsModule == nullptr)
                     return;
 
                 //---------------------------------------------------------------------------
                 // Gate/Trigger control mode toggle
-
-                menu->addChild(new MenuSeparator);
 
                 menu->addChild(createBoolMenuItem(
                     "Use triggers for control",

@@ -1,4 +1,5 @@
 #pragma once
+#include "sapphire_engine.hpp"
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_simd.hpp"
@@ -169,7 +170,7 @@ namespace Sapphire
                 float morph = 0;        // 0 = position, 1 = velocity
 
                 const Message* message = receiver.inboundMessage();
-                if (message != nullptr)
+                if (message)
                 {
                     if (message->freeze)
                         shouldUpdateCircuit = false;
@@ -198,7 +199,7 @@ namespace Sapphire
                     float speed = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN, SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     if (turboMode)
                         speed += 5;
-                    double dt = args.sampleTime * std::pow(2.0f, speed);
+                    double dt = args.sampleTime * TwoToPower(speed);
                     circuit.update(dt);
                 }
 
@@ -208,10 +209,10 @@ namespace Sapphire
                 float ymix = setFlippableOutputVoltage(Y_OUTPUT, (1-morph)*circuit.ypos() + morph*vel.my);
                 float zmix = setFlippableOutputVoltage(Z_OUTPUT, (1-morph)*circuit.zpos() + morph*vel.mz);
 
-                outputs[POLY_OUTPUT].setChannels(3);
-                outputs[POLY_OUTPUT].setVoltage(xmix, 0);
-                outputs[POLY_OUTPUT].setVoltage(ymix, 1);
-                outputs[POLY_OUTPUT].setVoltage(zmix, 2);
+                outputs.at(POLY_OUTPUT).setChannels(3);
+                outputs.at(POLY_OUTPUT).setVoltage(xmix, 0);
+                outputs.at(POLY_OUTPUT).setVoltage(ymix, 1);
+                outputs.at(POLY_OUTPUT).setVoltage(zmix, 2);
 
                 sendVector(xmix, ymix, zmix, shouldClearTricorder);
 
@@ -263,13 +264,13 @@ namespace Sapphire
 
             char getCaption() const override
             {
-                if (chaosModule != nullptr)
+                if (chaosModule)
                 {
                     auto& c = chaosModule->circuit;
                     if (c.getModeCount() > 1)
                     {
                         const char *modeName = c.getModeName(c.getMode());
-                        if (modeName != nullptr)
+                        if (modeName)
                             return modeName[0];
                     }
                 }
@@ -303,7 +304,7 @@ namespace Sapphire
 
             char getCaption() const override
             {
-                if (chaosModule != nullptr && chaosModule->turboMode)
+                if (chaosModule && chaosModule->turboMode)
                     return 'T';
 
                 return '\0';
@@ -318,7 +319,7 @@ namespace Sapphire
             void appendContextMenu(ui::Menu* menu) override
             {
                 SapphireAttenuverterKnob::appendContextMenu(menu);
-                if (atten != nullptr)
+                if (atten)
                 {
                     // The following lambda is called every time the menu item is clicked.
                     auto onMenuItemSelected = [this]()
@@ -367,7 +368,7 @@ namespace Sapphire
                 chaosKnob->chaosModule = module;
 
                 auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
-                knob->atten = module ? &module->params[SPEED_ATTEN] : nullptr;
+                knob->atten = module ? &module->params.at(SPEED_ATTEN) : nullptr;
 
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 
@@ -377,6 +378,7 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (chaosModule == nullptr)
                     return;
 
@@ -386,7 +388,6 @@ namespace Sapphire
                 // people often explore the right-click menu of the
                 // panel, but don't think to do that for knobs.
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule, false);
             }

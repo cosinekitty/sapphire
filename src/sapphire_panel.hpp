@@ -25,4 +25,14 @@ namespace Sapphire
     {
         return FindComponent(moduleCode, "_panel");
     }
+
+    inline float PanelWidth(const std::string& moduleCode)
+    {
+        return GetPanelDimensions(moduleCode).cx;
+    }
+
+    inline float PanelHeight(const std::string& moduleCode)
+    {
+        return GetPanelDimensions(moduleCode).cy;
+    }
 }

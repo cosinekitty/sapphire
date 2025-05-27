@@ -241,7 +241,7 @@ static int GenDampenFunction(FILE *outfile, const char *className, const Sapphir
     // Unroll the dampen loop.
     fprintf(outfile, "    void %s::Dampen(float dt, float halflife)\n", className);
     fprintf(outfile, "    {\n");
-    fprintf(outfile, "        const float damp = std::pow(0.5f, dt/halflife);\n");
+    fprintf(outfile, "        const float damp = OneHalfToPower(dt/halflife);\n");
     for (int i = 0; i < nmobile; ++i)
         fprintf(outfile, "        currBallList[%2d].vel *= damp;\n", i);
     fprintf(outfile, "    }\n\n");

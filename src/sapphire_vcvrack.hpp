@@ -4,6 +4,11 @@
 #include "plugin.hpp"
 namespace Sapphire
 {
+    inline int VcvSafeChannelCount(int count)
+    {
+        return std::clamp<int>(count, 0, PORT_MAX_CHANNELS);
+    }
+
     enum class ExpanderRole
     {
         None            = 0,
@@ -11,6 +16,7 @@ namespace Sapphire
         VectorReceiver  = 0x02,
         ChaosOpSender   = 0x04,     // Chaops
         ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark
+        MultiTap        = 0x10,     // Echo, EchoTap, EchoOut
     };
 
     inline constexpr ExpanderRole Both(ExpanderRole a, ExpanderRole b)
@@ -50,8 +56,8 @@ namespace Sapphire
 
         static ModelInfo* search(const Model *model)
         {
-            if (model != nullptr)
-                for (ModelInfo *info = front; info != nullptr; info = info->next)
+            if (model)
+                for (ModelInfo *info = front; info; info = info->next)
                     if (info->model == model)
                         return info;
 
@@ -70,6 +76,32 @@ namespace Sapphire
             return 0 != (static_cast<int>(info->roles) & static_cast<int>(role));
         }
     };
+
+    template <typename enum_t>
+    void jsonSetEnum(json_t* root, const char *key, enum_t value)
+    {
+        json_object_set_new(root, key, json_integer(static_cast<int>(value)));
+    }
+
+    template <typename enum_t>
+    void jsonLoadEnum(json_t* root, const char *key, enum_t& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_integer(js))
+            value = static_cast<enum_t>(json_integer_value(js));
+    }
+
+    inline void jsonSetBool(json_t* root, const char *key, bool value)
+    {
+        json_object_set_new(root, key, json_boolean(value));
+    }
+
+    inline void jsonLoadBool(json_t* root, const char* key, bool& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_boolean(js))
+            value = json_boolean_value(js);
+    }
 
     namespace Tricorder
     {
@@ -119,7 +151,7 @@ namespace Sapphire
         inline bool IsValidMessage(const Message *message)
         {
             return
-                (message != nullptr) &&
+                message &&
                 (message->header.size >= sizeof(Message)) &&
                 (0 == memcmp(message->header.signature, "Tcdr", 4)) &&
                 (message->header.version >= 2);
@@ -348,6 +380,14 @@ namespace Sapphire
         {
             float x = getDefaultValue();
             setValue(x);
+            changed = true;     // force initial update of this quantity's consumer
+        }
+
+        bool isChangedOneShot()
+        {
+            const bool wasChanged = changed;
+            changed = false;
+            return wasChanged;
         }
     };
 
@@ -391,7 +431,7 @@ namespace Sapphire
             // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
             // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
             auto ccq = static_cast<const ChannelCountQuantity*>(quantity);
-            if (ccq != nullptr)
+            if (ccq)
                 progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
 
             std::string text = quantity ? quantity->getString() : "";
@@ -538,6 +578,41 @@ namespace Sapphire
     };
 
 
+    constexpr float FlashDurationSeconds = 0.05;
+
+
+    class AnimatedTriggerReceiver
+    {
+    private:
+        GateTriggerReceiver tr;
+        float flashSecondsRemaining = 0;
+
+    public:
+        void initialize()
+        {
+            tr.initialize();
+            flashSecondsRemaining = 0;
+        }
+
+        bool updateTrigger(float voltage, float sampleRateHz)
+        {
+            bool trigger = tr.updateTrigger(voltage);
+
+            if (trigger)
+                flashSecondsRemaining = FlashDurationSeconds;
+            else if (flashSecondsRemaining > 0)
+                flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
+
+            return trigger;
+        }
+
+        bool lit() const
+        {
+            return flashSecondsRemaining > 0;
+        }
+    };
+
+
     class TriggerSender
     {
     private:
@@ -591,8 +666,31 @@ namespace Sapphire
         Right2,
     };
 
+
+    struct ControlGroupIds
+    {
+        int paramId;
+        int attenId;
+        int cvInputId;
+
+        ControlGroupIds()
+            : paramId(-1)
+            , attenId(-1)
+            , cvInputId(-1)
+            {}
+
+        explicit ControlGroupIds(int _paramId, int _attenId, int _cvInputId)
+            : paramId(_paramId)
+            , attenId(_attenId)
+            , cvInputId(_cvInputId)
+            {}
+    };
+
+
     struct SapphireModule : public Module
     {
+        static std::vector<SapphireModule*> All;
+
         Tricorder::VectorSender vectorSender;
         Tricorder::VectorReceiver vectorReceiver;
         std::vector<SapphireParamInfo> paramInfo;
@@ -609,6 +707,11 @@ namespace Sapphire
         bool shouldClearTricorder = false;     // used only by modules that send vectors to Tricorder for display
         bool provideModelResampler = false;
         int modelSampleRate = 0;
+        bool hideLeftBorder  = false;
+        bool hideRightBorder = false;
+        bool neonMode = false;
+        bool includeNeonModeMenuItem = true;
+        DcRejectQuantity *dcRejectQuantity = nullptr;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -619,13 +722,13 @@ namespace Sapphire
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
-            float slider = params[paramId].getValue();
+            float slider = params.at(paramId).getValue();
             // When the attenuverter is set to 100%, and the cv is +5V, we want
             // to swing a slider that is all the way down (minSlider)
             // to act like it is all the way up (maxSlider).
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
-            float attenu = params[attenId].getValue();
+            float attenu = params.at(attenId).getValue();
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu*(cv / 5)*(maxValue - minValue);
@@ -637,24 +740,46 @@ namespace Sapphire
             // Make it easy for a human to use this control voltage for V/OCT.
             // Just turn the attenuverter to +100%, disable "low sensitivity",
             // and each 1V change in CV is reflected in the return value (within clamping limits).
-            float slider = params[paramId].getValue();
-            float attenu = params[attenId].getValue();
+            float slider = params.at(paramId).getValue();
+            float attenu = params.at(attenId).getValue();
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
             slider += attenu * cv;
             return std::clamp(slider, minValue, maxValue);
         }
 
+        float controlGroupRawCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue, float cvScalar = 1)
+        {
+            nextChannelInputVoltage(cv, ids.cvInputId, channel);
+            return cvGetVoltPerOctave(ids.paramId, ids.attenId, cv * cvScalar, minValue, maxValue);
+        }
+
+        float controlGroupAmpCv(int channel, float& cv, const ControlGroupIds& ids, float minValue, float maxValue)
+        {
+            nextChannelInputVoltage(cv, ids.cvInputId, channel);
+            return cvGetControlValue(ids.paramId, ids.attenId, cv, minValue, maxValue);
+        }
+
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
-            float cv = inputs[inputId].getVoltageSum();
+            float cv = inputs.at(inputId).getVoltageSum();
             return cvGetControlValue(paramId, attenId, cv, minValue, maxValue);
         }
 
-        float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
+        float getControlValue(const ControlGroupIds& ids, float minValue, float maxValue)
         {
-            float cv = inputs[inputId].getVoltageSum();
-            return cvGetVoltPerOctave(paramId, attenId, cv, minValue, maxValue);
+            return getControlValue(ids.paramId, ids.attenId, ids.cvInputId, minValue, maxValue);
+        }
+
+        float getControlValueCustom(const ControlGroupIds& ids, float minValue, float maxValue, float cvScalar)
+        {
+            return getControlValueVoltPerOctave(ids.paramId, ids.attenId, ids.cvInputId, minValue, maxValue, cvScalar);
+        }
+
+        float getControlValueVoltPerOctave(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1, float cvScalar = 1)
+        {
+            float cv = inputs.at(inputId).getVoltageSum();
+            return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
         void defineAttenuverterId(int attenId)
@@ -732,6 +857,18 @@ namespace Sapphire
             return vectorReceiver.isVectorSenderConnectedOnLeft();
         }
 
+        void onAdd(const AddEvent& e) override
+        {
+            if (std::find(All.begin(), All.end(), this) == All.end())
+                All.push_back(this);
+        }
+
+        void onRemove(const RemoveEvent& e) override
+        {
+            // Delete all instances of `this` pointer in `All`.
+            All.erase(std::remove(All.begin(), All.end(), this), All.end());
+        }
+
         json_t* dataToJson() override
         {
             json_t* root = json_object();
@@ -762,6 +899,11 @@ namespace Sapphire
             if (provideModelResampler)
                 json_object_set_new(root, "modelSampleRate", json_integer(modelSampleRate));
 
+            json_object_set_new(root, "neonMode", json_boolean(neonMode));
+
+            if (dcRejectQuantity)
+                dcRejectQuantity->save(root, "dcRejectFrequency");
+
             return root;
         }
 
@@ -779,7 +921,7 @@ namespace Sapphire
                 paramInfo.at(attenId).isLowSensitive = false;
 
             json_t* aList = json_object_get(root, "lowSensitivityAttenuverters");
-            if (aList != nullptr)
+            if (aList)
             {
                 std::size_t listLength = static_cast<int>(json_array_size(aList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
@@ -799,7 +941,7 @@ namespace Sapphire
                 outputPortInfo.at(outputId).flipVoltagePolarity = false;
 
             json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
-            if (oList != nullptr)
+            if (oList)
             {
                 std::size_t listLength = static_cast<int>(json_array_size(oList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
@@ -832,12 +974,23 @@ namespace Sapphire
                 if (json_is_integer(rate))
                     modelSampleRate = json_integer_value(rate);
             }
+
+            json_t* jsNeonMode = json_object_get(root, "neonMode");
+            if (json_is_boolean(jsNeonMode))
+                neonMode = json_boolean_value(jsNeonMode);
+
+            if (dcRejectQuantity)
+                dcRejectQuantity->load(root, "dcRejectFrequency");
+        }
+
+        virtual void tryCopySettingsFrom(SapphireModule* other)
+        {
         }
 
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
         {
-            const int ncl = inputs[leftPortIndex ].channels;
-            const int ncr = inputs[rightPortIndex].channels;
+            const int ncl = inputs.at(leftPortIndex ).channels;
+            const int ncr = inputs.at(rightPortIndex).channels;
 
             if (enableStereoSplitter)
             {
@@ -846,16 +999,16 @@ namespace Sapphire
 
                 if (ncl >= 2 && ncr == 0)
                 {
-                    inLeft  = inputs[leftPortIndex].getVoltage(0);
-                    inRight = inputs[leftPortIndex].getVoltage(1);
+                    inLeft  = inputs.at(leftPortIndex).getVoltage(0);
+                    inRight = inputs.at(leftPortIndex).getVoltage(1);
                     inputStereoMode = InputStereoMode::Left2;
                     return;
                 }
 
                 if (ncr >= 2 && ncl == 0)
                 {
-                    inLeft  = inputs[rightPortIndex].getVoltage(0);
-                    inRight = inputs[rightPortIndex].getVoltage(1);
+                    inLeft  = inputs.at(rightPortIndex).getVoltage(0);
+                    inRight = inputs.at(rightPortIndex).getVoltage(1);
                     inputStereoMode = InputStereoMode::Right2;
                     return;
                 }
@@ -864,8 +1017,8 @@ namespace Sapphire
             // Assume separate data fed to each input port.
             inputStereoMode = InputStereoMode::LeftRight;
 
-            inLeft  = inputs[leftPortIndex ].getVoltageSum();
-            inRight = inputs[rightPortIndex].getVoltageSum();
+            inLeft  = inputs.at(leftPortIndex ).getVoltageSum();
+            inRight = inputs.at(rightPortIndex).getVoltageSum();
 
             // But if only one of the two input ports has a cable,
             // split that cable's voltage equally between the left and right inputs.
@@ -881,20 +1034,20 @@ namespace Sapphire
         {
             if (enableStereoMerge)
             {
-                outputs[leftPortIndex].setChannels(2);
-                outputs[leftPortIndex].setVoltage(outLeft,  0);
-                outputs[leftPortIndex].setVoltage(outRight, 1);
+                outputs.at(leftPortIndex).setChannels(2);
+                outputs.at(leftPortIndex).setVoltage(outLeft,  0);
+                outputs.at(leftPortIndex).setVoltage(outRight, 1);
 
-                outputs[rightPortIndex].setChannels(1);
-                outputs[rightPortIndex].setVoltage(0);
+                outputs.at(rightPortIndex).setChannels(1);
+                outputs.at(rightPortIndex).setVoltage(0);
             }
             else
             {
-                outputs[leftPortIndex].setChannels(1);
-                outputs[leftPortIndex ].setVoltage(outLeft);
+                outputs.at(leftPortIndex).setChannels(1);
+                outputs.at(leftPortIndex ).setVoltage(outLeft);
 
-                outputs[rightPortIndex].setChannels(1);
-                outputs[rightPortIndex].setVoltage(outRight);
+                outputs.at(rightPortIndex).setChannels(1);
+                outputs.at(rightPortIndex).setVoltage(outRight);
             }
         }
 
@@ -913,16 +1066,44 @@ namespace Sapphire
         {
             int nc = minChannels;
             for (int i = 0; i < numInputs; ++i)
-                nc = std::max(nc, inputs[i].getChannels());
+                nc = std::max(nc, inputs.at(i).getChannels());
             return std::clamp(nc, 0, PORT_MAX_CHANNELS);
         }
 
         float nextChannelInputVoltage(float& voltage, int inputId, int channel)
         {
-            rack::engine::Input& input = inputs[inputId];
-            if (channel < input.getChannels())
+            Input& input = inputs.at(inputId);
+            if (channel >= 0 && channel < input.getChannels())
                 voltage = input.getVoltage(channel);
             return voltage;
+        }
+
+        void configStereoInputs(int leftPortId, int rightPortId, const std::string& suffix)
+        {
+            configInput(leftPortId, "Left " + suffix);
+            configInput(rightPortId, "Right " + suffix);
+        }
+
+        void configStereoOutputs(int leftPortId, int rightPortId, const std::string& suffix)
+        {
+            configOutput(leftPortId, "Left " + suffix);
+            configOutput(rightPortId, "Right " + suffix);
+        }
+
+        ParamQuantity* configAtten(int attenId, const std::string& name)
+        {
+            return configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
+        }
+
+        PortInfo* configCvInput(int cvInputId, const std::string& name)
+        {
+            return configInput(cvInputId, name + " CV");
+        }
+
+        void configAttenCv(int attenId, int cvInputId, const std::string& name)
+        {
+            configAtten(attenId, name);
+            configCvInput(cvInputId, name);
         }
 
         void configControlGroup(
@@ -938,8 +1119,13 @@ namespace Sapphire
             float displayMultiplier = 1)
         {
             configParam(paramId, minValue, maxValue, defValue, name, unit, displayBase, displayMultiplier);
-            configParam(attenId, -1, +1, 0, name + " attenuverter", "%", 0, 100);
-            configInput(cvInputId, name + " CV");
+            configAttenCv(attenId, cvInputId, name);
+        }
+
+        void configToggleGroup(int inputId, int buttonParamId, const std::string& buttonCaption, const std::string& inputPrefix)
+        {
+            configButton(buttonParamId, buttonCaption);
+            configInput(inputId, inputPrefix);
         }
 
         bool getVoltageFlipEnabled(int outputId) const
@@ -965,7 +1151,7 @@ namespace Sapphire
             float voltage = originalVoltage;
             if (getVoltageFlipEnabled(outputId))
                 voltage = -voltage;
-            outputs[outputId].setVoltage(voltage);
+            outputs.at(outputId).setVoltage(voltage);
             return voltage;
         }
 
@@ -1035,6 +1221,23 @@ namespace Sapphire
             return std::clamp(static_cast<int>(round(lo + scale*(hi-lo))), lo, hi);
         }
 
+        void addDcRejectQuantity(int paramId, float defaultFrequencyHz)
+        {
+            assert(dcRejectQuantity == nullptr);    // do not initialize more than once
+
+            dcRejectQuantity = configParam<DcRejectQuantity>(
+                paramId,
+                DC_REJECT_MIN_FREQ,
+                DC_REJECT_MAX_FREQ,
+                defaultFrequencyHz,
+                "DC reject cutoff",
+                " Hz"
+            );
+
+            dcRejectQuantity->value = defaultFrequencyHz;
+            dcRejectQuantity->changed = true;
+        }
+
         AgcLevelQuantity* makeAgcLevelQuantity(
             int   paramId,
             float levelMin   =  1.0,
@@ -1059,16 +1262,147 @@ namespace Sapphire
             return agcLevelQuantity;
         }
 
-        bool updateToggleGroup(GateTriggerReceiver& receiver, int inputId, int buttonParamId)
+        bool updateTriggerGroup(
+            float sampleRateHz,
+            AnimatedTriggerReceiver& receiver,
+            int inputId,
+            int buttonParamId,
+            int buttonLightId)
         {
             Input& input  = inputs.at(inputId);
             Param& button = params.at(buttonParamId);
 
-            bool portActive = receiver.updateGate(input.getVoltageSum());
-            bool buttonActive = (button.getValue() > 0);
+            // We treat the button state as if it is a 0V/10V input voltage.
+            // Then we boolean-OR the logic levels of the input port and button.
+            float inputVoltage = input.getVoltageSum();
+            if (button.getValue() > 0)
+                inputVoltage = 10;
+
+            bool trigger = receiver.updateTrigger(inputVoltage, sampleRateHz);
+            setLightBrightness(buttonLightId, receiver.lit());
+            return trigger;
+        }
+
+        void setLightBrightness(int lightId, bool lit)
+        {
+            if (lightId >= 0)
+                lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
+        }
+    };
+
+
+    enum class ToggleGroupMode
+    {
+        Gate,
+        Trigger,
+        LEN,
+
+        Default = Gate,
+    };
+
+
+    class ToggleGroup
+    {
+    private:
+        SapphireModule* smod = nullptr;
+        std::string menuName;
+        const char *jsonKey = nullptr;
+        int inputId = -1;
+        int buttonParamId = -1;
+        int buttonLightId = -1;
+        GateTriggerReceiver receiver;
+        ToggleGroupMode mode = ToggleGroupMode::Default;
+        bool portActive = false;
+
+    public:
+        ToggleGroup()
+        {
+            initialize();
+        }
+
+        void initialize()
+        {
+            receiver.initialize();
+            mode = ToggleGroupMode::Default;
+            portActive = false;
+        }
+
+        void config(
+            SapphireModule* _smod,
+            const std::string& _menuName,
+            const char *_jsonKey,
+            int _inputId,
+            int _buttonParamId,
+            int _buttonLightId,
+            const std::string& buttonCaption,
+            const std::string& inputPrefix)
+        {
+            smod = _smod;
+            menuName = _menuName;
+            jsonKey = _jsonKey;
+            inputId = _inputId;
+            buttonParamId = _buttonParamId;
+            buttonLightId = _buttonLightId;
+            if (_smod)
+                _smod->configToggleGroup(_inputId, _buttonParamId, buttonCaption, inputPrefix);
+        }
+
+        void jsonSave(json_t* root)
+        {
+            // Create a child object for this toggle group.
+            // Future-proofing: inside it we set whatever fields we want.
+            json_t* child = json_object();
+            json_object_set_new(root, jsonKey, child);
+
+            // For now, the mode is the only thing we need.
+            jsonSetEnum(child, "mode", mode);
+        }
+
+        void jsonLoad(json_t* root)
+        {
+            json_t* child = json_object_get(root, jsonKey);
+            if (json_is_object(child))
+            {
+                jsonLoadEnum(child, "mode", mode);
+            }
+        }
+
+        bool process()
+        {
+            if (!smod || inputId<0 || buttonParamId<0 || buttonLightId<0)
+                return false;
+
+            Input& input = smod->inputs.at(inputId);
+            Param& button = smod->params.at(buttonParamId);
+            const bool buttonActive = (button.getValue() > 0);
+
+            receiver.update(input.getVoltageSum());
+            switch (mode)
+            {
+            case ToggleGroupMode::Gate:
+            default:
+                portActive = receiver.isGateActive();
+                break;
+
+            case ToggleGroupMode::Trigger:
+                portActive ^= receiver.isTriggerActive();
+                break;
+            }
 
             // Allow the button to toggle the gate state, so the gate can be active-low or active-high.
-            return portActive ^ buttonActive;
+            bool active = portActive ^ buttonActive;
+            smod->setLightBrightness(buttonLightId, active);
+            return active;
+        }
+
+        void addMenuItems(Menu* menu)
+        {
+            menu->addChild(createIndexSubmenuItem(
+                menuName + " input port mode",
+                { "Gate", "Trigger" },
+                [=]() { return static_cast<std::size_t>(mode); },
+                [=](size_t value) { mode = static_cast<ToggleGroupMode>(value); }
+            ));
         }
     };
 
@@ -1131,6 +1465,19 @@ namespace Sapphire
     };
 
 
+    struct ToggleGroupInputPort : SapphirePort
+    {
+        ToggleGroup* group = nullptr;
+
+        void appendContextMenu(ui::Menu* menu) override
+        {
+            SapphirePort::appendContextMenu(menu);
+            if (group)
+                group->addMenuItems(menu);
+        }
+    };
+
+
     class Stopwatch     // Similar to the System.Diagnostics.Stopwatch class in C#
     {
     private:
@@ -1182,6 +1529,44 @@ namespace Sapphire
             return elapsed;
         }
     };
+
+
+    enum class ExpanderDirection
+    {
+        Left,
+        Right,
+    };
+
+
+    inline bool IsModelType(const ModuleWidget* widget, const Model* model)
+    {
+        return widget && model && widget->model == model;
+    }
+
+
+    inline bool IsModelType(const Module* module, const Model* model)
+    {
+        // This function is useful for recognizing our own modules in
+        // an expander chain.
+        // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
+        return module && model && module->model == model;
+    }
+
+    template <typename enum_t>
+    ui::MenuItem* createEnumMenuItem(
+        std::string text,
+        std::vector<std::string> labels,
+        enum_t& option)
+    {
+        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
+
+        return createIndexSubmenuItem(
+            text,
+            labels,
+            [&option]() { return static_cast<std::size_t>(option); },
+            [&option](size_t index) { option = static_cast<enum_t>(index); }
+        );
+    }
 }
 
 

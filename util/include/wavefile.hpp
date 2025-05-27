@@ -96,7 +96,7 @@ private:
 
     void Flush()
     {
-        if (outfile != nullptr)
+        if (outfile)
         {
             if (fwrite(buffer.data(), sizeof(int16_t), buffer.size(), outfile) != buffer.size())
                 throw std::runtime_error("Cannot write audio to WAV file.");
@@ -113,7 +113,7 @@ public:
     void Close()
     {
         Flush();
-        if (outfile != nullptr)
+        if (outfile)
         {
             fflush(outfile);
             if (fseek(outfile, 0, SEEK_SET))
@@ -290,7 +290,7 @@ public:
 
     void Close()
     {
-        if (infile != nullptr)
+        if (infile)
         {
             fclose(infile);
             infile = nullptr;

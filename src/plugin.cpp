@@ -12,6 +12,9 @@ void init(Plugin* p)
     pluginInstance = p;
 
     p->addModel(modelSapphireChaops);
+    p->addModel(modelSapphireEcho);
+    p->addModel(modelSapphireEchoOut);
+    p->addModel(modelSapphireEchoTap);
     p->addModel(modelSapphireElastika);
     p->addModel(modelSapphireEnv);
     p->addModel(modelSapphireFrolic);

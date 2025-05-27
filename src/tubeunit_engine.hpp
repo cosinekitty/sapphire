@@ -271,8 +271,8 @@ namespace Sapphire
             // Reflection from the open end of a tube causes the return pressure
             // wave to be inverted.
             // Convert the (decay, angle) pair into a complex coefficient.
-            float halflife = std::pow(10.0f, (2.0 * reflectionDecay) - 1.0);     // exponential range 0.1 seconds ... 10 seconds.
-            float magnitude = std::pow(0.5f, static_cast<float>(1.0 / (rootFrequency * halflife)));
+            float halflife = TenToPower((2 * reflectionDecay) - 1);     // exponential range 0.1 seconds ... 10 seconds.
+            float magnitude = OneHalfToPower(1 / (rootFrequency * halflife));
             float radians = M_PI * reflectionAngle;
             complex_t reflectionFraction { magnitude * std::cos(radians), magnitude * std::sin(radians) };
             inbound.write(-reflectionFraction * bellPressure);

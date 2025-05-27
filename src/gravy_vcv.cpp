@@ -120,7 +120,7 @@ namespace Sapphire
 
             FilterMode getFilterMode()
             {
-                return static_cast<FilterMode>(params[FILTER_MODE_PARAM].getValue());
+                return static_cast<FilterMode>(params.at(FILTER_MODE_PARAM).getValue());
             }
 
             json_t* dataToJson() override
@@ -233,10 +233,10 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (gravyModule == nullptr)
                     return;
 
-                menu->addChild(new MenuSeparator);
                 menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
                 menu->addChild(gravyModule->createStereoSplitterMenuItem());
                 menu->addChild(gravyModule->createStereoMergeMenuItem());

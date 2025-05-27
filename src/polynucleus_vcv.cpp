@@ -81,7 +81,6 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             bool resetTricorder{};
-            DcRejectQuantity *dcRejectQuantity{};
 
             PolynucleusModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -111,16 +110,6 @@ namespace Sapphire
                 configParam(SPIN_ATTEN_PARAM, -1, 1, 0, "Aether rotation attenuverter", "%", 0, 100);
 #endif
 
-                dcRejectQuantity = configParam<DcRejectQuantity>(
-                    DC_REJECT_PARAM,
-                    DC_REJECT_MIN_FREQ,
-                    DC_REJECT_MAX_FREQ,
-                    DefaultCornerFrequencyHz,
-                    "DC reject cutoff",
-                    " Hz"
-                );
-                dcRejectQuantity->setValue(DefaultCornerFrequencyHz);
-
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
                 configInput(MAGNET_CV_INPUT, "Magnetic coupling CV");
@@ -138,6 +127,7 @@ namespace Sapphire
                 configButton(CLEAR_BUTTON_PARAM, "Brings the simulation back to its quiet initial state");
 
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addDcRejectQuantity(DC_REJECT_PARAM, DefaultCornerFrequencyHz);
 
                 initialize();
             }
@@ -152,7 +142,6 @@ namespace Sapphire
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
-                dcRejectQuantity->save(root, "dcRejectFrequency");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
@@ -168,7 +157,6 @@ namespace Sapphire
                 enableLimiterWarning = !json_is_false(warningFlag);
 
                 agcLevelQuantity->load(root, "agcLevel");
-                dcRejectQuantity->load(root, "dcRejectFrequency");
 
                 resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
@@ -185,14 +173,12 @@ namespace Sapphire
             {
                 using namespace Nucleus;
 
-                params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
-                params[CLEAR_BUTTON_PARAM].setValue(0.0f);
+                params.at(AUDIO_MODE_BUTTON_PARAM).setValue(1.0f);
+                params.at(CLEAR_BUTTON_PARAM).setValue(0.0f);
 
                 engine.initialize();
                 SetMinimumEnergy(engine);
-                dcRejectQuantity->value = DefaultCornerFrequencyHz;
-                dcRejectQuantity->changed = false;
-                engine.setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
+                dcRejectQuantity->initialize();
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
@@ -236,12 +222,12 @@ namespace Sapphire
 
             bool isEnabledAudioMode() const
             {
-                return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
+                return params.at(AUDIO_MODE_BUTTON_PARAM).value > 0.5f;
             }
 
             bool isClearButtonPressed() const
             {
-                return params[CLEAR_BUTTON_PARAM].value > 0.5f;
+                return params.at(CLEAR_BUTTON_PARAM).value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override
@@ -255,7 +241,7 @@ namespace Sapphire
                 float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
                 const int minExp = -3;    // 0.001
                 const int maxExp = +2;    // 100
-                return std::pow(10.0f, minExp + (maxExp - minExp)*knob);
+                return TenToPower(minExp + (maxExp - minExp)*knob);
             }
 
             float getInputDrive()
@@ -279,7 +265,7 @@ namespace Sapphire
             float getSpeedFactor()
             {
                 float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -6, +6);
-                float factor = std::pow(2.0f, knob-1 /* -7..+5 is a better range */);
+                float factor = TwoToPower(knob-1 /* -7..+5 is a better range */);
                 return factor;
             }
 
@@ -304,7 +290,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                lights[CLEAR_BUTTON_LIGHT].setBrightness(isClearButtonPressed() ? 1.0f : 0.0f);
+                lights.at(CLEAR_BUTTON_LIGHT).setBrightness(isClearButtonPressed() ? 1.0f : 0.0f);
                 if (isClearButtonPressed())
                     resetSimulation();      // keep resetting as long as button is held down
 
@@ -321,18 +307,15 @@ namespace Sapphire
                 engine.setAetherSpin(spin);
                 engine.setAetherVisc(visc);
 
-                if (dcRejectQuantity->changed)
-                {
+                if (dcRejectQuantity->isChangedOneShot())
                     engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
-                    dcRejectQuantity->changed = false;
-                }
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
                 Particle& input = engine.particle(0);
-                input.pos[0] = drive * inputs[A_INPUT].getVoltage(0);
-                input.pos[1] = drive * inputs[A_INPUT].getVoltage(1);
-                input.pos[2] = drive * inputs[A_INPUT].getVoltage(2);
+                input.pos[0] = drive * inputs.at(A_INPUT).getVoltage(0);
+                input.pos[1] = drive * inputs.at(A_INPUT).getVoltage(1);
+                input.pos[2] = drive * inputs.at(A_INPUT).getVoltage(2);
                 input.pos[3] = 0;
                 input.vel = PhysicsVector::zero();
 
@@ -367,29 +350,29 @@ namespace Sapphire
                 }
 
                 // Let the audio/cv toggle pushbutton light reflect its button state.
-                lights[AUDIO_MODE_BUTTON_LIGHT].setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
+                lights.at(AUDIO_MODE_BUTTON_LIGHT).setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
 
                 // Report all output voltages to VCV Rack.
 
-                outputs[B_OUTPUT].setChannels(3);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 0), 0);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 1), 1);
-                outputs[B_OUTPUT].setVoltage(engine.output(1, 2), 2);
+                outputs.at(B_OUTPUT).setChannels(3);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 0), 0);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 1), 1);
+                outputs.at(B_OUTPUT).setVoltage(engine.output(1, 2), 2);
 
-                outputs[C_OUTPUT].setChannels(3);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 0), 0);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 1), 1);
-                outputs[C_OUTPUT].setVoltage(engine.output(2, 2), 2);
+                outputs.at(C_OUTPUT).setChannels(3);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 0), 0);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 1), 1);
+                outputs.at(C_OUTPUT).setVoltage(engine.output(2, 2), 2);
 
-                outputs[D_OUTPUT].setChannels(3);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 0), 0);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 1), 1);
-                outputs[D_OUTPUT].setVoltage(engine.output(3, 2), 2);
+                outputs.at(D_OUTPUT).setChannels(3);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 0), 0);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 1), 1);
+                outputs.at(D_OUTPUT).setVoltage(engine.output(3, 2), 2);
 
-                outputs[E_OUTPUT].setChannels(3);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 0), 0);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 1), 1);
-                outputs[E_OUTPUT].setVoltage(engine.output(4, 2), 2);
+                outputs.at(E_OUTPUT).setChannels(3);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 0), 0);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 1), 1);
+                outputs.at(E_OUTPUT).setVoltage(engine.output(4, 2), 2);
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
                 float tx = engine.output(tricorderOutputIndex, 0);
@@ -481,13 +464,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (polynucleusModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (polynucleusModule)
                 {
-                    menu->addChild(new MenuSeparator);
-
-                    // Add slider to adjust the DC reject filter's corner frequency.
-                    menu->addChild(new DcRejectSlider(polynucleusModule->dcRejectQuantity));
-
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(polynucleusModule->agcLevelQuantity));
 
@@ -508,7 +487,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (polynucleusModule != nullptr) && polynucleusModule->isVectorReceiverConnectedOnRight();
+                return polynucleusModule && polynucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -658,7 +637,7 @@ namespace Sapphire
 
                 SapphireWidget::onButton(e);
 
-                if ((polynucleusModule != nullptr) && isVectorReceiverConnectedOnRight())
+                if (polynucleusModule && isVectorReceiverConnectedOnRight())
                 {
                     // See if the mouse click lands inside any of the mouse bounding boxes.
                     for (int row = 1; row < NUM_PARTICLES; ++row)
@@ -676,7 +655,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (polynucleusModule != nullptr)
+                if (polynucleusModule)
                 {
                     // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
                     bool audio = polynucleusModule->isEnabledAudioMode();

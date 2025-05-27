@@ -115,7 +115,6 @@ namespace Sapphire
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
-            DcRejectQuantity *dcRejectQuantity{};
             AgcLevelQuantity *agcLevelQuantity{};
             Slewer slewer;
             bool isPowerGateActive = true;
@@ -150,16 +149,7 @@ namespace Sapphire
                 configParam(INPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Input tilt angle attenuverter", "%", 0, 100);
                 configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle attenuverter", "%", 0, 100);
 
-                dcRejectQuantity = configParam<DcRejectQuantity>(
-                    DC_REJECT_PARAM,
-                    DC_REJECT_MIN_FREQ,
-                    DC_REJECT_MAX_FREQ,
-                    DC_REJECT_DEFAULT_FREQ,
-                    "DC reject cutoff",
-                    " Hz"
-                );
-                dcRejectQuantity->value = DC_REJECT_DEFAULT_FREQ;
-
+                addDcRejectQuantity(DC_REJECT_PARAM, 20);
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
@@ -200,13 +190,11 @@ namespace Sapphire
                 agcLevelQuantity->initialize();
                 dcRejectQuantity->initialize();
                 engine.initialize();
-                engine.setDcRejectFrequency(dcRejectQuantity->value);
-                dcRejectQuantity->changed = false;
                 reflectAgcSlider();
                 isPowerGateActive = true;
                 isQuiet = false;
                 slewer.enable(true);
-                params[POWER_TOGGLE_PARAM].setValue(1.0f);
+                params.at(POWER_TOGGLE_PARAM).setValue(1.0f);
                 enableLimiterWarning = true;
                 outputVectorSelectRight = false;
                 hamburger.initialize();
@@ -230,7 +218,6 @@ namespace Sapphire
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
-                dcRejectQuantity->save(root, "dcRejectFrequency");
                 return root;
             }
 
@@ -249,7 +236,6 @@ namespace Sapphire
                 outputVectorSelectRight = (0 != json_integer_value(selectFlag));
 
                 agcLevelQuantity->load(root, "agcLevel");
-                dcRejectQuantity->load(root, "dcRejectFrequency");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -281,7 +267,7 @@ namespace Sapphire
                 // The user is allowed to turn off Elastika to reduce CPU usage.
                 // Check the gate input voltage first, and debounce it.
                 // If the gate is not connected, fall back to the pushbutton state.
-                auto& gate = inputs[POWER_GATE_INPUT];
+                auto& gate = inputs.at(POWER_GATE_INPUT);
                 if (gate.isConnected())
                 {
                     // If the gate input is connected, use the polyphonic sum
@@ -303,18 +289,18 @@ namespace Sapphire
                 else
                 {
                     // When no gate input is connected, allow the manual pushbutton take control.
-                    isPowerGateActive = (params[POWER_TOGGLE_PARAM].getValue() > 0.0f);
+                    isPowerGateActive = (params.at(POWER_TOGGLE_PARAM).getValue() > 0.0f);
                 }
 
                 // Set the pushbutton illumination to track the power state,
                 // whether the power state was set by the button itself or the power gate.
-                lights[POWER_LIGHT].setBrightness(isPowerGateActive ? 1.0f : 0.03f);
+                lights.at(POWER_LIGHT).setBrightness(isPowerGateActive ? 1.0f : 0.03f);
 
                 if (!slewer.update(isPowerGateActive))
                 {
                     // Output silent stereo signal without using any more CPU.
-                    outputs[AUDIO_LEFT_OUTPUT].setVoltage(0.0f);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(0.0f);
+                    outputs.at(AUDIO_LEFT_OUTPUT).setVoltage(0.0f);
+                    outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(0.0f);
 
                     // If this is the first sample since Elastika was turned off,
                     // force the mesh to go back to its starting state:
@@ -329,13 +315,8 @@ namespace Sapphire
 
                 isQuiet = false;
 
-                // If the user has changed the DC cutoff via the right-click menu,
-                // update the output filter corner frequencies.
-                if (dcRejectQuantity->changed)
-                {
+                if (dcRejectQuantity->isChangedOneShot())
                     engine.setDcRejectFrequency(dcRejectQuantity->value);
-                    dcRejectQuantity->changed = false;
-                }
 
                 reflectAgcSlider();
 
@@ -346,8 +327,8 @@ namespace Sapphire
                 float span = getControlValue(SPAN_SLIDER_PARAM, SPAN_ATTEN_PARAM, SPAN_CV_INPUT);
                 float curl = getControlValue(CURL_SLIDER_PARAM, CURL_ATTEN_PARAM, CURL_CV_INPUT, -1.0f, +1.0f);
                 float mass = getControlValue(MASS_SLIDER_PARAM, MASS_ATTEN_PARAM, MASS_CV_INPUT, -1.0f, +1.0f);
-                float drive = params[DRIVE_KNOB_PARAM].getValue();
-                float gain  = params[LEVEL_KNOB_PARAM].getValue();
+                float drive = params.at(DRIVE_KNOB_PARAM).getValue();
+                float gain  = params.at(LEVEL_KNOB_PARAM).getValue();
                 float inTilt = getControlValue(INPUT_TILT_KNOB_PARAM, INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT);
                 float outTilt = getControlValue(OUTPUT_TILT_KNOB_PARAM, OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT);
 
@@ -487,16 +468,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (elastikaModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (elastikaModule)
                 {
-                    menu->addChild(new MenuSeparator);
-
-                    if (elastikaModule->dcRejectQuantity)
-                    {
-                        // Add slider that adjusts the DC-reject filter's corner frequency.
-                        menu->addChild(new DcRejectSlider(elastikaModule->dcRejectQuantity));
-                    }
-
                     if (elastikaModule->agcLevelQuantity)
                     {
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.

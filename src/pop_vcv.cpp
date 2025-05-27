@@ -133,7 +133,7 @@ namespace Sapphire
 
                 const int nc = desiredChannelCount();
                 currentChannelCount = nc;       // keep channel display panel updated
-                outputs[PULSE_TRIGGER_OUTPUT].setChannels(nc);
+                outputs.at(PULSE_TRIGGER_OUTPUT).setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
                 float vSync = 0;
@@ -153,7 +153,7 @@ namespace Sapphire
                     engine[c].setChaos(chaos);
 
                     const float v = engine[c].process(args.sampleRate);
-                    outputs[PULSE_TRIGGER_OUTPUT].setVoltage(v, c);
+                    outputs.at(PULSE_TRIGGER_OUTPUT).setVoltage(v, c);
                 }
                 isSyncPending = false;
             }
@@ -206,9 +206,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (popModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (popModule)
                 {
-                    menu->addChild(new MenuSeparator);
                     addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);
                     menu->addChild(createBoolPtrMenuItem<bool>("Send trigger on every reset", "", &popModule->sendTriggerOnReset));
@@ -227,14 +227,9 @@ namespace Sapphire
 
             void addOutputModeMenuItems(Menu* menu)
             {
-                std::vector<std::string> labels {
-                    "Triggers",
-                    "Gates"
-                };
-
                 menu->addChild(createIndexSubmenuItem(
                     "Output pulse mode",
-                    labels,
+                    { "Triggers", "Gates" },
                     [=]() { return popModule->getOutputMode(); },
                     [=](size_t mode) { popModule->setOutputMode(mode); }
                 ));

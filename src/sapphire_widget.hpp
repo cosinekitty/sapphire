@@ -8,25 +8,49 @@
 
 namespace Sapphire
 {
+    constexpr float HP_MM = 5.08;
+    constexpr float PANEL_HEIGHT_MM = 128.5;
+
+    inline int hpDistance(float mm)
+    {
+        return static_cast<int>(std::round(mm / HP_MM));
+    }
+
+    inline int railDistance(float mm)
+    {
+        return static_cast<int>(std::round(mm / PANEL_HEIGHT_MM));
+    }
+
+    inline float px2mm(float px)
+    {
+        constexpr float factor = 25.4 / 75;
+        return px * factor;
+    }
+
+    inline bool OneShotCountdown(int& counter)
+    {
+        return (counter > 0) && (--counter == 0);
+    }
+
     struct SapphireAttenuverterKnob : Trimpot
     {
         bool* lowSensitivityMode = nullptr;
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             Trimpot::appendContextMenu(menu);
-            if (lowSensitivityMode != nullptr)
+            if (lowSensitivityMode)
                 menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
         }
 
         bool isLowSensitive() const
         {
-            return (lowSensitivityMode != nullptr) && *lowSensitivityMode;
+            return lowSensitivityMode && *lowSensitivityMode;
         }
 
         void setLowSensitive(bool s)
         {
-            if (lowSensitivityMode != nullptr)
+            if (lowSensitivityMode)
                 *lowSensitivityMode = s;
         }
 
@@ -208,9 +232,77 @@ namespace Sapphire
     };
 
 
+    struct SplashState
+    {
+        bool active = false;
+        Stopwatch stopwatch;
+        double durationSeconds = 0;
+        double emphasis = 0;
+        int rgb[3]{};
+        float x1 = 0;
+
+        void begin(int red, int green, int blue, double _durationSeconds = 0.25, double _emphasis = 0.5)
+        {
+            rgb[0] = red;
+            rgb[1] = green;
+            rgb[2] = blue;
+            stopwatch.restart();
+            durationSeconds = std::clamp<double>(_durationSeconds, 0.01, 10.0);
+            emphasis = std::clamp<double>(_emphasis, 0, 1);
+            active = true;
+        }
+
+        void end()
+        {
+            stopwatch.reset();
+            active = false;
+        }
+
+        double remainingTime()
+        {
+            if (!active)
+                return 0;
+
+            double seconds = stopwatch.elapsedSeconds();
+            return std::max<double>(0, durationSeconds - seconds);
+        }
+    };
+
+
+    constexpr float DxRemoveGap = 0.3f;
+
+    inline SvgOverlay* MakeSapphirePanel(const std::string& panelSvgFileName)
+    {
+        return new SvgOverlay(window::Svg::load(panelSvgFileName));
+    }
+
+
+    struct SapphireTooltip : ui::Tooltip
+    {
+        bool isPositionLocked = false;
+        Vec lockedPos{};
+
+        void step() override
+        {
+            ui::Tooltip::step();
+            if (isPositionLocked)
+            {
+                box.pos = lockedPos;
+            }
+            else
+            {
+                lockedPos = box.pos;
+                isPositionLocked = true;
+            }
+        }
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
+        const static NVGcolor neonColor;
+        SplashState splash;
 
         SvgOverlay* outputStereoLabelLR = nullptr;
         SvgOverlay* outputStereoLabel2  = nullptr;
@@ -222,8 +314,36 @@ namespace Sapphire
         explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
             : modcode(moduleCode)
         {
-            app::SvgPanel* svgPanel = createPanel(panelSvgFileName);
-            setPanel(svgPanel);
+            setPanel(MakeSapphirePanel(panelSvgFileName));
+        }
+
+        bool isNeonModeActive() const
+        {
+            const SapphireModule* sm = getSapphireModule();
+            return sm && sm->neonMode;
+        }
+
+        static void ToggleAllNeonBorders();
+
+        void appendContextMenu(Menu* menu) override
+        {
+            SapphireModule* sm = getSapphireModule();
+            if (sm)
+            {
+                menu->addChild(new MenuSeparator);
+
+                if (sm->includeNeonModeMenuItem)
+                    menu->addChild(createBoolPtrMenuItem<bool>("Neon borders (this module only)", "", &(sm->neonMode)));
+
+                menu->addChild(createMenuItem(
+                    "Toggle neon borders in all Sapphire modules",
+                    "",
+                    ToggleAllNeonBorders
+                ));
+
+                if (sm->dcRejectQuantity)
+                    menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
+            }
         }
 
         void position(Widget* widget, const std::string& label)
@@ -245,10 +365,12 @@ namespace Sapphire
             position(input, label);
         }
 
-        void addSapphireInput(int inputId, const std::string& label)
+        template <typename port_t = SapphirePort>
+        port_t* addSapphireInput(int inputId, const std::string& label)
         {
-            SapphirePort *port = createInputCentered<SapphirePort>(Vec{}, module, inputId);
+            port_t* port = createInputCentered<port_t>(Vec{}, module, inputId);
             addSapphireInput(port, label);
+            return port;
         }
 
         void addSapphireOutput(PortWidget* output, const std::string& label)
@@ -261,8 +383,21 @@ namespace Sapphire
         port_t* addSapphireOutput(int outputId, const std::string& label)
         {
             port_t *port = createOutputCentered<port_t>(Vec{}, module, outputId);
+            port->module = dynamic_cast<SapphireModule*>(module);
             addSapphireOutput(port, label);
             return port;
+        }
+
+        void addStereoInputPorts(int leftPortId, int rightPortId, const std::string& prefix)
+        {
+            addSapphireInput(leftPortId,  prefix + "_left_input");
+            addSapphireInput(rightPortId, prefix + "_right_input");
+        }
+
+        void addStereoOutputPorts(int leftPortId, int rightPortId, const std::string& prefix)
+        {
+            addSapphireOutput(leftPortId,  prefix + "_left_output");
+            addSapphireOutput(rightPortId, prefix + "_right_output");
         }
 
         template <typename knob_t = RoundLargeBlackKnob>
@@ -273,9 +408,10 @@ namespace Sapphire
             return knob;
         }
 
-        RoundSmallBlackKnob *addSmallKnob(int paramId, const std::string& label)
+        template <typename knob_t = RoundSmallBlackKnob>
+        knob_t *addSmallKnob(int paramId, const std::string& label)
         {
-            RoundSmallBlackKnob *knob = createParamCentered<RoundSmallBlackKnob>(Vec{}, module, paramId);
+            knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
             addSapphireParam(knob, label);
             return knob;
         }
@@ -314,13 +450,18 @@ namespace Sapphire
             return sapphireModule;
         }
 
+        const SapphireModule* getSapphireModule() const
+        {
+            return const_cast<const SapphireModule*>(const_cast<SapphireWidget*>(this)->getSapphireModule());
+        }
+
         template <typename knob_t = SapphireAttenuverterKnob>
         knob_t *addSapphireAttenuverter(int attenId, const std::string& label)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, attenId);
             SapphireModule* sapphireModule = getSapphireModule();
 
-            if (sapphireModule != nullptr)
+            if (sapphireModule)
             {
                 // Restore the persisted sensitivity state we loaded from JSON (or false if none).
                 knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
@@ -341,32 +482,36 @@ namespace Sapphire
             addSapphireInput(cvInputId, name + "_cv");
         }
 
-        RoundSmallBlackKnob* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        template <typename knob_t = RoundSmallBlackKnob>
+        knob_t* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
         {
-            RoundSmallBlackKnob* knob = addSmallKnob(knobId, prefix + "_knob");
+            knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
             addSapphireAttenuverter(attenId, prefix + "_atten");
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
 
+        template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
         void addToggleGroup(
+            ToggleGroup* group,
             const std::string& prefix,
             int inputId,
             int buttonId,
             int lightId,
             char buttonLetter,
             float dxText,
-            NVGcolor baseColor)
+            NVGcolor baseColor,
+            bool momentary = false)
         {
-            SapphireCaptionButton* button = createLightParamCentered<SapphireCaptionButton>(Vec{}, module, buttonId, lightId);
-            button->momentary = false;
-            button->latch = true;
+            caption_button_t* button = createLightParamCentered<caption_button_t>(Vec{}, module, buttonId, lightId);
+            button->momentary = momentary;
             button->dxText = dxText;
             button->setCaption(buttonLetter);
             button->initBaseColor(baseColor);
 
             addSapphireParam(button, prefix + "_button");
-            addSapphireInput(inputId, prefix + "_input");
+            input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
+            port->group = group;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)
@@ -394,7 +539,7 @@ namespace Sapphire
         bool isOutputStereoMergeEnabled()
         {
             const SapphireModule *sapphireModule = getSapphireModule();
-            return (sapphireModule != nullptr) && sapphireModule->enableStereoMerge;
+            return sapphireModule && sapphireModule->enableStereoMerge;
         }
 
         InputStereoMode getInputStereoMode()
@@ -404,6 +549,9 @@ namespace Sapphire
                 return InputStereoMode::LeftRight;
             return sapphireModule->inputStereoMode;
         }
+
+        void drawSplash(NVGcontext* vg, float x1);
+        void drawLayer(const DrawArgs& args, int layer) override;
 
         void step() override
         {
@@ -427,5 +575,114 @@ namespace Sapphire
                 inputStereoLabelR2->setVisible(mode == InputStereoMode::Right2);
             }
         }
+
+        bool isRightBorderHidden() const
+        {
+            const SapphireModule* smod = getSapphireModule();
+            return smod && smod->hideRightBorder;
+        }
+
+        bool isLeftBorderHidden() const
+        {
+            const SapphireModule* smod = getSapphireModule();
+            return smod && smod->hideLeftBorder;
+        }
+
+        void draw(const DrawArgs& args) override;
+        void createTooltip(SapphireTooltip*& tooltip, const std::string& text);
+        void destroyTooltip(SapphireTooltip*& tooltip);
+        void updateTooltip(bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text);
     };
+
+    SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
+    ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
+    ModuleWidget* FindWidgetForId(int64_t moduleId);
+
+    struct PanelState
+    {
+        int64_t moduleId = -1;
+        Vec oldPos{};
+        Vec newPos{};
+
+        explicit PanelState(ModuleWidget* mw)
+            : moduleId(mw->module->id)
+            , oldPos(mw->box.pos)
+            {}
+    };
+
+
+    inline bool operator < (const PanelState& a, const PanelState& b)
+    {
+        if (a.oldPos.y != b.oldPos.y)
+            return a.oldPos.y < b.oldPos.y;
+
+        return a.oldPos.x < b.oldPos.x;
+    }
+
+    struct MoveExpanderAction : history::Action
+    {
+        std::vector<PanelState> movedPanels;
+
+        explicit MoveExpanderAction(const std::vector<PanelState>& movedPanelList)
+            : movedPanels(movedPanelList)
+        {
+            name = "move expander chain";
+        }
+
+        void undo() override
+        {
+            // Put any modules that were moved back where they came from.
+            // We do this in ascending x-order, so that each module has
+            // an empty space to land in.
+            for (const PanelState& p : movedPanels)
+            {
+                ModuleWidget* widget = FindWidgetForId(p.moduleId);
+                if (widget)
+                    APP->scene->rack->requestModulePos(widget, p.oldPos);
+            }
+        }
+
+        void redo() override
+        {
+            // Do everything in the same chronological that we did them originally.
+            // Move modules out of the way, the same way the force-position thing does.
+            // Move right-to-left by iterating in reverse order.
+            for (auto p = movedPanels.rbegin(); p != movedPanels.rend(); ++p)
+            {
+                ModuleWidget* widget = FindWidgetForId(p->moduleId);
+                if (widget)
+                    APP->scene->rack->requestModulePos(widget, p->newPos);
+            }
+        }
+    };
+
+    struct AddExpanderAction : MoveExpanderAction
+    {
+        history::ModuleAdd addAction;
+
+        explicit AddExpanderAction(
+            Model* model,
+            SapphireWidget* widget,
+            const std::vector<PanelState>& movedPanelList
+        )
+            : MoveExpanderAction(movedPanelList)
+        {
+            name = "insert expander " + model->name;
+            addAction.setModule(widget);
+        }
+
+        void undo() override
+        {
+            addAction.undo();
+            MoveExpanderAction::undo();
+        }
+
+        void redo() override
+        {
+            MoveExpanderAction::redo();
+            addAction.redo();
+        }
+    };
+
+    std::vector<PanelState> SnapshotPanelPositions();
 }

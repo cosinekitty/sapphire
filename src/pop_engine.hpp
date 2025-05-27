@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
@@ -134,7 +135,7 @@ namespace Sapphire
                 }
             }
 
-private:
+        private:
             double nextWaitInterval()
             {
                 return (1-chaos)/MEAN_POP_RATE_HZ + chaos*generateDeltaT(MEAN_POP_RATE_HZ);
@@ -152,7 +153,7 @@ private:
                 if (speed != prevSpeed)
                 {
                     prevSpeed = speed;
-                    power = std::pow(static_cast<double>(2), speed);
+                    power = TwoToPower(speed);
                 }
             }
 

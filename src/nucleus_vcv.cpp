@@ -85,7 +85,6 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             bool resetTricorder{};
-            DcRejectQuantity *dcRejectQuantity{};
 
             NucleusModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -107,16 +106,6 @@ namespace Sapphire
                 configParam(MAGNET_ATTEN_PARAM, -1, 1, 0, "Magnetic coupling attenuverter", "%", 0, 100);
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
-
-                dcRejectQuantity = configParam<DcRejectQuantity>(
-                    DC_REJECT_PARAM,
-                    DC_REJECT_MIN_FREQ,
-                    DC_REJECT_MAX_FREQ,
-                    DefaultCornerFrequencyHz,
-                    "DC reject cutoff",
-                    " Hz"
-                );
-                dcRejectQuantity->setValue(DefaultCornerFrequencyHz);
 
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -140,6 +129,7 @@ namespace Sapphire
                 configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
 
                 agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addDcRejectQuantity(DC_REJECT_PARAM, DefaultCornerFrequencyHz);
 
                 initialize();
             }
@@ -154,7 +144,6 @@ namespace Sapphire
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
-                dcRejectQuantity->save(root, "dcRejectFrequency");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
@@ -168,7 +157,6 @@ namespace Sapphire
                 enableLimiterWarning = !json_is_false(warningFlag);
 
                 agcLevelQuantity->load(root, "agcLevel");
-                dcRejectQuantity->load(root, "dcRejectFrequency");
 
                 resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
@@ -183,12 +171,10 @@ namespace Sapphire
 
             void initialize()
             {
-                params[AUDIO_MODE_BUTTON_PARAM].setValue(1.0f);
+                params.at(AUDIO_MODE_BUTTON_PARAM).setValue(1.0f);
                 engine.initialize();
                 SetMinimumEnergy(engine);
-                dcRejectQuantity->value = DefaultCornerFrequencyHz;
-                dcRejectQuantity->changed = false;
-                engine.setDcRejectCornerFrequency(DefaultCornerFrequencyHz);
+                dcRejectQuantity->initialize();
                 enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
@@ -229,7 +215,7 @@ namespace Sapphire
 
             bool isEnabledAudioMode() const
             {
-                return params[AUDIO_MODE_BUTTON_PARAM].value > 0.5f;
+                return params.at(AUDIO_MODE_BUTTON_PARAM).value > 0.5f;
             }
 
             void onReset(const ResetEvent& e) override
@@ -243,7 +229,7 @@ namespace Sapphire
                 float knob = getControlValue(DECAY_KNOB_PARAM, DECAY_ATTEN_PARAM, DECAY_CV_INPUT, 0, 1);
                 const int minExp = -3;    // 0.001
                 const int maxExp = +2;    // 100
-                return std::pow(10.0f, minExp + (maxExp - minExp)*knob);
+                return TenToPower(minExp + (maxExp - minExp)*knob);
             }
 
             float getInputDrive()
@@ -263,7 +249,7 @@ namespace Sapphire
             float getSpeedFactor()
             {
                 float knob = getControlValue(SPEED_KNOB_PARAM, SPEED_ATTEN_PARAM, SPEED_CV_INPUT, -6, +6);
-                float factor = std::pow(2.0f, knob-1 /* -7..+5 is a better range */);
+                float factor = TwoToPower(knob-1 /* -7..+5 is a better range */);
                 return factor;
             }
 
@@ -285,18 +271,15 @@ namespace Sapphire
 
                 engine.setMagneticCoupling(magnet);
 
-                if (dcRejectQuantity->changed)
-                {
+                if (dcRejectQuantity->isChangedOneShot())
                     engine.setDcRejectCornerFrequency(dcRejectQuantity->value);
-                    dcRejectQuantity->changed = false;
-                }
 
                 // Feed the input (X, Y, Z) into the position of ball #1.
                 // Scale the amplitude of the vector based on the input drive setting.
                 Particle& input = engine.particle(0);
-                input.pos[0] = drive * inputs[X_INPUT].getVoltageSum();
-                input.pos[1] = drive * inputs[Y_INPUT].getVoltageSum();
-                input.pos[2] = drive * inputs[Z_INPUT].getVoltageSum();
+                input.pos[0] = drive * inputs.at(X_INPUT).getVoltageSum();
+                input.pos[1] = drive * inputs.at(Y_INPUT).getVoltageSum();
+                input.pos[2] = drive * inputs.at(Z_INPUT).getVoltageSum();
                 input.pos[3] = 0;
                 input.vel = PhysicsVector::zero();
 
@@ -331,25 +314,25 @@ namespace Sapphire
                 }
 
                 // Let the audio/cv toggle pushbutton light reflect its button state.
-                lights[AUDIO_MODE_BUTTON_LIGHT].setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
+                lights.at(AUDIO_MODE_BUTTON_LIGHT).setBrightness(isEnabledAudioMode() ? 1.0f : 0.0f);
 
                 // Report all output voltages to VCV Rack.
 
-                outputs[X1_OUTPUT].setVoltage(engine.output(1, 0));
-                outputs[Y1_OUTPUT].setVoltage(engine.output(1, 1));
-                outputs[Z1_OUTPUT].setVoltage(engine.output(1, 2));
+                outputs.at(X1_OUTPUT).setVoltage(engine.output(1, 0));
+                outputs.at(Y1_OUTPUT).setVoltage(engine.output(1, 1));
+                outputs.at(Z1_OUTPUT).setVoltage(engine.output(1, 2));
 
-                outputs[X2_OUTPUT].setVoltage(engine.output(2, 0));
-                outputs[Y2_OUTPUT].setVoltage(engine.output(2, 1));
-                outputs[Z2_OUTPUT].setVoltage(engine.output(2, 2));
+                outputs.at(X2_OUTPUT).setVoltage(engine.output(2, 0));
+                outputs.at(Y2_OUTPUT).setVoltage(engine.output(2, 1));
+                outputs.at(Z2_OUTPUT).setVoltage(engine.output(2, 2));
 
-                outputs[X3_OUTPUT].setVoltage(engine.output(3, 0));
-                outputs[Y3_OUTPUT].setVoltage(engine.output(3, 1));
-                outputs[Z3_OUTPUT].setVoltage(engine.output(3, 2));
+                outputs.at(X3_OUTPUT).setVoltage(engine.output(3, 0));
+                outputs.at(Y3_OUTPUT).setVoltage(engine.output(3, 1));
+                outputs.at(Z3_OUTPUT).setVoltage(engine.output(3, 2));
 
-                outputs[X4_OUTPUT].setVoltage(engine.output(4, 0));
-                outputs[Y4_OUTPUT].setVoltage(engine.output(4, 1));
-                outputs[Z4_OUTPUT].setVoltage(engine.output(4, 2));
+                outputs.at(X4_OUTPUT).setVoltage(engine.output(4, 0));
+                outputs.at(Y4_OUTPUT).setVoltage(engine.output(4, 1));
+                outputs.at(Z4_OUTPUT).setVoltage(engine.output(4, 2));
 
                 // Pass along the selected output to Tricorder, if attached to the right side...
                 float x = engine.output(tricorderOutputIndex, 0);
@@ -434,13 +417,9 @@ namespace Sapphire
 
             void appendContextMenu(Menu* menu) override
             {
-                if (nucleusModule != nullptr)
+                SapphireWidget::appendContextMenu(menu);
+                if (nucleusModule)
                 {
-                    menu->addChild(new MenuSeparator);
-
-                    // Add slider to adjust the DC reject filter's corner frequency.
-                    menu->addChild(new DcRejectSlider(nucleusModule->dcRejectQuantity));
-
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
 
@@ -461,7 +440,7 @@ namespace Sapphire
 
             bool isVectorReceiverConnectedOnRight() const
             {
-                return (nucleusModule != nullptr) && nucleusModule->isVectorReceiverConnectedOnRight();
+                return nucleusModule && nucleusModule->isVectorReceiverConnectedOnRight();
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
@@ -622,7 +601,7 @@ namespace Sapphire
 
             void step() override
             {
-                if (nucleusModule != nullptr)
+                if (nucleusModule)
                 {
                     // Toggle between showing "AUDIO" or "CONTROL" depending on the mode button.
                     bool audio = nucleusModule->isEnabledAudioMode();
