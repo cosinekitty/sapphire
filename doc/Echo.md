@@ -96,6 +96,8 @@ Having a mix of synced and unsynced taps can create very organic, interesting te
 
 TIME has a 1V/Oct CV input with an attenuverter, allowing for expressive modulations.
 
+![Mouse hovering over the TIME knob](images/echo_hover_time_knob.png)
+
 #### PAN
 
 This controls the stereo placement of the tap’s output.
@@ -223,22 +225,22 @@ In **trigger mode**, pressing the button toggles the current state of the contro
 
 #### Toggling CLOCK / RATE
 
-By default, the CLOCK input port on the Echo module operates using pulses. The amount of time between consecutive rising edges (Schmitt logic transition from below 0.1V to above 1V) is used to determine the base delay time. Each tap's TIME control group is multiplied to the base delay time to produce the delay time for each tap/channel.
+By default, the **CLOCK** input port on the Echo module operates using **pulses**. The amount of time between consecutive rising edges (Schmitt logic transition from below 0.1V to above 1V) is used to determine the base delay time. Each tap's TIME control group is multiplied by the base delay time to produce the delay time for each tap/channel.
 
-However, for more agile control of the playback rate (and hence artifacts caused by changing the tap speeds), you can click on the CLOCK label and toggle it to RATE:
+However, for more agile control of the playback rate (and artifacts caused by changing playback speeds), you can click on the **CLOCK** label and toggle it to **RATE**:
 
 ![CLOCK label](images/echo_clock_sel.png)
 
 ![RATE label](images/echo_rate.png)
 
-RATE uses a volt-per-octave scale with 0&nbsp;V representing 1&nbsp;Hz. Every unit volt increase doubles the frequency. Every unit in the negative voltage direction cuts the frequency in half.
+Instead of pulses, **RATE** uses a **volt-per-octave** scale with 0&nbsp;V representing 1&nbsp;Hz. Every unit volt increase doubles the frequency. Every unit in the negative voltage direction cuts the frequency in half.
 
-As always, the delay time is clamped to the range 0.1 seconds to 10 seconds. When converted to frequency, this means the allowed frequency range is:
+As always, the delay time is clamped to the range 0.1 seconds to 10 seconds. When converted to frequency, this means the **allowed frequency range** is:
 
 * 0.1 seconds &rarr; 10 Hz
 * 10 seconds &rarr; 0.1 Hz
 
-This means the usable range of the RATE input port is $\pm \log_2(10) \approx \pm3.32$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
+The usable range of the RATE input port is $\pm \log_2(10) \approx \pm3.322$ octaves, and thus the same number of volts. Voltages outside that range are valid but are clamped to the range.
 
 The reason RATE is more agile is that you can immediately change its value and the delay time will immediately start to adjust toward that new value; think of a physical tape drive whose reels have angular momentum that limits how quickly you can speed up or slow down the playback rate.
 

@@ -30,15 +30,21 @@ namespace Sapphire
                 return static_cast<float>(numer) / static_cast<float>(denom);
             }
 
+            static std::string formatFraction(int numer, int denom)
+            {
+                std::string numerText = std::to_string(numer);
+                if (denom == 1)
+                    return numerText;
+                return numerText + "/" + std::to_string(denom);
+            }
+
             std::string format() const
             {
-                std::string text = std::to_string(numer);
-
-                if (denom > 1)
-                    text += "/" + std::to_string(denom);
-
-                text += "\n(" + name + ")";
-                return text;
+                return
+                    "CLOCK x " + formatFraction(numer, denom) + "\n" +
+                    "RATE x "  + formatFraction(denom, numer) + "\n" +
+                    "(" + name + ")"
+                ;
             }
         };
 

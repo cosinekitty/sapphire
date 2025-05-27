@@ -2023,7 +2023,7 @@ namespace Sapphire
                     if (lmod->timeKnobInfo.isMusicalInterval)
                     {
                         const Fraction& frac = PickClosestFraction(value);
-                        return "CLOCK x " + frac.format();
+                        return frac.format();
                     }
                     return "CLOCK x " + text;
                 }
