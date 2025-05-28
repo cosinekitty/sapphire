@@ -57,6 +57,9 @@ namespace Sapphire
         struct TimeKnob : time_knob_base_t
         {
             TimeKnobInfo* info = nullptr;
+            LoopModule* loopModule = nullptr;
+
+            void onRemove(const RemoveEvent& e) override;
 
             TimeMode getMode() const
             {
@@ -722,7 +725,7 @@ namespace Sapphire
                 initialize();
             }
 
-            virtual ~GraphWidget();
+            void onRemove(const RemoveEvent& e) override;
 
             void initialize()
             {
@@ -851,16 +854,22 @@ namespace Sapphire
                 LoopModule_initialize();
             }
 
-            virtual ~LoopModule()
+            void onRemove(const RemoveEvent& e) override
             {
-                // Before this object is freed, sever links from widgets into its memory.
-                // Otherwise, the widgets can access freed memory, causing crashes/hangs.
-
                 if (graph)
+                {
                     graph->loopModule = nullptr;
+                    graph = nullptr;
+                }
 
                 if (timeKnob)
+                {
                     timeKnob->info = nullptr;
+                    timeKnob->loopModule = nullptr;
+                    timeKnob = nullptr;
+                }
+
+                MultiTapModule::onRemove(e);
             }
 
             void LoopModule_initialize()
@@ -883,7 +892,8 @@ namespace Sapphire
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
                 totalSoloCount = 0;
-                if (graph) graph->initialize();
+                if (graph)
+                    graph->initialize();
                 clockSignalFormat = ClockSignalFormat::Default;
             }
 
@@ -1346,15 +1356,26 @@ namespace Sapphire
         };
 
 
-        GraphWidget::~GraphWidget()
+        void GraphWidget::onRemove(const RemoveEvent& e)
         {
             if (loopModule)
             {
-                // This grapher object is dying, so let the module know it should
-                // no longer try to access it. This fixes a crash/hang when deleting
-                // EchoTap modules.
                 loopModule->graph = nullptr;
+                loopModule = nullptr;
             }
+            OpaqueWidget::onRemove(e);
+        }
+
+
+        void TimeKnob::onRemove(const RemoveEvent& e)
+        {
+            info = nullptr;
+            if (loopModule)
+            {
+                loopModule->timeKnob = nullptr;
+                loopModule = nullptr;
+            }
+            time_knob_base_t::onRemove(e);
         }
 
 
@@ -1498,11 +1519,12 @@ namespace Sapphire
                 addGraphWidget(lmod);
             }
 
-            virtual ~LoopWidget()
+            void onRemove(const RemoveEvent& e) override
             {
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
                 destroyTooltip(envDuckTooltip);
+                MultiTapWidget::onRemove(e);
             }
 
             SvgOverlay* addLabelOverlay(const std::string& svgFileName)
@@ -1880,6 +1902,7 @@ namespace Sapphire
                 if (lmod)
                 {
                     lmod->timeKnob = timeKnob;
+                    timeKnob->loopModule = lmod;
                     timeKnob->info = &(lmod->timeKnobInfo);
                 }
             }
@@ -2382,9 +2405,10 @@ namespace Sapphire
                     clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
                 }
 
-                virtual ~EchoWidget()
+                void onRemove(const RemoveEvent& e) override
                 {
                     destroyTooltip(clockRateTooltip);
+                    LoopWidget::onRemove(e);
                 }
 
                 bool isInsideClockLabel(Vec pos) const
