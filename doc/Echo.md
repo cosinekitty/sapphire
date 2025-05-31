@@ -9,11 +9,15 @@ When you first add the Echo module from the module browser, Echo Out is added au
 
 Echo supports two routing modes: **Serial** and **Parallel**.
 
-In **Serial** mode, the taps are connected in a chain—each one feeds into the next, and the last tap loops back to the beginning, creating a circular feedback path.
+In **Serial** mode, the taps are connected in a chain—each one feeds into the next, and the last tap loops back to the beginning, creating a circular feedback path:
 
-In **Parallel** mode, all taps receive the signal independently and play back at the same time, without interacting with each other.
+![Echo serial mode signal flow diagram](./diagrams/echo_serial_mode.svg)
 
-You can switch between Serial and Parallel mode, but this only becomes relevant when you have **more than one tap** in your chain.
+In **Parallel** mode, all taps receive the signal independently and play back at the same time, without interacting with each other:
+
+![Echo parallel mode signal flow diagram](./diagrams/echo_parallel_mode.svg)
+
+You can switch between Serial and Parallel mode, but this only becomes relevant when you have **more than one tap** in your chain. Serial mode and Parallel are the same thing when there is a single tap.
 
 <hr/>
 
