@@ -5,21 +5,96 @@ namespace Sapphire
 {
     std::vector<SapphireModule*> SapphireModule::All;
 
+    struct NeonBorderState
+    {
+        int64_t sapphireModuleId{};
+        bool neonMode{};
+
+        explicit NeonBorderState(int64_t moduleId, bool neon)
+            : sapphireModuleId(moduleId)
+            , neonMode(neon)
+            {}
+    };
+
+    struct ToggleAllNeonBordersAction : history::Action
+    {
+        std::vector<NeonBorderState> stateList;     // what each neon mode used to be, per module
+        bool neon{};    // what we changed all the modules' neon modes to
+
+        explicit ToggleAllNeonBordersAction()
+        {
+            name = "toggle neon borders in all Sapphire modules";
+        }
+
+        void append(const SapphireModule* smod)
+        {
+            if (smod)
+                stateList.push_back(NeonBorderState(smod->id, smod->neonMode));
+        }
+
+        void undo() override
+        {
+            for (const NeonBorderState& state : stateList)
+                if (SapphireModule* smod = FindSapphireModule(state.sapphireModuleId))
+                    smod->neonMode = state.neonMode;
+        }
+
+        void redo() override
+        {
+            for (const NeonBorderState& state : stateList)
+                if (SapphireModule* smod = FindSapphireModule(state.sapphireModuleId))
+                    smod->neonMode = neon;
+        }
+    };
+
     void SapphireWidget::ToggleAllNeonBorders()
     {
+        auto action = new ToggleAllNeonBordersAction;
+
         // Vote: how many modules have neon mode enabled, and how many disabled?
         int brightCount = 0;
         int darkCount = 0;
         for (const SapphireModule* smod : SapphireModule::All)
-            smod->neonMode ? ++brightCount : ++darkCount;
-
-        if (brightCount + darkCount > 0)
         {
-            // If more than half are enabled, turn all off.
-            // Otherwise turn all on.
-            const bool neon = (2*brightCount <= darkCount);
-            for (SapphireModule* smod : SapphireModule::All)
-                smod->neonMode = neon;
+            action->append(smod);
+            smod->neonMode ? ++brightCount : ++darkCount;
+        }
+
+        // If more than half are enabled, turn all off. Otherwise turn all on.
+        action->neon = (2*brightCount <= darkCount);
+        action->redo();
+        APP->history->push(action);
+    }
+
+
+    struct ToggleNeonBorderAction : history::Action
+    {
+        int64_t moduleId{};
+
+        explicit ToggleNeonBorderAction(int64_t id)
+            : moduleId(id)
+        {
+            name = "toggle neon border";
+        }
+
+        void toggle()
+        {
+            if (SapphireModule* smod = FindSapphireModule(moduleId))
+                smod->neonMode = !smod->neonMode;
+        }
+
+        void undo() override { toggle(); }
+        void redo() override { toggle(); }
+    };
+
+
+    void SapphireWidget::ToggleNeonBorder(SapphireModule *smod)
+    {
+        if (smod)
+        {
+            auto action = new ToggleNeonBorderAction(smod->id);
+            action->redo();
+            APP->history->push(action);
         }
     }
 
