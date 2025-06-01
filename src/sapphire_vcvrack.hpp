@@ -1473,7 +1473,10 @@ namespace Sapphire
         {
             SapphirePort::appendContextMenu(menu);
             if (group)
+            {
+                menu->addChild(new MenuSeparator);
                 group->addMenuItems(menu);
+            }
         }
     };
 
