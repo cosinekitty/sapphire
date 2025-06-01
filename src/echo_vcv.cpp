@@ -13,15 +13,6 @@ namespace Sapphire
             struct EchoWidget;
         }
 
-        enum class TimeMode
-        {
-            Seconds,
-            ClockSync,
-            LEN,
-
-            Default = Seconds,
-        };
-
 
         struct TimeKnobInfo
         {
@@ -1355,6 +1346,22 @@ namespace Sapphire
                 ));
             }
         };
+
+
+        void ToggleAllClockSyncAction::undo()
+        {
+            for (const ClockSyncState& s : stateList)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
+                    lmod->timeKnobInfo.timeMode = s.oldTimeMode;
+        }
+
+
+        void ToggleAllClockSyncAction::redo()
+        {
+            for (const ClockSyncState& s : stateList)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
+                    lmod->timeKnobInfo.timeMode = newTimeMode;
+        }
 
 
         void GraphWidget::onRemove(const RemoveEvent& e)
@@ -2797,7 +2804,7 @@ namespace Sapphire
                         }
                     );
 
-                    const TimeMode timeMode = (
+                    auto action = new ToggleAllClockSyncAction(
                         (2*clockCount > totalCount) ?
                         TimeMode::Seconds :
                         TimeMode::ClockSync
@@ -2805,8 +2812,11 @@ namespace Sapphire
 
                     visitTaps([=](LoopModule *lmod)
                     {
-                        lmod->timeKnobInfo.timeMode = timeMode;
+                        action->stateList.push_back(ClockSyncState(lmod->id, lmod->timeKnobInfo.timeMode));
                     });
+
+                    action->redo();
+                    APP->history->push(action);
                 }
             };
         }
