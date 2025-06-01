@@ -1552,10 +1552,39 @@ namespace Sapphire
         return module && model && module->model == model;
     }
 
+
+    template <typename enum_t>
+    struct ChangeEnumAction : history::Action
+    {
+        enum_t& option;
+        enum_t  oldValue;
+        enum_t  newValue;
+
+        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, std::string _name)
+            : option(_option)
+            , oldValue(_option)
+            , newValue(_newValue)
+        {
+            name = _name;
+        }
+
+        void undo() override
+        {
+            option = oldValue;
+        }
+
+        void redo() override
+        {
+            option = newValue;
+        }
+    };
+
+
     template <typename enum_t>
     ui::MenuItem* createEnumMenuItem(
         std::string text,
         std::vector<std::string> labels,
+        std::string actionName,
         enum_t& option)
     {
         assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
@@ -1563,8 +1592,20 @@ namespace Sapphire
         return createIndexSubmenuItem(
             text,
             labels,
-            [&option]() { return static_cast<std::size_t>(option); },
-            [&option](size_t index) { option = static_cast<enum_t>(index); }
+            [&option]()
+            {
+                return static_cast<std::size_t>(option);
+            },
+            [&option, actionName](size_t index)
+            {
+                const enum_t newValue = static_cast<enum_t>(index);
+                if (newValue != option)
+                {
+                    auto action = new ChangeEnumAction(option, newValue, actionName);
+                    action->redo();
+                    APP->history->push(action);
+                }
+            }
         );
     }
 }

@@ -152,6 +152,7 @@ namespace Sapphire
                             "Seconds",
                             "Clock sync"
                         },
+                        "time mode change",
                         info->timeMode
                     ));
                 }
@@ -2337,8 +2338,9 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    routingSmoother.beginBumpEnum();
-                    APP->history->push(new BumpEnumAction(routingSmoother));
+                    auto action = new BumpEnumAction(routingSmoother, "signal routing change");
+                    action->redo();
+                    APP->history->push(action);
                 }
             };
 
@@ -2661,6 +2663,7 @@ namespace Sapphire
                                 "Parallel",
                                 "Serial"
                             },
+                            "signal routing change",
                             echoModule->routingSmoother.targetValue
                         ));
 
@@ -2670,6 +2673,7 @@ namespace Sapphire
                                 "Linear (uses less CPU)",
                                 "Sinc (cleaner audio)"
                             },
+                            "change interpolator",
                             echoModule->interpolatorKind
                         ));
 

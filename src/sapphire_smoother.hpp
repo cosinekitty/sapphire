@@ -159,10 +159,12 @@ namespace Sapphire
         EnumSmoother<enum_t>& smoother;
         const int direction;
 
-        explicit BumpEnumAction(EnumSmoother<enum_t>& _smoother, int _direction = +1)
+        explicit BumpEnumAction(EnumSmoother<enum_t>& _smoother, std::string _actionName, int _direction = +1)
             : smoother(_smoother)
             , direction(_direction)
-            {}
+        {
+            name = _actionName;
+        }
 
         void undo() override
         {
