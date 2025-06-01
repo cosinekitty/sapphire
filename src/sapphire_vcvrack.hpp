@@ -1587,7 +1587,7 @@ namespace Sapphire
     ui::MenuItem* createEnumMenuItem(
         std::string text,
         std::vector<std::string> labels,
-        std::string actionName,
+        const std::string& actionName,
         enum_t& option)
     {
         assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));

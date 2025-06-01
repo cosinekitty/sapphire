@@ -2815,7 +2815,7 @@ namespace Sapphire
                         TimeMode::ClockSync
                     );
 
-                    visitTaps([=](LoopModule *lmod)
+                    visitTaps([=](const LoopModule *lmod)
                     {
                         action->stateList.push_back(ClockSyncState(lmod->id, lmod->timeKnobInfo.timeMode));
                     });
