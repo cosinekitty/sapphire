@@ -1563,12 +1563,12 @@ namespace Sapphire
         enum_t  oldValue;
         enum_t  newValue;
 
-        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, std::string _name)
+        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, const std::string& _actionName)
             : option(_option)
             , oldValue(_option)
             , newValue(_newValue)
         {
-            name = _name;
+            name = _actionName;
         }
 
         void undo() override
