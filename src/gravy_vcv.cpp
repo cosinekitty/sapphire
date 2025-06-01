@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_smoother.hpp"
 #include "gravy_engine.hpp"
 
 // Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
@@ -57,6 +58,7 @@ namespace Sapphire
             AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
+            EnumSmoother<FilterMode> smoother{FilterMode::Default, "", 0.01};
 
             GravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -98,6 +100,7 @@ namespace Sapphire
                 engine.initialize();
                 agcLevelQuantity->initialize();
                 reflectAgcSlider();
+                smoother.initialize();
             }
 
             bool getAgcEnabled() const { return enableAgc; }
@@ -172,9 +175,11 @@ namespace Sapphire
                     float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                     float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                     float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
-                    FilterMode mode = getFilterMode();
 
-                    engine.setFilterMode(mode);
+                    smoother.targetValue = getFilterMode();
+                    float smooth = smoother.process(args.sampleRate);
+
+                    engine.setFilterMode(smoother.currentValue);
                     engine.setFrequency(freqKnob);
                     engine.setResonance(resKnob);
                     engine.setMix(mixKnob);
@@ -184,6 +189,8 @@ namespace Sapphire
                     loadStereoInputs(input[0], input[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
                     engine.process(args.sampleRate, 2, input, output);
+                    output[0] *= smooth;
+                    output[1] *= smooth;
 
                     if (enableAgc)
                         agc.process(args.sampleRate, output[0], output[1]);

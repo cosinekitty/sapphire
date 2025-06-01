@@ -361,6 +361,9 @@ namespace Sapphire
         Lowpass,
         Bandpass,
         Highpass,
+        LEN,
+
+        Default = Bandpass
     };
 
 
