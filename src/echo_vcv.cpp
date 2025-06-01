@@ -2615,7 +2615,12 @@ namespace Sapphire
                     if (echoModule)
                     {
                         if (isInsideClockLabel(e.pos))
-                            echoModule->clockSignalFormat = NextEnumValue(echoModule->clockSignalFormat);
+                        {
+                            ClockSignalFormat nextValue = NextEnumValue(echoModule->clockSignalFormat);
+                            auto action = new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE");
+                            action->redo();
+                            APP->history->push(action);
+                        }
                     }
                 }
 
