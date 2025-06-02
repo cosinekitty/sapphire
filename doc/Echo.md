@@ -19,7 +19,7 @@ In **Parallel** mode, all taps receive the signal independently and play back at
 
 You can switch between Serial and Parallel mode, but this only becomes relevant when you have **more than one tap** in your chain. Serial mode and Parallel are the same thing when there is a single tap.
 
-<hr/>
+---
 
 ### Echo (Main Module)
 The Echo module already comes with one built-in tap and includes global controls that affect the entire delay setup.
@@ -71,7 +71,7 @@ In **Polyphonic mode**, the left input accepts a polyphonic signal and the left 
 #### Initialize Entire Chain
 This button resets all settings on Echo, Echo Tap, and Echo Out, returning the whole system to its default state. Useful for starting over or saving time when building a fresh delay patch.
 
-<hr/>
+---
 
 ### Echo Tap (Expander Module)
 Echo Tap is where you add and control individual delay taps. Each tap is identical in terms of features, and you can add as many as you want by clicking the small arrow in the upper right corner of the module.
@@ -135,8 +135,6 @@ There are two operating modes:
 * **Send/Return before delay**: processed signal continues through the delay chain to the next tap.
 * **Send/Return after delay**: processed signal stays local to that tap—useful for effects that should stay isolated.
 
-Want to process a tap externally without routing the result back into the delay loop? Just plug a dummy cable into the RTRN port to keep the signal from re-entering.
-
 #### ENV / DCK (Envelope Follower and Ducking)
 Each tap has an **envelope follower output** that tracks the signal's amplitude. Use it to modulate VCAs, filters, or effects elsewhere in your patch.
 
@@ -160,7 +158,7 @@ Resets just the selected tap to its default settings, leaving the others untouch
 
 Once you have more than one tap, an arrow will appear in the lower-left corner of each. Use this to remove a tap—any modules to the right will shift left automatically to close the gap.
 
-<hr/>
+---
 
 ### Echo Out (Expander Module)
 
@@ -201,7 +199,7 @@ Many features can be accessed by **right-clicking** on the Echo, Echo Tap, or Ec
 * **Toggle polyphonic/mono on all envelope followers**: Changes the envelope output mode globally across all taps.
 * **Interpolator**: Adjusts audio quality. Higher settings sound better but use more CPU.
 
-<hr/>
+---
 
 ### Advanced Topics
 
