@@ -13,6 +13,8 @@ namespace Sapphire
             CHAOS_PARAM,
             CHAOS_ATTEN,
             CHANNEL_COUNT_PARAM,
+            SYNC_BUTTON_PARAM,
+            PULSE_MODE_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -67,6 +69,9 @@ namespace Sapphire
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(CHAOS_CV_INPUT, "Chaos CV");
                 configInput(SYNC_TRIGGER_INPUT, "Sync trigger");
+
+                configButton(SYNC_BUTTON_PARAM, "Sync polyphonic channels");
+                configButton(PULSE_MODE_BUTTON_PARAM, "Toggle pulse mode");
 
                 initialize();
             }
@@ -179,6 +184,32 @@ namespace Sapphire
         };
 
 
+        struct SyncButton : app::SvgSwitch
+        {
+            PopModule* popModule{};
+
+            explicit SyncButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+        };
+
+
+        struct PulseModeButton : app::SvgSwitch
+        {
+            PopModule* popModule{};
+
+            explicit PulseModeButton()
+            {
+                momentary = false;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+            }
+        };
+
+
         struct PopWidget : SapphireWidget
         {
             PopModule* popModule{};
@@ -202,6 +233,23 @@ namespace Sapphire
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");
 
                 addSapphireChannelDisplay("channel_display");
+
+                addSyncButton();
+                addPulseModeButton();
+            }
+
+            void addSyncButton()
+            {
+                auto button = createParamCentered<SyncButton>(Vec{}, popModule, SYNC_BUTTON_PARAM);
+                button->popModule = popModule;
+                addSapphireParam(button, "sync_button");
+            }
+
+            void addPulseModeButton()
+            {
+                auto button = createParamCentered<PulseModeButton>(Vec{}, popModule, PULSE_MODE_BUTTON_PARAM);
+                button->popModule = popModule;
+                addSapphireParam(button, "pulse_mode_button");
             }
 
             void appendContextMenu(Menu* menu) override

@@ -1232,8 +1232,11 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
     outGradY2 = yPortLabel + 2*outputPortDY + 10.0
     syncGradY1 = outGradY1 - syncDy
     syncGradY2 = syncGradY1 + (outGradY2 - outGradY1)
-    yTriggerPort = outputPortY1 + 3*outputPortDY
-    ySyncPort = yTriggerPort - syncDy
+    yPulsePort = outputPortY1 + 3*outputPortDY
+    ySyncPort = yPulsePort - syncDy
+    dxButton = 6.5
+    xSyncButton = xmid + dxButton
+    xPulseButton = xmid - dxButton
     yChannelDisplay = 80.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
@@ -1259,8 +1262,12 @@ def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
         controls.append(Component('chaos_knob', xmid, yChaosKnob))
         controls.append(Component('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup))
         controls.append(Component('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup))
+        pl.append(HorizontalLine(xmid, xSyncButton, ySyncPort))
         controls.append(Component('sync_input', xmid, ySyncPort))
-        controls.append(Component('pulse_output', xmid, yTriggerPort))
+        controls.append(Component('sync_button', xSyncButton, ySyncPort))
+        pl.append(HorizontalLine(xmid, xPulseButton, yPulsePort))
+        controls.append(Component('pulse_output', xmid, yPulsePort))
+        controls.append(Component('pulse_mode_button', xPulseButton, yPulsePort))
         pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
         pl.append(CenteredControlTextPath(font, 'PULSE', xmid, yOutLabel, 'pulse_label'))

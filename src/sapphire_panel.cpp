@@ -371,10 +371,12 @@ namespace Sapphire
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
+            {"pulse_mode_button",      {   3.660,  115.000}},
             {"pulse_output",           {  10.160,  115.000}},
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
+            {"sync_button",            {  16.660,   99.000}},
             {"sync_input",             {  10.160,   99.000}},
             }},
         { "rotini", {
