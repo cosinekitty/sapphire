@@ -2842,7 +2842,7 @@ namespace Sapphire
         void ClockButton::step()
         {
             clock_button_base_t::step();
-            const float blinkTime = 0.02;
+            constexpr float blinkTime = 0.02;
             if (stopwatch.elapsedSeconds() >= blinkTime)
             {
                 stopwatch.reset();

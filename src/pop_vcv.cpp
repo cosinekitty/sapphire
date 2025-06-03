@@ -187,12 +187,39 @@ namespace Sapphire
         struct SyncButton : app::SvgSwitch
         {
             PopModule* popModule{};
+            Stopwatch stopwatch;
 
             explicit SyncButton()
             {
                 momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (popModule)
+                {
+                    if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+                    {
+                        popModule->isSyncPending = true;
+                        stopwatch.restart();
+                    }
+                }
+                app::SvgSwitch::onButton(e);
+            }
+
+            void step() override
+            {
+                constexpr float blinkTime = 0.02;
+                if (stopwatch.elapsedSeconds() > blinkTime)
+                {
+                    stopwatch.reset();
+                    ParamQuantity* quantity = getParamQuantity();
+                    if (quantity && quantity->getValue() > 0)
+                        quantity->setValue(0);
+                }
+                app::SvgSwitch::step();
             }
         };
 
@@ -206,6 +233,35 @@ namespace Sapphire
                 momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (popModule)
+                {
+                    if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+                    {
+                        size_t mode = popModule->getOutputMode();
+                        mode = (mode + 1) % static_cast<size_t>(OutputMode::LEN);
+                        popModule->setOutputMode(mode);
+                    }
+                }
+                app::SvgSwitch::onButton(e);
+            }
+
+            void step() override
+            {
+                if (popModule)
+                {
+                    size_t mode = popModule->getOutputMode();
+                    ParamQuantity* quantity = getParamQuantity();
+                    if (quantity)
+                    {
+                        quantity->setValue(static_cast<float>(mode));
+                        quantity->name = mode ? "Pulse mode: gates" : "Pulse mode: triggers";
+                    }
+                }
+                app::SvgSwitch::step();
             }
         };
 
