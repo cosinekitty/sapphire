@@ -173,6 +173,15 @@ namespace Sapphire
         using remove_button_base_t = app::SvgSwitch;
         struct RemoveButton : remove_button_base_t
         {
+            //**********************************************************************************
+            // WARNING: DO NOT try to make RemoveButton derive from SapphireTinyActionButton.
+            // It will crash because the remove button deletes its own object!
+            // This requires extremely careful coding to avoid corrupting memory.
+            // Put simply: it works, so don't fix it!
+            // Besides which, this button does not change its representation on the screen,
+            // so there is no need to "blink" it in the first place.
+            //**********************************************************************************
+
             LoopWidget* loopWidget{};
 
             explicit RemoveButton()
@@ -185,90 +194,76 @@ namespace Sapphire
         };
 
 
-        using clock_button_base_t = app::SvgSwitch;
-        struct ClockButton : clock_button_base_t
+        struct ClockButton : SapphireTinyActionButton
         {
             Echo::EchoWidget* echoWidget{};
-            Stopwatch stopwatch;
 
             explicit ClockButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
-            void step() override;
+            void action() override;
         };
 
 
-        using interval_button_base_t = app::SvgSwitch;
-        struct IntervalButton : interval_button_base_t
+        struct IntervalButton : SapphireTinyToggleButton
         {
             explicit IntervalButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
             }
         };
 
 
-        using init_chain_button_base_t = app::SvgSwitch;
-        struct InitChainButton : init_chain_button_base_t
+        struct InitChainButton : SapphireTinyActionButton
         {
-            Echo::EchoWidget* echoWidget = nullptr;
+            Echo::EchoWidget* echoWidget{};
 
             explicit InitChainButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
+            void action() override;
         };
 
 
-        using init_tap_button_base_t = app::SvgSwitch;
-        struct InitTapButton : init_tap_button_base_t
+        struct InitTapButton : SapphireTinyActionButton
         {
             LoopWidget* loopWidget = nullptr;
 
             explicit InitTapButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
+            void action() override;
         };
 
 
-        using sendreturn_button_base_t = app::SvgSwitch;
-        struct SendReturnButton : sendreturn_button_base_t
+        struct SendReturnButton : SapphireTinyToggleButton
         {
             LoopWidget* loopWidget{};
 
             explicit SendReturnButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
         };
 
 
-        using input_mode_button_base_t = app::SvgSwitch;
-        struct InputModeButton : input_mode_button_base_t
+        struct InputModeButton : SapphireTinyToggleButton
         {
             Echo::EchoWidget* echoWidget{};
 
             explicit InputModeButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
@@ -2826,50 +2821,22 @@ namespace Sapphire
             };
         }
 
-        void ClockButton::onButton(const ButtonEvent& e)
+        void ClockButton::action()
         {
             if (echoWidget)
-            {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-                {
-                    echoWidget->toggleAllClockSync();
-                    stopwatch.restart();
-                }
-            }
-            clock_button_base_t::onButton(e);
+                echoWidget->toggleAllClockSync();
         }
 
-        void ClockButton::step()
-        {
-            clock_button_base_t::step();
-            constexpr float blinkTime = 0.02;
-            if (stopwatch.elapsedSeconds() >= blinkTime)
-            {
-                stopwatch.reset();
-                ParamQuantity *quantity = getParamQuantity();
-                if (quantity && quantity->getValue() > 0)
-                    quantity->setValue(0);
-            }
-        }
-
-        void InitChainButton::onButton(const ButtonEvent& e)
+        void InitChainButton::action()
         {
             if (echoWidget)
-            {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-                    echoWidget->initializeExpanderChain();
-            }
-            init_chain_button_base_t::onButton(e);
+                echoWidget->initializeExpanderChain();
         }
 
-        void InitTapButton::onButton(const ButtonEvent& e)
+        void InitTapButton::action()
         {
-            if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-            {
-                if (loopWidget)
-                    loopWidget->resetTapAction();
-            }
-            init_chain_button_base_t::onButton(e);
+            if (loopWidget)
+                loopWidget->resetTapAction();
         }
 
         void InitChainAction::undo()

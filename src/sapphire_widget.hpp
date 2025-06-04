@@ -232,6 +232,64 @@ namespace Sapphire
     };
 
 
+    using tiny_button_base_t = app::SvgSwitch;
+
+    struct SapphireTinyButton : tiny_button_base_t
+    {
+        virtual void action() {}
+        virtual void restartChrono() {}
+
+        void onButton(const ButtonEvent& e) override
+        {
+            if (module && e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+            {
+                action();
+                restartChrono();
+            }
+            tiny_button_base_t::onButton(e);
+        }
+    };
+
+
+    struct SapphireTinyToggleButton : SapphireTinyButton
+    {
+        explicit SapphireTinyToggleButton()
+        {
+            momentary = false;
+        }
+    };
+
+
+    struct SapphireTinyActionButton : SapphireTinyButton
+    {
+        float blinkTimeSeconds = 0.02;
+        Stopwatch stopwatch;
+
+        explicit SapphireTinyActionButton()
+        {
+            momentary = true;
+        }
+
+        void step() override
+        {
+            SapphireTinyButton::step();
+
+            if (stopwatch.elapsedSeconds() >= blinkTimeSeconds)
+            {
+                stopwatch.reset();
+                if (ParamQuantity *quantity = getParamQuantity())
+                    if (quantity->getValue() > 0)
+                        quantity->setValue(0);
+            }
+        }
+
+        void restartChrono() override
+        {
+            stopwatch.restart();
+        }
+    };
+
+
     struct SplashState
     {
         bool active = false;
