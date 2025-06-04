@@ -9,11 +9,42 @@
 </tr>
 
 <tr valign="top">
-<td align="center">27 Apr 2025</td>
+<td align="center">4 Jun 2025</td>
+<td align="center">2.6.000</td>
+<td align="left">
+    <ul>
+        <li>In the new <a href="doc/Echo.md">Echo</a> module, the following actions were not participating in undo/redo. Now you can undo/redo them.
+            <ul>
+                <li>Changing the time mode on a single TIME knob (seconds or CLOCK).</li>
+                <li>Pressing the "Toggle all clock sync" button.</li>
+                <li>Toggling serial/parallel routing mode.</li>
+                <li>Changing the interpolator (linear/sinc).</li>
+                <li>Toggling CLOCK/RATE by clicking on the text label itself.</li>
+            </ul>
+        </li>
+        <li>In all Sapphire modules, the following right-click actions were not participating in undo/redo. Now you can undo/redo them.
+            <ul>
+                <li>"Toggle neon borders (this module only)"</li>
+                <li>"Toggle neon borders in all Sapphire modules"</li>
+            </ul>
+        </li>
+        <li><a href="doc/Gravy.md">Gravy</a> no longer makes a click/pop sound when you press the 3-way band mode switch (LP, BP, HP). Gravy now uses a smooth ramp over 50&nbsp;ms to fade out one mode, switches modes, then fades in the new mode for 50&nbsp;ms.</li>
+        <li><a href="doc/Pop.md">Pop</a> has two new buttons:
+            <ul>
+                <li>Pulse mode: triggers/gates.</li>
+                <li>Sync polyphonic channels.</li>
+            </ul>
+        </li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
+<td align="center">3 Jun 2025</td>
 <td align="center">2.5.9</td>
 <td align="left">
     <ul>
-        <li>Added a module: <a href="doc/Echo.md">Echo</a>.</li>
+        <li>Added a module: <a href="doc/Echo.md">Echo</a>: a polyphonic multi-stage delay looper.</li>
         <li>Chaops did not reset the FREEZE button on initialize. This has been fixed.</li>
         <li>Fixed minor polyphony bug in Env: the number of channels in the GAIN control's CV input did not affect the number of output channels. This has been fixed.</li>
         <li>Gravy and Sauce had lowercase hover-text for their control groups, e.g. "resonance CV input". Now they follow the VCV Rack guidelines, e.g. "Resonance CV input".</li>
