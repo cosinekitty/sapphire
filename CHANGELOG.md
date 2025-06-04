@@ -13,21 +13,8 @@
 <td align="center">2.6.000</td>
 <td align="left">
     <ul>
-        <li>In the new <a href="doc/Echo.md">Echo</a> module, the following actions were not participating in undo/redo. Now you can undo/redo them.
-            <ul>
-                <li>Changing the time mode on a single TIME knob (seconds or CLOCK).</li>
-                <li>Pressing the "Toggle all clock sync" button.</li>
-                <li>Toggling serial/parallel routing mode.</li>
-                <li>Changing the interpolator (linear/sinc).</li>
-                <li>Toggling CLOCK/RATE by clicking on the text label itself.</li>
-            </ul>
-        </li>
-        <li>In all Sapphire modules, the following right-click actions were not participating in undo/redo. Now you can undo/redo them.
-            <ul>
-                <li>"Toggle neon borders (this module only)"</li>
-                <li>"Toggle neon borders in all Sapphire modules"</li>
-            </ul>
-        </li>
+        <li>Now you can undo/redo more actions across Sapphire modules. The goal is to support undo/redo for any module state that is saved/loaded with a patch.</li>
+        <li>Now when a Sapphire module is initialized, any low-sensitivity attenuverters are reset to normal sensitivity.</li>
         <li><a href="doc/Gravy.md">Gravy</a> no longer makes a click/pop sound when you press the 3-way band mode switch (LP, BP, HP). Gravy now uses a smooth ramp over 50&nbsp;ms to fade out one mode, switches modes, then fades in the new mode for 50&nbsp;ms.</li>
         <li><a href="doc/Pop.md">Pop</a> has two new buttons:
             <ul>
