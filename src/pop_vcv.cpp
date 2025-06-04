@@ -30,7 +30,7 @@ namespace Sapphire
 
         enum OutputId
         {
-            PULSE_TRIGGER_OUTPUT,
+            PULSE_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -58,7 +58,7 @@ namespace Sapphire
 
                 channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM, 1);
 
-                configOutput(PULSE_TRIGGER_OUTPUT, "Pulse trigger");
+                configOutput(PULSE_OUTPUT, "Pulse");
 
                 configParam(SPEED_PARAM, MIN_POP_SPEED, MAX_POP_SPEED, DEFAULT_POP_SPEED, "Speed");
                 configParam(CHAOS_PARAM, MIN_POP_CHAOS, MAX_POP_CHAOS, DEFAULT_POP_CHAOS, "Chaos");
@@ -138,7 +138,7 @@ namespace Sapphire
 
                 const int nc = desiredChannelCount();
                 currentChannelCount = nc;       // keep channel display panel updated
-                outputs.at(PULSE_TRIGGER_OUTPUT).setChannels(nc);
+                outputs.at(PULSE_OUTPUT).setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
                 float vSync = 0;
@@ -158,7 +158,7 @@ namespace Sapphire
                     engine[c].setChaos(chaos);
 
                     const float v = engine[c].process(args.sampleRate);
-                    outputs.at(PULSE_TRIGGER_OUTPUT).setVoltage(v, c);
+                    outputs.at(PULSE_OUTPUT).setVoltage(v, c);
                 }
                 isSyncPending = false;
             }
@@ -275,7 +275,7 @@ namespace Sapphire
             {
                 setModule(module);
 
-                addSapphireOutput(PULSE_TRIGGER_OUTPUT, "pulse_output");
+                addSapphireOutput(PULSE_OUTPUT, "pulse_output");
 
                 addKnob(SPEED_PARAM, "speed_knob");
                 addKnob(CHAOS_PARAM, "chaos_knob");
