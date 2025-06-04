@@ -253,10 +253,9 @@ namespace Sapphire
             {
                 if (popModule)
                 {
-                    size_t mode = popModule->getOutputMode();
-                    ParamQuantity* quantity = getParamQuantity();
-                    if (quantity)
+                    if (ParamQuantity* quantity = getParamQuantity())
                     {
+                        const size_t mode = popModule->getOutputMode();
                         quantity->setValue(static_cast<float>(mode));
                         quantity->name = mode ? "Pulse mode: gates" : "Pulse mode: triggers";
                     }
