@@ -33,16 +33,6 @@ namespace Sapphire
     }
 
 
-    inline void InvokeAction(history::Action* action)
-    {
-        if (action)
-        {
-            action->redo();
-            APP->history->push(action);
-        }
-    }
-
-
     struct BoolToggleAction : history::Action
     {
         bool& flag;

@@ -387,4 +387,54 @@ namespace Sapphire
             flag = state;
         }
     }
+
+    ToggleAllSensitivityAction::ToggleAllSensitivityAction(SapphireModule* sapphireModule)
+    {
+        name = "toggle sensitivity of all attenuverters";
+        if (sapphireModule)
+        {
+            moduleId = sapphireModule->id;
+
+            const int nparams = static_cast<int>(sapphireModule->paramInfo.size());
+            for (int paramId = 0; paramId < nparams; ++paramId)
+            {
+                if (sapphireModule->isAttenuverter(paramId))
+                {
+                    prevStateList.push_back(SensitivityState(
+                        paramId,
+                        sapphireModule->isLowSensitive(paramId)
+                    ));
+                }
+            }
+        }
+    }
+
+    void ToggleAllSensitivityAction::redo()
+    {
+        if (SapphireModule* sapphireModule = FindSapphireModule(moduleId))
+        {
+            // Find all attenuverter knobs and toggle their low-sensitivity state together.
+            const int nparams = static_cast<int>(sapphireModule->paramInfo.size());
+            int countEnabled = 0;
+            int countDisabled = 0;
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (sapphireModule->isAttenuverter(paramId))
+                    sapphireModule->isLowSensitive(paramId) ? ++countEnabled : ++countDisabled;
+
+            // Let the knobs "vote". If a supermajority are enabled,
+            // then we turn them all off.
+            // Otherwise we turn them all on.
+            const bool toggle = (countEnabled <= countDisabled);
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (sapphireModule->isAttenuverter(paramId))
+                    sapphireModule->setLowSensitive(paramId, toggle);
+        }
+    }
+
+    void ToggleAllSensitivityAction::undo()
+    {
+        if (SapphireModule* sapphireModule = FindSapphireModule(moduleId))
+            for (const SensitivityState& s : prevStateList)
+                sapphireModule->setLowSensitive(s.paramId, s.lowSensitivity);
+    }
 }

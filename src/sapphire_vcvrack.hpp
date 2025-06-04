@@ -4,6 +4,17 @@
 #include "plugin.hpp"
 namespace Sapphire
 {
+    struct SapphireModule;
+
+    inline void InvokeAction(history::Action* action)
+    {
+        if (action)
+        {
+            action->redo();
+            APP->history->push(action);
+        }
+    }
+
     inline int VcvSafeChannelCount(int count)
     {
         return std::clamp<int>(count, 0, PORT_MAX_CHANNELS);
@@ -687,6 +698,30 @@ namespace Sapphire
     };
 
 
+    struct SensitivityState
+    {
+        const int paramId;
+        const bool lowSensitivity;
+
+        explicit SensitivityState(int _paramId, bool _lowSensitivity)
+            : paramId(_paramId)
+            , lowSensitivity(_lowSensitivity)
+        {
+        }
+    };
+
+
+    struct ToggleAllSensitivityAction : history::Action
+    {
+        int64_t moduleId = -1;
+        std::vector<SensitivityState> prevStateList;
+
+        explicit ToggleAllSensitivityAction(SapphireModule* sapphireModule);
+        void redo() override;
+        void undo() override;
+    };
+
+
     struct SapphireModule : public Module
     {
         static std::vector<SapphireModule*> All;
@@ -804,23 +839,9 @@ namespace Sapphire
             return &paramInfo.at(attenId).isLowSensitive;
         }
 
-        void toggleAllSensitivity()
+        void setLowSensitive(int attenId, bool state)
         {
-            // Find all attenuverter knobs and toggle their low-sensitivity state together.
-            const int nparams = static_cast<int>(paramInfo.size());
-            int countEnabled = 0;
-            int countDisabled = 0;
-            for (int paramId = 0; paramId < nparams; ++paramId)
-                if (isAttenuverter(paramId))
-                    isLowSensitive(paramId) ? ++countEnabled : ++countDisabled;
-
-            // Let the knobs "vote". If a supermajority are enabled,
-            // then we turn them all off.
-            // Otherwise we turn them all on.
-            const bool toggle = (countEnabled <= countDisabled);
-            for (int paramId = 0; paramId < nparams; ++paramId)
-                if (isAttenuverter(paramId))
-                    *lowSensitiveFlag(paramId) = toggle;
+            paramInfo.at(attenId).isLowSensitive = state;
         }
 
         MenuItem* createToggleAllSensitivityMenuItem()
@@ -828,7 +849,7 @@ namespace Sapphire
             return createMenuItem(
                 "Toggle sensitivity on all attenuverters",
                 "",
-                [this]{ toggleAllSensitivity(); }
+                [this]{ InvokeAction(new ToggleAllSensitivityAction(this)); }
             );
         }
 
