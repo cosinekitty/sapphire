@@ -635,34 +635,6 @@ namespace Sapphire
         };
 
 
-        struct BoolToggleAction : history::Action
-        {
-            bool& flag;
-            bool& dirty;
-
-            explicit BoolToggleAction(bool& _flag, bool& _dirty)
-                : flag(_flag)
-                , dirty(_dirty)
-                {}
-
-            void toggle()
-            {
-                flag = !flag;
-                dirty = true;
-            }
-
-            void undo() override
-            {
-                toggle();
-            }
-
-            void redo() override
-            {
-                toggle();
-            }
-        };
-
-
         constexpr unsigned GraphSliceCount = 400;
         constexpr float HorMarginPx = 1.0;
         constexpr float VerMarginPx = 1.0;
@@ -820,15 +792,11 @@ namespace Sapphire
             ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput{};
             bool flip{};
-            bool flipControlsAreDirty{};
             bool duck{};
-            bool duckControlsAreDirty{};
             Crossfader envDuckFader;
-            bool prevFlip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
-            bool sendReturnControlsAreDirty{};
             Crossfader muteFader;
             Crossfader soloFader;
             GraphWidget* graph = nullptr;
@@ -872,9 +840,6 @@ namespace Sapphire
                 polyphonicEnvelopeOutput = false;
                 flip = false;
                 duck = false;
-                flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
-                duckControlsAreDirty = true;
-                sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
@@ -892,12 +857,8 @@ namespace Sapphire
 
             void updateFlipControls()
             {
-                const bool needUpdate = flipControlsAreDirty || (prevFlip != flip);
-                if (needUpdate && controlsAreReady)
+                if (controlsAreReady)
                 {
-                    prevFlip = flip;
-                    flipControlsAreDirty = false;
-
                     const char *name = flip ? "Flip" : "Reverse";
                     getInputInfo(controls.revFlipInputId)->name = name;
                     getParamQuantity(controls.revFlipButtonId)->name = name;
@@ -916,10 +877,8 @@ namespace Sapphire
 
             void updateSendReturnControls()
             {
-                if (sendReturnControlsAreDirty && controlsAreReady)
+                if (controlsAreReady)
                 {
-                    sendReturnControlsAreDirty = false;
-
                     updateToggleButtonTooltip(
                         controls.sendReturnButtonId,
                         "Send/return before delay",
@@ -939,16 +898,12 @@ namespace Sapphire
 
             void toggleFlip()
             {
-                auto action = new BoolToggleAction(flip, flipControlsAreDirty);
-                action->redo();
-                APP->history->push(action);
+                InvokeAction(new BoolToggleAction(flip, "reverse/flip"));
             }
 
             void toggleEnvDuck()
             {
-                auto action = new BoolToggleAction(duck, duckControlsAreDirty);
-                action->redo();
-                APP->history->push(action);
+                InvokeAction(new BoolToggleAction(duck, "envelope/duck"));
             }
 
             bool isActivelyClocked() const
@@ -1095,9 +1050,6 @@ namespace Sapphire
                     : SendReturnLocation::AfterDelay;
 
                 sendReturnLocationSmoother.process(sampleRateHz);
-                if (sendReturnLocationSmoother.isDelayedActionReady())
-                    sendReturnControlsAreDirty = true;
-
                 const float srSmooth = sendReturnLocationSmoother.getGain();
                 const float smooth = srSmooth * message.routingSmooth;
                 receivedInputRouting = message.inputRouting;
@@ -2340,9 +2292,7 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    auto action = new BumpEnumAction(routingSmoother, "signal routing change");
-                    action->redo();
-                    APP->history->push(action);
+                    InvokeAction(new BumpEnumAction(routingSmoother, "signal routing change"));
                 }
             };
 
@@ -2612,9 +2562,7 @@ namespace Sapphire
                         if (isInsideClockLabel(e.pos))
                         {
                             ClockSignalFormat nextValue = NextEnumValue(echoModule->clockSignalFormat);
-                            auto action = new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE");
-                            action->redo();
-                            APP->history->push(action);
+                            InvokeAction(new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE"));
                         }
                     }
                 }
@@ -2815,8 +2763,7 @@ namespace Sapphire
                         action->stateList.push_back(ClockSyncState(lmod->id, lmod->timeKnobInfo.timeMode));
                     });
 
-                    action->redo();
-                    APP->history->push(action);
+                    InvokeAction(action);
                 }
             };
         }
@@ -2979,8 +2926,6 @@ namespace Sapphire
                         flip = emod->flip;
                         duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
-                        flipControlsAreDirty = true;
-                        sendReturnControlsAreDirty = true;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
                         copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);

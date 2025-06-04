@@ -32,6 +32,44 @@ namespace Sapphire
         return (counter > 0) && (--counter == 0);
     }
 
+
+    inline void InvokeAction(history::Action* action)
+    {
+        if (action)
+        {
+            action->redo();
+            APP->history->push(action);
+        }
+    }
+
+
+    struct BoolToggleAction : history::Action
+    {
+        bool& flag;
+
+        explicit BoolToggleAction(bool& _flag, const std::string& toggledThing)
+            : flag(_flag)
+        {
+            name = "toggle " + toggledThing;
+        }
+
+        void toggle()
+        {
+            flag = !flag;
+        }
+
+        void undo() override
+        {
+            toggle();
+        }
+
+        void redo() override
+        {
+            toggle();
+        }
+    };
+
+
     struct SapphireAttenuverterKnob : Trimpot
     {
         bool* lowSensitivityMode = nullptr;
@@ -40,7 +78,21 @@ namespace Sapphire
         {
             Trimpot::appendContextMenu(menu);
             if (lowSensitivityMode)
-                menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
+            {
+                menu->addChild(createBoolMenuItem(
+                    "Low sensitivity",
+                    "",
+                    [=]() -> bool       // getter
+                    {
+                        return *lowSensitivityMode;
+                    },
+                    [=](bool state)     // setter
+                    {
+                        if (state != *lowSensitivityMode)
+                            InvokeAction(new BoolToggleAction(*lowSensitivityMode, "attenuverter sensitivity"));
+                    }
+                ));
+            }
         }
 
         bool isLowSensitive() const
