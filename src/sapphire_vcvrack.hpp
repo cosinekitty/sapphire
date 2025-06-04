@@ -755,6 +755,21 @@ namespace Sapphire
             , outputPortInfo(nOutputPorts)
             {}
 
+        void onReset(const ResetEvent& e) override
+        {
+            Module::onReset(e);
+            SapphireModule_initialize();
+        }
+
+        void SapphireModule_initialize()
+        {
+            // Disable low sensitivity on all attenuverters.
+            const int nparams = static_cast<int>(paramInfo.size());
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (isAttenuverter(paramId))
+                    setLowSensitive(paramId, false);
+        }
+
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
             float slider = params.at(paramId).getValue();

@@ -116,7 +116,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
