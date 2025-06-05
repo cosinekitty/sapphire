@@ -222,6 +222,39 @@ namespace Sapphire
 
 
         template <typename module_t>
+        struct ChaosModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const int oldMode;
+            const int newMode;
+
+            explicit ChaosModeAction(const module_t* _chaosModule, int _newMode)
+                : moduleId(_chaosModule->id)
+                , oldMode(_chaosModule->circuit.getMode())
+                , newMode(_newMode)
+            {
+                name = "change chaos mode";
+            }
+
+            void setChaosMode(int mode)
+            {
+                if (module_t* chaosModule = FindSapphireModule<module_t>(moduleId))
+                    chaosModule->circuit.setMode(mode);
+            }
+
+            void undo() override
+            {
+                setChaosMode(oldMode);
+            }
+
+            void redo() override
+            {
+                setChaosMode(newMode);
+            }
+        };
+
+
+        template <typename module_t>
         inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule, bool separator)
         {
             if (menu == nullptr)
@@ -246,7 +279,12 @@ namespace Sapphire
                     "Chaos mode",
                     labels,
                     [=]() { return chaosModule->circuit.getMode(); },
-                    [=](size_t mode) { chaosModule->circuit.setMode(mode); }
+                    [=](size_t state)
+                    {
+                        int chaosMode = static_cast<int>(state);
+                        if (chaosModule->circuit.getMode() != chaosMode)
+                            InvokeAction(new ChaosModeAction(chaosModule, chaosMode));
+                    }
                 ));
             }
         }
