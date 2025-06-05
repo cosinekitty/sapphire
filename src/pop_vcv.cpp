@@ -208,6 +208,7 @@ namespace Sapphire
 
             explicit PulseModeButton()
             {
+                chainButtonClicks = false;      // prevent toggle of underlying Param; needed for undo/redo
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
             }

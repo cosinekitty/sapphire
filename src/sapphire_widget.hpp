@@ -278,6 +278,8 @@ namespace Sapphire
 
     struct SapphireTinyButton : tiny_button_base_t
     {
+        bool chainButtonClicks = true;
+
         virtual void action() {}
         virtual void restartChrono() {}
 
@@ -288,7 +290,9 @@ namespace Sapphire
                 action();
                 restartChrono();
             }
-            tiny_button_base_t::onButton(e);
+
+            if (chainButtonClicks)
+                tiny_button_base_t::onButton(e);
         }
     };
 
