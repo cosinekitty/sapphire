@@ -445,5 +445,35 @@ namespace Sapphire
             void undo() override;
             void redo() override;
         };
+
+
+        struct PolyEnvelopeState
+        {
+            const int64_t moduleId;
+            const bool state;
+
+            explicit PolyEnvelopeState(int64_t _moduleId, bool _state)
+                : moduleId(_moduleId)
+                , state(_state)
+                {}
+        };
+
+
+        struct ToggleAllPolyphonicEnvelopeAction : history::Action
+        {
+            const int64_t moduleId;
+            const bool newState;
+            std::vector<PolyEnvelopeState> stateList;
+
+            explicit ToggleAllPolyphonicEnvelopeAction(int64_t _moduleId, bool _newState)
+                : moduleId(_moduleId)
+                , newState(_newState)
+            {
+                name = "toggle poly/mono on all envelope outputs";
+            }
+
+            void undo() override;
+            void redo() override;
+        };
     }
 }

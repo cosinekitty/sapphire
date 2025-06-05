@@ -1289,8 +1289,14 @@ namespace Sapphire
                     "Polyphonic envelope output",
                     "",
                     [=]{ return polyphonicEnvelopeOutput; },
-                    [=](bool state){ polyphonicEnvelopeOutput = state; }
+                    [=](bool state){ setPolyphonicEnvelopeOutput(state); }
                 ));
+            }
+
+            void setPolyphonicEnvelopeOutput(bool state)
+            {
+                if (polyphonicEnvelopeOutput != state)
+                    InvokeAction(new BoolToggleAction(polyphonicEnvelopeOutput, "mono/polyphonic envelope output"));
             }
         };
 
@@ -2716,6 +2722,9 @@ namespace Sapphire
 
                 void toggleAllPolyphonicEnvelope()
                 {
+                    if (!echoModule)
+                        return;
+
                     const int countPoly = tallyTaps(
                         [](const LoopModule *lmod)
                         {
@@ -2730,13 +2739,19 @@ namespace Sapphire
                         }
                     );
 
-                    const bool newPoly = (countPoly < countMono);
+                    auto action = new ToggleAllPolyphonicEnvelopeAction(
+                        echoModule->id,
+                        countPoly < countMono
+                    );
+
                     visitTaps(
-                        [=](LoopModule *lmod)
+                        [=](const LoopModule *lmod)
                         {
-                            lmod->polyphonicEnvelopeOutput = newPoly;
+                            action->stateList.push_back(PolyEnvelopeState(lmod->id, lmod->polyphonicEnvelopeOutput));
                         }
                     );
+
+                    InvokeAction(action);
                 }
 
                 void toggleAllClockSync()
@@ -2806,6 +2821,30 @@ namespace Sapphire
                 Module* module = APP->engine->getModule(node.moduleId);
                 if (module)
                     APP->engine->resetModule(module);
+            }
+        }
+
+        void ToggleAllPolyphonicEnvelopeAction::undo()
+        {
+            for (const PolyEnvelopeState& s : stateList)
+            {
+                LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId);
+                if (lmod)
+                    lmod->polyphonicEnvelopeOutput = s.state;
+            }
+        }
+
+        void ToggleAllPolyphonicEnvelopeAction::redo()
+        {
+            auto echoWidget = FindSapphireWidget<Echo::EchoWidget>(moduleId);
+            if (echoWidget)
+            {
+                echoWidget->visitTaps(
+                    [=](LoopModule* lmod)
+                    {
+                        lmod->polyphonicEnvelopeOutput = newState;
+                    }
+                );
             }
         }
 
