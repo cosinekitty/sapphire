@@ -2155,6 +2155,9 @@ namespace Sapphire
                     params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
                     params.at(MUTE_BUTTON_PARAM).setValue(0);
                     params.at(SOLO_BUTTON_PARAM).setValue(0);
+                    setLowSensitive(TIME_ATTEN, false);
+                    setLowSensitive(PAN_ATTEN, false);
+                    setLowSensitive(GAIN_ATTEN, false);
                 }
 
                 void initialize() override
