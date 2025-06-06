@@ -1299,10 +1299,7 @@ namespace Sapphire
             dcRejectQuantity->changed = true;
         }
 
-        void addLimiterWarningLightOption(Menu* menu)
-        {
-            menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &enableLimiterWarning));
-        }
+        void addLimiterWarningLightOption(Menu* menu);
 
         AgcLevelQuantity* makeAgcLevelQuantity(
             int   paramId,

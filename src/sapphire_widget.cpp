@@ -445,4 +445,23 @@ namespace Sapphire
             for (const SensitivityState& s : prevStateList)
                 sapphireModule->setLowSensitive(s.paramId, s.lowSensitivity);
     }
+
+    void SapphireModule::addLimiterWarningLightOption(Menu* menu)
+    {
+        menu->addChild(
+            createBoolMenuItem(
+                "Limiter warning light",
+                "",
+                [=]()
+                {
+                    return enableLimiterWarning;
+                },
+                [=](bool value)
+                {
+                    if (value != enableLimiterWarning)
+                        InvokeAction(new BoolToggleAction(enableLimiterWarning, "limiter warning light"));
+                }
+            )
+        );
+    }
 }
