@@ -57,6 +57,13 @@ namespace Sapphire
         {
             toggle();
         }
+
+        static void AddMenuItem(
+            Menu* menu,
+            bool& flag,
+            const std::string& menuItemText,
+            const std::string& toggledThing
+        );
     };
 
 

@@ -464,4 +464,27 @@ namespace Sapphire
             )
         );
     }
+
+    void BoolToggleAction::AddMenuItem(
+        Menu* menu,
+        bool& flag,
+        const std::string& menuItemText,
+        const std::string& toggledThing)
+    {
+        menu->addChild(
+            createBoolMenuItem(
+                menuItemText,
+                "",
+                [&flag]()
+                {
+                    return flag;
+                },
+                [&flag, toggledThing](bool value)
+                {
+                    if (value != flag)
+                        InvokeAction(new BoolToggleAction(flag, toggledThing));
+                }
+            )
+        );
+    }
 }
