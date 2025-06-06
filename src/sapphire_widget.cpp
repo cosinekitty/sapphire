@@ -465,26 +465,41 @@ namespace Sapphire
         );
     }
 
-    void BoolToggleAction::AddMenuItem(
-        Menu* menu,
+    MenuItem* BoolToggleAction::CreateMenuItem(
         bool& flag,
         const std::string& menuItemText,
         const std::string& toggledThing)
     {
-        menu->addChild(
-            createBoolMenuItem(
-                menuItemText,
-                "",
-                [&flag]()
-                {
-                    return flag;
-                },
-                [&flag, toggledThing](bool value)
-                {
-                    if (value != flag)
-                        InvokeAction(new BoolToggleAction(flag, toggledThing));
-                }
-            )
+        return createBoolMenuItem(
+            menuItemText,
+            "",
+            [&flag]()
+            {
+                return flag;
+            },
+            [&flag, toggledThing](bool value)
+            {
+                if (value != flag)
+                    InvokeAction(new BoolToggleAction(flag, toggledThing));
+            }
+        );
+    }
+
+    MenuItem* SapphireModule::createStereoSplitterMenuItem()
+    {
+        return BoolToggleAction::CreateMenuItem(
+            enableStereoSplitter,
+            "Enable input stereo splitter",
+            "input stereo splitter"
+        );
+    }
+
+    MenuItem* SapphireModule::createStereoMergeMenuItem()
+    {
+        return BoolToggleAction::CreateMenuItem(
+            enableStereoMerge,
+            "Send polyphonic stereo to L output",
+            "polyphonic output"
         );
     }
 }

@@ -891,15 +891,9 @@ namespace Sapphire
             );
         }
 
-        MenuItem* createStereoSplitterMenuItem()
-        {
-            return createBoolPtrMenuItem<bool>("Enable input stereo splitter", "", &enableStereoSplitter);
-        }
 
-        MenuItem* createStereoMergeMenuItem()
-        {
-            return createBoolPtrMenuItem<bool>("Send polyphonic stereo to L output", "", &enableStereoMerge);
-        }
+        MenuItem* createStereoSplitterMenuItem();
+        MenuItem* createStereoMergeMenuItem();
 
         void sendVector(float x, float y, float z, bool reset)
         {
