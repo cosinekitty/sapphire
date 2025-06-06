@@ -323,10 +323,14 @@ namespace Sapphire
             return createBoolMenuItem(
                 "Turbo mode: +5 speed",
                 "",
-                [=]() { return chaosModule->turboMode; },
+                [=]()
+                {
+                    return chaosModule->turboMode;
+                },
                 [=](bool state)
                 {
-                    InvokeAction(new BoolToggleAction(chaosModule->turboMode, "turbo mode"));
+                    if (chaosModule->turboMode != state)
+                        InvokeAction(new BoolToggleAction(chaosModule->turboMode, "turbo mode"));
                 }
             );
         }
