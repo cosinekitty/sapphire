@@ -83,11 +83,13 @@ namespace Sapphire
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
-                    engine[c].sendTriggerOnReset = sendTriggerOnReset;
+                    engine[c].sendTriggerOnReset = false;
                     engine[c].initialize();
                     engine[c].setRandomSeed(c*0x100001 + 0xbeef0);
                     syncReceiver[c].initialize();
                 }
+                sendTriggerOnReset = false;
+                prevTriggerOnReset = false;
             }
 
             void onReset(const ResetEvent& e) override
@@ -123,8 +125,7 @@ namespace Sapphire
                     setOutputMode(index);
                 }
 
-                json_t* trig = json_object_get(root, "triggerOnReset");
-                sendTriggerOnReset = json_is_true(trig);
+                sendTriggerOnReset = json_is_true(json_object_get(root, "triggerOnReset"));
             }
 
             void process(const ProcessArgs& args) override
@@ -133,7 +134,7 @@ namespace Sapphire
                 {
                     prevTriggerOnReset = sendTriggerOnReset;
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                        engine[c].sendTriggerOnReset = prevTriggerOnReset;
+                        engine[c].sendTriggerOnReset = sendTriggerOnReset;
                 }
 
                 const int nc = desiredChannelCount();
@@ -288,7 +289,7 @@ namespace Sapphire
                 {
                     addManualSyncMenuItem(menu);
                     addOutputModeMenuItems(menu);
-                    menu->addChild(createBoolPtrMenuItem<bool>("Send trigger on every reset", "", &popModule->sendTriggerOnReset));
+                    BoolToggleAction::AddMenuItem(menu, popModule->sendTriggerOnReset, "Send trigger on every reset", "trigger on reset");
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
             }

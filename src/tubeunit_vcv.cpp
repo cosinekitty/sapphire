@@ -409,7 +409,7 @@ namespace Sapphire
                         tubeUnitModule->addLimiterWarningLightOption(menu);
 
                         // Add toggle for whether the VENT port should be inverted to a SEAL port.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Toggle VENT/SEAL", "", &tubeUnitModule->isInvertedVentPort));
+                        BoolToggleAction::AddMenuItem(menu, tubeUnitModule->isInvertedVentPort, "Toggle VENT/SEAL", "VENT/SEAL");
 
                         // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
                         menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
