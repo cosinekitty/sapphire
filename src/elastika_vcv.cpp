@@ -195,7 +195,6 @@ namespace Sapphire
                 isQuiet = false;
                 slewer.enable(true);
                 params.at(POWER_TOGGLE_PARAM).setValue(1.0f);
-                enableLimiterWarning = true;
                 outputVectorSelectRight = false;
                 hamburger.initialize();
                 modelRateChooser.initialize();
@@ -215,7 +214,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
                 agcLevelQuantity->save(root, "agcLevel");
                 return root;
@@ -226,10 +224,6 @@ namespace Sapphire
                 SapphireModule::dataFromJson(root);
 
                 modelRateChooser.loadOrRevertToDefault(modelSampleRate);
-
-                // If the JSON is damaged, default to enabling the warning light.
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
 
                 // Which stereo output (left, right) do we use for sending a vector to Tricorder?
                 json_t *selectFlag = json_object_get(root, "outputVectorSelectRight");
@@ -477,7 +471,7 @@ namespace Sapphire
                         menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
 
                         // Add an option to enable/disable the warning light on the OUTPUT level knob.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &elastikaModule->enableLimiterWarning));
+                        elastikaModule->addLimiterWarningLightOption(menu);
                     }
 
                     // Add an option to select left/right output ball as the vector to send to Tricorder.

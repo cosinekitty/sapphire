@@ -789,6 +789,8 @@ namespace Sapphire
             const int nOutputs = static_cast<int>(outputPortInfo.size());
             for (int outputId = 0; outputId < nOutputs; ++outputId)
                 outputPortInfo.at(outputId).flipVoltagePolarity = false;
+
+            enableLimiterWarning = true;
         }
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
@@ -961,6 +963,8 @@ namespace Sapphire
             if (dcRejectQuantity)
                 dcRejectQuantity->save(root, "dcRejectFrequency");
 
+            json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+
             return root;
         }
 
@@ -1035,6 +1039,9 @@ namespace Sapphire
 
             if (dcRejectQuantity)
                 dcRejectQuantity->load(root, "dcRejectFrequency");
+
+            // If the JSON is damaged, default to enabling the warning light.
+            enableLimiterWarning = !json_is_false(json_object_get(root, "limiterWarningLight"));
         }
 
         virtual void tryCopySettingsFrom(SapphireModule* other)
@@ -1290,6 +1297,11 @@ namespace Sapphire
 
             dcRejectQuantity->value = defaultFrequencyHz;
             dcRejectQuantity->changed = true;
+        }
+
+        void addLimiterWarningLightOption(Menu* menu)
+        {
+            menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &enableLimiterWarning));
         }
 
         AgcLevelQuantity* makeAgcLevelQuantity(

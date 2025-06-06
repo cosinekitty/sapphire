@@ -121,7 +121,6 @@ namespace Sapphire
             {
                 agcLevelQuantity->initialize();
                 numActiveChannels = 0;
-                enableLimiterWarning = true;
                 isInvertedVentPort = false;
                 outputVerifyCounter = 0;
 
@@ -138,7 +137,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
                 agcLevelQuantity->save(root, "agcLevel");
                 return root;
@@ -147,10 +145,6 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-
-                // If the JSON is damaged, default to enabling the warning light.
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
 
                 // Upgrade from older/damaged JSON by defaulting the vent toggle to OFF.
                 json_t *ventFlag = json_object_get(root, "toggleVentPort");
@@ -412,8 +406,7 @@ namespace Sapphire
                         // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                         menu->addChild(new AgcLevelSlider(tubeUnitModule->agcLevelQuantity));
 
-                        // Add an option to enable/disable the warning slider.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &tubeUnitModule->enableLimiterWarning));
+                        tubeUnitModule->addLimiterWarningLightOption(menu);
 
                         // Add toggle for whether the VENT port should be inverted to a SEAL port.
                         menu->addChild(createBoolPtrMenuItem<bool>("Toggle VENT/SEAL", "", &tubeUnitModule->isInvertedVentPort));

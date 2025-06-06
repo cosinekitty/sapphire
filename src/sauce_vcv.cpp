@@ -140,7 +140,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
@@ -148,10 +147,6 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
                 agcLevelQuantity->load(root, "agcLevel");
             }
 
@@ -260,12 +255,12 @@ namespace Sapphire
 
         struct SauceWidget : SapphireWidget
         {
-            SauceModule* gravyModule{};
+            SauceModule* sauceModule{};
             WarningLightWidget* warningLight{};
 
             explicit SauceWidget(SauceModule* module)
                 : SapphireWidget("sauce", asset::plugin(pluginInstance, "res/sauce.svg"))
-                , gravyModule(module)
+                , sauceModule(module)
             {
                 setModule(module);
 
@@ -288,13 +283,12 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-
-                if (gravyModule == nullptr)
-                    return;
-
-                menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
-                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));
+                if (sauceModule)
+                {
+                    menu->addChild(sauceModule->createToggleAllSensitivityMenuItem());
+                    menu->addChild(new AgcLevelSlider(sauceModule->agcLevelQuantity));
+                    sauceModule->addLimiterWarningLightOption(menu);
+                }
             }
         };
     }

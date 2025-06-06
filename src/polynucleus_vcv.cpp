@@ -140,7 +140,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 agcLevelQuantity->save(root, "agcLevel");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
@@ -148,23 +147,20 @@ namespace Sapphire
 
             void dataFromJson(json_t* root) override
             {
-                using namespace Nucleus;
-
                 SapphireModule::dataFromJson(root);
-
-                // If the JSON is damaged, default to enabling the warning light.
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
                 agcLevelQuantity->load(root, "agcLevel");
+                loadTricorderSettings(root);
+            }
 
+            void loadTricorderSettings(json_t* root)
+            {
                 resetTricorder = true;
                 tricorderOutputIndex = 1;   // fallback
                 json_t *tri = json_object_get(root, "tricorderOutputIndex");
                 if (json_is_integer(tri))
                 {
                     int index = json_integer_value(tri);
-                    if (index > 0 && index < NUM_PARTICLES)
+                    if (index > 0 && index < Nucleus::NUM_PARTICLES)
                         tricorderOutputIndex = index;
                 }
             }
@@ -179,7 +175,6 @@ namespace Sapphire
                 engine.initialize();
                 SetMinimumEnergy(engine);
                 dcRejectQuantity->initialize();
-                enableLimiterWarning = true;
                 agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
                 resetTricorder = true;
@@ -470,8 +465,7 @@ namespace Sapphire
                     // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
                     menu->addChild(new AgcLevelSlider(polynucleusModule->agcLevelQuantity));
 
-                    // Add an option to enable/disable the warning slider.
-                    menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &polynucleusModule->enableLimiterWarning));
+                    polynucleusModule->addLimiterWarningLightOption(menu);
 
                     // Add an action to reset the simulation to its low energy state.
                     menu->addChild(createMenuItem(
