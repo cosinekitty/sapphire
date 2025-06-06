@@ -784,6 +784,11 @@ namespace Sapphire
             for (int paramId = 0; paramId < nparams; ++paramId)
                 if (isAttenuverter(paramId))
                     setLowSensitive(paramId, false);
+
+            // Clear any voltage-flipping on output ports.
+            const int nOutputs = static_cast<int>(outputPortInfo.size());
+            for (int outputId = 0; outputId < nOutputs; ++outputId)
+                outputPortInfo.at(outputId).flipVoltagePolarity = false;
         }
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
@@ -988,10 +993,6 @@ namespace Sapphire
                 }
             }
 
-            const int nOutputs = static_cast<int>(outputPortInfo.size());
-            for (int outputId = 0; outputId < nOutputs; ++outputId)
-                outputPortInfo.at(outputId).flipVoltagePolarity = false;
-
             json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
             if (oList)
             {
@@ -1002,6 +1003,7 @@ namespace Sapphire
                     if (json_is_integer(item))
                     {
                         int outputId = static_cast<int>(json_integer_value(item));
+                        const int nOutputs = outputPortInfo.size();
                         if (outputId >= 0 && outputId < nOutputs)
                             outputPortInfo.at(outputId).flipVoltagePolarity = true;
                     }
