@@ -137,7 +137,7 @@ namespace Sapphire
                 if (info)
                 {
                     menu->addChild(new MenuSeparator);
-                    menu->addChild(createEnumMenuItem(
+                    menu->addChild(CreateChangeEnumMenuItem(
                         "Time mode",
                         {
                             "Seconds",
@@ -2621,7 +2621,7 @@ namespace Sapphire
                             [=]{ initializeExpanderChain(); }
                         ));
 
-                        menu->addChild(createEnumMenuItem(
+                        menu->addChild(CreateChangeEnumMenuItem(
                             "Signal routing",
                             {
                                 "Parallel",
@@ -2631,7 +2631,7 @@ namespace Sapphire
                             echoModule->routingSmoother.targetValue
                         ));
 
-                        menu->addChild(createEnumMenuItem(
+                        menu->addChild(CreateChangeEnumMenuItem(
                             "Interpolator",
                             {
                                 "Linear (uses less CPU)",

@@ -1674,7 +1674,7 @@ namespace Sapphire
 
 
     template <typename enum_t>
-    ui::MenuItem* createEnumMenuItem(
+    ui::MenuItem* CreateChangeEnumMenuItem(
         std::string text,
         std::vector<std::string> labels,
         const std::string& actionName,
@@ -1693,11 +1693,7 @@ namespace Sapphire
             {
                 const enum_t newValue = static_cast<enum_t>(index);
                 if (newValue != option)
-                {
-                    auto action = new ChangeEnumAction(option, newValue, actionName);
-                    action->redo();
-                    APP->history->push(action);
-                }
+                    InvokeAction(new ChangeEnumAction(option, newValue, actionName));
             }
         );
     }
