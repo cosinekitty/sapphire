@@ -231,6 +231,14 @@ namespace Sapphire
     }
 
 
+    Module* FindModuleForId(int64_t moduleId)
+    {
+        if (ModuleWidget *wid = FindWidgetForId(moduleId))
+            return wid->module;
+        return nullptr;
+    }
+
+
     std::vector<PanelState> SnapshotPanelPositions()
     {
         std::vector<PanelState> list;

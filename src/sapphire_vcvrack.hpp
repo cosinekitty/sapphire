@@ -5,6 +5,7 @@
 namespace Sapphire
 {
     struct SapphireModule;
+    struct SapphireWidget;
 
     inline void InvokeAction(history::Action* action)
     {
@@ -18,6 +19,21 @@ namespace Sapphire
     inline int VcvSafeChannelCount(int count)
     {
         return std::clamp<int>(count, 0, PORT_MAX_CHANNELS);
+    }
+
+    ModuleWidget* FindWidgetForId(int64_t moduleId);
+    Module* FindModuleForId(int64_t moduleId);
+
+    template <typename widget_t = SapphireWidget>
+    widget_t* FindSapphireWidget(int64_t moduleId)
+    {
+        return dynamic_cast<widget_t*>(FindWidgetForId(moduleId));
+    }
+
+    template <typename module_t = SapphireModule>
+    module_t* FindSapphireModule(int64_t moduleId)
+    {
+        return dynamic_cast<module_t*>(FindModuleForId(moduleId));
     }
 
     enum class ExpanderRole
@@ -1466,6 +1482,38 @@ namespace Sapphire
     };
 
 
+    struct VoltageFlipAction : history::Action
+    {
+        const int64_t moduleId;
+        const int outputId;
+        const bool oldValue;
+
+        explicit VoltageFlipAction(const SapphireModule* module, int _outputId)
+            : moduleId(module->id)
+            , outputId(_outputId)
+            , oldValue(module->getVoltageFlipEnabled(_outputId))
+        {
+            name = "flip voltage polarity";
+        }
+
+        void setFlip(bool state)
+        {
+            if (SapphireModule* module = FindSapphireModule(moduleId))
+                module->setVoltageFlipEnabled(outputId, state);
+        }
+
+        void undo() override
+        {
+            setFlip(oldValue);
+        }
+
+        void redo() override
+        {
+            setFlip(!oldValue);
+        }
+    };
+
+
     struct SapphirePort : app::SvgPort
     {
         bool allowsVoltageFlip = false;
@@ -1493,7 +1541,8 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        module->setVoltageFlipEnabled(outputId, state);
+                        if (state != module->getVoltageFlipEnabled(outputId))
+                            InvokeAction(new VoltageFlipAction(module, outputId));
                     }
                 ));
             }

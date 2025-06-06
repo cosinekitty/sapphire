@@ -707,22 +707,6 @@ namespace Sapphire
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
-    ModuleWidget* FindWidgetForId(int64_t moduleId);
-
-    template <typename widget_t = SapphireWidget>
-    widget_t* FindSapphireWidget(int64_t moduleId)
-    {
-        return dynamic_cast<widget_t*>(FindWidgetForId(moduleId));
-    }
-
-    template <typename module_t = SapphireModule>
-    module_t* FindSapphireModule(int64_t moduleId)
-    {
-        SapphireWidget* wid = FindSapphireWidget(moduleId);
-        if (wid)
-            return dynamic_cast<module_t*>(wid->module);
-        return nullptr;
-    }
 
     struct PanelState
     {
