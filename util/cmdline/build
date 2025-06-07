@@ -20,9 +20,6 @@ g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/elast
 g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/tubeunit -D NO_RACK_DEPENDENCY \
     tubeunit_standalone.cpp || exit 1
 
-g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/monster -D NO_RACK_DEPENDENCY \
-    tubemonster_standalone.cpp || exit 1
-
 g++ -std=c++17 -Wall -Werror ${OPTS} -I${SAPPHIRE_SRC} -I../include -o bin/envpitch -D NO_RACK_DEPENDENCY \
     envpitch_standalone.cpp || exit 1
 
