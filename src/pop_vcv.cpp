@@ -90,6 +90,7 @@ namespace Sapphire
                 }
                 sendTriggerOnReset = false;
                 prevTriggerOnReset = false;
+                setOutputMode(static_cast<size_t>(OutputMode::Default));
             }
 
             void onReset(const ResetEvent& e) override
@@ -185,6 +186,38 @@ namespace Sapphire
         };
 
 
+        struct ChangeOutputModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const size_t oldValue;
+            const size_t newValue;
+
+            explicit ChangeOutputModeAction(const PopModule* _popModule, size_t _newValue)
+                : moduleId(_popModule->id)
+                , oldValue(_popModule->getOutputMode())
+                , newValue(_newValue)
+            {
+                name = "change Sapphire Pop output mode";
+            }
+
+            void setOutputMode(size_t value)
+            {
+                if (PopModule* popModule = FindSapphireModule<PopModule>(moduleId))
+                    popModule->setOutputMode(value);
+            }
+
+            void undo() override
+            {
+                setOutputMode(oldValue);
+            }
+
+            void redo() override
+            {
+                setOutputMode(newValue);
+            }
+        };
+
+
         struct SyncButton : SapphireTinyActionButton
         {
             PopModule* popModule{};
@@ -220,7 +253,7 @@ namespace Sapphire
                 {
                     size_t mode = popModule->getOutputMode();
                     mode = (mode + 1) % static_cast<size_t>(OutputMode::LEN);
-                    popModule->setOutputMode(mode);
+                    InvokeAction(new ChangeOutputModeAction(popModule, mode));
                 }
             }
 
@@ -288,7 +321,7 @@ namespace Sapphire
                 if (popModule)
                 {
                     addManualSyncMenuItem(menu);
-                    addOutputModeMenuItems(menu);
+                    addOutputModeMenuItem(menu);
                     BoolToggleAction::AddMenuItem(menu, popModule->sendTriggerOnReset, "Send trigger on every reset", "trigger on reset");
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
@@ -296,21 +329,34 @@ namespace Sapphire
 
             void addManualSyncMenuItem(Menu* menu)
             {
-                menu->addChild(createMenuItem(
-                    "Sync polyphonic channels",
-                    "",
-                    [=]{ popModule->isSyncPending = true; }
-                ));
+                if (popModule)
+                {
+                    menu->addChild(createMenuItem(
+                        "Sync polyphonic channels",
+                        "",
+                        [=]{ popModule->isSyncPending = true; }
+                    ));
+                }
             }
 
-            void addOutputModeMenuItems(Menu* menu)
+            void addOutputModeMenuItem(Menu* menu)
             {
-                menu->addChild(createIndexSubmenuItem(
-                    "Output pulse mode",
-                    { "Triggers", "Gates" },
-                    [=]() { return popModule->getOutputMode(); },
-                    [=](size_t mode) { popModule->setOutputMode(mode); }
-                ));
+                if (popModule)
+                {
+                    menu->addChild(createIndexSubmenuItem(
+                        "Output pulse mode",
+                        { "Triggers", "Gates" },
+                        [=]()
+                        {
+                            return popModule->getOutputMode();
+                        },
+                        [=](size_t mode)
+                        {
+                            if (popModule->getOutputMode() != mode)
+                                InvokeAction(new ChangeOutputModeAction(popModule, mode));
+                        }
+                    ));
+                }
             }
         };
     }
