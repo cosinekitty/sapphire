@@ -415,7 +415,7 @@ namespace Sapphire
 
         struct EnvelopeOutputPort : SapphirePort
         {
-            void appendContextMenu(ui::Menu* menu) override;
+            void appendContextMenu(Menu* menu) override;
         };
 
 

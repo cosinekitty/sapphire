@@ -1283,7 +1283,7 @@ namespace Sapphire
                 configAttenCv(attenId, cvInputId, name);
             }
 
-            void addPolyphonicEnvelopeMenuItem(ui::Menu* menu)
+            void addPolyphonicEnvelopeMenuItem(Menu* menu)
             {
                 menu->addChild(createBoolMenuItem(
                     "Polyphonic envelope output",
@@ -1402,7 +1402,7 @@ namespace Sapphire
         }
 
 
-        void EnvelopeOutputPort::appendContextMenu(ui::Menu* menu)
+        void EnvelopeOutputPort::appendContextMenu(Menu* menu)
         {
             SapphirePort::appendContextMenu(menu);
             auto lmod = dynamic_cast<LoopModule*>(module);

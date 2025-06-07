@@ -1700,7 +1700,7 @@ namespace Sapphire
         }
 
 
-        struct RotationSpeedSlider : ui::Slider
+        struct RotationSpeedSlider : Slider
         {
             explicit RotationSpeedSlider(SapphireQuantity *_quantity)
             {

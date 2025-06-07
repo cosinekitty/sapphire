@@ -434,7 +434,7 @@ namespace Sapphire
     };
 
 
-    struct ChannelCountSlider : ui::Slider
+    struct ChannelCountSlider : Slider
     {
         explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
         {
@@ -464,7 +464,7 @@ namespace Sapphire
             std::string text = quantity ? quantity->getString() : "";
 
             // If parent is a Menu, make corners sharp
-            auto parentMenu = dynamic_cast<const ui::Menu*>(getParent());
+            auto parentMenu = dynamic_cast<const Menu*>(getParent());
             int flags = parentMenu ? BND_CORNER_ALL : BND_CORNER_NONE;
             bndSlider(args.vg, 0.0, 0.0, box.size.x, box.size.y, flags, state, progress, text.c_str(), NULL);
         }
@@ -484,7 +484,7 @@ namespace Sapphire
     };
 
 
-    struct DcRejectSlider : ui::Slider
+    struct DcRejectSlider : Slider
     {
         explicit DcRejectSlider(DcRejectQuantity *_quantity)
         {
@@ -510,7 +510,7 @@ namespace Sapphire
     };
 
 
-    struct AgcLevelSlider : ui::Slider
+    struct AgcLevelSlider : Slider
     {
         explicit AgcLevelSlider(AgcLevelQuantity *_quantity)
         {
@@ -1530,7 +1530,7 @@ namespace Sapphire
             setSvg(Svg::load(asset::plugin(pluginInstance, "res/port.svg")));
         }
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             app::SvgPort::appendContextMenu(menu);
             if (module && allowsVoltageFlip && (outputId >= 0))
@@ -1559,7 +1559,7 @@ namespace Sapphire
     {
         ToggleGroup* group = nullptr;
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             SapphirePort::appendContextMenu(menu);
             if (group)
@@ -1674,7 +1674,7 @@ namespace Sapphire
 
 
     template <typename enum_t>
-    ui::MenuItem* CreateChangeEnumMenuItem(
+    MenuItem* CreateChangeEnumMenuItem(
         std::string text,
         std::vector<std::string> labels,
         const std::string& actionName,

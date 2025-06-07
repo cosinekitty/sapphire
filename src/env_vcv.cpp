@@ -214,7 +214,7 @@ namespace Sapphire
         {
             EnvModule* envModule = nullptr;
 
-            void appendContextMenu(ui::Menu* menu) override
+            void appendContextMenu(Menu* menu) override
             {
                 SapphirePort::appendContextMenu(menu);
                 menu->addChild(new MenuSeparator);

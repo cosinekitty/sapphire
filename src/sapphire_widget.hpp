@@ -397,14 +397,14 @@ namespace Sapphire
     }
 
 
-    struct SapphireTooltip : ui::Tooltip
+    struct SapphireTooltip : Tooltip
     {
         bool isPositionLocked = false;
         Vec lockedPos{};
 
         void step() override
         {
-            ui::Tooltip::step();
+            Tooltip::step();
             if (isPositionLocked)
             {
                 box.pos = lockedPos;

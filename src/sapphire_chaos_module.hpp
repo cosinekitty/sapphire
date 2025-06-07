@@ -318,7 +318,7 @@ namespace Sapphire
 
 
         template <typename module_t>
-        inline ui::MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
+        inline MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
         {
             return createBoolMenuItem(
                 "Turbo mode: +5 speed",
@@ -404,7 +404,7 @@ namespace Sapphire
         {
             Param* atten = nullptr;
 
-            void appendContextMenu(ui::Menu* menu) override
+            void appendContextMenu(Menu* menu) override
             {
                 SapphireAttenuverterKnob::appendContextMenu(menu);
                 if (atten)
