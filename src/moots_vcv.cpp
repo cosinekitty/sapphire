@@ -375,6 +375,48 @@ namespace Sapphire
         };
 
 
+        struct ControlModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const ControlMode oldMode;
+            const ControlMode newMode;
+
+            explicit ControlModeAction(const MootsModule* mootsModule, ControlMode _newMode)
+                : moduleId(mootsModule->id)
+                , oldMode(mootsModule->controlMode)
+                , newMode(_newMode)
+            {
+                switch (newMode)
+                {
+                case ControlMode::Gate:
+                default:
+                    name = "use gates for Moots control input";
+                    break;
+
+                case ControlMode::Trigger:
+                    name = "use triggers for Moots control input";
+                    break;
+                }
+            }
+
+            void setControlMode(ControlMode mode)
+            {
+                if (MootsModule* mootsModule = FindSapphireModule<MootsModule>(moduleId))
+                    mootsModule->controlMode = mode;
+            }
+
+            void redo() override
+            {
+                setControlMode(newMode);
+            }
+
+            void undo() override
+            {
+                setControlMode(oldMode);
+            }
+        };
+
+
         struct MootsWidget : SapphireWidget
         {
             MootsModule* mootsModule = nullptr;
@@ -451,7 +493,9 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        mootsModule->controlMode = state ? ControlMode::Trigger : ControlMode::Gate;
+                        const ControlMode newMode = state ? ControlMode::Trigger : ControlMode::Gate;
+                        if (newMode != mootsModule->controlMode)
+                            InvokeAction(new ControlModeAction(mootsModule, newMode));
                     }
                 ));
 
