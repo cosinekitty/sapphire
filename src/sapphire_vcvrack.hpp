@@ -419,6 +419,36 @@ namespace Sapphire
     };
 
 
+    struct SliderAction : history::Action
+    {
+        const int64_t moduleId;
+        const int paramId;
+        const float oldValue;
+        const float newValue;
+
+        explicit SliderAction(const ParamQuantity* _quantity, float _oldValue, float _newValue, const std::string& _name)
+            : moduleId(_quantity->module->id)
+            , paramId(_quantity->paramId)
+            , oldValue(_oldValue)
+            , newValue(_newValue)
+        {
+            name = _name;
+        }
+
+        void setParameterValue(float value);
+
+        void undo() override
+        {
+            setParameterValue(oldValue);
+        }
+
+        void redo() override
+        {
+            setParameterValue(newValue);
+        }
+    };
+
+
     struct ChannelCountQuantity : SapphireQuantity
     {
         int getDesiredChannelCount() const
@@ -430,36 +460,6 @@ namespace Sapphire
         std::string getDisplayValueString() override
         {
             return string::f("%d", getDesiredChannelCount());
-        }
-    };
-
-
-    struct ChannelCountAction : history::Action
-    {
-        const int64_t moduleId;
-        const int paramId;
-        const int oldValue;
-        const int newValue;
-
-        explicit ChannelCountAction(ChannelCountQuantity* _quantity, int _oldValue, int _newValue)
-            : moduleId(_quantity->module->id)
-            , paramId(_quantity->paramId)
-            , oldValue(_oldValue)
-            , newValue(_newValue)
-        {
-            name = "change channel count from " + std::to_string(_oldValue) + " to " + std::to_string(_newValue);
-        }
-
-        void setChannelCount(int nChannels);
-
-        void undo() override
-        {
-            setChannelCount(oldValue);
-        }
-
-        void redo() override
-        {
-            setChannelCount(newValue);
         }
     };
 
@@ -483,7 +483,14 @@ namespace Sapphire
             {
                 const int finalValue = ccq->getDesiredChannelCount();
                 if (finalValue != startValue)
-                    APP->history->push(new ChannelCountAction(ccq, startValue, finalValue));
+                {
+                    APP->history->push(new SliderAction(
+                        ccq,
+                        startValue,
+                        finalValue,
+                        "change channel count from " + std::to_string(startValue) + " to " + std::to_string(finalValue)
+                    ));
+                }
             }
         }
 
@@ -557,10 +564,22 @@ namespace Sapphire
 
     struct AgcLevelSlider : Slider
     {
+        const float startValue;
+        AgcLevelQuantity* agcLevelQuantity{};
+
         explicit AgcLevelSlider(AgcLevelQuantity *_quantity)
+            : startValue(_quantity->getValue())
+            , agcLevelQuantity(_quantity)
         {
             quantity = _quantity;
             box.size.x = 200.0f;
+        }
+
+        void onRemove(const RemoveEvent&) override
+        {
+            const float finalValue = agcLevelQuantity->getValue();
+            if (finalValue != startValue)
+                APP->history->push(new SliderAction(agcLevelQuantity, startValue, finalValue, "adjust output voltage limiter"));
         }
     };
 

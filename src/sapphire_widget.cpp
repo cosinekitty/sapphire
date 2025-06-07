@@ -504,10 +504,10 @@ namespace Sapphire
     }
 
 
-    void ChannelCountAction::setChannelCount(int nc)
+    void SliderAction::setParameterValue(float value)
     {
-        if (SapphireModule* smod = FindSapphireModule(moduleId))
-            if (ParamQuantity* qty = smod->getParamQuantity(paramId))
-                qty->setValue(nc);
+        if (SapphireModule* module = FindSapphireModule(moduleId))
+            if (ParamQuantity* qty = module->getParamQuantity(paramId))
+                qty->setValue(value);
     }
 }
