@@ -115,7 +115,6 @@ namespace Sapphire
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
-            AgcLevelQuantity *agcLevelQuantity{};
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
@@ -150,7 +149,7 @@ namespace Sapphire
                 configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle attenuverter", "%", 0, 100);
 
                 addDcRejectQuantity(DC_REJECT_PARAM, 20);
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -187,7 +186,6 @@ namespace Sapphire
 
             void initialize()
             {
-                agcLevelQuantity->initialize();
                 dcRejectQuantity->initialize();
                 engine.initialize();
                 reflectAgcSlider();
@@ -215,7 +213,6 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
-                agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
 
@@ -228,8 +225,6 @@ namespace Sapphire
                 // Which stereo output (left, right) do we use for sending a vector to Tricorder?
                 json_t *selectFlag = json_object_get(root, "outputVectorSelectRight");
                 outputVectorSelectRight = (0 != json_integer_value(selectFlag));
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -465,15 +460,6 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (elastikaModule)
                 {
-                    if (elastikaModule->agcLevelQuantity)
-                    {
-                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
-
-                        // Add an option to enable/disable the warning light on the OUTPUT level knob.
-                        elastikaModule->addLimiterWarningLightOption(menu);
-                    }
-
                     BoolToggleAction::AddMenuItem(
                         menu,
                         elastikaModule->outputVectorSelectRight,

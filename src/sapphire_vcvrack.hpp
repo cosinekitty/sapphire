@@ -426,9 +426,9 @@ namespace Sapphire
         const float oldValue;
         const float newValue;
 
-        explicit SliderAction(const ParamQuantity* _quantity, float _oldValue, float _newValue, const std::string& _name)
-            : moduleId(_quantity->module->id)
-            , paramId(_quantity->paramId)
+        explicit SliderAction(int64_t _moduleId, int _paramId, float _oldValue, float _newValue, const std::string& _name)
+            : moduleId(_moduleId)
+            , paramId(_paramId)
             , oldValue(_oldValue)
             , newValue(_newValue)
         {
@@ -449,12 +449,18 @@ namespace Sapphire
     };
 
 
+    inline int SnapChannelCount(float value)
+    {
+        const int n = static_cast<int>(std::round(value));
+        return std::clamp(n, 1, 16);
+    }
+
+
     struct ChannelCountQuantity : SapphireQuantity
     {
         int getDesiredChannelCount() const
         {
-            int n = static_cast<int>(std::round(value));
-            return std::clamp(n, 1, 16);
+            return SnapChannelCount(value);
         }
 
         std::string getDisplayValueString() override
@@ -464,14 +470,20 @@ namespace Sapphire
     };
 
 
-    struct ChannelCountSlider : Slider
+    struct SapphireSlider : Slider      // adds undo/redo support
     {
-        const int startValue;
-        ChannelCountQuantity *ccq;
+        const int64_t moduleId;
+        const int paramId;
+        const float startValue;
+        float currentValue{};
+        const std::string actionName;
 
-        explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
-            : startValue(_quantity->getDesiredChannelCount())
-            , ccq(_quantity)
+        explicit SapphireSlider(SapphireQuantity* _quantity, const std::string& _actionName)
+            : moduleId(_quantity->module->id)
+            , paramId(_quantity->paramId)
+            , startValue(_quantity->getValue())
+            , currentValue(_quantity->getValue())
+            , actionName(_actionName)
         {
             quantity = _quantity;
             box.size.x = 200;
@@ -479,19 +491,38 @@ namespace Sapphire
 
         void onRemove(const RemoveEvent& args) override
         {
-            if (ccq)
-            {
-                const int finalValue = ccq->getDesiredChannelCount();
-                if (finalValue != startValue)
-                {
-                    APP->history->push(new SliderAction(
-                        ccq,
-                        startValue,
-                        finalValue,
-                        "change channel count from " + std::to_string(startValue) + " to " + std::to_string(finalValue)
-                    ));
-                }
-            }
+            const float snapStartValue = snap(startValue);
+            const float snapFinalValue = snap(currentValue);
+            if (snapFinalValue != snapStartValue)
+                APP->history->push(new SliderAction(moduleId, paramId, snapStartValue, snapFinalValue, actionName));
+            Slider::onRemove(args);
+        }
+
+        void step() override
+        {
+            Slider::step();
+            currentValue = quantity->getValue();
+        }
+
+        virtual float snap(float value) const
+        {
+            return value;
+        }
+    };
+
+
+    struct ChannelCountSlider : SapphireSlider
+    {
+        ChannelCountQuantity* ccq{};
+
+        explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
+            : SapphireSlider(_quantity, "adjust output channel count")
+            , ccq(_quantity)
+            {}
+
+        float snap(float value) const override
+        {
+            return SnapChannelCount(value);
         }
 
         void draw(const DrawArgs& args) override
@@ -507,13 +538,8 @@ namespace Sapphire
             // Render the slider snapped to the nearest integer number of channels.
             // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
             // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
-            float progress = 0;
-            std::string text;
-            if (ccq)
-            {
-                progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
-                text = ccq->getString();
-            }
+            float progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
+            const std::string text = ccq->getString();
 
             // If parent is a Menu, make corners sharp
             auto parentMenu = dynamic_cast<const Menu*>(getParent());
@@ -558,28 +584,6 @@ namespace Sapphire
         std::string getDisplayValueString() override
         {
             return isAgcEnabled() ? string::f("%0.2f V", clampedAgc()) : "OFF";
-        }
-    };
-
-
-    struct AgcLevelSlider : Slider
-    {
-        const float startValue;
-        AgcLevelQuantity* agcLevelQuantity{};
-
-        explicit AgcLevelSlider(AgcLevelQuantity *_quantity)
-            : startValue(_quantity->getValue())
-            , agcLevelQuantity(_quantity)
-        {
-            quantity = _quantity;
-            box.size.x = 200.0f;
-        }
-
-        void onRemove(const RemoveEvent&) override
-        {
-            const float finalValue = agcLevelQuantity->getValue();
-            if (finalValue != startValue)
-                APP->history->push(new SliderAction(agcLevelQuantity, startValue, finalValue, "adjust output voltage limiter"));
         }
     };
 
@@ -827,6 +831,7 @@ namespace Sapphire
         bool neonMode = false;
         bool includeNeonModeMenuItem = true;
         DcRejectQuantity *dcRejectQuantity = nullptr;
+        AgcLevelQuantity *agcLevelQuantity = nullptr;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -855,6 +860,9 @@ namespace Sapphire
                 outputPortInfo.at(outputId).flipVoltagePolarity = false;
 
             enableLimiterWarning = true;
+
+            if (agcLevelQuantity)
+                agcLevelQuantity->initialize();
         }
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
@@ -1021,7 +1029,11 @@ namespace Sapphire
             if (dcRejectQuantity)
                 dcRejectQuantity->save(root, "dcRejectFrequency");
 
-            json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+            if (agcLevelQuantity)
+            {
+                agcLevelQuantity->save(root, "agcLevel");
+                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+            }
 
             return root;
         }
@@ -1100,6 +1112,9 @@ namespace Sapphire
 
             // If the JSON is damaged, default to enabling the warning light.
             enableLimiterWarning = !json_is_false(json_object_get(root, "limiterWarningLight"));
+
+            if (agcLevelQuantity)
+                agcLevelQuantity->load(root, "agcLevel");
         }
 
         virtual void tryCopySettingsFrom(SapphireModule* other)
@@ -1357,9 +1372,9 @@ namespace Sapphire
             dcRejectQuantity->changed = true;
         }
 
-        void addLimiterWarningLightOption(Menu* menu);
+        void addLimiterMenuItems(Menu* menu);
 
-        AgcLevelQuantity* makeAgcLevelQuantity(
+        void addAgcLevelQuantity(
             int   paramId,
             float levelMin   =  1.0,
             float levelDef   =  4.0,
@@ -1367,7 +1382,9 @@ namespace Sapphire
             float disableMin = 10.1,
             float disableMax = 10.2)
         {
-            AgcLevelQuantity *agcLevelQuantity = configParam<AgcLevelQuantity>(
+            assert(agcLevelQuantity == nullptr);    // creating more than once would leak memory
+
+            agcLevelQuantity = configParam<AgcLevelQuantity>(
                 paramId,
                 levelMin,
                 disableMax,
@@ -1379,8 +1396,6 @@ namespace Sapphire
             agcLevelQuantity->levelMin = levelMin;
             agcLevelQuantity->levelMax = levelMax;
             agcLevelQuantity->disableMin = disableMin;
-
-            return agcLevelQuantity;
         }
 
         bool updateTriggerGroup(

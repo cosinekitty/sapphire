@@ -82,7 +82,6 @@ namespace Sapphire
         {
             NucleusEngine engine{NUM_PARTICLES};
             CrashChecker crashChecker;
-            AgcLevelQuantity *agcLevelQuantity{};
             int tricorderOutputIndex = 1;     // 1..4: which output row to send to Tricorder
             bool resetTricorder{};
 
@@ -128,7 +127,7 @@ namespace Sapphire
 
                 configButton(AUDIO_MODE_BUTTON_PARAM, "Toggle audio/CV output mode");
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM);
                 addDcRejectQuantity(DC_REJECT_PARAM, DefaultCornerFrequencyHz);
 
                 initialize();
@@ -142,7 +141,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                agcLevelQuantity->save(root, "agcLevel");
                 json_object_set_new(root, "tricorderOutputIndex", json_integer(tricorderOutputIndex));
                 return root;
             }
@@ -150,7 +148,6 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                agcLevelQuantity->load(root, "agcLevel");
                 loadTricorderSettings(root);
             }
 
@@ -173,7 +170,6 @@ namespace Sapphire
                 engine.initialize();
                 SetMinimumEnergy(engine);
                 dcRejectQuantity->initialize();
-                agcLevelQuantity->initialize();
                 tricorderOutputIndex = 1;
                 resetTricorder = true;
             }
@@ -417,11 +413,6 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (nucleusModule)
                 {
-                    // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                    menu->addChild(new AgcLevelSlider(nucleusModule->agcLevelQuantity));
-
-                    nucleusModule->addLimiterWarningLightOption(menu);
-
                     // Add an action to reset the simulation to its low energy state.
                     menu->addChild(createMenuItem(
                         "Reset simulation",

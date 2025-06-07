@@ -55,7 +55,6 @@ namespace Sapphire
         struct GravyModule : SapphireModule
         {
             gravy_engine_t engine;
-            AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
             EnumSmoother<FilterMode> smoother{FilterMode::Default, "", 0.01};
@@ -68,7 +67,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
@@ -98,7 +97,6 @@ namespace Sapphire
             void initialize()
             {
                 engine.initialize();
-                agcLevelQuantity->initialize();
                 reflectAgcSlider();
                 smoother.initialize();
             }
@@ -124,19 +122,6 @@ namespace Sapphire
             FilterMode getFilterMode()
             {
                 return static_cast<FilterMode>(params.at(FILTER_MODE_PARAM).getValue());
-            }
-
-            json_t* dataToJson() override
-            {
-                json_t* root = SapphireModule::dataToJson();
-                agcLevelQuantity->save(root, "agcLevel");
-                return root;
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                SapphireModule::dataFromJson(root);
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void reflectAgcSlider()
@@ -238,12 +223,10 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (gravyModule)
                 {
+                    menu->addChild(new MenuSeparator);
                     menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
                     menu->addChild(gravyModule->createStereoSplitterMenuItem());
                     menu->addChild(gravyModule->createStereoMergeMenuItem());
-                    menu->addChild(new MenuSeparator);
-                    menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
-                    gravyModule->addLimiterWarningLightOption(menu);
                 }
             }
         };

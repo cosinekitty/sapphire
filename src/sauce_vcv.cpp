@@ -51,7 +51,6 @@ namespace Sapphire
         struct SauceModule : SapphireModule
         {
             Gravy::SingleChannelGravyEngine<float> engine[PORT_MAX_CHANNELS];
-            AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agcLow;
             AutomaticGainLimiter agcBand;
             AutomaticGainLimiter agcHigh;
@@ -67,7 +66,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_LOWPASS_OUTPUT,  "Lowpass");
@@ -96,7 +95,6 @@ namespace Sapphire
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     engine[c].initialize();
-                agcLevelQuantity->initialize();
                 reflectAgcSlider();
             }
 
@@ -135,19 +133,6 @@ namespace Sapphire
                     follower = std::max(follower, agcHigh.getFollower());
 
                 return follower - 1.0;
-            }
-
-            json_t* dataToJson() override
-            {
-                json_t* root = SapphireModule::dataToJson();
-                agcLevelQuantity->save(root, "agcLevel");
-                return root;
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                SapphireModule::dataFromJson(root);
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void reflectAgcSlider()
@@ -286,8 +271,6 @@ namespace Sapphire
                 if (sauceModule)
                 {
                     menu->addChild(sauceModule->createToggleAllSensitivityMenuItem());
-                    menu->addChild(new AgcLevelSlider(sauceModule->agcLevelQuantity));
-                    sauceModule->addLimiterWarningLightOption(menu);
                 }
             }
         };

@@ -448,8 +448,7 @@ namespace Sapphire
 
         void appendContextMenu(Menu* menu) override
         {
-            SapphireModule* sm = getSapphireModule();
-            if (sm)
+            if (SapphireModule* sm = getSapphireModule())
             {
                 menu->addChild(new MenuSeparator);
 
@@ -470,6 +469,8 @@ namespace Sapphire
 
                 if (sm->dcRejectQuantity)
                     menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
+
+                sm->addLimiterMenuItems(menu);
             }
         }
 

@@ -78,7 +78,6 @@ namespace Sapphire
         struct TubeUnitModule : SapphireModule
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
-            AgcLevelQuantity *agcLevelQuantity{};
             bool isInvertedVentPort = false;
             int numActiveChannels = 0;
             const int outputVerifyInterval = 11000;
@@ -102,7 +101,7 @@ namespace Sapphire
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
                 levelKnob->randomizeEnabled = false;
@@ -119,7 +118,6 @@ namespace Sapphire
 
             void initialize()
             {
-                agcLevelQuantity->initialize();
                 numActiveChannels = 0;
                 isInvertedVentPort = false;
                 outputVerifyCounter = 0;
@@ -138,7 +136,6 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
-                agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
 
@@ -149,8 +146,6 @@ namespace Sapphire
                 // Upgrade from older/damaged JSON by defaulting the vent toggle to OFF.
                 json_t *ventFlag = json_object_get(root, "toggleVentPort");
                 isInvertedVentPort = json_is_true(ventFlag);
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -401,19 +396,11 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (tubeUnitModule)
                 {
-                    if (tubeUnitModule->agcLevelQuantity)
-                    {
-                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(tubeUnitModule->agcLevelQuantity));
+                    // Add toggle for whether the VENT port should be inverted to a SEAL port.
+                    BoolToggleAction::AddMenuItem(menu, tubeUnitModule->isInvertedVentPort, "Toggle VENT/SEAL", "VENT/SEAL");
 
-                        tubeUnitModule->addLimiterWarningLightOption(menu);
-
-                        // Add toggle for whether the VENT port should be inverted to a SEAL port.
-                        BoolToggleAction::AddMenuItem(menu, tubeUnitModule->isInvertedVentPort, "Toggle VENT/SEAL", "VENT/SEAL");
-
-                        // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
-                        menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
-                    }
+                    // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
+                    menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
                 }
             }
 
