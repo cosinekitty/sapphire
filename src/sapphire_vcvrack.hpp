@@ -434,12 +434,57 @@ namespace Sapphire
     };
 
 
+    struct ChannelCountAction : history::Action
+    {
+        const int64_t moduleId;
+        const int paramId;
+        const int oldValue;
+        const int newValue;
+
+        explicit ChannelCountAction(ChannelCountQuantity* _quantity, int _oldValue, int _newValue)
+            : moduleId(_quantity->module->id)
+            , paramId(_quantity->paramId)
+            , oldValue(_oldValue)
+            , newValue(_newValue)
+        {
+            name = "change channel count from " + std::to_string(_oldValue) + " to " + std::to_string(_newValue);
+        }
+
+        void setChannelCount(int nChannels);
+
+        void undo() override
+        {
+            setChannelCount(oldValue);
+        }
+
+        void redo() override
+        {
+            setChannelCount(newValue);
+        }
+    };
+
+
     struct ChannelCountSlider : Slider
     {
+        const int startValue;
+        ChannelCountQuantity *ccq;
+
         explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
+            : startValue(_quantity->getDesiredChannelCount())
+            , ccq(_quantity)
         {
             quantity = _quantity;
             box.size.x = 200;
+        }
+
+        void onRemove(const RemoveEvent& args) override
+        {
+            if (ccq)
+            {
+                const int finalValue = ccq->getDesiredChannelCount();
+                if (finalValue != startValue)
+                    APP->history->push(new ChannelCountAction(ccq, startValue, finalValue));
+            }
         }
 
         void draw(const DrawArgs& args) override

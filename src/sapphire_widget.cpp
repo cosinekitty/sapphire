@@ -502,4 +502,12 @@ namespace Sapphire
             "polyphonic output"
         );
     }
+
+
+    void ChannelCountAction::setChannelCount(int nc)
+    {
+        if (SapphireModule* smod = FindSapphireModule(moduleId))
+            if (ParamQuantity* qty = smod->getParamQuantity(paramId))
+                qty->setValue(nc);
+    }
 }
