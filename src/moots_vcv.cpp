@@ -281,8 +281,42 @@ namespace Sapphire
             }
         };
 
-        using base_button_t = VCVLightBezelLatch<>;
+        struct ToggleAntiClickAction : history::Action
+        {
+            const int64_t moduleId;
+            const int buttonIndex;
+            const bool newValue;
 
+            explicit ToggleAntiClickAction(const MootsModule* mootsModule, int _buttonIndex)
+                : moduleId(mootsModule->id)
+                , buttonIndex(_buttonIndex)
+                , newValue(!mootsModule->getRampingOption(_buttonIndex))
+            {
+                name = (
+                    std::string(newValue ? "enable" : "disable") +
+                    std::string(" anti-click ramping for Moots button #") +
+                    std::to_string(buttonIndex + 1)
+                );
+            }
+
+            void setRampingOption(bool state)
+            {
+                if (MootsModule* mootsModule = FindSapphireModule<MootsModule>(moduleId))
+                    mootsModule->setRampingOption(buttonIndex, state);
+            }
+
+            void redo() override
+            {
+                setRampingOption(newValue);
+            }
+
+            void undo() override
+            {
+                setRampingOption(!newValue);
+            }
+        };
+
+        using base_button_t = VCVLightBezelLatch<>;
         struct MootsButtonWidget : base_button_t
         {
             MootsModule* module = nullptr;
@@ -305,7 +339,8 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        module->setRampingOption(buttonIndex, state);
+                        if (module->getRampingOption(buttonIndex) != state)
+                            InvokeAction(new ToggleAntiClickAction(module, buttonIndex));
                     }
                 ));
             }
@@ -425,18 +460,19 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
 
-                for (int i = 0; i < MootsModule::NUM_CONTROLLERS; ++i)
+                for (int buttonIndex = 0; buttonIndex < MootsModule::NUM_CONTROLLERS; ++buttonIndex)
                 {
                     menu->addChild(createBoolMenuItem(
-                        "Anti-click ramping on #" + std::to_string(i+1),
+                        "Anti-click ramping on #" + std::to_string(buttonIndex+1),
                         "",
                         [=]()
                         {
-                            return mootsModule->getRampingOption(i);
+                            return mootsModule->getRampingOption(buttonIndex);
                         },
                         [=](bool state)
                         {
-                            mootsModule->setRampingOption(i, state);
+                            if (state != mootsModule->getRampingOption(buttonIndex))
+                                InvokeAction(new ToggleAntiClickAction(mootsModule, buttonIndex));
                         }
                     ));
                 }
