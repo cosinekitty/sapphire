@@ -227,6 +227,38 @@ namespace Sapphire
         };
 
 
+        inline std::string ModelRateText(int rate)
+        {
+            return (rate > 0) ? (std::to_string(rate) + " Hz") : "Match engine rate";
+        }
+
+
+        struct ChangeModelSampleRateAction : history::Action
+        {
+            std::size_t& selectedIndex;
+            const std::size_t oldValue;
+            const std::size_t newValue;
+
+            explicit ChangeModelSampleRateAction(std::size_t& _selectedIndex, int index, int rate)
+                : selectedIndex(_selectedIndex)
+                , oldValue(_selectedIndex)
+                , newValue(index)
+            {
+                name = "change model sample rate to " + ModelRateText(rate);
+            }
+
+            void undo() override
+            {
+                selectedIndex = oldValue;
+            }
+
+            void redo() override
+            {
+                selectedIndex = newValue;
+            }
+        };
+
+
         struct ModelSampleRateChooser
         {
             std::size_t selectedIndex = 0;
@@ -269,13 +301,17 @@ namespace Sapphire
             {
                 std::vector<std::string> labels;
                 for (int rate : sampleRateOptions)
-                    labels.push_back((rate > 0) ? (std::to_string(rate) + " Hz") : "Match engine rate");
+                    labels.push_back(ModelRateText(rate));
 
                 menu->addChild(createIndexSubmenuItem(
                     "Model sample rate",
                     labels,
                     [=]() { return selectedIndex; },
-                    [=](std::size_t index) { selectedIndex = index; }
+                    [=](std::size_t index)
+                    {
+                        if (index != selectedIndex)
+                            InvokeAction(new ChangeModelSampleRateAction(selectedIndex, index, sampleRateOptions.at(index)));
+                    }
                 ));
             }
         };
