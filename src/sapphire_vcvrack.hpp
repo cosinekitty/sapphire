@@ -562,13 +562,11 @@ namespace Sapphire
     };
 
 
-    struct DcRejectSlider : Slider
+    struct DcRejectSlider : SapphireSlider
     {
         explicit DcRejectSlider(DcRejectQuantity *_quantity)
-        {
-            quantity = _quantity;
-            box.size.x = 200.0f;        // without this, the menu display gets messed up
-        }
+            : SapphireSlider(_quantity, "adjust DC reject corner frequency")
+            {}
     };
 
 
@@ -860,6 +858,9 @@ namespace Sapphire
                 outputPortInfo.at(outputId).flipVoltagePolarity = false;
 
             enableLimiterWarning = true;
+
+            if (dcRejectQuantity)
+                dcRejectQuantity->initialize();
 
             if (agcLevelQuantity)
                 agcLevelQuantity->initialize();

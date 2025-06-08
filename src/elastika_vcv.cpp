@@ -186,7 +186,6 @@ namespace Sapphire
 
             void initialize()
             {
-                dcRejectQuantity->initialize();
                 engine.initialize();
                 reflectAgcSlider();
                 isPowerGateActive = true;

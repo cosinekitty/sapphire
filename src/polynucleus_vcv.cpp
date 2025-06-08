@@ -171,7 +171,6 @@ namespace Sapphire
 
                 engine.initialize();
                 SetMinimumEnergy(engine);
-                dcRejectQuantity->initialize();
                 tricorderOutputIndex = 1;
                 resetTricorder = true;
             }

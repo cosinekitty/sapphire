@@ -2143,7 +2143,6 @@ namespace Sapphire
                     interpolatorKind = InterpolatorKind::Linear;
                     freezeToggleGroup.initialize();
                     clearReceiver.initialize();
-                    dcRejectQuantity->initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 

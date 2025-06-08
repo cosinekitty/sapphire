@@ -169,7 +169,6 @@ namespace Sapphire
                 params.at(AUDIO_MODE_BUTTON_PARAM).setValue(1.0f);
                 engine.initialize();
                 SetMinimumEnergy(engine);
-                dcRejectQuantity->initialize();
                 tricorderOutputIndex = 1;
                 resetTricorder = true;
             }
