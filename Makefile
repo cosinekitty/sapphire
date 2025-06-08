@@ -2,7 +2,10 @@
 RACK_DIR ?= ../..
 
 # FLAGS will be passed to both the C and C++ compiler
-FLAGS += -Wall -Werror
+FLAGS += -Wall
+ifeq ($(SAPPHIRE_ENABLE_WERROR), 1)
+	FLAGS += -Werror
+endif
 CFLAGS +=
 CXXFLAGS +=
 
