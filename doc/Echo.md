@@ -2,6 +2,11 @@
 
 ![Echo](images/echo.png)
 
+### Demo video
+
+Here is Omri Cohen's video about Sapphire Echo. It is a great way to get started quickly.
+
+[![Omri Cohen - The only multi-tap delay you need](https://img.youtube.com/vi/lTMSRqEHsbM/0.jpg)](https://www.youtube.com/watch?v=lTMSRqEHsbM)
 
 **Sapphire Echo** is a customizable multi-tap delay that lets you build your own unique delay setup, one tap at a time. It’s made up of three modules: the main **Echo** module, the **Echo Tap** expander, and the **Echo Out** expander. While the tap and output modules are technically expanders, they connect seamlessly—just place them to the right of the main module, and they’ll automatically integrate into the system.
 
