@@ -25,6 +25,16 @@ chaos modules [Frolic](doc/Frolic.md), [Glee](doc/Glee.md), and [Lark](doc/Lark.
 
 ---
 
+## Echo
+
+A customizable multi-tap delay that lets you build your own unique delay setup, one tap at a time.
+
+<a href="doc/Echo.md">Sapphire Echo documentation</a>
+
+<a href="doc/Echo.md"><img src="doc/images/echo.png" /></a>
+
+---
+
 ## Elastika
 
 A complex sound generator that simulates the physics of a
@@ -33,16 +43,6 @@ hexagonal mesh of balls and springs.
 <a href="doc/Elastika.md">Sapphire Elastika documentation</a>
 
 <a href="doc/Elastika.md"><img src="doc/images/elastika.png" /></a>
-
----
-
-## Echo
-
-A customizable multi-tap delay that lets you build your own unique delay setup, one tap at a time.
-
-<a href="doc/Echo.md">Sapphire Echo documentation</a>
-
-<a href="doc/Echo.md"><img src="doc/images/echo.png" /></a>
 
 ---
 
