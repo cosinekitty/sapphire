@@ -446,27 +446,29 @@ namespace Sapphire
                 sapphireModule->setLowSensitive(s.paramId, s.lowSensitivity);
     }
 
+    MenuItem* SapphireModule::createLimiterWarningLightMenuItem()
+    {
+        return createBoolMenuItem(
+            "Limiter warning light",
+            "",
+            [=]()
+            {
+                return enableLimiterWarning;
+            },
+            [=](bool value)
+            {
+                if (value != enableLimiterWarning)
+                    InvokeAction(new BoolToggleAction(enableLimiterWarning, "limiter warning light"));
+            }
+        );
+    }
+
     void SapphireModule::addLimiterMenuItems(Menu* menu)
     {
         if (agcLevelQuantity)
         {
             menu->addChild(new SapphireSlider(agcLevelQuantity, "adjust output limiter voltage"));
-
-            menu->addChild(
-                createBoolMenuItem(
-                    "Limiter warning light",
-                    "",
-                    [=]()
-                    {
-                        return enableLimiterWarning;
-                    },
-                    [=](bool value)
-                    {
-                        if (value != enableLimiterWarning)
-                            InvokeAction(new BoolToggleAction(enableLimiterWarning, "limiter warning light"));
-                    }
-                )
-            );
+            menu->addChild(createLimiterWarningLightMenuItem());
         }
     }
 

@@ -76,6 +76,28 @@ namespace Sapphire
     };
 
 
+    template <typename base_knob_t>
+    struct OutputLimiterKnob : base_knob_t
+    {
+        SapphireModule* sapphireModule{};
+        WarningLightWidget* warningLight{};
+
+        void appendContextMenu(Menu* menu) override
+        {
+            base_knob_t::appendContextMenu(menu);
+            if (sapphireModule)
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(sapphireModule->createLimiterWarningLightMenuItem());
+            }
+        }
+    };
+
+
+    using OutputLimiterLargeKnob = OutputLimiterKnob<RoundLargeBlackKnob>;
+    using OutputLimiterSmallKnob = OutputLimiterKnob<RoundSmallBlackKnob>;
+
+
     struct SapphireAttenuverterKnob : Trimpot
     {
         bool* lowSensitivityMode = nullptr;
@@ -544,6 +566,30 @@ namespace Sapphire
             return knob;
         }
 
+        template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
+        void installWarningLight(knob_t* knob)
+        {
+            knob->sapphireModule = getSapphireModule();
+
+            // Superimpose a warning light on the output level knob.
+            // We turn the warning light on when the limiter is distoring the output.
+            auto w = new WarningLightWidget(knob->sapphireModule);
+            w->box.pos = Vec{};
+            w->box.size = knob->box.size;
+
+            knob->warningLight = w;
+            knob->addChild(w);
+        }
+
+        template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
+        knob_t *addOutputLimiterKnob(int paramId, const std::string& label)
+        {
+            knob_t* knob = createParamCentered<knob_t>(Vec{}, module, paramId);
+            installWarningLight(knob);
+            addSapphireParam(knob, label);
+            return knob;
+        }
+
         SapphirePort* addFlippableOutputPort(int outputId, const std::string& label, SapphireModule* module)
         {
             SapphirePort* port = addSapphireOutput(outputId, label);
@@ -616,6 +662,14 @@ namespace Sapphire
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
             addSapphireAttenuverter(attenId, prefix + "_atten");
             addSapphireInput(cvInputId, prefix + "_cv");
+            return knob;
+        }
+
+        template <typename knob_t = OutputLimiterSmallKnob>
+        knob_t* addSapphireFlatControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        {
+            knob_t* knob = addSapphireFlatControlGroup<knob_t>(prefix, knobId, attenId, cvInputId);
+            installWarningLight(knob);
             return knob;
         }
 

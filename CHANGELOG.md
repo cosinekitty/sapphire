@@ -22,6 +22,7 @@
                 <li>Sync polyphonic channels.</li>
             </ul>
         </li>
+        <li>Sapphire modules that include output limiters (Elastika, Nucleus, Polynucleus, Sauce, Gravy) have an option in the main menu to enable/disable the warning light. Now, that option also appears in the right-click menu for the output level knob itself.</li>
     </ul>
 </td>
 </tr>

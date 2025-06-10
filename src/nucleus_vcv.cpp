@@ -340,7 +340,6 @@ namespace Sapphire
         struct NucleusWidget : SapphireWidget
         {
             NucleusModule *nucleusModule;
-            WarningLightWidget* warningLight{};
             int hoverOutputIndex{};
             bool ownsMouse{};
             SvgOverlay* audioLabel;
@@ -383,13 +382,7 @@ namespace Sapphire
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
 
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when the limiter is distoring the output.
-                auto levelKnob = addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(DECAY_CV_INPUT, "decay_cv");

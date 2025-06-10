@@ -104,11 +104,6 @@ namespace Sapphire
                 configParam(IN_DRIVE_ATTEN_PARAM, -1, 1, 0, "Input drive attenuverter", "%", 0, 100);
                 configParam(OUT_LEVEL_ATTEN_PARAM, -1, 1, 0, "Output level attenuverter", "%", 0, 100);
 
-#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
-                configParam(VISC_ATTEN_PARAM, -1, 1, 0, "Aether viscosity attenuverter", "%", 0, 100);
-                configParam(SPIN_ATTEN_PARAM, -1, 1, 0, "Aether rotation attenuverter", "%", 0, 100);
-#endif
-
                 configInput(SPEED_CV_INPUT, "Speed CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
                 configInput(MAGNET_CV_INPUT, "Magnetic coupling CV");
@@ -378,7 +373,6 @@ namespace Sapphire
         struct PolynucleusWidget : SapphireWidget
         {
             PolynucleusModule *polynucleusModule;
-            WarningLightWidget* warningLight{};
             int hoverOutputIndex{};
             bool ownsMouse{};
             SvgOverlay* audioLabel;
@@ -410,18 +404,8 @@ namespace Sapphire
                 addKnob(DECAY_KNOB_PARAM, "decay_knob");
                 addKnob(MAGNET_KNOB_PARAM, "magnet_knob");
                 addKnob(IN_DRIVE_KNOB_PARAM, "in_drive_knob");
-#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
-                addKnob(VISC_KNOB_PARAM, "visc_knob");
-                addKnob(SPIN_KNOB_PARAM, "spin_knob");
-#endif
 
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when the limiter is distoring the output.
-                auto levelKnob = addKnob(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(OUT_LEVEL_KNOB_PARAM, "out_level_knob");
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(DECAY_CV_INPUT, "decay_cv");
@@ -429,21 +413,11 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
 
-#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
-                addSapphireInput(VISC_CV_INPUT, "visc_cv");
-                addSapphireInput(SPIN_CV_INPUT, "spin_cv");
-#endif
-
                 addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
                 addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
                 addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
                 addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
                 addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
-
-#if POLYNUCLEUS_ENABLE_EXTRA_CONTROLS
-                addSapphireAttenuverter(VISC_ATTEN_PARAM, "visc_atten");
-                addSapphireAttenuverter(SPIN_ATTEN_PARAM, "spin_atten");
-#endif
 
                 auto audioModeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addSapphireParam(audioModeButton, "audio_mode_button");

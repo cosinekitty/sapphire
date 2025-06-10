@@ -315,7 +315,6 @@ namespace Sapphire
         struct TubeUnitWidget : SapphireWidget
         {
             TubeUnitModule *tubeUnitModule;
-            WarningLightWidget *warningLight = nullptr;
             SvgOverlay *ventLabel = nullptr;
             SvgOverlay *sealLabel = nullptr;
             SvgOverlay *audioEmphasis = nullptr;
@@ -373,15 +372,7 @@ namespace Sapphire
                     addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
                 }
 
-                RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(levelKnobPos, module, LEVEL_KNOB_PARAM);
-                addParam(levelKnob);
-
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when one or more of the 16 limiters are distoring the output.
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");
 
                 // Input gate for quieting the tube.
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.5, 16.0)), module, QUIET_GATE_INPUT));

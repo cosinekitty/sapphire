@@ -372,13 +372,11 @@ namespace Sapphire
             }
         };
 
-
         using SliderType = VCVLightSlider<YellowLight>;
 
         struct ElastikaWidget : SapphireWidget
         {
             ElastikaModule *elastikaModule;
-            WarningLightWidget *warningLight = nullptr;
 
             explicit ElastikaWidget(ElastikaModule* module)
                 : SapphireWidget("elastika", asset::plugin(pluginInstance, "res/elastika.svg"))
@@ -412,14 +410,7 @@ namespace Sapphire
 
                 // Drive and Level knobs
                 addKnob(DRIVE_KNOB_PARAM, "drive_knob");
-                RoundLargeBlackKnob *levelKnob = addKnob(LEVEL_KNOB_PARAM, "level_knob");
-
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when the limiter is distoring the output.
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");
 
                 // Tilt angle knobs
                 addKnob(INPUT_TILT_KNOB_PARAM, "input_tilt_knob");

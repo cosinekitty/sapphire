@@ -241,7 +241,6 @@ namespace Sapphire
         struct SauceWidget : SapphireWidget
         {
             SauceModule* sauceModule{};
-            WarningLightWidget* warningLight{};
 
             explicit SauceWidget(SauceModule* module)
                 : SapphireWidget("sauce", asset::plugin(pluginInstance, "res/sauce.svg"))
@@ -257,12 +256,7 @@ namespace Sapphire
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                auto gainKnob = addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = gainKnob->box.size;
-                gainKnob->addChild(warningLight);
+                addSapphireFlatControlGroupWithWarningLight("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override

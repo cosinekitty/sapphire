@@ -1323,6 +1323,9 @@ namespace Sapphire
 
         virtual NVGcolor getWarningColor()
         {
+            if (!enableLimiterWarning)
+                return nvgRGBA(0, 0, 0, 0);     // no warning light
+
             if (limiterRecoveryCountdown > 0)
             {
                 // The module is recovering from non-finite (NAN/infinite) output.
@@ -1331,7 +1334,7 @@ namespace Sapphire
             }
 
             const double distortion = getAgcDistortion();
-            if (!enableLimiterWarning || distortion <= 0.0)
+            if (distortion <= 0.0)
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
             double decibels = 20.0 * std::log10(1.0 + distortion);
@@ -1374,6 +1377,7 @@ namespace Sapphire
         }
 
         void addLimiterMenuItems(Menu* menu);
+        MenuItem* createLimiterWarningLightMenuItem();
 
         void addAgcLevelQuantity(
             int   paramId,
@@ -1547,11 +1551,11 @@ namespace Sapphire
     class WarningLightWidget : public LightWidget
     {
     private:
-        SapphireModule *alModule;
+        SapphireModule *smod{};
 
     public:
-        explicit WarningLightWidget(SapphireModule *_alModule)
-            : alModule(_alModule)
+        explicit WarningLightWidget(SapphireModule *_smod)
+            : smod(_smod)
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
             bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
@@ -1560,7 +1564,7 @@ namespace Sapphire
         void drawLayer(const DrawArgs& args, int layer) override
         {
             if (layer == 1)
-                color = alModule ? alModule->getWarningColor() : nvgRGBA(0, 0, 0, 0);
+                color = smod ? smod->getWarningColor() : nvgRGBA(0, 0, 0, 0);
 
             LightWidget::drawLayer(args, layer);
         }
