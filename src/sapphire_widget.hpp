@@ -584,8 +584,7 @@ namespace Sapphire
         template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
         void installWarningLight(knob_t* knob)
         {
-            SapphireModule* smod = getSapphireModule();
-            if (smod)
+            if (SapphireModule* smod = getSapphireModule())
             {
                 knob->sapphireModule = smod;
                 smod->subscribe(knob);

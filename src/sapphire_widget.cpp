@@ -529,6 +529,12 @@ namespace Sapphire
     {
         if (subscriber)
         {
+            // *** MEMORY SAFETY ***
+            // The subscriber wants its address to be remembered by this module.
+            // Later, when this SapphireModule is being removed, onRemove() will
+            // call subscriber->disconnect() to sever any connection with this
+            // module's memory, and vice versa.
+
             auto existing = std::find(
                 removalSubscriberList.begin(),
                 removalSubscriberList.end(),
@@ -545,11 +551,14 @@ namespace Sapphire
     {
         if (subscriber)
         {
+            // *** MEMORY SAFETY ***
+            // Unsubscribing means `subscriber` is telling us it is about to be destroyed.
             // Go ahead and disconnect the subscriber now,
             // since we won't be able to do it later.
             subscriber->disconnect();
 
-            // Delete this subscriber pointer from the list.
+            // Delete this subscriber pointer from the list,
+            // because the memory it points to is about to be freed.
             removalSubscriberList.erase(
                 std::remove(removalSubscriberList.begin(), removalSubscriberList.end(), subscriber),
                 removalSubscriberList.end()
