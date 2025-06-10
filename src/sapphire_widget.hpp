@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "plugin.hpp"
 #include "sapphire_panel.hpp"
 
 namespace Sapphire
@@ -77,7 +78,7 @@ namespace Sapphire
 
 
     template <typename base_knob_t>
-    struct OutputLimiterKnob : base_knob_t
+    struct OutputLimiterKnob : base_knob_t, RemovalSubscriber
     {
         SapphireModule* sapphireModule{};
         WarningLightWidget* warningLight{};
@@ -90,6 +91,20 @@ namespace Sapphire
                 menu->addChild(new MenuSeparator);
                 menu->addChild(sapphireModule->createLimiterWarningLightMenuItem());
             }
+        }
+
+        void disconnect() override
+        {
+            sapphireModule = nullptr;
+            warningLight = nullptr;
+        }
+
+        void onRemove(const Widget::RemoveEvent& e) override
+        {
+            if (sapphireModule)
+                sapphireModule->unsubscribe(this);
+
+            base_knob_t::onRemove(e);
         }
     };
 
@@ -569,16 +584,21 @@ namespace Sapphire
         template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
         void installWarningLight(knob_t* knob)
         {
-            knob->sapphireModule = getSapphireModule();
+            SapphireModule* smod = getSapphireModule();
+            if (smod)
+            {
+                knob->sapphireModule = smod;
+                smod->subscribe(knob);
 
-            // Superimpose a warning light on the output level knob.
-            // We turn the warning light on when the limiter is distoring the output.
-            auto w = new WarningLightWidget(knob->sapphireModule);
-            w->box.pos = Vec{};
-            w->box.size = knob->box.size;
+                // Superimpose a warning light on the output level knob.
+                // We turn the warning light on when the limiter is distoring the output.
+                auto w = new WarningLightWidget(smod);
+                w->box.pos = Vec{};
+                w->box.size = knob->box.size;
 
-            knob->warningLight = w;
-            knob->addChild(w);
+                knob->warningLight = w;
+                knob->addChild(w);
+            }
         }
 
         template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob

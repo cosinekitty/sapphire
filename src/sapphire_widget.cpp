@@ -493,6 +493,71 @@ namespace Sapphire
         );
     }
 
+
+    void SapphireModule::onAdd(const AddEvent& e)
+    {
+        Module::onAdd(e);
+
+        if (std::find(All.begin(), All.end(), this) == All.end())
+            All.push_back(this);
+    }
+
+
+
+    void SapphireModule::onRemove(const RemoveEvent& e)
+    {
+        // We keep a list of all active Sapphire modules.
+        // This is needed for "toggle neon mode in all Sapphire modules".
+        // Remove this module from the list.
+        All.erase(std::remove(All.begin(), All.end(), this), All.end());
+
+        // Give any other Sapphire modules, widgets, controls, etc.,
+        // a chance to find out that the module they are pointing
+        // to is about to be destroyed. This is their chance to sever
+        // links to soon-to-be-invalid memory.
+
+        for (RemovalSubscriber* s : removalSubscriberList)
+            s->disconnect();
+
+        removalSubscriberList.clear();
+
+        Module::onRemove(e);
+    }
+
+
+    void SapphireModule::subscribe(RemovalSubscriber* subscriber)
+    {
+        if (subscriber)
+        {
+            auto existing = std::find(
+                removalSubscriberList.begin(),
+                removalSubscriberList.end(),
+                subscriber
+            );
+
+            if (existing == removalSubscriberList.end())
+                removalSubscriberList.push_back(subscriber);
+        }
+    }
+
+
+    void SapphireModule::unsubscribe(RemovalSubscriber* subscriber)
+    {
+        if (subscriber)
+        {
+            // Go ahead and disconnect the subscriber now,
+            // since we won't be able to do it later.
+            subscriber->disconnect();
+
+            // Delete this subscriber pointer from the list.
+            removalSubscriberList.erase(
+                std::remove(removalSubscriberList.begin(), removalSubscriberList.end(), subscriber),
+                removalSubscriberList.end()
+            );
+        }
+    }
+
+
     MenuItem* SapphireModule::createStereoSplitterMenuItem()
     {
         return BoolToggleAction::CreateMenuItem(

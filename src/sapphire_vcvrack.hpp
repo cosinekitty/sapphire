@@ -804,6 +804,13 @@ namespace Sapphire
     };
 
 
+    class RemovalSubscriber
+    {
+    public:
+        virtual void disconnect() = 0;
+    };
+
+
     struct SapphireModule : public Module
     {
         static std::vector<SapphireModule*> All;
@@ -830,6 +837,7 @@ namespace Sapphire
         bool includeNeonModeMenuItem = true;
         DcRejectQuantity *dcRejectQuantity = nullptr;
         AgcLevelQuantity *agcLevelQuantity = nullptr;
+        std::vector<RemovalSubscriber*> removalSubscriberList;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -838,11 +846,24 @@ namespace Sapphire
             , outputPortInfo(nOutputPorts)
             {}
 
+        virtual ~SapphireModule()
+        {
+            // Any lingering removal-subscribers indicates memory corruption is possible very soon.
+            // This assert should only fail if somebody destructs a SapphireModule without calling
+            // its onRemove() method first.
+            assert(removalSubscriberList.empty());
+        }
+
         void onReset(const ResetEvent& e) override
         {
             Module::onReset(e);
             SapphireModule_initialize();
         }
+
+        void onAdd(const AddEvent& e) override;
+        void onRemove(const RemoveEvent& e) override;
+        void subscribe(RemovalSubscriber* subscriber);
+        void unsubscribe(RemovalSubscriber* subscriber);
 
         void SapphireModule_initialize()
         {
@@ -865,6 +886,7 @@ namespace Sapphire
             if (agcLevelQuantity)
                 agcLevelQuantity->initialize();
         }
+
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
@@ -981,18 +1003,6 @@ namespace Sapphire
         bool isVectorSenderConnectedOnLeft() const
         {
             return vectorReceiver.isVectorSenderConnectedOnLeft();
-        }
-
-        void onAdd(const AddEvent& e) override
-        {
-            if (std::find(All.begin(), All.end(), this) == All.end())
-                All.push_back(this);
-        }
-
-        void onRemove(const RemoveEvent& e) override
-        {
-            // Delete all instances of `this` pointer in `All`.
-            All.erase(std::remove(All.begin(), All.end(), this), All.end());
         }
 
         json_t* dataToJson() override
@@ -1548,7 +1558,7 @@ namespace Sapphire
     };
 
 
-    class WarningLightWidget : public LightWidget
+    class WarningLightWidget : public LightWidget, public RemovalSubscriber
     {
     private:
         SapphireModule *smod{};
@@ -1559,6 +1569,19 @@ namespace Sapphire
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
             bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+            if (smod)
+                smod->subscribe(this);
+        }
+
+        void onRemove(const Widget::RemoveEvent& e) override
+        {
+            if (smod)
+                smod->unsubscribe(this);
+        }
+
+        void disconnect() override
+        {
+            smod = nullptr;
         }
 
         void drawLayer(const DrawArgs& args, int layer) override
