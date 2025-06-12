@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-<td align="center">4 Jun 2025</td>
+<td align="center">11 Jun 2025</td>
 <td align="center">2.6.000</td>
 <td align="left">
     <ul>
@@ -23,6 +23,7 @@
             </ul>
         </li>
         <li>Sapphire modules that include output limiters (Elastika, Nucleus, Polynucleus, Sauce, Gravy) have an option in the main menu to enable/disable the warning light. Now, that option also appears in the right-click menu for the output level knob itself.</li>
+        <li>Bug fix in <a href="doc/Echo.md">Echo</a>: when you redo creating an Echo module, it no longer automatically creates the Echo Out, because creating Echo Out is already in the future list of redo-able actions. Before this fix, automatically creating Echo Out destroyed the future actions. Now you can just manually redo the creation of Echo Out that was automatic the first time, and keep on redoing future actions.</li>
     </ul>
 </td>
 </tr>

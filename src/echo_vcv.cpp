@@ -2594,15 +2594,11 @@ namespace Sapphire
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
 
-                        if (echoModule->autoCreateOutputModule && (creationCountdown > 0))
+                        if (echoModule->autoCreateOutputModule && OneShotCountdown(creationCountdown))
                         {
-                            --creationCountdown;
-                            if (creationCountdown == 0)
-                            {
-                                echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
-                                if (!IsEchoReceiver(module->rightExpander.module))
-                                    AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
-                            }
+                            echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
+                            if (!IsEchoReceiver(module->rightExpander.module) && !APP->history->canRedo())
+                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
                         }
                     }
                 }
