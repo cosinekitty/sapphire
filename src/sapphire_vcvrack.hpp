@@ -419,6 +419,59 @@ namespace Sapphire
     };
 
 
+    template <typename enum_t>
+    struct ChangeEnumAction : history::Action
+    {
+        enum_t& option;
+        enum_t  oldValue;
+        enum_t  newValue;
+
+        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, const std::string& _actionName)
+            : option(_option)
+            , oldValue(_option)
+            , newValue(_newValue)
+        {
+            name = _actionName;
+        }
+
+        void undo() override
+        {
+            option = oldValue;
+        }
+
+        void redo() override
+        {
+            option = newValue;
+        }
+    };
+
+
+    template <typename enum_t>
+    MenuItem* CreateChangeEnumMenuItem(
+        std::string text,
+        std::vector<std::string> labels,
+        const std::string& actionName,
+        enum_t& option)
+    {
+        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
+
+        return createIndexSubmenuItem(
+            text,
+            labels,
+            [&option]()
+            {
+                return static_cast<std::size_t>(option);
+            },
+            [&option, actionName](size_t index)
+            {
+                const enum_t newValue = static_cast<enum_t>(index);
+                if (newValue != option)
+                    InvokeAction(new ChangeEnumAction(option, newValue, actionName));
+            }
+        );
+    }
+
+
     struct SliderAction : history::Action
     {
         const int64_t moduleId;
@@ -1552,7 +1605,12 @@ namespace Sapphire
                 menuName + " input port mode",
                 { "Gate", "Trigger" },
                 [=]() { return static_cast<std::size_t>(mode); },
-                [=](size_t value) { mode = static_cast<ToggleGroupMode>(value); }
+                [=](size_t value)
+                {
+                    const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
+                    if (newMode != mode)
+                        InvokeAction(new ChangeEnumAction(mode, newMode, "toggle gate/port input mode"));
+                }
             ));
         }
     };
@@ -1750,59 +1808,6 @@ namespace Sapphire
         // an expander chain.
         // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
         return module && model && module->model == model;
-    }
-
-
-    template <typename enum_t>
-    struct ChangeEnumAction : history::Action
-    {
-        enum_t& option;
-        enum_t  oldValue;
-        enum_t  newValue;
-
-        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, const std::string& _actionName)
-            : option(_option)
-            , oldValue(_option)
-            , newValue(_newValue)
-        {
-            name = _actionName;
-        }
-
-        void undo() override
-        {
-            option = oldValue;
-        }
-
-        void redo() override
-        {
-            option = newValue;
-        }
-    };
-
-
-    template <typename enum_t>
-    MenuItem* CreateChangeEnumMenuItem(
-        std::string text,
-        std::vector<std::string> labels,
-        const std::string& actionName,
-        enum_t& option)
-    {
-        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
-
-        return createIndexSubmenuItem(
-            text,
-            labels,
-            [&option]()
-            {
-                return static_cast<std::size_t>(option);
-            },
-            [&option, actionName](size_t index)
-            {
-                const enum_t newValue = static_cast<enum_t>(index);
-                if (newValue != option)
-                    InvokeAction(new ChangeEnumAction(option, newValue, actionName));
-            }
-        );
     }
 }
 
