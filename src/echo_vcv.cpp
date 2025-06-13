@@ -1427,8 +1427,8 @@ namespace Sapphire
             SvgOverlay* flpSelLabel = nullptr;
             SvgOverlay* envLabel = nullptr;
             SvgOverlay* envSelLabel = nullptr;
-            SvgOverlay* invLabel = nullptr;
-            SvgOverlay* invSelLabel = nullptr;
+            SvgOverlay* dckLabel = nullptr;
+            SvgOverlay* dckSelLabel = nullptr;
             Vec flpRevLabelPos;
             Vec envDuckLabelPos;
             float dxFlipRev{};
@@ -1450,20 +1450,33 @@ namespace Sapphire
                 const std::string& flpSelSvgFileName,
                 const std::string& envSvgFileName,
                 const std::string& envSelSvgFileName,
-                const std::string& invSvgFileName,
-                const std::string& invSelSvgFileName
+                const std::string& dckSvgFileName,
+                const std::string& dckSelSvgFileName
             )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
                 , loopModule(lmod)
             {
-                revLabel    = addLabelOverlay(revSvgFileName);
+                // We can toggle REV/FLP.
+                // We also have different colors depending on mouse hover.
+                // Both pairs of states multiply, resulting in
+                // 4 special cases. Only one of the 4 cases may be
+                // visible at a time. In fact, we should maintain
+                // the visibility count equalling one as an invariant.
+                // We have to make one of them visible for the sake of
+                // the Echo screenshot, where module==nullptr, preventing
+                // the real visibility logic from running.
+                // So pass visible=true in exactly one of the 4 addLabelOverlay calls.
+                revLabel    = addLabelOverlay(revSvgFileName, true);
                 revSelLabel = addLabelOverlay(revSelSvgFileName);
                 flpLabel    = addLabelOverlay(flpSvgFileName);
                 flpSelLabel = addLabelOverlay(flpSelSvgFileName);
-                envLabel    = addLabelOverlay(envSvgFileName);
+
+                // The same 4-way visibility rules apply to ENV/DCK.
+                envLabel    = addLabelOverlay(envSvgFileName, true);
                 envSelLabel = addLabelOverlay(envSelSvgFileName);
-                invLabel    = addLabelOverlay(invSvgFileName);
-                invSelLabel = addLabelOverlay(invSelSvgFileName);
+                dckLabel    = addLabelOverlay(dckSvgFileName);
+                dckSelLabel = addLabelOverlay(dckSelSvgFileName);
+
                 flpRevLabelPos  = mm_to_px(FindComponent(modcode, "label_flp_rev"));
                 envDuckLabelPos = mm_to_px(FindComponent(modcode, "label_env_duck"));
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
@@ -1483,11 +1496,11 @@ namespace Sapphire
                 MultiTapWidget::onRemove(e);
             }
 
-            SvgOverlay* addLabelOverlay(const std::string& svgFileName)
+            SvgOverlay* addLabelOverlay(const std::string& svgFileName, bool visible = false)
             {
                 SvgOverlay* overlay = SvgOverlay::Load(svgFileName);
                 addChild(overlay);
-                overlay->hide();
+                overlay->setVisible(visible);
                 return overlay;
             }
 
@@ -1626,8 +1639,8 @@ namespace Sapphire
             {
                 envLabel->setVisible(!lmod->duck && !hilightEnvDuckButton);
                 envSelLabel->setVisible(!lmod->duck && hilightEnvDuckButton);
-                invLabel->setVisible(lmod->duck && !hilightEnvDuckButton);
-                invSelLabel->setVisible(lmod->duck && hilightEnvDuckButton);
+                dckLabel->setVisible(lmod->duck && !hilightEnvDuckButton);
+                dckSelLabel->setVisible(lmod->duck && hilightEnvDuckButton);
             }
 
             void step() override
@@ -2439,7 +2452,7 @@ namespace Sapphire
 
                 void addLabelOverlays()
                 {
-                    clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"));
+                    clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"), true);
                     clockSelLabel = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock_sel.svg"));
                     rateLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
                     rateSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
