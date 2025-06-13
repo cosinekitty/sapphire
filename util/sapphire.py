@@ -262,6 +262,7 @@ def AddShortToggleGroup(
 
     controls.append(Component(prefix + '_input',  x1, yControl))
     controls.append(Component(prefix + '_button', x2, yControl))
+    controls.append(Component(prefix + '_label',  (x1+x2)/2, yControl))
     return group
 
 

@@ -1464,16 +1464,11 @@ namespace Sapphire
                 envSelLabel = addLabelOverlay(envSelSvgFileName);
                 invLabel    = addLabelOverlay(invSvgFileName);
                 invSelLabel = addLabelOverlay(invSelSvgFileName);
-
-                ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
-                flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
-
-                centerLoc = FindComponent(modcode, "label_env_duck");
-                envDuckLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
-
+                flpRevLabelPos  = mm_to_px(FindComponent(modcode, "label_flp_rev"));
+                envDuckLabelPos = mm_to_px(FindComponent(modcode, "label_env_duck"));
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
                 ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
-                const float dxCushion = 8.0;
+                constexpr float dxCushion = 8.0;
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
 
@@ -1810,6 +1805,27 @@ namespace Sapphire
                 }
             }
 
+            void drawTriggerSymbol(NVGcontext* vg, Vec labelPos)
+            {
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                const float ex = mm2px(0.2);       // half gap for peak
+                const float ey = mm2px(1.3);       // peak height
+
+                float xc = labelPos.x;
+                float yc = labelPos.y - dy;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_BLACK);
+                nvgMoveTo(vg, xc-dx, yc);
+                nvgLineTo(vg, xc-ex, yc);
+                nvgLineTo(vg, xc, yc-ey);
+                nvgLineTo(vg, xc+ex, yc);
+                nvgLineTo(vg, xc+dx, yc);
+                nvgStrokeWidth(vg, 0.6);
+                nvgStroke(vg);
+            }
+
             void draw(const DrawArgs& args) override
             {
                 MultiTapWidget::draw(args);
@@ -1823,6 +1839,9 @@ namespace Sapphire
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
                     drawAudioPortLabels(args.vg, lmod->sendReturnPortLabels, L.cx, L.cy, R.cy);
+
+                    if (lmod->reverseToggleGroup.getMode() == ToggleGroupMode::Trigger)
+                        drawTriggerSymbol(args.vg, flpRevLabelPos);
                 }
             }
 
@@ -2317,6 +2336,7 @@ namespace Sapphire
                 bool isMouseInsideClockLabel = false;
                 bool hilightClockRateButton = false;
                 SapphireTooltip* clockRateTooltip = nullptr;
+                Vec freezeLabelPos;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2365,6 +2385,8 @@ namespace Sapphire
 
                     ComponentLocation labelLoc = FindComponent(modcode, "clock_label");
                     clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
+
+                    freezeLabelPos  = mm_to_px(FindComponent(modcode, "freeze_label"));
                 }
 
                 void onRemove(const RemoveEvent& e) override
@@ -2560,6 +2582,9 @@ namespace Sapphire
 
                     if (!isClockPortConnected())
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
+
+                    if (echoModule && echoModule->freezeToggleGroup.getMode() == ToggleGroupMode::Trigger)
+                        drawTriggerSymbol(args.vg, freezeLabelPos);
                 }
 
                 void onMousePress(const ButtonEvent& e) override

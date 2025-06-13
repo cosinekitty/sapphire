@@ -1531,6 +1531,8 @@ namespace Sapphire
             portActive = false;
         }
 
+        ToggleGroupMode getMode() const { return mode; }
+
         void config(
             SapphireModule* _smod,
             const std::string& _menuName,

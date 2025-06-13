@@ -28,6 +28,11 @@ namespace Sapphire
         return px * factor;
     }
 
+    inline Vec mm_to_px(const ComponentLocation& loc)
+    {
+        return Vec(mm2px(loc.cx), mm2px(loc.cy));
+    }
+
     inline bool OneShotCountdown(int& counter)
     {
         return (counter > 0) && (--counter == 0);
