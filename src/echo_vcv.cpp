@@ -1513,7 +1513,7 @@ namespace Sapphire
                 addSapphireParam(button, "sendreturn_button");
             }
 
-            void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
+            void addExpanderInsertButton(int paramId, int lightId)
             {
                 auto button = createParamCentered<InsertButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -1546,7 +1546,7 @@ namespace Sapphire
                 addChild(graph);
             }
 
-            void addExpanderRemoveButton(LoopModule* loopModule, int paramId, int lightId)
+            void addExpanderRemoveButton(int paramId, int lightId)
             {
                 auto button = createParamCentered<RemoveButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -1610,8 +1610,7 @@ namespace Sapphire
                     return;
 
                 // Hand responsibility for moving the rest of the chain to the next module in the chain.
-                auto nextModule = dynamic_cast<MultiTapModule*>(module->rightExpander.module);
-                if (nextModule)
+                if (auto nextModule = dynamic_cast<MultiTapModule*>(module->rightExpander.module))
                     nextModule->beginMoveChain(box.pos.x);
 
                 // *** DANGER DANGER DANGER ***
@@ -1646,16 +1645,15 @@ namespace Sapphire
             void step() override
             {
                 MultiTapWidget::step();
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    lmod->hideLeftBorder  = isConnectedOnLeft();
-                    lmod->hideRightBorder = isConnectedOnRight();
-                    lmod->updateFlipControls();
-                    lmod->updateSendReturnControls();
-                    lmod->updateMuteSoloControls();
-                    updateFlipReverse(lmod);
-                    updateEnvDuck(lmod);
+                    loopModule->hideLeftBorder  = isConnectedOnLeft();
+                    loopModule->hideRightBorder = isConnectedOnRight();
+                    loopModule->updateFlipControls();
+                    loopModule->updateSendReturnControls();
+                    loopModule->updateMuteSoloControls();
+                    updateFlipReverse(loopModule);
+                    updateEnvDuck(loopModule);
                 }
             }
 
@@ -1702,17 +1700,16 @@ namespace Sapphire
 
             virtual void onMousePress(const ButtonEvent& e)
             {
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
                     if (offerRoutingModeChange() && isInsideInputRoutingButton(e.pos))
-                        lmod->bumpTapInputRouting();
+                        loopModule->bumpTapInputRouting();
 
                     if (isInsideFlipRevButton(e.pos))
-                        lmod->toggleFlip();
+                        loopModule->toggleFlip();
 
                     if (isInsideEnvDuckButton(e.pos))
-                        lmod->toggleEnvDuck();
+                        loopModule->toggleEnvDuck();
                 }
             }
 
@@ -1911,25 +1908,22 @@ namespace Sapphire
             void appendContextMenu(Menu *menu) override
             {
                 MultiTapWidget::appendContextMenu(menu);
-
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    menu->addChild(lmod->createToggleAllSensitivityMenuItem());
-                    lmod->addPolyphonicEnvelopeMenuItem(menu);
-                    lmod->reverseToggleGroup.addMenuItems(menu);
+                    menu->addChild(loopModule->createToggleAllSensitivityMenuItem());
+                    loopModule->addPolyphonicEnvelopeMenuItem(menu);
+                    loopModule->reverseToggleGroup.addMenuItems(menu);
                 }
             }
 
             void addTimeControlGroup(int paramId, int attenId, int cvInputId)
             {
                 TimeKnob* timeKnob = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    lmod->timeKnob = timeKnob;
-                    timeKnob->loopModule = lmod;
-                    timeKnob->info = &(lmod->timeKnobInfo);
+                    loopModule->timeKnob = timeKnob;
+                    timeKnob->loopModule = loopModule;
+                    timeKnob->info = &(loopModule->timeKnobInfo);
                 }
             }
 
@@ -2402,7 +2396,7 @@ namespace Sapphire
                 {
                     splash.x1 = 6 * HP_MM;
                     setModule(module);
-                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addLabelOverlays();
 
                     // Global controls/ports
@@ -2774,14 +2768,13 @@ namespace Sapphire
                     if (echoModule)
                     {
                         visit(echoModule);
-                        Module* module = echoModule->rightExpander.module;
-                        while (IsEchoTap(module))
+                        Module* m = echoModule->rightExpander.module;
+                        while (IsEchoTap(m))
                         {
-                            auto lmod = dynamic_cast<LoopModule*>(module);
-                            if (lmod)
+                            if (auto lmod = dynamic_cast<LoopModule*>(m))
                                 visit(lmod);
 
-                            module = module->rightExpander.module;
+                            m = m->rightExpander.module;
                         }
                     }
                 }
@@ -3124,8 +3117,8 @@ namespace Sapphire
                     , echoTapModule(module)
                 {
                     setModule(module);
-                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addExpanderRemoveButton(module, REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderRemoveButton(REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
