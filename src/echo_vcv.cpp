@@ -1815,6 +1815,8 @@ namespace Sapphire
                 }
             }
 
+            static constexpr float triggerGateStrokeWidth = 0.7;
+
             void drawTriggerSymbol(NVGcontext* vg, Vec labelPos)
             {
                 const float dy = mm2px(3.4);       // height above label center
@@ -1832,7 +1834,7 @@ namespace Sapphire
                 nvgLineTo(vg, xc, yc-ey);
                 nvgLineTo(vg, xc+ex, yc);
                 nvgLineTo(vg, xc+dx, yc);
-                nvgStrokeWidth(vg, 0.6);
+                nvgStrokeWidth(vg, triggerGateStrokeWidth);
                 nvgStroke(vg);
             }
 
@@ -1854,7 +1856,7 @@ namespace Sapphire
                 nvgLineTo(vg, xc+ex, yc-ey);
                 nvgLineTo(vg, xc+ex, yc);
                 nvgLineTo(vg, xc+dx, yc);
-                nvgStrokeWidth(vg, 0.6);
+                nvgStrokeWidth(vg, triggerGateStrokeWidth);
                 nvgStroke(vg);
             }
 
