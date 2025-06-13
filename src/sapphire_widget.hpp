@@ -698,7 +698,7 @@ namespace Sapphire
         }
 
         template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
-        void addToggleGroup(
+        input_port_t* addToggleGroup(
             ToggleGroup* group,
             const std::string& prefix,
             int inputId,
@@ -718,6 +718,7 @@ namespace Sapphire
             addSapphireParam(button, prefix + "_button");
             input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
             port->group = group;
+            return port;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)

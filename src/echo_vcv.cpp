@@ -859,8 +859,9 @@ namespace Sapphire
             {
                 if (controlsAreReady)
                 {
-                    const char *name = flip ? "Flip" : "Reverse";
-                    getInputInfo(controls.revFlipInputId)->name = name;
+                    const bool trigger = (reverseToggleGroup.getMode() == ToggleGroupMode::Trigger);
+                    auto name = std::string(flip ? "Flip" : "Reverse");
+                    getInputInfo(controls.revFlipInputId)->name = name + (trigger ? " trigger" : " gate");
                     getParamQuantity(controls.revFlipButtonId)->name = name;
                 }
             }
@@ -868,11 +869,8 @@ namespace Sapphire
             void updateToggleButtonTooltip(int buttonId, const char* offText, const char *onText)
             {
                 if (buttonId >= 0 && buttonId < static_cast<int>(params.size()))
-                {
-                    ParamQuantity* qty = getParamQuantity(buttonId);
-                    if (qty)
+                    if (ParamQuantity* qty = getParamQuantity(buttonId))
                         qty->name = (qty->getValue() < 0.5f) ? offText : onText;
-                }
             }
 
             void updateSendReturnControls()
@@ -2180,8 +2178,8 @@ namespace Sapphire
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
-                    freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
+                    reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "");
+                    freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
@@ -2379,6 +2377,7 @@ namespace Sapphire
                 bool hilightClockRateButton = false;
                 SapphireTooltip* clockRateTooltip = nullptr;
                 Vec freezeLabelPos;
+                ToggleGroupInputPort* freezeInputPortWidget{};
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2428,7 +2427,7 @@ namespace Sapphire
                     ComponentLocation labelLoc = FindComponent(modcode, "clock_label");
                     clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
 
-                    freezeLabelPos  = mm_to_px(FindComponent(modcode, "freeze_label"));
+                    freezeLabelPos = mm_to_px(FindComponent(modcode, "freeze_label"));
                 }
 
                 void onRemove(const RemoveEvent& e) override
@@ -2520,7 +2519,7 @@ namespace Sapphire
                 {
                     ToggleGroup* group = echoModule ? &(echoModule->freezeToggleGroup) : nullptr;
 
-                    addToggleGroup(
+                    freezeInputPortWidget = addToggleGroup(
                         group,
                         "freeze",
                         FREEZE_INPUT,
@@ -2642,6 +2641,18 @@ namespace Sapphire
                     }
                 }
 
+                void updateFreezePortTooltip()
+                {
+                    if (freezeInputPortWidget)
+                    {
+                        if (auto portInfo = freezeInputPortWidget->getPortInfo())
+                        {
+                            bool trigger = echoModule && (echoModule->freezeToggleGroup.getMode() == ToggleGroupMode::Trigger);
+                            portInfo->name = std::string("Freeze ") + (trigger ? "trigger" : "gate");
+                        }
+                    }
+                }
+
                 void step() override
                 {
                     LoopWidget::step();
@@ -2656,6 +2667,7 @@ namespace Sapphire
                         rateSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
 
                         updateClockRateButton(isMouseInsideClockLabel);
+                        updateFreezePortTooltip();
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
