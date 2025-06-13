@@ -1826,6 +1826,41 @@ namespace Sapphire
                 nvgStroke(vg);
             }
 
+            void drawGateSymbol(NVGcontext* vg, Vec labelPos)
+            {
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                const float ex = mm2px(0.8);       // half gap for square pulse
+                const float ey = mm2px(1.6);       // peak height
+
+                float xc = labelPos.x;
+                float yc = labelPos.y - dy;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, SCHEME_BLACK);
+                nvgMoveTo(vg, xc-dx, yc);
+                nvgLineTo(vg, xc-ex, yc);
+                nvgLineTo(vg, xc-ex, yc-ey);
+                nvgLineTo(vg, xc+ex, yc-ey);
+                nvgLineTo(vg, xc+ex, yc);
+                nvgLineTo(vg, xc+dx, yc);
+                nvgStrokeWidth(vg, 0.6);
+                nvgStroke(vg);
+            }
+
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, bool isTrigger)
+            {
+                if (isTrigger)
+                    drawTriggerSymbol(vg, pos);
+                else
+                    drawGateSymbol(vg, pos);
+            }
+
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, const ToggleGroup& toggleGroup)
+            {
+                drawTriggerGateSymbol(vg, pos, toggleGroup.getMode() == ToggleGroupMode::Trigger);
+            }
+
             void draw(const DrawArgs& args) override
             {
                 MultiTapWidget::draw(args);
@@ -1839,9 +1874,7 @@ namespace Sapphire
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
                     drawAudioPortLabels(args.vg, lmod->sendReturnPortLabels, L.cx, L.cy, R.cy);
-
-                    if (lmod->reverseToggleGroup.getMode() == ToggleGroupMode::Trigger)
-                        drawTriggerSymbol(args.vg, flpRevLabelPos);
+                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, lmod->reverseToggleGroup);
                 }
             }
 
@@ -2583,8 +2616,8 @@ namespace Sapphire
                     if (!isClockPortConnected())
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
 
-                    if (echoModule && echoModule->freezeToggleGroup.getMode() == ToggleGroupMode::Trigger)
-                        drawTriggerSymbol(args.vg, freezeLabelPos);
+                    if (echoModule)
+                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup);
                 }
 
                 void onMousePress(const ButtonEvent& e) override
