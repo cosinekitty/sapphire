@@ -3033,14 +3033,14 @@ namespace Sapphire
 
                 void tryCopySettingsFrom(SapphireModule* other) override
                 {
-                    auto emod = dynamic_cast<Echo::EchoModule*>(other);
-                    if (emod)
+                    if (auto emod = dynamic_cast<Echo::EchoModule*>(other))
                     {
                         timeKnobInfo = emod->timeKnobInfo;
                         polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
                         flip = emod->flip;
                         duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
+                        reverseToggleGroup.setMode(emod->reverseToggleGroup.getMode());
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
                         copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);

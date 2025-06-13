@@ -1532,6 +1532,7 @@ namespace Sapphire
         }
 
         ToggleGroupMode getMode() const { return mode; }
+        void setMode(ToggleGroupMode m) { mode = m; }
 
         void config(
             SapphireModule* _smod,
