@@ -23,7 +23,7 @@ DISTRIBUTABLES += $(wildcard presets)
 CXXFLAGS += -std=c++17
 
 # Enable extra compiler warnings.
-FLAGS += -Wextra -Wshadow-local -Wnull-dereference -Wmaybe-uninitialized
+FLAGS += -Wextra -Wnull-dereference
 
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
