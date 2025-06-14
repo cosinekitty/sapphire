@@ -2379,6 +2379,7 @@ namespace Sapphire
                 SapphireTooltip* clockRateTooltip = nullptr;
                 Vec freezeLabelPos;
                 ToggleGroupInputPort* freezeInputPortWidget{};
+                bool isMouseInsideFreezeGateTriggerToggle = false;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2425,9 +2426,7 @@ namespace Sapphire
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
                     addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
 
-                    ComponentLocation labelLoc = FindComponent(modcode, "clock_label");
-                    clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
-
+                    clockLabelPos  = mm_to_px(FindComponent(modcode, "clock_label"));
                     freezeLabelPos = mm_to_px(FindComponent(modcode, "freeze_label"));
                 }
 
@@ -2463,12 +2462,14 @@ namespace Sapphire
                 {
                     LoopWidget::onHover(e);
                     isMouseInsideClockLabel = isInsideClockLabel(e.pos);
+                    isMouseInsideFreezeGateTriggerToggle = isInsideGateTriggerToggle(freezeLabelPos, e.pos);
                 }
 
                 void onLeave(const LeaveEvent& e) override
                 {
                     LoopWidget::onLeave(e);
                     isMouseInsideClockLabel = false;
+                    isMouseInsideFreezeGateTriggerToggle = false;
                 }
 
                 void resetTapAction() override
@@ -2605,11 +2606,10 @@ namespace Sapphire
                     // have an active clock sync.
                     // Otherwise it should be opaque black on the panel layer.
                     LoopWidget::drawLayer(args, layer);
-
-                    if (layer==1 && isClockPortConnected())
+                    if (layer == 1)
                     {
-                        NVGcolor color = echoModule->timeKnobInfo.color();
-                        drawClockSyncSymbol(args.vg, color, 1.25);
+                        if (isClockPortConnected())
+                            drawClockSyncSymbol(args.vg, echoModule->timeKnobInfo.color(), 1.25);
                     }
                 }
 
@@ -2626,10 +2626,7 @@ namespace Sapphire
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
 
                     if (echoModule)
-                    {
-                        NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
-                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup, color);
-                    }
+                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup, isMouseInsideFreezeGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK);
                 }
 
                 void onMousePress(const ButtonEvent& e) override
