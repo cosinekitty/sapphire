@@ -1515,10 +1515,11 @@ namespace Sapphire
         int buttonParamId = -1;
         int buttonLightId = -1;
         GateTriggerReceiver receiver;
-        ToggleGroupMode mode = ToggleGroupMode::Default;
         bool portActive = false;
 
     public:
+        ToggleGroupMode mode = ToggleGroupMode::Default;
+
         ToggleGroup()
         {
             initialize();
@@ -1530,9 +1531,6 @@ namespace Sapphire
             mode = ToggleGroupMode::Default;
             portActive = false;
         }
-
-        ToggleGroupMode getMode() const { return mode; }
-        void setMode(ToggleGroupMode m) { mode = m; }
 
         void config(
             SapphireModule* _smod,

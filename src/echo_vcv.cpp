@@ -856,7 +856,7 @@ namespace Sapphire
             {
                 if (controlsAreReady)
                 {
-                    const bool trigger = (reverseToggleGroup.getMode() == ToggleGroupMode::Trigger);
+                    const bool trigger = (reverseToggleGroup.mode == ToggleGroupMode::Trigger);
                     auto name = std::string(flip ? "Flip" : "Reverse");
                     getInputInfo(controls.revFlipInputId)->name = name + (trigger ? " trigger" : " gate");
                     getParamQuantity(controls.revFlipButtonId)->name = name;
@@ -1876,7 +1876,7 @@ namespace Sapphire
 
             void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, const ToggleGroup& toggleGroup, NVGcolor color)
             {
-                drawTriggerGateSymbol(vg, pos, toggleGroup.getMode() == ToggleGroupMode::Trigger, color);
+                drawTriggerGateSymbol(vg, pos, toggleGroup.mode == ToggleGroupMode::Trigger, color);
             }
 
             void draw(const DrawArgs& args) override
@@ -2639,6 +2639,15 @@ namespace Sapphire
                             ClockSignalFormat nextValue = NextEnumValue(echoModule->clockSignalFormat);
                             InvokeAction(new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE"));
                         }
+
+                        if (isInsideGateTriggerToggle(freezeLabelPos, e.pos))
+                        {
+                            InvokeAction(new ChangeEnumAction(
+                                echoModule->freezeToggleGroup.mode,
+                                NextEnumValue(echoModule->freezeToggleGroup.mode),
+                                "toggle gate/trigger FRZ input"
+                            ));
+                        }
                     }
                 }
 
@@ -2648,7 +2657,7 @@ namespace Sapphire
                     {
                         if (auto portInfo = freezeInputPortWidget->getPortInfo())
                         {
-                            bool trigger = echoModule && (echoModule->freezeToggleGroup.getMode() == ToggleGroupMode::Trigger);
+                            bool trigger = echoModule && (echoModule->freezeToggleGroup.mode == ToggleGroupMode::Trigger);
                             portInfo->name = std::string("Freeze ") + (trigger ? "trigger" : "gate");
                         }
                     }
@@ -3037,7 +3046,7 @@ namespace Sapphire
                         flip = emod->flip;
                         duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
-                        reverseToggleGroup.setMode(emod->reverseToggleGroup.getMode());
+                        reverseToggleGroup.mode = emod->reverseToggleGroup.mode;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
                         copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);
