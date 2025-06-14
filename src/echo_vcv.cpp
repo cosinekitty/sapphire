@@ -1704,6 +1704,15 @@ namespace Sapphire
 
                     if (isInsideEnvDuckButton(e.pos))
                         loopModule->toggleEnvDuck();
+
+                    if (isInsideGateTriggerToggle(flpRevLabelPos, e.pos))
+                    {
+                        InvokeAction(new ChangeEnumAction(
+                            loopModule->reverseToggleGroup.mode,
+                            NextEnumValue(loopModule->reverseToggleGroup.mode),
+                            "toggle gate/trigger input on REV/FLP port"
+                        ));
+                    }
                 }
             }
 
@@ -2645,7 +2654,7 @@ namespace Sapphire
                             InvokeAction(new ChangeEnumAction(
                                 echoModule->freezeToggleGroup.mode,
                                 NextEnumValue(echoModule->freezeToggleGroup.mode),
-                                "toggle gate/trigger FRZ input"
+                                "toggle gate/trigger input on FRZ port"
                             ));
                         }
                     }
