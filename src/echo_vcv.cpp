@@ -1590,8 +1590,8 @@ namespace Sapphire
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
-                for (Module* node = right; IsEchoReceiver(node); node = node->rightExpander.module)
-                    if (auto lmod = dynamic_cast<MultiTapModule*>(node))
+                for (Module* m = right; IsEchoReceiver(m); m = m->rightExpander.module)
+                    if (auto lmod = dynamic_cast<MultiTapModule*>(m))
                         lmod->chainIndex = -1;
 
                 // Create the expander module.
@@ -1620,20 +1620,20 @@ namespace Sapphire
                 return module && IsEchoReceiver(module->rightExpander.module);
             }
 
-            void updateFlipReverse(const LoopModule* lmod)
+            void updateFlipReverse()
             {
-                flpLabel->setVisible(lmod->flip && !hilightRevFlipButton);
-                flpSelLabel->setVisible(lmod->flip && hilightRevFlipButton);
-                revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
-                revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
+                flpLabel->setVisible(loopModule->flip && !hilightRevFlipButton);
+                flpSelLabel->setVisible(loopModule->flip && hilightRevFlipButton);
+                revLabel->setVisible(!loopModule->flip && !hilightRevFlipButton);
+                revSelLabel->setVisible(!loopModule->flip && hilightRevFlipButton);
             }
 
-            void updateEnvDuck(const LoopModule* lmod)
+            void updateEnvDuck()
             {
-                envLabel->setVisible(!lmod->duck && !hilightEnvDuckButton);
-                envSelLabel->setVisible(!lmod->duck && hilightEnvDuckButton);
-                dckLabel->setVisible(lmod->duck && !hilightEnvDuckButton);
-                dckSelLabel->setVisible(lmod->duck && hilightEnvDuckButton);
+                envLabel->setVisible(!loopModule->duck && !hilightEnvDuckButton);
+                envSelLabel->setVisible(!loopModule->duck && hilightEnvDuckButton);
+                dckLabel->setVisible(loopModule->duck && !hilightEnvDuckButton);
+                dckSelLabel->setVisible(loopModule->duck && hilightEnvDuckButton);
             }
 
             void step() override
@@ -1646,8 +1646,8 @@ namespace Sapphire
                     loopModule->updateFlipControls();
                     loopModule->updateSendReturnControls();
                     loopModule->updateMuteSoloControls();
-                    updateFlipReverse(loopModule);
-                    updateEnvDuck(loopModule);
+                    updateFlipReverse();
+                    updateEnvDuck();
                 }
             }
 
@@ -2800,7 +2800,7 @@ namespace Sapphire
                 int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
                 {
                     int count = 0;
-                    visitTaps([&](const LoopModule* lmod)
+                    visitTaps([predicate, &count](const LoopModule* lmod)
                     {
                         if (lmod && predicate(lmod))
                             ++count;
