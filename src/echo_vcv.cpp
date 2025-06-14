@@ -2791,7 +2791,7 @@ namespace Sapphire
                     if (echoModule)
                     {
                         visit(echoModule);
-                        for (Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
+                        for (const Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
                             if (auto lmod = dynamic_cast<const LoopModule*>(m))
                                 visit(lmod);
                     }
