@@ -1415,6 +1415,7 @@ namespace Sapphire
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
             const float mmModeButtonRadius = 3.5;
             const float mmChainIndexCenterY = 4.5;
+            const NVGcolor mouseHoverColor = nvgRGB(0x6f, 0x02, 0xb8);
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
@@ -1433,6 +1434,7 @@ namespace Sapphire
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
             SapphireTooltip* envDuckTooltip = nullptr;
+            bool isMouseInsideRevFlipGateTriggerToggle = false;
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -1742,6 +1744,7 @@ namespace Sapphire
                 updateRoutingButton(isInsideInputRoutingButton(e.pos));
                 updateFlipRevButton(isInsideFlipRevButton(e.pos));
                 updateEnvDuckButton(isInsideEnvDuckButton(e.pos));
+                isMouseInsideRevFlipGateTriggerToggle = isInsideGateTriggerToggle(flpRevLabelPos, e.pos);
                 MultiTapWidget::onHover(e);
             }
 
@@ -1750,6 +1753,7 @@ namespace Sapphire
                 updateRoutingButton(false);
                 updateFlipRevButton(false);
                 updateEnvDuckButton(false);
+                isMouseInsideRevFlipGateTriggerToggle = false;
                 MultiTapWidget::onLeave(e);
             }
 
@@ -1809,7 +1813,17 @@ namespace Sapphire
 
             static constexpr float triggerGateStrokeWidth = 0.7;
 
-            void drawTriggerSymbol(NVGcontext* vg, Vec labelPos)
+            bool isInsideGateTriggerToggle(Vec labelPos, Vec mousePos) const
+            {
+                const float ey = mm2px(1.3);       // peak height
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                Vec togglePos{labelPos.x, labelPos.y - dy};
+                Vec dv = togglePos.minus(mousePos);
+                return (std::abs(dv.x) <= dx) && (0 <= dv.y) && (dv.y <= ey);
+            }
+
+            void drawTriggerSymbol(NVGcontext* vg, Vec labelPos, NVGcolor color)
             {
                 const float dy = mm2px(3.4);       // height above label center
                 const float dx = mm2px(1.4);       // half base of trigger symbol width
@@ -1820,7 +1834,7 @@ namespace Sapphire
                 float yc = labelPos.y - dy;
 
                 nvgBeginPath(vg);
-                nvgStrokeColor(vg, SCHEME_BLACK);
+                nvgStrokeColor(vg, color);
                 nvgMoveTo(vg, xc-dx, yc);
                 nvgLineTo(vg, xc-ex, yc);
                 nvgLineTo(vg, xc, yc-ey);
@@ -1830,7 +1844,7 @@ namespace Sapphire
                 nvgStroke(vg);
             }
 
-            void drawGateSymbol(NVGcontext* vg, Vec labelPos)
+            void drawGateSymbol(NVGcontext* vg, Vec labelPos, NVGcolor color)
             {
                 const float dy = mm2px(3.4);       // height above label center
                 const float dx = mm2px(1.4);       // half base of trigger symbol width
@@ -1841,7 +1855,7 @@ namespace Sapphire
                 float yc = labelPos.y - dy;
 
                 nvgBeginPath(vg);
-                nvgStrokeColor(vg, SCHEME_BLACK);
+                nvgStrokeColor(vg, color);
                 nvgMoveTo(vg, xc-dx, yc);
                 nvgLineTo(vg, xc-ex, yc);
                 nvgLineTo(vg, xc-ex, yc-ey);
@@ -1852,17 +1866,17 @@ namespace Sapphire
                 nvgStroke(vg);
             }
 
-            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, bool isTrigger)
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, bool isTrigger, NVGcolor color)
             {
                 if (isTrigger)
-                    drawTriggerSymbol(vg, pos);
+                    drawTriggerSymbol(vg, pos, color);
                 else
-                    drawGateSymbol(vg, pos);
+                    drawGateSymbol(vg, pos, color);
             }
 
-            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, const ToggleGroup& toggleGroup)
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, const ToggleGroup& toggleGroup, NVGcolor color)
             {
-                drawTriggerGateSymbol(vg, pos, toggleGroup.getMode() == ToggleGroupMode::Trigger);
+                drawTriggerGateSymbol(vg, pos, toggleGroup.getMode() == ToggleGroupMode::Trigger, color);
             }
 
             void draw(const DrawArgs& args) override
@@ -1876,7 +1890,8 @@ namespace Sapphire
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
                     drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cy);
-                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup);
+                    NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
+                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup, color);
                 }
             }
 
@@ -2611,7 +2626,10 @@ namespace Sapphire
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
 
                     if (echoModule)
-                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup);
+                    {
+                        NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
+                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup, color);
+                    }
                 }
 
                 void onMousePress(const ButtonEvent& e) override
