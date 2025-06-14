@@ -506,15 +506,12 @@ namespace Sapphire
 
                     // Make an ordered list of all the remaining widgets in the chain, before moving anything.
                     std::vector<MultiTapWidget*> widgetsInOrder;
-                    for (const Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
+                    for (const Module* m = mmod; IsEchoReceiver(m); m = m->rightExpander.module)
                     {
-                        auto otherModule =  dynamic_cast<const MultiTapModule*>(node);
-                        if (otherModule)
-                        {
+                        if (auto otherModule =  dynamic_cast<const MultiTapModule*>(m))
                             for (MultiTapWidget* otherWidget : widgetsToRight)
                                 if (otherWidget->module == otherModule)
                                     widgetsInOrder.push_back(otherWidget);
-                        }
                     }
 
                     // Try to move everyone!
@@ -1403,8 +1400,7 @@ namespace Sapphire
         void EnvelopeOutputPort::appendContextMenu(Menu* menu)
         {
             SapphirePort::appendContextMenu(menu);
-            auto lmod = dynamic_cast<LoopModule*>(module);
-            if (lmod)
+            if (auto lmod = dynamic_cast<LoopModule*>(module))
             {
                 menu->addChild(new MenuSeparator);
                 lmod->addPolyphonicEnvelopeMenuItem(menu);
@@ -1593,10 +1589,8 @@ namespace Sapphire
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
                 for (Module* node = right; IsEchoReceiver(node); node = node->rightExpander.module)
-                {
-                    auto lmod = dynamic_cast<MultiTapModule*>(node);
-                    lmod->chainIndex = -1;
-                }
+                    if (auto lmod = dynamic_cast<MultiTapModule*>(node))
+                        lmod->chainIndex = -1;
 
                 // Create the expander module.
                 AddExpander(model, this, ExpanderDirection::Right);
@@ -1874,34 +1868,28 @@ namespace Sapphire
             void draw(const DrawArgs& args) override
             {
                 MultiTapWidget::draw(args);
-
-                auto lmod = dynamic_cast<const LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    if (!lmod->neonMode)
-                        drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
+                    if (!loopModule->neonMode)
+                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
 
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
-                    drawAudioPortLabels(args.vg, lmod->sendReturnPortLabels, L.cx, L.cy, R.cy);
-                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, lmod->reverseToggleGroup);
+                    drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cy);
+                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup);
                 }
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
                 MultiTapWidget::drawLayer(args, layer);
-                if (layer == 1)
+                if (layer==1 && loopModule)
                 {
-                    auto lmod = dynamic_cast<const LoopModule*>(module);
-                    if (lmod)
-                    {
-                        if (lmod->neonMode)
-                            drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, neonColor);
+                    if (loopModule->neonMode)
+                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, neonColor);
 
-                        if (lmod->recordingLevelOverflow)
-                            splash.begin(0xb0, 0x10, 0x00);
-                    }
+                    if (loopModule->recordingLevelOverflow)
+                        splash.begin(0xb0, 0x10, 0x00);
                 }
             }
 
@@ -2059,8 +2047,7 @@ namespace Sapphire
             float value = rack::normalizeZero(getDisplayValue());
             std::string timeText = rack::string::f("%.5g", value);
             std::string freqText = rack::string::f("%.5g", 1/value);
-            auto lmod = dynamic_cast<const LoopModule*>(module);
-            if (lmod)
+            if (auto lmod = dynamic_cast<const LoopModule*>(module))
             {
                 if (lmod->isActivelyClocked())
                 {
@@ -2072,7 +2059,6 @@ namespace Sapphire
                     return "CLOCK x " + timeText + "\nRATE x " + freqText;
                 }
             }
-
             return timeText + " sec\n" + freqText + " Hz";
         }
 
@@ -2756,41 +2742,37 @@ namespace Sapphire
                     }
                 }
 
-                int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
-                {
-                    int count = 0;
-                    if (echoModule)
-                    {
-                        if (predicate(echoModule))
-                            ++count;
-
-                        Module* module = echoModule->rightExpander.module;
-                        while (IsEchoTap(module))
-                        {
-                            auto lmod = dynamic_cast<const LoopModule*>(module);
-                            if (lmod && predicate(lmod))
-                                ++count;
-
-                            module = module->rightExpander.module;
-                        }
-                    }
-                    return count;
-                }
-
                 void visitTaps(std::function<void(LoopModule* lmod)> visit)
                 {
                     if (echoModule)
                     {
                         visit(echoModule);
-                        Module* m = echoModule->rightExpander.module;
-                        while (IsEchoTap(m))
-                        {
+                        for (Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
                             if (auto lmod = dynamic_cast<LoopModule*>(m))
                                 visit(lmod);
-
-                            m = m->rightExpander.module;
-                        }
                     }
+                }
+
+                void visitTaps(std::function<void(const LoopModule* lmod)> visit) const
+                {
+                    if (echoModule)
+                    {
+                        visit(echoModule);
+                        for (Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
+                            if (auto lmod = dynamic_cast<const LoopModule*>(m))
+                                visit(lmod);
+                    }
+                }
+
+                int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
+                {
+                    int count = 0;
+                    visitTaps([&](const LoopModule* lmod)
+                    {
+                        if (lmod && predicate(lmod))
+                            ++count;
+                    });
+                    return count;
                 }
 
                 void toggleAllPolyphonicEnvelope()
