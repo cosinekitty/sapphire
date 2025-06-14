@@ -1481,7 +1481,7 @@ namespace Sapphire
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
 
-                addGraphWidget(lmod);
+                addGraphWidget();
             }
 
             void onRemove(const RemoveEvent& e) override
@@ -1532,13 +1532,13 @@ namespace Sapphire
                 );
             }
 
-            void addGraphWidget(LoopModule* lmod)
+            void addGraphWidget()
             {
                 ComponentLocation upperLeft  = FindComponent(modcode, "graph_upper_left");
                 ComponentLocation lowerRight = FindComponent(modcode, "graph_lower_right");
-                auto graph = new GraphWidget(lmod, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
-                if (lmod)
-                    lmod->graph = graph;
+                auto graph = new GraphWidget(loopModule, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
+                if (loopModule)
+                    loopModule->graph = graph;
                 addChild(graph);
             }
 
@@ -2915,11 +2915,8 @@ namespace Sapphire
         void ToggleAllPolyphonicEnvelopeAction::undo()
         {
             for (const PolyEnvelopeState& s : stateList)
-            {
-                LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId);
-                if (lmod)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
                     lmod->polyphonicEnvelopeOutput = s.state;
-            }
         }
 
         void ToggleAllPolyphonicEnvelopeAction::redo()
@@ -3326,9 +3323,8 @@ namespace Sapphire
                 void step() override
                 {
                     MultiTapWidget::step();
-                    SapphireModule* smod = getSapphireModule();
-                    if (smod)
-                        smod->hideLeftBorder = isConnectedOnLeft();
+                    if (echoOutModule)
+                        echoOutModule->hideLeftBorder = isConnectedOnLeft();
                 }
 
                 void draw(const DrawArgs& args) override
