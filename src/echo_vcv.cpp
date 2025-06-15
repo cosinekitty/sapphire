@@ -1431,8 +1431,10 @@ namespace Sapphire
             bool hilightInputRoutingButton = false;
             bool hilightRevFlipButton = false;
             bool hilightEnvDuckButton = false;
+            bool hilightRevGateTrigger = false;
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
+            SapphireTooltip* revGateTriggerTooltip = nullptr;
             SapphireTooltip* envDuckTooltip = nullptr;
             bool isMouseInsideRevFlipGateTriggerToggle = false;
 
@@ -1488,6 +1490,7 @@ namespace Sapphire
             {
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
+                destroyTooltip(revGateTriggerTooltip);
                 destroyTooltip(envDuckTooltip);
                 MultiTapWidget::onRemove(e);
             }
@@ -1648,6 +1651,7 @@ namespace Sapphire
                     loopModule->updateMuteSoloControls();
                     updateFlipReverse();
                     updateEnvDuck();
+                    updateRevGateTriggerTooltip(isMouseInsideRevFlipGateTriggerToggle);
                 }
             }
 
@@ -1748,12 +1752,23 @@ namespace Sapphire
                 updateTooltip(hilightEnvDuckButton, state, envDuckTooltip, "Toggle envelope follow/duck");
             }
 
+            void updateRevGateTriggerTooltip(bool state)
+            {
+                updateTooltip(hilightRevGateTrigger, state, revGateTriggerTooltip, "");
+                if (revGateTriggerTooltip)
+                {
+                    const bool trigger = loopModule && (loopModule->reverseToggleGroup.mode == ToggleGroupMode::Trigger);
+                    revGateTriggerTooltip->text = std::string("Input mode: ") + (trigger ? "trigger" : "gate");
+                }
+            }
+
             void onHover(const HoverEvent& e) override
             {
                 updateRoutingButton(isInsideInputRoutingButton(e.pos));
                 updateFlipRevButton(isInsideFlipRevButton(e.pos));
                 updateEnvDuckButton(isInsideEnvDuckButton(e.pos));
                 isMouseInsideRevFlipGateTriggerToggle = isInsideGateTriggerToggle(flpRevLabelPos, e.pos);
+                updateRevGateTriggerTooltip(isMouseInsideRevFlipGateTriggerToggle);
                 MultiTapWidget::onHover(e);
             }
 
@@ -2389,6 +2404,8 @@ namespace Sapphire
                 Vec freezeLabelPos;
                 ToggleGroupInputPort* freezeInputPortWidget{};
                 bool isMouseInsideFreezeGateTriggerToggle = false;
+                bool hilightFreezeTrigger = false;
+                SapphireTooltip* freezeGateTriggerTooltip = nullptr;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2442,6 +2459,7 @@ namespace Sapphire
                 void onRemove(const RemoveEvent& e) override
                 {
                     destroyTooltip(clockRateTooltip);
+                    destroyTooltip(freezeGateTriggerTooltip);
                     LoopWidget::onRemove(e);
                 }
 
@@ -2672,6 +2690,16 @@ namespace Sapphire
                     }
                 }
 
+                void updateFreezeGateTriggerTooltip()
+                {
+                    updateTooltip(hilightFreezeTrigger, isMouseInsideFreezeGateTriggerToggle, freezeGateTriggerTooltip, "");
+                    if (freezeGateTriggerTooltip)
+                    {
+                        bool trigger = echoModule && (echoModule->freezeToggleGroup.mode == ToggleGroupMode::Trigger);
+                        freezeGateTriggerTooltip->text = std::string("Input mode: ") + (trigger ? "trigger" : "gate");
+                    }
+                }
+
                 void step() override
                 {
                     LoopWidget::step();
@@ -2687,6 +2715,7 @@ namespace Sapphire
 
                         updateClockRateButton(isMouseInsideClockLabel);
                         updateFreezePortTooltip();
+                        updateFreezeGateTriggerTooltip();
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
