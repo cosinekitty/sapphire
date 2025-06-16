@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "plugin.hpp"
 #include "sapphire_panel.hpp"
 
 namespace Sapphire
@@ -27,10 +28,95 @@ namespace Sapphire
         return px * factor;
     }
 
+    inline Vec mm_to_px(const ComponentLocation& loc)
+    {
+        return Vec(mm2px(loc.cx), mm2px(loc.cy));
+    }
+
     inline bool OneShotCountdown(int& counter)
     {
         return (counter > 0) && (--counter == 0);
     }
+
+
+    struct BoolToggleAction : history::Action
+    {
+        bool& flag;
+
+        explicit BoolToggleAction(bool& _flag, const std::string& toggledThing)
+            : flag(_flag)
+        {
+            name = "toggle " + toggledThing;
+        }
+
+        void toggle()
+        {
+            flag = !flag;
+        }
+
+        void undo() override
+        {
+            toggle();
+        }
+
+        void redo() override
+        {
+            toggle();
+        }
+
+        static MenuItem* CreateMenuItem(
+            bool& flag,
+            const std::string& menuItemText,
+            const std::string& toggledThing
+        );
+
+        static void AddMenuItem(
+            Menu* menu,
+            bool& flag,
+            const std::string& menuItemText,
+            const std::string& toggledThing)
+        {
+            if (menu)
+                menu->addChild(CreateMenuItem(flag, menuItemText, toggledThing));
+        }
+    };
+
+
+    template <typename base_knob_t>
+    struct OutputLimiterKnob : base_knob_t, RemovalSubscriber
+    {
+        SapphireModule* sapphireModule{};
+        WarningLightWidget* warningLight{};
+
+        void appendContextMenu(Menu* menu) override
+        {
+            base_knob_t::appendContextMenu(menu);
+            if (sapphireModule)
+            {
+                menu->addChild(new MenuSeparator);
+                menu->addChild(sapphireModule->createLimiterWarningLightMenuItem());
+            }
+        }
+
+        void disconnect() override
+        {
+            sapphireModule = nullptr;
+            warningLight = nullptr;
+        }
+
+        void onRemove(const Widget::RemoveEvent& e) override
+        {
+            if (sapphireModule)
+                sapphireModule->unsubscribe(this);
+
+            base_knob_t::onRemove(e);
+        }
+    };
+
+
+    using OutputLimiterLargeKnob = OutputLimiterKnob<RoundLargeBlackKnob>;
+    using OutputLimiterSmallKnob = OutputLimiterKnob<RoundSmallBlackKnob>;
+
 
     struct SapphireAttenuverterKnob : Trimpot
     {
@@ -40,7 +126,21 @@ namespace Sapphire
         {
             Trimpot::appendContextMenu(menu);
             if (lowSensitivityMode)
-                menu->addChild(createBoolPtrMenuItem<bool>("Low sensitivity", "", lowSensitivityMode));
+            {
+                menu->addChild(createBoolMenuItem(
+                    "Low sensitivity",
+                    "",
+                    [=]() -> bool       // getter
+                    {
+                        return *lowSensitivityMode;
+                    },
+                    [=](bool state)     // setter
+                    {
+                        if (state != *lowSensitivityMode)
+                            InvokeAction(new BoolToggleAction(*lowSensitivityMode, "attenuverter sensitivity"));
+                    }
+                ));
+            }
         }
 
         bool isLowSensitive() const
@@ -232,6 +332,68 @@ namespace Sapphire
     };
 
 
+    using tiny_button_base_t = app::SvgSwitch;
+
+    struct SapphireTinyButton : tiny_button_base_t
+    {
+        bool chainButtonClicks = true;
+
+        virtual void action() {}
+        virtual void restartChrono() {}
+
+        void onButton(const ButtonEvent& e) override
+        {
+            if (module && e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
+            {
+                action();
+                restartChrono();
+            }
+
+            if (chainButtonClicks)
+                tiny_button_base_t::onButton(e);
+        }
+    };
+
+
+    struct SapphireTinyToggleButton : SapphireTinyButton
+    {
+        explicit SapphireTinyToggleButton()
+        {
+            momentary = false;
+        }
+    };
+
+
+    struct SapphireTinyActionButton : SapphireTinyButton
+    {
+        float blinkTimeSeconds = 0.02;
+        Stopwatch stopwatch;
+
+        explicit SapphireTinyActionButton()
+        {
+            momentary = true;
+        }
+
+        void step() override
+        {
+            SapphireTinyButton::step();
+
+            if (stopwatch.elapsedSeconds() >= blinkTimeSeconds)
+            {
+                stopwatch.reset();
+                if (ParamQuantity *quantity = getParamQuantity())
+                    if (quantity->getValue() > 0)
+                        quantity->setValue(0);
+            }
+        }
+
+        void restartChrono() override
+        {
+            stopwatch.restart();
+        }
+    };
+
+
     struct SplashState
     {
         bool active = false;
@@ -277,14 +439,14 @@ namespace Sapphire
     }
 
 
-    struct SapphireTooltip : ui::Tooltip
+    struct SapphireTooltip : Tooltip
     {
         bool isPositionLocked = false;
         Vec lockedPos{};
 
         void step() override
         {
-            ui::Tooltip::step();
+            Tooltip::step();
             if (isPositionLocked)
             {
                 box.pos = lockedPos;
@@ -324,16 +486,22 @@ namespace Sapphire
         }
 
         static void ToggleAllNeonBorders();
+        static void ToggleNeonBorder(SapphireModule* smod);
 
         void appendContextMenu(Menu* menu) override
         {
-            SapphireModule* sm = getSapphireModule();
-            if (sm)
+            if (SapphireModule* sm = getSapphireModule())
             {
                 menu->addChild(new MenuSeparator);
 
                 if (sm->includeNeonModeMenuItem)
-                    menu->addChild(createBoolPtrMenuItem<bool>("Neon borders (this module only)", "", &(sm->neonMode)));
+                {
+                    menu->addChild(createMenuItem(
+                        "Toggle neon borders (this module only)",
+                        "",
+                        [=]() { ToggleNeonBorder(sm); }
+                    ));
+                }
 
                 menu->addChild(createMenuItem(
                     "Toggle neon borders in all Sapphire modules",
@@ -343,6 +511,8 @@ namespace Sapphire
 
                 if (sm->dcRejectQuantity)
                     menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
+
+                sm->addLimiterMenuItems(menu);
             }
         }
 
@@ -412,6 +582,34 @@ namespace Sapphire
         knob_t *addSmallKnob(int paramId, const std::string& label)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, paramId);
+            addSapphireParam(knob, label);
+            return knob;
+        }
+
+        template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
+        void installWarningLight(knob_t* knob)
+        {
+            if (SapphireModule* smod = getSapphireModule())
+            {
+                knob->sapphireModule = smod;
+                smod->subscribe(knob);
+
+                // Superimpose a warning light on the output level knob.
+                // We turn the warning light on when the limiter is distoring the output.
+                auto w = new WarningLightWidget(smod);
+                w->box.pos = Vec{};
+                w->box.size = knob->box.size;
+
+                knob->warningLight = w;
+                knob->addChild(w);
+            }
+        }
+
+        template <typename knob_t>      // knob_t = OutputLimiterLargeKnob, OutputLimiterSmallKnob
+        knob_t *addOutputLimiterKnob(int paramId, const std::string& label)
+        {
+            knob_t* knob = createParamCentered<knob_t>(Vec{}, module, paramId);
+            installWarningLight(knob);
             addSapphireParam(knob, label);
             return knob;
         }
@@ -491,8 +689,16 @@ namespace Sapphire
             return knob;
         }
 
+        template <typename knob_t = OutputLimiterSmallKnob>
+        knob_t* addSapphireFlatControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        {
+            knob_t* knob = addSapphireFlatControlGroup<knob_t>(prefix, knobId, attenId, cvInputId);
+            installWarningLight(knob);
+            return knob;
+        }
+
         template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
-        void addToggleGroup(
+        input_port_t* addToggleGroup(
             ToggleGroup* group,
             const std::string& prefix,
             int inputId,
@@ -512,6 +718,7 @@ namespace Sapphire
             addSapphireParam(button, prefix + "_button");
             input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
             port->group = group;
+            return port;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)
@@ -596,7 +803,6 @@ namespace Sapphire
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
-    ModuleWidget* FindWidgetForId(int64_t moduleId);
 
     struct PanelState
     {

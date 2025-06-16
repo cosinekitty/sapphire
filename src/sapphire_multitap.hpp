@@ -58,6 +58,16 @@ namespace Sapphire
         };
 
 
+        enum class TimeMode
+        {
+            Seconds,
+            ClockSync,
+            LEN,
+
+            Default = Seconds,
+        };
+
+
         struct Frame
         {
             int nchannels = 0;
@@ -393,6 +403,7 @@ namespace Sapphire
             LEN
         };
 
+
         class SendReturnLocationSmoother : public EnumSmoother<SendReturnLocation>
         {
         public:
@@ -404,7 +415,65 @@ namespace Sapphire
 
         struct EnvelopeOutputPort : SapphirePort
         {
-            void appendContextMenu(ui::Menu* menu) override;
+            void appendContextMenu(Menu* menu) override;
+        };
+
+
+        struct ClockSyncState
+        {
+            int64_t moduleId{};
+            TimeMode oldTimeMode{};
+
+            explicit ClockSyncState(int64_t _moduleId, TimeMode _oldTimeMode)
+                : moduleId(_moduleId)
+                , oldTimeMode(_oldTimeMode)
+                {}
+        };
+
+
+        struct ToggleAllClockSyncAction : history::Action
+        {
+            std::vector<ClockSyncState> stateList;
+            TimeMode newTimeMode{};
+
+            explicit ToggleAllClockSyncAction(TimeMode _newTimeMode)
+                : newTimeMode(_newTimeMode)
+            {
+                name = "toggle all clock sync";
+            }
+
+            void undo() override;
+            void redo() override;
+        };
+
+
+        struct PolyEnvelopeState
+        {
+            const int64_t moduleId;
+            const bool state;
+
+            explicit PolyEnvelopeState(int64_t _moduleId, bool _state)
+                : moduleId(_moduleId)
+                , state(_state)
+                {}
+        };
+
+
+        struct ToggleAllPolyphonicEnvelopeAction : history::Action
+        {
+            const int64_t moduleId;
+            const bool newState;
+            std::vector<PolyEnvelopeState> stateList;
+
+            explicit ToggleAllPolyphonicEnvelopeAction(int64_t _moduleId, bool _newState)
+                : moduleId(_moduleId)
+                , newState(_newState)
+            {
+                name = "toggle poly/mono on all envelope outputs";
+            }
+
+            void undo() override;
+            void redo() override;
         };
     }
 }

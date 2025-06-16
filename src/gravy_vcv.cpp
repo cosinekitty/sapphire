@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_smoother.hpp"
 #include "gravy_engine.hpp"
 
 // Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
@@ -54,9 +55,9 @@ namespace Sapphire
         struct GravyModule : SapphireModule
         {
             gravy_engine_t engine;
-            AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agc;
             bool enableAgc = false;
+            EnumSmoother<FilterMode> smoother{FilterMode::Default, "", 0.01};
 
             GravyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -66,7 +67,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_LEFT_INPUT,  "Audio left");
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
@@ -89,15 +90,15 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
             void initialize()
             {
                 engine.initialize();
-                agcLevelQuantity->initialize();
                 reflectAgcSlider();
+                smoother.initialize();
             }
 
             bool getAgcEnabled() const { return enableAgc; }
@@ -121,24 +122,6 @@ namespace Sapphire
             FilterMode getFilterMode()
             {
                 return static_cast<FilterMode>(params.at(FILTER_MODE_PARAM).getValue());
-            }
-
-            json_t* dataToJson() override
-            {
-                json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
-                agcLevelQuantity->save(root, "agcLevel");
-                return root;
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                SapphireModule::dataFromJson(root);
-
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void reflectAgcSlider()
@@ -172,9 +155,11 @@ namespace Sapphire
                     float resKnob   = getControlValue(RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                     float mixKnob   = getControlValue(MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                     float gainKnob  = getControlValue(GAIN_PARAM,  GAIN_ATTEN,  GAIN_CV_INPUT );
-                    FilterMode mode = getFilterMode();
 
-                    engine.setFilterMode(mode);
+                    smoother.targetValue = getFilterMode();
+                    float smooth = smoother.process(args.sampleRate);
+
+                    engine.setFilterMode(smoother.currentValue);
                     engine.setFrequency(freqKnob);
                     engine.setResonance(resKnob);
                     engine.setMix(mixKnob);
@@ -184,6 +169,8 @@ namespace Sapphire
                     loadStereoInputs(input[0], input[1], AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
                     engine.process(args.sampleRate, 2, input, output);
+                    output[0] *= smooth;
+                    output[1] *= smooth;
 
                     if (enableAgc)
                         agc.process(args.sampleRate, output[0], output[1]);
@@ -200,7 +187,6 @@ namespace Sapphire
         struct GravyWidget : SapphireWidget
         {
             GravyModule* gravyModule{};
-            WarningLightWidget* warningLight{};
 
             explicit GravyWidget(GravyModule* module)
                 : SapphireWidget("gravy", asset::plugin(pluginInstance, "res/gravy.svg"))
@@ -217,15 +203,12 @@ namespace Sapphire
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                auto gainKnob = addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                addSapphireFlatControlGroupWithWarningLight("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
 
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = gainKnob->box.size;
-                gainKnob->addChild(warningLight);
-
-                CKSSThreeHorizontal* modeSwitch = createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM);
-                addSapphireParam(modeSwitch, "mode_switch");
+                addSapphireParam(
+                    createParamCentered<CKSSThreeHorizontal>(Vec{}, module, FILTER_MODE_PARAM),
+                    "mode_switch"
+                );
 
                 loadInputStereoLabels();
                 loadOutputStereoLabels();
@@ -234,15 +217,13 @@ namespace Sapphire
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (gravyModule == nullptr)
-                    return;
-
-                menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(gravyModule->createStereoSplitterMenuItem());
-                menu->addChild(gravyModule->createStereoMergeMenuItem());
-                menu->addChild(new MenuSeparator);
-                menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
-                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));
+                if (gravyModule)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
+                    menu->addChild(gravyModule->createStereoSplitterMenuItem());
+                    menu->addChild(gravyModule->createStereoMergeMenuItem());
+                }
             }
         };
     }

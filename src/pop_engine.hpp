@@ -22,6 +22,9 @@ namespace Sapphire
         {
             Trigger,
             Gate,
+            LEN,
+
+            Default = Trigger
         };
 
         class Engine

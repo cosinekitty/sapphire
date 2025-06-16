@@ -5,21 +5,96 @@ namespace Sapphire
 {
     std::vector<SapphireModule*> SapphireModule::All;
 
+    struct NeonBorderState
+    {
+        int64_t sapphireModuleId{};
+        bool neonMode{};
+
+        explicit NeonBorderState(int64_t moduleId, bool neon)
+            : sapphireModuleId(moduleId)
+            , neonMode(neon)
+            {}
+    };
+
+    struct ToggleAllNeonBordersAction : history::Action
+    {
+        std::vector<NeonBorderState> stateList;     // what each neon mode used to be, per module
+        bool neon{};    // what we changed all the modules' neon modes to
+
+        explicit ToggleAllNeonBordersAction()
+        {
+            name = "toggle neon borders in all Sapphire modules";
+        }
+
+        void append(const SapphireModule* smod)
+        {
+            if (smod)
+                stateList.push_back(NeonBorderState(smod->id, smod->neonMode));
+        }
+
+        void undo() override
+        {
+            for (const NeonBorderState& state : stateList)
+                if (SapphireModule* smod = FindSapphireModule(state.sapphireModuleId))
+                    smod->neonMode = state.neonMode;
+        }
+
+        void redo() override
+        {
+            for (const NeonBorderState& state : stateList)
+                if (SapphireModule* smod = FindSapphireModule(state.sapphireModuleId))
+                    smod->neonMode = neon;
+        }
+    };
+
     void SapphireWidget::ToggleAllNeonBorders()
     {
+        auto action = new ToggleAllNeonBordersAction;
+
         // Vote: how many modules have neon mode enabled, and how many disabled?
         int brightCount = 0;
         int darkCount = 0;
         for (const SapphireModule* smod : SapphireModule::All)
-            smod->neonMode ? ++brightCount : ++darkCount;
-
-        if (brightCount + darkCount > 0)
         {
-            // If more than half are enabled, turn all off.
-            // Otherwise turn all on.
-            const bool neon = (2*brightCount <= darkCount);
-            for (SapphireModule* smod : SapphireModule::All)
-                smod->neonMode = neon;
+            action->append(smod);
+            smod->neonMode ? ++brightCount : ++darkCount;
+        }
+
+        // If more than half are enabled, turn all off. Otherwise turn all on.
+        action->neon = (2*brightCount <= darkCount);
+        action->redo();
+        APP->history->push(action);
+    }
+
+
+    struct ToggleNeonBorderAction : history::Action
+    {
+        int64_t moduleId{};
+
+        explicit ToggleNeonBorderAction(int64_t id)
+            : moduleId(id)
+        {
+            name = "toggle neon border";
+        }
+
+        void toggle()
+        {
+            if (SapphireModule* smod = FindSapphireModule(moduleId))
+                smod->neonMode = !smod->neonMode;
+        }
+
+        void undo() override { toggle(); }
+        void redo() override { toggle(); }
+    };
+
+
+    void SapphireWidget::ToggleNeonBorder(SapphireModule *smod)
+    {
+        if (smod)
+        {
+            auto action = new ToggleNeonBorderAction(smod->id);
+            action->redo();
+            APP->history->push(action);
         }
     }
 
@@ -152,6 +227,14 @@ namespace Sapphire
             if (mw && mw->module && mw->module->id == moduleId)
                 return mw;
         }
+        return nullptr;
+    }
+
+
+    Module* FindModuleForId(int64_t moduleId)
+    {
+        if (ModuleWidget *wid = FindWidgetForId(moduleId))
+            return wid->module;
         return nullptr;
     }
 
@@ -311,5 +394,202 @@ namespace Sapphire
                 destroyTooltip(tooltip);
             flag = state;
         }
+    }
+
+    ToggleAllSensitivityAction::ToggleAllSensitivityAction(SapphireModule* sapphireModule)
+    {
+        name = "toggle sensitivity of all attenuverters";
+        if (sapphireModule)
+        {
+            moduleId = sapphireModule->id;
+
+            const int nparams = static_cast<int>(sapphireModule->paramInfo.size());
+            for (int paramId = 0; paramId < nparams; ++paramId)
+            {
+                if (sapphireModule->isAttenuverter(paramId))
+                {
+                    prevStateList.push_back(SensitivityState(
+                        paramId,
+                        sapphireModule->isLowSensitive(paramId)
+                    ));
+                }
+            }
+        }
+    }
+
+    void ToggleAllSensitivityAction::redo()
+    {
+        if (SapphireModule* sapphireModule = FindSapphireModule(moduleId))
+        {
+            // Find all attenuverter knobs and toggle their low-sensitivity state together.
+            const int nparams = static_cast<int>(sapphireModule->paramInfo.size());
+            int countEnabled = 0;
+            int countDisabled = 0;
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (sapphireModule->isAttenuverter(paramId))
+                    sapphireModule->isLowSensitive(paramId) ? ++countEnabled : ++countDisabled;
+
+            // Let the knobs "vote". If a supermajority are enabled,
+            // then we turn them all off.
+            // Otherwise we turn them all on.
+            const bool toggle = (countEnabled <= countDisabled);
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (sapphireModule->isAttenuverter(paramId))
+                    sapphireModule->setLowSensitive(paramId, toggle);
+        }
+    }
+
+    void ToggleAllSensitivityAction::undo()
+    {
+        if (SapphireModule* sapphireModule = FindSapphireModule(moduleId))
+            for (const SensitivityState& s : prevStateList)
+                sapphireModule->setLowSensitive(s.paramId, s.lowSensitivity);
+    }
+
+    MenuItem* SapphireModule::createLimiterWarningLightMenuItem()
+    {
+        return createBoolMenuItem(
+            "Limiter warning light",
+            "",
+            [=]()
+            {
+                return enableLimiterWarning;
+            },
+            [=](bool value)
+            {
+                if (value != enableLimiterWarning)
+                    InvokeAction(new BoolToggleAction(enableLimiterWarning, "limiter warning light"));
+            }
+        );
+    }
+
+    void SapphireModule::addLimiterMenuItems(Menu* menu)
+    {
+        if (agcLevelQuantity)
+        {
+            menu->addChild(new SapphireSlider(agcLevelQuantity, "adjust output limiter voltage"));
+            menu->addChild(createLimiterWarningLightMenuItem());
+        }
+    }
+
+
+    MenuItem* BoolToggleAction::CreateMenuItem(
+        bool& flag,
+        const std::string& menuItemText,
+        const std::string& toggledThing)
+    {
+        return createBoolMenuItem(
+            menuItemText,
+            "",
+            [&flag]()
+            {
+                return flag;
+            },
+            [&flag, toggledThing](bool value)
+            {
+                if (value != flag)
+                    InvokeAction(new BoolToggleAction(flag, toggledThing));
+            }
+        );
+    }
+
+
+    void SapphireModule::onAdd(const AddEvent& e)
+    {
+        Module::onAdd(e);
+
+        if (std::find(All.begin(), All.end(), this) == All.end())
+            All.push_back(this);
+    }
+
+
+
+    void SapphireModule::onRemove(const RemoveEvent& e)
+    {
+        // We keep a list of all active Sapphire modules.
+        // This is needed for "toggle neon mode in all Sapphire modules".
+        // Remove this module from the list.
+        All.erase(std::remove(All.begin(), All.end(), this), All.end());
+
+        // Give any other Sapphire modules, widgets, controls, etc.,
+        // a chance to find out that the module they are pointing
+        // to is about to be destroyed. This is their chance to sever
+        // links to soon-to-be-invalid memory.
+
+        for (RemovalSubscriber* s : removalSubscriberList)
+            s->disconnect();
+
+        removalSubscriberList.clear();
+
+        Module::onRemove(e);
+    }
+
+
+    void SapphireModule::subscribe(RemovalSubscriber* subscriber)
+    {
+        if (subscriber)
+        {
+            // *** MEMORY SAFETY ***
+            // The subscriber wants its address to be remembered by this module.
+            // Later, when this SapphireModule is being removed, onRemove() will
+            // call subscriber->disconnect() to sever any connection with this
+            // module's memory, and vice versa.
+
+            auto existing = std::find(
+                removalSubscriberList.begin(),
+                removalSubscriberList.end(),
+                subscriber
+            );
+
+            if (existing == removalSubscriberList.end())
+                removalSubscriberList.push_back(subscriber);
+        }
+    }
+
+
+    void SapphireModule::unsubscribe(RemovalSubscriber* subscriber)
+    {
+        if (subscriber)
+        {
+            // *** MEMORY SAFETY ***
+            // Unsubscribing means `subscriber` is telling us it is about to be destroyed.
+            // Go ahead and disconnect the subscriber now,
+            // since we won't be able to do it later.
+            subscriber->disconnect();
+
+            // Delete this subscriber pointer from the list,
+            // because the memory it points to is about to be freed.
+            removalSubscriberList.erase(
+                std::remove(removalSubscriberList.begin(), removalSubscriberList.end(), subscriber),
+                removalSubscriberList.end()
+            );
+        }
+    }
+
+
+    MenuItem* SapphireModule::createStereoSplitterMenuItem()
+    {
+        return BoolToggleAction::CreateMenuItem(
+            enableStereoSplitter,
+            "Enable input stereo splitter",
+            "input stereo splitter"
+        );
+    }
+
+    MenuItem* SapphireModule::createStereoMergeMenuItem()
+    {
+        return BoolToggleAction::CreateMenuItem(
+            enableStereoMerge,
+            "Send polyphonic stereo to L output",
+            "polyphonic output"
+        );
+    }
+
+
+    void SliderAction::setParameterValue(float value)
+    {
+        if (SapphireModule* module = FindSapphireModule(moduleId))
+            if (ParamQuantity* qty = module->getParamQuantity(paramId))
+                qty->setValue(value);
     }
 }

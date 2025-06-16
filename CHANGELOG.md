@@ -9,11 +9,33 @@
 </tr>
 
 <tr valign="top">
-<td align="center">6 Jun 2025</td>
+<td align="center">15 Jun 2025</td>
+<td align="center">2.6.000</td>
+<td align="left">
+    <ul>
+        <li>Now you can undo/redo more actions across Sapphire modules. The goal is to support undo/redo for any module state that is saved/loaded with a patch.</li>
+        <li>Now when a Sapphire module is initialized, any low-sensitivity attenuverters are reset to normal sensitivity.</li>
+        <li><a href="doc/Gravy.md">Gravy</a> no longer makes a click/pop sound when you press the 3-way band mode switch (LP, BP, HP). Gravy now uses a smooth ramp over 50&nbsp;ms to fade out one mode, switches modes, then fades in the new mode for 50&nbsp;ms.</li>
+        <li><a href="doc/Pop.md">Pop</a> has two new buttons:
+            <ul>
+                <li>Pulse mode: triggers/gates.</li>
+                <li>Sync polyphonic channels.</li>
+            </ul>
+        </li>
+        <li>Sapphire modules that include output limiters (Elastika, Nucleus, Polynucleus, Sauce, Gravy) have an option in the main menu to enable/disable the warning light. Now, that option also appears in the right-click menu for the output level knob itself.</li>
+        <li>Bug fix in <a href="doc/Echo.md">Echo</a>: when you redo creating an Echo module, it no longer automatically creates the Echo Out, because creating Echo Out is already in the future list of redo-able actions. Before this fix, automatically creating Echo Out destroyed the future actions. Now you can just manually redo the creation of Echo Out that was automatic the first time, and keep on redoing future actions.</li>
+        <li>In Echo, the FRZ and REV/FLP controls now display a gate or trigger symbol to tell you which signal format you have selected for the input port. You can click on the symbol to toggle gate/trigger input mode.</li>
+        <li>In Moots, now you can click on the GATE/TRIGGER label to toggle gate/trigger mode.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
+<td align="center">3 Jun 2025</td>
 <td align="center">2.5.9</td>
 <td align="left">
     <ul>
-        <li>Added a module: <a href="doc/Echo.md">Echo</a>.</li>
+        <li>Added a module: <a href="doc/Echo.md">Echo</a>: a polyphonic multi-stage delay looper.</li>
         <li>Chaops did not reset the FREEZE button on initialize. This has been fixed.</li>
         <li>Fixed minor polyphony bug in Env: the number of channels in the GAIN control's CV input did not affect the number of output channels.</li>
         <li>Gravy and Sauce had lowercase hover-text for their control groups, e.g. "resonance CV input". Now they follow the VCV Rack guidelines, e.g. "Resonance CV input".</li>

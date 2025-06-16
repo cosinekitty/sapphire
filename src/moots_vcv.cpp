@@ -58,6 +58,7 @@ namespace Sapphire
         {
             Gate,
             Trigger,
+            LEN
         };
 
         struct MootsModule : SapphireModule
@@ -116,7 +117,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
@@ -281,8 +282,42 @@ namespace Sapphire
             }
         };
 
-        using base_button_t = VCVLightBezelLatch<>;
+        struct ToggleAntiClickAction : history::Action
+        {
+            const int64_t moduleId;
+            const int buttonIndex;
+            const bool newValue;
 
+            explicit ToggleAntiClickAction(const MootsModule* mootsModule, int _buttonIndex)
+                : moduleId(mootsModule->id)
+                , buttonIndex(_buttonIndex)
+                , newValue(!mootsModule->getRampingOption(_buttonIndex))
+            {
+                name = (
+                    std::string(newValue ? "enable" : "disable") +
+                    std::string(" anti-click ramping for Moots button #") +
+                    std::to_string(buttonIndex + 1)
+                );
+            }
+
+            void setRampingOption(bool state)
+            {
+                if (MootsModule* mootsModule = FindSapphireModule<MootsModule>(moduleId))
+                    mootsModule->setRampingOption(buttonIndex, state);
+            }
+
+            void redo() override
+            {
+                setRampingOption(newValue);
+            }
+
+            void undo() override
+            {
+                setRampingOption(!newValue);
+            }
+        };
+
+        using base_button_t = VCVLightBezelLatch<>;
         struct MootsButtonWidget : base_button_t
         {
             MootsModule* module = nullptr;
@@ -305,7 +340,8 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        module->setRampingOption(buttonIndex, state);
+                        if (module->getRampingOption(buttonIndex) != state)
+                            InvokeAction(new ToggleAntiClickAction(module, buttonIndex));
                     }
                 ));
             }
@@ -340,11 +376,57 @@ namespace Sapphire
         };
 
 
+        struct ControlModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const ControlMode oldMode;
+            const ControlMode newMode;
+
+            explicit ControlModeAction(const MootsModule* mootsModule, ControlMode _newMode)
+                : moduleId(mootsModule->id)
+                , oldMode(mootsModule->controlMode)
+                , newMode(_newMode)
+            {
+                switch (newMode)
+                {
+                case ControlMode::Gate:
+                default:
+                    name = "use gates for Moots control input";
+                    break;
+
+                case ControlMode::Trigger:
+                    name = "use triggers for Moots control input";
+                    break;
+                }
+            }
+
+            void setControlMode(ControlMode mode)
+            {
+                if (MootsModule* mootsModule = FindSapphireModule<MootsModule>(moduleId))
+                    mootsModule->controlMode = mode;
+            }
+
+            void redo() override
+            {
+                setControlMode(newMode);
+            }
+
+            void undo() override
+            {
+                setControlMode(oldMode);
+            }
+        };
+
+
         struct MootsWidget : SapphireWidget
         {
             MootsModule* mootsModule = nullptr;
             SvgOverlay* gateLabel = nullptr;
             SvgOverlay* triggerLabel = nullptr;
+            const Vec gateTriggerLabelPos = mm_to_px(FindComponent("moots", "gate_trigger_label"));
+            SapphireTooltip* gateTriggerTooltip = nullptr;
+            bool insideLabel = false;
+            bool hilightLabel = false;
 
             explicit MootsWidget(MootsModule* module)
                 : SapphireWidget("moots", asset::plugin(pluginInstance, "res/moots.svg"))
@@ -384,6 +466,12 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
             }
 
+            void onRemove(const RemoveEvent& e) override
+            {
+                destroyTooltip(gateTriggerTooltip);
+                SapphireWidget::onRemove(e);
+            }
+
             void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)
             {
                 MootsButtonWidget* button = createLightParamCentered<MootsButtonWidget>(
@@ -416,7 +504,9 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        mootsModule->controlMode = state ? ControlMode::Trigger : ControlMode::Gate;
+                        const ControlMode newMode = state ? ControlMode::Trigger : ControlMode::Gate;
+                        if (newMode != mootsModule->controlMode)
+                            InvokeAction(new ControlModeAction(mootsModule, newMode));
                     }
                 ));
 
@@ -425,18 +515,19 @@ namespace Sapphire
 
                 menu->addChild(new MenuSeparator);
 
-                for (int i = 0; i < MootsModule::NUM_CONTROLLERS; ++i)
+                for (int buttonIndex = 0; buttonIndex < MootsModule::NUM_CONTROLLERS; ++buttonIndex)
                 {
                     menu->addChild(createBoolMenuItem(
-                        "Anti-click ramping on #" + std::to_string(i+1),
+                        "Anti-click ramping on #" + std::to_string(buttonIndex+1),
                         "",
                         [=]()
                         {
-                            return mootsModule->getRampingOption(i);
+                            return mootsModule->getRampingOption(buttonIndex);
                         },
                         [=](bool state)
                         {
-                            mootsModule->setRampingOption(i, state);
+                            if (state != mootsModule->getRampingOption(buttonIndex))
+                                InvokeAction(new ToggleAntiClickAction(mootsModule, buttonIndex));
                         }
                     ));
                 }
@@ -453,8 +544,57 @@ namespace Sapphire
                         gateLabel->setVisible(showGate);
                         triggerLabel->setVisible(!showGate);
                     }
+
+                    updateTooltip(hilightLabel, insideLabel, gateTriggerTooltip, "Toggle gate/trigger");
                 }
                 ModuleWidget::step();
+            }
+
+            bool isMouseInsideGateTriggerToggle(Vec pos) const
+            {
+                const float w = mm2px(12.0);
+                const float h = mm2px(3.0);
+                const float dx = std::abs(pos.x - gateTriggerLabelPos.x);
+                const float dy = std::abs(pos.y - gateTriggerLabelPos.y);
+                return std::abs(dx) <= w/2 && std::abs(dy) <= h/2;
+            }
+
+            void onMousePress(const ButtonEvent& e)
+            {
+                if (mootsModule)
+                {
+                    if (isMouseInsideGateTriggerToggle(e.pos))
+                    {
+                        const ControlMode newMode = NextEnumValue(mootsModule->controlMode);
+                        InvokeAction(new ControlModeAction(mootsModule, newMode));
+                    }
+                }
+            }
+
+            void onHover(const HoverEvent& e) override
+            {
+                SapphireWidget::onHover(e);
+                insideLabel = isMouseInsideGateTriggerToggle(e.pos);
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                SapphireWidget::onLeave(e);
+                insideLabel = false;
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    switch (e.action)
+                    {
+                    case GLFW_PRESS:
+                        onMousePress(e);
+                        break;
+                    }
+                }
+                SapphireWidget::onButton(e);
             }
         };
     }

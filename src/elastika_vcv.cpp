@@ -115,7 +115,6 @@ namespace Sapphire
         struct ElastikaModule : SapphireModule
         {
             ElastikaEngine engine;
-            AgcLevelQuantity *agcLevelQuantity{};
             Slewer slewer;
             bool isPowerGateActive = true;
             bool isQuiet = false;
@@ -150,7 +149,7 @@ namespace Sapphire
                 configParam(OUTPUT_TILT_ATTEN_PARAM, -1, 1, 0, "Output tilt angle attenuverter", "%", 0, 100);
 
                 addDcRejectQuantity(DC_REJECT_PARAM, 20);
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto driveKnob = configParam(DRIVE_KNOB_PARAM, 0, 2, 1, "Input drive", " dB", -10, 80);
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
@@ -187,15 +186,12 @@ namespace Sapphire
 
             void initialize()
             {
-                agcLevelQuantity->initialize();
-                dcRejectQuantity->initialize();
                 engine.initialize();
                 reflectAgcSlider();
                 isPowerGateActive = true;
                 isQuiet = false;
                 slewer.enable(true);
                 params.at(POWER_TOGGLE_PARAM).setValue(1.0f);
-                enableLimiterWarning = true;
                 outputVectorSelectRight = false;
                 hamburger.initialize();
                 modelRateChooser.initialize();
@@ -208,16 +204,14 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "outputVectorSelectRight", json_integer(outputVectorSelectRight ? 1 : 0));
-                agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
 
@@ -227,15 +221,9 @@ namespace Sapphire
 
                 modelRateChooser.loadOrRevertToDefault(modelSampleRate);
 
-                // If the JSON is damaged, default to enabling the warning light.
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
                 // Which stereo output (left, right) do we use for sending a vector to Tricorder?
                 json_t *selectFlag = json_object_get(root, "outputVectorSelectRight");
                 outputVectorSelectRight = (0 != json_integer_value(selectFlag));
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -384,13 +372,11 @@ namespace Sapphire
             }
         };
 
-
         using SliderType = VCVLightSlider<YellowLight>;
 
         struct ElastikaWidget : SapphireWidget
         {
             ElastikaModule *elastikaModule;
-            WarningLightWidget *warningLight = nullptr;
 
             explicit ElastikaWidget(ElastikaModule* module)
                 : SapphireWidget("elastika", asset::plugin(pluginInstance, "res/elastika.svg"))
@@ -424,14 +410,7 @@ namespace Sapphire
 
                 // Drive and Level knobs
                 addKnob(DRIVE_KNOB_PARAM, "drive_knob");
-                RoundLargeBlackKnob *levelKnob = addKnob(LEVEL_KNOB_PARAM, "level_knob");
-
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when the limiter is distoring the output.
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");
 
                 // Tilt angle knobs
                 addKnob(INPUT_TILT_KNOB_PARAM, "input_tilt_knob");
@@ -471,17 +450,12 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (elastikaModule)
                 {
-                    if (elastikaModule->agcLevelQuantity)
-                    {
-                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(elastikaModule->agcLevelQuantity));
-
-                        // Add an option to enable/disable the warning light on the OUTPUT level knob.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &elastikaModule->enableLimiterWarning));
-                    }
-
-                    // Add an option to select left/right output ball as the vector to send to Tricorder.
-                    menu->addChild(createBoolPtrMenuItem<bool>("Send right output as vector to Tricorder", "", &elastikaModule->outputVectorSelectRight));
+                    BoolToggleAction::AddMenuItem(
+                        menu,
+                        elastikaModule->outputVectorSelectRight,
+                        "Send right output as vector to Tricorder",
+                        "left/right vector for Tricorder"
+                    );
 
                     // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
                     menu->addChild(elastikaModule->createToggleAllSensitivityMenuItem());

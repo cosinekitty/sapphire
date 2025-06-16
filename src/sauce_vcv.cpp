@@ -51,7 +51,6 @@ namespace Sapphire
         struct SauceModule : SapphireModule
         {
             Gravy::SingleChannelGravyEngine<float> engine[PORT_MAX_CHANNELS];
-            AgcLevelQuantity *agcLevelQuantity{};
             AutomaticGainLimiter agcLow;
             AutomaticGainLimiter agcBand;
             AutomaticGainLimiter agcHigh;
@@ -67,7 +66,7 @@ namespace Sapphire
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM, 5, 50.5, 50, 50.5, 51.0);
 
                 configInput(AUDIO_INPUT, "Audio");
                 configOutput(AUDIO_LOWPASS_OUTPUT,  "Lowpass");
@@ -88,7 +87,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
@@ -96,7 +95,6 @@ namespace Sapphire
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     engine[c].initialize();
-                agcLevelQuantity->initialize();
                 reflectAgcSlider();
             }
 
@@ -135,24 +133,6 @@ namespace Sapphire
                     follower = std::max(follower, agcHigh.getFollower());
 
                 return follower - 1.0;
-            }
-
-            json_t* dataToJson() override
-            {
-                json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
-                agcLevelQuantity->save(root, "agcLevel");
-                return root;
-            }
-
-            void dataFromJson(json_t* root) override
-            {
-                SapphireModule::dataFromJson(root);
-
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void reflectAgcSlider()
@@ -260,12 +240,11 @@ namespace Sapphire
 
         struct SauceWidget : SapphireWidget
         {
-            SauceModule* gravyModule{};
-            WarningLightWidget* warningLight{};
+            SauceModule* sauceModule{};
 
             explicit SauceWidget(SauceModule* module)
                 : SapphireWidget("sauce", asset::plugin(pluginInstance, "res/sauce.svg"))
-                , gravyModule(module)
+                , sauceModule(module)
             {
                 setModule(module);
 
@@ -277,24 +256,16 @@ namespace Sapphire
                 addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
-                auto gainKnob = addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = gainKnob->box.size;
-                gainKnob->addChild(warningLight);
+                addSapphireFlatControlGroupWithWarningLight("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-
-                if (gravyModule == nullptr)
-                    return;
-
-                menu->addChild(gravyModule->createToggleAllSensitivityMenuItem());
-                menu->addChild(new AgcLevelSlider(gravyModule->agcLevelQuantity));
-                menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &gravyModule->enableLimiterWarning));
+                if (sauceModule)
+                {
+                    menu->addChild(sauceModule->createToggleAllSensitivityMenuItem());
+                }
             }
         };
     }

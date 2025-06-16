@@ -101,7 +101,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
@@ -222,6 +222,39 @@ namespace Sapphire
 
 
         template <typename module_t>
+        struct ChaosModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const int oldMode;
+            const int newMode;
+
+            explicit ChaosModeAction(const module_t* _chaosModule, int _newMode)
+                : moduleId(_chaosModule->id)
+                , oldMode(_chaosModule->circuit.getMode())
+                , newMode(_newMode)
+            {
+                name = "change chaos mode";
+            }
+
+            void setChaosMode(int mode)
+            {
+                if (module_t* chaosModule = FindSapphireModule<module_t>(moduleId))
+                    chaosModule->circuit.setMode(mode);
+            }
+
+            void undo() override
+            {
+                setChaosMode(oldMode);
+            }
+
+            void redo() override
+            {
+                setChaosMode(newMode);
+            }
+        };
+
+
+        template <typename module_t>
         inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule, bool separator)
         {
             if (menu == nullptr)
@@ -246,7 +279,12 @@ namespace Sapphire
                     "Chaos mode",
                     labels,
                     [=]() { return chaosModule->circuit.getMode(); },
-                    [=](size_t mode) { chaosModule->circuit.setMode(mode); }
+                    [=](size_t state)
+                    {
+                        int chaosMode = static_cast<int>(state);
+                        if (chaosModule->circuit.getMode() != chaosMode)
+                            InvokeAction(new ChaosModeAction(chaosModule, chaosMode));
+                    }
                 ));
             }
         }
@@ -280,13 +318,20 @@ namespace Sapphire
 
 
         template <typename module_t>
-        inline ui::MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
+        inline MenuItem* CreateTurboModeMenuItem(module_t* chaosModule)
         {
             return createBoolMenuItem(
                 "Turbo mode: +5 speed",
                 "",
-                [=]() { return chaosModule->turboMode; },
-                [=](bool state) { chaosModule->turboMode = state; }
+                [=]()
+                {
+                    return chaosModule->turboMode;
+                },
+                [=](bool state)
+                {
+                    if (chaosModule->turboMode != state)
+                        InvokeAction(new BoolToggleAction(chaosModule->turboMode, "turbo mode"));
+                }
             );
         }
 
@@ -312,29 +357,66 @@ namespace Sapphire
         };
 
 
+        struct SnapVoctAction : history::Action
+        {
+            Param* atten{};
+            SapphireAttenuverterKnob* knob{};
+            const bool prevLowSensitive;
+            const float prevAttenValue;
+
+            explicit SnapVoctAction(Param* _atten, SapphireAttenuverterKnob* _knob)
+                : atten(_atten)
+                , knob(_knob)
+                , prevLowSensitive(_knob && _knob->isLowSensitive())
+                , prevAttenValue(_atten ? _atten->getValue() : 0.0f)
+            {
+                name = "snap attenuverter to V/OCT";
+            }
+
+            void undo() override
+            {
+                if (atten && knob)
+                {
+                    atten->setValue(prevAttenValue);
+                    knob->setLowSensitive(prevLowSensitive);
+                }
+            }
+
+            void redo() override
+            {
+                if (atten && knob)
+                {
+                    // Disable low sensitivity if set, in order to get the correct percentage.
+                    knob->setLowSensitive(false);
+
+                    // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
+                    // if the attenuverter were set to 100%. We want to bring the ratio down
+                    // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
+                    const float cvRange = 5;
+                    const float knobRange = 2*ChaosOctaveRange;
+                    atten->setValue(cvRange/knobRange);
+                }
+            }
+        };
+
+
         struct SpeedAttenuverterKnob : SapphireAttenuverterKnob
         {
             Param* atten = nullptr;
 
-            void appendContextMenu(ui::Menu* menu) override
+            void appendContextMenu(Menu* menu) override
             {
                 SapphireAttenuverterKnob::appendContextMenu(menu);
                 if (atten)
                 {
-                    // The following lambda is called every time the menu item is clicked.
-                    auto onMenuItemSelected = [this]()
-                    {
-                        // Disable low sensitivity if set, in order to get the correct percentage.
-                        setLowSensitive(false);
-
-                        // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
-                        // if the attenuverter were set to 100%. We want to bring the ratio down
-                        // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
-                        const float cvRange = 5;
-                        const float knobRange = 2*ChaosOctaveRange;
-                        atten->setValue(cvRange/knobRange);
-                    };
-                    menu->addChild(createMenuItem("Snap to V/OCT", "", onMenuItemSelected));
+                    menu->addChild(createMenuItem(
+                        "Snap to V/OCT",
+                        "",
+                        [=]()
+                        {
+                            InvokeAction(new SnapVoctAction(atten, this));
+                        }
+                    ));
                 }
             }
         };

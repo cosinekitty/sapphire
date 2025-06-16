@@ -209,7 +209,7 @@ namespace Sapphire
                 addSapphireChannelDisplay("memory_address_display");
             }
 
-            void appendContextMenu(ui::Menu* menu) override
+            void appendContextMenu(Menu* menu) override
             {
                 if (chaopsModule)
                     chaopsModule->freezeToggleGroup.addMenuItems(menu);

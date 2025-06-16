@@ -78,7 +78,6 @@ namespace Sapphire
         struct TubeUnitModule : SapphireModule
         {
             TubeUnitEngine engine[PORT_MAX_CHANNELS];
-            AgcLevelQuantity *agcLevelQuantity{};
             bool isInvertedVentPort = false;
             int numActiveChannels = 0;
             const int outputVerifyInterval = 11000;
@@ -102,7 +101,7 @@ namespace Sapphire
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
-                agcLevelQuantity = makeAgcLevelQuantity(AGC_LEVEL_PARAM);
+                addAgcLevelQuantity(AGC_LEVEL_PARAM);
 
                 auto levelKnob = configParam(LEVEL_KNOB_PARAM, 0, 2, 1, "Output level", " dB", -10, 80);
                 levelKnob->randomizeEnabled = false;
@@ -119,9 +118,7 @@ namespace Sapphire
 
             void initialize()
             {
-                agcLevelQuantity->initialize();
                 numActiveChannels = 0;
-                enableLimiterWarning = true;
                 isInvertedVentPort = false;
                 outputVerifyCounter = 0;
 
@@ -131,16 +128,14 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
                 json_object_set_new(root, "toggleVentPort", json_boolean(isInvertedVentPort));
-                agcLevelQuantity->save(root, "agcLevel");
                 return root;
             }
 
@@ -148,15 +143,9 @@ namespace Sapphire
             {
                 SapphireModule::dataFromJson(root);
 
-                // If the JSON is damaged, default to enabling the warning light.
-                json_t *warningFlag = json_object_get(root, "limiterWarningLight");
-                enableLimiterWarning = !json_is_false(warningFlag);
-
                 // Upgrade from older/damaged JSON by defaulting the vent toggle to OFF.
                 json_t *ventFlag = json_object_get(root, "toggleVentPort");
                 isInvertedVentPort = json_is_true(ventFlag);
-
-                agcLevelQuantity->load(root, "agcLevel");
             }
 
             void onSampleRateChange(const SampleRateChangeEvent& e) override
@@ -326,7 +315,6 @@ namespace Sapphire
         struct TubeUnitWidget : SapphireWidget
         {
             TubeUnitModule *tubeUnitModule;
-            WarningLightWidget *warningLight = nullptr;
             SvgOverlay *ventLabel = nullptr;
             SvgOverlay *sealLabel = nullptr;
             SvgOverlay *audioEmphasis = nullptr;
@@ -384,15 +372,7 @@ namespace Sapphire
                     addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
                 }
 
-                RoundLargeBlackKnob *levelKnob = createParamCentered<RoundLargeBlackKnob>(levelKnobPos, module, LEVEL_KNOB_PARAM);
-                addParam(levelKnob);
-
-                // Superimpose a warning light on the output level knob.
-                // We turn the warning light on when one or more of the 16 limiters are distoring the output.
-                warningLight = new WarningLightWidget(module);
-                warningLight->box.pos  = Vec(0.0f, 0.0f);
-                warningLight->box.size = levelKnob->box.size;
-                levelKnob->addChild(warningLight);
+                addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");
 
                 // Input gate for quieting the tube.
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(10.5, 16.0)), module, QUIET_GATE_INPUT));
@@ -407,20 +387,11 @@ namespace Sapphire
                 SapphireWidget::appendContextMenu(menu);
                 if (tubeUnitModule)
                 {
-                    if (tubeUnitModule->agcLevelQuantity)
-                    {
-                        // Add slider to adjust the AGC's level setting (5V .. 10V) or to disable AGC.
-                        menu->addChild(new AgcLevelSlider(tubeUnitModule->agcLevelQuantity));
+                    // Add toggle for whether the VENT port should be inverted to a SEAL port.
+                    BoolToggleAction::AddMenuItem(menu, tubeUnitModule->isInvertedVentPort, "Toggle VENT/SEAL", "VENT/SEAL");
 
-                        // Add an option to enable/disable the warning slider.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Limiter warning light", "", &tubeUnitModule->enableLimiterWarning));
-
-                        // Add toggle for whether the VENT port should be inverted to a SEAL port.
-                        menu->addChild(createBoolPtrMenuItem<bool>("Toggle VENT/SEAL", "", &tubeUnitModule->isInvertedVentPort));
-
-                        // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
-                        menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
-                    }
+                    // Add an option to toggle the low-sensitivity state of all attenuverter knobs.
+                    menu->addChild(tubeUnitModule->createToggleAllSensitivityMenuItem());
                 }
             }
 

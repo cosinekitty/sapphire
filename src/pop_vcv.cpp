@@ -13,6 +13,8 @@ namespace Sapphire
             CHAOS_PARAM,
             CHAOS_ATTEN,
             CHANNEL_COUNT_PARAM,
+            SYNC_BUTTON_PARAM,
+            PULSE_MODE_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -28,7 +30,7 @@ namespace Sapphire
 
         enum OutputId
         {
-            PULSE_TRIGGER_OUTPUT,
+            PULSE_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -56,7 +58,7 @@ namespace Sapphire
 
                 channelCountQuantity = configChannelCount(CHANNEL_COUNT_PARAM, 1);
 
-                configOutput(PULSE_TRIGGER_OUTPUT, "Pulse trigger");
+                configOutput(PULSE_OUTPUT, "Pulse");
 
                 configParam(SPEED_PARAM, MIN_POP_SPEED, MAX_POP_SPEED, DEFAULT_POP_SPEED, "Speed");
                 configParam(CHAOS_PARAM, MIN_POP_CHAOS, MAX_POP_CHAOS, DEFAULT_POP_CHAOS, "Chaos");
@@ -68,6 +70,9 @@ namespace Sapphire
                 configInput(CHAOS_CV_INPUT, "Chaos CV");
                 configInput(SYNC_TRIGGER_INPUT, "Sync trigger");
 
+                configButton(SYNC_BUTTON_PARAM, "Sync polyphonic channels");
+                configButton(PULSE_MODE_BUTTON_PARAM, "Toggle pulse mode");
+
                 initialize();
             }
 
@@ -78,16 +83,19 @@ namespace Sapphire
 
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
-                    engine[c].sendTriggerOnReset = sendTriggerOnReset;
+                    engine[c].sendTriggerOnReset = false;
                     engine[c].initialize();
                     engine[c].setRandomSeed(c*0x100001 + 0xbeef0);
                     syncReceiver[c].initialize();
                 }
+                sendTriggerOnReset = false;
+                prevTriggerOnReset = false;
+                setOutputMode(static_cast<size_t>(OutputMode::Default));
             }
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
@@ -118,8 +126,7 @@ namespace Sapphire
                     setOutputMode(index);
                 }
 
-                json_t* trig = json_object_get(root, "triggerOnReset");
-                sendTriggerOnReset = json_is_true(trig);
+                sendTriggerOnReset = json_is_true(json_object_get(root, "triggerOnReset"));
             }
 
             void process(const ProcessArgs& args) override
@@ -128,12 +135,12 @@ namespace Sapphire
                 {
                     prevTriggerOnReset = sendTriggerOnReset;
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                        engine[c].sendTriggerOnReset = prevTriggerOnReset;
+                        engine[c].sendTriggerOnReset = sendTriggerOnReset;
                 }
 
                 const int nc = desiredChannelCount();
                 currentChannelCount = nc;       // keep channel display panel updated
-                outputs.at(PULSE_TRIGGER_OUTPUT).setChannels(nc);
+                outputs.at(PULSE_OUTPUT).setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
                 float vSync = 0;
@@ -153,7 +160,7 @@ namespace Sapphire
                     engine[c].setChaos(chaos);
 
                     const float v = engine[c].process(args.sampleRate);
-                    outputs.at(PULSE_TRIGGER_OUTPUT).setVoltage(v, c);
+                    outputs.at(PULSE_OUTPUT).setVoltage(v, c);
                 }
                 isSyncPending = false;
             }
@@ -179,6 +186,93 @@ namespace Sapphire
         };
 
 
+        struct ChangeOutputModeAction : history::Action
+        {
+            const int64_t moduleId;
+            const size_t oldValue;
+            const size_t newValue;
+
+            explicit ChangeOutputModeAction(const PopModule* _popModule, size_t _newValue)
+                : moduleId(_popModule->id)
+                , oldValue(_popModule->getOutputMode())
+                , newValue(_newValue)
+            {
+                name = "change Sapphire Pop output mode";
+            }
+
+            void setOutputMode(size_t value)
+            {
+                if (PopModule* popModule = FindSapphireModule<PopModule>(moduleId))
+                    popModule->setOutputMode(value);
+            }
+
+            void undo() override
+            {
+                setOutputMode(oldValue);
+            }
+
+            void redo() override
+            {
+                setOutputMode(newValue);
+            }
+        };
+
+
+        struct SyncButton : SapphireTinyActionButton
+        {
+            PopModule* popModule{};
+
+            explicit SyncButton()
+            {
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+
+            void action() override
+            {
+                if (popModule)
+                    popModule->isSyncPending = true;
+            }
+        };
+
+
+        struct PulseModeButton : SapphireTinyToggleButton
+        {
+            PopModule* popModule{};
+
+            explicit PulseModeButton()
+            {
+                chainButtonClicks = false;      // prevent toggle of underlying Param; needed for undo/redo
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+            }
+
+            void action() override
+            {
+                if (popModule)
+                {
+                    size_t mode = popModule->getOutputMode();
+                    mode = (mode + 1) % static_cast<size_t>(OutputMode::LEN);
+                    InvokeAction(new ChangeOutputModeAction(popModule, mode));
+                }
+            }
+
+            void step() override
+            {
+                if (popModule)
+                {
+                    if (ParamQuantity* quantity = getParamQuantity())
+                    {
+                        const size_t mode = popModule->getOutputMode();
+                        quantity->setValue(static_cast<float>(mode));
+                        quantity->name = mode ? "Pulse mode: gates" : "Pulse mode: triggers";
+                    }
+                }
+                SapphireTinyToggleButton::step();
+            }
+        };
+
+
         struct PopWidget : SapphireWidget
         {
             PopModule* popModule{};
@@ -189,7 +283,7 @@ namespace Sapphire
             {
                 setModule(module);
 
-                addSapphireOutput(PULSE_TRIGGER_OUTPUT, "pulse_output");
+                addSapphireOutput(PULSE_OUTPUT, "pulse_output");
 
                 addKnob(SPEED_PARAM, "speed_knob");
                 addKnob(CHAOS_PARAM, "chaos_knob");
@@ -202,6 +296,23 @@ namespace Sapphire
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");
 
                 addSapphireChannelDisplay("channel_display");
+
+                addSyncButton();
+                addPulseModeButton();
+            }
+
+            void addSyncButton()
+            {
+                auto button = createParamCentered<SyncButton>(Vec{}, popModule, SYNC_BUTTON_PARAM);
+                button->popModule = popModule;
+                addSapphireParam(button, "sync_button");
+            }
+
+            void addPulseModeButton()
+            {
+                auto button = createParamCentered<PulseModeButton>(Vec{}, popModule, PULSE_MODE_BUTTON_PARAM);
+                button->popModule = popModule;
+                addSapphireParam(button, "pulse_mode_button");
             }
 
             void appendContextMenu(Menu* menu) override
@@ -210,29 +321,42 @@ namespace Sapphire
                 if (popModule)
                 {
                     addManualSyncMenuItem(menu);
-                    addOutputModeMenuItems(menu);
-                    menu->addChild(createBoolPtrMenuItem<bool>("Send trigger on every reset", "", &popModule->sendTriggerOnReset));
+                    addOutputModeMenuItem(menu);
+                    BoolToggleAction::AddMenuItem(menu, popModule->sendTriggerOnReset, "Send trigger on every reset", "trigger on reset");
                     menu->addChild(new ChannelCountSlider(popModule->channelCountQuantity));
                 }
             }
 
             void addManualSyncMenuItem(Menu* menu)
             {
-                menu->addChild(createMenuItem(
-                    "Sync polyphonic channels",
-                    "",
-                    [=]{ popModule->isSyncPending = true; }
-                ));
+                if (popModule)
+                {
+                    menu->addChild(createMenuItem(
+                        "Sync polyphonic channels",
+                        "",
+                        [=]{ popModule->isSyncPending = true; }
+                    ));
+                }
             }
 
-            void addOutputModeMenuItems(Menu* menu)
+            void addOutputModeMenuItem(Menu* menu)
             {
-                menu->addChild(createIndexSubmenuItem(
-                    "Output pulse mode",
-                    { "Triggers", "Gates" },
-                    [=]() { return popModule->getOutputMode(); },
-                    [=](size_t mode) { popModule->setOutputMode(mode); }
-                ));
+                if (popModule)
+                {
+                    menu->addChild(createIndexSubmenuItem(
+                        "Output pulse mode",
+                        { "Triggers", "Gates" },
+                        [=]()
+                        {
+                            return popModule->getOutputMode();
+                        },
+                        [=](size_t mode)
+                        {
+                            if (popModule->getOutputMode() != mode)
+                                InvokeAction(new ChangeOutputModeAction(popModule, mode));
+                        }
+                    ));
+                }
             }
         };
     }

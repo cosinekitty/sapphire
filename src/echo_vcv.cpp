@@ -13,15 +13,6 @@ namespace Sapphire
             struct EchoWidget;
         }
 
-        enum class TimeMode
-        {
-            Seconds,
-            ClockSync,
-            LEN,
-
-            Default = Seconds,
-        };
-
 
         struct TimeKnobInfo
         {
@@ -146,12 +137,13 @@ namespace Sapphire
                 if (info)
                 {
                     menu->addChild(new MenuSeparator);
-                    menu->addChild(createEnumMenuItem(
+                    menu->addChild(CreateChangeEnumMenuItem(
                         "Time mode",
                         {
                             "Seconds",
                             "Clock sync"
                         },
+                        "time mode change",
                         info->timeMode
                     ));
                 }
@@ -181,6 +173,15 @@ namespace Sapphire
         using remove_button_base_t = app::SvgSwitch;
         struct RemoveButton : remove_button_base_t
         {
+            //**********************************************************************************
+            // WARNING: DO NOT try to make RemoveButton derive from SapphireTinyActionButton.
+            // It will crash because the remove button deletes its own object!
+            // This requires extremely careful coding to avoid corrupting memory.
+            // Put simply: it works, so don't fix it!
+            // Besides which, this button does not change its representation on the screen,
+            // so there is no need to "blink" it in the first place.
+            //**********************************************************************************
+
             LoopWidget* loopWidget{};
 
             explicit RemoveButton()
@@ -193,90 +194,76 @@ namespace Sapphire
         };
 
 
-        using clock_button_base_t = app::SvgSwitch;
-        struct ClockButton : clock_button_base_t
+        struct ClockButton : SapphireTinyActionButton
         {
             Echo::EchoWidget* echoWidget{};
-            Stopwatch stopwatch;
 
             explicit ClockButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
-            void step() override;
+            void action() override;
         };
 
 
-        using interval_button_base_t = app::SvgSwitch;
-        struct IntervalButton : interval_button_base_t
+        struct IntervalButton : SapphireTinyToggleButton
         {
             explicit IntervalButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
             }
         };
 
 
-        using init_chain_button_base_t = app::SvgSwitch;
-        struct InitChainButton : init_chain_button_base_t
+        struct InitChainButton : SapphireTinyActionButton
         {
-            Echo::EchoWidget* echoWidget = nullptr;
+            Echo::EchoWidget* echoWidget{};
 
             explicit InitChainButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
+            void action() override;
         };
 
 
-        using init_tap_button_base_t = app::SvgSwitch;
-        struct InitTapButton : init_tap_button_base_t
+        struct InitTapButton : SapphireTinyActionButton
         {
             LoopWidget* loopWidget = nullptr;
 
             explicit InitTapButton()
             {
-                momentary = true;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
 
-            void onButton(const ButtonEvent& e) override;
+            void action() override;
         };
 
 
-        using sendreturn_button_base_t = app::SvgSwitch;
-        struct SendReturnButton : sendreturn_button_base_t
+        struct SendReturnButton : SapphireTinyToggleButton
         {
             LoopWidget* loopWidget{};
 
             explicit SendReturnButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
         };
 
 
-        using input_mode_button_base_t = app::SvgSwitch;
-        struct InputModeButton : input_mode_button_base_t
+        struct InputModeButton : SapphireTinyToggleButton
         {
             Echo::EchoWidget* echoWidget{};
 
             explicit InputModeButton()
             {
-                momentary = false;
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
                 addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
             }
@@ -519,15 +506,12 @@ namespace Sapphire
 
                     // Make an ordered list of all the remaining widgets in the chain, before moving anything.
                     std::vector<MultiTapWidget*> widgetsInOrder;
-                    for (const Module* node = mmod; IsEchoReceiver(node); node = node->rightExpander.module)
+                    for (const Module* m = mmod; IsEchoReceiver(m); m = m->rightExpander.module)
                     {
-                        auto otherModule =  dynamic_cast<const MultiTapModule*>(node);
-                        if (otherModule)
-                        {
+                        if (auto otherModule =  dynamic_cast<const MultiTapModule*>(m))
                             for (MultiTapWidget* otherWidget : widgetsToRight)
                                 if (otherWidget->module == otherModule)
                                     widgetsInOrder.push_back(otherWidget);
-                        }
                     }
 
                     // Try to move everyone!
@@ -644,34 +628,6 @@ namespace Sapphire
 
                 if (right[0])
                     drawCenteredText(vg, xc, yR, right);
-            }
-        };
-
-
-        struct BoolToggleAction : history::Action
-        {
-            bool& flag;
-            bool& dirty;
-
-            explicit BoolToggleAction(bool& _flag, bool& _dirty)
-                : flag(_flag)
-                , dirty(_dirty)
-                {}
-
-            void toggle()
-            {
-                flag = !flag;
-                dirty = true;
-            }
-
-            void undo() override
-            {
-                toggle();
-            }
-
-            void redo() override
-            {
-                toggle();
             }
         };
 
@@ -833,15 +789,11 @@ namespace Sapphire
             ReverseComboSmoother reverseComboSmoother;
             bool polyphonicEnvelopeOutput{};
             bool flip{};
-            bool flipControlsAreDirty{};
             bool duck{};
-            bool duckControlsAreDirty{};
             Crossfader envDuckFader;
-            bool prevFlip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
-            bool sendReturnControlsAreDirty{};
             Crossfader muteFader;
             Crossfader soloFader;
             GraphWidget* graph = nullptr;
@@ -885,9 +837,6 @@ namespace Sapphire
                 polyphonicEnvelopeOutput = false;
                 flip = false;
                 duck = false;
-                flipControlsAreDirty = true;   // signal we need to update tooltips / hovertext
-                duckControlsAreDirty = true;
-                sendReturnControlsAreDirty = true;
                 muteFader.snapToFront();
                 soloFader.snapToFront();
                 envDuckFader.snapToFront();
@@ -905,14 +854,11 @@ namespace Sapphire
 
             void updateFlipControls()
             {
-                const bool needUpdate = flipControlsAreDirty || (prevFlip != flip);
-                if (needUpdate && controlsAreReady)
+                if (controlsAreReady)
                 {
-                    prevFlip = flip;
-                    flipControlsAreDirty = false;
-
-                    const char *name = flip ? "Flip" : "Reverse";
-                    getInputInfo(controls.revFlipInputId)->name = name;
+                    const bool trigger = (reverseToggleGroup.mode == ToggleGroupMode::Trigger);
+                    auto name = std::string(flip ? "Flip" : "Reverse");
+                    getInputInfo(controls.revFlipInputId)->name = name + (trigger ? " trigger" : " gate");
                     getParamQuantity(controls.revFlipButtonId)->name = name;
                 }
             }
@@ -920,19 +866,14 @@ namespace Sapphire
             void updateToggleButtonTooltip(int buttonId, const char* offText, const char *onText)
             {
                 if (buttonId >= 0 && buttonId < static_cast<int>(params.size()))
-                {
-                    ParamQuantity* qty = getParamQuantity(buttonId);
-                    if (qty)
+                    if (ParamQuantity* qty = getParamQuantity(buttonId))
                         qty->name = (qty->getValue() < 0.5f) ? offText : onText;
-                }
             }
 
             void updateSendReturnControls()
             {
-                if (sendReturnControlsAreDirty && controlsAreReady)
+                if (controlsAreReady)
                 {
-                    sendReturnControlsAreDirty = false;
-
                     updateToggleButtonTooltip(
                         controls.sendReturnButtonId,
                         "Send/return before delay",
@@ -952,16 +893,12 @@ namespace Sapphire
 
             void toggleFlip()
             {
-                auto action = new BoolToggleAction(flip, flipControlsAreDirty);
-                action->redo();
-                APP->history->push(action);
+                InvokeAction(new BoolToggleAction(flip, "reverse/flip"));
             }
 
             void toggleEnvDuck()
             {
-                auto action = new BoolToggleAction(duck, duckControlsAreDirty);
-                action->redo();
-                APP->history->push(action);
+                InvokeAction(new BoolToggleAction(duck, "envelope/duck"));
             }
 
             bool isActivelyClocked() const
@@ -1108,9 +1045,6 @@ namespace Sapphire
                     : SendReturnLocation::AfterDelay;
 
                 sendReturnLocationSmoother.process(sampleRateHz);
-                if (sendReturnLocationSmoother.isDelayedActionReady())
-                    sendReturnControlsAreDirty = true;
-
                 const float srSmooth = sendReturnLocationSmoother.getGain();
                 const float smooth = srSmooth * message.routingSmooth;
                 receivedInputRouting = message.inputRouting;
@@ -1344,16 +1278,38 @@ namespace Sapphire
                 configAttenCv(attenId, cvInputId, name);
             }
 
-            void addPolyphonicEnvelopeMenuItem(ui::Menu* menu)
+            void addPolyphonicEnvelopeMenuItem(Menu* menu)
             {
                 menu->addChild(createBoolMenuItem(
                     "Polyphonic envelope output",
                     "",
                     [=]{ return polyphonicEnvelopeOutput; },
-                    [=](bool state){ polyphonicEnvelopeOutput = state; }
+                    [=](bool state){ setPolyphonicEnvelopeOutput(state); }
                 ));
             }
+
+            void setPolyphonicEnvelopeOutput(bool state)
+            {
+                if (polyphonicEnvelopeOutput != state)
+                    InvokeAction(new BoolToggleAction(polyphonicEnvelopeOutput, "mono/polyphonic envelope output"));
+            }
         };
+
+
+        void ToggleAllClockSyncAction::undo()
+        {
+            for (const ClockSyncState& s : stateList)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
+                    lmod->timeKnobInfo.timeMode = s.oldTimeMode;
+        }
+
+
+        void ToggleAllClockSyncAction::redo()
+        {
+            for (const ClockSyncState& s : stateList)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
+                    lmod->timeKnobInfo.timeMode = newTimeMode;
+        }
 
 
         void GraphWidget::onRemove(const RemoveEvent& e)
@@ -1441,11 +1397,10 @@ namespace Sapphire
         }
 
 
-        void EnvelopeOutputPort::appendContextMenu(ui::Menu* menu)
+        void EnvelopeOutputPort::appendContextMenu(Menu* menu)
         {
             SapphirePort::appendContextMenu(menu);
-            auto lmod = dynamic_cast<LoopModule*>(module);
-            if (lmod)
+            if (auto lmod = dynamic_cast<LoopModule*>(module))
             {
                 menu->addChild(new MenuSeparator);
                 lmod->addPolyphonicEnvelopeMenuItem(menu);
@@ -1460,14 +1415,15 @@ namespace Sapphire
             const float mmShiftFirstTap = (PanelWidth("echo") - PanelWidth("echotap")) / 2;
             const float mmModeButtonRadius = 3.5;
             const float mmChainIndexCenterY = 4.5;
+            const NVGcolor mouseHoverColor = nvgRGB(0x6f, 0x02, 0xb8);
             SvgOverlay* revLabel = nullptr;
             SvgOverlay* revSelLabel = nullptr;
             SvgOverlay* flpLabel = nullptr;
             SvgOverlay* flpSelLabel = nullptr;
             SvgOverlay* envLabel = nullptr;
             SvgOverlay* envSelLabel = nullptr;
-            SvgOverlay* invLabel = nullptr;
-            SvgOverlay* invSelLabel = nullptr;
+            SvgOverlay* dckLabel = nullptr;
+            SvgOverlay* dckSelLabel = nullptr;
             Vec flpRevLabelPos;
             Vec envDuckLabelPos;
             float dxFlipRev{};
@@ -1475,9 +1431,12 @@ namespace Sapphire
             bool hilightInputRoutingButton = false;
             bool hilightRevFlipButton = false;
             bool hilightEnvDuckButton = false;
+            bool hilightRevGateTrigger = false;
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
+            SapphireTooltip* revGateTriggerTooltip = nullptr;
             SapphireTooltip* envDuckTooltip = nullptr;
+            bool isMouseInsideRevFlipGateTriggerToggle = false;
 
             explicit LoopWidget(
                 const std::string& moduleCode,
@@ -1489,49 +1448,58 @@ namespace Sapphire
                 const std::string& flpSelSvgFileName,
                 const std::string& envSvgFileName,
                 const std::string& envSelSvgFileName,
-                const std::string& invSvgFileName,
-                const std::string& invSelSvgFileName
+                const std::string& dckSvgFileName,
+                const std::string& dckSelSvgFileName
             )
                 : MultiTapWidget(moduleCode, panelSvgFileName)
                 , loopModule(lmod)
             {
-                revLabel    = addLabelOverlay(revSvgFileName);
+                // We can toggle REV/FLP.
+                // We also have different colors depending on mouse hover.
+                // Both pairs of states multiply, resulting in
+                // 4 special cases. Only one of the 4 cases may be
+                // visible at a time. In fact, we should maintain
+                // the visibility count equalling one as an invariant.
+                // We have to make one of them visible for the sake of
+                // the Echo screenshot, where module==nullptr, preventing
+                // the real visibility logic from running.
+                // So pass visible=true in exactly one of the 4 addLabelOverlay calls.
+                revLabel    = addLabelOverlay(revSvgFileName, true);
                 revSelLabel = addLabelOverlay(revSelSvgFileName);
                 flpLabel    = addLabelOverlay(flpSvgFileName);
                 flpSelLabel = addLabelOverlay(flpSelSvgFileName);
-                envLabel    = addLabelOverlay(envSvgFileName);
+
+                // The same 4-way visibility rules apply to ENV/DCK.
+                envLabel    = addLabelOverlay(envSvgFileName, true);
                 envSelLabel = addLabelOverlay(envSelSvgFileName);
-                invLabel    = addLabelOverlay(invSvgFileName);
-                invSelLabel = addLabelOverlay(invSelSvgFileName);
+                dckLabel    = addLabelOverlay(dckSvgFileName);
+                dckSelLabel = addLabelOverlay(dckSelSvgFileName);
 
-                ComponentLocation centerLoc = FindComponent(modcode, "label_flp_rev");
-                flpRevLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
-
-                centerLoc = FindComponent(modcode, "label_env_duck");
-                envDuckLabelPos = Vec(mm2px(centerLoc.cx), mm2px(centerLoc.cy));
-
+                flpRevLabelPos  = mm_to_px(FindComponent(modcode, "label_flp_rev"));
+                envDuckLabelPos = mm_to_px(FindComponent(modcode, "label_env_duck"));
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
                 ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
-                const float dxCushion = 8.0;
+                constexpr float dxCushion = 8.0;
                 dxFlipRev = mm2px(buttonLoc.cx - inputLoc.cx - dxCushion) / 2;
                 dyFlipRev = mm2px(2.5);
 
-                addGraphWidget(lmod);
+                addGraphWidget();
             }
 
             void onRemove(const RemoveEvent& e) override
             {
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
+                destroyTooltip(revGateTriggerTooltip);
                 destroyTooltip(envDuckTooltip);
                 MultiTapWidget::onRemove(e);
             }
 
-            SvgOverlay* addLabelOverlay(const std::string& svgFileName)
+            SvgOverlay* addLabelOverlay(const std::string& svgFileName, bool visible = false)
             {
                 SvgOverlay* overlay = SvgOverlay::Load(svgFileName);
                 addChild(overlay);
-                overlay->hide();
+                overlay->setVisible(visible);
                 return overlay;
             }
 
@@ -1544,7 +1512,7 @@ namespace Sapphire
                 addSapphireParam(button, "sendreturn_button");
             }
 
-            void addExpanderInsertButton(LoopModule* loopModule, int paramId, int lightId)
+            void addExpanderInsertButton(int paramId, int lightId)
             {
                 auto button = createParamCentered<InsertButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -1567,17 +1535,17 @@ namespace Sapphire
                 );
             }
 
-            void addGraphWidget(LoopModule* lmod)
+            void addGraphWidget()
             {
                 ComponentLocation upperLeft  = FindComponent(modcode, "graph_upper_left");
                 ComponentLocation lowerRight = FindComponent(modcode, "graph_lower_right");
-                auto graph = new GraphWidget(lmod, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
-                if (lmod)
-                    lmod->graph = graph;
+                auto graph = new GraphWidget(loopModule, upperLeft.cx, upperLeft.cy, lowerRight.cx, lowerRight.cy);
+                if (loopModule)
+                    loopModule->graph = graph;
                 addChild(graph);
             }
 
-            void addExpanderRemoveButton(LoopModule* loopModule, int paramId, int lightId)
+            void addExpanderRemoveButton(int paramId, int lightId)
             {
                 auto button = createParamCentered<RemoveButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -1625,11 +1593,9 @@ namespace Sapphire
 
                 // Erase any obsolete chain indices already in the remaining modules.
                 // This prevents them briefly flashing on the screen before being replaced.
-                for (Module* node = right; IsEchoReceiver(node); node = node->rightExpander.module)
-                {
-                    auto lmod = dynamic_cast<MultiTapModule*>(node);
-                    lmod->chainIndex = -1;
-                }
+                for (Module* m = right; IsEchoReceiver(m); m = m->rightExpander.module)
+                    if (auto lmod = dynamic_cast<MultiTapModule*>(m))
+                        lmod->chainIndex = -1;
 
                 // Create the expander module.
                 AddExpander(model, this, ExpanderDirection::Right);
@@ -1641,8 +1607,7 @@ namespace Sapphire
                     return;
 
                 // Hand responsibility for moving the rest of the chain to the next module in the chain.
-                auto nextModule = dynamic_cast<MultiTapModule*>(module->rightExpander.module);
-                if (nextModule)
+                if (auto nextModule = dynamic_cast<MultiTapModule*>(module->rightExpander.module))
                     nextModule->beginMoveChain(box.pos.x);
 
                 // *** DANGER DANGER DANGER ***
@@ -1658,35 +1623,35 @@ namespace Sapphire
                 return module && IsEchoReceiver(module->rightExpander.module);
             }
 
-            void updateFlipReverse(const LoopModule* lmod)
+            void updateFlipReverse()
             {
-                flpLabel->setVisible(lmod->flip && !hilightRevFlipButton);
-                flpSelLabel->setVisible(lmod->flip && hilightRevFlipButton);
-                revLabel->setVisible(!lmod->flip && !hilightRevFlipButton);
-                revSelLabel->setVisible(!lmod->flip && hilightRevFlipButton);
+                flpLabel->setVisible(loopModule->flip && !hilightRevFlipButton);
+                flpSelLabel->setVisible(loopModule->flip && hilightRevFlipButton);
+                revLabel->setVisible(!loopModule->flip && !hilightRevFlipButton);
+                revSelLabel->setVisible(!loopModule->flip && hilightRevFlipButton);
             }
 
-            void updateEnvDuck(const LoopModule* lmod)
+            void updateEnvDuck()
             {
-                envLabel->setVisible(!lmod->duck && !hilightEnvDuckButton);
-                envSelLabel->setVisible(!lmod->duck && hilightEnvDuckButton);
-                invLabel->setVisible(lmod->duck && !hilightEnvDuckButton);
-                invSelLabel->setVisible(lmod->duck && hilightEnvDuckButton);
+                envLabel->setVisible(!loopModule->duck && !hilightEnvDuckButton);
+                envSelLabel->setVisible(!loopModule->duck && hilightEnvDuckButton);
+                dckLabel->setVisible(loopModule->duck && !hilightEnvDuckButton);
+                dckSelLabel->setVisible(loopModule->duck && hilightEnvDuckButton);
             }
 
             void step() override
             {
                 MultiTapWidget::step();
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    lmod->hideLeftBorder  = isConnectedOnLeft();
-                    lmod->hideRightBorder = isConnectedOnRight();
-                    lmod->updateFlipControls();
-                    lmod->updateSendReturnControls();
-                    lmod->updateMuteSoloControls();
-                    updateFlipReverse(lmod);
-                    updateEnvDuck(lmod);
+                    loopModule->hideLeftBorder  = isConnectedOnLeft();
+                    loopModule->hideRightBorder = isConnectedOnRight();
+                    loopModule->updateFlipControls();
+                    loopModule->updateSendReturnControls();
+                    loopModule->updateMuteSoloControls();
+                    updateFlipReverse();
+                    updateEnvDuck();
+                    updateRevGateTriggerTooltip(isMouseInsideRevFlipGateTriggerToggle);
                 }
             }
 
@@ -1733,17 +1698,25 @@ namespace Sapphire
 
             virtual void onMousePress(const ButtonEvent& e)
             {
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
                     if (offerRoutingModeChange() && isInsideInputRoutingButton(e.pos))
-                        lmod->bumpTapInputRouting();
+                        loopModule->bumpTapInputRouting();
 
                     if (isInsideFlipRevButton(e.pos))
-                        lmod->toggleFlip();
+                        loopModule->toggleFlip();
 
                     if (isInsideEnvDuckButton(e.pos))
-                        lmod->toggleEnvDuck();
+                        loopModule->toggleEnvDuck();
+
+                    if (isInsideGateTriggerToggle(flpRevLabelPos, e.pos))
+                    {
+                        InvokeAction(new ChangeEnumAction(
+                            loopModule->reverseToggleGroup.mode,
+                            NextEnumValue(loopModule->reverseToggleGroup.mode),
+                            "toggle gate/trigger input on REV/FLP port"
+                        ));
+                    }
                 }
             }
 
@@ -1779,11 +1752,23 @@ namespace Sapphire
                 updateTooltip(hilightEnvDuckButton, state, envDuckTooltip, "Toggle envelope follow/duck");
             }
 
+            void updateRevGateTriggerTooltip(bool state)
+            {
+                updateTooltip(hilightRevGateTrigger, state, revGateTriggerTooltip, "");
+                if (revGateTriggerTooltip)
+                {
+                    const bool trigger = loopModule && (loopModule->reverseToggleGroup.mode == ToggleGroupMode::Trigger);
+                    revGateTriggerTooltip->text = std::string("Input mode: ") + (trigger ? "trigger" : "gate");
+                }
+            }
+
             void onHover(const HoverEvent& e) override
             {
                 updateRoutingButton(isInsideInputRoutingButton(e.pos));
                 updateFlipRevButton(isInsideFlipRevButton(e.pos));
                 updateEnvDuckButton(isInsideEnvDuckButton(e.pos));
+                isMouseInsideRevFlipGateTriggerToggle = isInsideGateTriggerToggle(flpRevLabelPos, e.pos);
+                updateRevGateTriggerTooltip(isMouseInsideRevFlipGateTriggerToggle);
                 MultiTapWidget::onHover(e);
             }
 
@@ -1792,6 +1777,7 @@ namespace Sapphire
                 updateRoutingButton(false);
                 updateFlipRevButton(false);
                 updateEnvDuckButton(false);
+                isMouseInsideRevFlipGateTriggerToggle = false;
                 MultiTapWidget::onLeave(e);
             }
 
@@ -1849,61 +1835,122 @@ namespace Sapphire
                 }
             }
 
+            static constexpr float triggerGateStrokeWidth = 0.7;
+
+            bool isInsideGateTriggerToggle(Vec labelPos, Vec mousePos) const
+            {
+                const float ey = mm2px(1.3);       // peak height
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                Vec togglePos{labelPos.x, labelPos.y - dy};
+                Vec dv = togglePos.minus(mousePos);
+                return (std::abs(dv.x) <= dx) && (0 <= dv.y) && (dv.y <= ey);
+            }
+
+            void drawTriggerSymbol(NVGcontext* vg, Vec labelPos, NVGcolor color)
+            {
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                const float ex = mm2px(0.2);       // half gap for peak
+                const float ey = mm2px(1.3);       // peak height
+
+                float xc = labelPos.x;
+                float yc = labelPos.y - dy;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, color);
+                nvgMoveTo(vg, xc-dx, yc);
+                nvgLineTo(vg, xc-ex, yc);
+                nvgLineTo(vg, xc, yc-ey);
+                nvgLineTo(vg, xc+ex, yc);
+                nvgLineTo(vg, xc+dx, yc);
+                nvgStrokeWidth(vg, triggerGateStrokeWidth);
+                nvgStroke(vg);
+            }
+
+            void drawGateSymbol(NVGcontext* vg, Vec labelPos, NVGcolor color)
+            {
+                const float dy = mm2px(3.4);       // height above label center
+                const float dx = mm2px(1.4);       // half base of trigger symbol width
+                const float ex = mm2px(0.8);       // half gap for square pulse
+                const float ey = mm2px(1.6);       // peak height
+
+                float xc = labelPos.x;
+                float yc = labelPos.y - dy;
+
+                nvgBeginPath(vg);
+                nvgStrokeColor(vg, color);
+                nvgMoveTo(vg, xc-dx, yc);
+                nvgLineTo(vg, xc-ex, yc);
+                nvgLineTo(vg, xc-ex, yc-ey);
+                nvgLineTo(vg, xc+ex, yc-ey);
+                nvgLineTo(vg, xc+ex, yc);
+                nvgLineTo(vg, xc+dx, yc);
+                nvgStrokeWidth(vg, triggerGateStrokeWidth);
+                nvgStroke(vg);
+            }
+
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, bool isTrigger, NVGcolor color)
+            {
+                if (isTrigger)
+                    drawTriggerSymbol(vg, pos, color);
+                else
+                    drawGateSymbol(vg, pos, color);
+            }
+
+            void drawTriggerGateSymbol(NVGcontext* vg, Vec pos, const ToggleGroup& toggleGroup, NVGcolor color)
+            {
+                drawTriggerGateSymbol(vg, pos, toggleGroup.mode == ToggleGroupMode::Trigger, color);
+            }
+
             void draw(const DrawArgs& args) override
             {
                 MultiTapWidget::draw(args);
-
-                auto lmod = dynamic_cast<const LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    if (!lmod->neonMode)
-                        drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
+                    if (!loopModule->neonMode)
+                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, nvgRGB(0x66, 0x06, 0x5c));
 
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
-                    drawAudioPortLabels(args.vg, lmod->sendReturnPortLabels, L.cx, L.cy, R.cy);
+                    drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cy);
+                    NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
+                    drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup, color);
                 }
             }
 
             void drawLayer(const DrawArgs& args, int layer) override
             {
                 MultiTapWidget::drawLayer(args, layer);
-                if (layer == 1)
+                if (layer==1 && loopModule)
                 {
-                    auto lmod = dynamic_cast<const LoopModule*>(module);
-                    if (lmod)
-                    {
-                        if (lmod->neonMode)
-                            drawChainIndex(args.vg, lmod->chainIndex, lmod->receivedInputRouting, neonColor);
+                    if (loopModule->neonMode)
+                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, neonColor);
 
-                        if (lmod->recordingLevelOverflow)
-                            splash.begin(0xb0, 0x10, 0x00);
-                    }
+                    if (loopModule->recordingLevelOverflow)
+                        splash.begin(0xb0, 0x10, 0x00);
                 }
             }
 
             void appendContextMenu(Menu *menu) override
             {
                 MultiTapWidget::appendContextMenu(menu);
-
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    menu->addChild(lmod->createToggleAllSensitivityMenuItem());
-                    lmod->addPolyphonicEnvelopeMenuItem(menu);
-                    lmod->reverseToggleGroup.addMenuItems(menu);
+                    menu->addChild(loopModule->createToggleAllSensitivityMenuItem());
+                    loopModule->addPolyphonicEnvelopeMenuItem(menu);
+                    loopModule->reverseToggleGroup.addMenuItems(menu);
                 }
             }
 
             void addTimeControlGroup(int paramId, int attenId, int cvInputId)
             {
                 TimeKnob* timeKnob = addSapphireFlatControlGroup<TimeKnob>("time", paramId, attenId, cvInputId);
-                auto lmod = dynamic_cast<LoopModule*>(module);
-                if (lmod)
+                if (loopModule)
                 {
-                    lmod->timeKnob = timeKnob;
-                    timeKnob->loopModule = lmod;
-                    timeKnob->info = &(lmod->timeKnobInfo);
+                    loopModule->timeKnob = timeKnob;
+                    timeKnob->loopModule = loopModule;
+                    timeKnob->info = &(loopModule->timeKnobInfo);
                 }
             }
 
@@ -2039,8 +2086,7 @@ namespace Sapphire
             float value = rack::normalizeZero(getDisplayValue());
             std::string timeText = rack::string::f("%.5g", value);
             std::string freqText = rack::string::f("%.5g", 1/value);
-            auto lmod = dynamic_cast<const LoopModule*>(module);
-            if (lmod)
+            if (auto lmod = dynamic_cast<const LoopModule*>(module))
             {
                 if (lmod->isActivelyClocked())
                 {
@@ -2052,7 +2098,6 @@ namespace Sapphire
                     return "CLOCK x " + timeText + "\nRATE x " + freqText;
                 }
             }
-
             return timeText + " sec\n" + freqText + " Hz";
         }
 
@@ -2158,8 +2203,8 @@ namespace Sapphire
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
-                    reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
-                    freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
+                    reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "");
+                    freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
@@ -2182,7 +2227,6 @@ namespace Sapphire
                     interpolatorKind = InterpolatorKind::Linear;
                     freezeToggleGroup.initialize();
                     clearReceiver.initialize();
-                    dcRejectQuantity->initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                 }
 
@@ -2200,6 +2244,9 @@ namespace Sapphire
                     params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
                     params.at(MUTE_BUTTON_PARAM).setValue(0);
                     params.at(SOLO_BUTTON_PARAM).setValue(0);
+                    setLowSensitive(TIME_ATTEN, false);
+                    setLowSensitive(PAN_ATTEN, false);
+                    setLowSensitive(GAIN_ATTEN, false);
                 }
 
                 void initialize() override
@@ -2337,8 +2384,7 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    routingSmoother.beginBumpEnum();
-                    APP->history->push(new BumpEnumAction(routingSmoother));
+                    InvokeAction(new BumpEnumAction(routingSmoother, "signal routing change"));
                 }
             };
 
@@ -2355,6 +2401,11 @@ namespace Sapphire
                 bool isMouseInsideClockLabel = false;
                 bool hilightClockRateButton = false;
                 SapphireTooltip* clockRateTooltip = nullptr;
+                Vec freezeLabelPos;
+                ToggleGroupInputPort* freezeInputPortWidget{};
+                bool isMouseInsideFreezeGateTriggerToggle = false;
+                bool hilightFreezeTrigger = false;
+                SapphireTooltip* freezeGateTriggerTooltip = nullptr;
 
                 explicit EchoWidget(EchoModule* module)
                     : LoopWidget(
@@ -2374,7 +2425,7 @@ namespace Sapphire
                 {
                     splash.x1 = 6 * HP_MM;
                     setModule(module);
-                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
                     addLabelOverlays();
 
                     // Global controls/ports
@@ -2401,13 +2452,14 @@ namespace Sapphire
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
                     addMuteSoloButtons(MUTE_BUTTON_PARAM, SOLO_BUTTON_PARAM);
 
-                    ComponentLocation labelLoc = FindComponent(modcode, "clock_label");
-                    clockLabelPos = Vec(mm2px(labelLoc.cx), mm2px(labelLoc.cy));
+                    clockLabelPos  = mm_to_px(FindComponent(modcode, "clock_label"));
+                    freezeLabelPos = mm_to_px(FindComponent(modcode, "freeze_label"));
                 }
 
                 void onRemove(const RemoveEvent& e) override
                 {
                     destroyTooltip(clockRateTooltip);
+                    destroyTooltip(freezeGateTriggerTooltip);
                     LoopWidget::onRemove(e);
                 }
 
@@ -2422,7 +2474,7 @@ namespace Sapphire
 
                 void addLabelOverlays()
                 {
-                    clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"));
+                    clockLabel    = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock.svg"), true);
                     clockSelLabel = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_clock_sel.svg"));
                     rateLabel     = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct.svg"));
                     rateSelLabel  = addLabelOverlay(asset::plugin(pluginInstance, "res/echo_voct_sel.svg"));
@@ -2437,12 +2489,14 @@ namespace Sapphire
                 {
                     LoopWidget::onHover(e);
                     isMouseInsideClockLabel = isInsideClockLabel(e.pos);
+                    isMouseInsideFreezeGateTriggerToggle = isInsideGateTriggerToggle(freezeLabelPos, e.pos);
                 }
 
                 void onLeave(const LeaveEvent& e) override
                 {
                     LoopWidget::onLeave(e);
                     isMouseInsideClockLabel = false;
+                    isMouseInsideFreezeGateTriggerToggle = false;
                 }
 
                 void resetTapAction() override
@@ -2494,7 +2548,7 @@ namespace Sapphire
                 {
                     ToggleGroup* group = echoModule ? &(echoModule->freezeToggleGroup) : nullptr;
 
-                    addToggleGroup(
+                    freezeInputPortWidget = addToggleGroup(
                         group,
                         "freeze",
                         FREEZE_INPUT,
@@ -2579,11 +2633,10 @@ namespace Sapphire
                     // have an active clock sync.
                     // Otherwise it should be opaque black on the panel layer.
                     LoopWidget::drawLayer(args, layer);
-
-                    if (layer==1 && isClockPortConnected())
+                    if (layer == 1)
                     {
-                        NVGcolor color = echoModule->timeKnobInfo.color();
-                        drawClockSyncSymbol(args.vg, color, 1.25);
+                        if (isClockPortConnected())
+                            drawClockSyncSymbol(args.vg, echoModule->timeKnobInfo.color(), 1.25);
                     }
                 }
 
@@ -2598,6 +2651,9 @@ namespace Sapphire
 
                     if (!isClockPortConnected())
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
+
+                    if (echoModule)
+                        drawTriggerGateSymbol(args.vg, freezeLabelPos, echoModule->freezeToggleGroup, isMouseInsideFreezeGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK);
                 }
 
                 void onMousePress(const ButtonEvent& e) override
@@ -2606,7 +2662,41 @@ namespace Sapphire
                     if (echoModule)
                     {
                         if (isInsideClockLabel(e.pos))
-                            echoModule->clockSignalFormat = NextEnumValue(echoModule->clockSignalFormat);
+                        {
+                            ClockSignalFormat nextValue = NextEnumValue(echoModule->clockSignalFormat);
+                            InvokeAction(new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE"));
+                        }
+
+                        if (isInsideGateTriggerToggle(freezeLabelPos, e.pos))
+                        {
+                            InvokeAction(new ChangeEnumAction(
+                                echoModule->freezeToggleGroup.mode,
+                                NextEnumValue(echoModule->freezeToggleGroup.mode),
+                                "toggle gate/trigger input on FRZ port"
+                            ));
+                        }
+                    }
+                }
+
+                void updateFreezePortTooltip()
+                {
+                    if (freezeInputPortWidget)
+                    {
+                        if (auto portInfo = freezeInputPortWidget->getPortInfo())
+                        {
+                            bool trigger = echoModule && (echoModule->freezeToggleGroup.mode == ToggleGroupMode::Trigger);
+                            portInfo->name = std::string("Freeze ") + (trigger ? "trigger" : "gate");
+                        }
+                    }
+                }
+
+                void updateFreezeGateTriggerTooltip()
+                {
+                    updateTooltip(hilightFreezeTrigger, isMouseInsideFreezeGateTriggerToggle, freezeGateTriggerTooltip, "");
+                    if (freezeGateTriggerTooltip)
+                    {
+                        bool trigger = echoModule && (echoModule->freezeToggleGroup.mode == ToggleGroupMode::Trigger);
+                        freezeGateTriggerTooltip->text = std::string("Input mode: ") + (trigger ? "trigger" : "gate");
                     }
                 }
 
@@ -2624,20 +2714,18 @@ namespace Sapphire
                         rateSelLabel ->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Voct);
 
                         updateClockRateButton(isMouseInsideClockLabel);
+                        updateFreezePortTooltip();
+                        updateFreezeGateTriggerTooltip();
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
 
-                        if (echoModule->autoCreateOutputModule && (creationCountdown > 0))
+                        if (echoModule->autoCreateOutputModule && OneShotCountdown(creationCountdown))
                         {
-                            --creationCountdown;
-                            if (creationCountdown == 0)
-                            {
-                                echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
-                                if (!IsEchoReceiver(module->rightExpander.module))
-                                    AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
-                            }
+                            echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
+                            if (!IsEchoReceiver(module->rightExpander.module) && !APP->history->canRedo())
+                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
                         }
                     }
                 }
@@ -2655,21 +2743,23 @@ namespace Sapphire
                             [=]{ initializeExpanderChain(); }
                         ));
 
-                        menu->addChild(createEnumMenuItem(
+                        menu->addChild(CreateChangeEnumMenuItem(
                             "Signal routing",
                             {
                                 "Parallel",
                                 "Serial"
                             },
+                            "signal routing change",
                             echoModule->routingSmoother.targetValue
                         ));
 
-                        menu->addChild(createEnumMenuItem(
+                        menu->addChild(CreateChangeEnumMenuItem(
                             "Interpolator",
                             {
                                 "Linear (uses less CPU)",
                                 "Sinc (cleaner audio)"
                             },
+                            "change interpolator",
                             echoModule->interpolatorKind
                         ));
 
@@ -2714,46 +2804,44 @@ namespace Sapphire
                     }
                 }
 
-                int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
-                {
-                    int count = 0;
-                    if (echoModule)
-                    {
-                        if (predicate(echoModule))
-                            ++count;
-
-                        Module* module = echoModule->rightExpander.module;
-                        while (IsEchoTap(module))
-                        {
-                            auto lmod = dynamic_cast<const LoopModule*>(module);
-                            if (lmod && predicate(lmod))
-                                ++count;
-
-                            module = module->rightExpander.module;
-                        }
-                    }
-                    return count;
-                }
-
                 void visitTaps(std::function<void(LoopModule* lmod)> visit)
                 {
                     if (echoModule)
                     {
                         visit(echoModule);
-                        Module* module = echoModule->rightExpander.module;
-                        while (IsEchoTap(module))
-                        {
-                            auto lmod = dynamic_cast<LoopModule*>(module);
-                            if (lmod)
+                        for (Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
+                            if (auto lmod = dynamic_cast<LoopModule*>(m))
                                 visit(lmod);
-
-                            module = module->rightExpander.module;
-                        }
                     }
+                }
+
+                void visitTaps(std::function<void(const LoopModule* lmod)> visit) const
+                {
+                    if (echoModule)
+                    {
+                        visit(echoModule);
+                        for (const Module* m = echoModule->rightExpander.module; IsEchoTap(m); m = m->rightExpander.module)
+                            if (auto lmod = dynamic_cast<const LoopModule*>(m))
+                                visit(lmod);
+                    }
+                }
+
+                int tallyTaps(std::function<bool(const LoopModule*)> predicate) const
+                {
+                    int count = 0;
+                    visitTaps([predicate, &count](const LoopModule* lmod)
+                    {
+                        if (lmod && predicate(lmod))
+                            ++count;
+                    });
+                    return count;
                 }
 
                 void toggleAllPolyphonicEnvelope()
                 {
+                    if (!echoModule)
+                        return;
+
                     const int countPoly = tallyTaps(
                         [](const LoopModule *lmod)
                         {
@@ -2768,13 +2856,19 @@ namespace Sapphire
                         }
                     );
 
-                    const bool newPoly = (countPoly < countMono);
+                    auto action = new ToggleAllPolyphonicEnvelopeAction(
+                        echoModule->id,
+                        countPoly < countMono
+                    );
+
                     visitTaps(
-                        [=](LoopModule *lmod)
+                        [=](const LoopModule *lmod)
                         {
-                            lmod->polyphonicEnvelopeOutput = newPoly;
+                            action->stateList.push_back(PolyEnvelopeState(lmod->id, lmod->polyphonicEnvelopeOutput));
                         }
                     );
+
+                    InvokeAction(action);
                 }
 
                 void toggleAllClockSync()
@@ -2793,64 +2887,38 @@ namespace Sapphire
                         }
                     );
 
-                    const TimeMode timeMode = (
+                    auto action = new ToggleAllClockSyncAction(
                         (2*clockCount > totalCount) ?
                         TimeMode::Seconds :
                         TimeMode::ClockSync
                     );
 
-                    visitTaps([=](LoopModule *lmod)
+                    visitTaps([=](const LoopModule *lmod)
                     {
-                        lmod->timeKnobInfo.timeMode = timeMode;
+                        action->stateList.push_back(ClockSyncState(lmod->id, lmod->timeKnobInfo.timeMode));
                     });
+
+                    InvokeAction(action);
                 }
             };
         }
 
-        void ClockButton::onButton(const ButtonEvent& e)
+        void ClockButton::action()
         {
             if (echoWidget)
-            {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-                {
-                    echoWidget->toggleAllClockSync();
-                    stopwatch.restart();
-                }
-            }
-            clock_button_base_t::onButton(e);
+                echoWidget->toggleAllClockSync();
         }
 
-        void ClockButton::step()
-        {
-            clock_button_base_t::step();
-            const float blinkTime = 0.02;
-            if (stopwatch.elapsedSeconds() >= blinkTime)
-            {
-                stopwatch.reset();
-                ParamQuantity *quantity = getParamQuantity();
-                if (quantity && quantity->getValue() > 0)
-                    quantity->setValue(0);
-            }
-        }
-
-        void InitChainButton::onButton(const ButtonEvent& e)
+        void InitChainButton::action()
         {
             if (echoWidget)
-            {
-                if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-                    echoWidget->initializeExpanderChain();
-            }
-            init_chain_button_base_t::onButton(e);
+                echoWidget->initializeExpanderChain();
         }
 
-        void InitTapButton::onButton(const ButtonEvent& e)
+        void InitTapButton::action()
         {
-            if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS)
-            {
-                if (loopWidget)
-                    loopWidget->resetTapAction();
-            }
-            init_chain_button_base_t::onButton(e);
+            if (loopWidget)
+                loopWidget->resetTapAction();
         }
 
         void InitChainAction::undo()
@@ -2870,6 +2938,27 @@ namespace Sapphire
                 Module* module = APP->engine->getModule(node.moduleId);
                 if (module)
                     APP->engine->resetModule(module);
+            }
+        }
+
+        void ToggleAllPolyphonicEnvelopeAction::undo()
+        {
+            for (const PolyEnvelopeState& s : stateList)
+                if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
+                    lmod->polyphonicEnvelopeOutput = s.state;
+        }
+
+        void ToggleAllPolyphonicEnvelopeAction::redo()
+        {
+            auto echoWidget = FindSapphireWidget<Echo::EchoWidget>(moduleId);
+            if (echoWidget)
+            {
+                echoWidget->visitTaps(
+                    [=](LoopModule* lmod)
+                    {
+                        lmod->polyphonicEnvelopeOutput = newState;
+                    }
+                );
             }
         }
 
@@ -2985,16 +3074,14 @@ namespace Sapphire
 
                 void tryCopySettingsFrom(SapphireModule* other) override
                 {
-                    auto emod = dynamic_cast<Echo::EchoModule*>(other);
-                    if (emod)
+                    if (auto emod = dynamic_cast<Echo::EchoModule*>(other))
                     {
                         timeKnobInfo = emod->timeKnobInfo;
                         polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
                         flip = emod->flip;
                         duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
-                        flipControlsAreDirty = true;
-                        sendReturnControlsAreDirty = true;
+                        reverseToggleGroup.mode = emod->reverseToggleGroup.mode;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
                         copyParamFrom(emod, TIME_ATTEN, Echo::TIME_ATTEN);
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);
@@ -3085,8 +3172,8 @@ namespace Sapphire
                     , echoTapModule(module)
                 {
                     setModule(module);
-                    addExpanderInsertButton(module, INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addExpanderRemoveButton(module, REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderRemoveButton(REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
@@ -3265,9 +3352,8 @@ namespace Sapphire
                 void step() override
                 {
                     MultiTapWidget::step();
-                    SapphireModule* smod = getSapphireModule();
-                    if (smod)
-                        smod->hideLeftBorder = isConnectedOnLeft();
+                    if (echoOutModule)
+                        echoOutModule->hideLeftBorder = isConnectedOnLeft();
                 }
 
                 void draw(const DrawArgs& args) override

@@ -4,9 +4,36 @@
 #include "plugin.hpp"
 namespace Sapphire
 {
+    struct SapphireModule;
+    struct SapphireWidget;
+
+    inline void InvokeAction(history::Action* action)
+    {
+        if (action)
+        {
+            action->redo();
+            APP->history->push(action);
+        }
+    }
+
     inline int VcvSafeChannelCount(int count)
     {
         return std::clamp<int>(count, 0, PORT_MAX_CHANNELS);
+    }
+
+    ModuleWidget* FindWidgetForId(int64_t moduleId);
+    Module* FindModuleForId(int64_t moduleId);
+
+    template <typename widget_t = SapphireWidget>
+    widget_t* FindSapphireWidget(int64_t moduleId)
+    {
+        return dynamic_cast<widget_t*>(FindWidgetForId(moduleId));
+    }
+
+    template <typename module_t = SapphireModule>
+    module_t* FindSapphireModule(int64_t moduleId)
+    {
+        return dynamic_cast<module_t*>(FindModuleForId(moduleId));
     }
 
     enum class ExpanderRole
@@ -392,12 +419,101 @@ namespace Sapphire
     };
 
 
+    template <typename enum_t>
+    struct ChangeEnumAction : history::Action
+    {
+        enum_t& option;
+        enum_t  oldValue;
+        enum_t  newValue;
+
+        explicit ChangeEnumAction(enum_t& _option, enum_t _newValue, const std::string& _actionName)
+            : option(_option)
+            , oldValue(_option)
+            , newValue(_newValue)
+        {
+            name = _actionName;
+        }
+
+        void undo() override
+        {
+            option = oldValue;
+        }
+
+        void redo() override
+        {
+            option = newValue;
+        }
+    };
+
+
+    template <typename enum_t>
+    MenuItem* CreateChangeEnumMenuItem(
+        std::string text,
+        std::vector<std::string> labels,
+        const std::string& actionName,
+        enum_t& option)
+    {
+        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
+
+        return createIndexSubmenuItem(
+            text,
+            labels,
+            [&option]()
+            {
+                return static_cast<std::size_t>(option);
+            },
+            [&option, actionName](size_t index)
+            {
+                const enum_t newValue = static_cast<enum_t>(index);
+                if (newValue != option)
+                    InvokeAction(new ChangeEnumAction(option, newValue, actionName));
+            }
+        );
+    }
+
+
+    struct SliderAction : history::Action
+    {
+        const int64_t moduleId;
+        const int paramId;
+        const float oldValue;
+        const float newValue;
+
+        explicit SliderAction(int64_t _moduleId, int _paramId, float _oldValue, float _newValue, const std::string& _name)
+            : moduleId(_moduleId)
+            , paramId(_paramId)
+            , oldValue(_oldValue)
+            , newValue(_newValue)
+        {
+            name = _name;
+        }
+
+        void setParameterValue(float value);
+
+        void undo() override
+        {
+            setParameterValue(oldValue);
+        }
+
+        void redo() override
+        {
+            setParameterValue(newValue);
+        }
+    };
+
+
+    inline int SnapChannelCount(float value)
+    {
+        const int n = static_cast<int>(std::round(value));
+        return std::clamp(n, 1, 16);
+    }
+
+
     struct ChannelCountQuantity : SapphireQuantity
     {
         int getDesiredChannelCount() const
         {
-            int n = static_cast<int>(std::round(value));
-            return std::clamp(n, 1, 16);
+            return SnapChannelCount(value);
         }
 
         std::string getDisplayValueString() override
@@ -407,12 +523,59 @@ namespace Sapphire
     };
 
 
-    struct ChannelCountSlider : ui::Slider
+    struct SapphireSlider : Slider      // adds undo/redo support
     {
-        explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
+        const int64_t moduleId;
+        const int paramId;
+        const float startValue;
+        float currentValue{};
+        const std::string actionName;
+
+        explicit SapphireSlider(SapphireQuantity* _quantity, const std::string& _actionName)
+            : moduleId(_quantity->module->id)
+            , paramId(_quantity->paramId)
+            , startValue(_quantity->getValue())
+            , currentValue(_quantity->getValue())
+            , actionName(_actionName)
         {
             quantity = _quantity;
             box.size.x = 200;
+        }
+
+        void onRemove(const RemoveEvent& args) override
+        {
+            const float snapStartValue = snap(startValue);
+            const float snapFinalValue = snap(currentValue);
+            if (snapFinalValue != snapStartValue)
+                APP->history->push(new SliderAction(moduleId, paramId, snapStartValue, snapFinalValue, actionName));
+            Slider::onRemove(args);
+        }
+
+        void step() override
+        {
+            Slider::step();
+            currentValue = quantity->getValue();
+        }
+
+        virtual float snap(float value) const
+        {
+            return value;
+        }
+    };
+
+
+    struct ChannelCountSlider : SapphireSlider
+    {
+        ChannelCountQuantity* ccq{};
+
+        explicit ChannelCountSlider(ChannelCountQuantity *_quantity)
+            : SapphireSlider(_quantity, "adjust output channel count")
+            , ccq(_quantity)
+            {}
+
+        float snap(float value) const override
+        {
+            return SnapChannelCount(value);
         }
 
         void draw(const DrawArgs& args) override
@@ -425,21 +588,16 @@ namespace Sapphire
             if (APP->event->draggedWidget == this)
                 state = BND_ACTIVE;
 
-            float progress = 0;
-
             // Render the slider snapped to the nearest integer number of channels.
             // Compensate for rescaling: progress ranges 0 to 1, but channels from 1 to 16.
             // There is also a 0.5 "buffer" in the channel count at the top and bottom of the range.
-            auto ccq = static_cast<const ChannelCountQuantity*>(quantity);
-            if (ccq)
-                progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
-
-            std::string text = quantity ? quantity->getString() : "";
+            float progress = std::clamp((ccq->getDesiredChannelCount() - 0.5f) / 16.0f, 0.0f, 1.0f);
+            const std::string text = ccq->getString();
 
             // If parent is a Menu, make corners sharp
-            auto parentMenu = dynamic_cast<const ui::Menu*>(getParent());
+            auto parentMenu = dynamic_cast<const Menu*>(getParent());
             int flags = parentMenu ? BND_CORNER_ALL : BND_CORNER_NONE;
-            bndSlider(args.vg, 0.0, 0.0, box.size.x, box.size.y, flags, state, progress, text.c_str(), NULL);
+            bndSlider(args.vg, 0.0, 0.0, box.size.x, box.size.y, flags, state, progress, text.c_str(), nullptr);
         }
     };
 
@@ -457,13 +615,11 @@ namespace Sapphire
     };
 
 
-    struct DcRejectSlider : ui::Slider
+    struct DcRejectSlider : SapphireSlider
     {
         explicit DcRejectSlider(DcRejectQuantity *_quantity)
-        {
-            quantity = _quantity;
-            box.size.x = 200.0f;        // without this, the menu display gets messed up
-        }
+            : SapphireSlider(_quantity, "adjust DC reject corner frequency")
+            {}
     };
 
 
@@ -479,16 +635,6 @@ namespace Sapphire
         std::string getDisplayValueString() override
         {
             return isAgcEnabled() ? string::f("%0.2f V", clampedAgc()) : "OFF";
-        }
-    };
-
-
-    struct AgcLevelSlider : ui::Slider
-    {
-        explicit AgcLevelSlider(AgcLevelQuantity *_quantity)
-        {
-            quantity = _quantity;
-            box.size.x = 200.0f;
         }
     };
 
@@ -687,6 +833,37 @@ namespace Sapphire
     };
 
 
+    struct SensitivityState
+    {
+        const int paramId;
+        const bool lowSensitivity;
+
+        explicit SensitivityState(int _paramId, bool _lowSensitivity)
+            : paramId(_paramId)
+            , lowSensitivity(_lowSensitivity)
+        {
+        }
+    };
+
+
+    struct ToggleAllSensitivityAction : history::Action
+    {
+        int64_t moduleId = -1;
+        std::vector<SensitivityState> prevStateList;
+
+        explicit ToggleAllSensitivityAction(SapphireModule* sapphireModule);
+        void redo() override;
+        void undo() override;
+    };
+
+
+    class RemovalSubscriber
+    {
+    public:
+        virtual void disconnect() = 0;
+    };
+
+
     struct SapphireModule : public Module
     {
         static std::vector<SapphireModule*> All;
@@ -712,6 +889,8 @@ namespace Sapphire
         bool neonMode = false;
         bool includeNeonModeMenuItem = true;
         DcRejectQuantity *dcRejectQuantity = nullptr;
+        AgcLevelQuantity *agcLevelQuantity = nullptr;
+        std::vector<RemovalSubscriber*> removalSubscriberList;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -719,6 +898,48 @@ namespace Sapphire
             , paramInfo(nParams)
             , outputPortInfo(nOutputPorts)
             {}
+
+        virtual ~SapphireModule()
+        {
+            // Any lingering removal-subscribers indicates memory corruption is possible very soon.
+            // This assert should only fail if somebody destructs a SapphireModule without calling
+            // its onRemove() method first.
+            assert(removalSubscriberList.empty());
+        }
+
+        void onReset(const ResetEvent& e) override
+        {
+            Module::onReset(e);
+            SapphireModule_initialize();
+        }
+
+        void onAdd(const AddEvent& e) override;
+        void onRemove(const RemoveEvent& e) override;
+        void subscribe(RemovalSubscriber* subscriber);
+        void unsubscribe(RemovalSubscriber* subscriber);
+
+        void SapphireModule_initialize()
+        {
+            // Disable low sensitivity on all attenuverters.
+            const int nparams = static_cast<int>(paramInfo.size());
+            for (int paramId = 0; paramId < nparams; ++paramId)
+                if (isAttenuverter(paramId))
+                    setLowSensitive(paramId, false);
+
+            // Clear any voltage-flipping on output ports.
+            const int nOutputs = static_cast<int>(outputPortInfo.size());
+            for (int outputId = 0; outputId < nOutputs; ++outputId)
+                outputPortInfo.at(outputId).flipVoltagePolarity = false;
+
+            enableLimiterWarning = true;
+
+            if (dcRejectQuantity)
+                dcRejectQuantity->initialize();
+
+            if (agcLevelQuantity)
+                agcLevelQuantity->initialize();
+        }
+
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
@@ -804,23 +1025,9 @@ namespace Sapphire
             return &paramInfo.at(attenId).isLowSensitive;
         }
 
-        void toggleAllSensitivity()
+        void setLowSensitive(int attenId, bool state)
         {
-            // Find all attenuverter knobs and toggle their low-sensitivity state together.
-            const int nparams = static_cast<int>(paramInfo.size());
-            int countEnabled = 0;
-            int countDisabled = 0;
-            for (int paramId = 0; paramId < nparams; ++paramId)
-                if (isAttenuverter(paramId))
-                    isLowSensitive(paramId) ? ++countEnabled : ++countDisabled;
-
-            // Let the knobs "vote". If a supermajority are enabled,
-            // then we turn them all off.
-            // Otherwise we turn them all on.
-            const bool toggle = (countEnabled <= countDisabled);
-            for (int paramId = 0; paramId < nparams; ++paramId)
-                if (isAttenuverter(paramId))
-                    *lowSensitiveFlag(paramId) = toggle;
+            paramInfo.at(attenId).isLowSensitive = state;
         }
 
         MenuItem* createToggleAllSensitivityMenuItem()
@@ -828,19 +1035,13 @@ namespace Sapphire
             return createMenuItem(
                 "Toggle sensitivity on all attenuverters",
                 "",
-                [this]{ toggleAllSensitivity(); }
+                [this]{ InvokeAction(new ToggleAllSensitivityAction(this)); }
             );
         }
 
-        MenuItem* createStereoSplitterMenuItem()
-        {
-            return createBoolPtrMenuItem<bool>("Enable input stereo splitter", "", &enableStereoSplitter);
-        }
 
-        MenuItem* createStereoMergeMenuItem()
-        {
-            return createBoolPtrMenuItem<bool>("Send polyphonic stereo to L output", "", &enableStereoMerge);
-        }
+        MenuItem* createStereoSplitterMenuItem();
+        MenuItem* createStereoMergeMenuItem();
 
         void sendVector(float x, float y, float z, bool reset)
         {
@@ -855,18 +1056,6 @@ namespace Sapphire
         bool isVectorSenderConnectedOnLeft() const
         {
             return vectorReceiver.isVectorSenderConnectedOnLeft();
-        }
-
-        void onAdd(const AddEvent& e) override
-        {
-            if (std::find(All.begin(), All.end(), this) == All.end())
-                All.push_back(this);
-        }
-
-        void onRemove(const RemoveEvent& e) override
-        {
-            // Delete all instances of `this` pointer in `All`.
-            All.erase(std::remove(All.begin(), All.end(), this), All.end());
         }
 
         json_t* dataToJson() override
@@ -904,6 +1093,12 @@ namespace Sapphire
             if (dcRejectQuantity)
                 dcRejectQuantity->save(root, "dcRejectFrequency");
 
+            if (agcLevelQuantity)
+            {
+                agcLevelQuantity->save(root, "agcLevel");
+                json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
+            }
+
             return root;
         }
 
@@ -936,10 +1131,6 @@ namespace Sapphire
                 }
             }
 
-            const int nOutputs = static_cast<int>(outputPortInfo.size());
-            for (int outputId = 0; outputId < nOutputs; ++outputId)
-                outputPortInfo.at(outputId).flipVoltagePolarity = false;
-
             json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
             if (oList)
             {
@@ -950,6 +1141,7 @@ namespace Sapphire
                     if (json_is_integer(item))
                     {
                         int outputId = static_cast<int>(json_integer_value(item));
+                        const int nOutputs = outputPortInfo.size();
                         if (outputId >= 0 && outputId < nOutputs)
                             outputPortInfo.at(outputId).flipVoltagePolarity = true;
                     }
@@ -981,6 +1173,12 @@ namespace Sapphire
 
             if (dcRejectQuantity)
                 dcRejectQuantity->load(root, "dcRejectFrequency");
+
+            // If the JSON is damaged, default to enabling the warning light.
+            enableLimiterWarning = !json_is_false(json_object_get(root, "limiterWarningLight"));
+
+            if (agcLevelQuantity)
+                agcLevelQuantity->load(root, "agcLevel");
         }
 
         virtual void tryCopySettingsFrom(SapphireModule* other)
@@ -1188,6 +1386,9 @@ namespace Sapphire
 
         virtual NVGcolor getWarningColor()
         {
+            if (!enableLimiterWarning)
+                return nvgRGBA(0, 0, 0, 0);     // no warning light
+
             if (limiterRecoveryCountdown > 0)
             {
                 // The module is recovering from non-finite (NAN/infinite) output.
@@ -1196,7 +1397,7 @@ namespace Sapphire
             }
 
             const double distortion = getAgcDistortion();
-            if (!enableLimiterWarning || distortion <= 0.0)
+            if (distortion <= 0.0)
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
             double decibels = 20.0 * std::log10(1.0 + distortion);
@@ -1238,7 +1439,10 @@ namespace Sapphire
             dcRejectQuantity->changed = true;
         }
 
-        AgcLevelQuantity* makeAgcLevelQuantity(
+        void addLimiterMenuItems(Menu* menu);
+        MenuItem* createLimiterWarningLightMenuItem();
+
+        void addAgcLevelQuantity(
             int   paramId,
             float levelMin   =  1.0,
             float levelDef   =  4.0,
@@ -1246,7 +1450,9 @@ namespace Sapphire
             float disableMin = 10.1,
             float disableMax = 10.2)
         {
-            AgcLevelQuantity *agcLevelQuantity = configParam<AgcLevelQuantity>(
+            assert(agcLevelQuantity == nullptr);    // creating more than once would leak memory
+
+            agcLevelQuantity = configParam<AgcLevelQuantity>(
                 paramId,
                 levelMin,
                 disableMax,
@@ -1258,8 +1464,6 @@ namespace Sapphire
             agcLevelQuantity->levelMin = levelMin;
             agcLevelQuantity->levelMax = levelMax;
             agcLevelQuantity->disableMin = disableMin;
-
-            return agcLevelQuantity;
         }
 
         bool updateTriggerGroup(
@@ -1311,10 +1515,11 @@ namespace Sapphire
         int buttonParamId = -1;
         int buttonLightId = -1;
         GateTriggerReceiver receiver;
-        ToggleGroupMode mode = ToggleGroupMode::Default;
         bool portActive = false;
 
     public:
+        ToggleGroupMode mode = ToggleGroupMode::Default;
+
         ToggleGroup()
         {
             initialize();
@@ -1401,31 +1606,81 @@ namespace Sapphire
                 menuName + " input port mode",
                 { "Gate", "Trigger" },
                 [=]() { return static_cast<std::size_t>(mode); },
-                [=](size_t value) { mode = static_cast<ToggleGroupMode>(value); }
+                [=](size_t value)
+                {
+                    const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
+                    if (newMode != mode)
+                        InvokeAction(new ChangeEnumAction(mode, newMode, "toggle gate/port input mode"));
+                }
             ));
         }
     };
 
 
-    class WarningLightWidget : public LightWidget
+    class WarningLightWidget : public LightWidget, public RemovalSubscriber
     {
     private:
-        SapphireModule *alModule;
+        SapphireModule *smod{};
 
     public:
-        explicit WarningLightWidget(SapphireModule *_alModule)
-            : alModule(_alModule)
+        explicit WarningLightWidget(SapphireModule *_smod)
+            : smod(_smod)
         {
             borderColor = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't draw a circular border
             bgColor     = nvgRGBA(0x00, 0x00, 0x00, 0x00);      // don't mess with the knob behind the light
+            if (smod)
+                smod->subscribe(this);
+        }
+
+        void onRemove(const Widget::RemoveEvent& e) override
+        {
+            if (smod)
+                smod->unsubscribe(this);
+        }
+
+        void disconnect() override
+        {
+            smod = nullptr;
         }
 
         void drawLayer(const DrawArgs& args, int layer) override
         {
             if (layer == 1)
-                color = alModule ? alModule->getWarningColor() : nvgRGBA(0, 0, 0, 0);
+                color = smod ? smod->getWarningColor() : nvgRGBA(0, 0, 0, 0);
 
             LightWidget::drawLayer(args, layer);
+        }
+    };
+
+
+    struct VoltageFlipAction : history::Action
+    {
+        const int64_t moduleId;
+        const int outputId;
+        const bool oldValue;
+
+        explicit VoltageFlipAction(const SapphireModule* module, int _outputId)
+            : moduleId(module->id)
+            , outputId(_outputId)
+            , oldValue(module->getVoltageFlipEnabled(_outputId))
+        {
+            name = "flip voltage polarity";
+        }
+
+        void setFlip(bool state)
+        {
+            if (SapphireModule* module = FindSapphireModule(moduleId))
+                module->setVoltageFlipEnabled(outputId, state);
+        }
+
+        void undo() override
+        {
+            setFlip(oldValue);
+        }
+
+        void redo() override
+        {
+            setFlip(!oldValue);
         }
     };
 
@@ -1441,7 +1696,7 @@ namespace Sapphire
             setSvg(Svg::load(asset::plugin(pluginInstance, "res/port.svg")));
         }
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             app::SvgPort::appendContextMenu(menu);
             if (module && allowsVoltageFlip && (outputId >= 0))
@@ -1457,7 +1712,8 @@ namespace Sapphire
                     },
                     [=](bool state)
                     {
-                        module->setVoltageFlipEnabled(outputId, state);
+                        if (state != module->getVoltageFlipEnabled(outputId))
+                            InvokeAction(new VoltageFlipAction(module, outputId));
                     }
                 ));
             }
@@ -1469,11 +1725,14 @@ namespace Sapphire
     {
         ToggleGroup* group = nullptr;
 
-        void appendContextMenu(ui::Menu* menu) override
+        void appendContextMenu(Menu* menu) override
         {
             SapphirePort::appendContextMenu(menu);
             if (group)
+            {
+                menu->addChild(new MenuSeparator);
                 group->addMenuItems(menu);
+            }
         }
     };
 
@@ -1550,22 +1809,6 @@ namespace Sapphire
         // an expander chain.
         // Example: IsModelType(rightExpander.module, modelSapphireTricorder)
         return module && model && module->model == model;
-    }
-
-    template <typename enum_t>
-    ui::MenuItem* createEnumMenuItem(
-        std::string text,
-        std::vector<std::string> labels,
-        enum_t& option)
-    {
-        assert(labels.size() == static_cast<std::size_t>(enum_t::LEN));
-
-        return createIndexSubmenuItem(
-            text,
-            labels,
-            [&option]() { return static_cast<std::size_t>(option); },
-            [&option](size_t index) { option = static_cast<enum_t>(index); }
-        );
     }
 }
 

@@ -475,7 +475,7 @@ namespace Sapphire
 
             void onReset(const ResetEvent& e) override
             {
-                Module::onReset(e);
+                SapphireModule::onReset(e);
                 initialize();
             }
 
@@ -1700,7 +1700,7 @@ namespace Sapphire
         }
 
 
-        struct RotationSpeedSlider : ui::Slider
+        struct RotationSpeedSlider : Slider
         {
             explicit RotationSpeedSlider(SapphireQuantity *_quantity)
             {
