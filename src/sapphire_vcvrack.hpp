@@ -445,6 +445,11 @@ namespace Sapphire
         }
     };
 
+    // Some C++ compilers get confused about deducing template type parameters.
+    // Give those guys a little help!
+    template <typename enum_t>
+    ChangeEnumAction(enum_t&, enum_t, const std::string&) -> ChangeEnumAction<enum_t>;
+
 
     template <typename enum_t>
     MenuItem* CreateChangeEnumMenuItem(
