@@ -1231,22 +1231,26 @@ namespace Sapphire
 
             Frame panFrame(const Frame& rawAudio)
             {
-                const int nc = rawAudio.safeChannelCount();
                 Frame pannedAudio = rawAudio;
-
-                // We currently support panning on stereo input only.
-                // All other channel counts should be left unmodified.
-                if (nc == 2)
+                if (const int nc = rawAudio.safeChannelCount(); nc >= 2)
                 {
-                    // Use a power law to smoothly transition from A or B dominating,
-                    // but with consistent power sum across both channels.
                     constexpr float sensitivity = 1.0 / 5.0;        // 1 knob unit per 5V at 100%
-                    float x = getControlValueCustom(controls.pan, -1, +1, sensitivity);
-                    float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
-                    pannedAudio.sample[0] *= M_SQRT2 * std::cos(theta);
-                    pannedAudio.sample[1] *= M_SQRT2 * std::sin(theta);
-                }
+                    const float x = getControlValueCustom(controls.pan, -1, +1, sensitivity);
 
+                    // Use a power law to smoothly transition from either channel dominating,
+                    // but with consistent power sum across both channels.
+                    const float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
+                    const float leftFactor  = M_SQRT2 * std::cos(theta);
+                    const float rightFactor = M_SQRT2 * std::sin(theta);
+
+                    // Support panning for all pairs of supplied channels.
+                    // Any odd channels left over are ignored.
+                    for (int c=0; c+1 < nc; c+=2)
+                    {
+                        pannedAudio.sample[c+0] *= leftFactor;
+                        pannedAudio.sample[c+1] *= rightFactor;
+                    }
+                }
                 return pannedAudio;
             }
 

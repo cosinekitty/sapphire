@@ -13,6 +13,7 @@
 <td align="center">2.6.000</td>
 <td align="left">
     <ul>
+        <li>Echo used to only support panning when there were exactly 2 channels of audio. Now you can pan any even number of polyphonic channels arranged in the order (L0, R0, L1, R1, ..., L7, R7). This may require some polyphonic utilities to hammer your input into, and out of that shape, but at least you can do it now!</li>
         <li>Now you can undo/redo more actions across Sapphire modules. The goal is to support undo/redo for any module state that is saved/loaded with a patch.</li>
         <li>Now when a Sapphire module is initialized, any low-sensitivity attenuverters are reset to normal sensitivity.</li>
         <li><a href="doc/Gravy.md">Gravy</a> no longer makes a click/pop sound when you press the 3-way band mode switch (LP, BP, HP). Gravy now uses a smooth ramp over 50&nbsp;ms to fade out one mode, switches modes, then fades in the new mode for 50&nbsp;ms.</li>
