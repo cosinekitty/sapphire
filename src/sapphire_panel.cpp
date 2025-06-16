@@ -299,6 +299,10 @@ namespace Sapphire
             {"y_output",               {  10.160,   97.000}},
             {"z_output",               {  10.160,  106.000}},
             }},
+        { "moots", {
+            {"_panel",                 {  50.800,  128.500}},
+            {"gate_trigger_label",     {  25.400,   74.500}},
+            }},
         { "nucleus", {
             {"_panel",                 {  81.280,  128.500}},
             {"audio_mode_button",      {  15.640,   83.500}},

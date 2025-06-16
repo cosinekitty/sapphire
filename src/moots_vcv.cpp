@@ -58,6 +58,7 @@ namespace Sapphire
         {
             Gate,
             Trigger,
+            LEN
         };
 
         struct MootsModule : SapphireModule
@@ -422,6 +423,10 @@ namespace Sapphire
             MootsModule* mootsModule = nullptr;
             SvgOverlay* gateLabel = nullptr;
             SvgOverlay* triggerLabel = nullptr;
+            const Vec gateTriggerLabelPos = mm_to_px(FindComponent("moots", "gate_trigger_label"));
+            SapphireTooltip* gateTriggerTooltip = nullptr;
+            bool insideLabel = false;
+            bool hilightLabel = false;
 
             explicit MootsWidget(MootsModule* module)
                 : SapphireWidget("moots", asset::plugin(pluginInstance, "res/moots.svg"))
@@ -459,6 +464,12 @@ namespace Sapphire
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  60.25)), module, OUTAUDIO3_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60,  81.75)), module, OUTAUDIO4_OUTPUT));
                 addOutput(createOutputCentered<SapphirePort>(mm2px(Vec(39.60, 103.25)), module, OUTAUDIO5_OUTPUT));
+            }
+
+            void onRemove(const RemoveEvent& e) override
+            {
+                destroyTooltip(gateTriggerTooltip);
+                SapphireWidget::onRemove(e);
             }
 
             void addMootsButton(float cx, float cy, ParamId paramId, LightId lightId, int buttonIndex)
@@ -533,8 +544,57 @@ namespace Sapphire
                         gateLabel->setVisible(showGate);
                         triggerLabel->setVisible(!showGate);
                     }
+
+                    updateTooltip(hilightLabel, insideLabel, gateTriggerTooltip, "Toggle gate/trigger");
                 }
                 ModuleWidget::step();
+            }
+
+            bool isMouseInsideGateTriggerToggle(Vec pos) const
+            {
+                const float w = mm2px(12.0);
+                const float h = mm2px(3.0);
+                const float dx = std::abs(pos.x - gateTriggerLabelPos.x);
+                const float dy = std::abs(pos.y - gateTriggerLabelPos.y);
+                return std::abs(dx) <= w/2 && std::abs(dy) <= h/2;
+            }
+
+            void onMousePress(const ButtonEvent& e)
+            {
+                if (mootsModule)
+                {
+                    if (isMouseInsideGateTriggerToggle(e.pos))
+                    {
+                        const ControlMode newMode = NextEnumValue(mootsModule->controlMode);
+                        InvokeAction(new ControlModeAction(mootsModule, newMode));
+                    }
+                }
+            }
+
+            void onHover(const HoverEvent& e) override
+            {
+                SapphireWidget::onHover(e);
+                insideLabel = isMouseInsideGateTriggerToggle(e.pos);
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                SapphireWidget::onLeave(e);
+                insideLabel = false;
+            }
+
+            void onButton(const ButtonEvent& e) override
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    switch (e.action)
+                    {
+                    case GLFW_PRESS:
+                        onMousePress(e);
+                        break;
+                    }
+                }
+                SapphireWidget::onButton(e);
             }
         };
     }

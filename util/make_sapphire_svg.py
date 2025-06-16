@@ -701,23 +701,25 @@ MootsPanelLayerXml = r'''
 '''
 
 MOOTS_PANEL_WIDTH = 10
+MOOTS_LABEL_Y = 74.5
 
 
-def GenerateMootsPanel() -> int:
+def GenerateMootsPanel(cdict: Dict[str,ControlLayer]) -> int:
     svgFileName = '../res/moots.svg'
     panel = Panel(MOOTS_PANEL_WIDTH)
+    controls = cdict['moots'] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     pl.append(LiteralXml.Parse(MootsPanelLayerXml))
+    controls.append(Component('gate_trigger_label', panel.mmWidth/2, MOOTS_LABEL_Y))
     return Save(panel, svgFileName)
 
 
 def GenerateMootsLabel(svgFileName:str, text:str) -> int:
     panel = Panel(MOOTS_PANEL_WIDTH)
     x = panel.mmWidth / 2
-    y = 74.5
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        panel.append(CenteredControlTextPath(font, text, x, y, pointSize = 8.0))
+        panel.append(CenteredControlTextPath(font, text, x, MOOTS_LABEL_Y, pointSize = 8.0))
     return Save(panel, svgFileName)
 
 
@@ -2410,7 +2412,7 @@ if __name__ == '__main__':
         GenerateNucleusPanel(cdict) or
         GeneratePolynucleusPanel(cdict) or
         GenerateHissPanel(cdict) or
-        GenerateMootsPanel() or
+        GenerateMootsPanel(cdict) or
         GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
         GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
         GenerateStereoOutputLabels('../res/stereo_out_lr.svg', 'L', 'R') or
