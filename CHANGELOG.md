@@ -25,6 +25,7 @@
         <li>Sapphire modules that include output limiters (Elastika, Nucleus, Polynucleus, Sauce, Gravy) have an option in the main menu to enable/disable the warning light. Now, that option also appears in the right-click menu for the output level knob itself.</li>
         <li>Bug fix in <a href="doc/Echo.md">Echo</a>: when you redo creating an Echo module, it no longer automatically creates the Echo Out, because creating Echo Out is already in the future list of redo-able actions. Before this fix, automatically creating Echo Out destroyed the future actions. Now you can just manually redo the creation of Echo Out that was automatic the first time, and keep on redoing future actions.</li>
         <li>In Echo, the FRZ and REV/FLP controls now display a gate or trigger symbol to tell you which signal format you have selected for the input port. You can click on the symbol to toggle gate/trigger input mode.</li>
+        <li>In Moots, now you can click on the GATE/TRIGGER label to toggle gate/trigger mode.</li>
     </ul>
 </td>
 </tr>
