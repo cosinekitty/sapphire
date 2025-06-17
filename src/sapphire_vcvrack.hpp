@@ -445,11 +445,6 @@ namespace Sapphire
         }
     };
 
-    // Some C++ compilers get confused about deducing template type parameters.
-    // Give those guys a little help!
-    template <typename enum_t>
-    ChangeEnumAction(enum_t&, enum_t, const std::string&) -> ChangeEnumAction<enum_t>;
-
 
     template <typename enum_t>
     MenuItem* CreateChangeEnumMenuItem(
@@ -471,7 +466,7 @@ namespace Sapphire
             {
                 const enum_t newValue = static_cast<enum_t>(index);
                 if (newValue != option)
-                    InvokeAction(new ChangeEnumAction(option, newValue, actionName));
+                    InvokeAction(new ChangeEnumAction<enum_t>(option, newValue, actionName));
             }
         );
     }
@@ -1615,7 +1610,7 @@ namespace Sapphire
                 {
                     const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
                     if (newMode != mode)
-                        InvokeAction(new ChangeEnumAction(mode, newMode, "toggle gate/port input mode"));
+                        InvokeAction(new ChangeEnumAction<ToggleGroupMode>(mode, newMode, "toggle gate/port input mode"));
                 }
             ));
         }

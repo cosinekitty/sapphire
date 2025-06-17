@@ -283,7 +283,7 @@ namespace Sapphire
                     {
                         int chaosMode = static_cast<int>(state);
                         if (chaosModule->circuit.getMode() != chaosMode)
-                            InvokeAction(new ChaosModeAction(chaosModule, chaosMode));
+                            InvokeAction(new ChaosModeAction<module_t>(chaosModule, chaosMode));
                     }
                 ));
             }

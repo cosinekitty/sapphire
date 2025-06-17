@@ -1715,7 +1715,7 @@ namespace Sapphire
 
                     if (isInsideGateTriggerToggle(flpRevLabelPos, e.pos))
                     {
-                        InvokeAction(new ChangeEnumAction(
+                        InvokeAction(new ChangeEnumAction<ToggleGroupMode>(
                             loopModule->reverseToggleGroup.mode,
                             NextEnumValue(loopModule->reverseToggleGroup.mode),
                             "toggle gate/trigger input on REV/FLP port"
@@ -2388,7 +2388,7 @@ namespace Sapphire
 
                 void bumpTapInputRouting() override
                 {
-                    InvokeAction(new BumpEnumAction(routingSmoother, "signal routing change"));
+                    InvokeAction(new BumpEnumAction<TapInputRouting>(routingSmoother, "signal routing change"));
                 }
             };
 
@@ -2667,13 +2667,16 @@ namespace Sapphire
                     {
                         if (isInsideClockLabel(e.pos))
                         {
-                            ClockSignalFormat nextValue = NextEnumValue(echoModule->clockSignalFormat);
-                            InvokeAction(new ChangeEnumAction(echoModule->clockSignalFormat, nextValue, "toggle CLOCK/RATE"));
+                            InvokeAction(new ChangeEnumAction<ClockSignalFormat>(
+                                echoModule->clockSignalFormat,
+                                NextEnumValue(echoModule->clockSignalFormat),
+                                "toggle CLOCK/RATE"
+                            ));
                         }
 
                         if (isInsideGateTriggerToggle(freezeLabelPos, e.pos))
                         {
-                            InvokeAction(new ChangeEnumAction(
+                            InvokeAction(new ChangeEnumAction<ToggleGroupMode>(
                                 echoModule->freezeToggleGroup.mode,
                                 NextEnumValue(echoModule->freezeToggleGroup.mode),
                                 "toggle gate/trigger input on FRZ port"
