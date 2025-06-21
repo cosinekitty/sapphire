@@ -332,8 +332,7 @@ namespace Sapphire
                 // Fallback for copying settings from different kinds of modules.
                 // Example: Echo can create an EchoTap, and the tape loop settings are the same.
                 // The virtual method tryCopySettingsFrom exists as a hack just for this case.
-                auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module);
-                if (parentModule)
+                if (auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module))
                     expanderModule->tryCopySettingsFrom(parentModule);
             }
         }
@@ -394,6 +393,22 @@ namespace Sapphire
                 destroyTooltip(tooltip);
             flag = state;
         }
+    }
+
+    bool SapphireWidget::shouldOfferTricorder()
+    {
+        if (auto smod = getSapphireModule())
+        {
+            return
+                ModelInfo::hasRole(smod, ExpanderRole::VectorSender) &&
+                !IsModelType(smod->rightExpander.module, modelSapphireTricorder);
+        }
+        return false;
+    }
+
+    void SapphireWidget::addTricorderExpander()
+    {
+        AddExpander(modelSapphireTricorder, this, ExpanderDirection::Right, false);
     }
 
     ToggleAllSensitivityAction::ToggleAllSensitivityAction(SapphireModule* sapphireModule)

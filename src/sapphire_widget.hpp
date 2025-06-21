@@ -513,6 +513,15 @@ namespace Sapphire
                     menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
 
                 sm->addLimiterMenuItems(menu);
+
+                if (shouldOfferTricorder())
+                {
+                    menu->addChild(createMenuItem(
+                        "Insert Tricorder on right",
+                        "",
+                        [this]{ addTricorderExpander(); }
+                    ));
+                }
             }
         }
 
@@ -799,6 +808,8 @@ namespace Sapphire
         void createTooltip(SapphireTooltip*& tooltip, const std::string& text);
         void destroyTooltip(SapphireTooltip*& tooltip);
         void updateTooltip(bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text);
+        bool shouldOfferTricorder();
+        void addTricorderExpander();
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
@@ -841,11 +852,8 @@ namespace Sapphire
             // We do this in ascending x-order, so that each module has
             // an empty space to land in.
             for (const PanelState& p : movedPanels)
-            {
-                ModuleWidget* widget = FindWidgetForId(p.moduleId);
-                if (widget)
+                if (ModuleWidget* widget = FindWidgetForId(p.moduleId))
                     APP->scene->rack->requestModulePos(widget, p.oldPos);
-            }
         }
 
         void redo() override
@@ -854,11 +862,8 @@ namespace Sapphire
             // Move modules out of the way, the same way the force-position thing does.
             // Move right-to-left by iterating in reverse order.
             for (auto p = movedPanels.rbegin(); p != movedPanels.rend(); ++p)
-            {
-                ModuleWidget* widget = FindWidgetForId(p->moduleId);
-                if (widget)
+                if (ModuleWidget* widget = FindWidgetForId(p->moduleId))
                     APP->scene->rack->requestModulePos(widget, p->newPos);
-            }
         }
     };
 

@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">21 Jun 2025</td>
+<td align="center">2.6.001</td>
+<td align="left">
+    <ul>
+        <li><b>Insert Tricorder on right</b>: This is a new menu option present in all Sapphire modules that work with Tricorder, including the chaos modules Frolic, Glee, and Lark. Many other Sapphire modules also work with Tricorder, so look in the context menu if you're not sure.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">15 Jun 2025</td>
 <td align="center">2.6.000</td>
 <td align="left">
