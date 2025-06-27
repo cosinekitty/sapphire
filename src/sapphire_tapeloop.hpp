@@ -17,13 +17,18 @@ namespace Sapphire
     constexpr unsigned TAPELOOP_MIN_SAMPLE_RATE_HZ = 1000;
 
 
+    constexpr float TAPE_SPEED_LIMIT_MIN = 0.1;
+    constexpr float TAPE_SPEED_LIMIT_MAX = 2.0;
+    constexpr float DEFAULT_TAPE_SPEED_LIMIT = 0.9;
+
+
     class TapeDelayMotor
     {
     private:
         // Limit the "motor speed", which is just a mental model of how fast the delay
         // time (in seconds) is allowed to change (per second). Since we have seconds/second,
         // we end up with a dimensionless "speed" limit.
-        float maxSpeed = 0.9;
+        float speedLimit = DEFAULT_TAPE_SPEED_LIMIT;
         float prevDelayTime = -1;
         LoHiPassFilter<float> filter;
 
@@ -50,8 +55,8 @@ namespace Sapphire
 
             float delayTimeChange = std::clamp(
                 rawDelayTime - prevDelayTime,
-                -maxSpeed / sampleRateHz,
-                +maxSpeed / sampleRateHz
+                -speedLimit / sampleRateHz,
+                +speedLimit / sampleRateHz
             );
 
             prevDelayTime = std::clamp(
@@ -60,6 +65,17 @@ namespace Sapphire
                 TAPELOOP_MAX_DELAY_SECONDS
             );
             return prevDelayTime;
+        }
+
+        float getSpeedLimit() const
+        {
+            return speedLimit;
+        }
+
+        float setSpeedLimit(float _speedLimit)
+        {
+            speedLimit = std::clamp(_speedLimit, TAPE_SPEED_LIMIT_MIN, TAPE_SPEED_LIMIT_MAX);
+            return speedLimit;
         }
     };
 
@@ -175,6 +191,11 @@ namespace Sapphire
         void setInterpolatorKind(InterpolatorKind kind)
         {
             ikind = kind;
+        }
+
+        void setSpeedLimit(float _speedLimit)
+        {
+            tapeDelayMotor.setSpeedLimit(_speedLimit);
         }
 
         bool setDelayTime(float _delayTimeSec, float _sampleRateHz)

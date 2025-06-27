@@ -1144,6 +1144,7 @@ namespace Sapphire
                     }
 
                     delayTimeSum += delayTime;
+                    q.loop.setSpeedLimit(message.tapeSpeedLimit);
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
                     if (clearSmoother.isDelayedActionReady())
@@ -2132,6 +2133,7 @@ namespace Sapphire
                 INPUT_MODE_BUTTON_PARAM,
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
+                TAPE_SPEED_PARAM,
                 PARAMS_LEN
             };
 
@@ -2188,6 +2190,7 @@ namespace Sapphire
                 Crossfader freezeFader;
                 PortLabelMode inputLabels{};
                 bool autoCreateOutputModule = true;
+                SapphireQuantity* tapeSpeedQuantity{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -2221,6 +2224,7 @@ namespace Sapphire
                     configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
+                    addTapeSpeedQuantity();
                     EchoModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2232,6 +2236,21 @@ namespace Sapphire
                     freezeToggleGroup.initialize();
                     clearReceiver.initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
+                    tapeSpeedQuantity->initialize();
+                }
+
+                void addTapeSpeedQuantity()
+                {
+                    tapeSpeedQuantity = configParam<SapphireQuantity>(
+                        TAPE_SPEED_PARAM,
+                        TAPE_SPEED_LIMIT_MIN,
+                        TAPE_SPEED_LIMIT_MAX,
+                        DEFAULT_TAPE_SPEED_LIMIT,
+                        "Maximum tape speed"
+                    );
+
+                    tapeSpeedQuantity->value = DEFAULT_TAPE_SPEED_LIMIT;
+                    tapeSpeedQuantity->changed = true;
                 }
 
                 void resetTap()
@@ -2306,6 +2325,7 @@ namespace Sapphire
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     outMessage.clockSignalFormat = clockSignalFormat;
+                    outMessage.tapeSpeedLimit = tapeSpeedQuantity->getValue();
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
                 }
@@ -2330,6 +2350,7 @@ namespace Sapphire
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
+                    tapeSpeedQuantity->save(root, "tapeSpeedLimit");
                     return root;
                 }
 
@@ -2341,6 +2362,7 @@ namespace Sapphire
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
+                    tapeSpeedQuantity->load(root, "tapeSpeedLimit");
                 }
 
                 Frame getFeedbackPoly()
@@ -2783,6 +2805,11 @@ namespace Sapphire
                         ));
 
                         echoModule->freezeToggleGroup.addMenuItems(menu);
+
+                        menu->addChild(new SapphireSlider(
+                            echoModule->tapeSpeedQuantity,
+                            "change tape speed limit"
+                        ));
                     }
                 }
 
