@@ -6,6 +6,9 @@ FLAGS += -Wall
 ifeq ($(SAPPHIRE_ENABLE_WERROR), 1)
 	FLAGS += -Werror
 endif
+ifeq ($(SAPPHIRE_ASAN), 1)
+	FLAGS += -fsanitize=address
+endif
 CFLAGS +=
 CXXFLAGS +=
 
