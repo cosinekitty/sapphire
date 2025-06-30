@@ -233,7 +233,7 @@ namespace Sapphire
             InterpolatorKind interpolatorKind = InterpolatorKind::Linear;
             bool polyphonic = false;    // selects desired output format: false=stereo(L,R), true=polyphonic(L)
             bool musicalInterval = false;
-            float tapeSpeedLimit = DEFAULT_TAPE_SPEED_LIMIT;
+            float tapeSlewRate = 0.5;
         };
 
         struct BackwardMessage      // data that flows through the expander chain right-to-left.

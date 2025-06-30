@@ -16,26 +16,21 @@ namespace Sapphire
     constexpr float TAPELOOP_RECORD_VOLTAGE_LIMIT = 100;
     constexpr unsigned TAPELOOP_MIN_SAMPLE_RATE_HZ = 1000;
 
-
-    constexpr float TAPE_SPEED_LIMIT_MIN = 0.1;
-    constexpr float TAPE_SPEED_LIMIT_MAX = 2.0;
-    constexpr float DEFAULT_TAPE_SPEED_LIMIT = 0.9;
-
-
     class TapeDelayMotor
     {
     private:
-        // Limit the "motor speed", which is just a mental model of how fast the delay
-        // time (in seconds) is allowed to change (per second). Since we have seconds/second,
-        // we end up with a dimensionless "speed" limit.
-        float speedLimit = DEFAULT_TAPE_SPEED_LIMIT;
-        float prevDelayTime = -1;
+        float prevDelayTime{};
         LoHiPassFilter<float> filter;
 
     public:
+        explicit TapeDelayMotor()
+        {
+            initialize();
+        }
+
         void initialize()
         {
-            filter.SetCutoffFrequency(5);
+            setSlewRate(0.5);
             filter.Reset();
             prevDelayTime = -1;
         }
@@ -53,6 +48,7 @@ namespace Sapphire
             filter.Update(targetDelayTime, sampleRateHz);
             float rawDelayTime = filter.LoPass();
 
+            constexpr float speedLimit = 0.9;
             float delayTimeChange = std::clamp(
                 rawDelayTime - prevDelayTime,
                 -speedLimit / sampleRateHz,
@@ -67,15 +63,12 @@ namespace Sapphire
             return prevDelayTime;
         }
 
-        float getSpeedLimit() const
+        void setSlewRate(float knob)
         {
-            return speedLimit;
-        }
-
-        float setSpeedLimit(float _speedLimit)
-        {
-            speedLimit = std::clamp(_speedLimit, TAPE_SPEED_LIMIT_MIN, TAPE_SPEED_LIMIT_MAX);
-            return speedLimit;
+            constexpr float mix = 0.01;
+            const float x = std::clamp<float>(knob, 0, 1) / 0.5;
+            const float freq = 5 * Cube(mix + (1-mix)*x);
+            filter.SetCutoffFrequency(freq);
         }
     };
 
@@ -193,9 +186,9 @@ namespace Sapphire
             ikind = kind;
         }
 
-        void setSpeedLimit(float _speedLimit)
+        void setSlewRate(float _slewRate)
         {
-            tapeDelayMotor.setSpeedLimit(_speedLimit);
+            tapeDelayMotor.setSlewRate(_slewRate);
         }
 
         bool setDelayTime(float _delayTimeSec, float _sampleRateHz)

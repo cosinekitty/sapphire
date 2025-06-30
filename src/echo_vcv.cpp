@@ -1144,7 +1144,7 @@ namespace Sapphire
                     }
 
                     delayTimeSum += delayTime;
-                    q.loop.setSpeedLimit(message.tapeSpeedLimit);
+                    q.loop.setSlewRate(message.tapeSlewRate);
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
                     if (clearSmoother.isDelayedActionReady())
@@ -2133,7 +2133,7 @@ namespace Sapphire
                 INPUT_MODE_BUTTON_PARAM,
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
-                TAPE_SPEED_PARAM,
+                TAPE_SLEW_PARAM,
                 PARAMS_LEN
             };
 
@@ -2190,7 +2190,7 @@ namespace Sapphire
                 Crossfader freezeFader;
                 PortLabelMode inputLabels{};
                 bool autoCreateOutputModule = true;
-                SapphireQuantity* tapeSpeedQuantity{};
+                SapphireQuantity* tapeSlewQuantity{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -2236,21 +2236,21 @@ namespace Sapphire
                     freezeToggleGroup.initialize();
                     clearReceiver.initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
-                    tapeSpeedQuantity->initialize();
+                    tapeSlewQuantity->initialize();
                 }
 
                 void addTapeSpeedQuantity()
                 {
-                    tapeSpeedQuantity = configParam<SapphireQuantity>(
-                        TAPE_SPEED_PARAM,
-                        TAPE_SPEED_LIMIT_MIN,
-                        TAPE_SPEED_LIMIT_MAX,
-                        DEFAULT_TAPE_SPEED_LIMIT,
-                        "Maximum tape speed"
+                    tapeSlewQuantity = configParam<SapphireQuantity>(
+                        TAPE_SLEW_PARAM,
+                        0,
+                        1,
+                        0.5,
+                        "Tape speed slew rate"
                     );
 
-                    tapeSpeedQuantity->value = DEFAULT_TAPE_SPEED_LIMIT;
-                    tapeSpeedQuantity->changed = true;
+                    tapeSlewQuantity->value = 0.5;
+                    tapeSlewQuantity->changed = true;
                 }
 
                 void resetTap()
@@ -2325,7 +2325,7 @@ namespace Sapphire
                     outMessage.clockVoltage = result.clockVoltage;
                     outMessage.neonMode = neonMode;
                     outMessage.clockSignalFormat = clockSignalFormat;
-                    outMessage.tapeSpeedLimit = tapeSpeedQuantity->getValue();
+                    outMessage.tapeSlewRate = tapeSlewQuantity->getValue();
                     updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
                     sendMessage(outMessage);
                 }
@@ -2350,7 +2350,7 @@ namespace Sapphire
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
-                    tapeSpeedQuantity->save(root, "tapeSpeedLimit");
+                    tapeSlewQuantity->save(root, "tapeSlewRate");
                     return root;
                 }
 
@@ -2362,7 +2362,7 @@ namespace Sapphire
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
-                    tapeSpeedQuantity->load(root, "tapeSpeedLimit");
+                    tapeSlewQuantity->load(root, "tapeSlewRate");
                 }
 
                 Frame getFeedbackPoly()
@@ -2807,7 +2807,7 @@ namespace Sapphire
                         echoModule->freezeToggleGroup.addMenuItems(menu);
 
                         menu->addChild(new SapphireSlider(
-                            echoModule->tapeSpeedQuantity,
+                            echoModule->tapeSlewQuantity,
                             "change tape speed limit"
                         ));
                     }
