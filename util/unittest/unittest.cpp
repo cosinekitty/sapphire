@@ -1149,9 +1149,28 @@ static int EnvPitchTest()
 //---------------------------------------------------------------------------------------
 
 
+using calc_t = Sapphire::Calculator<float>;
+
+
+static int Calc_CheckResult(calc_t& calc, const char* name, float correct, float tolerance)
+{
+    if (calc.stackHeight() != 1)
+        return Fail(name, std::string("Expected 1 item on stack, but found ") + std::to_string(calc.stackHeight()));
+
+    const float result = calc.pop();
+    const float diff = std::abs(result - correct);
+    if (diff > tolerance)
+    {
+        printf("%s: correct=%f, result=%f, diff=%g\n", name, correct, result, diff);
+        return Fail(name, "Excessive calculation error.");
+    }
+    return 0;
+}
+
+
 static int Calc_Postfix()
 {
-    Sapphire::Calculator<float> calc;
+    calc_t calc;
 
     // Verify that we can catch and handle a calculation error.
     bool caught = false;
@@ -1170,20 +1189,20 @@ static int Calc_Postfix()
 
     constexpr float x = 3.4;
     constexpr float y = 7.2;
-    constexpr float product = x * y;
     calc.define('x', x);
     calc.define('y', y);
-    calc.execute("xy*");
-    if (calc.stackHeight() != 1)
-        return Fail("Calc_Postfix", std::string("Incorrect stack height: ") + std::to_string(calc.stackHeight()));
 
-    const float answer = calc.pop();
-    const float diff = std::abs(answer - product);
-    if (diff != 0)
-    {
-        printf("Calc_Postfix: x=%f, y=%f, product=%f, answer=%f, diff=%f\n", x, y, product, answer, diff);
-        return Fail("Calc_Postfix", "Excessive error in multiplication test.");
-    }
+    calc.execute("xy*");
+    if (Calc_CheckResult(calc, "postfix(xy*)", x*y, 0))
+        return 1;
+
+    calc.execute("xy+");
+    if (Calc_CheckResult(calc, "postfix(xy+)", x+y, 0))
+        return 1;
+
+    calc.execute("xy-");
+    if (Calc_CheckResult(calc, "postfix(xy-)", x-y, 0))
+        return 1;
 
     return Pass("Calc_Postfix");
 }

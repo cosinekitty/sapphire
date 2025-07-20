@@ -67,8 +67,28 @@ namespace Sapphire
             }
             else switch (opcode)
             {
+            case '+':
+                {
+                    value_t b = pop();
+                    value_t a = pop();
+                    push(a + b);
+                }
+                break;
+
+            case '-':
+                {
+                    value_t b = pop();
+                    value_t a = pop();
+                    push(a - b);
+                }
+                break;
+
             case '*':
-                push(pop() * pop());
+                {
+                    value_t b = pop();
+                    value_t a = pop();
+                    push(a * b);
+                }
                 break;
 
             default:
