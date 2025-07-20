@@ -1168,12 +1168,24 @@ static int Calc_Postfix()
     if (!caught)
         return Fail("Calc_Postfix", "Failed to catch error when popping empty stack.");
 
-    calc.define('x', 3.4);
-    calc.define('y', 7.2);
+    constexpr float x = 3.4;
+    constexpr float y = 7.2;
+    constexpr float product = x * y;
+    calc.define('x', x);
+    calc.define('y', y);
     calc.execute("xy*");
     if (calc.stackHeight() != 1)
         return Fail("Calc_Postfix", std::string("Incorrect stack height: ") + std::to_string(calc.stackHeight()));
-    return 0;
+
+    const float answer = calc.pop();
+    const float diff = std::abs(answer - product);
+    if (diff != 0)
+    {
+        printf("Calc_Postfix: x=%f, y=%f, product=%f, answer=%f, diff=%f\n", x, y, product, answer, diff);
+        return Fail("Calc_Postfix", "Excessive error in multiplication test.");
+    }
+
+    return Pass("Calc_Postfix");
 }
 
 
