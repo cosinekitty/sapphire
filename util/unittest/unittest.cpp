@@ -10,6 +10,7 @@
 #include "pop_engine.hpp"
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
+#include "sapphire_calculator.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -33,6 +34,7 @@ struct UnitTest
 
 static int AutoGainControl();
 static int AutoScale();
+static int CalculatorTest();
 static int ChaosTest();
 static int DelayLineTest();
 static int EnvPitchTest();
@@ -48,6 +50,7 @@ static int TaperTest();
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl  },
+    { "calc",       CalculatorTest   },
     { "chaos",      ChaosTest        },
     { "delay",      DelayLineTest    },
     { "env",        EnvPitchTest     },
@@ -1142,5 +1145,44 @@ static int EnvPitchTest()
         EnvPitch_EnvelopeAmplitude() ||
         Pass("EnvPitchTest");
 }
+
+//---------------------------------------------------------------------------------------
+
+
+static int Calc_Postfix()
+{
+    Sapphire::Calculator<float> calc;
+
+    // Verify that we can catch and handle a calculation error.
+    bool caught = false;
+    try
+    {
+        calc.pop();     // cannot pop because stack is empty
+    }
+    catch (const Sapphire::CalcError& ex)
+    {
+        caught = true;
+        printf("Caught error, as expected: %s\n", ex.what());
+    }
+
+    if (!caught)
+        return Fail("Calc_Postfix", "Failed to catch error when popping empty stack.");
+
+    calc.define('x', 3.4);
+    calc.define('y', 7.2);
+    calc.execute("xy*");
+    if (calc.stackHeight() != 1)
+        return Fail("Calc_Postfix", std::string("Incorrect stack height: ") + std::to_string(calc.stackHeight()));
+    return 0;
+}
+
+
+static int CalculatorTest()
+{
+    return
+        Calc_Postfix() ||
+        Pass("CalculatorTest");
+}
+
 
 //---------------------------------------------------------------------------------------
