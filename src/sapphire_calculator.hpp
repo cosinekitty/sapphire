@@ -23,15 +23,48 @@ namespace Sapphire
         using func_t = std::function<void()>;
 
     private:
+        enum class ScanMode
+        {
+            Opcode,
+            Literal,
+        };
+
+        ScanMode mode = ScanMode::Opcode;
+
         // Lower-case letters are used as variables.
         value_t vars[26]{};       // 0='a', 1='b', ..., 25='z'.
+
+        // Other ASCII characters can be user-defined functions.
         func_t funcs[0x80]{};
+
+        // An evaluation stack of user-defined value types.
         std::vector<value_t> stack;
+        std::string literal;
+
+    protected:
+        virtual value_t parse(const std::string& text)
+        {
+            throw CalcError("Literal is not supported: " + text);
+        }
 
     public:
         explicit Calculator()
         {
             stack.reserve(16);
+            initialize();
+        }
+
+        void initialize()
+        {
+            mode = ScanMode::Opcode;
+            stack.clear();
+            literal.clear();
+
+            for (int i = 0; i < 26; ++i)
+                vars[i] = value_t{};
+
+            for (int i = 0; i < 0x80; ++i)
+                funcs[i] = func_t{};
         }
 
         static bool IsVarName(char c)
@@ -46,7 +79,7 @@ namespace Sapphire
                 (c <= 0x7f) &&
                 (
                     ((c >= 'A') && (c <= 'Z')) ||
-                    strchr("+-*&^%$#@!/?<>,=~;:", c)
+                    strchr("+-*/&^%$#@!?<>,=~:", c)
                 );
         }
 
@@ -110,26 +143,51 @@ namespace Sapphire
 
         void execute(char c)
         {
-            const std::size_t opcode = static_cast<std::size_t>(c);
-            if (0 < opcode && opcode < 0x80)
+            if (mode == ScanMode::Opcode)
             {
-                if (opcode >= 'a' && opcode <= 'z')
+                if (c == '{')
                 {
-                    push(vars[opcode - 'a']);
+                    mode = ScanMode::Literal;
                     return;
                 }
 
-                if (opcode == ';')
+                const std::size_t opcode = static_cast<std::size_t>(c);
+                if (0 < opcode && opcode < 0x80)
                 {
-                    push(peek());       // duplicate top-of-stack
-                    return;
-                }
+                    if (opcode >= 'a' && opcode <= 'z')
+                    {
+                        push(vars[opcode - 'a']);
+                        return;
+                    }
 
-                if (func_t& f = funcs[static_cast<std::size_t>(opcode)])
-                {
-                    f();
-                    return;
+                    if (opcode == ';')
+                    {
+                        push(peek());       // duplicate top-of-stack
+                        return;
+                    }
+
+                    if (func_t& f = funcs[static_cast<std::size_t>(opcode)])
+                    {
+                        f();
+                        return;
+                    }
                 }
+            }
+            else if (mode == ScanMode::Literal)
+            {
+                if (c == '}')
+                {
+                    // Convert the accumulated literal into a value and push that on the stack.
+                    value_t v = parse(literal);
+                    push(v);
+                    literal.clear();
+                    mode = ScanMode::Opcode;
+                }
+                else
+                {
+                    literal += c;
+                }
+                return;
             }
             throw CalcError(std::string("Invalid opcode: ") + c);
         }
@@ -184,6 +242,15 @@ namespace Sapphire
                     this->push(a / b);
                 }
             );
+        }
+
+        float parse(const std::string& text) override
+        {
+            float value{};
+            if (1 != sscanf(text.c_str(), "%g", &value))
+                throw CalcError("Invalid floating point literal: '" + text + "'");
+
+            return value;
         }
     };
 }

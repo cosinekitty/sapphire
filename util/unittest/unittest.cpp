@@ -1216,6 +1216,10 @@ static int Calc_Postfix()
     calc.defineMacro('K', ";;**");
     if (Calc_CheckResult(calc, "xK", x*x*x, 0)) return 1;
 
+    // Verify that we can handle custom literals.
+    if (Calc_CheckResult(calc, "{123}{456}*", 123*456, 0)) return 1;
+    if (Calc_CheckResult(calc, "{1.23e-3}{-4.56e+6}*", (1.23e-3f)*(-4.56e+6f), 0)) return 1;
+
     return Pass("Calc_Postfix");
 }
 
