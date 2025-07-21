@@ -1,6 +1,8 @@
 #pragma once
-#include <vector>
 #include <string>
+#include <cstring>
+#include <vector>
+#include <functional>
 #include <stdexcept>
 
 namespace Sapphire
@@ -17,15 +19,38 @@ namespace Sapphire
     template <typename value_t>
     class Calculator
     {
+    public:
+        using func_t = std::function<void()>;
+
     private:
         // Lower-case letters are used as variables.
         value_t vars[26]{};       // 0='a', 1='b', ..., 25='z'.
-
+        func_t funcs[0x80]{};
         std::vector<value_t> stack;
 
     public:
+        explicit Calculator()
+        {
+            stack.reserve(16);
+        }
 
-        bool define(char symbol, value_t value)
+        static bool IsVarName(char c)
+        {
+            return (c >= 'a') && (c <= 'z');
+        }
+
+        static bool IsOperator(char c)
+        {
+            return
+                (c >= 0) &&
+                (c <= 0x7f) &&
+                (
+                    ((c >= 'A') && (c <= 'Z')) ||
+                    strchr("+-*&^%$#@!/?<>,=~;:", c)
+                );
+        }
+
+        bool defineVariable(char symbol, value_t value)
         {
             if (symbol >= 'a' && symbol <= 'z')
             {
@@ -33,6 +58,16 @@ namespace Sapphire
                 return true;
             }
             return false;   // invalid symbol character
+        }
+
+        bool defineFunction(char symbol, func_t func)
+        {
+            if (IsOperator(symbol))
+            {
+                funcs[static_cast<std::size_t>(symbol)] = func;
+                return true;
+            }
+            return false;
         }
 
         int stackHeight() const
@@ -57,7 +92,7 @@ namespace Sapphire
 
         void execute(char opcode)
         {
-            if (!opcode || isspace(opcode))
+            if (isspace(opcode))
             {
                 // Ignore whitespace characters if present.
             }
@@ -65,35 +100,13 @@ namespace Sapphire
             {
                 push(vars[opcode - 'a']);
             }
-            else switch (opcode)
+            else if (opcode > 0 && opcode <= 0x7f)
             {
-            case '+':
-                {
-                    value_t b = pop();
-                    value_t a = pop();
-                    push(a + b);
-                }
-                break;
-
-            case '-':
-                {
-                    value_t b = pop();
-                    value_t a = pop();
-                    push(a - b);
-                }
-                break;
-
-            case '*':
-                {
-                    value_t b = pop();
-                    value_t a = pop();
-                    push(a * b);
-                }
-                break;
-
-            default:
-                throw CalcError(std::string("Invalid opcode: ") + opcode);
+                if (func_t& f = funcs[static_cast<std::size_t>(opcode)])
+                    f();
             }
+            else
+                throw CalcError(std::string("Invalid opcode: ") + opcode);
         }
 
         void execute(const char *postfix)
@@ -101,6 +114,51 @@ namespace Sapphire
             if (postfix)
                 for (int i = 0; postfix[i]; ++i)
                     execute(postfix[i]);
+        }
+    };
+
+
+    template <typename real_t>
+    class RealCalculator : public Calculator<real_t>
+    {
+    public:
+        explicit RealCalculator()
+        {
+            this->defineFunction('+',
+                [this]
+                {
+                    real_t b = this->pop();
+                    real_t a = this->pop();
+                    this->push(a + b);
+                }
+            );
+
+            this->defineFunction('-',
+                [this]
+                {
+                    real_t b = this->pop();
+                    real_t a = this->pop();
+                    this->push(a - b);
+                }
+            );
+
+            this->defineFunction('*',
+                [this]
+                {
+                    real_t b = this->pop();
+                    real_t a = this->pop();
+                    this->push(a * b);
+                }
+            );
+
+            this->defineFunction('/',
+                [this]
+                {
+                    real_t b = this->pop();
+                    real_t a = this->pop();
+                    this->push(a / b);
+                }
+            );
         }
     };
 }

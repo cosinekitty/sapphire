@@ -1149,7 +1149,7 @@ static int EnvPitchTest()
 //---------------------------------------------------------------------------------------
 
 
-using calc_t = Sapphire::Calculator<float>;
+using calc_t = Sapphire::RealCalculator<float>;
 
 
 static int Calc_CheckResult(calc_t& calc, const char* postfix, float correct, float tolerance)
@@ -1193,13 +1193,24 @@ static int Calc_Postfix()
 
     constexpr float x = 3.4;
     constexpr float y = 7.2;
-    calc.define('x', x);
-    calc.define('y', y);
+    calc.defineVariable('x', x);
+    calc.defineVariable('y', y);
 
     if (Calc_CheckResult(calc, "xy*", x*y, 0)) return 1;
     if (Calc_CheckResult(calc, "xy+", x+y, 0)) return 1;
     if (Calc_CheckResult(calc, "xy-", x-y, 0)) return 1;
     if (Calc_CheckResult(calc, "xy+xy-*", (x+y)*(x-y), 0)) return 1;
+
+    // Define a custom function H (for Half) that divides a number by 2.
+    calc.defineFunction(
+        'H',
+        [&calc]()
+        {
+            calc.push(calc.pop() / 2);
+        }
+    );
+
+    if (Calc_CheckResult(calc, "xy+H", (x+y)/2, 0)) return 1;
     return Pass("Calc_Postfix");
 }
 
