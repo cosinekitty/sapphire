@@ -1172,7 +1172,7 @@ static int Calc_CheckResult(calc_t& calc, const char* postfix, float correct, fl
 }
 
 
-static int VerifyCalcException(std::function<void()> test)
+static int VerifyCalcException(const char *expectedErrorMessage, std::function<void()> test)
 {
     try
     {
@@ -1180,10 +1180,11 @@ static int VerifyCalcException(std::function<void()> test)
     }
     catch (const Sapphire::CalcError& ex)
     {
-        printf("Caught error, as expected: %s\n", ex.what());
+        if (strcmp(ex.what(), expectedErrorMessage))
+            return Fail("VerifyCalcException", std::string("Expected '") + expectedErrorMessage + "' but caught '" + ex.what() + "'");
         return 0;
     }
-    return Fail("VerifyCalcException", "Required exception did not occur.");
+    return Fail("VerifyCalcException", std::string("Required exception did not occur: '") + expectedErrorMessage + "'");
 }
 
 
@@ -1191,6 +1192,7 @@ static int VerifyUnterminatedLiteral()
 {
     calc_t calc;
     return VerifyCalcException(
+        "Command has unterminated literal: '{456}{123'",
         [&calc]()
         {
             calc.execute("{456}{123");      // do not allow unterminated literals
@@ -1204,6 +1206,7 @@ static int Calc_Postfix()
     calc_t calc;
 
     if (VerifyCalcException(
+        "Attempt to pop from empty stack.",
         [&calc]()
         {
             calc.pop();     // cannot pop because stack is empty
@@ -1236,9 +1239,10 @@ static int Calc_Postfix()
     if (Calc_CheckResult(calc, "xK", x*x*x, 0)) return 1;
 
     // Verify that we can handle custom literals.
+    if (VerifyUnterminatedLiteral()) return 1;
     if (Calc_CheckResult(calc, "{123}{456}*", 123*456, 0)) return 1;
     if (Calc_CheckResult(calc, "{1.23e-3}{-4.56e+6}*", (1.23e-3f)*(-4.56e+6f), 0)) return 1;
-    if (VerifyUnterminatedLiteral()) return 1;
+    if (Calc_CheckResult(calc, "xN", -x, 0)) return 1;
 
     return Pass("Calc_Postfix");
 }

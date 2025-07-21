@@ -251,6 +251,14 @@ namespace Sapphire
                     this->push(a / b);
                 }
             );
+
+            this->defineFunction('N',
+                [this]
+                {
+                    real_t a = this->pop();
+                    this->push(-a);
+                }
+            );
         }
 
         float parse(const std::string& text) override
