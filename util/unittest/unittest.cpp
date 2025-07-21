@@ -1152,8 +1152,12 @@ static int EnvPitchTest()
 using calc_t = Sapphire::Calculator<float>;
 
 
-static int Calc_CheckResult(calc_t& calc, const char* name, float correct, float tolerance)
+static int Calc_CheckResult(calc_t& calc, const char* postfix, float correct, float tolerance)
 {
+    calc.execute(postfix);
+
+    const std::string name = std::string("Calc_CheckResult(") + postfix + ")";
+
     if (calc.stackHeight() != 1)
         return Fail(name, std::string("Expected 1 item on stack, but found ") + std::to_string(calc.stackHeight()));
 
@@ -1161,7 +1165,7 @@ static int Calc_CheckResult(calc_t& calc, const char* name, float correct, float
     const float diff = std::abs(result - correct);
     if (diff > tolerance)
     {
-        printf("%s: correct=%f, result=%f, diff=%g\n", name, correct, result, diff);
+        printf("%s: correct=%f, result=%f, diff=%g\n", name.c_str(), correct, result, diff);
         return Fail(name, "Excessive calculation error.");
     }
     return 0;
@@ -1192,18 +1196,9 @@ static int Calc_Postfix()
     calc.define('x', x);
     calc.define('y', y);
 
-    calc.execute("xy*");
-    if (Calc_CheckResult(calc, "postfix(xy*)", x*y, 0))
-        return 1;
-
-    calc.execute("xy+");
-    if (Calc_CheckResult(calc, "postfix(xy+)", x+y, 0))
-        return 1;
-
-    calc.execute("xy-");
-    if (Calc_CheckResult(calc, "postfix(xy-)", x-y, 0))
-        return 1;
-
+    if (Calc_CheckResult(calc, "xy*", x*y, 0)) return 1;
+    if (Calc_CheckResult(calc, "xy+", x+y, 0)) return 1;
+    if (Calc_CheckResult(calc, "xy-", x-y, 0)) return 1;
     return Pass("Calc_Postfix");
 }
 
