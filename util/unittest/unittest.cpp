@@ -1209,8 +1209,13 @@ static int Calc_Postfix()
             calc.push(calc.pop() / 2);
         }
     );
-
     if (Calc_CheckResult(calc, "xy+H", (x+y)/2, 0)) return 1;
+
+    // Define a "macro" which expands to another string of postfix opcodes.
+    // In this case, K causes the top of stack to be cubed.
+    calc.defineMacro('K', ";;**");
+    if (Calc_CheckResult(calc, "xK", x*x*x, 0)) return 1;
+
     return Pass("Calc_Postfix");
 }
 

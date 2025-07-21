@@ -70,6 +70,16 @@ namespace Sapphire
             return false;
         }
 
+        bool defineMacro(char symbol, const std::string command)
+        {
+            return defineFunction(symbol,
+                [this, command]()
+                {
+                    this->execute(command.c_str());
+                }
+            );
+        }
+
         int stackHeight() const
         {
             return static_cast<int>(stack.size());
@@ -78,6 +88,14 @@ namespace Sapphire
         void push(const value_t& value)
         {
             stack.push_back(value);
+        }
+
+        const value_t& peek() const
+        {
+            if (stack.empty())
+                throw CalcError("Attempt to access the top of an empty stack.");
+
+            return stack.back();
         }
 
         value_t pop()
@@ -90,23 +108,30 @@ namespace Sapphire
             return x;
         }
 
-        void execute(char opcode)
+        void execute(char c)
         {
-            if (isspace(opcode))
+            const std::size_t opcode = static_cast<std::size_t>(c);
+            if (0 < opcode && opcode < 0x80)
             {
-                // Ignore whitespace characters if present.
-            }
-            else if (opcode >= 'a' && opcode <= 'z')
-            {
-                push(vars[opcode - 'a']);
-            }
-            else if (opcode > 0 && opcode <= 0x7f)
-            {
+                if (opcode >= 'a' && opcode <= 'z')
+                {
+                    push(vars[opcode - 'a']);
+                    return;
+                }
+
+                if (opcode == ';')
+                {
+                    push(peek());       // duplicate top-of-stack
+                    return;
+                }
+
                 if (func_t& f = funcs[static_cast<std::size_t>(opcode)])
+                {
                     f();
+                    return;
+                }
             }
-            else
-                throw CalcError(std::string("Invalid opcode: ") + opcode);
+            throw CalcError(std::string("Invalid opcode: ") + c);
         }
 
         void execute(const char *postfix)
