@@ -16,7 +16,7 @@ namespace Sapphire
     };
 
 
-    template <typename value_t>
+    template <typename value_t, std::size_t stackSize = 1000>
     class Calculator
     {
     public:
@@ -50,7 +50,7 @@ namespace Sapphire
     public:
         explicit Calculator()
         {
-            stack.reserve(16);
+            stack.reserve(stackSize);
             initialize();
         }
 
@@ -120,6 +120,9 @@ namespace Sapphire
 
         void push(const value_t& value)
         {
+            if (stack.size() >= stackSize)
+                throw CalcError("Stack overflow");
+
             stack.push_back(value);
         }
 
@@ -194,9 +197,15 @@ namespace Sapphire
 
         void execute(const char *postfix)
         {
+            mode = ScanMode::Opcode;
             if (postfix)
+            {
                 for (int i = 0; postfix[i]; ++i)
                     execute(postfix[i]);
+
+                if (mode != ScanMode::Opcode)
+                    throw CalcError(std::string("Command has unterminated literal: '") + postfix + std::string("'"));
+            }
         }
     };
 
