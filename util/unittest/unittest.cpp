@@ -1199,6 +1199,7 @@ static int Calc_Postfix()
     if (Calc_CheckResult(calc, "xy*", x*y, 0)) return 1;
     if (Calc_CheckResult(calc, "xy+", x+y, 0)) return 1;
     if (Calc_CheckResult(calc, "xy-", x-y, 0)) return 1;
+    if (Calc_CheckResult(calc, "xy+xy-*", (x+y)*(x-y), 0)) return 1;
     return Pass("Calc_Postfix");
 }
 
