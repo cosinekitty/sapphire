@@ -10,7 +10,7 @@
 #include "pop_engine.hpp"
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
-#include "sapphire_calculator.hpp"
+#include "sapphire_calcparser.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -1314,10 +1314,16 @@ static int Calc_ScannerWhitespace()
     // One final thing: make sure we handle whitespace correctly.
     const char *spacey = "abc + def";
     CalcScanner scanner(spacey);
+    int count = 0;
     while (const CalcToken* token = scanner.getNextToken())
     {
         printf("Calc_ScannerWhitespace: token '%s', offset %d\n", token->text.c_str(), token->offset);
+        ++count;
     }
+
+    if (count != 3)
+        return Fail("Calc_ScannerWhitespace", "Wrong number of tokens (expected 3)");
+
     return Pass("Calc_ScannerWhitespace");
 }
 
@@ -1330,8 +1336,7 @@ static int Calc_ParseInfix(std::string text)
     caller += "]";
     try
     {
-        //CalcScanner scanner(text);
-        //CalcParser parser(scanner);
+        CalcScanner scanner(text);
     }
     catch (const CalcError& ex)
     {
