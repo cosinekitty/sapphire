@@ -1248,7 +1248,7 @@ static int Calc_Postfix()
 }
 
 
-static int Calc_InfixParse()
+static int Calc_ScannerTest()
 {
     using namespace Sapphire;
 
@@ -1276,7 +1276,7 @@ static int Calc_InfixParse()
 
     while (const CalcToken* token = scanner.getNextToken())
     {
-        //printf("Calc_InfixParse:  offset=%d, token='%s'\n", token->offset, token->text.c_str());
+        //printf("Calc_ScannerTest:  offset=%d, token='%s'\n", token->offset, token->text.c_str());
         result.push_back(*token);
     }
 
@@ -1285,7 +1285,7 @@ static int Calc_InfixParse()
     if (m != n)
     {
         printf("**** EXPECTED %d tokens, found %d\n", n, m);
-        return Fail("Calc_InfixParse", "incorrect number of tokens scanned.");
+        return Fail("Calc_ScannerTest", "incorrect number of tokens scanned.");
     }
 
     for (int i = 0; i < n; ++i)
@@ -1293,17 +1293,51 @@ static int Calc_InfixParse()
         if (correct[i].text != result[i].text)
         {
             printf("**** EXPECTED text '%s', found '%s'\n", correct[i].text.c_str(), result[i].text.c_str());
-            return Fail("Calc_InfixParse", "incorrect token text");
+            return Fail("Calc_ScannerTest", "incorrect token text");
         }
 
         if (correct[i].offset != result[i].offset)
         {
             printf("**** EXPECTED offset %d, found %d\n", correct[i].offset, result[i].offset);
-            return Fail("Calc_InfixParse", "incorrect token offset");
+            return Fail("Calc_ScannerTest", "incorrect token offset");
         }
     }
 
-    return Pass("Calc_InfixParse");
+    return Pass("Calc_ScannerTest");
+}
+
+
+static int Calc_ScannerWhitespace()
+{
+    using namespace Sapphire;
+
+    // One final thing: make sure we handle whitespace correctly.
+    const char *spacey = "abc + def";
+    CalcScanner scanner(spacey);
+    while (const CalcToken* token = scanner.getNextToken())
+    {
+        printf("Calc_ScannerWhitespace: token '%s', offset %d\n", token->text.c_str(), token->offset);
+    }
+    return Pass("Calc_ScannerWhitespace");
+}
+
+
+static int Calc_ParseInfix(std::string text)
+{
+    using namespace Sapphire;
+    std::string caller = "Calc_ParseInfix[";
+    caller += text;
+    caller += "]";
+    try
+    {
+        //CalcScanner scanner(text);
+        //CalcParser parser(scanner);
+    }
+    catch (const CalcError& ex)
+    {
+        return Fail(caller, std::string("EXCEPTION: ") + ex.what());
+    }
+    return Pass(caller);
 }
 
 
@@ -1311,7 +1345,9 @@ static int CalculatorTest()
 {
     return
         Calc_Postfix() ||
-        Calc_InfixParse() ||
+        Calc_ScannerTest() ||
+        Calc_ScannerWhitespace() ||
+        Calc_ParseInfix("b + z*(x - c)") ||
         Pass("CalculatorTest");
 }
 

@@ -50,9 +50,10 @@ namespace Sapphire
             {
                 char c = text[i];
                 if (isspace(c))
-                    continue;
-
-                if ((c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_'))
+                {
+                    ++i;
+                }
+                else if ((c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_'))
                 {
                     // identifier
                     front = i;
