@@ -1248,10 +1248,70 @@ static int Calc_Postfix()
 }
 
 
+static int Calc_InfixParse()
+{
+    using namespace Sapphire;
+
+    const std::vector<CalcToken> correct =
+    {
+        CalcToken("b", 0),
+        CalcToken("+", 1),
+        CalcToken("z", 2),
+        CalcToken("*", 3),
+        CalcToken("(", 4),
+        CalcToken("x", 5),
+        CalcToken("^", 6),
+        CalcToken("3.14e+6", 7),
+        CalcToken("-", 14),
+        CalcToken("sqrt", 15),
+        CalcToken("(", 19),
+        CalcToken("c", 20),
+        CalcToken(")", 21),
+        CalcToken(")", 22),
+    };
+
+    const char *text = "b+z*(x^3.14e+6-sqrt(c))";
+    CalcScanner scanner(text);
+    std::vector<CalcToken> result;
+
+    while (const CalcToken* token = scanner.getNextToken())
+    {
+        //printf("Calc_InfixParse:  offset=%d, token='%s'\n", token->offset, token->text.c_str());
+        result.push_back(*token);
+    }
+
+    const int n = static_cast<int>(correct.size());
+    const int m = static_cast<int>(result.size());
+    if (m != n)
+    {
+        printf("**** EXPECTED %d tokens, found %d\n", n, m);
+        return Fail("Calc_InfixParse", "incorrect number of tokens scanned.");
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        if (correct[i].text != result[i].text)
+        {
+            printf("**** EXPECTED text '%s', found '%s'\n", correct[i].text.c_str(), result[i].text.c_str());
+            return Fail("Calc_InfixParse", "incorrect token text");
+        }
+
+        if (correct[i].offset != result[i].offset)
+        {
+            printf("**** EXPECTED offset %d, found %d\n", correct[i].offset, result[i].offset);
+            return Fail("Calc_InfixParse", "incorrect token offset");
+        }
+    }
+
+    return Pass("Calc_InfixParse");
+}
+
+
 static int CalculatorTest()
 {
     return
         Calc_Postfix() ||
+        Calc_InfixParse() ||
         Pass("CalculatorTest");
 }
 
