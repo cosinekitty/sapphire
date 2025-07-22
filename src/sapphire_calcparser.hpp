@@ -48,7 +48,6 @@ namespace Sapphire
         void tokenize()
         {
             std::string tok;
-            int front = -1;
 
             // token ::= identifier | punctuation | real
             // identifier ::= alpha { alphanum  }
@@ -66,7 +65,7 @@ namespace Sapphire
                 else if ((c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_'))
                 {
                     // identifier
-                    front = i;
+                    int front = i;
                     tok.clear();
                     tok.push_back(c);
                     ++i;
@@ -84,7 +83,7 @@ namespace Sapphire
                 else if (c>='0' && c<='9')
                 {
                     // numeric
-                    front = i;
+                    int front = i;
                     tok.clear();
                     tok.push_back(c);
                     ++i;
@@ -145,7 +144,7 @@ namespace Sapphire
                 }
                 else if (strchr("+-*/^()", c))
                 {
-                    front = i++;
+                    int front = i++;
                     tok.clear();
                     tok.push_back(c);
                     tokens.push_back(CalcToken(tok, front));

@@ -102,7 +102,7 @@ namespace Sapphire
             return false;
         }
 
-        bool defineMacro(char symbol, const std::string command)
+        bool defineMacro(char symbol, std::string command)
         {
             return defineFunction(symbol,
                 [this, command]()
