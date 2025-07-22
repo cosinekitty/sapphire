@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "sapphire_calculator.hpp"
 
 namespace Sapphire
@@ -182,4 +183,18 @@ namespace Sapphire
             return nullptr;
         }
     };
+
+
+    struct CalcExpr
+    {
+        CalcToken token;
+        std::vector<std::shared_ptr<CalcExpr>> children;
+
+        explicit CalcExpr(const CalcToken& _token)
+            : token(_token)
+            {}
+    };
+
+
+    std::shared_ptr<CalcExpr> CalcParseNumeric(std::string text);
 }

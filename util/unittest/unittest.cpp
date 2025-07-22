@@ -1336,7 +1336,7 @@ static int Calc_ParseInfix(std::string text)
     caller += "]";
     try
     {
-        CalcScanner scanner(text);
+        auto expr = CalcParseNumeric(text);
     }
     catch (const CalcError& ex)
     {
