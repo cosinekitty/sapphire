@@ -1328,7 +1328,7 @@ static int Calc_ScannerWhitespace()
 }
 
 
-static int Calc_ParseInfix(std::string text)
+static int Calc_ParseInfix(std::string text, std::string correctFunctorNotation)
 {
     using namespace Sapphire;
     std::string caller = "Calc_ParseInfix[";
@@ -1336,7 +1336,14 @@ static int Calc_ParseInfix(std::string text)
     caller += "]";
     try
     {
-        auto expr = CalcParseNumeric(text);
+        auto expr = CalcParseNumericExpression(text);
+        std::string f = expr->functorNotation();
+        printf("Calc_ParseInfix: [%s] ==> [%s]\n", text.c_str(), f.c_str());
+        if (f != correctFunctorNotation)
+        {
+            printf("**** DOES NOT MATCH EXPECTED FUNCTOR: [%s]\n", correctFunctorNotation.c_str());
+            return Fail(caller, "Parser error");
+        }
     }
     catch (const CalcError& ex)
     {
@@ -1352,7 +1359,7 @@ static int CalculatorTest()
         Calc_Postfix() ||
         Calc_ScannerTest() ||
         Calc_ScannerWhitespace() ||
-        Calc_ParseInfix("b + z*(x - c)") ||
+        Calc_ParseInfix("b + z*(x - c)", "+(b, *(z, -(x, c)))") ||
         Pass("CalculatorTest");
 }
 

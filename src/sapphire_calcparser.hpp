@@ -38,6 +38,24 @@ namespace Sapphire
     };
 
 
+    class ParseError : public CalcError
+    {
+    private:
+        static std::string FormatMessage(const std::string& message, const CalcToken& token)
+        {
+            std::string fmt = message;
+            fmt += "; offset=" + std::to_string(token.offset);
+            fmt += ", token='" + token.text + "'";
+            return fmt;
+        }
+
+    public:
+        explicit ParseError(const std::string& message, const CalcToken& token)
+            : CalcError(FormatMessage(message, token))
+            {}
+    };
+
+
     class CalcScanner
     {
     private:
@@ -181,6 +199,34 @@ namespace Sapphire
             }
             return nullptr;
         }
+
+        const CalcToken* requireToken()
+        {
+            auto token = getNextToken();
+            if (token)
+                return token;
+            throw CalcError("Syntax error: unexpected end of input");
+        }
+
+        bool nextTokenIs(const char *text) const
+        {
+            if (const CalcToken* token = peekNextToken())
+                return 0 == strcmp(text, token->text.c_str());
+
+            return false;
+        }
+
+        void requireToken(const char *text)
+        {
+            if (auto token = getNextToken())
+            {
+                if (0 == strcmp(token->text.c_str(), text))
+                    return;
+
+                throw ParseError(std::string("Expected '") + text + std::string("'"), *token);
+            }
+            throw CalcError(std::string("Expected '") + text + std::string("'"));
+        }
     };
 
 
@@ -188,12 +234,33 @@ namespace Sapphire
     {
         CalcToken token;
         std::vector<std::shared_ptr<CalcExpr>> children;
+        bool isFunctionCall = false;        // distinguish "fred" from "fred()", both of which have zero children
 
         explicit CalcExpr(const CalcToken& _token)
             : token(_token)
             {}
+
+        std::string functorNotation() const
+        {
+            if (children.empty())
+                return isFunctionCall ? (token.text + "()") : token.text;
+
+            std::string s = token.text;
+            s += "(";
+            bool another = false;
+            for (auto child : children)
+            {
+                if (another)
+                    s += ", ";
+                else
+                    another = true;
+                s += child->functorNotation();
+            }
+            s += ")";
+            return s;
+        }
     };
 
 
-    std::shared_ptr<CalcExpr> CalcParseNumeric(std::string text);
+    std::shared_ptr<CalcExpr> CalcParseNumericExpression(std::string text);
 }
