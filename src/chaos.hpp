@@ -118,7 +118,7 @@ namespace Sapphire
         }
 
     public:
-        ChaoticOscillator(
+        explicit ChaoticOscillator(
             double _max_dt,
             double _x0, double _y0, double _z0,
             double _xmin, double _xmax,

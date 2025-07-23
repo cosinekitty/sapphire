@@ -75,7 +75,6 @@ namespace Sapphire
         {
             return
                 (c >= 0) &&
-                (c <= 0x7f) &&
                 (
                     ((c >= 'A') && (c <= 'Z')) ||
                     strchr("+-*/&^%$#@!?<>,=~:", c)
@@ -260,13 +259,12 @@ namespace Sapphire
             );
         }
 
-        float parse(const std::string& text) override
+        real_t parse(const std::string& text) override
         {
-            float value{};
-            if (1 != sscanf(text.c_str(), "%g", &value))
+            double value{};
+            if (1 != sscanf(text.c_str(), "%lg", &value))
                 throw CalcError("Invalid floating point literal: '" + text + "'");
-
-            return value;
+            return static_cast<real_t>(value);
         }
     };
 }

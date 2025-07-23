@@ -10,7 +10,7 @@
 #include "pop_engine.hpp"
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
-#include "sapphire_calcparser.hpp"
+#include "sapphire_prog_chaos.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -1377,6 +1377,18 @@ static int Calc_Compile(std::string infix, std::string correctPostfix)
     return 0;
 }
 
+static int ProgChaosTest()
+{
+    using namespace Sapphire;
+
+    ProgOscillator osc;
+    osc.xCompile("-y-z");
+    osc.yCompile("x+a*y");
+    osc.zCompile("b+z(x-c)");
+    
+    return Pass("ProgChaosTest");
+}
+
 
 static int CalculatorTest()
 {
@@ -1393,8 +1405,11 @@ static int CalculatorTest()
         Calc_Compile("-x", "xN") ||         // postfix unary negative needs a different symbol
         Calc_Compile("b+z*(x-c)", "bzxc-*+") ||
         Calc_Compile("(f+b)/2.718", "fb+{2.718}/") ||
-        Pass("CalculatorTest");
+        ProgChaosTest()
+    ;
 }
 
 
 //---------------------------------------------------------------------------------------
+
+
