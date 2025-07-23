@@ -1363,6 +1363,8 @@ static int CalculatorTest()
         Calc_ParseInfix("x^3", "^(x, 3)") ||
         Calc_ParseInfix("x^a^(b+c)", "^(x, ^(a, +(b, c)))") ||      // ^ is right-associative
         Calc_ParseInfix("x*a*(b+c)", "*(*(x, a), +(b, c))") ||      // * is left-associative
+        Calc_ParseInfix("+x", "x") ||       // unary positive is "optimized out"
+        Calc_ParseInfix("-x", "-(x)") ||    // unary negative
         Pass("CalculatorTest");
 }
 

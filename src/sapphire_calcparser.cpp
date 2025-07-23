@@ -9,17 +9,24 @@ namespace Sapphire
     private:
         CalcScanner scanner;
 
-        calc_expr_t binary(const CalcToken& optoken, calc_expr_t left, calc_expr_t right)
-        {
-            calc_expr_t parent = std::make_shared<CalcExpr>(optoken);
-            parent->children.push_back(left);
-            parent->children.push_back(right);
-            return parent;
-        }
-
         calc_expr_t leaf(const CalcToken* token)
         {
             return std::make_shared<CalcExpr>(*token);
+        }
+
+        calc_expr_t unary(const CalcToken* optoken, calc_expr_t child)
+        {
+            calc_expr_t parent = leaf(optoken);
+            parent->children.push_back(child);
+            return parent;
+        }
+
+        calc_expr_t binary(const CalcToken* optoken, calc_expr_t left, calc_expr_t right)
+        {
+            calc_expr_t parent = leaf(optoken);
+            parent->children.push_back(left);
+            parent->children.push_back(right);
+            return parent;
         }
 
     public:
@@ -36,7 +43,7 @@ namespace Sapphire
             {
                 auto op = scanner.requireToken();
                 calc_expr_t b = term();
-                a = binary(*op, a, b);
+                a = binary(op, a, b);
             }
             return a;
         }
@@ -50,7 +57,7 @@ namespace Sapphire
             {
                 auto op = scanner.requireToken();
                 calc_expr_t b = factor();
-                a = binary(*op, a, b);
+                a = binary(op, a, b);
             }
             return a;
         }
@@ -63,7 +70,7 @@ namespace Sapphire
             {
                 auto op = scanner.requireToken();
                 calc_expr_t b = factor();
-                a = binary(*op, a, b);
+                a = binary(op, a, b);
             }
             return a;
         }
@@ -73,8 +80,18 @@ namespace Sapphire
             // atom ::=
             //     numeric |
             //     ident [ '(' [ expr { ',' expr } ] ')' ] |
-            //     '(' expr ')'
+            //     '(' expr ')' |
+            //     '+' {'+'} atom
+            //     '-' atom
             auto token = scanner.requireToken();
+
+            // Unary positives are ignored... just use the value of the ultimate child expression.
+            while (token->text == "+")
+                token = scanner.requireToken();
+
+            // Unary negative is a valid operator.
+            if (token->text == "-")
+                return unary(token, atom());
 
             if (token->text == "(")
             {
