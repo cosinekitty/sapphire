@@ -248,7 +248,7 @@ namespace Sapphire
             std::string s = token.text;
             s += "(";
             bool another = false;
-            for (auto child : children)
+            for (auto& child : children)
             {
                 if (another)
                     s += ", ";
