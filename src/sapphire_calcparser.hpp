@@ -265,7 +265,15 @@ namespace Sapphire
             std::string s;
             for (auto& child : children)
                 s += child->postfixNotation();
-            return s + token.text;
+
+            if (token.isNumericLiteral())
+                s += "{" + token.text + "}";
+            else if (children.size() == 1 && token.text == "-")
+                s += "N";   // unary negation operator, not binary subtraction
+            else
+                s += token.text;
+
+            return s;
         }
     };
 
