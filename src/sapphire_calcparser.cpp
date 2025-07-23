@@ -2,21 +2,7 @@
 
 namespace Sapphire
 {
-    /*
-        expr ::= term { addop term }
-        addop ::= '+' | '-'
-        term ::= factor { mulop factor }
-        mulop ::= '*' | '/'
-        factor ::= atom [ ^ factor ]
-
-        atom ::=
-            numeric |
-            ident [ '(' [ expr { ',' expr } ] ')' ] |
-            '(' expr ')'
-    */
-
     using calc_expr_t = std::shared_ptr<CalcExpr>;
-
 
     class CalcParser
     {
@@ -43,6 +29,8 @@ namespace Sapphire
 
         calc_expr_t expr()
         {
+            // expr ::= term { addop term }
+            // addop ::= '+' | '-'
             calc_expr_t a = term();
             while (scanner.nextTokenIs("+") || scanner.nextTokenIs("-"))
             {
@@ -55,6 +43,8 @@ namespace Sapphire
 
         calc_expr_t term()
         {
+            // term ::= factor { mulop factor }
+            // mulop ::= '*' | '/'
             calc_expr_t a = factor();
             while (scanner.nextTokenIs("*") || scanner.nextTokenIs("/"))
             {
@@ -67,8 +57,14 @@ namespace Sapphire
 
         calc_expr_t factor()
         {
+            // factor ::= atom [ ^ factor ]
             calc_expr_t a = atom();
-
+            if (scanner.nextTokenIs("^"))
+            {
+                auto op = scanner.requireToken();
+                calc_expr_t b = factor();
+                a = binary(*op, a, b);
+            }
             return a;
         }
 
@@ -92,21 +88,21 @@ namespace Sapphire
 
             if (token->isIdentifier())
             {
-                auto atom = leaf(token);
+                auto ident = leaf(token);
                 if (scanner.nextTokenIs("("))
                 {
-                    atom->isFunctionCall = true;    // distinguish "fred" from "fred()", both of which have zero children
+                    ident->isFunctionCall = true;    // distinguish "fred" from "fred()", both of which have zero children
                     scanner.getNextToken();
                     while (!scanner.nextTokenIs(")"))
                     {
                         auto arg = expr();
-                        atom->children.push_back(arg);
+                        ident->children.push_back(arg);
                         if (!scanner.nextTokenIs(","))
                             break;
                         scanner.getNextToken();
                     }
                 }
-                return atom;
+                return ident;
             }
 
             throw ParseError("Syntax error: cannot parse atom", *token);

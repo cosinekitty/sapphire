@@ -1349,7 +1349,7 @@ static int Calc_ParseInfix(std::string text, std::string correctFunctorNotation)
     {
         return Fail(caller, std::string("EXCEPTION: ") + ex.what());
     }
-    return Pass(caller);
+    return 0;
 }
 
 
@@ -1360,6 +1360,7 @@ static int CalculatorTest()
         Calc_ScannerTest() ||
         Calc_ScannerWhitespace() ||
         Calc_ParseInfix("b + z*(x - c)", "+(b, *(z, -(x, c)))") ||
+        Calc_ParseInfix("x^3", "^(x, 3)") ||
         Pass("CalculatorTest");
 }
 
