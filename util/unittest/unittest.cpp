@@ -1328,20 +1328,45 @@ static int Calc_ScannerWhitespace()
 }
 
 
-static int Calc_ParseInfix(std::string text, std::string correctFunctorNotation)
+static int Calc_ParseInfix(std::string infix, std::string correctFunctorNotation)
 {
     using namespace Sapphire;
     std::string caller = "Calc_ParseInfix[";
-    caller += text;
+    caller += infix;
     caller += "]";
     try
     {
-        auto expr = CalcParseNumericExpression(text);
+        auto expr = CalcParseNumericExpression(infix);
         std::string f = expr->functorNotation();
-        printf("Calc_ParseInfix: [%s] ==> [%s]\n", text.c_str(), f.c_str());
+        printf("Calc_ParseInfix: [%s] ==> [%s]\n", infix.c_str(), f.c_str());
         if (f != correctFunctorNotation)
         {
             printf("**** DOES NOT MATCH EXPECTED FUNCTOR: [%s]\n", correctFunctorNotation.c_str());
+            return Fail(caller, "Parser error");
+        }
+    }
+    catch (const CalcError& ex)
+    {
+        return Fail(caller, std::string("EXCEPTION: ") + ex.what());
+    }
+    return 0;
+}
+
+
+static int Calc_Compile(std::string infix, std::string correctPostfix)
+{
+    using namespace Sapphire;
+    std::string caller = "Calc_Compile[";
+    caller += infix;
+    caller += "]";
+    try
+    {
+        auto expr = CalcParseNumericExpression(infix);
+        std::string f = expr->postfixNotation();
+        printf("Calc_Compile: [%s] ==> [%s]\n", infix.c_str(), f.c_str());
+        if (f != correctPostfix)
+        {
+            printf("**** DOES NOT MATCH EXPECTED POSTFIX: [%s]\n", correctPostfix.c_str());
             return Fail(caller, "Parser error");
         }
     }
@@ -1365,6 +1390,7 @@ static int CalculatorTest()
         Calc_ParseInfix("x*a*(b+c)", "*(*(x, a), +(b, c))") ||      // * is left-associative
         Calc_ParseInfix("+x", "x") ||       // unary positive is "optimized out"
         Calc_ParseInfix("-x", "-(x)") ||    // unary negative
+        Calc_Compile("b+z*(x-c)", "bzxc-*+") ||
         Pass("CalculatorTest");
 }
 

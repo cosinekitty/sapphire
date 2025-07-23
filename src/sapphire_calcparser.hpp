@@ -259,6 +259,14 @@ namespace Sapphire
             s += ")";
             return s;
         }
+
+        std::string postfixNotation() const
+        {
+            std::string s;
+            for (auto& child : children)
+                s += child->postfixNotation();
+            return s + token.text;
+        }
     };
 
 
