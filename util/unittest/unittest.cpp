@@ -1382,10 +1382,27 @@ static int ProgChaosTest()
     using namespace Sapphire;
 
     ProgOscillator osc;
-    osc.xCompile("-y-z");
-    osc.yCompile("x+a*y");
-    osc.zCompile("b+z(x-c)");
-    
+
+    auto xResult = osc.xCompile("-y-z");
+    if (xResult.failure())
+        return Fail("ProgChaosTest(x)", xResult.message);
+    else
+        printf("ProgChaosTest: x postfix = %s\n", xResult.postfix.c_str());
+
+    auto yResult = osc.yCompile("x+a*y");
+    if (yResult.failure())
+        return Fail("ProgChaosTest(y)", yResult.message);
+    else
+        printf("ProgChaosTest: y postfix = %s\n", yResult.postfix.c_str());
+
+    auto zResult = osc.zCompile("b+z*(x-c)");
+    if (zResult.failure())
+        return Fail("ProgChaosTest(z)", zResult.message);
+    else
+        printf("ProgChaosTest: z postfix = %s\n", zResult.postfix.c_str());
+
+    RangeTest(osc, 0, "Rossler", 100);
+
     return Pass("ProgChaosTest");
 }
 

@@ -66,15 +66,16 @@ namespace Sapphire
                 funcs[i] = func_t{};
         }
 
-        static bool IsVarName(char c)
+        void clearStack()
         {
-            return (c >= 'a') && (c <= 'z');
+            stack.clear();
         }
 
         static bool IsOperator(char c)
         {
             return
-                (c >= 0) &&
+                (c > 0) &&
+                ((c & 0x7f) == c) &&    // check for safe array index `funcs[c]`
                 (
                     ((c >= 'A') && (c <= 'Z')) ||
                     strchr("+-*/&^%$#@!?<>,=~:", c)
@@ -204,6 +205,11 @@ namespace Sapphire
                 if (mode != ScanMode::Opcode)
                     throw CalcError(std::string("Command has unterminated literal: '") + postfix + std::string("'"));
             }
+        }
+
+        void execute(const std::string& postfix)
+        {
+            execute(postfix.c_str());
         }
     };
 
