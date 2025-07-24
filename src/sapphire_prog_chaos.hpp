@@ -80,9 +80,9 @@ namespace Sapphire
         explicit ProgOscillator(
             double _max_dt = 0.001,
             double _x0 = 0.11, double _y0 = 0.12, double _z0 = 0.13,
-            double _xmin = -10, double _xmax = +10,
-            double _ymin = -10, double _ymax = +10,
-            double _zmin = -10, double _zmax = +10,
+            double _xmin = +10, double _xmax = -10,     // backwards to disable scaling
+            double _ymin = +10, double _ymax = -10,
+            double _zmin = +10, double _zmax = -10,
             double _xVelScale = 1, double _yVelScale = 1, double _zVelScale = 1
         )
         : ChaoticOscillator(
@@ -93,10 +93,16 @@ namespace Sapphire
             _zmin, _zmax,
             _xVelScale, _yVelScale, _zVelScale)
         {
-            ChaoticOscillator_initialize();
+            ProgOscillator_initialize();
         }
 
-        void ChaoticOscillator_initialize()
+        void initialize() override
+        {
+            ChaoticOscillator::initialize();
+            ProgOscillator_initialize();
+        }
+
+        void ProgOscillator_initialize()
         {
             // FIXFIXFIX: goofy values. User needs to be able to define initial state.
             paramValue(0) = 0.2;

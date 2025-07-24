@@ -1381,7 +1381,19 @@ static int ProgChaosTest()
 {
     using namespace Sapphire;
 
-    ProgOscillator osc;
+    // Raw range data:
+    // RangeTest(Rossler): starting
+    // vx range: -11.148710  13.874508
+    // vy range: -13.203760   9.605794
+    // vz range:   0.011030  33.692633
+
+    ProgOscillator osc(
+        0.001,
+        0.11, 0.12, 0.13,
+        -14.0, +14.0,
+        -14.0, +14.0,
+        0.0, 35.0
+    );
 
     auto xResult = osc.xCompile("-y-z");
     if (xResult.failure())

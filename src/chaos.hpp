@@ -118,6 +118,8 @@ namespace Sapphire
         }
 
     public:
+        virtual ~ChaoticOscillator() {}
+
         explicit ChaoticOscillator(
             double _max_dt,
             double _x0, double _y0, double _z0,
@@ -140,12 +142,15 @@ namespace Sapphire
             , yVelScale(_yVelScale)
             , zVelScale(_zVelScale)
         {
-            initialize();
+            ChaoticOscillator_initialize();
         }
 
-        virtual ~ChaoticOscillator() {}
+        virtual void initialize()
+        {
+            ChaoticOscillator_initialize();
+        }
 
-        void initialize()
+        void ChaoticOscillator_initialize()
         {
             x1 = x0;
             y1 = y0;
