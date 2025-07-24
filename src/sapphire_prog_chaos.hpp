@@ -126,12 +126,12 @@ namespace Sapphire
 
         CompileResult yCompile(std::string infix)
         {
-            return compile(vxPostfix, infix);
+            return compile(vyPostfix, infix);
         }
 
         CompileResult zCompile(std::string infix)
         {
-            return compile(vxPostfix, infix);
+            return compile(vzPostfix, infix);
         }
     };
 }
