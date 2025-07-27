@@ -267,6 +267,17 @@
         "Polyphonic",
         "Reverb"
       ]
+    },
+    {
+      "slug": "Zoo",
+      "name": "Zoo",
+      "description": "Programmable chaotic oscillator.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Zoo.md",
+      "tags": [
+        "Physical modeling",
+        "Effect",
+        "Low-frequency oscillator"
+      ]
     }
   ]
 }

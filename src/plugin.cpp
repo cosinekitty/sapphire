@@ -35,4 +35,5 @@ void init(Plugin* p)
     p->addModel(modelSapphireTout);
     p->addModel(modelSapphireTricorder);
     p->addModel(modelSapphireTubeUnit);
+    p->addModel(modelSapphireZoo);
 }

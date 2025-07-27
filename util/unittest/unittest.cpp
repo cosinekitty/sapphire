@@ -144,8 +144,8 @@ static int AgcTestCase(
     Sapphire::AutomaticGainLimiter agc;
     agc.setCeiling(ceiling);
 
-    string harshFileName = string("output/agc_input_")  + name + ".wav";
-    string mildFileName  = string("output/agc_output_") + name + ".wav";
+    auto harshFileName = std::string("output/agc_input_")  + name + ".wav";
+    auto mildFileName  = std::string("output/agc_output_") + name + ".wav";
 
     WaveFileWriter harsh;
     if (!harsh.Open(harshFileName.c_str(), sampleRate, 2))

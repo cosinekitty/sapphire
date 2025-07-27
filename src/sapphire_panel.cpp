@@ -493,6 +493,19 @@ namespace Sapphire
             {"vortex_knob",            {  44.500,   23.500}},
             {"width_knob",             {  16.500,   55.000}},
             }},
+        { "zoo", {
+            {"_panel",                 {  20.320,  128.500}},
+            {"chaos_atten",            {   5.160,   68.000}},
+            {"chaos_cv",               {  15.160,   68.000}},
+            {"chaos_knob",             {  10.160,   57.000}},
+            {"p_output",               {  10.160,  115.000}},
+            {"speed_atten",            {   5.160,   37.000}},
+            {"speed_cv",               {  15.160,   37.000}},
+            {"speed_knob",             {  10.160,   26.000}},
+            {"x_output",               {  10.160,   88.000}},
+            {"y_output",               {  10.160,   97.000}},
+            {"z_output",               {  10.160,  106.000}},
+            }},
     };
 
     ComponentLocation FindComponent(
