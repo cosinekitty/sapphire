@@ -3,7 +3,19 @@
 
 namespace Sapphire
 {
-    using ZooModule = Sapphire::Chaos::ChaosModule<ProgOscillator>;
+    using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
+    struct ZooModule : ZooModuleBase
+    {
+        explicit ZooModule()
+            : ZooModuleBase()
+        {
+            circuit.xCompile("-y-z");
+            circuit.yCompile("x+a*y");
+            circuit.zCompile("b+z*(x-c)");
+        }
+    };
+
+
     using ZooWidgetBase = Sapphire::Chaos::ChaosWidget<ZooModule>;
     struct ZooWidget : ZooWidgetBase
     {
