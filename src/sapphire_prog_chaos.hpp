@@ -125,19 +125,17 @@ namespace Sapphire
             throw std::range_error(std::string("paramValue: invalid index=") + std::to_string(index));
         }
 
-        CompileResult xCompile(std::string infix)
+        CompileResult compile(
+            int varIndex,       // 0=vx, 1=vy, 2=vz
+            std::string infix)
         {
-            return compile(vxPostfix, infix);
-        }
-
-        CompileResult yCompile(std::string infix)
-        {
-            return compile(vyPostfix, infix);
-        }
-
-        CompileResult zCompile(std::string infix)
-        {
-            return compile(vzPostfix, infix);
+            switch (varIndex)
+            {
+            case 0:  return compile(vxPostfix, infix);
+            case 1:  return compile(vyPostfix, infix);
+            case 2:  return compile(vzPostfix, infix);
+            default: return CompileResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
+            }
         }
     };
 }

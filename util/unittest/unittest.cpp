@@ -1395,23 +1395,21 @@ static int ProgChaosTest()
         0.0, 35.0
     );
 
-    auto xResult = osc.xCompile("-y-z");
-    if (xResult.failure())
-        return Fail("ProgChaosTest(x)", xResult.message);
-    else
-        printf("ProgChaosTest: x postfix = %s\n", xResult.postfix.c_str());
+    auto infix = std::vector<std::string>
+    {
+        "-y-z",         // vx formula
+        "x+a*y",        // vy formula
+        "b+z*(x-c)"     // vz formula
+    };
 
-    auto yResult = osc.yCompile("x+a*y");
-    if (yResult.failure())
-        return Fail("ProgChaosTest(y)", yResult.message);
-    else
-        printf("ProgChaosTest: y postfix = %s\n", yResult.postfix.c_str());
-
-    auto zResult = osc.zCompile("b+z*(x-c)");
-    if (zResult.failure())
-        return Fail("ProgChaosTest(z)", zResult.message);
-    else
-        printf("ProgChaosTest: z postfix = %s\n", zResult.postfix.c_str());
+    for (int v = 0; v < 3; ++v)     // 'v' iterates through variables 0=x, 1=y, 2=z.
+    {
+        std::string name = "ProgChaosTest(v=" + std::to_string(v) + ")";
+        CompileResult result = osc.compile(v, infix[v]);
+        if (result.failure())
+            return Fail(name, result.message);
+        printf("%s: infix[%s] => postfix[%s]\n", name.c_str(), infix[v].c_str(), result.postfix.c_str());
+    }
 
     RangeTest(osc, 0, "Rossler", 100);
 
