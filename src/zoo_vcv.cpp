@@ -67,7 +67,7 @@ namespace Sapphire
             if (varIndex >= 0 && varIndex < 3)
                 formula[varIndex] = infix;
 
-            CompileResult result = circuit.compile(varIndex, infix);
+            PostfixResult result = circuit.compileToPostfix(varIndex, infix);
             if (result.failure())
             {
                 // FIXFIXFIX: format and report the error in the UI.

@@ -1405,7 +1405,7 @@ static int ProgChaosTest()
     for (int v = 0; v < 3; ++v)     // 'v' iterates through variables 0=x, 1=y, 2=z.
     {
         std::string name = "ProgChaosTest(v=" + std::to_string(v) + ")";
-        CompileResult result = osc.compile(v, infix[v]);
+        PostfixResult result = osc.compileToPostfix(v, infix[v]);
         if (result.failure())
             return Fail(name, result.message);
         printf("%s: infix[%s] => postfix[%s]\n", name.c_str(), infix[v].c_str(), result.postfix.c_str());

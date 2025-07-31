@@ -6,7 +6,7 @@ namespace Sapphire
 {
     using prog_calc_t = RealCalculator<double>;
 
-    struct CompileResult
+    struct PostfixResult
     {
         std::string postfix;
         std::string message;
@@ -21,16 +21,16 @@ namespace Sapphire
             return !failure();
         }
 
-        static CompileResult Success(std::string postfix)
+        static PostfixResult Success(std::string postfix)
         {
-            CompileResult result;
+            PostfixResult result;
             result.postfix = postfix;
             return result;
         }
 
-        static CompileResult Fail(std::string message)
+        static PostfixResult Fail(std::string message)
         {
-            CompileResult result;
+            PostfixResult result;
             result.message = message;
             return result;
         }
@@ -48,19 +48,19 @@ namespace Sapphire
         std::string vzPostfix;
         double param[ParamCount]{};
 
-        CompileResult compile(std::string& postfix, std::string infix)
+        PostfixResult compileToPostfix(std::string& postfix, std::string infix)
         {
             try
             {
                 auto expr = CalcParseNumericExpression(infix);
                 postfix = expr->postfixNotation();
                 // FIXFIXFIX: verify variables/params: x y z a b c d
-                return CompileResult::Success(postfix);
+                return PostfixResult::Success(postfix);
             }
             catch (const CalcError& ex)
             {
                 postfix.clear();
-                return CompileResult::Fail(ex.what());
+                return PostfixResult::Fail(ex.what());
             }
         }
 
@@ -125,16 +125,16 @@ namespace Sapphire
             throw std::range_error(std::string("paramValue: invalid index=") + std::to_string(index));
         }
 
-        CompileResult compile(
+        PostfixResult compileToPostfix(
             int varIndex,       // 0=vx, 1=vy, 2=vz
             std::string infix)
         {
             switch (varIndex)
             {
-            case 0:  return compile(vxPostfix, infix);
-            case 1:  return compile(vyPostfix, infix);
-            case 2:  return compile(vzPostfix, infix);
-            default: return CompileResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
+            case 0:  return compileToPostfix(vxPostfix, infix);
+            case 1:  return compileToPostfix(vyPostfix, infix);
+            case 2:  return compileToPostfix(vzPostfix, infix);
+            default: return PostfixResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
             }
         }
     };
