@@ -35,4 +35,10 @@ namespace Sapphire
 
         return SlopeVector(vx, vy, vz);
     }
+
+
+    BytecodeProgram CompileBytecode(calc_expr_t expr)
+    {
+        return BytecodeProgram();
+    }
 }

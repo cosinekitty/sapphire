@@ -1,4 +1,7 @@
 #pragma once
+#include <cinttypes>
+#include <vector>
+#include <string>
 #include "chaos.hpp"
 #include "sapphire_calcparser.hpp"
 
@@ -6,35 +9,62 @@ namespace Sapphire
 {
     using prog_calc_t = RealCalculator<double>;
 
-    struct PostfixResult
+    template <typename payload_t>
+    struct TranslateResult
     {
-        std::string postfix;
+        payload_t payload{};
         std::string message;
-
-        bool failure() const
-        {
-            return postfix.empty();
-        }
 
         bool success() const
         {
-            return !failure();
+            return message.empty();
         }
 
-        static PostfixResult Success(std::string postfix)
+        bool failure() const
         {
-            PostfixResult result;
-            result.postfix = postfix;
+            return !success();
+        }
+
+        static TranslateResult Success(payload_t payload)
+        {
+            TranslateResult result;
+            result.payload = payload;
             return result;
         }
 
-        static PostfixResult Fail(std::string message)
+        static TranslateResult Fail(std::string message)
         {
-            PostfixResult result;
+            TranslateResult result;
             result.message = message;
             return result;
         }
     };
+
+    using PostfixResult = TranslateResult<std::string>;
+
+
+    struct BytecodeInstruction      // reg[r] = reg[a]*reg[b] + reg[c]
+    {
+        uint8_t     r = 0;      // result index
+        uint8_t     a = 0;      // a*b + c
+        uint8_t     b = 0;
+        uint8_t     c = 0;
+    };
+
+    using BytecodeFunction  = std::vector<BytecodeInstruction>;
+    using BytecodeRegisters = std::vector<double>;
+
+    struct BytecodeProgram
+    {
+        BytecodeFunction    func;
+        BytecodeRegisters   reg;
+    };
+
+    using BytecodeResult = TranslateResult<BytecodeProgram>;
+
+
+    BytecodeProgram CompileBytecode(calc_expr_t expr);
+
 
     class ProgOscillator : public ChaoticOscillator
     {
@@ -48,19 +78,18 @@ namespace Sapphire
         std::string vzPostfix;
         double param[ParamCount]{};
 
-        PostfixResult compileToPostfix(std::string& postfix, std::string infix)
+        BytecodeResult compile(std::string& postfix, std::string infix)
         {
             try
             {
                 auto expr = CalcParseNumericExpression(infix);
-                postfix = expr->postfixNotation();
-                // FIXFIXFIX: verify variables/params: x y z a b c d
-                return PostfixResult::Success(postfix);
+                BytecodeProgram prog = CompileBytecode(expr);
+                return BytecodeResult::Success(prog);
             }
             catch (const CalcError& ex)
             {
                 postfix.clear();
-                return PostfixResult::Fail(ex.what());
+                return BytecodeResult::Fail(ex.what());
             }
         }
 
@@ -125,16 +154,16 @@ namespace Sapphire
             throw std::range_error(std::string("paramValue: invalid index=") + std::to_string(index));
         }
 
-        PostfixResult compileToPostfix(
+        BytecodeResult compile(
             int varIndex,       // 0=vx, 1=vy, 2=vz
             std::string infix)
         {
             switch (varIndex)
             {
-            case 0:  return compileToPostfix(vxPostfix, infix);
-            case 1:  return compileToPostfix(vyPostfix, infix);
-            case 2:  return compileToPostfix(vzPostfix, infix);
-            default: return PostfixResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
+            case 0:  return compile(vxPostfix, infix);
+            case 1:  return compile(vyPostfix, infix);
+            case 2:  return compile(vzPostfix, infix);
+            default: return BytecodeResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
             }
         }
     };

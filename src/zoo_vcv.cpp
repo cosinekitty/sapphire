@@ -54,6 +54,8 @@ namespace Sapphire
     {
         std::string formula[3];
 
+        BytecodeProgram prog[3];
+
         explicit ZooModule()
             : ZooModuleBase()
         {
@@ -67,11 +69,13 @@ namespace Sapphire
             if (varIndex >= 0 && varIndex < 3)
                 formula[varIndex] = infix;
 
-            PostfixResult result = circuit.compileToPostfix(varIndex, infix);
+            BytecodeResult result = circuit.compile(varIndex, infix);
             if (result.failure())
             {
                 // FIXFIXFIX: format and report the error in the UI.
             }
+
+            prog[varIndex] = result.payload;
         }
 
         MenuItem* makeFormulaEditor(int varIndex, std::string prefix)

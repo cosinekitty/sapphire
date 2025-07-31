@@ -2,8 +2,6 @@
 
 namespace Sapphire
 {
-    using calc_expr_t = std::shared_ptr<CalcExpr>;
-
     class CalcParser
     {
     private:
