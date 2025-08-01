@@ -58,6 +58,13 @@ namespace Sapphire
     {
         BytecodeFunction    func;
         BytecodeRegisters   reg;
+        int varIndex[0x100];
+
+        explicit BytecodeProgram()
+        {
+            for (int i = 0; i < 0x100; ++i)
+                varIndex[i] = -1;
+        }
 
         void printRegisters()
         {
@@ -78,6 +85,30 @@ namespace Sapphire
         {
             printRegisters();
             printFunc();
+        }
+
+        void setVar(char name, double value)
+        {
+            const int index = static_cast<int>(name);
+            if (index < 0x00 || index > 0xff)
+                throw CalcError("Invalid variable name");
+
+            const int addr = varIndex[index];
+            if (addr < 0)
+            {
+                std::string message = "Undefined variable ";
+                message.push_back(name);
+                throw CalcError(message);
+            }
+            reg.at(addr) = value;
+        }
+
+        double evaluate()
+        {
+            double answer = 0;
+            for (const BytecodeInstruction& inst : func)
+                answer = reg.at(inst.r) = reg.at(inst.a)*reg.at(inst.b) + reg.at(inst.c);
+            return answer;
         }
     };
 
