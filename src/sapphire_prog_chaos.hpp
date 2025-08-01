@@ -66,25 +66,36 @@ namespace Sapphire
                 varIndex[i] = -1;
         }
 
+        void printVariables()
+        {
+            printf("    VARIABLES:\n");
+            for (int v = 0; v < 0x100; ++v)
+                if (int r = varIndex[v]; r >= 0)
+                    printf("        '%c' @ [%2d]\n", v, r);
+        }
+
         void printRegisters()
         {
-            printf("REGISTERS:\n");
+            printf("    REGISTERS:\n");
             const int nRegisters = static_cast<int>(reg.size());
             for (int i = 0; i < nRegisters; ++i)
-                printf("[%2d] : %20.16lf\n", i, reg.at(i));
+                printf("        [%2d] : %20.16lf\n", i, reg.at(i));
         }
 
         void printFunc()
         {
-            printf("INSTRUCTIONS:\n");
+            printf("    INSTRUCTIONS:\n");
             for (const BytecodeInstruction& inst : func)
-                printf("[%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
+                printf("        [%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
         }
 
         void print()
         {
+            printf("PROGRAM:\n");
+            printVariables();
             printRegisters();
             printFunc();
+            printf("\n");
         }
 
         void setVar(char name, double value)
@@ -110,13 +121,22 @@ namespace Sapphire
                 answer = reg.at(inst.r) = reg.at(inst.a)*reg.at(inst.b) + reg.at(inst.c);
             return answer;
         }
+
+        static BytecodeProgram Compile(calc_expr_t expr);
+
+    private:
+        void defineVariables(calc_expr_t expr);
+        void compile(calc_expr_t expr);
+
+        int allocateRegister(double value)
+        {
+            const int r = static_cast<int>(reg.size());
+            reg.push_back(value);
+            return r;
+        }
     };
 
     using BytecodeResult = TranslateResult<BytecodeProgram>;
-
-
-    BytecodeProgram CompileBytecode(calc_expr_t expr);
-
 
     class ProgOscillator : public ChaoticOscillator
     {
@@ -135,7 +155,7 @@ namespace Sapphire
             try
             {
                 auto expr = CalcParseNumericExpression(infix);
-                BytecodeProgram prog = CompileBytecode(expr);
+                BytecodeProgram prog = BytecodeProgram::Compile(expr);
                 return BytecodeResult::Success(prog);
             }
             catch (const CalcError& ex)

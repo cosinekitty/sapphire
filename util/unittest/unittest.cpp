@@ -1373,7 +1373,7 @@ static int Calc_Compile(std::string infix, std::string correctPostfix)
         }
 
         // bytecode test
-        BytecodeProgram prog = CompileBytecode(expr);
+        BytecodeProgram prog = BytecodeProgram::Compile(expr);
         prog.print();
     }
     catch (const CalcError& ex)
@@ -1433,7 +1433,7 @@ static int Calc_Bytecode(std::string infix, double a, double b, double c, double
     try
     {
         auto expr = CalcParseNumericExpression(infix);
-        BytecodeProgram prog = CompileBytecode(expr);
+        BytecodeProgram prog = BytecodeProgram::Compile(expr);
         prog.setVar('a', a);
         prog.setVar('b', b);
         prog.setVar('c', c);
