@@ -1362,6 +1362,8 @@ static int Calc_Compile(std::string infix, std::string correctPostfix)
     try
     {
         auto expr = CalcParseNumericExpression(infix);
+
+        // postfix test
         std::string f = expr->postfixNotation();
         printf("Calc_Compile: [%s] ==> [%s]\n", infix.c_str(), f.c_str());
         if (f != correctPostfix)
@@ -1369,6 +1371,10 @@ static int Calc_Compile(std::string infix, std::string correctPostfix)
             printf("**** DOES NOT MATCH EXPECTED POSTFIX: [%s]\n", correctPostfix.c_str());
             return Fail(caller, "Parser error");
         }
+
+        // bytecode test
+        BytecodeProgram prog = CompileBytecode(expr);
+        prog.print();
     }
     catch (const CalcError& ex)
     {

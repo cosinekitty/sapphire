@@ -39,6 +39,15 @@ namespace Sapphire
 
     BytecodeProgram CompileBytecode(calc_expr_t expr)
     {
-        return BytecodeProgram();
+        // In this virtual machine, there is only one instruction.
+        // Every instruction executed has the following effect:
+        // r := a*b + c
+        // where r, a, b, c are integer indexes into a register array.
+        // Each entry in the array stores a double-precision float.
+        // FIXFIXFIX: abstract to generic type that allows the required operators.
+
+        BytecodeProgram prog;
+
+        return prog;
     }
 }

@@ -58,6 +58,27 @@ namespace Sapphire
     {
         BytecodeFunction    func;
         BytecodeRegisters   reg;
+
+        void printRegisters()
+        {
+            printf("REGISTERS:\n");
+            const int nRegisters = static_cast<int>(reg.size());
+            for (int i = 0; i < nRegisters; ++i)
+                printf("[%2d] : %20.16lf\n", i, reg.at(i));
+        }
+
+        void printFunc()
+        {
+            printf("INSTRUCTIONS:\n");
+            for (const BytecodeInstruction& inst : func)
+                printf("[%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
+        }
+
+        void print()
+        {
+            printRegisters();
+            printFunc();
+        }
     };
 
     using BytecodeResult = TranslateResult<BytecodeProgram>;
