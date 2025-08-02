@@ -59,6 +59,7 @@ namespace Sapphire
         BytecodeFunction    func;
         BytecodeRegisters   reg;
         int varIndex[0x100];
+        std::vector<int> outputs;       // list of register indices for the calculation results
 
         explicit BytecodeProgram()
         {
@@ -89,11 +90,23 @@ namespace Sapphire
                 printf("        [%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
         }
 
+        void printOutputs()
+        {
+            printf("    OUTPUTS:\n");
+            for (int r : outputs)
+                if (r >= 0 && r < static_cast<int>(reg.size()))
+                    printf("        [%2d] = %20.16lf\n", r, reg[r]);
+                else
+                    printf("        [%2d] = ?\n", r);
+        }
+
         void print()
         {
+            printf("\n");
             printf("PROGRAM:\n");
             printVariables();
             printRegisters();
+            printOutputs();
             printFunc();
             printf("\n");
         }
@@ -104,29 +117,27 @@ namespace Sapphire
             if (index < 0x00 || index > 0xff)
                 throw CalcError("Invalid variable name");
 
-            if (varIndex[index] < 0)
-                varIndex[index] = allocateRegister();
+            int& r = varIndex[index];
+            if (r < 0)
+                r = allocateRegister();
 
-            reg.at(varIndex[index]) = value;
+            reg.at(r) = value;
         }
 
-        double evaluate()
+        void run()
         {
-            double answer = 0;
             for (const BytecodeInstruction& inst : func)
-                answer = reg.at(inst.r) = reg.at(inst.a)*reg.at(inst.b) + reg.at(inst.c);
-            return answer;
+                reg[inst.r] = reg[inst.a]*reg[inst.b] + reg[inst.c];
         }
 
-        static BytecodeProgram Compile(calc_expr_t expr);
+        void defineVariables(calc_expr_t expr);
+        int compile(calc_expr_t expr);
+        void validate() const;
 
     private:
         int r_negOne = -1;
         int r_zero = -1;
         int r_posOne = -1;
-
-        void defineVariables(calc_expr_t expr);
-        int compile(calc_expr_t expr);
 
         int allocateRegister(double value = 0.0)
         {
@@ -141,6 +152,12 @@ namespace Sapphire
                 rindex = allocateRegister(value);
 
             return rindex;
+        }
+
+        void validateRegister(int r) const
+        {
+            if (r < 0 || r >= static_cast<int>(reg.size()))
+                throw CalcError("Register index is out of range: " + std::to_string(r));
         }
 
         int emit(int r, int a, int b, int c)
@@ -163,34 +180,14 @@ namespace Sapphire
         static constexpr int ParamCount = 4;        // knobs are 'a', 'b', 'c', 'd'.
 
     private:
-        mutable prog_calc_t calc;
-        std::string vxPostfix;
-        std::string vyPostfix;
-        std::string vzPostfix;
+        mutable BytecodeProgram prog;       // a single program that calculates vx, vy, and vz.
         double param[ParamCount]{};
 
-        BytecodeResult compile(std::string& postfix, std::string infix)
+        static int ValidateParamIndex(int index)
         {
-            try
-            {
-                auto expr = CalcParseNumericExpression(infix);
-                BytecodeProgram prog = BytecodeProgram::Compile(expr);
-                return BytecodeResult::Success(prog);
-            }
-            catch (const CalcError& ex)
-            {
-                postfix.clear();
-                return BytecodeResult::Fail(ex.what());
-            }
-        }
-
-        double eval(const std::string& postfix) const
-        {
-            calc.clearStack();
-            calc.execute(postfix);
-            if (calc.stackHeight() != 1)
-                throw CalcError("Postfix resulted in stack height = " + std::to_string(calc.stackHeight()));
-            return calc.pop();
+            if (index >= 0 && index < ParamCount)
+                return index;
+            throw CalcError(std::string("parameter index is out of range: ") + std::to_string(index));
         }
 
     protected:
@@ -231,31 +228,30 @@ namespace Sapphire
             paramValue(3) = 0.1;
         }
 
+        BytecodeResult compile(int varIndex, std::string infix)
+        {
+            try
+            {
+                auto expr = CalcParseNumericExpression(infix);
+                prog.defineVariables(expr);
+                const int reg = prog.compile(expr);
+                prog.outputs.push_back(reg);
+                return BytecodeResult::Success(prog);
+            }
+            catch (const CalcError& ex)
+            {
+                return BytecodeResult::Fail(ex.what());
+            }
+        }
+
         double paramValue(int index) const
         {
-            if (index >= 0 && index < ParamCount)
-                return param[index];
-            throw std::range_error(std::string("paramValue(const): invalid index=") + std::to_string(index));
+            return param[ValidateParamIndex(index)];
         }
 
         double& paramValue(int index)
         {
-            if (index >= 0 && index < ParamCount)
-                return param[index];
-            throw std::range_error(std::string("paramValue: invalid index=") + std::to_string(index));
-        }
-
-        BytecodeResult compile(
-            int varIndex,       // 0=vx, 1=vy, 2=vz
-            std::string infix)
-        {
-            switch (varIndex)
-            {
-            case 0:  return compile(vxPostfix, infix);
-            case 1:  return compile(vyPostfix, infix);
-            case 2:  return compile(vzPostfix, infix);
-            default: return BytecodeResult::Fail("Invalid varIndex=" + std::to_string(varIndex));
-            }
+            return param[ValidateParamIndex(index)];
         }
     };
 }

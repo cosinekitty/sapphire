@@ -1410,10 +1410,12 @@ static int ProgChaosTest()
         auto result = osc.compile(v, infix[v]);
         if (result.failure())
             return Fail(name, result.message);
-        //printf("%s: infix[%s] => postfix[%s]\n", name.c_str(), infix[v].c_str(), result.postfix.c_str());
+        printf("compile(v%c = %s)\n", 'x' + v, infix[v].c_str());
+        if (v == 2)
+            result.payload.print();
     }
 
-    RangeTest(osc, 0, "Rossler", 100);
+    if (RangeTest(osc, 0, "Rossler", 100)) return 1;
 
     return Pass("ProgChaosTest");
 }
@@ -1429,15 +1431,21 @@ static int Calc_Bytecode(std::string infix, double a, double b, double c, double
     try
     {
         auto expr = CalcParseNumericExpression(infix);
-        BytecodeProgram prog = BytecodeProgram::Compile(expr);
+        BytecodeProgram prog;
+        prog.defineVariables(expr);
+        const int resultRegisterIndex = prog.compile(expr);
+        prog.outputs.push_back(resultRegisterIndex);
         prog.setVar('a', a);
         prog.setVar('b', b);
         prog.setVar('c', c);
+        printf("%s: running...\n", caller.c_str());
+        prog.run();
         prog.print();
-        const double answer = prog.evaluate();
+        if (prog.outputs.size() != 1)
+            return Fail(caller, "Expected 1 output, found " + std::to_string(static_cast<int>(prog.outputs.size())));
+        const double answer = prog.reg.at(prog.outputs.at(0));
         const double diff = std::abs(answer - correct);
         printf("%s: answer=%0.6lg, correct=%0.6lg, diff=%g\n", caller.c_str(), answer, correct, diff);
-        prog.printRegisters();
         if (diff > 1.0e-12)
             return Fail(caller, "Excessive numeric error in calculation.");
         return Pass(caller);

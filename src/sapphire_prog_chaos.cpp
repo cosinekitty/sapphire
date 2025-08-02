@@ -10,39 +10,33 @@ namespace Sapphire
 
         try
         {
-            if (!vxPostfix.empty() && !vyPostfix.empty() && !vzPostfix.empty())
+            for (int i = 0; i < ParamCount; ++i)
             {
-                calc.defineVariable('x', x);
-                calc.defineVariable('y', y);
-                calc.defineVariable('z', z);
-                for (int i = 0; i < ParamCount; ++i)
-                {
-                    char name = static_cast<char>('a' + i);
-                    const double p = paramValue(i);
-                    calc.defineVariable(name, p);
-                }
-                vx = eval(vxPostfix);
-                vy = eval(vyPostfix);
-                vz = eval(vzPostfix);
+                int varIndex = 'a' + i;
+                double value = paramValue(i);
+                prog.setVar(varIndex, value);
+            }
+
+            prog.setVar('x', x);
+            prog.setVar('y', y);
+            prog.setVar('z', z);
+            prog.run();
+
+            if (prog.outputs.size() == 3)
+            {
+                vx = prog.reg.at(prog.outputs[0]);
+                vy = prog.reg.at(prog.outputs[1]);
+                vz = prog.reg.at(prog.outputs[2]);
             }
         }
         catch (const CalcError& ex)
         {
             // FIXFIXFIX: capture and report error.
+            printf("ProgOscillator::slopes EXCEPTION: %s\n", ex.what());
             vx = vy = vz = 0;
-            calc.clearStack();
         }
 
         return SlopeVector(vx, vy, vz);
-    }
-
-
-    BytecodeProgram BytecodeProgram::Compile(calc_expr_t expr)
-    {
-        BytecodeProgram prog;
-        prog.defineVariables(expr);
-        prog.compile(expr);
-        return prog;
     }
 
 
@@ -77,11 +71,11 @@ namespace Sapphire
 
     int BytecodeProgram::compile(calc_expr_t expr)
     {
-        // In this virtual machine, there is only one instruction.
+        // In this virtual machine, there is only one kind of instruction.
         // Every instruction executed has the following effect:
-        // r := a*b + c
+        // [r] = [a]*[b] + [c]
         // where r, a, b, c are integer indexes into a register array.
-        // Each entry in the array stores a double-precision float.
+        // Each entry in the array stores a `double`.
 
         // Look at the top level(s) of the parse tree.
         // Match the ideal patterns first:
@@ -181,5 +175,17 @@ namespace Sapphire
         }
 
         throw CalcError("Code generation failure");
+    }
+
+
+    void BytecodeProgram::validate() const
+    {
+        for (const BytecodeInstruction& inst : func)
+        {
+            validateRegister(inst.r);
+            validateRegister(inst.a);
+            validateRegister(inst.b);
+            validateRegister(inst.c);
+        }
     }
 }
