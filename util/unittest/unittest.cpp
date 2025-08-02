@@ -1371,10 +1371,6 @@ static int Calc_Compile(std::string infix, std::string correctPostfix)
             printf("**** DOES NOT MATCH EXPECTED POSTFIX: [%s]\n", correctPostfix.c_str());
             return Fail(caller, "Parser error");
         }
-
-        // bytecode test
-        BytecodeProgram prog = BytecodeProgram::Compile(expr);
-        prog.print();
     }
     catch (const CalcError& ex)
     {
