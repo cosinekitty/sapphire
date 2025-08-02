@@ -275,6 +275,28 @@ namespace Sapphire
 
             return s;
         }
+
+        bool isUnary(const std::string& op) const
+        {
+            return (children.size() == 1) && (token.text == op);
+        }
+
+        bool isBinary(const std::string& op) const
+        {
+            return (children.size() == 2) && (token.text == op);
+        }
+
+        bool isVariable() const
+        {
+            return !isFunctionCall && (children.size() == 0) && token.isIdentifier();
+        }
+
+        int variableIndex() const
+        {
+            if (token.text.size())
+                return 0xff & static_cast<int>(token.text[0]);
+            throw CalcError("Cannot determine variable index for: " + token.text);
+        }
     };
 
     using calc_expr_t = std::shared_ptr<CalcExpr>;

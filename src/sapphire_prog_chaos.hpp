@@ -104,14 +104,10 @@ namespace Sapphire
             if (index < 0x00 || index > 0xff)
                 throw CalcError("Invalid variable name");
 
-            const int addr = varIndex[index];
-            if (addr < 0)
-            {
-                std::string message = "Undefined variable ";
-                message.push_back(name);
-                throw CalcError(message);
-            }
-            reg.at(addr) = value;
+            if (varIndex[index] < 0)
+                varIndex[index] = allocateRegister();
+
+            reg.at(varIndex[index]) = value;
         }
 
         double evaluate()
@@ -125,13 +121,36 @@ namespace Sapphire
         static BytecodeProgram Compile(calc_expr_t expr);
 
     private:
-        void defineVariables(calc_expr_t expr);
-        void compile(calc_expr_t expr);
+        int r_negOne = -1;
+        int r_zero = -1;
+        int r_posOne = -1;
 
-        int allocateRegister(double value)
+        void defineVariables(calc_expr_t expr);
+        int compile(calc_expr_t expr);
+
+        int allocateRegister(double value = 0.0)
         {
             const int r = static_cast<int>(reg.size());
             reg.push_back(value);
+            return r;
+        }
+
+        int allocateConstant(int& rindex, double value)
+        {
+            if (rindex < 0)
+                rindex = allocateRegister(value);
+
+            return rindex;
+        }
+
+        int emit(int r, int a, int b, int c)
+        {
+            BytecodeInstruction inst;
+            inst.r = r;
+            inst.a = a;
+            inst.b = b;
+            inst.c = c;
+            func.push_back(inst);
             return r;
         }
     };

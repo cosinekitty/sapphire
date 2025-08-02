@@ -1438,10 +1438,12 @@ static int Calc_Bytecode(std::string infix, double a, double b, double c, double
         prog.setVar('b', b);
         prog.setVar('c', c);
         prog.print();
-        double answer = prog.evaluate();
-        double diff = std::abs(answer - correct);
+        const double answer = prog.evaluate();
+        const double diff = std::abs(answer - correct);
         printf("%s: answer=%0.6lg, correct=%0.6lg, diff=%g\n", caller.c_str(), answer, correct, diff);
         prog.printRegisters();
+        if (diff > 1.0e-12)
+            return Fail(caller, "Excessive numeric error in calculation.");
         return Pass(caller);
     }
     catch (const CalcError& ex)
@@ -1470,6 +1472,7 @@ static int CalculatorTest()
         Calc_Compile("-x", "xN") ||         // postfix unary negative needs a different symbol
         Calc_Compile("b+z*(x-c)", "bzxc-*+") ||
         Calc_Compile("(f+b)/2.718", "fb+{2.718}/") ||
+        Calc_Bytecode("a-b", a, b, c, a-b) ||
         Calc_Bytecode("a*(b+c) + (a+b)*c", a, b, c, a*(b+c) + (a+b)*c) ||
         ProgChaosTest()
     ;
