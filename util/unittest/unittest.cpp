@@ -1481,6 +1481,8 @@ static int CalculatorTest()
         Calc_Bytecode("a^3+b^2", a, b, c, a*a*a + b*b) ||
         Calc_Bytecode("(a+b+c)^4", a, b, c, Sapphire::FourthPower(a+b+c)) ||
         Calc_Bytecode("a/7.7 + b/9.2 - c/11.5", a, b, c, a/7.7 + b/9.2 - c/11.5) ||
+        Calc_Bytecode("a/-2+(b/(-3))", a, b, c, a/(-2) + b/(-3)) ||
+        Calc_Bytecode("(c-3.14)/(2/3 + 77.9)", a, b, c, (c-3.14)/(2.0/3.0 + 77.9)) ||
         ProgChaosTest()
     ;
 }

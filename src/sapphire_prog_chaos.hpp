@@ -133,9 +133,9 @@ namespace Sapphire
         void defineVariables(calc_expr_t expr);
         int compile(calc_expr_t expr);
         void validate() const;
+        bool isConstantExpression(double& value, const calc_expr_t& expr) const;
 
     private:
-
         int allocateRegister(double value = 0.0)
         {
             const int r = static_cast<int>(reg.size());

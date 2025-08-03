@@ -69,6 +69,79 @@ namespace Sapphire
     }
 
 
+    bool BytecodeProgram::isConstantExpression(double& value, const calc_expr_t& expr) const
+    {
+        if (expr->token.isNumericLiteral())
+        {
+            value = expr->token.numericValue();
+            return true;
+        }
+
+        if (expr->children.size() == 1)
+        {
+            const calc_expr_t& child = expr->children[0];
+            if (double childValue{}; isConstantExpression(childValue, child))
+            {
+                if (expr->isUnary("-"))
+                {
+                    value = -childValue;
+                    return true;
+                }
+            }
+        }
+        else if (expr->children.size() == 2)
+        {
+            const calc_expr_t& left  = expr->children[0];
+            const calc_expr_t& right = expr->children[1];
+            if (double leftValue{}; isConstantExpression(leftValue, left))
+            {
+                if (double rightValue{}; isConstantExpression(rightValue, right))
+                {
+                    if (expr->isBinary("+"))
+                    {
+                        value = leftValue + rightValue;
+                        return true;
+                    }
+                    if (expr->isBinary("-"))
+                    {
+                        value = leftValue - rightValue;
+                        return true;
+                    }
+                    if (expr->isBinary("*"))
+                    {
+                        value = leftValue * rightValue;
+                        return true;
+                    }
+                    if (expr->isBinary("/"))
+                    {
+                        if (rightValue == 0.0)
+                            throw CalcError("Division by zero in constant expression.");
+                        value = leftValue / rightValue;
+                        return true;
+                    }
+                    if (expr->isBinary("^"))
+                    {
+                        value = std::pow(leftValue, rightValue);
+                        if (std::isfinite(value))
+                            return true;
+
+                        throw CalcError(
+                            "Invalid constant exponentiation: (" +
+                            std::to_string(leftValue) +
+                            ") ^ (" +
+                            std::to_string(rightValue)
+                            + ")"
+                        );
+                    }
+                }
+            }
+        }
+
+        value = 0;
+        return false;
+    }
+
+
     int BytecodeProgram::compile(calc_expr_t expr)
     {
         // In this virtual machine, there is only one kind of instruction.
@@ -94,16 +167,11 @@ namespace Sapphire
         // already map to a register.
         // This is the leaf of the recursion.
         if (expr->isVariable())
-        {
-            const int v = expr->variableIndex();
-            return varIndex[v];
-        }
+            return varIndex[expr->variableIndex()];
 
-        if (expr->token.isNumericLiteral())
-        {
-            const double value = expr->token.numericValue();
+        // Fold constant expressions into a single register.
+        if (double value{}; isConstantExpression(value, expr))
             return allocateRegister(value);
-        }
 
         // Pre-allocate a location for the result.
         int r = allocateRegister();
@@ -111,8 +179,8 @@ namespace Sapphire
 
         if (expr->isUnary("-"))
         {
-            // Unary negation: -a ==> (-1)*a + 0
-            a = compile(expr->children[0]);
+            const auto& child = expr->children[0];
+            a = compile(child);
             n = negativeOneRegister();
             z = zeroRegister();
             return emit(r, n, a, z);
@@ -169,9 +237,8 @@ namespace Sapphire
             }
             else if (expr->isBinary("/"))
             {
-                if (right->token.isNumericLiteral())
+                if (double denom{}; isConstantExpression(denom, right))
                 {
-                    const double denom = right->token.numericValue();
                     if (denom == 0.0)
                         throw CalcError("Division by zero detected.");
                     // a/denom ==> (1/denom)*a + 0
@@ -180,15 +247,16 @@ namespace Sapphire
                     a = compile(left);
                     return emit(r, n, a, z);
                 }
-                throw CalcError("Division is not yet supported.");
+                throw CalcError("Division is not supported except when the denominator is a numeric constant.");
             }
             else if (expr->isBinary("^"))
             {
                 // In a^b, b must be a positive integer literal.
-                if (right->token.isNumericLiteral())
+                if (double expFloat{}; isConstantExpression(expFloat, right))
                 {
-                    const double expFloat = right->token.numericValue();
                     const int exponent = static_cast<int>(std::round(expFloat));
+                    if (static_cast<double>(exponent) != expFloat || exponent <= 0)
+                        throw CalcError("Exponent must be a positive integer, not " + std::to_string(expFloat));
 
                     a = compile(left);
                     if (exponent == 1)
