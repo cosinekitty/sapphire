@@ -169,7 +169,17 @@ namespace Sapphire
             }
             else if (expr->isBinary("/"))
             {
-                // FIXFIXFIX: allow dividing by a numeric constant.
+                if (right->token.isNumericLiteral())
+                {
+                    const double denom = right->token.numericValue();
+                    if (denom == 0.0)
+                        throw CalcError("Division by zero detected.");
+                    // a/denom ==> (1/denom)*a + 0
+                    n = allocateRegister(1/denom);
+                    z = zeroRegister();
+                    a = compile(left);
+                    return emit(r, n, a, z);
+                }
                 throw CalcError("Division is not yet supported.");
             }
             else if (expr->isBinary("^"))
@@ -181,6 +191,9 @@ namespace Sapphire
                     const int exponent = static_cast<int>(std::round(expFloat));
 
                     a = compile(left);
+                    if (exponent == 1)
+                        return a;
+
                     z = zeroRegister();
                     switch (exponent)
                     {
@@ -207,7 +220,7 @@ namespace Sapphire
                         return r;
 
                     default:
-                        throw CalcError("Exponent " + std::to_string(exponent) + " is not yet supported.");
+                        throw CalcError("Exponent " + std::to_string(exponent) + " is not supported.");
                     }
                 }
             }
