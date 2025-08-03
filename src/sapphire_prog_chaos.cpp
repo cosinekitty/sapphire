@@ -192,10 +192,18 @@ namespace Sapphire
 
                     case 3:
                         // a^3 ==>
-                        //      r=a*a + 0
-                        //      r=r*a + 0
+                        //      r = a*a + 0
+                        //      r = r*a + 0
                         emit(r, a, a, z);
                         emit(r, r, a, z);
+                        return r;
+
+                    case 4:
+                        // a^4 ==>
+                        //      r = a*a + 0
+                        //      r = r*r + 0
+                        emit(r, a, a, z);
+                        emit(r, r, r, z);
                         return r;
 
                     default:
