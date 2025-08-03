@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -639,6 +640,8 @@ static int RangeTest(
     const char *name,
     double range)
 {
+    using namespace std::chrono;
+
     printf("RangeTest(%s): starting\n", name);
 
     osc.initialize();
@@ -657,6 +660,7 @@ static int RangeTest(
     double zMin = osc.zpos();
     double zMax = osc.zpos();
 
+    auto start = high_resolution_clock::now();
     for (long i = 0; i < SIM_SAMPLES; ++i)
     {
         osc.update(dt);
@@ -668,6 +672,10 @@ static int RangeTest(
         zMin = std::min(zMin, osc.zpos());
         zMax = std::max(zMax, osc.zpos());
     }
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start);
+    double seconds = duration.count() / 1.0e+6;
+    printf("Runtime = %0.3lf seconds\n", seconds);
 
     printf("vx range: %10.6lf %10.6lf\n", xMin, xMax);
     printf("vy range: %10.6lf %10.6lf\n", yMin, yMax);
@@ -1416,7 +1424,6 @@ static int ProgChaosTest()
     }
 
     if (RangeTest(osc, 0, "Rossler", 100)) return 1;
-
     return Pass("ProgChaosTest");
 }
 
