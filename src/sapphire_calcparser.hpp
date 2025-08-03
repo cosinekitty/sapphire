@@ -25,6 +25,13 @@ namespace Sapphire
             return (f >= '0') && (f <= '9');
         }
 
+        double numericValue() const
+        {
+            if (isNumericLiteral())
+                return std::atof(text.c_str());
+            return 0.0;
+        }
+
         bool isIdentifier() const
         {
             const char f = front();

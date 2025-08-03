@@ -135,9 +135,6 @@ namespace Sapphire
         void validate() const;
 
     private:
-        int r_negOne = -1;
-        int r_zero = -1;
-        int r_posOne = -1;
 
         int allocateRegister(double value = 0.0)
         {
@@ -152,6 +149,24 @@ namespace Sapphire
                 rindex = allocateRegister(value);
 
             return rindex;
+        }
+
+        int r_zero = -1;
+        int zeroRegister()
+        {
+            return allocateConstant(r_zero, 0.0);
+        }
+
+        int r_negOne = -1;
+        int negativeOneRegister()
+        {
+            return allocateConstant(r_negOne, -1.0);
+        }
+
+        int r_posOne = -1;
+        int positiveOneRegister()
+        {
+            return allocateConstant(r_posOne, +1.0);
         }
 
         void validateRegister(int r) const

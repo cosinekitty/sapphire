@@ -101,7 +101,7 @@ namespace Sapphire
 
         if (expr->token.isNumericLiteral())
         {
-            const double value = std::atof(expr->token.text.c_str());
+            const double value = expr->token.numericValue();
             return allocateRegister(value);
         }
 
@@ -113,8 +113,8 @@ namespace Sapphire
         {
             // Unary negation: -a ==> (-1)*a + 0
             a = compile(expr->children[0]);
-            n = allocateConstant(r_negOne, -1.0);
-            z = allocateConstant(r_zero, 0.0);
+            n = negativeOneRegister();
+            z = zeroRegister();
             return emit(r, n, a, z);
         }
 
@@ -144,7 +144,7 @@ namespace Sapphire
                 }
                 // Fallback: a + b ==> 1*a + b
                 {
-                    n = allocateConstant(r_posOne, +1.0);
+                    n = positiveOneRegister();
                     a = compile(left);
                     b = compile(right);
                     return emit(r, n, a, b);
@@ -156,7 +156,7 @@ namespace Sapphire
                 // b - a ==> (-1)*a + b
                 b = compile(left);
                 a = compile(right);
-                n = allocateConstant(r_negOne, -1.0);
+                n = negativeOneRegister();
                 return emit(r, n, a, b);
             }
             else if (expr->isBinary("*"))
@@ -164,13 +164,44 @@ namespace Sapphire
                 // a*b ==> a*b + 0
                 a = compile(left);
                 b = compile(right);
-                n = allocateConstant(r_zero, 0.0);
+                n = zeroRegister();
                 return emit(r, a, b, n);
             }
-            else if (expr->token.text == "/")
+            else if (expr->isBinary("/"))
             {
                 // FIXFIXFIX: allow dividing by a numeric constant.
                 throw CalcError("Division is not yet supported.");
+            }
+            else if (expr->isBinary("^"))
+            {
+                // In a^b, b must be a positive integer literal.
+                if (right->token.isNumericLiteral())
+                {
+                    const double expFloat = right->token.numericValue();
+                    const int exponent = static_cast<int>(std::round(expFloat));
+
+                    a = compile(left);
+                    z = zeroRegister();
+                    switch (exponent)
+                    {
+                    case 2:
+                        // a^2 ==>
+                        //      r = a*a + 0
+                        emit(r, a, a, z);
+                        return r;
+
+                    case 3:
+                        // a^3 ==>
+                        //      r=a*a + 0
+                        //      r=r*a + 0
+                        emit(r, a, a, z);
+                        emit(r, r, a, z);
+                        return r;
+
+                    default:
+                        throw CalcError("Exponent " + std::to_string(exponent) + " is not yet supported.");
+                    }
+                }
             }
         }
 

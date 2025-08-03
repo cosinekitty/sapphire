@@ -1478,6 +1478,7 @@ static int CalculatorTest()
         Calc_Compile("(f+b)/2.718", "fb+{2.718}/") ||
         Calc_Bytecode("a-b", a, b, c, a-b) ||
         Calc_Bytecode("a*(b+c) + (a+b)*c", a, b, c, a*(b+c) + (a+b)*c) ||
+        Calc_Bytecode("a^3+b^2", a, b, c, a*a*a + b*b) ||
         ProgChaosTest()
     ;
 }
