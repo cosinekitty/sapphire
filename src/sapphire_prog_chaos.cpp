@@ -9,13 +9,9 @@ namespace Sapphire
         {
             if (prog.outputs.size() == 3)
             {
-                prog.setVar('a', param[0]);
-                prog.setVar('b', param[1]);
-                prog.setVar('c', param[2]);
-                prog.setVar('d', param[3]);
-                prog.setVar('x', x);
-                prog.setVar('y', y);
-                prog.setVar('z', z);
+                prog.reg[inputRegister[0]] = x;
+                prog.reg[inputRegister[1]] = y;
+                prog.reg[inputRegister[2]] = z;
 
                 prog.run();
 

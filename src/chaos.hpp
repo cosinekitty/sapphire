@@ -90,7 +90,6 @@ namespace Sapphire
 
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
-    private:
         const double max_dt;
         const double x0;
         const double y0;
@@ -107,6 +106,7 @@ namespace Sapphire
         const double yVelScale;
         const double zVelScale;
 
+    private:
         double x1{};
         double y1{};
         double z1{};

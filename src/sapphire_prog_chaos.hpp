@@ -111,17 +111,13 @@ namespace Sapphire
             printf("\n");
         }
 
-        void setVar(char name, double value)
+        int setVar(char name, double value)
         {
-            const int index = static_cast<int>(name);
-            if (index < 0x00 || index > 0xff)
-                throw CalcError("Invalid variable name");
-
-            int& r = varIndex[index];
+            int& r = varIndex[static_cast<unsigned>(0x7f & name)];
             if (r < 0)
                 r = allocateRegister();
-
-            reg.at(r) = value;
+            reg[r] = value;
+            return r;
         }
 
         void run()
@@ -193,10 +189,13 @@ namespace Sapphire
     {
     public:
         static constexpr int ParamCount = 4;        // knobs are 'a', 'b', 'c', 'd'.
+        static constexpr int InputCount = 3;        // input variables are 'x', 'y', 'z'.
 
     private:
         mutable BytecodeProgram prog;       // a single program that calculates vx, vy, and vz.
-        double param[ParamCount]{};
+
+        int paramRegister[ParamCount]{};
+        int inputRegister[InputCount]{};
 
         static int ValidateParamIndex(int index)
         {
@@ -237,10 +236,14 @@ namespace Sapphire
         void ProgOscillator_initialize()
         {
             // FIXFIXFIX: goofy values. User needs to be able to define initial state.
-            paramValue(0) = 0.2;
-            paramValue(1) = 0.2;
-            paramValue(2) = 7.0;
-            paramValue(3) = 0.1;
+            paramRegister[0] = prog.setVar('a', 0.2);
+            paramRegister[1] = prog.setVar('b', 0.2);
+            paramRegister[2] = prog.setVar('c', 7.0);
+            paramRegister[3] = prog.setVar('d', 0.1);
+
+            inputRegister[0] = prog.setVar('x', x0);
+            inputRegister[1] = prog.setVar('y', y0);
+            inputRegister[2] = prog.setVar('z', z0);
         }
 
         BytecodeResult compile(int varIndex, std::string infix)
@@ -261,12 +264,12 @@ namespace Sapphire
 
         double paramValue(int index) const
         {
-            return param[ValidateParamIndex(index)];
+            return prog.reg.at(paramRegister[ValidateParamIndex(index)]);
         }
 
         double& paramValue(int index)
         {
-            return param[ValidateParamIndex(index)];
+            return prog.reg.at(paramRegister[ValidateParamIndex(index)]);
         }
     };
 }
