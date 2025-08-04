@@ -5,22 +5,23 @@ namespace Sapphire
     SlopeVector ProgOscillator::slopes(double x, double y, double z) const
     {
         SlopeVector vec;
-
         try
         {
             if (prog.outputs.size() == 3)
             {
-                for (int i = 0; i < ParamCount; ++i)
-                    prog.setVar('a' + i, paramValue(i));
-
+                prog.setVar('a', param[0]);
+                prog.setVar('b', param[1]);
+                prog.setVar('c', param[2]);
+                prog.setVar('d', param[3]);
                 prog.setVar('x', x);
                 prog.setVar('y', y);
                 prog.setVar('z', z);
+
                 prog.run();
 
-                vec.mx = prog.reg.at(prog.outputs[0]);
-                vec.my = prog.reg.at(prog.outputs[1]);
-                vec.mz = prog.reg.at(prog.outputs[2]);
+                vec.mx = prog.reg[prog.outputs[0]];
+                vec.my = prog.reg[prog.outputs[1]];
+                vec.mz = prog.reg[prog.outputs[2]];
             }
         }
         catch (const CalcError& ex)
@@ -28,7 +29,6 @@ namespace Sapphire
             // FIXFIXFIX: capture and report error.
             printf("ProgOscillator::slopes EXCEPTION: %s\n", ex.what());
         }
-
         return vec;
     }
 
