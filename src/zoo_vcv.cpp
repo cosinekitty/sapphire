@@ -52,30 +52,40 @@ namespace Sapphire
     using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
     struct ZooModule : ZooModuleBase
     {
-        std::string formula[3];
-
-        BytecodeProgram prog[3];
+        std::string formula[3]
+        {
+            "-y-z",
+            "x+a*y",
+            "b+z*(x-c)"
+        };
 
         explicit ZooModule()
             : ZooModuleBase()
         {
-            setInfixFormula(0, "-y-z");
-            setInfixFormula(1, "x+a*y");
-            setInfixFormula(2, "b+z*(x-c)");
+            updateProgram();
+        }
+
+        void updateProgram()
+        {
+            circuit.resetProgram();
+            for (int v = 0; v < 3; ++v)
+            {
+                BytecodeResult result = circuit.compile(formula[v]);
+                if (result.failure())
+                {
+                    // FIXFIXFIX: format and report the error in the UI.
+                    break;
+                }
+            }
         }
 
         void setInfixFormula(int varIndex, std::string infix)
         {
             if (varIndex >= 0 && varIndex < 3)
-                formula[varIndex] = infix;
-
-            BytecodeResult result = circuit.compile(varIndex, infix);
-            if (result.failure())
             {
-                // FIXFIXFIX: format and report the error in the UI.
+                formula[varIndex] = infix;
+                updateProgram();
             }
-
-            prog[varIndex] = result.payload;
         }
 
         MenuItem* makeFormulaEditor(int varIndex, std::string prefix)

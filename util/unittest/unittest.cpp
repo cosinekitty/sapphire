@@ -1415,7 +1415,7 @@ static int ProgChaosTest()
     for (int v = 0; v < 3; ++v)     // 'v' iterates through variables 0=x, 1=y, 2=z.
     {
         std::string name = "ProgChaosTest(v=" + std::to_string(v) + ")";
-        auto result = osc.compile(v, infix[v]);
+        auto result = osc.compile(infix[v]);
         if (result.failure())
             return Fail(name, result.message);
         printf("compile(v%c = %s)\n", 'x' + v, infix[v].c_str());

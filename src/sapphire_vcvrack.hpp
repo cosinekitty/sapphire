@@ -258,7 +258,7 @@ namespace Sapphire
 
     namespace ChaosOperators
     {
-        const unsigned MemoryCount = 16;
+        static constexpr unsigned MemoryCount = 16;
 
         struct Message
         {

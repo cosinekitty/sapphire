@@ -166,13 +166,7 @@ namespace Sapphire
 
         void setKnob(double k)
         {
-            // On Cardinal builds, one of the environments uses a compiler
-            // option to convert `double` constants to `float`.
-            // This causes a compiler error calling std::clamp()
-            // unless we "lock in" the types.
-            const double minKnob = -1;
-            const double maxKnob = +1;
-            knob = std::clamp(k, minKnob, maxKnob);
+            knob = std::clamp<double>(k, -1.0, +1.0);
         }
 
         virtual int getModeCount() const

@@ -224,6 +224,7 @@ namespace Sapphire
             _zmin, _zmax,
             _xVelScale, _yVelScale, _zVelScale)
         {
+            resetProgram();
             ProgOscillator_initialize();
         }
 
@@ -235,6 +236,29 @@ namespace Sapphire
 
         void ProgOscillator_initialize()
         {
+        }
+
+        int getModeCount() const override
+        {
+            return 4;
+        }
+
+        const char* getModeName(int m) const override
+        {
+            switch (m)
+            {
+            case 0:  return "Alpha";
+            case 1:  return "Bravo";
+            case 2:  return "Charlie";
+            case 3:  return "Delta";
+            default: return "";
+            }
+        }
+
+        void resetProgram()
+        {
+            prog = BytecodeProgram();
+
             // FIXFIXFIX: goofy values. User needs to be able to define initial state.
             paramRegister[0] = prog.setVar('a', 0.2);
             paramRegister[1] = prog.setVar('b', 0.2);
@@ -246,7 +270,7 @@ namespace Sapphire
             inputRegister[2] = prog.setVar('z', z0);
         }
 
-        BytecodeResult compile(int varIndex, std::string infix)
+        BytecodeResult compile(std::string infix)
         {
             try
             {
@@ -254,6 +278,7 @@ namespace Sapphire
                 prog.defineVariables(expr);
                 const int reg = prog.compile(expr);
                 prog.outputs.push_back(reg);
+                prog.validate();
                 return BytecodeResult::Success(prog);
             }
             catch (const CalcError& ex)
