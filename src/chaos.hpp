@@ -32,7 +32,13 @@ namespace Sapphire
         double my;
         double mz;
 
-        SlopeVector(double _mx, double _my, double _mz)
+        explicit SlopeVector()
+            : mx(0)
+            , my(0)
+            , mz(0)
+            {}
+
+        explicit SlopeVector(double _mx, double _my, double _mz)
             : mx(_mx)
             , my(_my)
             , mz(_mz)
