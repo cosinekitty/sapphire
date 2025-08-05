@@ -63,8 +63,8 @@ namespace Sapphire
 
         explicit BytecodeProgram()
         {
-            varIndex.resize(0x100);
-            reg.reserve(0x100);     // maximum possible size; prevent any reallocations later.
+            varIndex.resize(0x80);      // cover every ASCII character value
+            reg.reserve(0x100);         // maximum possible size; prevent any reallocations later.
             initialize();
         }
 
@@ -76,14 +76,15 @@ namespace Sapphire
             func.clear();
             reg.clear();
             outputs.clear();
-            for (int i = 0; i < 0x100; ++i)
-                varIndex[i] = -1;
+            for (int& v : varIndex)
+                v = -1;
         }
 
         void printVariables() const
         {
             printf("    VARIABLES:\n");
-            for (int v = 0; v < 0x100; ++v)
+            const int n = static_cast<int>(varIndex.size());
+            for (int v = 0; v < n; ++v)
                 if (int r = varIndex[v]; r >= 0)
                     printf("        '%c' @ [%2d]\n", v, r);
         }
