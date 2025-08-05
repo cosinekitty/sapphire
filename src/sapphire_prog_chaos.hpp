@@ -58,11 +58,13 @@ namespace Sapphire
     {
         BytecodeFunction    func;
         BytecodeRegisters   reg;
-        int varIndex[0x100];
+        std::vector<int> varIndex;
         std::vector<int> outputs;       // list of register indices for the calculation results
 
         explicit BytecodeProgram()
         {
+            varIndex.resize(0x100);
+            reg.reserve(0x100);     // maximum possible size; prevent any reallocations later.
             initialize();
         }
 
@@ -146,6 +148,8 @@ namespace Sapphire
         int allocateRegister(double value = 0.0)
         {
             const int r = static_cast<int>(reg.size());
+            if (r == 0x100)
+                throw CalcError("Ran out of registers (256 max).");
             reg.push_back(value);
             return r;
         }
