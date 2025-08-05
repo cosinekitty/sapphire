@@ -73,7 +73,7 @@ namespace Sapphire
                 BytecodeResult result = circuit.compile(formula[v]);
                 if (result.failure())
                 {
-                    // FIXFIXFIX: format and report the error in the UI.
+                    WARN("Compiler error for v%c: %s", 'x' + v, result.message.c_str());
                     break;
                 }
             }
@@ -101,7 +101,7 @@ namespace Sapphire
                     auto editField = new MenuTextField;
                     editField->box.size.x = 250;
                     editField->setText(formula[varIndex]);
-                    editField->changeHandler = [=](std::string text)
+                    editField->commitHandler = [=](std::string text)
                     {
                         setInfixFormula(varIndex, text);
                     };

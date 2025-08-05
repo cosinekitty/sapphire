@@ -63,11 +63,22 @@ namespace Sapphire
 
         explicit BytecodeProgram()
         {
+            initialize();
+        }
+
+        void initialize()
+        {
+            r_zero = -1;
+            r_negOne = -1;
+            r_posOne = -1;
+            func.clear();
+            reg.clear();
+            outputs.clear();
             for (int i = 0; i < 0x100; ++i)
                 varIndex[i] = -1;
         }
 
-        void printVariables()
+        void printVariables() const
         {
             printf("    VARIABLES:\n");
             for (int v = 0; v < 0x100; ++v)
@@ -75,7 +86,7 @@ namespace Sapphire
                     printf("        '%c' @ [%2d]\n", v, r);
         }
 
-        void printRegisters()
+        void printRegisters() const
         {
             printf("    REGISTERS:\n");
             const int nRegisters = static_cast<int>(reg.size());
@@ -83,14 +94,14 @@ namespace Sapphire
                 printf("        [%2d] : %20.16lf\n", i, reg.at(i));
         }
 
-        void printFunc()
+        void printFunc() const
         {
             printf("    INSTRUCTIONS:\n");
             for (const BytecodeInstruction& inst : func)
                 printf("        [%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
         }
 
-        void printOutputs()
+        void printOutputs() const
         {
             printf("    OUTPUTS:\n");
             for (int r : outputs)
@@ -100,7 +111,7 @@ namespace Sapphire
                     printf("        [%2d] = ?\n", r);
         }
 
-        void print()
+        void print() const
         {
             printf("\n");
             printf("PROGRAM:\n");
@@ -257,9 +268,8 @@ namespace Sapphire
 
         void resetProgram()
         {
-            prog = BytecodeProgram();
+            prog.initialize();
 
-            // FIXFIXFIX: goofy values. User needs to be able to define initial state.
             paramRegister[0] = prog.setVar('a', 0.2);
             paramRegister[1] = prog.setVar('b', 0.2);
             paramRegister[2] = prog.setVar('c', 7.0);
