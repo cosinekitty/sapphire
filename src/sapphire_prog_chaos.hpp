@@ -180,19 +180,20 @@ namespace Sapphire
             return allocateConstant(r_posOne, +1.0);
         }
 
-        void validateRegister(int r) const
+        int validateRegister(int r) const
         {
             if (r < 0 || r >= static_cast<int>(reg.size()))
                 throw CalcError("Register index is out of range: " + std::to_string(r));
+            return r;
         }
 
         int emit(int r, int a, int b, int c)
         {
             BytecodeInstruction inst;
-            inst.r = r;
-            inst.a = a;
-            inst.b = b;
-            inst.c = c;
+            inst.r = validateRegister(r);
+            inst.a = validateRegister(a);
+            inst.b = validateRegister(b);
+            inst.c = validateRegister(c);
             func.push_back(inst);
             return r;
         }
