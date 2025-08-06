@@ -117,6 +117,8 @@ namespace Sapphire
         {
             if (r >= 0 && r < 0x100)
             {
+                validateRegister(r);
+
                 const int n = static_cast<int>(registerForSymbol.size());
                 for (int c = 0; c < n; ++c)
                     if (r == registerForSymbol[c])
@@ -136,18 +138,32 @@ namespace Sapphire
                 for (int outputRegister : outputs)
                 {
                     if (r == outputRegister)
-                        return "output_" + std::to_string(index);
+                        return "out_" + std::to_string(index);
                     ++index;
                 }
             }
             return "";
         }
 
+        std::string registerDisasm(int r) const
+        {
+            if (std::string s = registerComment(r); s.size() > 0)
+                return s;
+            return "reg_" + std::to_string(r);
+        }
+
         void printFunc() const
         {
             printf("    INSTRUCTIONS:\n");
             for (const BytecodeInstruction& inst : func)
-                printf("        [%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
+            {
+                printf("        [%2d] = [%2d]*[%2d] + [%2d]", inst.r, inst.a, inst.b, inst.c);
+                auto rt = registerDisasm(inst.r);
+                auto at = registerDisasm(inst.a);
+                auto bt = registerDisasm(inst.b);
+                auto ct = registerDisasm(inst.c);
+                printf("    // %s = %s*%s + %s\n", rt.c_str(), at.c_str(), bt.c_str(), ct.c_str());
+            }
         }
 
         void print() const
