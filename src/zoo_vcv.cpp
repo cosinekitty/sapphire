@@ -52,7 +52,7 @@ namespace Sapphire
     using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
     struct ZooModule : ZooModuleBase
     {
-        std::string formula[3]
+        std::string formula[3]      // Default to the Rossler attractor
         {
             "-y-z",
             "x+a*y",
@@ -63,6 +63,37 @@ namespace Sapphire
             : ZooModuleBase()
         {
             updateProgram();
+        }
+
+        json_t* dataToJson() override
+        {
+            json_t* root = ZooModuleBase::dataToJson();
+
+            json_t* program = json_object();
+            json_object_set_new(program, "vx", json_string(formula[0].c_str()));
+            json_object_set_new(program, "vy", json_string(formula[1].c_str()));
+            json_object_set_new(program, "vz", json_string(formula[2].c_str()));
+
+            json_object_set_new(root, "program", program);
+            return root;
+        }
+
+        void dataFromJson(json_t* root) override
+        {
+            ZooModuleBase::dataFromJson(root);
+            if (json_t* program = json_object_get(root, "program"); json_is_object(program))
+            {
+                loadFormula(program, "vx", formula[0]);
+                loadFormula(program, "vy", formula[1]);
+                loadFormula(program, "vz", formula[2]);
+                updateProgram();
+            }
+        }
+
+        void loadFormula(json_t* program, const char *key, std::string& text)
+        {
+            if (json_t* j = json_object_get(program, key); json_is_string(j))
+                text = std::string(json_string_value(j));
         }
 
         void updateProgram()
