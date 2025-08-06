@@ -1437,13 +1437,13 @@ static int Calc_Bytecode(std::string infix, double a, double b, double c, double
 
     try
     {
+        printf("\n");
         auto expr = CalcParseNumericExpression(infix);
         BytecodeProgram prog;
-        const int resultRegisterIndex = prog.compile(expr);
-        prog.outputs.push_back(resultRegisterIndex);
         prog.setVar('a', a);
         prog.setVar('b', b);
         prog.setVar('c', c);
+        prog.compile(expr);
         printf("%s: running...\n", caller.c_str());
         prog.run();
         prog.print();

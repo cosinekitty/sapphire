@@ -102,8 +102,11 @@ namespace Sapphire
     }
 
 
-    int BytecodeProgram::compile(calc_expr_t expr)
+    int BytecodeProgram::gencode(calc_expr_t expr, int depth)
     {
+        if (depth > 100)
+            throw CalcError("Recursion limit reached while compiling expression.");
+
         // In this virtual machine, there is only one kind of instruction.
         // Every instruction executed has the following effect:
         // [r] = [a]*[b] + [c]
@@ -140,7 +143,7 @@ namespace Sapphire
         if (expr->isUnary("-"))
         {
             const auto& child = expr->children[0];
-            a = compile(child);
+            a = gencode(child, 1+depth);
             n = literalRegister(-1);
             z = literalRegister(0);
             return emit(r, n, a, z);
@@ -157,24 +160,24 @@ namespace Sapphire
                    // a*b + c
                    // left = [* a b]
                    // right = c
-                   a = compile(left->children[0]);
-                   b = compile(left->children[1]);
-                   c = compile(right);
+                   a = gencode(left->children[0], 1+depth);
+                   b = gencode(left->children[1], 1+depth);
+                   c = gencode(right, 1+depth);
                    return emit(r, a, b, c);
                 }
                 if (right->isBinary("*"))
                 {
                    // c + a*b
-                   a = compile(right->children[0]);
-                   b = compile(right->children[1]);
-                   c = compile(left);
+                   a = gencode(right->children[0], 1+depth);
+                   b = gencode(right->children[1], 1+depth);
+                   c = gencode(left, 1+depth);
                    return emit(r, a, b, c);
                 }
                 // Fallback: a + b ==> 1*a + b
                 {
                     n = literalRegister(+1);
-                    a = compile(left);
-                    b = compile(right);
+                    a = gencode(left,  1+depth);
+                    b = gencode(right, 1+depth);
                     return emit(r, n, a, b);
                 }
             }
@@ -182,16 +185,16 @@ namespace Sapphire
             {
                 // Anytime we see subtraction, replace it with addition and -1 as a factor.
                 // b - a ==> (-1)*a + b
-                b = compile(left);
-                a = compile(right);
+                b = gencode(left, 1+depth);
+                a = gencode(right, 1+depth);
                 n = literalRegister(-1);
                 return emit(r, n, a, b);
             }
             else if (expr->isBinary("*"))
             {
                 // a*b ==> a*b + 0
-                a = compile(left);
-                b = compile(right);
+                a = gencode(left, 1+depth);
+                b = gencode(right, 1+depth);
                 n = literalRegister(0);
                 return emit(r, a, b, n);
             }
@@ -204,7 +207,7 @@ namespace Sapphire
                     // a/denom ==> (1/denom)*a + 0
                     n = literalRegister(1/denom);
                     z = literalRegister(0);
-                    a = compile(left);
+                    a = gencode(left, 1+depth);
                     return emit(r, n, a, z);
                 }
                 throw CalcError("Division is not supported except when the denominator is a numeric constant.");
@@ -218,7 +221,7 @@ namespace Sapphire
                     if (static_cast<double>(exponent) != expFloat || exponent <= 0)
                         throw CalcError("Exponent must be a positive integer, not " + std::to_string(expFloat));
 
-                    a = compile(left);
+                    a = gencode(left, 1+depth);
                     if (exponent == 1)
                         return a;
 

@@ -159,17 +159,25 @@ namespace Sapphire
             return r;
         }
 
+        int compile(calc_expr_t expr)
+        {
+            const int resultRegister = gencode(expr, 0);
+            outputs.push_back(resultRegister);
+            return resultRegister;
+        }
+
         void run()
         {
             for (const BytecodeInstruction& inst : func)
                 reg[inst.r] = reg[inst.a]*reg[inst.b] + reg[inst.c];
         }
 
-        int compile(calc_expr_t expr);
         void validate() const;
         bool isConstantExpression(double& value, const calc_expr_t& expr) const;
 
     private:
+        int gencode(calc_expr_t expr, int depth);
+
         int allocateRegister(double value = 0.0)
         {
             const int r = static_cast<int>(reg.size());
@@ -309,8 +317,7 @@ namespace Sapphire
             try
             {
                 auto expr = CalcParseNumericExpression(infix);
-                const int reg = prog.compile(expr);
-                prog.outputs.push_back(reg);
+                prog.compile(expr);
                 prog.validate();
                 return BytecodeResult::Success(prog);
             }
