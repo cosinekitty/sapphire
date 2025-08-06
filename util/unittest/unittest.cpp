@@ -1398,7 +1398,7 @@ static int ProgChaosTest()
     // vz range:   0.011030  33.692633
 
     ProgOscillator osc(
-        0.001,
+        0.01,
         0.11, 0.12, 0.13,
         -14.0, +14.0,
         -14.0, +14.0,

@@ -275,7 +275,7 @@ namespace Sapphire
 
     public:
         explicit ProgOscillator(
-            double _max_dt = 0.001,
+            double _max_dt = 0.01,
             double _x0 = 0.11, double _y0 = 0.12, double _z0 = 0.13,
             double _xmin = +10, double _xmax = -10,     // backwards to disable scaling
             double _ymin = +10, double _ymax = -10,
