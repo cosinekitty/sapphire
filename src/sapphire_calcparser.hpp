@@ -298,11 +298,11 @@ namespace Sapphire
             return !isFunctionCall && (children.size() == 0) && token.isIdentifier();
         }
 
-        int variableIndex() const
+        char variableChar() const
         {
-            if (token.text.size())
-                return 0xff & static_cast<int>(token.text[0]);
-            throw CalcError("Cannot determine variable index for: " + token.text);
+            if (isVariable() && (token.text.size() == 1))
+                return static_cast<char>(0x7f & static_cast<int>(token.text[0]));
+            throw CalcError("Invalid variable name: [" + token.text + "]");
         }
     };
 

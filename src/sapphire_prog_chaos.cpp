@@ -29,35 +29,6 @@ namespace Sapphire
     }
 
 
-    void BytecodeProgram::defineVariables(calc_expr_t expr)
-    {
-        if (expr->isFunctionCall)
-            throw CalcError("Function calls not yet implemented");
-
-        if (expr->children.size() == 0)
-        {
-            if (expr->token.isIdentifier())
-            {
-                if (expr->token.text.size() != 1)
-                    throw CalcError("Variable name must be one letter: " + expr->token.text);
-
-                const int v = expr->token.text[0];
-                if (varIndex[v] < 0)
-                {
-                    // This is the first time we have seen this variable.
-                    // Allocate a new register position for it.
-                    varIndex[v] = allocateRegister();
-                }
-            }
-        }
-        else
-        {
-            for (calc_expr_t child : expr->children)
-                defineVariables(child);
-        }
-    }
-
-
     bool BytecodeProgram::isConstantExpression(double& value, const calc_expr_t& expr) const
     {
         if (expr->token.isNumericLiteral())
@@ -156,7 +127,7 @@ namespace Sapphire
         // already map to a register.
         // This is the leaf of the recursion.
         if (expr->isVariable())
-            return varIndex[expr->variableIndex()];
+            return variableRegister(expr->variableChar());
 
         // Fold constant expressions into a single register.
         if (double value{}; isConstantExpression(value, expr))

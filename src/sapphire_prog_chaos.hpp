@@ -78,13 +78,13 @@ namespace Sapphire
 
         BytecodeFunction    func;
         BytecodeRegisters   reg;
-        std::vector<int> varIndex;
+        std::vector<int> registerForSymbol;
         std::vector<int> outputs;                   // list of register indices for the calculation results
         std::vector<BytecodeLiteral> literals;      // list of numeric constants, mapped to register indexes
 
         explicit BytecodeProgram()
         {
-            varIndex.resize(0x80);              // cover every ASCII character value
+            registerForSymbol.resize(0x80);              // cover every ASCII character value
             reg.reserve(MaxRegisterCount);      // maximum possible size; prevent any reallocations later.
             initialize();
         }
@@ -95,16 +95,16 @@ namespace Sapphire
             reg.clear();
             outputs.clear();
             literals.clear();
-            for (int& v : varIndex)
+            for (int& v : registerForSymbol)
                 v = -1;
         }
 
         void printVariables() const
         {
             printf("    VARIABLES:\n");
-            const int n = static_cast<int>(varIndex.size());
+            const int n = static_cast<int>(registerForSymbol.size());
             for (int v = 0; v < n; ++v)
-                if (int r = varIndex[v]; r >= 0)
+                if (int r = registerForSymbol[v]; r >= 0)
                     printf("        '%c' @ [%2d]\n", v, r);
         }
 
@@ -154,9 +154,7 @@ namespace Sapphire
 
         int setVar(char name, double value)
         {
-            int& r = varIndex[static_cast<unsigned>(0x7f & name)];
-            if (r < 0)
-                r = allocateRegister();
+            const int r = variableRegister(name);
             reg[r] = value;
             return r;
         }
@@ -167,7 +165,6 @@ namespace Sapphire
                 reg[inst.r] = reg[inst.a]*reg[inst.b] + reg[inst.c];
         }
 
-        void defineVariables(calc_expr_t expr);
         int compile(calc_expr_t expr);
         void validate() const;
         bool isConstantExpression(double& value, const calc_expr_t& expr) const;
@@ -191,6 +188,14 @@ namespace Sapphire
 
             const int r = allocateRegister(value);
             literals.push_back(BytecodeLiteral(r, value));
+            return r;
+        }
+
+        int variableRegister(char symbol)
+        {
+            int& r = registerForSymbol[0x7f & static_cast<unsigned>(symbol)];
+            if (r < 0)
+                r = allocateRegister();
             return r;
         }
 
@@ -304,7 +309,6 @@ namespace Sapphire
             try
             {
                 auto expr = CalcParseNumericExpression(infix);
-                prog.defineVariables(expr);
                 const int reg = prog.compile(expr);
                 prog.outputs.push_back(reg);
                 prog.validate();

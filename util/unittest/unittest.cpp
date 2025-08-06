@@ -1439,7 +1439,6 @@ static int Calc_Bytecode(std::string infix, double a, double b, double c, double
     {
         auto expr = CalcParseNumericExpression(infix);
         BytecodeProgram prog;
-        prog.defineVariables(expr);
         const int resultRegisterIndex = prog.compile(expr);
         prog.outputs.push_back(resultRegisterIndex);
         prog.setVar('a', a);
