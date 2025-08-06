@@ -160,10 +160,10 @@ namespace Sapphire
 
         // Fold constant expressions into a single register.
         if (double value{}; isConstantExpression(value, expr))
-            return allocateRegister(value);
+            return literalRegister(value);
 
         // Pre-allocate a location for the result.
-        int r = allocateRegister();
+        int r = allocateRegister();     // FIXFIXFIX: allocate temporary explicitly; assist future disassembler
         int a, b, c, n, z;
 
         if (expr->isUnary("-"))
@@ -231,7 +231,7 @@ namespace Sapphire
                     if (denom == 0.0)
                         throw CalcError("Division by zero detected.");
                     // a/denom ==> (1/denom)*a + 0
-                    n = allocateRegister(1/denom);
+                    n = literalRegister(1/denom);
                     z = literalRegister(0);
                     a = compile(left);
                     return emit(r, n, a, z);
