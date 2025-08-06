@@ -170,8 +170,8 @@ namespace Sapphire
         {
             const auto& child = expr->children[0];
             a = compile(child);
-            n = negativeOneRegister();
-            z = zeroRegister();
+            n = literalRegister(-1);
+            z = literalRegister(0);
             return emit(r, n, a, z);
         }
 
@@ -201,7 +201,7 @@ namespace Sapphire
                 }
                 // Fallback: a + b ==> 1*a + b
                 {
-                    n = positiveOneRegister();
+                    n = literalRegister(+1);
                     a = compile(left);
                     b = compile(right);
                     return emit(r, n, a, b);
@@ -213,7 +213,7 @@ namespace Sapphire
                 // b - a ==> (-1)*a + b
                 b = compile(left);
                 a = compile(right);
-                n = negativeOneRegister();
+                n = literalRegister(-1);
                 return emit(r, n, a, b);
             }
             else if (expr->isBinary("*"))
@@ -221,7 +221,7 @@ namespace Sapphire
                 // a*b ==> a*b + 0
                 a = compile(left);
                 b = compile(right);
-                n = zeroRegister();
+                n = literalRegister(0);
                 return emit(r, a, b, n);
             }
             else if (expr->isBinary("/"))
@@ -232,7 +232,7 @@ namespace Sapphire
                         throw CalcError("Division by zero detected.");
                     // a/denom ==> (1/denom)*a + 0
                     n = allocateRegister(1/denom);
-                    z = zeroRegister();
+                    z = literalRegister(0);
                     a = compile(left);
                     return emit(r, n, a, z);
                 }
@@ -251,7 +251,7 @@ namespace Sapphire
                     if (exponent == 1)
                         return a;
 
-                    z = zeroRegister();
+                    z = literalRegister(0);
                     switch (exponent)
                     {
                     case 2:

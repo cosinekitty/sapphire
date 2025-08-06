@@ -54,28 +54,47 @@ namespace Sapphire
     using BytecodeFunction  = std::vector<BytecodeInstruction>;
     using BytecodeRegisters = std::vector<double>;
 
+    struct BytecodeLiteral
+    {
+        int r = -1;     // assigned register index
+        double c = 0;   // constant value stored in that register
+
+        explicit BytecodeLiteral(uint8_t registerIndex, double constantValue)
+            : r(static_cast<int>(registerIndex))
+            , c(ValidateConstant(constantValue))
+            {}
+
+        static double ValidateConstant(double x)
+        {
+            if (!std::isfinite(x))
+                throw CalcError("Non-finite constant literal encountered in compiled expression.");
+            return x;
+        }
+    };
+
     struct BytecodeProgram
     {
+        static constexpr int MaxRegisterCount = 0x100;      // register indexes must fit in 8 bits
+
         BytecodeFunction    func;
         BytecodeRegisters   reg;
         std::vector<int> varIndex;
-        std::vector<int> outputs;       // list of register indices for the calculation results
+        std::vector<int> outputs;                   // list of register indices for the calculation results
+        std::vector<BytecodeLiteral> literals;      // list of numeric constants, mapped to register indexes
 
         explicit BytecodeProgram()
         {
-            varIndex.resize(0x80);      // cover every ASCII character value
-            reg.reserve(0x100);         // maximum possible size; prevent any reallocations later.
+            varIndex.resize(0x80);              // cover every ASCII character value
+            reg.reserve(MaxRegisterCount);      // maximum possible size; prevent any reallocations later.
             initialize();
         }
 
         void initialize()
         {
-            r_zero = -1;
-            r_negOne = -1;
-            r_posOne = -1;
             func.clear();
             reg.clear();
             outputs.clear();
+            literals.clear();
             for (int& v : varIndex)
                 v = -1;
         }
@@ -87,6 +106,13 @@ namespace Sapphire
             for (int v = 0; v < n; ++v)
                 if (int r = varIndex[v]; r >= 0)
                     printf("        '%c' @ [%2d]\n", v, r);
+        }
+
+        void printLiterals() const
+        {
+            printf("    LITERALS:\n");
+            for (const BytecodeLiteral& lit : literals)
+                printf("        %20.16lf @ [%2d]\n", lit.c, lit.r);
         }
 
         void printRegisters() const
@@ -119,6 +145,7 @@ namespace Sapphire
             printf("\n");
             printf("PROGRAM:\n");
             printVariables();
+            printLiterals();
             printRegisters();
             printOutputs();
             printFunc();
@@ -149,36 +176,22 @@ namespace Sapphire
         int allocateRegister(double value = 0.0)
         {
             const int r = static_cast<int>(reg.size());
-            if (r == 0x100)
-                throw CalcError("Ran out of registers (256 max).");
+            if (r >= MaxRegisterCount)
+                throw CalcError("Ran out of registers (" + std::to_string(MaxRegisterCount) + " max).");
             reg.push_back(value);
             return r;
         }
 
-        int allocateConstant(int& rindex, double value)
+        int literalRegister(double value)
         {
-            if (rindex < 0)
-                rindex = allocateRegister(value);
+            // Search for a register where this value is already stored.
+            for (const BytecodeLiteral& lit : literals)
+                if (lit.c == value)
+                    return lit.r;
 
-            return rindex;
-        }
-
-        int r_zero = -1;
-        int zeroRegister()
-        {
-            return allocateConstant(r_zero, 0.0);
-        }
-
-        int r_negOne = -1;
-        int negativeOneRegister()
-        {
-            return allocateConstant(r_negOne, -1.0);
-        }
-
-        int r_posOne = -1;
-        int positiveOneRegister()
-        {
-            return allocateConstant(r_posOne, +1.0);
+            const int r = allocateRegister(value);
+            literals.push_back(BytecodeLiteral(r, value));
+            return r;
         }
 
         int validateRegister(int r) const
