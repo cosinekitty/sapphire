@@ -119,17 +119,25 @@ namespace Sapphire
             {
                 const int n = static_cast<int>(registerForSymbol.size());
                 for (int c = 0; c < n; ++c)
-                    if (registerForSymbol.at(c) == r)
+                    if (r == registerForSymbol[c])
                         return std::string{static_cast<char>(c)};
 
-                for (const auto& lit : literals)
+                for (const BytecodeLiteral& lit : literals)
                 {
-                    if (lit.r == r)
+                    if (r == lit.r)
                     {
                         char text[256];
                         snprintf(text, sizeof(text), "(%g)", lit.c);
                         return std::string(text);
                     }
+                }
+
+                int index = 0;
+                for (int outputRegister : outputs)
+                {
+                    if (r == outputRegister)
+                        return "output_" + std::to_string(index);
+                    ++index;
                 }
             }
             return "";
@@ -142,22 +150,11 @@ namespace Sapphire
                 printf("        [%2d] = [%2d]*[%2d] + [%2d]\n", inst.r, inst.a, inst.b, inst.c);
         }
 
-        void printOutputs() const
-        {
-            printf("    OUTPUTS:\n");
-            for (int r : outputs)
-                if (r >= 0 && r < static_cast<int>(reg.size()))
-                    printf("        [%2d] = %20.16lf\n", r, reg[r]);
-                else
-                    printf("        [%2d] = ?\n", r);
-        }
-
         void print() const
         {
             printf("\n");
             printf("PROGRAM:\n");
             printRegisters();
-            printOutputs();
             printFunc();
             printf("\n");
         }
