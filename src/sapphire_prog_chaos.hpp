@@ -99,28 +99,40 @@ namespace Sapphire
                 v = -1;
         }
 
-        void printVariables() const
-        {
-            printf("    VARIABLES:\n");
-            const int n = static_cast<int>(registerForSymbol.size());
-            for (int v = 0; v < n; ++v)
-                if (int r = registerForSymbol[v]; r >= 0)
-                    printf("        '%c' @ [%2d]\n", v, r);
-        }
-
-        void printLiterals() const
-        {
-            printf("    LITERALS:\n");
-            for (const BytecodeLiteral& lit : literals)
-                printf("        %20.16lf @ [%2d]\n", lit.c, lit.r);
-        }
-
         void printRegisters() const
         {
             printf("    REGISTERS:\n");
             const int nRegisters = static_cast<int>(reg.size());
-            for (int i = 0; i < nRegisters; ++i)
-                printf("        [%2d] : %20.16lf\n", i, reg.at(i));
+            for (int r = 0; r < nRegisters; ++r)
+            {
+                printf("        [%2d] : %20.16lf", r, reg[r]);
+                std::string comment = registerComment(r);
+                if (comment.size())
+                    printf("    // %s", comment.c_str());
+                printf("\n");
+            }
+        }
+
+        std::string registerComment(int r) const
+        {
+            if (r >= 0 && r < 0x100)
+            {
+                const int n = static_cast<int>(registerForSymbol.size());
+                for (int c = 0; c < n; ++c)
+                    if (registerForSymbol.at(c) == r)
+                        return std::string{static_cast<char>(c)};
+
+                for (const auto& lit : literals)
+                {
+                    if (lit.r == r)
+                    {
+                        char text[256];
+                        snprintf(text, sizeof(text), "(%g)", lit.c);
+                        return std::string(text);
+                    }
+                }
+            }
+            return "";
         }
 
         void printFunc() const
@@ -144,8 +156,6 @@ namespace Sapphire
         {
             printf("\n");
             printf("PROGRAM:\n");
-            printVariables();
-            printLiterals();
             printRegisters();
             printOutputs();
             printFunc();
