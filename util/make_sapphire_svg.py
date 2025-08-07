@@ -227,64 +227,18 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str, panelWidth:int = 4) -> int:
+def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
     target = Target.VcvRack
+    PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
-    panel = Panel(panelWidth)
+    panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     defs = Element('defs')
     pl.append(defs)
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, panelWidth))
-        pl.append(CenteredGemstone(panel))
-        pl.append(ModelNamePath(panel, font, name))
-        outputPortY1 = 88.0
-        outputPortDY =  9.0
-        xmid = panel.mmWidth / 2
-        controls.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
-        controls.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
-        controls.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
-        controls.append(Component('p_output', xmid, outputPortY1 + 3*outputPortDY))
-        ySpeedKnob = 26.0
-        yChaosKnob = 57.0
-        xOutLabel = xmid - 3.9
-        yOutLabel = outputPortY1 - 10.5
-        artSpaceAboveKnob = 13.0
-        artSpaceBelowKnob = 25.0
-        xPortLabel = xmid - 7.5
-        yPortLabel = outputPortY1 - 2.4
-        outGradY1 = yOutLabel - 1.5
-        outGradY2 = yPortLabel + 2*outputPortDY + 10.0
-        defs.append(Gradient(ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_blue'))
-        defs.append(Gradient(yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_purple'))
-        defs.append(Gradient(outGradY1, outGradY2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
-        pl.append(ControlGroupArt(name, 'speed_art', panel, ySpeedKnob-artSpaceAboveKnob, ySpeedKnob+artSpaceBelowKnob, 'gradient_blue'))
-        pl.append(ControlGroupArt(name, 'chaos_art', panel, yChaosKnob-artSpaceAboveKnob, yChaosKnob+artSpaceBelowKnob, 'gradient_purple'))
-        pl.append(ControlGroupArt(name, 'out_art', panel, outGradY1, outGradY2, 'gradient_out'))
-        AddControlGroup(pl, controls, font, 'speed', 'SPEED', xmid, ySpeedKnob)
-        AddControlGroup(pl, controls, font, 'chaos', 'CHAOS', xmid, yChaosKnob)
-        pl.append(ControlTextPath(font, 'OUT', xOutLabel, yOutLabel, 'out_label'))
-        pl.append(ControlTextPath(font, 'X',  xPortLabel, yPortLabel + 0*outputPortDY, 'port_label_x'))
-        pl.append(ControlTextPath(font, 'Y',  xPortLabel, yPortLabel + 1*outputPortDY, 'port_label_y'))
-        pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*outputPortDY, 'port_label_z'))
-        pl.append(ControlTextPath(font, 'P',  xPortLabel, yPortLabel + 3*outputPortDY, 'port_label_p'))
-        pl.append(PolyPortHexagon(xmid, outputPortY1 + 3*outputPortDY))
-    return Save(panel, svgFileName)
-
-
-def GenerateZooPanel(cdict:Dict[str,ControlLayer], name:str = 'zoo', panelWidth:int = 12) -> int:
-    target = Target.VcvRack
-    svgFileName = '../res/{}.svg'.format(name)
-    panel = Panel(panelWidth)
-    pl = Element('g', 'PanelLayer')
-    defs = Element('defs')
-    pl.append(defs)
-    panel.append(pl)
-    cdict[name] = controls = ControlLayer(panel)
-    with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, panelWidth))
+        pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         outputPortY1 = 88.0
@@ -2451,7 +2405,7 @@ if __name__ == '__main__':
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
-        GenerateZooPanel(cdict) or
+        GenerateChaosPanel(cdict, 'zoo') or
         GenerateChaosOperatorsPanel(cdict) or
         GenerateTricorderPanel() or
         GenerateTinToutPanel(cdict, 'tin',  'input',  'IN',  +5.2) or
