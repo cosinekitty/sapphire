@@ -49,10 +49,32 @@ namespace Sapphire
         }
     };
 
+
+    struct KnobParameterMapping
+    {
+        // The default mapping is an identity operator:  paramValue(x) == x.
+        double center = 0;
+        double spread = 1;
+
+        double paramValue(double knob) const
+        {
+            const double x = std::clamp<double>(knob, -1, +1);
+            return center + x*spread;
+        }
+
+        void initialize()
+        {
+            center = 0;
+            spread = 1;
+        }
+    };
+
+
     using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
     struct ZooModule : ZooModuleBase
     {
-        std::string formula[3];
+        std::string formula[ProgOscillator::InputCount];
+        KnobParameterMapping knobMap[ProgOscillator::ParamCount];
 
         explicit ZooModule()
             : ZooModuleBase()
@@ -62,6 +84,10 @@ namespace Sapphire
 
         void ZooModule_initialize()
         {
+            // Reset all parameter mappings.
+            for (int i=0; i < ProgOscillator::ParamCount; ++i)
+                knobMap[i].initialize();
+
             // Default to the Rossler attractor.
             formula[0] = "-y-z";
             formula[1] = "x+a*y";
@@ -84,8 +110,18 @@ namespace Sapphire
             json_object_set_new(program, "vx", json_string(formula[0].c_str()));
             json_object_set_new(program, "vy", json_string(formula[1].c_str()));
             json_object_set_new(program, "vz", json_string(formula[2].c_str()));
-
             json_object_set_new(root, "program", program);
+
+            json_t* jparams = json_array();      // [ {"center":c, "spread":s}, ... ]
+            for (int m = 0; m < ProgOscillator::ParamCount; ++m)
+            {
+                json_t* jmap = json_object();
+                json_object_set_new(jmap, "center", json_real(knobMap[m].center));
+                json_object_set_new(jmap, "spread", json_real(knobMap[m].spread));
+                json_array_append(jparams, jmap);
+            }
+            json_object_set_new(root, "params", jparams);
+
             return root;
         }
 
@@ -98,6 +134,24 @@ namespace Sapphire
                 loadFormula(program, "vy", formula[1]);
                 loadFormula(program, "vz", formula[2]);
                 updateProgram();
+            }
+
+            if (json_t* jparams = json_object_get(root, "params"); json_is_array(jparams))
+            {
+                if (json_array_size(jparams) == ProgOscillator::ParamCount)
+                {
+                    for (int m = 0; m < ProgOscillator::ParamCount; ++m)
+                    {
+                        if (json_t* jmap = json_array_get(jparams, m); json_is_object(jmap))
+                        {
+                            if (json_t* jcenter = json_object_get(jmap, "center"); json_is_number(jcenter))
+                                knobMap[m].center = json_real_value(jcenter);
+
+                            if (json_t* jspread = json_object_get(jmap, "spread"); json_is_number(jspread))
+                                knobMap[m].spread = json_real_value(jspread);
+                        }
+                    }
+                }
             }
         }
 
@@ -152,12 +206,49 @@ namespace Sapphire
             );
         }
 
+        MenuItem* makeNumericEditor(double* value, std::string caption)
+        {
+            char buf[100];
+            snprintf(buf, sizeof(buf), "%0.16g", *value);
+            std::string text(buf);
+
+            return createSubmenuItem(
+                caption,
+                text,
+                [=](Menu* menu)
+                {
+                    auto editField = new MenuTextField;
+                    editField->box.size.x = 250;
+                    editField->setText(text);
+                    editField->commitHandler = [=](std::string text)
+                    {
+                        double x;
+                        int n = sscanf(text.c_str(), "%lg", &x);
+                        if (n==1 && std::isfinite(x))
+                            *value = x;
+                    };
+                    menu->addChild(editField);
+                }
+            );
+        }
+
+        void addParamEditors(Menu* menu, const char* symbol, KnobParameterMapping& map)
+        {
+            menu->addChild(new MenuSeparator);
+            menu->addChild(makeNumericEditor(&map.center, std::string(symbol) + " center"));
+            menu->addChild(makeNumericEditor(&map.spread, std::string(symbol) + " spread"));
+        }
+
         void addFormulaEditorMenuItems(Menu* menu)
         {
             menu->addChild(new MenuSeparator);
             menu->addChild(makeFormulaEditor(0, "vx"));
             menu->addChild(makeFormulaEditor(1, "vy"));
             menu->addChild(makeFormulaEditor(2, "vz"));
+            addParamEditors(menu, "a", knobMap[0]);
+            addParamEditors(menu, "b", knobMap[1]);
+            addParamEditors(menu, "c", knobMap[2]);
+            addParamEditors(menu, "d", knobMap[3]);
         }
     };
 
