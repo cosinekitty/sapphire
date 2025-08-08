@@ -251,11 +251,33 @@ namespace Sapphire
 
     using BytecodeResult = TranslateResult<BytecodeProgram>;
 
+
+    struct KnobParameterMapping
+    {
+        // The default mapping is an identity operator:  paramValue(x) == x.
+        double center = 0;
+        double spread = 1;
+
+        double paramValue(double knob) const
+        {
+            const double x = std::clamp<double>(knob, -1, +1);
+            return center + x*spread;
+        }
+
+        void initialize()
+        {
+            center = 0;
+            spread = 1;
+        }
+    };
+
+
     class ProgOscillator : public ChaoticOscillator
     {
     public:
         static constexpr int ParamCount = 4;        // knobs are 'a', 'b', 'c', 'd'.
         static constexpr int InputCount = 3;        // input variables are 'x', 'y', 'z'.
+        KnobParameterMapping knobMap[ProgOscillator::ParamCount];
 
     private:
         mutable BytecodeProgram prog;       // a single program that calculates vx, vy, and vz.
@@ -272,6 +294,7 @@ namespace Sapphire
 
     protected:
         SlopeVector slopes(double x, double y, double z) const override;
+        void updateParameters() override;
 
     public:
         explicit ProgOscillator(
@@ -302,6 +325,8 @@ namespace Sapphire
 
         void ProgOscillator_initialize()
         {
+            for (int i=0; i < ProgOscillator::ParamCount; ++i)
+                knobMap[i].initialize();
         }
 
         int getModeCount() const override

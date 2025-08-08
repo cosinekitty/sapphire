@@ -50,31 +50,10 @@ namespace Sapphire
     };
 
 
-    struct KnobParameterMapping
-    {
-        // The default mapping is an identity operator:  paramValue(x) == x.
-        double center = 0;
-        double spread = 1;
-
-        double paramValue(double knob) const
-        {
-            const double x = std::clamp<double>(knob, -1, +1);
-            return center + x*spread;
-        }
-
-        void initialize()
-        {
-            center = 0;
-            spread = 1;
-        }
-    };
-
-
     using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
     struct ZooModule : ZooModuleBase
     {
         std::string formula[ProgOscillator::InputCount];
-        KnobParameterMapping knobMap[ProgOscillator::ParamCount];
 
         explicit ZooModule()
             : ZooModuleBase()
@@ -85,8 +64,6 @@ namespace Sapphire
         void ZooModule_initialize()
         {
             // Reset all parameter mappings.
-            for (int i=0; i < ProgOscillator::ParamCount; ++i)
-                knobMap[i].initialize();
 
             // Default to the Rossler attractor.
             formula[0] = "-y-z";
@@ -116,8 +93,8 @@ namespace Sapphire
             for (int m = 0; m < ProgOscillator::ParamCount; ++m)
             {
                 json_t* jmap = json_object();
-                json_object_set_new(jmap, "center", json_real(knobMap[m].center));
-                json_object_set_new(jmap, "spread", json_real(knobMap[m].spread));
+                json_object_set_new(jmap, "center", json_real(circuit.knobMap[m].center));
+                json_object_set_new(jmap, "spread", json_real(circuit.knobMap[m].spread));
                 json_array_append(jparams, jmap);
             }
             json_object_set_new(root, "params", jparams);
@@ -145,10 +122,10 @@ namespace Sapphire
                         if (json_t* jmap = json_array_get(jparams, m); json_is_object(jmap))
                         {
                             if (json_t* jcenter = json_object_get(jmap, "center"); json_is_number(jcenter))
-                                knobMap[m].center = json_real_value(jcenter);
+                                circuit.knobMap[m].center = json_real_value(jcenter);
 
                             if (json_t* jspread = json_object_get(jmap, "spread"); json_is_number(jspread))
-                                knobMap[m].spread = json_real_value(jspread);
+                                circuit.knobMap[m].spread = json_real_value(jspread);
                         }
                     }
                 }
@@ -245,10 +222,10 @@ namespace Sapphire
             menu->addChild(makeFormulaEditor(0, "vx"));
             menu->addChild(makeFormulaEditor(1, "vy"));
             menu->addChild(makeFormulaEditor(2, "vz"));
-            addParamEditors(menu, "a", knobMap[0]);
-            addParamEditors(menu, "b", knobMap[1]);
-            addParamEditors(menu, "c", knobMap[2]);
-            addParamEditors(menu, "d", knobMap[3]);
+            addParamEditors(menu, "a", circuit.knobMap[0]);
+            addParamEditors(menu, "b", circuit.knobMap[1]);
+            addParamEditors(menu, "c", circuit.knobMap[2]);
+            addParamEditors(menu, "d", circuit.knobMap[3]);
         }
     };
 

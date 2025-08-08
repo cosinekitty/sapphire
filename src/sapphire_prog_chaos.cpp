@@ -2,6 +2,18 @@
 
 namespace Sapphire
 {
+    void ProgOscillator::updateParameters()
+    {
+        // Update the parameters at audio rate.
+        // Only one parameter can be varied at a time.
+        // The parameter's upper case symbol is shown on top of the CHAOS knob.
+        // All other parameters revert to their default value.
+
+        for (int p = 0; p < ProgOscillator::ParamCount; ++p)
+            paramValue(p) = knobMap[p].paramValue((p==mode) ? knob : 0.0);
+    }
+
+
     SlopeVector ProgOscillator::slopes(double x, double y, double z) const
     {
         SlopeVector vec;
