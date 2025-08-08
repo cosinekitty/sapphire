@@ -325,6 +325,8 @@ namespace Sapphire
 
         void ProgOscillator_initialize()
         {
+            dilate = 1;
+
             for (int i=0; i < ProgOscillator::ParamCount; ++i)
                 knobMap[i].initialize();
         }

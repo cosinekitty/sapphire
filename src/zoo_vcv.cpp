@@ -70,6 +70,8 @@ namespace Sapphire
             formula[1] = "x+a*y";
             formula[2] = "b+z*(x-c)";
 
+            circuit.setDilate(0.2);
+
             circuit.knobMap[0].center = 0.10;
             circuit.knobMap[0].spread = 0.08;
             circuit.knobMap[1].center = 0.10;
@@ -98,6 +100,8 @@ namespace Sapphire
             json_object_set_new(program, "vz", json_string(formula[2].c_str()));
             json_object_set_new(root, "program", program);
 
+            json_object_set_new(root, "dilate", json_real(circuit.getDilate()));
+
             json_t* jparams = json_array();      // [ {"center":c, "spread":s}, ... ]
             for (int m = 0; m < ProgOscillator::ParamCount; ++m)
             {
@@ -121,6 +125,9 @@ namespace Sapphire
                 loadFormula(program, "vz", formula[2]);
                 updateProgram();
             }
+
+            if (json_t* jdilate = json_object_get(root, "dilate"); json_is_number(jdilate))
+                circuit.setDilate(json_real_value(jdilate));
 
             if (json_t* jparams = json_object_get(root, "params"); json_is_array(jparams))
             {

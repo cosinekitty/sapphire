@@ -102,6 +102,8 @@ namespace Sapphire
         const double zmin;
         const double zmax;
 
+        double dilate = 1;
+
         const double xVelScale;
         const double yVelScale;
         const double zVelScale;
@@ -164,6 +166,7 @@ namespace Sapphire
             y1 = y0;
             z1 = z0;
             mode = 0;
+            dilate = 1;
         }
 
         void setKnob(double k)
@@ -199,10 +202,24 @@ namespace Sapphire
             return 0;
         }
 
+        double getDilate() const
+        {
+            return dilate;
+        }
+
+        double setDilate(double _dilate = 1)
+        {
+            if (std::isfinite(_dilate))
+                dilate = std::clamp<double>(_dilate, 0.01, 100.0);
+            else
+                dilate = 1;
+            return dilate;
+        }
+
         // Scaled position values.
-        double xpos() const { return Remap(x1, xmin, xmax); }
-        double ypos() const { return Remap(y1, ymin, ymax); }
-        double zpos() const { return Remap(z1, zmin, zmax); }
+        double xpos() const { return dilate * Remap(x1, xmin, xmax); }
+        double ypos() const { return dilate * Remap(y1, ymin, ymax); }
+        double zpos() const { return dilate * Remap(z1, zmin, zmax); }
 
         // Scale velocity vector.
         SlopeVector velocity() const
