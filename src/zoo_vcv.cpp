@@ -70,6 +70,15 @@ namespace Sapphire
             formula[1] = "x+a*y";
             formula[2] = "b+z*(x-c)";
 
+            circuit.knobMap[0].center = 0.10;
+            circuit.knobMap[0].spread = 0.08;
+            circuit.knobMap[1].center = 0.10;
+            circuit.knobMap[1].spread = 0.08;
+            circuit.knobMap[2].center = 14.0;
+            circuit.knobMap[2].spread = 10.0;
+            circuit.knobMap[3].center = 0.0;
+            circuit.knobMap[3].spread = 1.0;
+
             updateProgram();
         }
 
