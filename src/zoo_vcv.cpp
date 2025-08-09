@@ -60,6 +60,7 @@ namespace Sapphire
         {
             initialLocationFromMemory = true;
             addDilateQuantity();
+            addTranslateQuantities();
             ZooModule_initialize();
         }
 
@@ -75,6 +76,14 @@ namespace Sapphire
             circuit.setDilate(0.2);
             dilateQuantity->value = circuit.getDilate();
             dilateQuantity->changed = false;
+
+            circuit.setTranslate(SlopeVector(0, 0, 0));
+            xTranslateQuantity->value = 0;
+            xTranslateQuantity->changed = false;
+            yTranslateQuantity->value = 0;
+            yTranslateQuantity->changed = false;
+            zTranslateQuantity->value = 0;
+            zTranslateQuantity->changed = false;
 
             circuit.knobMap[0].center = 0.10;
             circuit.knobMap[0].spread = 0.08;
@@ -108,6 +117,13 @@ namespace Sapphire
 
             json_object_set_new(root, "dilate", json_real(circuit.getDilate()));
 
+            json_t* jTranslate = json_object();
+            SlopeVector t = circuit.getTranslate();
+            json_object_set_new(jTranslate, "x", json_real(t.mx));
+            json_object_set_new(jTranslate, "y", json_real(t.my));
+            json_object_set_new(jTranslate, "z", json_real(t.mz));
+            json_object_set_new(root, "translate", jTranslate);
+
             json_t* jparams = json_array();      // [ {"center":c, "spread":s}, ... ]
             for (int m = 0; m < ProgOscillator::ParamCount; ++m)
             {
@@ -134,6 +150,25 @@ namespace Sapphire
 
             if (json_t* jdilate = json_object_get(root, "dilate"); json_is_number(jdilate))
                 circuit.setDilate(json_real_value(jdilate));
+
+            if (json_t* jTranslate = json_object_get(root, "translate"); json_is_object(jTranslate))
+            {
+                SlopeVector t = circuit.getTranslate();
+
+                if (json_t* jx = json_object_get(jTranslate, "x"); json_is_number(jx))
+                    t.mx = json_real_value(jx);
+
+                if (json_t* jy = json_object_get(jTranslate, "y"); json_is_number(jy))
+                    t.my = json_real_value(jy);
+
+                if (json_t* jz = json_object_get(jTranslate, "z"); json_is_number(jz))
+                    t.mz = json_real_value(jz);
+
+                circuit.setTranslate(t);
+                if (xTranslateQuantity) xTranslateQuantity->value = t.mx;
+                if (yTranslateQuantity) yTranslateQuantity->value = t.my;
+                if (zTranslateQuantity) zTranslateQuantity->value = t.mz;
+            }
 
             if (json_t* jparams = json_object_get(root, "params"); json_is_array(jparams))
             {
@@ -243,6 +278,9 @@ namespace Sapphire
             menu->addChild(new MenuSeparator);
             dilateQuantity->value = circuit.getDilate();
             menu->addChild(new Chaos::DilateSlider(dilateQuantity));
+            menu->addChild(new Chaos::TranslateSlider(xTranslateQuantity, "x"));
+            menu->addChild(new Chaos::TranslateSlider(yTranslateQuantity, "y"));
+            menu->addChild(new Chaos::TranslateSlider(zTranslateQuantity, "z"));
             menu->addChild(makeFormulaEditor(0, "vx"));
             menu->addChild(makeFormulaEditor(1, "vy"));
             menu->addChild(makeFormulaEditor(2, "vz"));

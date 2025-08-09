@@ -103,6 +103,9 @@ namespace Sapphire
         const double zmax;
 
         double dilate = 1;
+        double xTranslate = 0;
+        double yTranslate = 0;
+        double zTranslate = 0;
 
         const double xVelScale;
         const double yVelScale;
@@ -167,6 +170,7 @@ namespace Sapphire
             z1 = z0;
             mode = 0;
             dilate = 1;
+            xTranslate = yTranslate = zTranslate = 0;
         }
 
         void setKnob(double k)
@@ -216,18 +220,30 @@ namespace Sapphire
             return dilate;
         }
 
+        SlopeVector getTranslate() const
+        {
+            return SlopeVector(xTranslate, yTranslate, zTranslate);
+        }
+
+        void setTranslate(const SlopeVector& translate)
+        {
+            xTranslate = translate.mx;
+            yTranslate = translate.my;
+            zTranslate = translate.mz;
+        }
+
         // Scaled position values.
-        double xpos() const { return dilate * Remap(x1, xmin, xmax); }
-        double ypos() const { return dilate * Remap(y1, ymin, ymax); }
-        double zpos() const { return dilate * Remap(z1, zmin, zmax); }
+        double xpos() const { return dilate * (xTranslate + Remap(x1, xmin, xmax)); }
+        double ypos() const { return dilate * (yTranslate + Remap(y1, ymin, ymax)); }
+        double zpos() const { return dilate * (zTranslate + Remap(z1, zmin, zmax)); }
 
         // Scale velocity vector.
         SlopeVector velocity() const
         {
             SlopeVector vec = slopes(x1, y1, z1);
-            vec.mx *= xVelScale;
-            vec.my *= yVelScale;
-            vec.mz *= zVelScale;
+            vec.mx *= dilate * xVelScale;       // we don't translate velocities like we do positions
+            vec.my *= dilate * yVelScale;
+            vec.mz *= dilate * zVelScale;
             return vec;
         }
 

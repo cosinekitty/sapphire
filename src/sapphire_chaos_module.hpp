@@ -25,7 +25,11 @@ namespace Sapphire
             SPEED_ATTEN,
             CHAOS_ATTEN,
 
-            DILATE_PARAM,       // used by Zoo
+            // Parameters used by Zoo only.
+            DILATE_PARAM,
+            X_TRANSLATE_PARAM,
+            Y_TRANSLATE_PARAM,
+            Z_TRANSLATE_PARAM,
 
             PARAMS_LEN
         };
@@ -69,6 +73,14 @@ namespace Sapphire
         };
 
 
+        struct TranslateSlider : SapphireSlider
+        {
+            explicit TranslateSlider(SapphireQuantity* _quantity, const char* _varname)
+                : SapphireSlider(_quantity, std::string("shift output vector ") + _varname)
+                {}
+        };
+
+
         template <typename circuit_t>
         struct ChaosModule : SapphireModule
         {
@@ -77,6 +89,9 @@ namespace Sapphire
             ChaosOperators::Receiver receiver;
             ChaoticOscillatorState memory[ChaosOperators::MemoryCount];
             SapphireQuantity* dilateQuantity{};
+            SapphireQuantity* xTranslateQuantity{};
+            SapphireQuantity* yTranslateQuantity{};
+            SapphireQuantity* zTranslateQuantity{};
             bool initialLocationFromMemory = false;
 
             ChaosModule()
@@ -122,13 +137,44 @@ namespace Sapphire
                 assert(dilateQuantity == nullptr);
                 dilateQuantity = configParam<SapphireQuantity>(
                     Chaos::ParamId::DILATE_PARAM,
-                    0.05,
-                    2.0,
-                    1.0,
+                    0.05, 2.0, 1.0,
                     "Output vector magnitude"
                 );
                 dilateQuantity->value = circuit.getDilate();
                 dilateQuantity->changed = true;
+            }
+
+            void addTranslateQuantities()
+            {
+                assert(xTranslateQuantity == nullptr);
+                assert(yTranslateQuantity == nullptr);
+                assert(zTranslateQuantity == nullptr);
+
+                SlopeVector t = circuit.getTranslate();
+
+                xTranslateQuantity = configParam<SapphireQuantity>(
+                    Chaos::ParamId::X_TRANSLATE_PARAM,
+                    -30, +30, 0,
+                    "Output vector translate x"
+                );
+                xTranslateQuantity->value = t.mx;
+                xTranslateQuantity->changed = true;
+
+                yTranslateQuantity = configParam<SapphireQuantity>(
+                    Chaos::ParamId::Y_TRANSLATE_PARAM,
+                    -30, +30, 0,
+                    "Output vector translate y"
+                );
+                yTranslateQuantity->value = t.my;
+                yTranslateQuantity->changed = true;
+
+                zTranslateQuantity = configParam<SapphireQuantity>(
+                    Chaos::ParamId::Z_TRANSLATE_PARAM,
+                    -30, +30, 0,
+                    "Output vector translate z"
+                );
+                zTranslateQuantity->value = t.mz;
+                zTranslateQuantity->changed = true;
             }
 
             json_t* dataToJson() override
@@ -233,6 +279,20 @@ namespace Sapphire
 
                 if (dilateQuantity && dilateQuantity->isChangedOneShot())
                     circuit.setDilate(dilateQuantity->value);
+
+                if (xTranslateQuantity && yTranslateQuantity && zTranslateQuantity)
+                {
+                    if ((xTranslateQuantity->isChangedOneShot()) ||
+                        (yTranslateQuantity->isChangedOneShot()) ||
+                        (zTranslateQuantity->isChangedOneShot()))
+                    {
+                        circuit.setTranslate(SlopeVector(
+                            xTranslateQuantity->value,
+                            yTranslateQuantity->value,
+                            zTranslateQuantity->value
+                        ));
+                    }
+                }
 
                 SlopeVector vel = circuit.velocity();
 
