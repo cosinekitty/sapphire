@@ -542,7 +542,7 @@ namespace Sapphire
             box.size.x = 200;
         }
 
-        void onRemove(const RemoveEvent& args) override
+        void onRemove(const RemoveEvent& args) override     // called when the menu closes
         {
             const float snapStartValue = snap(startValue);
             const float snapFinalValue = snap(currentValue);

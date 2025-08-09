@@ -25,6 +25,8 @@ namespace Sapphire
             SPEED_ATTEN,
             CHAOS_ATTEN,
 
+            DILATE_PARAM,       // used by Zoo
+
             PARAMS_LEN
         };
 
@@ -59,6 +61,14 @@ namespace Sapphire
         }
 
 
+        struct DilateSlider : SapphireSlider
+        {
+            explicit DilateSlider(SapphireQuantity* _quantity)
+                : SapphireSlider(_quantity, "adjust output vector magnitude")
+                {}
+        };
+
+
         template <typename circuit_t>
         struct ChaosModule : SapphireModule
         {
@@ -66,6 +76,7 @@ namespace Sapphire
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
             ChaoticOscillatorState memory[ChaosOperators::MemoryCount];
+            SapphireQuantity* dilateQuantity{};
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -103,6 +114,20 @@ namespace Sapphire
             {
                 SapphireModule::onReset(e);
                 initialize();
+            }
+
+            void addDilateQuantity()
+            {
+                assert(dilateQuantity == nullptr);
+                dilateQuantity = configParam<SapphireQuantity>(
+                    Chaos::ParamId::DILATE_PARAM,
+                    0.05,
+                    2.0,
+                    1.0,
+                    "Output vector magnitude"
+                );
+                dilateQuantity->value = circuit.getDilate();
+                dilateQuantity->changed = true;
             }
 
             json_t* dataToJson() override
@@ -202,6 +227,9 @@ namespace Sapphire
                     double dt = args.sampleTime * TwoToPower(speed);
                     circuit.update(dt);
                 }
+
+                if (dilateQuantity && dilateQuantity->isChangedOneShot())
+                    circuit.setDilate(dilateQuantity->value);
 
                 SlopeVector vel = circuit.velocity();
 

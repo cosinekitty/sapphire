@@ -58,6 +58,7 @@ namespace Sapphire
         explicit ZooModule()
             : ZooModuleBase()
         {
+            addDilateQuantity();
             ZooModule_initialize();
         }
 
@@ -71,6 +72,8 @@ namespace Sapphire
             formula[2] = "b+z*(x-c)";
 
             circuit.setDilate(0.2);
+            dilateQuantity->value = circuit.getDilate();
+            dilateQuantity->changed = false;
 
             circuit.knobMap[0].center = 0.10;
             circuit.knobMap[0].spread = 0.08;
@@ -235,6 +238,8 @@ namespace Sapphire
         void addFormulaEditorMenuItems(Menu* menu)
         {
             menu->addChild(new MenuSeparator);
+            dilateQuantity->value = circuit.getDilate();
+            menu->addChild(new Chaos::DilateSlider(dilateQuantity));
             menu->addChild(makeFormulaEditor(0, "vx"));
             menu->addChild(makeFormulaEditor(1, "vy"));
             menu->addChild(makeFormulaEditor(2, "vz"));
