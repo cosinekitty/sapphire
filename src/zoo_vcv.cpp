@@ -58,6 +58,7 @@ namespace Sapphire
         explicit ZooModule()
             : ZooModuleBase()
         {
+            initialLocationFromMemory = true;
             addDilateQuantity();
             ZooModule_initialize();
         }
@@ -83,6 +84,8 @@ namespace Sapphire
             circuit.knobMap[2].spread = 10.0;
             circuit.knobMap[3].center = 0.0;
             circuit.knobMap[3].spread = 1.0;
+
+            circuit.setState(ChaoticOscillatorState(3.2, -2.7, 0.13));
 
             updateProgram();
         }

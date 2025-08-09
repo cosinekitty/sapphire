@@ -77,6 +77,7 @@ namespace Sapphire
             ChaosOperators::Receiver receiver;
             ChaoticOscillatorState memory[ChaosOperators::MemoryCount];
             SapphireQuantity* dilateQuantity{};
+            bool initialLocationFromMemory = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -182,6 +183,8 @@ namespace Sapphire
                             double ypos = json_real_value(jy);
                             double zpos = json_real_value(jz);
                             memory[i] = ChaoticOscillatorState(xpos, ypos, zpos);
+                            if (i==0 && initialLocationFromMemory)
+                                circuit.setState(memory[0]);
                         }
                     }
                 }
