@@ -234,6 +234,8 @@ namespace Sapphire
                         }
                     }
                 }
+
+                shouldClearTricorder = true;    // so Tricorder gets cleared after loading a preset
             }
 
             void process(const ProcessArgs& args) override
