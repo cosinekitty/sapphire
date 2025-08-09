@@ -9,10 +9,11 @@
 </tr>
 
 <tr valign="top">
-<td align="center">21 Jun 2025</td>
+<td align="center">09 Aug 2025</td>
 <td align="center">2.6.001</td>
 <td align="left">
     <ul>
+        <li>Added new module Zoo: a chaotic oscillator toolkit. It lets you create your own chaotic oscillator by typing in formulas. Or you can choose from several factory presets to get started. This is an advanced module that requires some understanding of algebra.</li>
         <li><b>Insert Tricorder on right</b>: This is a new menu option present in all Sapphire modules that work with Tricorder, including the chaos modules Frolic, Glee, and Lark. Many other Sapphire modules also work with Tricorder, so look in the context menu if you're not sure.</li>
     </ul>
 </td>
