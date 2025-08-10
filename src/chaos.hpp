@@ -188,6 +188,11 @@ namespace Sapphire
             return "";
         }
 
+        virtual bool isModeEnabled(int mode) const
+        {
+            return (mode >= 0) && (mode < getModeCount());
+        }
+
         int getMode() const
         {
             return mode;

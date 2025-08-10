@@ -142,7 +142,11 @@ namespace Sapphire
         // already map to a register.
         // This is the leaf of the recursion.
         if (expr->isVariable())
-            return variableRegister(expr->variableChar());
+        {
+            char symbol = expr->variableChar();
+            lowercaseVarsMask |= LowercaseMask(symbol);
+            return variableRegister(symbol);
+        }
 
         // Fold constant expressions into a single register.
         if (double value{}; isConstantExpression(value, expr))

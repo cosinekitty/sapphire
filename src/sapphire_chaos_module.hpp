@@ -346,6 +346,59 @@ namespace Sapphire
             }
         };
 
+        template <typename module_t>
+        MenuItem* createChaosModeChooser(
+            module_t* module,
+            std::string text,
+            std::vector<std::string> labels,
+            std::function<size_t()> getter,
+            std::function<void(size_t val)> setter,
+            bool disabled = false,
+            bool alwaysConsume = false)
+        {
+            struct Item : MenuItem
+            {
+                std::function<size_t()> getter;
+                std::function<void(size_t)> setter;
+                std::vector<std::string> labels;
+                bool alwaysConsume;
+                module_t* module;
+
+                void step() override
+                {
+                    size_t currIndex = getter();
+                    std::string label = (currIndex < labels.size()) ? labels[currIndex] : "";
+                    this->rightText = label + "  " + RIGHT_ARROW;
+                    MenuItem::step();
+                }
+
+                ui::Menu *createChildMenu() override
+                {
+                    ui::Menu *menu = new ui::Menu;
+                    for (size_t i = 0; i < labels.size(); i++)
+                    {
+                        menu->addChild(createCheckMenuItem(
+                            labels[i],
+                            "",
+                            [=](){ return getter() == i; },
+                            [=](){ setter(i); },
+                            !module->circuit.isModeEnabled(i),
+                            alwaysConsume)
+                        );
+                    }
+                    return menu;
+                }
+            };
+
+            Item *item = createMenuItem<Item>(text);
+            item->getter = getter;
+            item->setter = setter;
+            item->labels = labels;
+            item->disabled = disabled;
+            item->alwaysConsume = alwaysConsume;
+            item->module = module;
+            return item;
+        }
 
         template <typename module_t>
         inline void AddChaosOptionsToMenu(Menu *menu, module_t *chaosModule, bool separator)
@@ -368,7 +421,8 @@ namespace Sapphire
                 for (int mode = 0; mode < numModes; ++mode)
                     labels.push_back(chaosModule->circuit.getModeName(mode));
 
-                menu->addChild(createIndexSubmenuItem(
+                menu->addChild(createChaosModeChooser<module_t>(
+                    chaosModule,
                     "Chaos mode",
                     labels,
                     [=]() { return chaosModule->circuit.getMode(); },

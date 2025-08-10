@@ -81,6 +81,7 @@ namespace Sapphire
         std::vector<int> registerForSymbol;
         std::vector<int> outputs;                   // list of register indices for the calculation results
         std::vector<BytecodeLiteral> literals;      // list of numeric constants, mapped to register indexes
+        uint32_t lowercaseVarsMask = 0;
 
         explicit BytecodeProgram()
         {
@@ -97,6 +98,7 @@ namespace Sapphire
             literals.clear();
             for (int& v : registerForSymbol)
                 v = -1;
+            lowercaseVarsMask = 0;
         }
 
         void printRegisters() const
@@ -197,6 +199,27 @@ namespace Sapphire
 
         void validate() const;
         bool isConstantExpression(double& value, const calc_expr_t& expr) const;
+
+        static inline uint32_t LowercaseMask(char c)
+        {
+            return (c >= 'a' && c <= 'z') ? (1u << (c - 'a')) : 0;
+        }
+
+        static inline bool IsLowercaseVarUsed(uint32_t mask, uint32_t c)
+        {
+            return 0 != (mask & LowercaseMask(c));
+        }
+
+        uint32_t lowercaseVariables() const
+        {
+            return lowercaseVarsMask;
+        }
+
+        bool isLowercaseVarUsed(char c) const
+        {
+            return IsLowercaseVarUsed(lowercaseVarsMask, c);
+        }
+
 
     private:
         int gencode(calc_expr_t expr, int depth);
@@ -340,12 +363,19 @@ namespace Sapphire
         {
             switch (m)
             {
-            case 0:  return "Alpha";
-            case 1:  return "Bravo";
-            case 2:  return "Charlie";
-            case 3:  return "Delta";
+            case 0:  return "Alpha (a)";
+            case 1:  return "Bravo (b)";
+            case 2:  return "Charlie (c)";
+            case 3:  return "Delta (d)";
             default: return "";
             }
+        }
+
+        bool isModeEnabled(int mode) const override
+        {
+            return
+                ChaoticOscillator::isModeEnabled(mode)
+                && prog.isLowercaseVarUsed('a' + mode);
         }
 
         void resetProgram()
@@ -385,6 +415,11 @@ namespace Sapphire
         double& paramValue(int index)
         {
             return prog.reg.at(paramRegister[ValidateParamIndex(index)]);
+        }
+
+        uint32_t lowercaseVariables() const
+        {
+            return prog.lowercaseVariables();
         }
     };
 }

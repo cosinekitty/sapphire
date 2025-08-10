@@ -204,6 +204,7 @@ namespace Sapphire
                 if (result.failure())
                 {
                     WARN("Compiler error for v%c: %s", 'x' + v, result.message.c_str());
+                    circuit.resetProgram();
                     break;
                 }
             }
@@ -266,11 +267,12 @@ namespace Sapphire
             );
         }
 
-        void addParamEditors(Menu* menu, const char* symbol, KnobParameterMapping& map)
+        void addParamEditors(Menu* menu, char symbol, KnobParameterMapping& map)
         {
+            std::string varname{symbol};
             menu->addChild(new MenuSeparator);
-            menu->addChild(makeNumericEditor(&map.center, std::string(symbol) + " center"));
-            menu->addChild(makeNumericEditor(&map.spread, std::string(symbol) + " spread"));
+            menu->addChild(makeNumericEditor(&map.center, varname + " center"));
+            menu->addChild(makeNumericEditor(&map.spread, varname + " spread"));
         }
 
         void addFormulaEditorMenuItems(Menu* menu)
@@ -284,10 +286,11 @@ namespace Sapphire
             menu->addChild(makeFormulaEditor(0, "vx"));
             menu->addChild(makeFormulaEditor(1, "vy"));
             menu->addChild(makeFormulaEditor(2, "vz"));
-            addParamEditors(menu, "a", circuit.knobMap[0]);
-            addParamEditors(menu, "b", circuit.knobMap[1]);
-            addParamEditors(menu, "c", circuit.knobMap[2]);
-            addParamEditors(menu, "d", circuit.knobMap[3]);
+
+            const uint32_t mask = circuit.lowercaseVariables();
+            for (int i = 0; i < ProgOscillator::ParamCount; ++i)
+                if (uint32_t c = i + 'a'; BytecodeProgram::IsLowercaseVarUsed(mask, c))
+                    addParamEditors(menu, c, circuit.knobMap[i]);
         }
     };
 
