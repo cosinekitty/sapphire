@@ -208,6 +208,7 @@ namespace Sapphire
                     break;
                 }
             }
+            shouldClearTricorder = true;
         }
 
         void setInfixFormula(int varIndex, std::string infix)
