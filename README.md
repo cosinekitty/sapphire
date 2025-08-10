@@ -250,3 +250,10 @@ A complex tubular waveguide synthesizer.
 
 <a href="doc/TubeUnit.md"><img src="doc/images/tubeunit.png" /></a>
 
+## Zoo
+
+A user-programmable chaotic oscillator. Allows you to enter your own chaotic attractor formulas to create an unlimited variety of smoothly changing voltages. Comes with plenty of example factory presets.
+
+<a href="doc/Zoo.md">Sapphire Zoo documentation</a>
+
+<a href="doc/Zoo.md"><img src="doc/images/zoo.png" /></a>
