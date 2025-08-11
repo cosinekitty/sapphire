@@ -94,8 +94,11 @@ namespace Sapphire
             circuit.knobMap[3].center = 0.0;
             circuit.knobMap[3].spread = 1.0;
 
-            circuit.setState(ChaoticOscillatorState(3.2, -2.7, 0.13));
-
+            constexpr double xInit = -3.4423733871317674;
+            constexpr double yInit = +9.6995732322903141;
+            constexpr double zInit = +0.0060546068991647953;
+            memory[0] = ChaoticOscillatorState(xInit, yInit, zInit);
+            circuit.setState(memory[0]);
             updateProgram();
         }
 

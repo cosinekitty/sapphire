@@ -229,11 +229,12 @@ namespace Sapphire
                             double ypos = json_real_value(jy);
                             double zpos = json_real_value(jz);
                             memory[i] = ChaoticOscillatorState(xpos, ypos, zpos);
-                            if (i==0 && initialLocationFromMemory)
-                                circuit.setState(memory[0]);
                         }
                     }
                 }
+
+                if (initialLocationFromMemory)
+                    circuit.setState(memory[0]);
 
                 shouldClearTricorder = true;    // so Tricorder gets cleared after loading a preset
             }
