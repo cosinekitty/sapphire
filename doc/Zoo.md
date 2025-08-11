@@ -12,6 +12,11 @@ each of which generates a distinctive chaotic output:
 
 The default is the [Rössler attractor](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor).
 
+### Demo video
+
+[![Sapphire Zoo demo video](https://img.youtube.com/vi/oEKi9dF8SmQ/0.jpg)](https://www.youtube.com/watch?v=oEKi9dF8SmQ)
+
+
 ### Mathematical basis
 
 I created [Frolic](Frolic.md), [Glee](Glee.md), and [Lark](Lark.md) before Zoo.
