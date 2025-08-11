@@ -247,25 +247,49 @@ namespace Sapphire
                     switch (exponent)
                     {
                     case 2:
-                        // a^2 ==>
-                        //      r = a*a + 0
-                        emit(r, a, a, z);
+                        emit(r, a, a, z);   // r = a^2
                         return r;
 
                     case 3:
-                        // a^3 ==>
-                        //      r = a*a + 0
-                        //      r = r*a + 0
-                        emit(r, a, a, z);
-                        emit(r, r, a, z);
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, a, z);   // r = a^3
                         return r;
 
                     case 4:
-                        // a^4 ==>
-                        //      r = a*a + 0
-                        //      r = r*r + 0
-                        emit(r, a, a, z);
-                        emit(r, r, r, z);
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, r, z);   // r = a^4
+                        return r;
+
+                    case 5:
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, r, z);   // r = a^4
+                        emit(r, r, a, z);   // r = a^5
+                        return r;
+
+                    case 6:
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, a, z);   // r = a^3
+                        emit(r, r, r, z);   // r = a^6
+                        return r;
+
+                    case 7:
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, a, z);   // r = a^3
+                        emit(r, r, r, z);   // r = a^6
+                        emit(r, r, a, z);   // r = a^7
+                        return r;
+
+                    case 8:
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, r, z);   // r = a^4
+                        emit(r, r, r, z);   // r = a^8
+                        return r;
+
+                    case 9:
+                        emit(r, a, a, z);   // r = a^2
+                        emit(r, r, r, z);   // r = a^4
+                        emit(r, r, r, z);   // r = a^8
+                        emit(r, r, a, z);   // r = a^9
                         return r;
 
                     default:

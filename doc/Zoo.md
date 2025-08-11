@@ -52,7 +52,7 @@ Zoo's front panel looks just like Frolic, Glee, and Lark. All of the programmabi
 
 ![Zoo context menu](images/zoo_context_menu.png)
 
-The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`. You can also use `^` for exponentiation, but the exponent must be a constant integer 1..4.
+The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`. You can also use `^` for exponentiation, but the exponent must be a constant integer 1..9.
 
 You can use parentheses to group expressions, and the usual rules of operator precedence apply: `a+b*x` means the same as `a+(b*x)`, not `(a+b)*x`, because multiplication has higher precedence than addition.
 
