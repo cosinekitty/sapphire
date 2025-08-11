@@ -82,6 +82,7 @@ namespace Sapphire
         std::vector<int> outputs;                   // list of register indices for the calculation results
         std::vector<BytecodeLiteral> literals;      // list of numeric constants, mapped to register indexes
         uint32_t lowercaseVarsMask = 0;
+        uint32_t exclusiveVarsMask = 0xffffffff;
 
         explicit BytecodeProgram()
         {
@@ -220,6 +221,18 @@ namespace Sapphire
             return IsLowercaseVarUsed(lowercaseVarsMask, c);
         }
 
+        void setExclusiveVars(const char *varlist)
+        {
+            exclusiveVarsMask = 0;
+            if (varlist)
+                for (int i = 0; varlist[i]; ++i)
+                    exclusiveVarsMask |= LowercaseMask(varlist[i]);
+        }
+
+        bool isBadVariable(char symbol) const
+        {
+            return 0 == (exclusiveVarsMask & BytecodeProgram::LowercaseMask(symbol));
+        }
 
     private:
         int gencode(calc_expr_t expr, int depth);
@@ -390,6 +403,8 @@ namespace Sapphire
             inputRegister[0] = prog.setVar('x', x0);
             inputRegister[1] = prog.setVar('y', y0);
             inputRegister[2] = prog.setVar('z', z0);
+
+            prog.setExclusiveVars("abcdxyz");
         }
 
         BytecodeResult compile(std::string infix)
@@ -420,6 +435,11 @@ namespace Sapphire
         uint32_t lowercaseVariables() const
         {
             return prog.lowercaseVariables();
+        }
+
+        bool isBadVariable(char symbol) const
+        {
+            return prog.isBadVariable(symbol);
         }
     };
 }

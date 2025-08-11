@@ -54,6 +54,7 @@ namespace Sapphire
     struct ZooModule : ZooModuleBase
     {
         std::string formula[ProgOscillator::InputCount];
+        std::string message[ProgOscillator::InputCount];
 
         explicit ZooModule()
             : ZooModuleBase()
@@ -72,6 +73,10 @@ namespace Sapphire
             formula[0] = "-y-z";
             formula[1] = "x+a*y";
             formula[2] = "b+z*(x-c)";
+
+            message[0] = "";
+            message[1] = "";
+            message[2] = "";
 
             circuit.setDilate(0.2);
             dilateQuantity->value = circuit.getDilate();
@@ -204,16 +209,15 @@ namespace Sapphire
         void updateProgram()
         {
             circuit.resetProgram();
+
             for (int v = 0; v < 3; ++v)
             {
                 BytecodeResult result = circuit.compile(formula[v]);
+                message[v] = result.message;
                 if (result.failure())
-                {
-                    WARN("Compiler error for v%c: %s", 'x' + v, result.message.c_str());
                     circuit.resetProgram();
-                    break;
-                }
             }
+
             shouldClearTricorder = true;
         }
 
@@ -229,10 +233,15 @@ namespace Sapphire
         MenuItem* makeFormulaEditor(int varIndex, std::string prefix)
         {
             assert(varIndex>=0 && varIndex<3);
+
+            std::string caption = prefix;
+            if (message[varIndex].size() > 0)
+                caption += "  *** " + message[varIndex];
+
             // Based on this example:
             // https://github.com/DaveBenham/VenomModules/blob/f94e4d7d3380b387317746049e4983a278bf99f3/src/plugin.hpp#L162
             return createSubmenuItem(
-                prefix,
+                caption,
                 formula[varIndex],
                 [=](Menu* menu)
                 {

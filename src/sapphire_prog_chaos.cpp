@@ -144,6 +144,8 @@ namespace Sapphire
         if (expr->isVariable())
         {
             char symbol = expr->variableChar();
+            if (isBadVariable(symbol))
+                throw CalcError("Bad variable: " + std::string{symbol});
             lowercaseVarsMask |= LowercaseMask(symbol);
             return variableRegister(symbol);
         }
