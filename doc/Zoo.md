@@ -5,6 +5,8 @@
 Zoo is a low frequency (and ultra-low frequency) chaotic oscillator
 that is programmable by the user with 3 configurable math formulas.
 
+It belongs to the family of [Sapphire chaos modules](SapphireChaosModules.md).
+
 If you don't like algebra, Zoo also comes with plenty of example factory presets,
 each of which generates a distinctive chaotic output:
 
@@ -92,7 +94,7 @@ To fix this, there are 4 helpful sliders in the context menu that you can adjust
 * **Output vector magnitude**: adjusts the overall scaling between the position vector and the voltages that represent them. The scaling factor can range from 0.1 to 10.0.
 * **Output vector translate (x, y, z)**: These 3 sliders add an adjustable shift to the x, y, z values to compensate for any unwanted offset.
 
-### Chaops on the left helps!
+### Programming tips
 
 If you are programming a new chaotic oscillator in Zoo, I strongly recommend adding [Chaops](Chaops.md) to the left and [Tricorder](Tricorder.md) to the right:
 

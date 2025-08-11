@@ -16,8 +16,7 @@ No talking, just patching and listening.
 
 # Chaops
 
-A left-expander module that provides additional functionality for the
-chaos modules [Frolic](doc/Frolic.md), [Glee](doc/Glee.md), and [Lark](doc/Lark.md).
+A left-expander module that provides additional functionality for Sapphire [chaos modules](doc/SapphireChaosModules.md).
 
 <a href="doc/Chaops.md">Sapphire Chaops documentation</a>
 
@@ -58,7 +57,7 @@ A polyphonic envelope follower and pitch detector.
 
 ## Frolic
 
-A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
+A [chaotic oscillator](doc/SapphireChaosModules.md) for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="doc/Frolic.md">Sapphire Frolic documentation</a>
 
@@ -80,7 +79,7 @@ by [Chris Johnson](https://github.com/airwindows/airwindows).
 
 ## Glee
 
-A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
+A [chaotic oscillator](doc/SapphireChaosModules.md) for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="doc/Glee.md">Sapphire Glee documentation</a>
 
@@ -111,7 +110,7 @@ A random vector generator whose outputs point in all directions of an N-dimensio
 
 ## Lark
 
-A chaotic oscillator for generating 3 simultaneous smooth but unpredictable voltages.
+A [chaotic oscillator](doc/SapphireChaosModules.md) for generating 3 simultaneous smooth but unpredictable voltages.
 
 <a href="doc/Lark.md">Sapphire Lark documentation</a>
 
@@ -252,7 +251,7 @@ A complex tubular waveguide synthesizer.
 
 ## Zoo
 
-A user-programmable chaotic oscillator. Allows you to enter your own chaotic attractor formulas to create an unlimited variety of smoothly changing voltages. Comes with plenty of example factory presets.
+A user-programmable [chaotic oscillator](doc/SapphireChaosModules.md). Allows you to enter your own chaotic attractor formulas to create an unlimited variety of smoothly changing voltages. Comes with plenty of example factory presets.
 
 <a href="doc/Zoo.md">Sapphire Zoo documentation</a>
 

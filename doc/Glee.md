@@ -3,6 +3,7 @@
 ![Glee](images/glee.png)
 
 Glee is a low frequency (and ultra-low frequency) chaotic oscillator.
+It belongs to the family of [Sapphire chaos modules](SapphireChaosModules.md).
 
 ### Demo video
 
