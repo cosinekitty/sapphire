@@ -26,18 +26,18 @@ and whose velocity vector is $(\dot{x}, \dot{y}, \dot{z})$.
 In every time step,
 
 $$
-\dot{x} = f(x,y,z)
+\dot{x} = v_x(x,y,z)
 $$
 
 $$
-\dot{y} = g(x,y,z)
+\dot{y} = v_y(x,y,z)
 $$
 
 $$
-\dot{z} = h(x,y,z)
+\dot{z} = v_z(x,y,z)
 $$
 
-The functions $f$, $g$, and $h$ are particular to each kind of chaotic oscillator.
+The functions $v_x$, $v_y$, and $v_z$ are particular to each kind of chaotic oscillator.
 
 Zoo is a generalization of chaotic oscillators that use a particle's position to determine the direction and speed (the *velocity vector*) it must have at that moment in time. The velocity vector in turn causes a small update in position for each small time increment of the VCV Rack simulation.
 
@@ -47,7 +47,7 @@ Zoo's front panel looks just like Frolic, Glee, and Lark. All of the programmabi
 
 ![Zoo context menu](images/zoo_context_menu.png)
 
-The items `vx` (for $\dot{x}$), `vy` (for $\dot{y}$), `vz` (for $\dot{z}$) are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*` (multiply), and `/` (divide). You can also use `^` for exponentiation, but the exponent must be constant 1..4.
+The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`. You can also use `^` for exponentiation, but the exponent must be a constant integer 1..4.
 
 You are allowed to use the variables `x`, `y`, `z` for the particle's position, plus up to four adjustable parameters `a`, `b`, `c`, `d`.
 
