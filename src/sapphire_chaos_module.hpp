@@ -92,7 +92,7 @@ namespace Sapphire
             SapphireQuantity* xTranslateQuantity{};
             SapphireQuantity* yTranslateQuantity{};
             SapphireQuantity* zTranslateQuantity{};
-            bool initialLocationFromMemory = false;
+            bool initialLocationFromMemory = false;     // Zoo needs this to allow custom configuration of starting point
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -233,7 +233,7 @@ namespace Sapphire
                     }
                 }
 
-                if (initialLocationFromMemory)
+                if (initialLocationFromMemory)      // Sapphire Zoo needs a user-configurable starting state
                     circuit.setState(memory[0]);
 
                 shouldClearTricorder = true;    // so Tricorder gets cleared after loading a preset

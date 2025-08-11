@@ -94,6 +94,9 @@ namespace Sapphire
             circuit.knobMap[3].center = 0.0;
             circuit.knobMap[3].spread = 1.0;
 
+            // Initial position chosen to work well with the Rossler attractor.
+            // I obtained this by running the Rossler attractor a long time and picking
+            // what looked aesthetically good to me.
             constexpr double xInit = -3.4423733871317674;
             constexpr double yInit = +9.6995732322903141;
             constexpr double zInit = +0.0060546068991647953;
