@@ -1,5 +1,9 @@
 # Sapphire chaos modules
 
+You can start with this tutorial video by Omri Cohen:
+
+[![Omri Cohen "Composing with Chaos" video](https://img.youtube.com/vi/OxAhUkqFE5c/0.jpg)](https://www.youtube.com/watch?v=OxAhUkqFE5c)
+
 The Sapphire plugin offers the following collection of modules that allow you to generate a wide variety of smooth control voltages. Chaotic signals are somewhere between periodic and random.
 
 ## Single-attractor modules
@@ -17,3 +21,9 @@ The modules [Frolic](Frolic.md), [Glee](Glee.md), and [Lark](Lark.md) each imple
 If you are comfortable with algebra and vectors, you can enter in your own chaotic oscillator formulas and create an unlimited variety of shapes and patterns.
 
 [![Zoo](images/zoo.png)](Zoo.md)
+
+## Expanders
+
+All of the Sapphire chaos modules allow using [Chaops](Chaops.md) on the left and [Tricorder](Tricorder.md) on the right. See their documentation pages for more details.
+
+![Chaops/Zoo/Tricorder expander chain](images/zoo_chaops_tricorder.png)
