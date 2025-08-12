@@ -137,7 +137,7 @@ namespace Sapphire
                 assert(dilateQuantity == nullptr);
                 dilateQuantity = configParam<SapphireQuantity>(
                     Chaos::ParamId::DILATE_PARAM,
-                    0.05, 2.0, 1.0,
+                    0.02, 5.0, 1.0,
                     "Output vector magnitude"
                 );
                 dilateQuantity->value = circuit.getDilate();
