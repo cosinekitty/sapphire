@@ -1,4 +1,4 @@
-## Sapphire modules for VCV Rack 2 &mdash; change log
+## Sapphire change log
 
 <table style="width:1000px;">
 
