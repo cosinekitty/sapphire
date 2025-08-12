@@ -411,6 +411,22 @@ namespace Sapphire
         AddExpander(modelSapphireTricorder, this, ExpanderDirection::Right, false);
     }
 
+    bool SapphireWidget::shouldOfferChaops()
+    {
+        if (auto smod = getSapphireModule())
+        {
+            return
+                ModelInfo::hasRole(smod, ExpanderRole::ChaosOpReceiver) &&
+                !IsModelType(smod->leftExpander.module, modelSapphireChaops);
+        }
+        return false;
+    }
+
+    void SapphireWidget::addChaopsExpander()
+    {
+        AddExpander(modelSapphireChaops, this, ExpanderDirection::Left, false);
+    }
+
     ToggleAllSensitivityAction::ToggleAllSensitivityAction(SapphireModule* sapphireModule)
     {
         name = "toggle sensitivity of all attenuverters";

@@ -522,6 +522,15 @@ namespace Sapphire
                         [this]{ addTricorderExpander(); }
                     ));
                 }
+
+                if (shouldOfferChaops())
+                {
+                    menu->addChild(createMenuItem(
+                        "Insert Chaops on left",
+                        "",
+                        [this]{ addChaopsExpander(); }
+                    ));
+                }
             }
         }
 
@@ -805,11 +814,16 @@ namespace Sapphire
         }
 
         void draw(const DrawArgs& args) override;
+
         void createTooltip(SapphireTooltip*& tooltip, const std::string& text);
         void destroyTooltip(SapphireTooltip*& tooltip);
         void updateTooltip(bool& flag, bool state, SapphireTooltip*& tooltip, const std::string& text);
+
         bool shouldOfferTricorder();
         void addTricorderExpander();
+
+        bool shouldOfferChaops();
+        void addChaopsExpander();
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone = true);
