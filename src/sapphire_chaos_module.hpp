@@ -285,9 +285,14 @@ namespace Sapphire
 
                 if (xTranslateQuantity && yTranslateQuantity && zTranslateQuantity)
                 {
-                    if ((xTranslateQuantity->isChangedOneShot()) ||
-                        (yTranslateQuantity->isChangedOneShot()) ||
-                        (zTranslateQuantity->isChangedOneShot()))
+                    // Intentionally bypass short-circuit || operation.
+                    // I want all one-shots to happen and reset at the same time.
+                    // Otherwise we could up with 3 consecutive updates when only 1 is needed.
+                    // In C++, bool converts to int: false==0, true==1.
+                    int xShot = xTranslateQuantity->isChangedOneShot();
+                    int yShot = yTranslateQuantity->isChangedOneShot();
+                    int zShot = zTranslateQuantity->isChangedOneShot();
+                    if (xShot + yShot + zShot)
                     {
                         circuit.setTranslate(SlopeVector(
                             xTranslateQuantity->value,
