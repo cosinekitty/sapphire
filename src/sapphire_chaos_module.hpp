@@ -328,6 +328,7 @@ namespace Sapphire
                     // Communicate to the widget that a reset has happend.
                     // It will flash the panel for us.
                     overflowed = true;
+                    shouldClearTricorder = true;
                 }
 
                 xmix = setFlippableOutputVoltage(X_OUTPUT, xmix);
@@ -340,7 +341,6 @@ namespace Sapphire
                 outputs.at(POLY_OUTPUT).setVoltage(zmix, 2);
 
                 sendVector(xmix, ymix, zmix, shouldClearTricorder);
-
                 shouldClearTricorder = false;
             }
         };
