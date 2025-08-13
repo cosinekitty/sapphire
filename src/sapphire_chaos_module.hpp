@@ -97,6 +97,7 @@ namespace Sapphire
             SapphireQuantity* zTranslateQuantity{};
             bool initialLocationFromMemory = false;     // Zoo needs this to allow custom configuration of starting point
             bool overflowed = false;
+            bool flashPanelOnOverflow = true;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -128,6 +129,7 @@ namespace Sapphire
                     memory[i] = circuit.getState();
                 turboMode = false;
                 shouldClearTricorder = true;
+                flashPanelOnOverflow = true;
             }
 
             void onReset(const ResetEvent& e) override
@@ -186,6 +188,7 @@ namespace Sapphire
                 json_t *root = SapphireModule::dataToJson();
                 json_object_set_new(root, "turboMode", json_boolean(turboMode));
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
+                jsonSetBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
 
                 // Save the memory cells as a JSON array.
                 json_t* memoryArray = json_array();
@@ -205,6 +208,7 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+                jsonLoadBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
 
                 json_t* flag = json_object_get(root, "turboMode");
                 turboMode = json_is_true(flag);
@@ -512,6 +516,25 @@ namespace Sapphire
 
 
         template <typename module_t>
+        inline MenuItem* CreateFlashToggleMenuItem(module_t* chaosModule)
+        {
+            return createBoolMenuItem(
+                "Flash panel when overflow reset occurs",
+                "",
+                [=]()
+                {
+                    return chaosModule->flashPanelOnOverflow;
+                },
+                [=](bool state)
+                {
+                    if (chaosModule->flashPanelOnOverflow != state)
+                        InvokeAction(new BoolToggleAction(chaosModule->flashPanelOnOverflow, "toggle panel flash on overflow"));
+                }
+            );
+        }
+
+
+        template <typename module_t>
         struct SpeedKnob : SapphireCaptionKnob
         {
             module_t* chaosModule = nullptr;
@@ -646,6 +669,7 @@ namespace Sapphire
                 // panel, but don't think to do that for knobs.
 
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
+                menu->addChild(CreateFlashToggleMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule, false);
             }
 
@@ -655,7 +679,8 @@ namespace Sapphire
                 if (chaosModule && chaosModule->overflowed)
                 {
                     chaosModule->overflowed = false;
-                    splash.begin(0xb0, 0x10, 0x00);
+                    if (chaosModule->flashPanelOnOverflow)
+                        splash.begin(0xb0, 0x10, 0x00);
                 }
             }
 
