@@ -84,6 +84,9 @@ namespace Sapphire
         template <typename circuit_t>
         struct ChaosModule : SapphireModule
         {
+            static constexpr float maxVoltage = 100;
+            static constexpr float maxVoltageSquared = maxVoltage * maxVoltage;
+
             circuit_t circuit;
             bool turboMode = false;
             ChaosOperators::Receiver receiver;
@@ -93,6 +96,7 @@ namespace Sapphire
             SapphireQuantity* yTranslateQuantity{};
             SapphireQuantity* zTranslateQuantity{};
             bool initialLocationFromMemory = false;     // Zoo needs this to allow custom configuration of starting point
+            bool overflowed = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -303,10 +307,28 @@ namespace Sapphire
                 }
 
                 SlopeVector vel = circuit.velocity();
+                float xmix = (1-morph)*circuit.xpos() + morph*vel.mx;
+                float ymix = (1-morph)*circuit.ypos() + morph*vel.my;
+                float zmix = (1-morph)*circuit.zpos() + morph*vel.mz;
 
-                float xmix = setFlippableOutputVoltage(X_OUTPUT, (1-morph)*circuit.xpos() + morph*vel.mx);
-                float ymix = setFlippableOutputVoltage(Y_OUTPUT, (1-morph)*circuit.ypos() + morph*vel.my);
-                float zmix = setFlippableOutputVoltage(Z_OUTPUT, (1-morph)*circuit.zpos() + morph*vel.mz);
+                float radiusSquared = xmix*xmix + ymix*ymix + zmix*zmix;
+                if (!std::isfinite(radiusSquared) || radiusSquared > maxVoltageSquared)
+                {
+                    // Auto-reset.
+                    circuit.initialize();
+                    vel = circuit.velocity();
+                    xmix = (1-morph)*circuit.xpos() + morph*vel.mx;
+                    ymix = (1-morph)*circuit.ypos() + morph*vel.my;
+                    zmix = (1-morph)*circuit.zpos() + morph*vel.mz;
+
+                    // Communicate to the widget that a reset has happend.
+                    // It will flash the panel for us.
+                    overflowed = true;
+                }
+
+                xmix = setFlippableOutputVoltage(X_OUTPUT, xmix);
+                ymix = setFlippableOutputVoltage(Y_OUTPUT, ymix);
+                zmix = setFlippableOutputVoltage(Z_OUTPUT, zmix);
 
                 outputs.at(POLY_OUTPUT).setChannels(3);
                 outputs.at(POLY_OUTPUT).setVoltage(xmix, 0);
@@ -625,6 +647,16 @@ namespace Sapphire
 
                 menu->addChild(CreateTurboModeMenuItem<module_t>(chaosModule));
                 AddChaosOptionsToMenu(menu, chaosModule, false);
+            }
+
+            void step() override
+            {
+                SapphireWidget::step();
+                if (chaosModule && chaosModule->overflowed)
+                {
+                    chaosModule->overflowed = false;
+                    splash.begin(0xb0, 0x10, 0x00);
+                }
             }
 
             void draw(const DrawArgs& args) override
