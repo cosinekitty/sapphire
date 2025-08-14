@@ -130,11 +130,16 @@
       "vz": "-z-x*y"
     },
     "dilate": 2.0,
-    "speedFactor": 1.0,
+    "speedFactor": 4.0,
     "translate": {
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
+    },
+    "morph": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
     },
     "params": [
       {

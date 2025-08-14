@@ -141,6 +141,13 @@ namespace Sapphire
             json_object_set_new(jTranslate, "z", json_real(t.mz));
             json_object_set_new(root, "translate", jTranslate);
 
+            json_t* jMorph = json_object();
+            SlopeVector mf = circuit.getMorphFactors();
+            json_object_set_new(jMorph, "x", json_real(mf.mx));
+            json_object_set_new(jMorph, "y", json_real(mf.my));
+            json_object_set_new(jMorph, "z", json_real(mf.mz));
+            json_object_set_new(root, "morph", jMorph);
+
             json_t* jparams = json_array();
             for (int m = 0; m < ProgOscillator::ParamCount; ++m)
             {
@@ -152,6 +159,21 @@ namespace Sapphire
             json_object_set_new(root, "params", jparams);
 
             return root;
+        }
+
+        void jsonLoadSlopeVector(json_t* root, const char *key, SlopeVector& vec)
+        {
+            if (json_t* jv = json_object_get(root, key); json_is_object(jv))
+            {
+                if (json_t* jx = json_object_get(jv, "x"); json_is_number(jx))
+                    vec.mx = json_real_value(jx);
+
+                if (json_t* jy = json_object_get(jv, "y"); json_is_number(jy))
+                    vec.my = json_real_value(jy);
+
+                if (json_t* jz = json_object_get(jv, "z"); json_is_number(jz))
+                    vec.mz = json_real_value(jz);
+            }
         }
 
         void dataFromJson(json_t* root) override
@@ -171,24 +193,16 @@ namespace Sapphire
             if (json_t* jSpeedFactor = json_object_get(root, "speedFactor"); json_is_number(jSpeedFactor))
                 circuit.setSpeedFactor(json_real_value(jSpeedFactor));
 
-            if (json_t* jTranslate = json_object_get(root, "translate"); json_is_object(jTranslate))
-            {
-                SlopeVector t = circuit.getTranslate();
+            SlopeVector translate = circuit.getTranslate();
+            jsonLoadSlopeVector(root, "translate", translate);
+            circuit.setTranslate(translate);
+            if (xTranslateQuantity) xTranslateQuantity->value = translate.mx;
+            if (yTranslateQuantity) yTranslateQuantity->value = translate.my;
+            if (zTranslateQuantity) zTranslateQuantity->value = translate.mz;
 
-                if (json_t* jx = json_object_get(jTranslate, "x"); json_is_number(jx))
-                    t.mx = json_real_value(jx);
-
-                if (json_t* jy = json_object_get(jTranslate, "y"); json_is_number(jy))
-                    t.my = json_real_value(jy);
-
-                if (json_t* jz = json_object_get(jTranslate, "z"); json_is_number(jz))
-                    t.mz = json_real_value(jz);
-
-                circuit.setTranslate(t);
-                if (xTranslateQuantity) xTranslateQuantity->value = t.mx;
-                if (yTranslateQuantity) yTranslateQuantity->value = t.my;
-                if (zTranslateQuantity) zTranslateQuantity->value = t.mz;
-            }
+            SlopeVector morphFactors = circuit.getMorphFactors();
+            jsonLoadSlopeVector(root, "morph", morphFactors);
+            circuit.setMorphFactors(morphFactors);
 
             if (json_t* jparams = json_object_get(root, "params"); json_is_array(jparams))
             {

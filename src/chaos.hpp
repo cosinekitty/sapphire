@@ -119,9 +119,9 @@ namespace Sapphire
         double yTranslate = 0;
         double zTranslate = 0;
 
-        const double xVelScale;
-        const double yVelScale;
-        const double zVelScale;
+        double xVelScale{};
+        double yVelScale{};
+        double zVelScale{};
 
         virtual void updateParameters() {}
 
@@ -262,6 +262,18 @@ namespace Sapphire
             xTranslate = translate.mx;
             yTranslate = translate.my;
             zTranslate = translate.mz;
+        }
+
+        SlopeVector getMorphFactors() const
+        {
+            return SlopeVector(xVelScale, yVelScale, zVelScale);
+        }
+
+        void setMorphFactors(const SlopeVector& mf)
+        {
+            xVelScale = std::clamp(mf.mx, 0.001, 1000.0);
+            yVelScale = std::clamp(mf.my, 0.001, 1000.0);
+            zVelScale = std::clamp(mf.mz, 0.001, 1000.0);
         }
 
         // Scaled position values.
