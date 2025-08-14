@@ -140,7 +140,7 @@ namespace Sapphire
             json_object_set_new(jTranslate, "z", json_real(t.mz));
             json_object_set_new(root, "translate", jTranslate);
 
-            json_t* jparams = json_array();      // [ {"center":c, "spread":s}, ... ]
+            json_t* jparams = json_array();
             for (int m = 0; m < ProgOscillator::ParamCount; ++m)
             {
                 json_t* jmap = json_object();
@@ -215,11 +215,14 @@ namespace Sapphire
         {
             circuit.resetProgram();
 
+            bool failure = false;
             for (int v = 0; v < 3; ++v)
             {
                 BytecodeResult result = circuit.compile(formula[v]);
                 message[v] = result.message;
                 if (result.failure())
+                    failure = true;     // failure is sticky: keep resetting after any failure
+                if (failure)
                     circuit.resetProgram();
             }
 
