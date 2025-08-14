@@ -247,6 +247,22 @@ namespace Sapphire
                 shouldClearTricorder = true;    // so Tricorder gets cleared after loading a preset
             }
 
+            void recallMemoryIndex(unsigned index)
+            {
+                circuit.setState(memory[index % ChaosOperators::MemoryCount]);
+                shouldClearTricorder = true;
+            }
+
+            void resetAttractor()
+            {
+                if (initialLocationFromMemory)
+                    circuit.setState(memory[0]);
+                else
+                    circuit.initialize();
+
+                shouldClearTricorder = true;
+            }
+
             void process(const ProcessArgs& args) override
             {
                 using namespace Sapphire::ChaosOperators;
@@ -268,10 +284,8 @@ namespace Sapphire
 
                     if (message->recall)
                     {
-                        const ChaoticOscillatorState& mc = memory[message->memoryIndex % MemoryCount];
-                        circuit.setState(mc);
+                        recallMemoryIndex(message->memoryIndex);
                         shouldUpdateCircuit = false;
-                        shouldClearTricorder = true;
                     }
 
                     morph = message->morph;
@@ -318,8 +332,8 @@ namespace Sapphire
                 float radiusSquared = xmix*xmix + ymix*ymix + zmix*zmix;
                 if (!std::isfinite(radiusSquared) || radiusSquared > maxVoltageSquared)
                 {
-                    // Auto-reset.
-                    circuit.initialize();
+                    resetAttractor();
+
                     vel = circuit.velocity();
                     xmix = (1-morph)*circuit.xpos() + morph*vel.mx;
                     ymix = (1-morph)*circuit.ypos() + morph*vel.my;
