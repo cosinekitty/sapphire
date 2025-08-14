@@ -130,6 +130,18 @@ namespace Sapphire
             value = json_boolean_value(js);
     }
 
+    inline void jsonSetDouble(json_t* root, const char *key, double value)
+    {
+        json_object_set_new(root, key, json_real(value));
+    }
+
+    inline void jsonLoadDouble(json_t* root, const char *key, double& value)
+    {
+        json_t* js = json_object_get(root, key);
+        if (json_is_number(js))
+            value = json_real_value(js);
+    }
+
     namespace Tricorder
     {
         struct MessageHeader

@@ -98,6 +98,10 @@ namespace Sapphire
             bool initialLocationFromMemory = false;     // Zoo needs this to allow custom configuration of starting point
             bool overflowed = false;
             bool flashPanelOnOverflow = true;
+            double compressorLimit = 0;
+            double xVoltageScale = 1;
+            double yVoltageScale = 1;
+            double zVoltageScale = 1;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -189,6 +193,10 @@ namespace Sapphire
                 json_object_set_new(root, "turboMode", json_boolean(turboMode));
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
                 jsonSetBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
+                jsonSetDouble(root, "compressorLimit", compressorLimit);
+                jsonSetDouble(root, "xVoltageScale", xVoltageScale);
+                jsonSetDouble(root, "yVoltageScale", yVoltageScale);
+                jsonSetDouble(root, "zVoltageScale", zVoltageScale);
 
                 // Save the memory cells as a JSON array.
                 json_t* memoryArray = json_array();
@@ -209,6 +217,10 @@ namespace Sapphire
             {
                 SapphireModule::dataFromJson(root);
                 jsonLoadBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
+                jsonLoadDouble(root, "compressorLimit", compressorLimit);
+                jsonLoadDouble(root, "xVoltageScale", xVoltageScale);
+                jsonLoadDouble(root, "yVoltageScale", yVoltageScale);
+                jsonLoadDouble(root, "zVoltageScale", zVoltageScale);
 
                 json_t* flag = json_object_get(root, "turboMode");
                 turboMode = json_is_true(flag);
@@ -324,24 +336,14 @@ namespace Sapphire
                     }
                 }
 
-                SlopeVector vel = circuit.velocity();
-                float xmix = (1-morph)*circuit.xpos() + morph*vel.mx;
-                float ymix = (1-morph)*circuit.ypos() + morph*vel.my;
-                float zmix = (1-morph)*circuit.zpos() + morph*vel.mz;
-
+                float xmix, ymix, zmix;
+                calculateVoltages(morph, xmix, ymix, zmix);
                 float radiusSquared = xmix*xmix + ymix*ymix + zmix*zmix;
                 if (!std::isfinite(radiusSquared) || radiusSquared > maxVoltageSquared)
                 {
                     resetAttractor();
-
-                    vel = circuit.velocity();
-                    xmix = (1-morph)*circuit.xpos() + morph*vel.mx;
-                    ymix = (1-morph)*circuit.ypos() + morph*vel.my;
-                    zmix = (1-morph)*circuit.zpos() + morph*vel.mz;
-
-                    // Communicate to the widget that a reset has happend.
-                    // It will flash the panel for us.
-                    overflowed = true;
+                    calculateVoltages(morph, xmix, ymix, zmix);
+                    overflowed = true;  // Tell widget to flash the panel.
                     shouldClearTricorder = true;
                 }
 
@@ -356,6 +358,22 @@ namespace Sapphire
 
                 sendVector(xmix, ymix, zmix, shouldClearTricorder);
                 shouldClearTricorder = false;
+            }
+
+            void calculateVoltages(float morph, float& xmix, float& ymix, float& zmix)
+            {
+                SlopeVector vel = circuit.velocity();
+                xmix = ((1-morph)*circuit.xpos() + morph*vel.mx) * xVoltageScale;
+                ymix = ((1-morph)*circuit.ypos() + morph*vel.my) * yVoltageScale;
+                zmix = ((1-morph)*circuit.zpos() + morph*vel.mz) * zVoltageScale;
+                if (compressorLimit > 0)
+                {
+                    // Use a bicubic limiter to constrain the range of each output voltage.
+                    // Treat each dimension independently, because they are independently scaled already.
+                    xmix = BicubicLimiter<float>(xmix, compressorLimit);
+                    ymix = BicubicLimiter<float>(ymix, compressorLimit);
+                    zmix = BicubicLimiter<float>(zmix, compressorLimit);
+                }
             }
         };
 

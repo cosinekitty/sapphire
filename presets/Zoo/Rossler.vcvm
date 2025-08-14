@@ -42,6 +42,11 @@
     "neonMode": false,
     "turboMode": false,
     "chaosMode": 0,
+    "flashPanelOnOverflow": true,
+    "compressorLimit": 10.0,
+    "xVoltageScale": 1.0,
+    "yVoltageScale": 1.0,
+    "zVoltageScale": 0.5,
     "memory": [
       {
         "x": -3.4423733871317674,
