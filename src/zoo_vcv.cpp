@@ -132,6 +132,7 @@ namespace Sapphire
             json_object_set_new(root, "program", program);
 
             json_object_set_new(root, "dilate", json_real(circuit.getDilate()));
+            json_object_set_new(root, "speedFactor", json_real(circuit.getSpeedFactor()));
 
             json_t* jTranslate = json_object();
             SlopeVector t = circuit.getTranslate();
@@ -166,6 +167,9 @@ namespace Sapphire
 
             if (json_t* jdilate = json_object_get(root, "dilate"); json_is_number(jdilate))
                 circuit.setDilate(json_real_value(jdilate));
+
+            if (json_t* jSpeedFactor = json_object_get(root, "speedFactor"); json_is_number(jSpeedFactor))
+                circuit.setSpeedFactor(json_real_value(jSpeedFactor));
 
             if (json_t* jTranslate = json_object_get(root, "translate"); json_is_object(jTranslate))
             {

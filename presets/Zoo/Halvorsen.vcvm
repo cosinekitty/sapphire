@@ -55,6 +55,7 @@
       "vz": "-a*z - 4*x - 4*y - x^2"
     },
     "dilate": 0.5,
+    "speedFactor": 1.0,
     "translate": {
       "x": 3.42,
       "y": 3.42,

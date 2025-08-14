@@ -61,6 +61,7 @@
       "vz": "x - x^2 - y^2"
     },
     "dilate": 4.0,
+    "speedFactor": 1.0,
     "translate": {
       "x": -0.72,
       "y": -0.06,

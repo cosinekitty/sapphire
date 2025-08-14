@@ -51,6 +51,12 @@ namespace Sapphire
     };
 
 
+    inline SlopeVector operator * (double factor, const SlopeVector& vec)
+    {
+        return SlopeVector(factor*vec.mx, factor*vec.my, factor*vec.mz);
+    }
+
+
     inline double KnobValue(double knob, double lo, double hi)
     {
         // Converts a knob value that goes from [-1, +1]
@@ -90,6 +96,11 @@ namespace Sapphire
 
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
+        inline SlopeVector vel(double x, double y, double z) const
+        {
+            return speedFactor * slopes(x, y, z);
+        }
+
         const double max_dt;
         const double x0;
         const double y0;
@@ -102,6 +113,7 @@ namespace Sapphire
         const double zmin;
         const double zmax;
 
+        double speedFactor = 1;
         double dilate = 1;
         double xTranslate = 0;
         double yTranslate = 0;
@@ -121,10 +133,10 @@ namespace Sapphire
         void step(double dt)
         {
             // Fourth-order Runge-Kutta (RK4) extrapolation.
-            SlopeVector k1 = slopes(x1, y1, z1);
-            SlopeVector k2 = slopes(x1 + (dt/2)*k1.mx, y1 + (dt/2)*k1.my, z1 + (dt/2)*k1.mz);
-            SlopeVector k3 = slopes(x1 + (dt/2)*k2.mx, y1 + (dt/2)*k2.my, z1 + (dt/2)*k2.mz);
-            SlopeVector k4 = slopes(x1 + dt*k3.mx, y1 + dt*k3.my, z1 + dt*k3.mz);
+            SlopeVector k1 = vel(x1, y1, z1);
+            SlopeVector k2 = vel(x1 + (dt/2)*k1.mx, y1 + (dt/2)*k1.my, z1 + (dt/2)*k1.mz);
+            SlopeVector k3 = vel(x1 + (dt/2)*k2.mx, y1 + (dt/2)*k2.my, z1 + (dt/2)*k2.mz);
+            SlopeVector k4 = vel(x1 + dt*k3.mx, y1 + dt*k3.my, z1 + dt*k3.mz);
             x1 += (dt/6)*(k1.mx + 2*k2.mx + 2*k3.mx + k4.mx);
             y1 += (dt/6)*(k1.my + 2*k2.my + 2*k3.my + k4.my);
             z1 += (dt/6)*(k1.mz + 2*k2.mz + 2*k3.mz + k4.mz);
@@ -169,6 +181,7 @@ namespace Sapphire
             y1 = y0;
             z1 = z0;
             mode = 0;
+            speedFactor = 1;
             dilate = 1;
             xTranslate = yTranslate = zTranslate = 0;
         }
@@ -225,6 +238,20 @@ namespace Sapphire
             return dilate;
         }
 
+        double getSpeedFactor() const
+        {
+            return speedFactor;
+        }
+
+        double setSpeedFactor(double _speedFactor = 1)
+        {
+            if (std::isfinite(_speedFactor))
+                speedFactor = std::clamp<double>(_speedFactor, 0.01, 100.0);
+            else
+                speedFactor = 1;
+            return speedFactor;
+        }
+
         SlopeVector getTranslate() const
         {
             return SlopeVector(xTranslate, yTranslate, zTranslate);
@@ -242,13 +269,12 @@ namespace Sapphire
         double ypos() const { return dilate * (yTranslate + Remap(y1, ymin, ymax)); }
         double zpos() const { return dilate * (zTranslate + Remap(z1, zmin, zmax)); }
 
-        // Scale velocity vector.
         SlopeVector velocity() const
         {
-            SlopeVector vec = slopes(x1, y1, z1);
-            vec.mx *= dilate * xVelScale;       // we don't translate velocities like we do positions
-            vec.my *= dilate * yVelScale;
-            vec.mz *= dilate * zVelScale;
+            SlopeVector vec = vel(x1, y1, z1);
+            vec.mx *= xVelScale;
+            vec.my *= yVelScale;
+            vec.mz *= zVelScale;
             return vec;
         }
 

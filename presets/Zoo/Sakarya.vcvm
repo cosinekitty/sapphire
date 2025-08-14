@@ -57,6 +57,7 @@
       "vz": "(z - b*x*y)/6"
     },
     "dilate": 0.35,
+    "speedFactor": 1.0,
     "translate": {
       "x": 0.0,
       "y": 0.0,

@@ -130,6 +130,7 @@
       "vz": "d*x*y - 9*z"
     },
     "dilate": 0.25,
+    "speedFactor": 1.0,
     "translate": {
       "x": 0.0,
       "y": 0.0,
