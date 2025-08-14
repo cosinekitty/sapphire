@@ -229,6 +229,7 @@ namespace Sapphire
                 jsonLoadDouble(root, "yVoltageScale", yVoltageScale);
                 jsonLoadDouble(root, "zVoltageScale", zVoltageScale);
                 jsonLoadInt(root, "oversampling", oversampling);
+                oversampling = std::clamp(oversampling, 1, 10);     // self-healing: fix and save range errors
 
                 json_t* flag = json_object_get(root, "turboMode");
                 turboMode = json_is_true(flag);

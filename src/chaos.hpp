@@ -262,7 +262,7 @@ namespace Sapphire
             // use oversampling to keep the actual time increment within that limit:
             // find the smallest positive integer n such that dt/n <= max_dt.
             const int rawCount = (max_dt <= 0.0) ? 1 : static_cast<int>(ceil(abs(dt) / max_dt));
-            const int n = rawCount * std::clamp(oversampling, 1, 10);
+            const int n = rawCount * std::max(1, oversampling);
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
                 step(et);
