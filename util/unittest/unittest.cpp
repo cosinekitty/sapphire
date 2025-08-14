@@ -663,7 +663,7 @@ static int RangeTest(
     auto start = high_resolution_clock::now();
     for (long i = 0; i < SIM_SAMPLES; ++i)
     {
-        osc.update(dt);
+        osc.update(dt, 1);
         if (CheckLimits(osc, range)) return 1;
         xMin = std::min(xMin, osc.xpos());
         xMax = std::max(xMax, osc.xpos());
