@@ -42,6 +42,8 @@
     "neonMode": false,
     "turboMode": false,
     "chaosMode": 1,
+    "oversampling": 1,
+    "compressorLimit": 0.0,
     "memory": [
       {
         "x": 4.4701754535063492,

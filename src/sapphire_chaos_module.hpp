@@ -102,6 +102,7 @@ namespace Sapphire
             double xVoltageScale = 1;
             double yVoltageScale = 1;
             double zVoltageScale = 1;
+            int oversampling = 1;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -134,6 +135,11 @@ namespace Sapphire
                 turboMode = false;
                 shouldClearTricorder = true;
                 flashPanelOnOverflow = true;
+                compressorLimit = 0;
+                xVoltageScale = 1;
+                yVoltageScale = 1;
+                zVoltageScale = 1;
+                oversampling = 1;
             }
 
             void onReset(const ResetEvent& e) override
@@ -197,6 +203,7 @@ namespace Sapphire
                 jsonSetDouble(root, "xVoltageScale", xVoltageScale);
                 jsonSetDouble(root, "yVoltageScale", yVoltageScale);
                 jsonSetDouble(root, "zVoltageScale", zVoltageScale);
+                jsonSetInt(root, "oversampling", oversampling);
 
                 // Save the memory cells as a JSON array.
                 json_t* memoryArray = json_array();
@@ -221,6 +228,7 @@ namespace Sapphire
                 jsonLoadDouble(root, "xVoltageScale", xVoltageScale);
                 jsonLoadDouble(root, "yVoltageScale", yVoltageScale);
                 jsonLoadDouble(root, "zVoltageScale", zVoltageScale);
+                jsonLoadInt(root, "oversampling", oversampling);
 
                 json_t* flag = json_object_get(root, "turboMode");
                 turboMode = json_is_true(flag);
@@ -311,7 +319,7 @@ namespace Sapphire
                     if (turboMode)
                         speed += 5;
                     double dt = args.sampleTime * TwoToPower(speed);
-                    circuit.update(dt);
+                    circuit.update(dt, oversampling);
                 }
 
                 if (dilateQuantity && dilateQuantity->isChangedOneShot())

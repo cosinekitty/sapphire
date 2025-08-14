@@ -46,7 +46,7 @@
     "compressorLimit": 10.0,
     "xVoltageScale": 1.0,
     "yVoltageScale": 1.0,
-    "zVoltageScale": 0.5,
+    "zVoltageScale": 0.8,
     "memory": [
       {
         "x": -3.4423733871317674,

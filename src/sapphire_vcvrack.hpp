@@ -93,14 +93,11 @@ namespace Sapphire
 
         static bool hasRole(const Module* module, ExpanderRole role)
         {
-            if (module == nullptr)
-                return false;
+            if (module)
+                if (ModelInfo* info = search(module->model))
+                    return 0 != (static_cast<int>(info->roles) & static_cast<int>(role));
 
-            ModelInfo* info = search(module->model);
-            if (info == nullptr)
-                return false;
-
-            return 0 != (static_cast<int>(info->roles) & static_cast<int>(role));
+            return false;
         }
     };
 
@@ -113,9 +110,18 @@ namespace Sapphire
     template <typename enum_t>
     void jsonLoadEnum(json_t* root, const char *key, enum_t& value)
     {
-        json_t* js = json_object_get(root, key);
-        if (json_is_integer(js))
+        if (json_t* js = json_object_get(root, key); json_is_integer(js))
             value = static_cast<enum_t>(json_integer_value(js));
+    }
+
+    inline void jsonSetInt(json_t* root, const char *key, int value)
+    {
+        jsonSetEnum<int>(root, key, value);
+    }
+
+    inline void jsonLoadInt(json_t* root, const char *key, int& value)
+    {
+        jsonLoadEnum<int>(root, key, value);
     }
 
     inline void jsonSetBool(json_t* root, const char *key, bool value)
@@ -125,8 +131,7 @@ namespace Sapphire
 
     inline void jsonLoadBool(json_t* root, const char* key, bool& value)
     {
-        json_t* js = json_object_get(root, key);
-        if (json_is_boolean(js))
+        if (json_t* js = json_object_get(root, key); json_is_boolean(js))
             value = json_boolean_value(js);
     }
 
@@ -137,8 +142,7 @@ namespace Sapphire
 
     inline void jsonLoadDouble(json_t* root, const char *key, double& value)
     {
-        json_t* js = json_object_get(root, key);
-        if (json_is_number(js))
+        if (json_t* js = json_object_get(root, key); json_is_number(js))
             value = json_real_value(js);
     }
 

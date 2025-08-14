@@ -252,7 +252,7 @@ namespace Sapphire
             return vec;
         }
 
-        void update(double dt)
+        void update(double dt, int oversampling)
         {
             using namespace std;
 
@@ -261,7 +261,8 @@ namespace Sapphire
             // If the derived class has informed us of a maximum stable time increment,
             // use oversampling to keep the actual time increment within that limit:
             // find the smallest positive integer n such that dt/n <= max_dt.
-            const int n = (max_dt <= 0.0) ? 1 : static_cast<int>(ceil(abs(dt) / max_dt));
+            const int rawCount = (max_dt <= 0.0) ? 1 : static_cast<int>(ceil(abs(dt) / max_dt));
+            const int n = rawCount * std::clamp(oversampling, 1, 10);
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
                 step(et);
