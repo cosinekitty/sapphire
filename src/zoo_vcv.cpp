@@ -71,8 +71,8 @@ namespace Sapphire
 
             // Default to the Rossler attractor.
             formula[0] = "-y-z";
-            formula[1] = "x+a*y";
-            formula[2] = "b+z*(x-c)";
+            formula[1] = "x + a*y";
+            formula[2] = "b + z*(x-c)";
 
             message[0] = "";
             message[1] = "";
@@ -98,6 +98,11 @@ namespace Sapphire
             circuit.knobMap[2].spread = 10.0;
             circuit.knobMap[3].center = 0.0;
             circuit.knobMap[3].spread = 1.0;
+
+            xVoltageScale = 1.0;
+            yVoltageScale = 1.0;
+            zVoltageScale = 0.8;
+            compressorLimit = 10.0;
 
             // Initial position chosen to work well with the Rossler attractor.
             // I obtained this by running the Rossler attractor a long time and picking
