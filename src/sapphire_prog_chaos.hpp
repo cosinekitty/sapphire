@@ -395,10 +395,10 @@ namespace Sapphire
         {
             prog.initialize();
 
-            paramRegister[0] = prog.setVar('a', 0.2);
-            paramRegister[1] = prog.setVar('b', 0.2);
-            paramRegister[2] = prog.setVar('c', 7.0);
-            paramRegister[3] = prog.setVar('d', 0.1);
+            paramRegister[0] = prog.setVar('a', 0.1);
+            paramRegister[1] = prog.setVar('b', 0.1);
+            paramRegister[2] = prog.setVar('c', 14.0);
+            paramRegister[3] = prog.setVar('d', 0.0);
 
             inputRegister[0] = prog.setVar('x', x0);
             inputRegister[1] = prog.setVar('y', y0);

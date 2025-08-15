@@ -638,7 +638,8 @@ static int RangeTest(
     Sapphire::ChaoticOscillator& osc,
     int mode,
     const char *name,
-    double range)
+    double range,
+    double dilate = 1)
 {
     using namespace std::chrono;
 
@@ -647,6 +648,8 @@ static int RangeTest(
     osc.initialize();
     if (SetMode(osc, mode, name))
         return 1;
+
+    osc.setDilate(dilate);
 
     const long SAMPLE_RATE = 44100;
     const long SIM_SECONDS = 3600;
@@ -1399,19 +1402,21 @@ static int ProgChaosTest()
 
     ProgOscillator osc(
         0.01,
-        0.11, 0.12, 0.13,
-        -14.0, +14.0,
-        -14.0, +14.0,
-        0.0, 35.0
+        -3.4423733871317674, 9.699573232290314, 0.006054606899164795,
+        -1, +1,
+        -1, +1,
+        -1, +1,
+        0.15, 0.20, 0.04
     );
 
     auto infix = std::vector<std::string>
     {
         "-y-z",         // vx formula
-        "x+a*y",        // vy formula
-        "b+z*(x-c)"     // vz formula
+        "x + a*y",      // vy formula
+        "b + z*(x-c)"   // vz formula
     };
 
+    printf("\n");
     for (int v = 0; v < 3; ++v)     // 'v' iterates through variables 0=x, 1=y, 2=z.
     {
         std::string name = "ProgChaosTest(v=" + std::to_string(v) + ")";
@@ -1423,7 +1428,7 @@ static int ProgChaosTest()
             result.payload.print();
     }
 
-    if (RangeTest(osc, 0, "Rossler", 100)) return 1;
+    if (RangeTest(osc, 0, "Rossler", 100, 0.2)) return 1;
     return Pass("ProgChaosTest");
 }
 
