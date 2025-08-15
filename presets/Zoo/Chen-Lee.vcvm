@@ -130,16 +130,16 @@
       "vz": "c*z + x*(y/3)"
     },
     "dilate": 0.3,
-    "speedFactor": 1.0,
+    "speedFactor": 0.25,
     "translate": {
       "x": 0.0,
       "y": -0.06,
       "z": 14.22
     },
     "morph": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
+      "x": 0.1,
+      "y": 0.1,
+      "z": 0.1
     },
     "params": [
       {
