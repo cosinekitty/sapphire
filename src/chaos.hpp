@@ -271,9 +271,9 @@ namespace Sapphire
 
         void setMorphFactors(const SlopeVector& mf)
         {
-            xVelScale = std::clamp(mf.mx, 0.001, 1000.0);
-            yVelScale = std::clamp(mf.my, 0.001, 1000.0);
-            zVelScale = std::clamp(mf.mz, 0.001, 1000.0);
+            xVelScale = mf.mx;
+            yVelScale = mf.my;
+            zVelScale = mf.mz;
         }
 
         // Scaled position values.
