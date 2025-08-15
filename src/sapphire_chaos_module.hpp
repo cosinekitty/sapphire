@@ -196,7 +196,6 @@ namespace Sapphire
             json_t* dataToJson() override
             {
                 json_t *root = SapphireModule::dataToJson();
-                json_object_set_new(root, "turboMode", json_boolean(turboMode));
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
                 jsonSetBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
                 jsonSetDouble(root, "compressorLimit", compressorLimit);
@@ -204,6 +203,7 @@ namespace Sapphire
                 jsonSetDouble(root, "yVoltageScale", yVoltageScale);
                 jsonSetDouble(root, "zVoltageScale", zVoltageScale);
                 jsonSetInt(root, "oversampling", oversampling);
+                jsonSetBool(root, "turboMode", turboMode);
 
                 // Save the memory cells as a JSON array.
                 json_t* memoryArray = json_array();
@@ -231,8 +231,7 @@ namespace Sapphire
                 jsonLoadInt(root, "oversampling", oversampling);
                 oversampling = std::clamp(oversampling, 1, 10);     // self-healing: fix and save range errors
 
-                json_t* flag = json_object_get(root, "turboMode");
-                turboMode = json_is_true(flag);
+                jsonLoadBool(root, "turboMode", turboMode);
 
                 json_t* mode = json_object_get(root, "chaosMode");
                 circuit.setMode(
