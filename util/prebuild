@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ./make_panels || exit 1
+./clean_presets || exit 1
 
 # Find a random local-minimum-energy state for the Nucleus module's particle gas simulation.
 ./nucleus_solver || exit 1
