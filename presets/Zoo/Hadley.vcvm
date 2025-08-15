@@ -2,40 +2,6 @@
   "plugin": "CosineKitty-Sapphire",
   "model": "Zoo",
   "version": "2.6.001",
-  "params": [
-    {
-      "value": 0.0,
-      "id": 0
-    },
-    {
-      "value": 0.0,
-      "id": 1
-    },
-    {
-      "value": 0.0,
-      "id": 2
-    },
-    {
-      "value": 0.0,
-      "id": 3
-    },
-    {
-      "value": 1.467650294303894,
-      "id": 4
-    },
-    {
-      "value": -0.8399973511695862,
-      "id": 5
-    },
-    {
-      "value": 0.0,
-      "id": 6
-    },
-    {
-      "value": -0.1799999475479126,
-      "id": 7
-    }
-  ],
   "data": {
     "lowSensitivityAttenuverters": [],
     "voltageFlippedOutputPorts": [],

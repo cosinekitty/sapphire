@@ -51,6 +51,8 @@ def CleanZooPreset(fn:str) -> int:
     with open(fn, 'rt') as infile:
         oldText = infile.read()
     preset = json.loads(oldText)
+    if 'params' in preset:
+        del preset['params']
     newText = json.dumps(preset, indent=2)
     if newText == oldText:
         Print('Kept:  {}'.format(fn))
