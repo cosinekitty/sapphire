@@ -5,10 +5,10 @@
   "data": {
     "chaosMode": 1,
     "compressorLimit": 0.0,
-    "oversampling": 1,
     "xVoltageScale": 1.0,
     "yVoltageScale": 1.0,
     "zVoltageScale": 1.0,
+    "oversampling": 1,
     "memory": [
       {
         "x": 4.470175453506349,

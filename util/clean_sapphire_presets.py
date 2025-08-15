@@ -59,7 +59,7 @@ def CleanZooPreset(fn:str) -> int:
     data = preset['data']
     if len(data['memory']) > 1:
         data['memory'] = data['memory'][0:1]
-    for key in ['lowSensitivityAttenuverters', 'voltageFlippedOutputPorts', 'neonMode', 'turboMode']:
+    for key in ['lowSensitivityAttenuverters', 'voltageFlippedOutputPorts', 'neonMode', 'turboMode', 'flashPanelOnOverflow']:
         if key in data:
             del data[key]
     newText = json.dumps(preset, indent=2)

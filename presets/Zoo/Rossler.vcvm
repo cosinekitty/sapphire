@@ -4,12 +4,11 @@
   "version": "2.6.001",
   "data": {
     "chaosMode": 0,
-    "flashPanelOnOverflow": true,
     "compressorLimit": 10.0,
-    "oversampling": 1,
     "xVoltageScale": 1.0,
     "yVoltageScale": 1.0,
     "zVoltageScale": 0.8,
+    "oversampling": 1,
     "memory": [
       {
         "x": -3.4423733871317674,
