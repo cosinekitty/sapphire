@@ -4,6 +4,11 @@
   "version": "2.6.001",
   "data": {
     "chaosMode": 0,
+    "compressorLimit": 0.0,
+    "oversampling": 1,
+    "xVoltageScale": 1.0,
+    "yVoltageScale": 1.0,
+    "zVoltageScale": 1.0,
     "memory": [
       {
         "x": 11.014613958690074,
