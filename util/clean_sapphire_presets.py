@@ -9,7 +9,7 @@
 import sys
 import os
 import json
-from typing import List
+from typing import List, Any
 
 def Print(message:str) -> int:
     print('clean_sapphire_presets.py:', message)
@@ -53,6 +53,13 @@ def CleanZooPreset(fn:str) -> int:
     preset = json.loads(oldText)
     if 'params' in preset:
         del preset['params']
+    if 'data' not in preset:
+        Print('ERROR: Missing "data" property in JSON: ' + fn)
+        return 1
+    data = preset['data']
+    for key in ['lowSensitivityAttenuverters', 'voltageFlippedOutputPorts', 'neonMode', 'turboMode']:
+        if key in data:
+            del data[key]
     newText = json.dumps(preset, indent=2)
     if newText == oldText:
         Print('Kept:  {}'.format(fn))

@@ -3,10 +3,6 @@
   "model": "Zoo",
   "version": "2.6.001",
   "data": {
-    "lowSensitivityAttenuverters": [],
-    "voltageFlippedOutputPorts": [],
-    "neonMode": false,
-    "turboMode": false,
     "chaosMode": 1,
     "oversampling": 1,
     "compressorLimit": 0.0,
