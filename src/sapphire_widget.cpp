@@ -666,7 +666,6 @@ namespace Sapphire
     // Create ModulePresetPathItems for each patch in a directory.
     void AppendFactoryPresets(ui::Menu *menu, WeakPtr<ModuleWidget> moduleWidget, std::string presetDir)
     {
-        bool hasPresets = false;
         if (system::isDirectory(presetDir))
         {
             // Note: This is not cached, so opening this menu each time might have a bit of latency.
@@ -675,11 +674,8 @@ namespace Sapphire
             for (std::string path : entries)
             {
                 std::string name = system::getStem(path);
-
                 if (system::isDirectory(path))
                 {
-                    hasPresets = true;
-
                     menu->addChild(createSubmenuItem(
                         name,
                         "",
@@ -692,7 +688,6 @@ namespace Sapphire
                 }
                 else if (system::getExtension(path) == ".vcvm" && name != "template")
                 {
-                    hasPresets = true;
                     menu->addChild(createMenuItem(
                         name,
                         "",
@@ -713,10 +708,6 @@ namespace Sapphire
                     ));
                 }
             }
-        }
-        if (!hasPresets)
-        {
-            menu->addChild(createMenuLabel(string::translate("ModuleWidget.nonePresets")));
         }
     };
 }
