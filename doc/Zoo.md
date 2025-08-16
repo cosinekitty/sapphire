@@ -13,8 +13,6 @@ a list of example attractors you can load and use:
 
 ![Zoo factory presets](images/zoo_factory_presets.png)
 
-The default is the [Rössler attractor](https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor).
-
 ### Demo video
 
 [![Sapphire Zoo demo video](https://img.youtube.com/vi/oEKi9dF8SmQ/0.jpg)](https://www.youtube.com/watch?v=oEKi9dF8SmQ)
