@@ -341,7 +341,7 @@ namespace Sapphire
         assert(rawWidget);
         SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
         assert(sapphireWidget);
-        int dx = (dir == ExpanderDirection::Left) ? -sapphireWidget->box.size.x : parentModWidget->box.size.x;
+        int dx = (dir == ExpanderDirection::Left) ? 0 : parentModWidget->box.size.x;
         APP->scene->rack->setModulePosForce(sapphireWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
         APP->scene->rack->addModule(sapphireWidget);
 
