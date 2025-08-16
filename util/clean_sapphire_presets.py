@@ -57,6 +57,8 @@ def CleanZooPreset(fn:str) -> int:
         Print('ERROR: Missing "data" property in JSON: ' + fn)
         return 1
     data = preset['data']
+    if 'memory' not in data:
+        data['memory'] = [{'x': 0.11, 'y':0.12, 'z':0.13}]
     if len(data['memory']) > 1:
         data['memory'] = data['memory'][0:1]
     for key in ['lowSensitivityAttenuverters', 'voltageFlippedOutputPorts', 'neonMode', 'turboMode', 'flashPanelOnOverflow']:
