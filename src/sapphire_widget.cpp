@@ -341,7 +341,46 @@ namespace Sapphire
         assert(rawWidget);
         SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
         assert(sapphireWidget);
-        int dx = (dir == ExpanderDirection::Left) ? 0 : parentModWidget->box.size.x;
+
+        int dx;
+        if (dir == ExpanderDirection::Left)
+        {
+            // Inserting on the left is tricky, because the Rack SDK
+            // wants to shift things to the right to make room.
+            // If there is a gap big enough to fit the panel on the left,
+            // target that gap, so nothing has to move.
+            // Otherwise, leave dx==0 to cause the parent module to shift to the right.
+            // That's not as pleasant, but required to keep the modules connected.
+            float gx2 = parentModWidget->box.pos.x;
+            float gx1 = gx2 - sapphireWidget->box.size.x;
+            bool gap = true;
+            for (const PanelState& p : allPanelPositions)
+            {
+                if (p.oldPos.y == parentModWidget->box.pos.y)
+                {
+                    float px1 = p.oldPos.x;
+                    float px2 = p.oldPos.x + p.size.x;
+                    if (gx1 >= px1 && gx1 < px2)
+                        gap = false;
+                    if (gx2 > px1 && gx2 <= px2)
+                        gap = false;
+                    if (px1 >= gx1 && px1 < gx2)
+                        gap = false;
+                    if (px2 > gx1 && px2 <= gx2)
+                        gap = false;
+                    if (!gap)
+                        break;
+                }
+            }
+            dx = gap ? -sapphireWidget->box.size.x : 0;
+        }
+        else
+        {
+            // When inserting to the right, just stick the new module
+            // immediately to the right of this one.
+            dx = parentModWidget->box.size.x;
+        }
+
         APP->scene->rack->setModulePosForce(sapphireWidget, Vec{parentModWidget->box.pos.x + dx, parentModWidget->box.pos.y});
         APP->scene->rack->addModule(sapphireWidget);
 

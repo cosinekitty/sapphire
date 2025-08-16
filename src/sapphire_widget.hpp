@@ -835,10 +835,12 @@ namespace Sapphire
         int64_t moduleId = -1;
         Vec oldPos{};
         Vec newPos{};
+        Vec size{};
 
         explicit PanelState(ModuleWidget* mw)
             : moduleId(mw->module->id)
             , oldPos(mw->box.pos)
+            , size(mw->box.size)
             {}
     };
 
