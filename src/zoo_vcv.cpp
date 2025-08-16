@@ -60,6 +60,7 @@ namespace Sapphire
             : ZooModuleBase()
         {
             initialLocationFromMemory = true;
+            offerFactoryPresetsOnChaosKnob = true;
             addDilateQuantity();
             addTranslateQuantities();
             ZooModule_initialize();

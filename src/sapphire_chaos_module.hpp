@@ -103,6 +103,7 @@ namespace Sapphire
             double yVoltageScale = 1;
             double zVoltageScale = 1;
             int oversampling = 1;
+            bool offerFactoryPresetsOnChaosKnob = false;
 
             ChaosModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -512,11 +513,26 @@ namespace Sapphire
         template <typename module_t>
         struct ChaosKnob : SapphireCaptionKnob
         {
+            SapphireWidget* chaosWidget = nullptr;
             module_t* chaosModule = nullptr;
 
             void appendContextMenu(Menu* menu) override
             {
-                AddChaosOptionsToMenu(menu, chaosModule, true);
+                SapphireCaptionKnob::appendContextMenu(menu);
+                if (chaosModule && chaosWidget)
+                {
+                    AddChaosOptionsToMenu(menu, chaosModule, true);
+                    if (chaosModule->offerFactoryPresetsOnChaosKnob)
+                    {
+                        // Adapted from /Rack/src/app/ModuleWidget.cpp ! ModuleWidget::createContextMenu().
+                        if (std::string dir = chaosWidget->model->getFactoryPresetDirectory(); dir.size())
+                        {
+                            menu->addChild(new MenuSeparator);
+                            menu->addChild(createMenuLabel("Example attractors"));
+                            AppendFactoryPresets(menu, chaosWidget, dir);
+                        }
+                    }
+                }
             }
 
             char getCaption() const override
@@ -685,6 +701,7 @@ namespace Sapphire
                 // CHAOS knob: include Chaos Mode selection in the context menu.
                 using chaos_knob_t = ChaosKnob<module_t>;
                 chaos_knob_t* chaosKnob = addKnob<chaos_knob_t>(CHAOS_KNOB_PARAM, "chaos_knob");
+                chaosKnob->chaosWidget = this;
                 chaosKnob->chaosModule = module;
 
                 auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");

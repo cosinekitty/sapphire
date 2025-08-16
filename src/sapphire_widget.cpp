@@ -623,4 +623,61 @@ namespace Sapphire
             if (ParamQuantity* qty = module->getParamQuantity(paramId))
                 qty->setValue(value);
     }
+
+    // Create ModulePresetPathItems for each patch in a directory.
+    void AppendFactoryPresets(ui::Menu *menu, WeakPtr<ModuleWidget> moduleWidget, std::string presetDir)
+    {
+        bool hasPresets = false;
+        if (system::isDirectory(presetDir))
+        {
+            // Note: This is not cached, so opening this menu each time might have a bit of latency.
+            std::vector<std::string> entries = system::getEntries(presetDir);
+            std::sort(entries.begin(), entries.end());
+            for (std::string path : entries)
+            {
+                std::string name = system::getStem(path);
+
+                if (system::isDirectory(path))
+                {
+                    hasPresets = true;
+
+                    menu->addChild(createSubmenuItem(
+                        name,
+                        "",
+                        [=](ui::Menu *menu)
+                        {
+                            if (moduleWidget)
+                                AppendFactoryPresets(menu, moduleWidget, path);
+                        }
+                    ));
+                }
+                else if (system::getExtension(path) == ".vcvm" && name != "template")
+                {
+                    hasPresets = true;
+                    menu->addChild(createMenuItem(
+                        name,
+                        "",
+                        [=]()
+                        {
+                            if (moduleWidget)
+                            {
+                                try
+                                {
+                                    moduleWidget->loadAction(path);
+                                }
+                                catch (Exception& e)
+                                {
+                                    WARN("Cannot load preset [%s]: %s", path.c_str(), e.what());
+                                }
+                            }
+                        }
+                    ));
+                }
+            }
+        }
+        if (!hasPresets)
+        {
+            menu->addChild(createMenuLabel(string::translate("ModuleWidget.nonePresets")));
+        }
+    };
 }
