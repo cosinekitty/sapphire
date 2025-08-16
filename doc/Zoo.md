@@ -8,7 +8,8 @@ that is programmable by the user with 3 configurable math formulas.
 It belongs to the family of [Sapphire chaos modules](SapphireChaosModules.md).
 
 If you don't like algebra, Zoo also comes with plenty of example factory presets,
-each of which generates a distinctive chaotic output:
+each of which generates a distinctive chaotic output. **Right-click on the CHAOS knob** to see
+a list of example attractors you can load and use:
 
 ![Zoo factory presets](images/zoo_factory_presets.png)
 
@@ -52,7 +53,11 @@ Zoo's front panel looks just like Frolic, Glee, and Lark. All of the programmabi
 
 ![Zoo context menu](images/zoo_context_menu.png)
 
-The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`. You can also use `^` for exponentiation, but the exponent must be a constant integer 1..9.
+The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`.
+
+Division is supported only when the denominator has a constant numeric value. For example, `x/3.7` is allowed, but `x/a` is not allowed.
+
+You can also use `^` for exponentiation, but the exponent must be a constant integer 1..9.
 
 You can use parentheses to group expressions, and the usual rules of operator precedence apply: `a+b*x` means the same as `a+(b*x)`, not `(a+b)*x`, because multiplication has higher precedence than addition.
 
