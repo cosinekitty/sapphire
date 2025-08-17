@@ -342,7 +342,7 @@ namespace Sapphire
         SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
         assert(sapphireWidget);
 
-        int dx;
+        float dx;
         if (dir == ExpanderDirection::Left)
         {
             // Inserting on the left is tricky, because the Rack SDK
