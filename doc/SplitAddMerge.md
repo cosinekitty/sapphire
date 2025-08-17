@@ -15,6 +15,14 @@ so that I can multiply both by the same envelope in a VCA, for example.
 Usually I would use VCV Split and VCV Merge, but they are designed for up to 16 channels
 and are larger than I need.
 
+## Channel Count
+
+Split/Add/Merge has an adjustable channel count 1..16. Right-click on the panel and slide the horizontal bar labeled "Output channels". This slider controls the number of channels on the polyphonic output port, which is the port at the bottom of the panel.
+
+![Split/Add/Merge channel count control](images/split_channel_count.png)
+
+Any channels beyond the selected channel count are discarded. Any extra channels created by the slider are set to 0 volts.
+
 ## Input Ports
 
 The upper half of the panel includes 4 input ports.
