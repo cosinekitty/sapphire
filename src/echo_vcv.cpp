@@ -1603,7 +1603,7 @@ namespace Sapphire
                         lmod->chainIndex = -1;
 
                 // Create the expander module.
-                AddExpander(model, this, ExpanderDirection::Right);
+                AddExpander(model, this, ExpanderDirection::Right, true);
             }
 
             void removeExpander()
@@ -2754,7 +2754,7 @@ namespace Sapphire
                         {
                             echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
                             if (!IsEchoReceiver(module->rightExpander.module) && !APP->history->canRedo())
-                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right);
+                                AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right, false);
                         }
                     }
                 }
