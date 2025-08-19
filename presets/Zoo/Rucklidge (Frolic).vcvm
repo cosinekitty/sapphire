@@ -5,9 +5,9 @@
   "data": {
     "chaosMode": 0,
     "compressorLimit": 0.0,
-    "xVoltageScale": 0.486,
-    "yVoltageScale": 0.9,
-    "zVoltageScale": 0.65,
+    "xVoltageScale": 0.4921259843,
+    "yVoltageScale": 0.8980691513,
+    "zVoltageScale": 0.6498992656,
     "oversampling": 1,
     "memory": [
       {
@@ -24,8 +24,8 @@
     "dilate": 1.0,
     "speedFactor": 1.0,
     "translate": {
-      "x": 0.0,
-      "y": 0.0,
+      "x": -0.01,
+      "y": 0.0025,
       "z": -7.6935
     },
     "morph": {
