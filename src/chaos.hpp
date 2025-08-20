@@ -123,8 +123,6 @@ namespace Sapphire
         double yVelScale{};
         double zVelScale{};
 
-        virtual void updateParameters() {}
-
     private:
         double x1{};
         double y1{};
@@ -290,11 +288,11 @@ namespace Sapphire
             return vec;
         }
 
+        virtual void updateParameters() {}
+
         void update(double dt, int oversampling)
         {
             using namespace std;
-
-            updateParameters();     // give derived class a chance to update parameters
 
             // If the derived class has informed us of a maximum stable time increment,
             // use oversampling to keep the actual time increment within that limit:

@@ -337,7 +337,6 @@ namespace Sapphire
 
     protected:
         SlopeVector slopes(double x, double y, double z) const override;
-        void updateParameters() override;
 
     public:
         explicit ProgOscillator(
@@ -373,6 +372,8 @@ namespace Sapphire
             for (int i=0; i < ProgOscillator::ParamCount; ++i)
                 knobMap[i].initialize();
         }
+
+        void updateParameters() override;
 
         int getModeCount() const override
         {

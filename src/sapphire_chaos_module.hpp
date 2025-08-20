@@ -312,6 +312,8 @@ namespace Sapphire
                     morph = message->morph;
                 }
 
+                circuit.updateParameters();
+
                 if (shouldUpdateCircuit)
                 {
                     float chaos = getControlValue(CHAOS_KNOB_PARAM, CHAOS_ATTEN, CHAOS_CV_INPUT, -1, +1);
