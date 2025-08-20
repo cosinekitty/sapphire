@@ -293,6 +293,7 @@ namespace Sapphire
         // The default mapping is an identity operator:  paramValue(x) == x.
         double center = 0;
         double spread = 1;
+        double fallback = NAN;
 
         double paramValue(double knob) const
         {
@@ -300,10 +301,16 @@ namespace Sapphire
             return center + x*spread;
         }
 
+        double fallbackValue() const
+        {
+            return std::isfinite(fallback) ? fallback : center;
+        }
+
         void initialize()
         {
             center = 0;
             spread = 1;
+            fallback = NAN;
         }
     };
 

@@ -10,7 +10,7 @@ namespace Sapphire
         // All other parameters revert to their default value.
 
         for (int p = 0; p < ProgOscillator::ParamCount; ++p)
-            paramValue(p) = knobMap[p].paramValue((p==mode) ? knob : 0.0);
+            paramValue(p) = (p == mode) ? knobMap[p].paramValue(knob) : knobMap[p].fallbackValue();
     }
 
 

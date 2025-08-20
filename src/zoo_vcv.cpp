@@ -132,6 +132,8 @@ namespace Sapphire
                 json_t* jmap = json_object();
                 json_object_set_new(jmap, "center", json_real(circuit.knobMap[m].center));
                 json_object_set_new(jmap, "spread", json_real(circuit.knobMap[m].spread));
+                if (std::isfinite(circuit.knobMap[m].fallback))
+                    json_object_set_new(jmap, "fallback", json_real(circuit.knobMap[m].fallback));
                 json_array_append(jparams, jmap);
             }
             json_object_set_new(root, "params", jparams);
@@ -195,6 +197,9 @@ namespace Sapphire
 
                             if (json_t* jspread = json_object_get(jmap, "spread"); json_is_number(jspread))
                                 circuit.knobMap[m].spread = json_real_value(jspread);
+
+                            if (json_t* jfallback = json_object_get(jmap, "fallback"); json_is_number(jfallback))
+                                circuit.knobMap[m].fallback = json_real_value(jfallback);
                         }
                     }
                 }

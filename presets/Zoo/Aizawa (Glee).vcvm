@@ -19,7 +19,7 @@
     "program": {
       "vx": "(z-b)*x - 3.5*y",
       "vy": "3.5*x + (z-b)*y",
-      "vz": "c + a*z - z^3/3 - (x^2 + y^2)*(1 + d*z) + 0.1*x^4"
+      "vz": "c + a*z - z^3/3 - (x^2 + y^2)*(1 + d*z) + 0.1*z*x^3"
     },
     "dilate": 1.0,
     "speedFactor": 1.0,
@@ -29,26 +29,30 @@
       "z": -0.735
     },
     "morph": {
-      "x": 0.2,
-      "y": 0.2,
-      "z": 0.2
+      "x": 1.0,
+      "y": 1.0,
+      "z": 3.5
     },
     "params": [
       {
         "center": 0.975,
-        "spread": 0.055
+        "spread": 0.055,
+        "fallback": 0.95
       },
       {
         "center": 0.64,
-        "spread": 0.06
+        "spread": 0.06,
+        "fallback": 0.69535
       },
       {
         "center": 0.6029,
-        "spread": 0.0088
+        "spread": 0.0088,
+        "fallback": 0.6029
       },
       {
         "center": 0.4,
-        "spread": -0.2
+        "spread": -0.2,
+        "fallback": 0.25
       }
     ]
   }
