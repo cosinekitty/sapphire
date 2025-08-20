@@ -200,6 +200,8 @@ namespace Sapphire
 
                             if (json_t* jfallback = json_object_get(jmap, "fallback"); json_is_number(jfallback))
                                 circuit.knobMap[m].fallback = json_real_value(jfallback);
+                            else
+                                circuit.knobMap[m].fallback = NAN;
                         }
                     }
                 }
