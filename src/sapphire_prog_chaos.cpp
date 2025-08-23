@@ -4,13 +4,24 @@ namespace Sapphire
 {
     void ProgOscillator::updateParameters()
     {
-        // Update the parameters at audio rate.
-        // Only one parameter can be varied at a time.
-        // The parameter's upper case symbol is shown on top of the CHAOS knob.
-        // All other parameters revert to their default value.
+        try
+        {
+            // Update the parameters at audio rate.
+            // Only one parameter can be varied at a time.
+            // The parameter's upper case symbol is shown on top of the CHAOS knob.
+            // All other parameters revert to their default value.
 
-        for (int p = 0; p < ProgOscillator::ParamCount; ++p)
-            paramValue(p) = (p == mode) ? knobMap[p].paramValue(knob) : knobMap[p].fallbackValue();
+            for (int p = 0; p < ProgOscillator::ParamCount; ++p)
+                paramValue(p) = (p == mode) ? knobMap[p].paramValue(knob) : knobMap[p].fallbackValue();
+        }
+        catch (const CalcError& ex)
+        {
+            reportException(__func__, ex.what());
+        }
+        catch (const std::out_of_range& rx)
+        {
+            reportException(__func__, rx.what());
+        }
     }
 
 
@@ -34,8 +45,11 @@ namespace Sapphire
         }
         catch (const CalcError& ex)
         {
-            // FIXFIXFIX: capture and report error.
-            printf("ProgOscillator::slopes EXCEPTION: %s\n", ex.what());
+            reportException(__func__, ex.what());
+        }
+        catch (const std::out_of_range& rx)
+        {
+            reportException(__func__, rx.what());
         }
         return vec;
     }

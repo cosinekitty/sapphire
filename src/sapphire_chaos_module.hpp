@@ -282,6 +282,7 @@ namespace Sapphire
                     circuit.initialize();
 
                 shouldClearTricorder = true;
+                overflowed = true;  // Tell widget to flash the panel.
             }
 
             void process(const ProcessArgs& args) override
@@ -354,8 +355,6 @@ namespace Sapphire
                 {
                     resetAttractor();
                     calculateVoltages(morph, xmix, ymix, zmix);
-                    overflowed = true;  // Tell widget to flash the panel.
-                    shouldClearTricorder = true;
                 }
 
                 xmix = setFlippableOutputVoltage(X_OUTPUT, xmix);

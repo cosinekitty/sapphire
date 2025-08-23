@@ -315,12 +315,20 @@ namespace Sapphire
     };
 
 
+    class ProgLogger
+    {
+    public:
+        virtual void log(const char* func, const char* what) = 0;
+    };
+
+
     class ProgOscillator : public ChaoticOscillator
     {
     public:
         static constexpr int ParamCount = 4;        // knobs are 'a', 'b', 'c', 'd'.
         static constexpr int InputCount = 3;        // input variables are 'x', 'y', 'z'.
         KnobParameterMapping knobMap[ProgOscillator::ParamCount];
+        mutable ProgLogger* logger = nullptr;
 
     private:
         mutable BytecodeProgram prog;       // a single program that calculates vx, vy, and vz.
@@ -333,6 +341,12 @@ namespace Sapphire
             if (index >= 0 && index < ParamCount)
                 return index;
             throw CalcError(std::string("parameter index is out of range: ") + std::to_string(index));
+        }
+
+        void reportException(const char *func, const char *what) const
+        {
+            if (logger)
+                logger->log(func, what);
         }
 
     protected:

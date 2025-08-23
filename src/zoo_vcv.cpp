@@ -51,14 +51,16 @@ namespace Sapphire
 
 
     using ZooModuleBase = Sapphire::Chaos::ChaosModule<ProgOscillator>;
-    struct ZooModule : ZooModuleBase
+    struct ZooModule : ZooModuleBase, ProgLogger
     {
+        int spamCount = 0;
         std::string formula[ProgOscillator::InputCount];
         std::string message[ProgOscillator::InputCount];
 
         explicit ZooModule()
             : ZooModuleBase()
         {
+            circuit.logger = this;
             initialLocationFromMemory = true;
             offerFactoryPresetsOnChaosKnob = true;
             addDilateQuantity();
@@ -318,6 +320,16 @@ namespace Sapphire
             for (int i = 0; i < ProgOscillator::ParamCount; ++i)
                 if (uint32_t c = i + 'a'; BytecodeProgram::IsLowercaseVarUsed(mask, c))
                     addParamEditors(menu, c, circuit.knobMap[i]);
+        }
+
+        void log(const char* func, const char* what) override
+        {
+            constexpr int spamLimit = 20;
+            if (++spamCount < spamLimit)
+                WARN("EXCEPTION %d/%d : function %s received exception [%s]", spamCount, spamLimit, func, what);
+
+            circuit.resetProgram();
+            resetAttractor();
         }
     };
 
