@@ -13,9 +13,11 @@ a list of example attractors you can load and use:
 
 ![Zoo factory presets](images/zoo_factory_presets.png)
 
-### Demo video
+### Demo videos
 
 [![Sapphire Zoo demo video](https://img.youtube.com/vi/oEKi9dF8SmQ/0.jpg)](https://www.youtube.com/watch?v=oEKi9dF8SmQ)
+
+[![Fog in a Zoo of Strange Attractors](https://img.youtube.com/vi/5ZTE6D78Qsw/0.jpg)](https://www.youtube.com/watch?v=5ZTE6D78Qsw)
 
 
 ### Mathematical basis
