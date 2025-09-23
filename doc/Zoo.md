@@ -15,7 +15,13 @@ a list of example attractors you can load and use:
 
 ### Demo videos
 
-[![Sapphire Zoo demo video](https://img.youtube.com/vi/oEKi9dF8SmQ/0.jpg)](https://www.youtube.com/watch?v=oEKi9dF8SmQ)
+#### Generative Ambient patch from scratch with Sapphire Zoo / Omri Cohen
+
+[![Omri Cohen - Generative Ambient patch from scratch with Sapphire Zoo](https://img.youtube.com/vi/BcnEi7mU-Hw/0.jpg)](https://www.youtube.com/watch?v=BcnEi7mU-Hw)
+
+----
+
+#### "Fog in a Zoo of Strange Attractors" / Minor Noise
 
 [![Fog in a Zoo of Strange Attractors](https://img.youtube.com/vi/5ZTE6D78Qsw/0.jpg)](https://www.youtube.com/watch?v=5ZTE6D78Qsw)
 
