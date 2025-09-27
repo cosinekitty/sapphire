@@ -2,7 +2,7 @@
 
 ![Lark](images/lark.png)
 
-Lark is a low frequency (and ultra-low frequency) chaotic oscillator.
+Lark is a wide frequency band chaotic oscillator.
 It belongs to the family of [Sapphire chaos modules](SapphireChaosModules.md).
 
 ### Demo video

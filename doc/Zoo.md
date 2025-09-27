@@ -2,7 +2,7 @@
 
 ![Zoo](images/zoo.png)
 
-Zoo is a low frequency (and ultra-low frequency) chaotic oscillator
+Zoo is a wide frequency band chaotic oscillator
 that is programmable by the user with 3 configurable math formulas.
 
 It belongs to the family of [Sapphire chaos modules](SapphireChaosModules.md).
@@ -61,13 +61,13 @@ Zoo's front panel looks just like Frolic, Glee, and Lark. All of the programmabi
 
 The items `vx`, `vy`, `vz` are formula editors that allow you to enter in a simple algebra expression for each component of the velocity vector. You can use the operators `+`, `-`, `*`, `/`.
 
+You are allowed to use the variables `x`, `y`, `z` for the particle's position, plus up to four adjustable parameters `a`, `b`, `c`, `d` for the "chaos modes" Alpha, Bravo, Charlie, Delta.
+
 Division is supported only when the denominator has a constant numeric value. For example, `x/3.7` is allowed, but `x/a` is not allowed.
 
-You can also use `^` for exponentiation, but the exponent must be a constant integer 1..9.
+You can use `^` for exponentiation. The exponent must be an integer 1..9. For example, `(x+a)^2` means $(x+a)^2$.
 
-You can use parentheses to group expressions, and the usual rules of operator precedence apply: `a+b*x` means the same as `a+(b*x)`, not `(a+b)*x`, because multiplication has higher precedence than addition.
-
-You are allowed to use the variables `x`, `y`, `z` for the particle's position, plus up to four adjustable parameters `a`, `b`, `c`, `d`.
+You can use parentheses to group expressions. The usual rules of operator precedence apply: `a+b*x` means the same as `a+(b*x)`, not `(a+b)*x`, because multiplication has higher precedence than addition.
 
 To find formulas, try [this list](http://www.3d-meier.de/tut19/Seite0.html) (German language). For example, [here is where I found the Halvorsen attractor formulas](http://www.3d-meier.de/tut19/Seite13.html).
 
