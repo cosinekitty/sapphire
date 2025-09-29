@@ -2303,7 +2303,7 @@ def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
     panel = Panel(PANEL_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
-    defs = Element('defs')
+    defs = Element('defs')      # FIXFIXFIX: does not appear to be used - consider deletion
     pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2
@@ -2397,6 +2397,22 @@ def GenerateMultiTapButtons() -> int:
     )
 
 
+def GenerateVcoPanel(cdict: Dict[str, ControlLayer], name:str, slug:str, target:Target) -> int:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        PANEL_WIDTH = 9
+        svgFileName = SvgFileName(slug, target)
+        panel = Panel(PANEL_WIDTH)
+        cdict[slug] = controls = ControlLayer(panel)
+        pl = Element('g', 'PanelLayer')
+        defs = Element('defs')
+        pl.append(defs)
+        panel.append(pl)
+        pl.append(MakeBorder(target, PANEL_WIDTH))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, name))
+        return Save(panel, svgFileName)
+
+
 if __name__ == '__main__':
     cdict:Dict[str, ControlLayer] = {}
     sys.exit(
@@ -2435,6 +2451,7 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
+        GenerateVcoPanel(cdict, 'vīṇā', 'vina', Target.VcvRack) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

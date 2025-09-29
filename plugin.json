@@ -269,6 +269,17 @@
       ]
     },
     {
+      "slug": "Vina",
+      "name": "Vīṇā",
+      "description": "VCO - physics simulation of a Vedic-style stringed instrument",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Vina.md",
+      "tags": [
+        "Oscillator",
+        "Physical modeling",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "Zoo",
       "name": "Zoo",
       "description": "Programmable chaotic oscillator.",

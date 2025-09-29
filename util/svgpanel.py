@@ -93,8 +93,8 @@ class Font:
         self.glyphs = self.ttfont.getGlyphSet()
 
         # The following were obtained by dumping ttfont to an xml file:
-        # font.ttfont.saveXML('t.xml')
-        # Then I looked at t.xml and discovered that many symbols have to be
+        # self.ttfont.saveXML('glyphs.xml')
+        # Then I looked at glyphs.xml and discovered that many symbols have to be
         # converted into a "glyph name" before finding the glyph!
         self.glyphNameTable = {
             '0': 'zero',
@@ -140,6 +140,8 @@ class Font:
             '}': 'braceright',
             '|': 'bar',
             '~': 'asciitilde',
+            'ā': 'amacron',
+            'ī': 'imacron',
         }
 
     def __enter__(self) -> 'Font':
@@ -149,6 +151,31 @@ class Font:
     def __exit__(self, exc_type:Any, exc_val:Any, exc_tb:Any) -> Any:
         return self.ttfont.__exit__(exc_type, exc_val, exc_tb)
 
+    def dotbeneath(self, x:float, y:float, width:float) -> str:
+        prog:List[Tuple[str, List[float]]] = [
+            ('M', [0.000, 8.989]),
+            ('V',        [8.927]),
+            ('Q', [0.000, 8.819, 0.078, 8.749]),
+            ('Q', [0.155, 8.679, 0.279, 8.679]),
+            ('Q', [0.388, 8.679, 0.462, 8.749]),
+            ('Q', [0.535, 8.819, 0.535, 8.927]),
+            ('V',        [8.989]),
+            ('Q', [0.535, 9.098, 0.462, 9.168]),
+            ('Q', [0.388, 9.238, 0.272, 9.238]),
+            ('Q', [0.147, 9.238, 0.074, 9.168]),
+            ('Q', [0.000, 9.098, 0.000, 8.989]),
+            ('Z', [])
+        ]
+        path = ''
+        dx = x + width/2
+        for (verb, coords) in prog:
+            if verb in ['M', 'Q']:
+                coords[0] += dx
+            if verb in ['Q']:
+                coords[2] += dx
+            path += verb + ' '.join(['{:0.3f}'.format(z) for z in coords])
+        return path
+
     def render(self, text:str, xpos:float, ypos:float, points:float) -> str:
         """Generate the SVG path that draws this text block at a given location."""
         # Calculate how many millimeters there are per font unit in this point size.
@@ -157,16 +184,27 @@ class Font:
         x = xpos
         y = ypos + mmPerUnit * (self.ttfont['head'].yMax + self.ttfont['head'].yMin/2)
         spen = SVGPathPen(self.glyphs, _FormatMillimeters)
+        extraGlyphs = ''
+        dxdot = 0.0
         for ch in text:
-            gn = self.glyphNameTable.get(ch, ch)
+            if ch == 'ṇ':
+                cc = 'n'
+                dotbeneath = True
+                dxdot = -0.490
+            else:
+                cc = ch
+                dotbeneath = False
+            gn = self.glyphNameTable.get(cc, cc)
             if glyph := self.glyphs.get(gn):
                 tran = DecomposedTransform(translateX = x, translateY = y, scaleX = mmPerUnit, scaleY = -mmPerUnit).toTransform()
                 pen = TransformPen(spen, tran)
                 glyph.draw(pen)
+                if dotbeneath:
+                    extraGlyphs += ' ' + self.dotbeneath(x, y, mmPerUnit*glyph.width + dxdot)
                 x += mmPerUnit * glyph.width
             else:
                 raise Error('Unknown character [' + ch + '], glyph name: [' + gn + ']')
-        return str(spen.getCommands())
+        return str(spen.getCommands()) + extraGlyphs
 
     def measure(self, text:str, points:float) -> Tuple[float,float]:
         """Returns a (width, height) tuple of a rectangle that fits around this text block."""
