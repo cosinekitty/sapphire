@@ -662,6 +662,9 @@ class ControlLayer:
         self.componentList.append(comp)
 
 
+ControlDict = Dict[str, ControlLayer]
+
+
 def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     # Do not write to the file unless the newText is different from
     # what already exists in the file, or we can't even read text from the file.

@@ -8,7 +8,7 @@
 #
 import sys
 import math
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from svgpanel import *
 from sapphire import *
 
@@ -121,7 +121,7 @@ def SymbolArtPath(text:str, x:float, y:float, id:str = '', ds:float = 1.25) -> P
     return Path(path, SYMBOL_TEXT_STYLE, id, 'none')
 
 
-def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     PANEL_WIDTH = 6
     name = 'chaops'
@@ -227,7 +227,7 @@ def GenerateChaosOperatorsPanel(cdict:Dict[str,ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateChaosPanel(cdict:Dict[str,ControlLayer], name: str) -> int:
+def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
     target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
@@ -288,7 +288,7 @@ def GenerateTricorderPanel() -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateTinToutPanel(cdict:Dict[str,ControlLayer], name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
+def GenerateTinToutPanel(cdict:ControlDict, name:str, dir:str, ioLabel:str, dxCoordLabel:float) -> int:
     target = Target.VcvRack
     PANEL_WIDTH = 4
     svgFileName = '../res/{}.svg'.format(name)
@@ -379,7 +379,7 @@ def GradientStyle(gradientId:str, opacity:float) -> str:
     return 'fill:url(#{:s});opacity:{:g};stroke:none'.format(gradientId, opacity)
 
 
-def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GenerateNucleusPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     name = 'nucleus'
     svgFileName = '../res/{}.svg'.format(name)
@@ -492,7 +492,7 @@ def GenerateNucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GeneratePolynucleusPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     name = 'polynucleus'
     svgFileName = '../res/{}.svg'.format(name)
@@ -603,7 +603,7 @@ def GeneratePolynucleusPanel(cdict:Dict[str,ControlLayer]) -> int:
 
 
 
-def GenerateHissPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GenerateHissPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     numOutputs = 10      # Keep in sync with src/hiss.cpp ! Sapphire::Hiss::NumOutputs
     svgFileName = '../res/hiss.svg'
@@ -704,7 +704,7 @@ MOOTS_PANEL_WIDTH = 10
 MOOTS_LABEL_Y = 74.5
 
 
-def GenerateMootsPanel(cdict: Dict[str,ControlLayer]) -> int:
+def GenerateMootsPanel(cdict: ControlDict) -> int:
     svgFileName = '../res/moots.svg'
     panel = Panel(MOOTS_PANEL_WIDTH)
     controls = cdict['moots'] = ControlLayer(panel)
@@ -761,7 +761,7 @@ def GenerateStereoInputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel
     return Save(panel, svgFileName)
 
 
-def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -> int:
+def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
     table:List[Tuple[str, str]] = [
         ('replace',     'REPLACE'),
         ('brightness',  'BRIGHT'),
@@ -844,7 +844,7 @@ def GenerateGalaxyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -
     return Save(panel, svgFileName)
 
 
-def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) -> int:
+def GenerateGravyPanel(cdict:ControlDict, name:str, target:Target) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
         ('resonance',   'RES'),
@@ -938,7 +938,7 @@ def GenerateGravyPanel(cdict:Dict[str,ControlLayer], name:str, target:Target) ->
     return Save(panel, svgFileName)
 
 
-def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
+def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
     target = Target.VcvRack
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
@@ -1007,7 +1007,7 @@ def GenerateSaucePanel(cdict:Dict[str,ControlLayer], name:str) -> int:
 
 
 
-def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GenerateRotiniPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     name = 'rotini'
     svgFileName = '../res/{}.svg'.format(name)
@@ -1064,7 +1064,7 @@ def GenerateRotiniPanel(cdict:Dict[str,ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GeneratePivotPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GeneratePivotPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     name = 'pivot'
     svgFileName = '../res/{}.svg'.format(name)
@@ -1161,7 +1161,7 @@ def PolyPortHexagon(xCenter:float, yCenter:float, radius:float = 5.25) -> Path:
     return Path(t, style)
 
 
-def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GenerateSamPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = '../res/sam.svg'
     PANEL_WIDTH = 2
@@ -1205,7 +1205,7 @@ def GenerateSamPanel(cdict:Dict[str,ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GeneratePopPanel(cdict:Dict[str,ControlLayer]) -> int:
+def GeneratePopPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     name = 'pop'
     svgFileName = '../res/{}.svg'.format(name)
@@ -1284,7 +1284,7 @@ def PadRight(text:str, length:int) -> str:
     return text
 
 
-def SaveControls(cdict:Dict[str, ControlLayer]) -> int:
+def SaveControls(cdict:ControlDict) -> int:
     text = '// *** GENERATED CODE *** DO NOT EDIT ***\n'
     text += '#include "sapphire_panel.hpp"\n'
     text += '\n'
@@ -1493,7 +1493,7 @@ def GenerateElastikaLayers() -> int:
     )
 
 
-def GenerateElastikaPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
+def GenerateElastikaPanel(cdict:ControlDict, target:Target) -> int:
     PANEL_WIDTH = 12
     svgFileName = SvgFileName('elastika', target)
 
@@ -1610,7 +1610,7 @@ def AddTubeUnitGroup(controls:ControlLayer, target:Target, pl:Element, prefix:st
         AddTubeUnitControl(controls, target, pl, prefix + '_cv',    column, row, -10.0*xdir, +4.0)
 
 
-def PlaceTubeUnitControls(cdict:Dict[str, ControlLayer], pl: Element, target:Target) -> int:
+def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
     if target == Target.VcvRack:
         cdsymbol = 'tubeunit'
     elif target == Target.Lite:
@@ -1717,7 +1717,7 @@ def TubeUnitMainPanel(target:Target, title:str) -> Tuple[Panel, Element]:
     return (panel, pl)
 
 
-def GenerateTubeUnitMainPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
+def GenerateTubeUnitMainPanel(cdict:ControlDict, title:str, symbol:str) -> int:
     target = Target.VcvRack
     panel, pl = TubeUnitMainPanel(target, title)
     pl.append(TubeUnitPortArtwork())
@@ -1834,7 +1834,7 @@ def GenerateTubeUnitVentLayer(name:str) -> int:
     return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
 
 
-def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
+def GenerateTubeUnitExportPanel(cdict:ControlDict, title:str, symbol:str) -> int:
     # Combine the control layer with the label layer for external applications to render the panel.
     target = Target.Lite
     panel, pl = TubeUnitMainPanel(target, title)
@@ -1845,7 +1845,7 @@ def GenerateTubeUnitExportPanel(cdict:Dict[str, ControlLayer], title:str, symbol
     )
 
 
-def GenerateTubeUnit(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> int:
+def GenerateTubeUnit(cdict:ControlDict, title:str, symbol:str) -> int:
     if (
         GenerateTubeUnitMainPanel(cdict, title, symbol) or
         GenerateTubeUnitExportPanel(cdict, title, symbol)
@@ -1862,7 +1862,7 @@ def GenerateTubeUnit(cdict:Dict[str, ControlLayer], title:str, symbol:str) -> in
     return 0
 
 
-def GenerateEnvPitchPanel(cdict:Dict[str, ControlLayer], target:Target) -> int:
+def GenerateEnvPitchPanel(cdict:ControlDict, target:Target) -> int:
     name = 'env'
     PANEL_WIDTH = 6
     svgFileName = SvgFileName(name, target)
@@ -2083,7 +2083,7 @@ def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
     controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
 
 
-def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     name = 'echo'
     svgFileName = SvgFileName(name, target)
@@ -2202,7 +2202,7 @@ def GenerateEchoPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateEchoTapPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoTapPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     name = 'echotap'
     svgFileName = SvgFileName(name, target)
@@ -2295,7 +2295,7 @@ def AddOmriLogo(pl:Element, xCenter:float, yCenter:float = 122.5, shrink:float =
     pl.append(logo)
 
 
-def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateEchoOutPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     name = 'echoout'
     PANEL_WIDTH = 4
@@ -2319,7 +2319,7 @@ def GenerateEchoOutPanel(cdict: Dict[str, ControlLayer]) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateMultiTapPanels(cdict: Dict[str, ControlLayer]) -> int:
+def GenerateMultiTapPanels(cdict: ControlDict) -> int:
     return (
         GenerateEchoPanel(cdict) or
         GenerateEchoTapPanel(cdict) or
@@ -2397,7 +2397,7 @@ def GenerateMultiTapButtons() -> int:
     )
 
 
-def GenerateVcoPanel(cdict: Dict[str, ControlLayer], name:str, slug:str, target:Target) -> int:
+def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         PANEL_WIDTH = 9
         svgFileName = SvgFileName(slug, target)
@@ -2414,7 +2414,7 @@ def GenerateVcoPanel(cdict: Dict[str, ControlLayer], name:str, slug:str, target:
 
 
 if __name__ == '__main__':
-    cdict:Dict[str, ControlLayer] = {}
+    cdict:ControlDict = {}
     sys.exit(
         GenerateMultiTapButtons() or
         GenerateMultiTapPanels(cdict) or
