@@ -8,4 +8,4 @@ jobs:
     - name: Install cppcheck
       run: sudo apt install -y cppcheck
     - name: Sapphire unit tests
-      run: cd util && ./runtests
+      run: cd util && ./prebuild && ./verify_clean && ./runtests
