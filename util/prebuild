@@ -14,7 +14,7 @@ RunPython()
 ./nucleus_solver || exit 1
 
 # Generate the optimized RK4 simulator for the Vina ribbon/mesh.
-RunPython rk4/rk4_mesh_compiler.py
+RunPython rk4/rk4_mesh_compiler.py rk4/vina.json ../src/vina_rk4.hpp
 
 # Generate a custom force calculator for Elastika with unrolled loops.
 ./elastika_mesh_gen || exit 1
