@@ -7,5 +7,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install cppcheck
       run: sudo apt install -y cppcheck
+    - name: Install mypy
+      run: python -m pip install --upgrade pip && pip install mypy
     - name: Sapphire unit tests
       run: cd util && ./prebuild && ./verify_clean && ./runtests
