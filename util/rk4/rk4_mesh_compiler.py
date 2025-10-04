@@ -33,14 +33,18 @@ def GenInitialize() -> str:
     s += indent + '        particle[i].pos = PhysicsVector{horSpace*c, verSpace*r, 0, 0};\n'
     s += indent + '        particle[i].vel = PhysicsVector{0, 0, 0, 0};\n'
     s += indent + '    }\n'
-    s += indent + '}\n'
+    s += indent + '}'
     return s
 
 
 def GenVinaSourceCode() -> str:
     nMobileColumns = 13
     nColumns = nMobileColumns + 2
-    s = r'''//*** GENERATED CODE - !!! DO NOT EDIT !!! ***
+    s = r'''/***************************************************
+***                                              ***
+***     GENERATED CODE - !!! DO NOT EDIT !!!     ***
+***                                              ***
+****************************************************/
 #pragma once
 #include "sapphire_simd.hpp"
 namespace Sapphire

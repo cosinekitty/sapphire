@@ -1,4 +1,8 @@
-//*** GENERATED CODE - !!! DO NOT EDIT !!! ***
+/***************************************************
+***                                              ***
+***     GENERATED CODE - !!! DO NOT EDIT !!!     ***
+***                                              ***
+****************************************************/
 #pragma once
 #include "sapphire_simd.hpp"
 namespace Sapphire
@@ -52,7 +56,6 @@ namespace Sapphire
                         particle[i].vel = PhysicsVector{0, 0, 0, 0};
                     }
                 }
-
             }
 
             void pluck()

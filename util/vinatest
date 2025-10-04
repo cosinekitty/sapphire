@@ -1,0 +1,2 @@
+#!/bin/bash
+./gen_vina_code && cd unittest && ./run vina && cd ..
