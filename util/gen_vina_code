@@ -6,5 +6,5 @@ RunPython()
     return 0
 }
 
-RunPython rk4/rk4_mesh_compiler.py rk4/vina.json ../src/vina_rk4.hpp
+RunPython rk4/rk4_mesh_compiler.py ../src/vina_rk4.hpp
 exit 0

@@ -1513,7 +1513,33 @@ static int CalculatorTest()
 
 static int VinaTest()
 {
-    Sapphire::Vina::VinaEngine engine;
+    using namespace Sapphire::Vina;
+
+    VinaEngine engine;
+    engine.initialize();
+
+    const float sampleRateHz = 48000;
+    const int channels = 2;
+    const char *outFileName = "output/vina.wav";
+
+    ScaledWaveFileWriter outwave;
+    if (!outwave.Open(outFileName, sampleRateHz, channels))
+        return Fail("VinaTest", std::string("Could not open output file: ") + outFileName);
+
+    const float durationSeconds = 5;
+    const float pluckSeconds = 0.1;
+    const unsigned nFrames = static_cast<unsigned>(sampleRateHz * durationSeconds);
+    const unsigned pluckFrame = static_cast<unsigned>(sampleRateHz * pluckSeconds);
+    for (unsigned f = 0; f < nFrames; ++f)
+    {
+        if (f == pluckFrame)
+            engine.pluck();
+
+        VinaStereoFrame frame = engine.update(sampleRateHz);
+        outwave.WriteSamples(frame.sample, 2);
+    }
+
+    outwave.Close();
     return Pass("VinaTest");
 }
 

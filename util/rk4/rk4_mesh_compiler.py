@@ -23,12 +23,26 @@ def UpdateFileIfChanged(filename:str, newText:str) -> bool:
 
 
 def GenVinaSourceCode() -> str:
+    nMobileColumns = 13
     s = r'''//*** GENERATED CODE - !!! DO NOT EDIT !!! ***
 #pragma once
 namespace Sapphire
 {
     namespace Vina
     {
+        constexpr unsigned nRows = 2;
+        constexpr unsigned nMobileColumns = $nMobileColumns$;
+        constexpr unsigned nColumns = nMobileColumns + 2;
+
+        struct VinaStereoFrame
+        {
+            float sample[2];
+
+            explicit VinaStereoFrame(float left, float right)
+                : sample{left, right}
+                {}
+        };
+
         class VinaEngine
         {
         public:
@@ -36,21 +50,35 @@ namespace Sapphire
             {
             }
 
+            void initialize()
+            {
+            }
+
+            void pluck()
+            {
+            }
+
+            VinaStereoFrame update(float sampleRateHz)
+            {
+                float left = 0;
+                float right = 0;
+                return VinaStereoFrame{left, right};
+            }
+
         private:
         };
     }
 }
 '''
+    s = s.replace('$nMobileColumns$', str(nMobileColumns))
     return s
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
-        print('USAGE: rk4_mesh_compiler in_mesh.json out_mesh.hpp')
+    if len(sys.argv) != 2:
+        print('USAGE: rk4_mesh_compiler outfile.hpp')
         return 1
-    inMeshJsonFileName = sys.argv[1]
-    outMeshHeaderFileName = sys.argv[2]
-    print('rk4_mesh_compiler: translating {} ==> {}'.format(inMeshJsonFileName, outMeshHeaderFileName))
+    outMeshHeaderFileName = sys.argv[1]
     vinaSourceCode = GenVinaSourceCode()
     UpdateFileIfChanged(outMeshHeaderFileName, vinaSourceCode)
     return 0
