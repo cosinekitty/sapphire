@@ -22,17 +22,44 @@ def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     return True
 
 
+def GenInitialize() -> str:
+    indent = ' '*(4*4)
+    s = ''
+    s += indent + 'for (unsigned r = 0; r < nRows; ++r)\n'
+    s += indent + '{\n'
+    s += indent + '    for (unsigned c = 0; c < nColumns; ++c)\n'
+    s += indent + '    {\n'
+    s += indent + '        unsigned i = particleIndex(c, r);\n'
+    s += indent + '        particle[i].pos = PhysicsVector{horSpace*c, verSpace*r, 0, 0};\n'
+    s += indent + '        particle[i].vel = PhysicsVector{0, 0, 0, 0};\n'
+    s += indent + '    }\n'
+    s += indent + '}\n'
+    return s
+
+
 def GenVinaSourceCode() -> str:
     nMobileColumns = 13
+    nColumns = nMobileColumns + 2
     s = r'''//*** GENERATED CODE - !!! DO NOT EDIT !!! ***
 #pragma once
+#include "sapphire_simd.hpp"
 namespace Sapphire
 {
     namespace Vina
     {
         constexpr unsigned nRows = 2;
-        constexpr unsigned nMobileColumns = $nMobileColumns$;
-        constexpr unsigned nColumns = nMobileColumns + 2;
+        constexpr unsigned nMobileColumns = $N_MOBILE_COLUMNS$;
+        constexpr unsigned nColumns = $N_COLUMNS$;
+        constexpr unsigned nParticles = nColumns * nRows;
+        constexpr unsigned nMobileParticles = nMobileColumns * nRows;
+
+        constexpr float horSpace = 0.01;    // horizontal spacing in meters
+        constexpr float verSpace = 0.01;    // vertical spacing in meters
+
+        inline unsigned particleIndex(unsigned c, unsigned r)
+        {
+            return r + c*nRows;
+        }
 
         struct VinaStereoFrame
         {
@@ -41,6 +68,12 @@ namespace Sapphire
             explicit VinaStereoFrame(float left, float right)
                 : sample{left, right}
                 {}
+        };
+
+        struct VinaParticle
+        {
+            PhysicsVector pos;
+            PhysicsVector vel;
         };
 
         class VinaEngine
@@ -52,6 +85,7 @@ namespace Sapphire
 
             void initialize()
             {
+$INITIALIZE$
             }
 
             void pluck()
@@ -66,11 +100,14 @@ namespace Sapphire
             }
 
         private:
+            VinaParticle particle[nParticles];
         };
     }
 }
 '''
-    s = s.replace('$nMobileColumns$', str(nMobileColumns))
+    s = s.replace('$N_MOBILE_COLUMNS$', str(nMobileColumns))
+    s = s.replace('$N_COLUMNS$', str(nColumns))
+    s = s.replace('$INITIALIZE$', GenInitialize())
     return s
 
 
