@@ -28,6 +28,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         struct VinaModule : SapphireModule
         {
+            VinaEngine engine[PORT_MAX_CHANNELS];
+
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {

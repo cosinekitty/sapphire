@@ -12,6 +12,7 @@
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
 #include "sapphire_prog_chaos.hpp"
+#include "vina_rk4.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -47,6 +48,7 @@ static int PopTest();
 static int QuadraticTest();
 static int ReadWave();
 static int TaperTest();
+static int VinaTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -64,6 +66,7 @@ static const UnitTest CommandTable[] =
     { "readwave",   ReadWave         },
     { "scale",      AutoScale        },
     { "taper",      TaperTest        },
+    { "vina",       VinaTest         },
     { nullptr,  nullptr }
 };
 
@@ -1508,3 +1511,11 @@ static int CalculatorTest()
 //---------------------------------------------------------------------------------------
 
 
+static int VinaTest()
+{
+    Sapphire::Vina::VinaEngine engine;
+    return Pass("VinaTest");
+}
+
+
+//---------------------------------------------------------------------------------------

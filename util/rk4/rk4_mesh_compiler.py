@@ -29,6 +29,15 @@ namespace Sapphire
 {
     namespace Vina
     {
+        class VinaEngine
+        {
+        public:
+            explicit VinaEngine()
+            {
+            }
+
+        private:
+        };
     }
 }
 '''
