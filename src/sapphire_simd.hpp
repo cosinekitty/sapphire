@@ -57,6 +57,12 @@ namespace Sapphire
             // Check for finite 3D vector, optimized by ignoring the fourth component that we don't care about.
             return std::isfinite(s[0]) && std::isfinite(s[1]) && std::isfinite(s[2]);
         }
+
+        float mag() const
+        {
+            PhysicsVector p(_mm_mul_ps(v, v));
+            return std::sqrt(p.s[0] + p.s[1] + p.s[2]);
+        }
     };
 
     inline PhysicsVector operator + (const PhysicsVector& a, const PhysicsVector& b)
