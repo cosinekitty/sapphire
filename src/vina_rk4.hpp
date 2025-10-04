@@ -2,6 +2,9 @@
 ***                                              ***
 ***     GENERATED CODE - !!! DO NOT EDIT !!!     ***
 ***                                              ***
+***     To make changes to this code, edit:      ***
+***     ../util/rk4/rk4_mesh_compiler.py         ***
+***                                              ***
 ****************************************************/
 #pragma once
 #include "sapphire_simd.hpp"
@@ -56,16 +59,23 @@ namespace Sapphire
                         particle[i].vel = PhysicsVector{0, 0, 0, 0};
                     }
                 }
+
             }
 
             void pluck()
             {
+                // For now, apply a velocity thump to a single ball.
+                constexpr float thump = 1.0e-3;
+                particle[1].vel[1] += thump;
+
             }
 
             VinaStereoFrame update(float sampleRateHz)
             {
                 float left = 0;
                 float right = 0;
+                // FIXFIXFIX
+
                 return VinaStereoFrame{left, right};
             }
 

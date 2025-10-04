@@ -22,18 +22,37 @@ def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     return True
 
 
+
+
+def Line(s:str, indent:int = 4) -> str:
+    return (' '*(4*indent)) + s + '\n'
+
+
 def GenInitialize() -> str:
-    indent = ' '*(4*4)
     s = ''
-    s += indent + 'for (unsigned r = 0; r < nRows; ++r)\n'
-    s += indent + '{\n'
-    s += indent + '    for (unsigned c = 0; c < nColumns; ++c)\n'
-    s += indent + '    {\n'
-    s += indent + '        unsigned i = particleIndex(c, r);\n'
-    s += indent + '        particle[i].pos = PhysicsVector{horSpace*c, verSpace*r, 0, 0};\n'
-    s += indent + '        particle[i].vel = PhysicsVector{0, 0, 0, 0};\n'
-    s += indent + '    }\n'
-    s += indent + '}'
+    s += Line('for (unsigned r = 0; r < nRows; ++r)')
+    s += Line('{')
+    s += Line('    for (unsigned c = 0; c < nColumns; ++c)')
+    s += Line('    {')
+    s += Line('        unsigned i = particleIndex(c, r);')
+    s += Line('        particle[i].pos = PhysicsVector{horSpace*c, verSpace*r, 0, 0};')
+    s += Line('        particle[i].vel = PhysicsVector{0, 0, 0, 0};')
+    s += Line('    }')
+    s += Line('}')
+    return s
+
+
+def GenPluck() -> str:
+    s = ''
+    s += Line('// For now, apply a velocity thump to a single ball.')
+    s += Line('constexpr float thump = 1.0e-3;')
+    s += Line('particle[1].vel[1] += thump;')
+    return s
+
+
+def GenUpdate() -> str:
+    s = ''
+    s += Line('// FIXFIXFIX')
     return s
 
 
@@ -43,6 +62,9 @@ def GenVinaSourceCode() -> str:
     s = r'''/***************************************************
 ***                                              ***
 ***     GENERATED CODE - !!! DO NOT EDIT !!!     ***
+***                                              ***
+***     To make changes to this code, edit:      ***
+***     ../util/rk4/rk4_mesh_compiler.py         ***
 ***                                              ***
 ****************************************************/
 #pragma once
@@ -94,12 +116,14 @@ $INITIALIZE$
 
             void pluck()
             {
+$PLUCK$
             }
 
             VinaStereoFrame update(float sampleRateHz)
             {
                 float left = 0;
                 float right = 0;
+$UPDATE$
                 return VinaStereoFrame{left, right};
             }
 
@@ -112,6 +136,8 @@ $INITIALIZE$
     s = s.replace('$N_MOBILE_COLUMNS$', str(nMobileColumns))
     s = s.replace('$N_COLUMNS$', str(nColumns))
     s = s.replace('$INITIALIZE$', GenInitialize())
+    s = s.replace('$PLUCK$', GenPluck())
+    s = s.replace('$UPDATE$', GenUpdate())
     return s
 
 
