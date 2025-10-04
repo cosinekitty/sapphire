@@ -27,6 +27,9 @@ def GenVinaSourceCode() -> str:
 #pragma once
 namespace Sapphire
 {
+    namespace Vina
+    {
+    }
 }
 '''
     return s

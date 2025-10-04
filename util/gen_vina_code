@@ -1,0 +1,10 @@
+#!/bin/bash
+RunPython()
+{
+    mypy --strict $1 || exit 1
+    PYTHON_COLORS=0 python3 $* || exit 1
+    return 0
+}
+
+RunPython rk4/rk4_mesh_compiler.py rk4/vina.json ../src/vina_rk4.hpp
+exit 0

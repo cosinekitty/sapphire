@@ -2,4 +2,7 @@
 #pragma once
 namespace Sapphire
 {
+    namespace Vina
+    {
+    }
 }
