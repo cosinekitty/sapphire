@@ -13,11 +13,15 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         enum InputId
         {
+            GATE_INPUT,
+            VOCT_INPUT,
             INPUTS_LEN
         };
 
         enum OutputId
         {
+            AUDIO_LEFT_OUTPUT,
+            AUDIO_RIGHT_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -26,14 +30,31 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             LIGHTS_LEN
         };
 
+        struct ChannelInfo
+        {
+            VinaEngine engine;
+            GateTriggerReceiver gateReceiver;
+
+            void initialize()
+            {
+                engine.initialize();
+                gateReceiver.initialize();
+            }
+        };
+
         struct VinaModule : SapphireModule
         {
-            VinaEngine engine[PORT_MAX_CHANNELS];
+            int numActiveChannels = 0;
+            ChannelInfo channelInfo[PORT_MAX_CHANNELS];
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configInput(GATE_INPUT, "Gate");
+                configInput(VOCT_INPUT, "V/OCT");
+                configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+                configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 initialize();
             }
 
@@ -45,10 +66,22 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
             void initialize()
             {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    channelInfo[c].initialize();
             }
 
             void process(const ProcessArgs& args) override
             {
+                numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
+                outputs[AUDIO_LEFT_OUTPUT].setChannels(numActiveChannels);
+                outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+                for (int c = 0; c < numActiveChannels; ++c)
+                {
+                    ChannelInfo& q = channelInfo[c];
+                    const auto frame = q.engine.update(args.sampleRate);
+                    outputs[AUDIO_LEFT_OUTPUT].setVoltage (frame.sample[0], c);
+                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
+                }
             }
         };
 
@@ -58,6 +91,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 : SapphireWidget("vina", asset::plugin(pluginInstance, "res/vina.svg"))
             {
                 setModule(module);
+                addSapphireInput(GATE_INPUT, "gate_input");
+                addSapphireInput(VOCT_INPUT, "voct_input");
+                addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
             }
         };
     }
