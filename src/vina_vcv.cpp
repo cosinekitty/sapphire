@@ -75,9 +75,19 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
                 outputs[AUDIO_LEFT_OUTPUT].setChannels(numActiveChannels);
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+                float gateVoltage = 0;
+                float voctVoltage = 0;
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
+
+                    nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
+                    nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
+
+                    q.gateReceiver.update(gateVoltage);
+                    if (q.gateReceiver.isTriggerActive())
+                        q.engine.pluck();
+
                     const auto frame = q.engine.update(args.sampleRate);
                     outputs[AUDIO_LEFT_OUTPUT].setVoltage (frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
