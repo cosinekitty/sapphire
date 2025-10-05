@@ -270,7 +270,7 @@
     },
     {
       "slug": "Vina",
-      "name": "Vīṇā",
+      "name": "Vina",
       "description": "VCO - physics simulation of a Vedic-style stringed instrument",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Vina.md",
       "tags": [
