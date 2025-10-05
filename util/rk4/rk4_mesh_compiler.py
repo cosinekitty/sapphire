@@ -52,6 +52,7 @@ def GenUpdate() -> str:
     speedMultiplier = 13.0      # FIXFIXFIX - tune the fundamental to C
     s = ''
     s += Line('sim.step({:g}/sampleRateHz);'.format(speedMultiplier))
+    s += Line('brake(sampleRateHz, 0.25);')
     s += Line('return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};')
     return s
 
@@ -244,6 +245,13 @@ $UPDATE$
         private:
             vina_sim_t sim;
 $SPRINGS$
+
+            void brake(float sampleRateHz, float halfLifeSeconds)
+            {
+                const float factor = std::pow(0.5, 1/(sampleRateHz*halfLifeSeconds));
+                for (unsigned i = 0; i < nParticles; ++i)
+                    sim.state[i].vel *= factor;
+            }
         };
     }
 }

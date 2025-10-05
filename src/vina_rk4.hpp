@@ -169,6 +169,7 @@ namespace Sapphire
             VinaStereoFrame update(float sampleRateHz)
             {
                 sim.step(13/sampleRateHz);
+                brake(sampleRateHz, 0.25);
                 return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};
 
             }
@@ -207,6 +208,13 @@ namespace Sapphire
                     VinaSpring{27, 29},
                 };
 
+
+            void brake(float sampleRateHz, float halfLifeSeconds)
+            {
+                const float factor = std::pow(0.5, 1/(sampleRateHz*halfLifeSeconds));
+                for (unsigned i = 0; i < nParticles; ++i)
+                    sim.state[i].vel *= factor;
+            }
         };
     }
 }
