@@ -95,12 +95,9 @@ namespace Sapphire
         using spring_list_t = std::vector<VinaSpring>;
 
 
-        class VinaDeriv
+        struct VinaDeriv
         {
-        private:
             const spring_list_t& springs;
-
-        public:
             PhysicsVector gravity;
             double stiffness = 40.0;
             double restLength = 0.001;
@@ -137,9 +134,10 @@ namespace Sapphire
 
         using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
 
-        class VinaEngine
+        struct VinaEngine
         {
-        public:
+            float halfLifeSeconds = 0.2;
+
             explicit VinaEngine()
                 : sim(VinaDeriv(springs), nParticles)
                 {}
@@ -155,7 +153,6 @@ namespace Sapphire
                         sim.state[i].vel = PhysicsVector{0, 0, 0, 0};
                     }
                 }
-
             }
 
             void pluck()
@@ -163,18 +160,23 @@ namespace Sapphire
                 // For now, apply a velocity thump to a single ball.
                 constexpr float thump = 1.0;
                 sim.state[1].vel[1] += thump;
-
             }
 
             VinaStereoFrame update(float sampleRateHz)
             {
                 sim.step(13/sampleRateHz);
-                brake(sampleRateHz, 0.25);
+                brake(sampleRateHz, halfLifeSeconds);
                 return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};
-
             }
 
-        private:
+            float maxSpeed() const
+            {
+                float s = 0;
+                for (const VinaParticle& p : sim.state)
+                    s = std::max(s, Quadrature(p.vel));
+                return std::sqrt(s);
+            }
+
             vina_sim_t sim;
                 spring_list_t springs
                 {
@@ -222,12 +224,24 @@ namespace Sapphire
                     VinaSpring{28, 29},
                 };
 
-
             void brake(float sampleRateHz, float halfLifeSeconds)
             {
                 const float factor = std::pow(0.5, 1/(sampleRateHz*halfLifeSeconds));
-                for (unsigned i = 0; i < nParticles; ++i)
-                    sim.state[i].vel *= factor;
+                for (VinaParticle& p : sim.state)
+                    p.vel *= factor;
+            }
+
+            void settle(
+                float sampleRateHz = 48000,
+                float halfLifeSeconds = 0.1,
+                float settleTimeSeconds = 5.0)
+            {
+                const unsigned nFrames = static_cast<unsigned>(sampleRateHz * settleTimeSeconds);
+                for (unsigned frameCount = 0; frameCount < nFrames; ++frameCount)
+                {
+                    update(sampleRateHz);
+                    brake(sampleRateHz, halfLifeSeconds);
+                }
             }
         };
     }
