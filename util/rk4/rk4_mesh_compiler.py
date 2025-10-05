@@ -43,7 +43,7 @@ def GenInitialize() -> str:
 def GenPluck() -> str:
     s = ''
     s += Line('// For now, apply a velocity thump to a single ball.')
-    s += Line('constexpr float thump = 1.0e-3;')
+    s += Line('constexpr float thump = 1.0;')
     s += Line('sim.state[1].vel[1] += thump;')
     return s
 
@@ -94,13 +94,19 @@ namespace Sapphire
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float verSpace = 0.01;    // vertical spacing in meters
 
-        inline unsigned particleIndex(unsigned c, unsigned r)
+        constexpr unsigned particleIndex(unsigned c, unsigned r)
         {
             assert(c < nColumns);
             assert(r < nRows);
             unsigned i = r + c*nRows;
             assert(i < nParticles);
             return i;
+        }
+
+        constexpr bool isMobileIndex(unsigned i)
+        {
+            unsigned c = i/nRows;
+            return (c>0) && (c<=nMobileColumns);
         }
 
         struct VinaStereoFrame
@@ -181,7 +187,7 @@ namespace Sapphire
                 for (unsigned i = 0; i < nParticles; ++i)
                 {
                     slope[i].pos = state[i].vel;
-                    slope[i].vel = (i < nMobileParticles) ? gravity : PhysicsVector{};
+                    slope[i].vel = isMobileIndex(i) ? gravity : PhysicsVector{};
                 }
 
                 for (const VinaSpring& s : springs)
@@ -192,8 +198,8 @@ namespace Sapphire
                     const double length = dr.mag();
                     const double fmag = stiffness*(length - restLength);
                     const PhysicsVector acc = (fmag/(mass * length)) * dr;
-                    if (s.ia < nMobileParticles)  slope[s.ia].vel += acc;
-                    if (s.ib < nMobileParticles)  slope[s.ib].vel -= acc;
+                    if (isMobileIndex(s.ia))  slope[s.ia].vel += acc;
+                    if (isMobileIndex(s.ib))  slope[s.ib].vel -= acc;
                 }
             }
         };
