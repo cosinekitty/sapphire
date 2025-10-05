@@ -1526,6 +1526,13 @@ static int VinaTest()
     if (!outwave.Open(outFileName, sampleRateHz, channels))
         return Fail("VinaTest", std::string("Could not open output file: ") + outFileName);
 
+    const float settleSeconds = 10;
+    const unsigned settleFrames = static_cast<unsigned>(sampleRateHz * settleSeconds);
+    for (unsigned f = 0; f < settleFrames; ++f)
+    {
+        engine.update(sampleRateHz);
+    }
+
     const float durationSeconds = 5;
     const float pluckSeconds = 0.1;
     const unsigned nFrames = static_cast<unsigned>(sampleRateHz * durationSeconds);

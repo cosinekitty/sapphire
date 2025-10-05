@@ -1,3 +1,5 @@
 #!/bin/bash
+rm -f unittest/output/vina.wav
 ( ./gen_vina_code && cd unittest && ./run vina ) || exit 1
+mplayer unittest/output/vina.wav || exit 1
 exit 0

@@ -102,7 +102,7 @@ namespace Sapphire
 
         public:
             PhysicsVector gravity;
-            double stiffness = 30.0;
+            double stiffness = 40.0;
             double restLength = 0.001;
             double mass = 0.001;
 
@@ -180,32 +180,46 @@ namespace Sapphire
                 {
                     VinaSpring{0, 2},
                     VinaSpring{1, 3},
+                    VinaSpring{2, 3},
                     VinaSpring{2, 4},
                     VinaSpring{3, 5},
+                    VinaSpring{4, 5},
                     VinaSpring{4, 6},
                     VinaSpring{5, 7},
+                    VinaSpring{6, 7},
                     VinaSpring{6, 8},
                     VinaSpring{7, 9},
+                    VinaSpring{8, 9},
                     VinaSpring{8, 10},
                     VinaSpring{9, 11},
+                    VinaSpring{10, 11},
                     VinaSpring{10, 12},
                     VinaSpring{11, 13},
+                    VinaSpring{12, 13},
                     VinaSpring{12, 14},
                     VinaSpring{13, 15},
+                    VinaSpring{14, 15},
                     VinaSpring{14, 16},
                     VinaSpring{15, 17},
+                    VinaSpring{16, 17},
                     VinaSpring{16, 18},
                     VinaSpring{17, 19},
+                    VinaSpring{18, 19},
                     VinaSpring{18, 20},
                     VinaSpring{19, 21},
+                    VinaSpring{20, 21},
                     VinaSpring{20, 22},
                     VinaSpring{21, 23},
+                    VinaSpring{22, 23},
                     VinaSpring{22, 24},
                     VinaSpring{23, 25},
+                    VinaSpring{24, 25},
                     VinaSpring{24, 26},
                     VinaSpring{25, 27},
+                    VinaSpring{26, 27},
                     VinaSpring{26, 28},
                     VinaSpring{27, 29},
+                    VinaSpring{28, 29},
                 };
 
 

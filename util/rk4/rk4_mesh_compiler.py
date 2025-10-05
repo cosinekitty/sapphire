@@ -62,6 +62,9 @@ def particleIndex(c:int, r:int) -> int:
 
 
 def GenSprings(ncolumns:int) -> str:
+    def spring(ia:int, ib:int) -> str:
+        return Line('    VinaSpring{' + str(ia) + ', ' + str(ib) + '},')
+
     s = ''
     s += Line('spring_list_t springs')
     s += Line('{')
@@ -69,11 +72,13 @@ def GenSprings(ncolumns:int) -> str:
         # lower string
         ia = particleIndex(column-1, 0)
         ib = particleIndex(column, 0)
-        s += Line('    VinaSpring{' + str(ia) + ', ' + str(ib) + '},')
+        s += spring(ia, ib)
         # upper string
-        ia = particleIndex(column-1, 1)
-        ib = particleIndex(column, 1)
-        s += Line('    VinaSpring{' + str(ia) + ', ' + str(ib) + '},')
+        ic = particleIndex(column-1, 1)
+        id = particleIndex(column, 1)
+        s += spring(ic, id)
+        # weak force
+        s += spring(ib, id)
     s += Line('};')
     return s
 
@@ -185,7 +190,7 @@ namespace Sapphire
 
         public:
             PhysicsVector gravity;
-            double stiffness = 30.0;
+            double stiffness = 40.0;
             double restLength = 0.001;
             double mass = 0.001;
 
@@ -273,6 +278,7 @@ def main() -> int:
     vinaSourceCode = GenVinaSourceCode()
     UpdateFileIfChanged(outMeshHeaderFileName, vinaSourceCode)
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())
