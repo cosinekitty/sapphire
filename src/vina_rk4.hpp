@@ -14,7 +14,7 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr unsigned nRows = 2;
+        constexpr unsigned nRows = 1;
         constexpr unsigned nMobileColumns = 13;
         constexpr unsigned nColumns = 15;
         constexpr unsigned nParticles = nColumns * nRows;
@@ -100,9 +100,9 @@ namespace Sapphire
         {
             const spring_list_t& springs;
             PhysicsVector gravity;
-            double stiffness = 40.0;
-            double restLength = 0.001;
-            double mass = 0.001;
+            double stiffness = 89.0;
+            double restLength = 0.004;
+            double mass = 1.0e-03;
 
             explicit VinaDeriv(const spring_list_t& _springs)
                 : springs(_springs)
@@ -138,6 +138,7 @@ namespace Sapphire
         struct VinaEngine
         {
             float halfLifeSeconds = 0.2;
+            unsigned oversample = 1;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(springs), nParticles)
@@ -158,17 +159,18 @@ namespace Sapphire
 
             void pluck()
             {
-                // For now, apply a velocity thump to a single ball.
                 constexpr float thump = 0.1;
                 sim.state[3].vel[0] += thump;
-                sim.state[4].vel[1] += thump;
             }
 
             VinaStereoFrame update(float sampleRateHz)
             {
-                sim.step(13/sampleRateHz);
+                const float dt = 13 / sampleRateHz;
+                const float et = dt / oversample;
+                for (unsigned k = 0; k < oversample; ++k)
+                    sim.step(et);
                 brake(sampleRateHz, halfLifeSeconds);
-                return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[1]};
+                return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[0]};
             }
 
             float maxSpeed() const
@@ -182,48 +184,20 @@ namespace Sapphire
             vina_sim_t sim;
                 spring_list_t springs
                 {
-                    VinaSpring{0, 2},
-                    VinaSpring{1, 3},
+                    VinaSpring{0, 1},
+                    VinaSpring{1, 2},
                     VinaSpring{2, 3},
-                    VinaSpring{2, 4},
-                    VinaSpring{3, 5},
+                    VinaSpring{3, 4},
                     VinaSpring{4, 5},
-                    VinaSpring{4, 6},
-                    VinaSpring{5, 7},
+                    VinaSpring{5, 6},
                     VinaSpring{6, 7},
-                    VinaSpring{6, 8},
-                    VinaSpring{7, 9},
+                    VinaSpring{7, 8},
                     VinaSpring{8, 9},
-                    VinaSpring{8, 10},
-                    VinaSpring{9, 11},
+                    VinaSpring{9, 10},
                     VinaSpring{10, 11},
-                    VinaSpring{10, 12},
-                    VinaSpring{11, 13},
+                    VinaSpring{11, 12},
                     VinaSpring{12, 13},
-                    VinaSpring{12, 14},
-                    VinaSpring{13, 15},
-                    VinaSpring{14, 15},
-                    VinaSpring{14, 16},
-                    VinaSpring{15, 17},
-                    VinaSpring{16, 17},
-                    VinaSpring{16, 18},
-                    VinaSpring{17, 19},
-                    VinaSpring{18, 19},
-                    VinaSpring{18, 20},
-                    VinaSpring{19, 21},
-                    VinaSpring{20, 21},
-                    VinaSpring{20, 22},
-                    VinaSpring{21, 23},
-                    VinaSpring{22, 23},
-                    VinaSpring{22, 24},
-                    VinaSpring{23, 25},
-                    VinaSpring{24, 25},
-                    VinaSpring{24, 26},
-                    VinaSpring{25, 27},
-                    VinaSpring{26, 27},
-                    VinaSpring{26, 28},
-                    VinaSpring{27, 29},
-                    VinaSpring{28, 29},
+                    VinaSpring{13, 14},
                 };
 
             void brake(float sampleRateHz, float halfLifeSeconds)

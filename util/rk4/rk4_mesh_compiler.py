@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import sys
 
+nRows = 1
+nMobileColumns = 13
+nColumns = nMobileColumns + 2
+
+
 def UpdateFileIfChanged(filename:str, newText:str) -> bool:
     # Do not write to the file unless the newText is different from
     # what already exists in the file, or we can't even read text from the file.
@@ -42,24 +47,25 @@ def GenInitialize() -> str:
 
 def GenPluck() -> str:
     s = ''
-    s += Line('// For now, apply a velocity thump to a single ball.')
     s += Line('constexpr float thump = 0.1;')
     s += Line('sim.state[3].vel[0] += thump;')
-    s += Line('sim.state[4].vel[1] += thump;')
     return s.rstrip()
 
 
 def GenUpdate() -> str:
     speedMultiplier = 13.0      # FIXFIXFIX - tune the fundamental to C
     s = ''
-    s += Line('sim.step({:g}/sampleRateHz);'.format(speedMultiplier))
+    s += Line('const float dt = {:g} / sampleRateHz;'.format(speedMultiplier))
+    s += Line('const float et = dt / oversample;')
+    s += Line('for (unsigned k = 0; k < oversample; ++k)')
+    s += Line('    sim.step(et);')
     s += Line('brake(sampleRateHz, halfLifeSeconds);')
-    s += Line('return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[1]};')
+    s += Line('return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[0]};')
     return s.rstrip()
 
 
 def particleIndex(c:int, r:int) -> int:
-    return r + c*2
+    return r + c*nRows
 
 
 def GenSprings(ncolumns:int) -> str:
@@ -70,23 +76,14 @@ def GenSprings(ncolumns:int) -> str:
     s += Line('spring_list_t springs')
     s += Line('{')
     for column in range(1, ncolumns):
-        # lower string
         ia = particleIndex(column-1, 0)
         ib = particleIndex(column, 0)
         s += spring(ia, ib)
-        # upper string
-        ic = particleIndex(column-1, 1)
-        id = particleIndex(column, 1)
-        s += spring(ic, id)
-        # weak force
-        s += spring(ib, id)
     s += Line('};')
     return s.rstrip()
 
 
 def GenVinaSourceCode() -> str:
-    nMobileColumns = 13
-    nColumns = nMobileColumns + 2
     s = r'''/***************************************************
 ***                                              ***
 ***     GENERATED CODE - !!! DO NOT EDIT !!!     ***
@@ -103,7 +100,7 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr unsigned nRows = 2;
+        constexpr unsigned nRows = $N_ROWS$;
         constexpr unsigned nMobileColumns = $N_MOBILE_COLUMNS$;
         constexpr unsigned nColumns = $N_COLUMNS$;
         constexpr unsigned nParticles = nColumns * nRows;
@@ -189,9 +186,9 @@ namespace Sapphire
         {
             const spring_list_t& springs;
             PhysicsVector gravity;
-            double stiffness = 40.0;
-            double restLength = 0.001;
-            double mass = 0.001;
+            double stiffness = 89.0;
+            double restLength = 0.004;
+            double mass = 1.0e-03;
 
             explicit VinaDeriv(const spring_list_t& _springs)
                 : springs(_springs)
@@ -227,6 +224,7 @@ namespace Sapphire
         struct VinaEngine
         {
             float halfLifeSeconds = 0.2;
+            unsigned oversample = 1;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(springs), nParticles)
@@ -287,6 +285,7 @@ $SPRINGS$
     }
 }
 '''
+    s = s.replace('$N_ROWS$', str(nRows))
     s = s.replace('$N_MOBILE_COLUMNS$', str(nMobileColumns))
     s = s.replace('$N_COLUMNS$', str(nColumns))
     s = s.replace('$INITIALIZE$', GenInitialize())
