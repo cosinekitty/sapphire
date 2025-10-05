@@ -6,6 +6,7 @@
 #
 ./verify_clean || exit 1
 ./prebuild || exit 1
+python3 rack-manifest-validator.py ../.. -p sapphire || exit 1
 ./verify_clean || exit 1
 cd ..
 make || exit 1
