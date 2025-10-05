@@ -13,6 +13,7 @@
 #include "Galactic.h"
 #include "sapphire_prog_chaos.hpp"
 #include "vina_rk4.hpp"
+#include "file_updater.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -1517,30 +1518,38 @@ static int SaveVinaEngine(
 {
     using namespace Sapphire::Vina;
 
-    if (FILE* outfile = fopen(outFileName, "wt"))
+    char buffer [300];
+    std::string text;
+    text += "//***** GENERATED CODE ***** DO NOT EDIT ******\n";
+    text += "#include \"vina_rk4.hpp\"\n";
+    text += "namespace Sapphire\n";
+    text += "{\n";
+    text += "    namespace Vina\n";
+    text += "    {\n";
+    text += "        const std::vector<VinaParticle> EngineInit\n";
+    text += "        {\n";
+    for (const VinaParticle& p : engine.sim.state)
     {
-        fprintf(outfile, "//***** GENERATED CODE ***** DO NOT EDIT ******\n");
-        fprintf(outfile, "#include \"vina_rk4.hpp\"\n");
-        fprintf(outfile, "namespace Sapphire\n");
-        fprintf(outfile, "{\n");
-        fprintf(outfile, "    namespace Vina\n");
-        fprintf(outfile, "    {\n");
-        fprintf(outfile, "        const std::vector<VinaParticle> EngineInit\n");
-        fprintf(outfile, "        {\n");
-        for (const VinaParticle& p : engine.sim.state)
-        {
-            fprintf(
-                outfile,
-                "            VinaParticle { {%12.6g, %12.6g, %12.6g, 0}, {%12.6g, %12.6g, %12.6g, 0} },\n",
-                p.pos[0], p.pos[1], p.pos[2],
-                p.vel[0], p.vel[1], p.vel[2]
-            );
-        }
-        fprintf(outfile, "        };\n");
-        fprintf(outfile, "    }\n");
-        fprintf(outfile, "}\n");
+        snprintf(
+            buffer,
+            sizeof(buffer),
+            "            VinaParticle { {%12.6g, %12.6g, %12.6g, 0}, {%12.6g, %12.6g, %12.6g, 0} },\n",
+            p.pos[0], p.pos[1], p.pos[2],
+            p.vel[0], p.vel[1], p.vel[2]
+        );
+
+        text += buffer;
+    }
+    text += "        };\n";
+    text += "    }\n";
+    text += "}\n";
+
+    auto tempFileName = std::string(outFileName) + ".tmp";
+    if (FILE* outfile = fopen(tempFileName.c_str(), "wt"))
+    {
+        fprintf(outfile, "%s", text.c_str());
         fclose(outfile);
-        return 0;
+        return UpdateFile("SaveVinaEngine", tempFileName.c_str(), outFileName);
     }
     printf("SaveVinaEngine: cannot open file for write: %s\n", outFileName);
     return 1;

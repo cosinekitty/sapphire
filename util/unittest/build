@@ -8,6 +8,7 @@ fi
 
 g++ -std=c++17 -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../src -I../include -Iairwindows \
     unittest.cpp    \
+    ../file_updater.cpp    \
     ../../src/sapphire_calcparser.cpp    \
     ../../src/sapphire_prog_chaos.cpp    \
     airwindows/Galactic.cpp   \
