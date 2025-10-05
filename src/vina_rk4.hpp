@@ -168,7 +168,7 @@ namespace Sapphire
 
             VinaStereoFrame update(float sampleRateHz)
             {
-                sim.step(1/sampleRateHz);
+                sim.step(13/sampleRateHz);
                 return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};
 
             }
@@ -177,6 +177,34 @@ namespace Sapphire
             vina_sim_t sim;
                 spring_list_t springs
                 {
+                    VinaSpring{0, 2},
+                    VinaSpring{1, 3},
+                    VinaSpring{2, 4},
+                    VinaSpring{3, 5},
+                    VinaSpring{4, 6},
+                    VinaSpring{5, 7},
+                    VinaSpring{6, 8},
+                    VinaSpring{7, 9},
+                    VinaSpring{8, 10},
+                    VinaSpring{9, 11},
+                    VinaSpring{10, 12},
+                    VinaSpring{11, 13},
+                    VinaSpring{12, 14},
+                    VinaSpring{13, 15},
+                    VinaSpring{14, 16},
+                    VinaSpring{15, 17},
+                    VinaSpring{16, 18},
+                    VinaSpring{17, 19},
+                    VinaSpring{18, 20},
+                    VinaSpring{19, 21},
+                    VinaSpring{20, 22},
+                    VinaSpring{21, 23},
+                    VinaSpring{22, 24},
+                    VinaSpring{23, 25},
+                    VinaSpring{24, 26},
+                    VinaSpring{25, 27},
+                    VinaSpring{26, 28},
+                    VinaSpring{27, 29},
                 };
 
         };

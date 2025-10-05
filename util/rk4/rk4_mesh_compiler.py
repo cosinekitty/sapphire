@@ -49,17 +49,30 @@ def GenPluck() -> str:
 
 
 def GenUpdate() -> str:
+    speedMultiplier = 13.0      # FIXFIXFIX - tune the fundamental to C
     s = ''
-    s += Line('sim.step(1/sampleRateHz);')
+    s += Line('sim.step({:g}/sampleRateHz);'.format(speedMultiplier))
     s += Line('return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};')
     return s
 
 
-def GenSprings() -> str:
+def particleIndex(c:int, r:int) -> int:
+    return r + c*2
+
+
+def GenSprings(ncolumns:int) -> str:
     s = ''
     s += Line('spring_list_t springs')
     s += Line('{')
-    # add springs here
+    for column in range(1, ncolumns):
+        # lower string
+        ia = particleIndex(column-1, 0)
+        ib = particleIndex(column, 0)
+        s += Line('    VinaSpring{' + str(ia) + ', ' + str(ib) + '},')
+        # upper string
+        ia = particleIndex(column-1, 1)
+        ib = particleIndex(column, 1)
+        s += Line('    VinaSpring{' + str(ia) + ', ' + str(ib) + '},')
     s += Line('};')
     return s
 
@@ -240,7 +253,7 @@ $SPRINGS$
     s = s.replace('$INITIALIZE$', GenInitialize())
     s = s.replace('$PLUCK$', GenPluck())
     s = s.replace('$UPDATE$', GenUpdate())
-    s = s.replace('$SPRINGS$', GenSprings())
+    s = s.replace('$SPRINGS$', GenSprings(nColumns))
     return s
 
 
