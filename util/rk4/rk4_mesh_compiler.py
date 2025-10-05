@@ -43,8 +43,9 @@ def GenInitialize() -> str:
 def GenPluck() -> str:
     s = ''
     s += Line('// For now, apply a velocity thump to a single ball.')
-    s += Line('constexpr float thump = 1.0;')
-    s += Line('sim.state[1].vel[1] += thump;')
+    s += Line('constexpr float thump = 0.1;')
+    s += Line('sim.state[3].vel[0] += thump;')
+    s += Line('sim.state[4].vel[1] += thump;')
     return s.rstrip()
 
 
@@ -53,7 +54,7 @@ def GenUpdate() -> str:
     s = ''
     s += Line('sim.step({:g}/sampleRateHz);'.format(speedMultiplier))
     s += Line('brake(sampleRateHz, halfLifeSeconds);')
-    s += Line('return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};')
+    s += Line('return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[1]};')
     return s.rstrip()
 
 
@@ -162,6 +163,7 @@ namespace Sapphire
         };
 
         using vina_state_t = std::vector<VinaParticle>;
+        extern const vina_state_t EngineInit;
 
         struct VinaSpring  // NOTE: eventually this class will be deleted, once the optimizer is working
         {
@@ -274,6 +276,12 @@ $SPRINGS$
                     update(sampleRateHz);
                     brake(sampleRateHz, halfLifeSeconds);
                 }
+            }
+
+            void setPreSettledState()
+            {
+                assert(sim.state.size() == EngineInit.size());
+                sim.state = EngineInit;
             }
         };
     }

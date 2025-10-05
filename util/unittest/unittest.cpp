@@ -1511,6 +1511,42 @@ static int CalculatorTest()
 //---------------------------------------------------------------------------------------
 
 
+static int SaveVinaEngine(
+    const Sapphire::Vina::VinaEngine& engine,
+    const char *outFileName)
+{
+    using namespace Sapphire::Vina;
+
+    if (FILE* outfile = fopen(outFileName, "wt"))
+    {
+        fprintf(outfile, "//***** GENERATED CODE ***** DO NOT EDIT ******\n");
+        fprintf(outfile, "#include \"vina_rk4.hpp\"\n");
+        fprintf(outfile, "namespace Sapphire\n");
+        fprintf(outfile, "{\n");
+        fprintf(outfile, "    namespace Vina\n");
+        fprintf(outfile, "    {\n");
+        fprintf(outfile, "        const std::vector<VinaParticle> EngineInit\n");
+        fprintf(outfile, "        {\n");
+        for (const VinaParticle& p : engine.sim.state)
+        {
+            fprintf(
+                outfile,
+                "            VinaParticle { {%12.6g, %12.6g, %12.6g, 0}, {%12.6g, %12.6g, %12.6g, 0} },\n",
+                p.pos[0], p.pos[1], p.pos[2],
+                p.vel[0], p.vel[1], p.vel[2]
+            );
+        }
+        fprintf(outfile, "        };\n");
+        fprintf(outfile, "    }\n");
+        fprintf(outfile, "}\n");
+        fclose(outfile);
+        return 0;
+    }
+    printf("SaveVinaEngine: cannot open file for write: %s\n", outFileName);
+    return 1;
+}
+
+
 static int VinaTest()
 {
     using namespace Sapphire::Vina;
@@ -1528,6 +1564,7 @@ static int VinaTest()
 
     printf("VinaTest: settling...\n");
     engine.settle();
+    if (SaveVinaEngine(engine, "../../src/vina_engine_init.cpp")) return 1;
     printf("VinaTest: rendering...\n");
 
     const float durationSeconds = 5;

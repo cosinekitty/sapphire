@@ -74,6 +74,7 @@ namespace Sapphire
         };
 
         using vina_state_t = std::vector<VinaParticle>;
+        extern const vina_state_t EngineInit;
 
         struct VinaSpring  // NOTE: eventually this class will be deleted, once the optimizer is working
         {
@@ -158,15 +159,16 @@ namespace Sapphire
             void pluck()
             {
                 // For now, apply a velocity thump to a single ball.
-                constexpr float thump = 1.0;
-                sim.state[1].vel[1] += thump;
+                constexpr float thump = 0.1;
+                sim.state[3].vel[0] += thump;
+                sim.state[4].vel[1] += thump;
             }
 
             VinaStereoFrame update(float sampleRateHz)
             {
                 sim.step(13/sampleRateHz);
                 brake(sampleRateHz, halfLifeSeconds);
-                return VinaStereoFrame{sim.state[5].vel[1], sim.state[7].vel[1]};
+                return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[1]};
             }
 
             float maxSpeed() const
@@ -242,6 +244,12 @@ namespace Sapphire
                     update(sampleRateHz);
                     brake(sampleRateHz, halfLifeSeconds);
                 }
+            }
+
+            void setPreSettledState()
+            {
+                assert(sim.state.size() == EngineInit.size());
+                sim.state = EngineInit;
             }
         };
     }
