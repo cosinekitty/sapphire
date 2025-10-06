@@ -90,7 +90,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     if (q.gateReceiver.isTriggerActive())
                         q.engine.pluck();
 
-                    const auto frame = q.engine.update(args.sampleRate);
+                    const auto frame = q.engine.update(args.sampleRate, q.gateReceiver.isGateActive());
                     outputs[AUDIO_LEFT_OUTPUT].setVoltage (level * frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(level * frame.sample[1], c);
                 }

@@ -113,7 +113,6 @@ namespace Sapphire
 
         struct VinaEngine
         {
-            float halfLifeSeconds = 0.2;
             unsigned oversample = 1;
 
             explicit VinaEngine()
@@ -139,12 +138,13 @@ namespace Sapphire
                 sim.state[3].vel[0] += thump;
             }
 
-            VinaStereoFrame update(float sampleRateHz)
+            VinaStereoFrame update(float sampleRateHz, bool gate)
             {
                 const float dt = 13 / sampleRateHz;
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
+                const float halfLifeSeconds = gate ? 1.5 : 0.075;
                 brake(sampleRateHz, halfLifeSeconds);
                 return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};
             }
@@ -168,15 +168,11 @@ namespace Sapphire
 
             void settle(
                 float sampleRateHz = 48000,
-                float halfLifeSeconds = 0.1,
                 float settleTimeSeconds = 5.0)
             {
                 const unsigned nFrames = static_cast<unsigned>(sampleRateHz * settleTimeSeconds);
                 for (unsigned frameCount = 0; frameCount < nFrames; ++frameCount)
-                {
-                    update(sampleRateHz);
-                    brake(sampleRateHz, halfLifeSeconds);
-                }
+                    update(sampleRateHz, false);
             }
 
             void setPreSettledState()

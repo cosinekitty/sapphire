@@ -59,6 +59,7 @@ def GenUpdate() -> str:
     s += Line('const float et = dt / oversample;')
     s += Line('for (unsigned k = 0; k < oversample; ++k)')
     s += Line('    sim.step(et);')
+    s += Line('const float halfLifeSeconds = gate ? 1.5 : 0.075;')
     s += Line('brake(sampleRateHz, halfLifeSeconds);')
     s += Line('return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};')
     return s.rstrip()
@@ -184,7 +185,6 @@ namespace Sapphire
 
         struct VinaEngine
         {
-            float halfLifeSeconds = 0.2;
             unsigned oversample = 1;
 
             explicit VinaEngine()
@@ -201,7 +201,7 @@ $INITIALIZE$
 $PLUCK$
             }
 
-            VinaStereoFrame update(float sampleRateHz)
+            VinaStereoFrame update(float sampleRateHz, bool gate)
             {
 $UPDATE$
             }
@@ -225,15 +225,11 @@ $UPDATE$
 
             void settle(
                 float sampleRateHz = 48000,
-                float halfLifeSeconds = 0.1,
                 float settleTimeSeconds = 5.0)
             {
                 const unsigned nFrames = static_cast<unsigned>(sampleRateHz * settleTimeSeconds);
                 for (unsigned frameCount = 0; frameCount < nFrames; ++frameCount)
-                {
-                    update(sampleRateHz);
-                    brake(sampleRateHz, halfLifeSeconds);
-                }
+                    update(sampleRateHz, false);
             }
 
             void setPreSettledState()

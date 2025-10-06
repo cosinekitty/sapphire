@@ -1578,14 +1578,17 @@ static int VinaTest()
 
     const float durationSeconds = 5;
     const float pluckSeconds = 0.2;
+    const float releaseSeconds = 2.5;
     const unsigned nFrames = static_cast<unsigned>(sampleRateHz * durationSeconds);
     const unsigned pluckFrame = static_cast<unsigned>(sampleRateHz * pluckSeconds);
+    const unsigned releaseFrame = static_cast<unsigned>(sampleRateHz * releaseSeconds);
     for (unsigned f = 0; f < nFrames; ++f)
     {
-        if (f == pluckFrame)
+        const bool gate    = (f >= pluckFrame) && (f <= releaseFrame);
+        const bool trigger = (f == pluckFrame);
+        if (trigger)
             engine.pluck();
-
-        VinaStereoFrame frame = engine.update(sampleRateHz);
+        VinaStereoFrame frame = engine.update(sampleRateHz, gate);
         outwave.WriteSamples(frame.sample, 2);
     }
 
