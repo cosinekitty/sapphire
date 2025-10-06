@@ -31,7 +31,9 @@ def Line(s:str, indent:int = 4) -> str:
 
 
 def GenVinaSourceCode() -> str:
-    s = r'''namespace Sapphire
+    s = r'''//**** GENERATED CODE **** DO NOT EDIT ****
+#pragma once
+namespace Sapphire
 {
     namespace Vina
     {

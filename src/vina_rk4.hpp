@@ -127,13 +127,13 @@ namespace Sapphire
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
-                constexpr float rho = 0.999;
+                constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
                 const float dt = 76.0808 * (speedFactor / sampleRateHz);
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
-                const float halfLifeSeconds = gate ? 1.5 : 0.075;
+                const float halfLifeSeconds = gate ? 1.0 : 0.045;
                 brake(sampleRateHz, halfLifeSeconds);
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[37].pos[0];
