@@ -53,7 +53,7 @@ def GenPluck() -> str:
 
 
 def GenUpdate() -> str:
-    speedMultiplier = 13.0      # FIXFIXFIX - tune the fundamental to C
+    speedMultiplier = 76.0808
     s = ''
     s += Line('const float dt = {:g} / sampleRateHz;'.format(speedMultiplier))
     s += Line('const float et = dt / oversample;')

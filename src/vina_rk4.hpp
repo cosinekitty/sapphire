@@ -140,7 +140,7 @@ namespace Sapphire
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
-                const float dt = 13 / sampleRateHz;
+                const float dt = 76.0808 / sampleRateHz;
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
