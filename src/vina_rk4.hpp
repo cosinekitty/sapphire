@@ -76,36 +76,14 @@ namespace Sapphire
         using vina_state_t = std::vector<VinaParticle>;
         extern const vina_state_t EngineInit;
 
-        struct VinaSpring  // NOTE: eventually this class will be deleted, once the optimizer is working
-        {
-            const unsigned ia;
-            const unsigned ib;
-
-            explicit VinaSpring()
-                : ia(-1)
-                , ib(-1)
-                {}
-
-            explicit VinaSpring(unsigned aIndex, unsigned bIndex)
-                : ia(aIndex)
-                , ib(bIndex)
-                {}
-        };
-
-
-        using spring_list_t = std::vector<VinaSpring>;
-
-
         struct VinaDeriv
         {
-            const spring_list_t& springs;
             PhysicsVector gravity;
             double stiffness = 89.0;
             double restLength = 0.004;
             double mass = 1.0e-03;
 
-            explicit VinaDeriv(const spring_list_t& _springs)
-                : springs(_springs)
+            explicit VinaDeriv()
                 {}
 
             void operator() (vina_state_t& slope, const vina_state_t& state)
@@ -113,22 +91,20 @@ namespace Sapphire
                 assert(nParticles == slope.size());
                 assert(nParticles == state.size());
 
-                for (unsigned i = 0; i < nParticles; ++i)
+                slope[0].pos = state[0].vel;
+                slope[0].vel = PhysicsVector{};
+                for (unsigned i = 1; i < nParticles; ++i)
                 {
                     slope[i].pos = state[i].vel;
                     slope[i].vel = isMobileIndex(i) ? gravity : PhysicsVector{};
-                }
-
-                for (const VinaSpring& s : springs)
-                {
-                    const VinaParticle& a = state.at(s.ia);
-                    const VinaParticle& b = state.at(s.ib);
+                    const VinaParticle& a = state.at(i-1);
+                    const VinaParticle& b = state.at(i-0);
                     const PhysicsVector dr = b.pos - a.pos;
                     const double length = dr.mag();
                     const double fmag = stiffness*(length - restLength);
                     const PhysicsVector acc = (fmag/(mass * length)) * dr;
-                    if (isMobileIndex(s.ia))  slope[s.ia].vel += acc;
-                    if (isMobileIndex(s.ib))  slope[s.ib].vel -= acc;
+                    if (isMobileIndex(i-1))  slope[i-1].vel += acc;
+                    if (isMobileIndex(i-0))  slope[i-0].vel -= acc;
                 }
             }
         };
@@ -141,7 +117,7 @@ namespace Sapphire
             unsigned oversample = 1;
 
             explicit VinaEngine()
-                : sim(VinaDeriv(springs), nParticles)
+                : sim(VinaDeriv(), nParticles)
                 {}
 
             void initialize()
@@ -182,23 +158,6 @@ namespace Sapphire
             }
 
             vina_sim_t sim;
-                spring_list_t springs
-                {
-                    VinaSpring{0, 1},
-                    VinaSpring{1, 2},
-                    VinaSpring{2, 3},
-                    VinaSpring{3, 4},
-                    VinaSpring{4, 5},
-                    VinaSpring{5, 6},
-                    VinaSpring{6, 7},
-                    VinaSpring{7, 8},
-                    VinaSpring{8, 9},
-                    VinaSpring{9, 10},
-                    VinaSpring{10, 11},
-                    VinaSpring{11, 12},
-                    VinaSpring{12, 13},
-                    VinaSpring{13, 14},
-                };
 
             void brake(float sampleRateHz, float halfLifeSeconds)
             {
