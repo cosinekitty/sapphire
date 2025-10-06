@@ -44,7 +44,7 @@ def GenInitialize() -> str:
 
 def GenPluck() -> str:
     s = ''
-    s += Line('constexpr float thump = 0.1;')
+    s += Line('constexpr float thump = 2.0;')
     s += Line('sim.state[3].vel[0] += thump;')
     return s.rstrip()
 
@@ -132,15 +132,14 @@ namespace Sapphire
         using vina_state_t = std::vector<VinaParticle>;
         extern const vina_state_t EngineInit;
 
-        struct VinaDeriv
+        struct VinaDeriv   // a lambda-like closure that can be called like a function using operator().
         {
             PhysicsVector gravity;
             double stiffness = 89.0;
             double restLength = 0.004;
             double mass = 1.0e-03;
 
-            explicit VinaDeriv()
-                {}
+            explicit VinaDeriv() {}
 
             void operator() (vina_state_t& slope, const vina_state_t& state)
             {

@@ -78,7 +78,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
-                float level = 100;
+                float level = 5;
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
