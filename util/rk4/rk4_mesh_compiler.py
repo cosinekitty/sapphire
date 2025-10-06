@@ -2,7 +2,7 @@
 import sys
 
 nRows = 1
-nMobileColumns = 13
+nMobileColumns = 42
 nColumns = nMobileColumns + 2
 
 
@@ -60,7 +60,7 @@ def GenUpdate() -> str:
     s += Line('for (unsigned k = 0; k < oversample; ++k)')
     s += Line('    sim.step(et);')
     s += Line('brake(sampleRateHz, halfLifeSeconds);')
-    s += Line('return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[0]};')
+    s += Line('return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};')
     return s.rstrip()
 
 

@@ -15,8 +15,8 @@ namespace Sapphire
     namespace Vina
     {
         constexpr unsigned nRows = 1;
-        constexpr unsigned nMobileColumns = 13;
-        constexpr unsigned nColumns = 15;
+        constexpr unsigned nMobileColumns = 42;
+        constexpr unsigned nColumns = 44;
         constexpr unsigned nParticles = nColumns * nRows;
         constexpr unsigned nMobileParticles = nMobileColumns * nRows;
         static_assert(nParticles > nMobileParticles);
@@ -146,7 +146,7 @@ namespace Sapphire
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
                 brake(sampleRateHz, halfLifeSeconds);
-                return VinaStereoFrame{sim.state[9].vel[0], sim.state[10].vel[0]};
+                return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};
             }
 
             float maxSpeed() const
