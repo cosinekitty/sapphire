@@ -78,7 +78,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
-                float level = 5;
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
@@ -91,9 +90,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         q.engine.pluck();
 
                     q.engine.setPitch(voctVoltage);
-                    const auto frame = q.engine.update(args.sampleRate, q.gateReceiver.isGateActive());
-                    outputs[AUDIO_LEFT_OUTPUT].setVoltage (level * frame.sample[0], c);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(level * frame.sample[1], c);
+                    auto frame = q.engine.update(args.sampleRate, q.gateReceiver.isGateActive());
+                    outputs[AUDIO_LEFT_OUTPUT].setVoltage (frame.sample[0], c);
+                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
             }
         };

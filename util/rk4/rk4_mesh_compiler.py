@@ -30,40 +30,6 @@ def Line(s:str, indent:int = 4) -> str:
     return (' '*(4*indent)) + s + '\n'
 
 
-def GenInitialize() -> str:
-    s = ''
-    s += Line('oversample = 1;')
-    s += Line('speedFactor = targetSpeedFactor = 1;')
-    s += Line('for (unsigned c = 0; c < nColumns; ++c)')
-    s += Line('{')
-    s += Line('    sim.state[c].pos = PhysicsVector{horSpace*c, 0, 0, 0};')
-    s += Line('    sim.state[c].vel = PhysicsVector{0, 0, 0, 0};')
-    s += Line('}')
-    return s.rstrip()
-
-
-def GenPluck() -> str:
-    s = ''
-    s += Line('constexpr float thump = 2.0;')
-    s += Line('sim.state[3].vel[0] += thump;')
-    return s.rstrip()
-
-
-def GenUpdate() -> str:
-    speedMultiplier = 76.0808       # experimentally derived to produce C4 = 261.63 Hz.
-    s = ''
-    s += Line('constexpr float rho = 0.999;')
-    s += Line('speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;')
-    s += Line('const float dt = {:g} * (speedFactor / sampleRateHz);'.format(speedMultiplier))
-    s += Line('const float et = dt / oversample;')
-    s += Line('for (unsigned k = 0; k < oversample; ++k)')
-    s += Line('    sim.step(et);')
-    s += Line('const float halfLifeSeconds = gate ? 1.5 : 0.075;')
-    s += Line('brake(sampleRateHz, halfLifeSeconds);')
-    s += Line('return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};')
-    return s.rstrip()
-
-
 def GenVinaSourceCode() -> str:
     s = r'''/***************************************************
 ***                                              ***
@@ -75,7 +41,8 @@ def GenVinaSourceCode() -> str:
 ****************************************************/
 #pragma once
 #include <cassert>
-#include "sapphire_simd.hpp"
+#include "sapphire_engine.hpp"
+#include "sauce_engine.hpp"
 #include "rk4_simulator.hpp"
 namespace Sapphire
 {
@@ -171,24 +138,75 @@ namespace Sapphire
             unsigned oversample = 1;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
+            Gravy::SingleChannelGravyEngine<float> gravy[2];
+            LoHiPassFilter<float> dcReject[2];
+            bool isFirstSample = true;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
                 {}
 
+            void initChannel(unsigned channel)
+            {
+                auto& g = gravy[channel];
+                g.initialize();
+                g.setFrequency(0.65);
+                g.setResonance(0.35);
+                g.setMix(1);
+                g.setGain(0.5);
+
+                auto& d = dcReject[channel];
+                d.Reset();
+                d.SetCutoffFrequency(10);
+            }
+
             void initialize()
             {
-$INITIALIZE$
+                isFirstSample = true;
+                initChannel(0);
+                initChannel(1);
+                oversample = 1;
+                speedFactor = targetSpeedFactor = 1;
+                for (unsigned c = 0; c < nColumns; ++c)
+                {
+                    sim.state[c].pos = PhysicsVector{horSpace*c, 0, 0, 0};
+                    sim.state[c].vel = PhysicsVector{0, 0, 0, 0};
+                }
             }
 
             void pluck()
             {
-$PLUCK$
+                constexpr float thump = 1.7;
+                sim.state[3].vel[0] += thump;
+            }
+
+            float filter(float sampleRateHz, float sample, unsigned channel)
+            {
+                if (isFirstSample)
+                    dcReject[channel].Snap(sample);
+                else
+                    dcReject[channel].Update(sample, sampleRateHz);
+                float audio = dcReject[channel].HiPass();
+                return gravy[channel].process(sampleRateHz, audio).lowpass;
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
-$UPDATE$
+                constexpr float rho = 0.999;
+                speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
+                const float dt = 76.0808 * (speedFactor / sampleRateHz);
+                const float et = dt / oversample;
+                for (unsigned k = 0; k < oversample; ++k)
+                    sim.step(et);
+                const float halfLifeSeconds = gate ? 1.5 : 0.075;
+                brake(sampleRateHz, halfLifeSeconds);
+                constexpr float level = 1.0e+03;
+                float rawLeft  = sim.state[37].pos[0];
+                float rawRight = sim.state[38].pos[0];
+                float left  = level * filter(sampleRateHz, rawLeft,  0);
+                float right = level * filter(sampleRateHz, rawRight, 1);
+                isFirstSample = false;
+                return VinaStereoFrame {left, right};
             }
 
             float maxSpeed() const
@@ -233,9 +251,6 @@ $UPDATE$
 '''
     s = s.replace('$N_MOBILE_COLUMNS$', str(nMobileColumns))
     s = s.replace('$N_COLUMNS$', str(nColumns))
-    s = s.replace('$INITIALIZE$', GenInitialize())
-    s = s.replace('$PLUCK$', GenPluck())
-    s = s.replace('$UPDATE$', GenUpdate())
     return s
 
 

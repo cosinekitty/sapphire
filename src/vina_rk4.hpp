@@ -8,7 +8,8 @@
 ****************************************************/
 #pragma once
 #include <cassert>
-#include "sapphire_simd.hpp"
+#include "sapphire_engine.hpp"
+#include "sauce_engine.hpp"
 #include "rk4_simulator.hpp"
 namespace Sapphire
 {
@@ -104,13 +105,33 @@ namespace Sapphire
             unsigned oversample = 1;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
+            Gravy::SingleChannelGravyEngine<float> gravy[2];
+            LoHiPassFilter<float> dcReject[2];
+            bool isFirstSample = true;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
                 {}
 
+            void initChannel(unsigned channel)
+            {
+                auto& g = gravy[channel];
+                g.initialize();
+                g.setFrequency(0.65);
+                g.setResonance(0.35);
+                g.setMix(1);
+                g.setGain(0.5);
+
+                auto& d = dcReject[channel];
+                d.Reset();
+                d.SetCutoffFrequency(10);
+            }
+
             void initialize()
             {
+                isFirstSample = true;
+                initChannel(0);
+                initChannel(1);
                 oversample = 1;
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned c = 0; c < nColumns; ++c)
@@ -122,8 +143,18 @@ namespace Sapphire
 
             void pluck()
             {
-                constexpr float thump = 2.0;
+                constexpr float thump = 1.7;
                 sim.state[3].vel[0] += thump;
+            }
+
+            float filter(float sampleRateHz, float sample, unsigned channel)
+            {
+                if (isFirstSample)
+                    dcReject[channel].Snap(sample);
+                else
+                    dcReject[channel].Update(sample, sampleRateHz);
+                float audio = dcReject[channel].HiPass();
+                return gravy[channel].process(sampleRateHz, audio).lowpass;
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
@@ -136,7 +167,13 @@ namespace Sapphire
                     sim.step(et);
                 const float halfLifeSeconds = gate ? 1.5 : 0.075;
                 brake(sampleRateHz, halfLifeSeconds);
-                return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};
+                constexpr float level = 1.0e+03;
+                float rawLeft  = sim.state[37].pos[0];
+                float rawRight = sim.state[38].pos[0];
+                float left  = level * filter(sampleRateHz, rawLeft,  0);
+                float right = level * filter(sampleRateHz, rawRight, 1);
+                isFirstSample = false;
+                return VinaStereoFrame {left, right};
             }
 
             float maxSpeed() const
