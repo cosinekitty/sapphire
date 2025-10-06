@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import sys
 
-nRows = 1
 nMobileColumns = 42
 nColumns = nMobileColumns + 2
 
@@ -33,14 +32,12 @@ def Line(s:str, indent:int = 4) -> str:
 
 def GenInitialize() -> str:
     s = ''
-    s += Line('for (unsigned r = 0; r < nRows; ++r)')
+    s += Line('oversample = 1;')
+    s += Line('speedFactor = targetSpeedFactor = 1;')
+    s += Line('for (unsigned c = 0; c < nColumns; ++c)')
     s += Line('{')
-    s += Line('    for (unsigned c = 0; c < nColumns; ++c)')
-    s += Line('    {')
-    s += Line('        unsigned i = particleIndex(c, r);')
-    s += Line('        sim.state[i].pos = PhysicsVector{horSpace*c, verSpace*r, 0, 0};')
-    s += Line('        sim.state[i].vel = PhysicsVector{0, 0, 0, 0};')
-    s += Line('    }')
+    s += Line('    sim.state[c].pos = PhysicsVector{horSpace*c, 0, 0, 0};')
+    s += Line('    sim.state[c].vel = PhysicsVector{0, 0, 0, 0};')
     s += Line('}')
     return s.rstrip()
 
@@ -53,9 +50,11 @@ def GenPluck() -> str:
 
 
 def GenUpdate() -> str:
-    speedMultiplier = 76.0808
+    speedMultiplier = 76.0808       # experimentally derived to produce C4 = 261.63 Hz.
     s = ''
-    s += Line('const float dt = {:g} / sampleRateHz;'.format(speedMultiplier))
+    s += Line('constexpr float rho = 0.999;')
+    s += Line('speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;')
+    s += Line('const float dt = {:g} * (speedFactor / sampleRateHz);'.format(speedMultiplier))
     s += Line('const float et = dt / oversample;')
     s += Line('for (unsigned k = 0; k < oversample; ++k)')
     s += Line('    sim.step(et);')
@@ -63,10 +62,6 @@ def GenUpdate() -> str:
     s += Line('brake(sampleRateHz, halfLifeSeconds);')
     s += Line('return VinaStereoFrame{sim.state[37].vel[0], sim.state[38].vel[0]};')
     return s.rstrip()
-
-
-def particleIndex(c:int, r:int) -> int:
-    return r + c*nRows
 
 
 def GenVinaSourceCode() -> str:
@@ -86,30 +81,19 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr unsigned nRows = $N_ROWS$;
         constexpr unsigned nMobileColumns = $N_MOBILE_COLUMNS$;
         constexpr unsigned nColumns = $N_COLUMNS$;
-        constexpr unsigned nParticles = nColumns * nRows;
-        constexpr unsigned nMobileParticles = nMobileColumns * nRows;
+        constexpr unsigned nParticles = nColumns;
+        constexpr unsigned nMobileParticles = nMobileColumns;
         static_assert(nParticles > nMobileParticles);
         constexpr unsigned nAnchorParticles = nParticles - nMobileParticles;
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float verSpace = 0.01;    // vertical spacing in meters
 
-        constexpr unsigned particleIndex(unsigned c, unsigned r)
-        {
-            assert(c < nColumns);
-            assert(r < nRows);
-            unsigned i = r + c*nRows;
-            assert(i < nParticles);
-            return i;
-        }
-
         constexpr bool isMobileIndex(unsigned i)
         {
-            unsigned c = i/nRows;
-            return (c>0) && (c<=nMobileColumns);
+            return (i>0) && (i<=nMobileColumns);
         }
 
         struct VinaStereoFrame
@@ -186,6 +170,8 @@ namespace Sapphire
         struct VinaEngine
         {
             unsigned oversample = 1;
+            float speedFactor = 1;
+            float targetSpeedFactor = 1;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -237,11 +223,15 @@ $UPDATE$
                 assert(sim.state.size() == EngineInit.size());
                 sim.state = EngineInit;
             }
+
+            void setPitch(float voct)
+            {
+                targetSpeedFactor = std::pow<float>(2, voct);
+            }
         };
     }
 }
 '''
-    s = s.replace('$N_ROWS$', str(nRows))
     s = s.replace('$N_MOBILE_COLUMNS$', str(nMobileColumns))
     s = s.replace('$N_COLUMNS$', str(nColumns))
     s = s.replace('$INITIALIZE$', GenInitialize())
