@@ -199,8 +199,7 @@ namespace Sapphire
 
             void setPitch(float voct)
             {
-                static constexpr float two = 2;     // work around silly compiler on MAC
-                targetSpeedFactor = std::pow<float>(two, voct);
+                targetSpeedFactor = std::pow<float>(static_cast<float>(2), voct);
             }
         };
     }
