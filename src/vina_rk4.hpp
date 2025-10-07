@@ -72,12 +72,17 @@ namespace Sapphire
 
         struct VinaEngine
         {
+            struct channel_info_t
+            {
+                Gravy::SingleChannelGravyEngine<float> gravy;
+                LoHiPassFilter<float> dcReject;
+            };
+
             vina_sim_t sim;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
-            Gravy::SingleChannelGravyEngine<float> gravy[2];
-            LoHiPassFilter<float> dcReject[2];
             bool isFirstSample = true;
+            channel_info_t channelInfo[2];
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -85,14 +90,14 @@ namespace Sapphire
 
             void initChannel(unsigned channel)
             {
-                auto& g = gravy[channel];
+                auto& g = channelInfo[channel].gravy;
                 g.initialize();
                 g.setFrequency(0.68);
                 g.setResonance(0.37);
                 g.setMix(0.9);
                 g.setGain(0.5);
 
-                auto& d = dcReject[channel];
+                auto& d = channelInfo[channel].dcReject;
                 d.Reset();
                 d.SetCutoffFrequency(10);
             }
@@ -118,12 +123,14 @@ namespace Sapphire
 
             float filter(float sampleRateHz, float sample, unsigned channel)
             {
+                auto& d = channelInfo[channel].dcReject;
+                auto& g = channelInfo[channel].gravy;
                 if (isFirstSample)
-                    dcReject[channel].Snap(sample);
+                    d.Snap(sample);
                 else
-                    dcReject[channel].Update(sample, sampleRateHz);
-                float audio = dcReject[channel].HiPass();
-                return gravy[channel].process(sampleRateHz, audio).lowpass;
+                    d.Update(sample, sampleRateHz);
+                float audio = d.HiPass();
+                return g.process(sampleRateHz, audio).lowpass;
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
