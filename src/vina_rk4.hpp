@@ -199,7 +199,7 @@ namespace Sapphire
 
             void setPitch(float voct)
             {
-                targetSpeedFactor = std::pow<float>(static_cast<float>(2), voct);
+                targetSpeedFactor = pow(2.0, voct);
             }
         };
     }
