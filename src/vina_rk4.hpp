@@ -72,6 +72,7 @@ namespace Sapphire
 
         struct VinaEngine
         {
+            vina_sim_t sim;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             Gravy::SingleChannelGravyEngine<float> gravy[2];
@@ -152,8 +153,6 @@ namespace Sapphire
                 isFirstSample = false;
                 return VinaStereoFrame {left, right};
             }
-
-            vina_sim_t sim;
 
             void brake(float sampleRateHz, float halfLifeSeconds)
             {
