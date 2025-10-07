@@ -68,9 +68,10 @@ namespace Sapphire
     {
         using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
 
+        constexpr float max_dt = 0.004;
+
         struct VinaEngine
         {
-            unsigned oversample = 1;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             Gravy::SingleChannelGravyEngine<float> gravy[2];
@@ -85,9 +86,9 @@ namespace Sapphire
             {
                 auto& g = gravy[channel];
                 g.initialize();
-                g.setFrequency(0.65);
-                g.setResonance(0.35);
-                g.setMix(1);
+                g.setFrequency(0.68);
+                g.setResonance(0.37);
+                g.setMix(0.9);
                 g.setGain(0.5);
 
                 auto& d = dcReject[channel];
@@ -100,7 +101,6 @@ namespace Sapphire
                 isFirstSample = true;
                 initChannel(0);
                 initChannel(1);
-                oversample = 1;
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned c = 0; c < nColumns; ++c)
                 {
@@ -130,6 +130,7 @@ namespace Sapphire
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
                 const float dt = 76.0808 * (speedFactor / sampleRateHz);
+                const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
@@ -138,25 +139,28 @@ namespace Sapphire
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[37].pos[0];
                 float rawRight = sim.state[38].pos[0];
+                if (!std::isfinite(rawLeft) || !std::isfinite(rawRight))
+                {
+                    // [4.372 warn src/vina_rk4.hpp:142 update] Vina auto-reset at dt=0.00503117
+                    //WARN("Vina auto-reset at dt=%0.6g", dt);
+                    initialize();
+                    rawLeft = 0;
+                    rawRight = 0;
+                }
                 float left  = level * filter(sampleRateHz, rawLeft,  0);
                 float right = level * filter(sampleRateHz, rawRight, 1);
                 isFirstSample = false;
                 return VinaStereoFrame {left, right};
             }
 
-            float maxSpeed() const
-            {
-                float s = 0;
-                for (const VinaParticle& p : sim.state)
-                    s = std::max(s, Quadrature(p.vel));
-                return std::sqrt(s);
-            }
-
             vina_sim_t sim;
 
             void brake(float sampleRateHz, float halfLifeSeconds)
             {
-                const float factor = std::pow(0.5, 1/(sampleRateHz*halfLifeSeconds));
+                const float factor = static_cast<float>(
+                    std::pow<double>(0.5, 1.0/(sampleRateHz*halfLifeSeconds))
+                );
+
                 for (VinaParticle& p : sim.state)
                     p.vel *= factor;
             }
