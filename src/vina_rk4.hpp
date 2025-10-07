@@ -83,6 +83,8 @@ namespace Sapphire
             float targetSpeedFactor = 1;
             bool isFirstSample = true;
             channel_info_t channelInfo[2];
+            LoHiPassFilter<float> pluckFilter;
+            float thump = 0;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -90,16 +92,16 @@ namespace Sapphire
 
             void initChannel(unsigned channel)
             {
-                auto& g = channelInfo[channel].gravy;
-                g.initialize();
-                g.setFrequency(0.68);
-                g.setResonance(0.37);
-                g.setMix(0.9);
-                g.setGain(0.5);
+                auto& q = channelInfo[channel];
 
-                auto& d = channelInfo[channel].dcReject;
-                d.Reset();
-                d.SetCutoffFrequency(10);
+                q.gravy.initialize();
+                q.gravy.setFrequency(0.68);
+                q.gravy.setResonance(0.37);
+                q.gravy.setMix(0.9);
+                q.gravy.setGain(0.5);
+
+                q.dcReject.Reset();
+                q.dcReject.SetCutoffFrequency(10);
             }
 
             void initialize()
@@ -113,28 +115,37 @@ namespace Sapphire
                     sim.state[c].pos = PhysicsVector{horSpace*c, 0, 0, 0};
                     sim.state[c].vel = PhysicsVector{0, 0, 0, 0};
                 }
+                pluckFilter.Reset();
+                pluckFilter.SetCutoffFrequency(1600);
             }
 
-            void pluck()
+            void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
             {
-                constexpr float thump = 1.7;
-                sim.state[3].vel[0] += thump;
-            }
-
-            float filter(float sampleRateHz, float sample, unsigned channel)
-            {
-                auto& d = channelInfo[channel].dcReject;
-                auto& g = channelInfo[channel].gravy;
                 if (isFirstSample)
-                    d.Snap(sample);
+                    filter.Snap(sample);
                 else
-                    d.Update(sample, sampleRateHz);
-                float audio = d.HiPass();
-                return g.process(sampleRateHz, audio).lowpass;
+                    filter.Update(sample, sampleRateHz);
+            }
+
+            float audioFilter(float sampleRateHz, float sample, unsigned channel)
+            {
+                auto& q = channelInfo[channel];
+                updateFilter(q.dcReject, sampleRateHz, sample);
+                float audio = q.dcReject.HiPass();
+                return q.gravy.process(sampleRateHz, audio).lowpass;
+            }
+
+            void pluck(float sampleRateHz)
+            {
+                thump = 1.7;
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
+                updateFilter(pluckFilter, sampleRateHz, thump);
+                thump = 0;
+                sim.state[3].vel[0] += pluckFilter.LoPass();
+
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
                 const float dt = 76.0808 * (speedFactor / sampleRateHz);
@@ -155,8 +166,8 @@ namespace Sapphire
                     rawLeft = 0;
                     rawRight = 0;
                 }
-                float left  = level * filter(sampleRateHz, rawLeft,  0);
-                float right = level * filter(sampleRateHz, rawRight, 1);
+                float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
+                float right = level * audioFilter(sampleRateHz, rawRight, 1);
                 isFirstSample = false;
                 return VinaStereoFrame {left, right};
             }

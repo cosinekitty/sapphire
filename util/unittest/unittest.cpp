@@ -1587,7 +1587,7 @@ static int VinaTest()
         const bool gate    = (f >= pluckFrame) && (f <= releaseFrame);
         const bool trigger = (f == pluckFrame);
         if (trigger)
-            engine.pluck();
+            engine.pluck(sampleRateHz);
         VinaStereoFrame frame = engine.update(sampleRateHz, gate);
         outwave.WriteSamples(frame.sample, 2);
     }

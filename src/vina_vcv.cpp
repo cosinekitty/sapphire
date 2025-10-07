@@ -87,7 +87,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     q.gateReceiver.update(gateVoltage);
                     if (q.gateReceiver.isTriggerActive())
-                        q.engine.pluck();
+                        q.engine.pluck(args.sampleRate);
 
                     q.engine.setPitch(voctVoltage);
                     auto frame = q.engine.update(args.sampleRate, q.gateReceiver.isGateActive());
