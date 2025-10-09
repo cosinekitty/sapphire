@@ -7,9 +7,9 @@ namespace Sapphire
         struct VinaDeriv
         {
             PhysicsVector gravity;
-            double stiffness = 89.0;
-            double restLength = 0.004;
-            double mass = 1.0e-03;
+            float stiffness = 89.0;
+            float restLength = 0.004;
+            float mass = 1.0e-03;
 
             explicit VinaDeriv() {}
 
@@ -17,21 +17,25 @@ namespace Sapphire
             {
                 assert(nParticles == slope.size());
                 assert(nParticles == state.size());
+                assert(nParticles > 2);
 
+                // Derivative of left anchor.
                 slope[0].pos = state[0].vel;
                 slope[0].vel = PhysicsVector{};
+
+                // Derivatives of the mobile particles.
                 for (unsigned i = 1; i < nParticles; ++i)
                 {
                     slope[i].pos = state[i].vel;
-                    slope[i].vel = isMobileIndex(i) ? gravity : PhysicsVector{};
-                    const VinaParticle& a = state.at(i-1);
-                    const VinaParticle& b = state.at(i-0);
-                    const PhysicsVector dr = b.pos - a.pos;
+                    slope[i].vel = (i < nParticles-1) ? gravity : PhysicsVector{};
+                    const PhysicsVector dr = state[i].pos - state[i-1].pos;
                     const double length = dr.mag();
                     const double fmag = stiffness*(length - restLength);
                     const PhysicsVector acc = (fmag/(mass * length)) * dr;
-                    if (isMobileIndex(i-1))  slope[i-1].vel += acc;
-                    if (isMobileIndex(i-0))  slope[i-0].vel -= acc;
+                    if (i >= 2)
+                        slope[i-1].vel += acc;
+                    if (i < nParticles-1)
+                        slope[i].vel -= acc;
                 }
             }
         };

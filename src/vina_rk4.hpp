@@ -7,20 +7,12 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr unsigned nMobileColumns = 42;
-        constexpr unsigned nColumns = 44;
-        constexpr unsigned nParticles = nColumns;
-        constexpr unsigned nMobileParticles = nMobileColumns;
+        constexpr unsigned nMobileParticles = 42;
+        constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
         static_assert(nParticles > nMobileParticles);
-        constexpr unsigned nAnchorParticles = nParticles - nMobileParticles;
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float verSpace = 0.01;    // vertical spacing in meters
-
-        constexpr bool isMobileIndex(unsigned i)
-        {
-            return (i>0) && (i<=nMobileColumns);
-        }
 
         struct VinaStereoFrame
         {
@@ -95,9 +87,9 @@ namespace Sapphire
                 auto& q = channelInfo[channel];
 
                 q.gravy.initialize();
-                q.gravy.setFrequency(0.68);
-                q.gravy.setResonance(0.37);
-                q.gravy.setMix(0.9);
+                q.gravy.setFrequency(0.0);
+                q.gravy.setResonance(0.2);
+                q.gravy.setMix(0.8);
                 q.gravy.setGain(0.5);
 
                 q.dcReject.Reset();
@@ -110,13 +102,13 @@ namespace Sapphire
                 initChannel(0);
                 initChannel(1);
                 speedFactor = targetSpeedFactor = 1;
-                for (unsigned c = 0; c < nColumns; ++c)
+                for (unsigned i = 0; i < nParticles; ++i)
                 {
-                    sim.state[c].pos = PhysicsVector{horSpace*c, 0, 0, 0};
-                    sim.state[c].vel = PhysicsVector{0, 0, 0, 0};
+                    sim.state[i].pos = PhysicsVector{horSpace*i, 0, 0, 0};
+                    sim.state[i].vel = PhysicsVector{0, 0, 0, 0};
                 }
                 pluckFilter.Reset();
-                pluckFilter.SetCutoffFrequency(1600);
+                pluckFilter.SetCutoffFrequency(2000);
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
@@ -200,6 +192,9 @@ namespace Sapphire
             void setPitch(float voct)
             {
                 targetSpeedFactor = pow(2.0, voct);
+                const float limit = voct + 2.9;
+                channelInfo[0].gravy.setFrequency(limit);
+                channelInfo[1].gravy.setFrequency(limit);
             }
         };
     }
