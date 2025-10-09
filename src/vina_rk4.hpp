@@ -108,7 +108,8 @@ namespace Sapphire
                     sim.state[i].vel = PhysicsVector{0, 0, 0, 0};
                 }
                 pluckFilter.Reset();
-                pluckFilter.SetCutoffFrequency(2000);
+                pluckFilter.SetCutoffFrequency(4000);
+                setPitch(0);
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)

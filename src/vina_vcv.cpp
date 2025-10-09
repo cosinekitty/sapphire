@@ -8,6 +8,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
     {
         enum ParamId
         {
+            STIFFNESS_PARAM,
             PARAMS_LEN
         };
 
@@ -30,6 +31,15 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             LIGHTS_LEN
         };
 
+
+        struct StiffnessSlider : SapphireSlider
+        {
+            explicit StiffnessSlider(SapphireQuantity* _quantity)
+                : SapphireSlider(_quantity, "spring stiffness")
+                {}
+        };
+
+
         struct ChannelInfo
         {
             VinaEngine engine;
@@ -47,6 +57,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
+            SapphireQuantity* stiffnessQuantity{};
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -56,7 +67,20 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                addStiffnessSlider();
                 initialize();
+            }
+
+            void addStiffnessSlider()
+            {
+                if (stiffnessQuantity == nullptr)
+                {
+                    stiffnessQuantity = configParam<SapphireQuantity>(
+                        STIFFNESS_PARAM,
+                        88.5, 89, 89.5,
+                        "Stiffness"
+                    );
+                }
             }
 
             void onReset(const ResetEvent& e) override
@@ -69,15 +93,19 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     channelInfo[c].initialize();
+
+                stiffnessQuantity->value = stiffnessQuantity->defaultValue;
+                stiffnessQuantity->changed = true;
             }
 
             void process(const ProcessArgs& args) override
             {
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
-                outputs[AUDIO_LEFT_OUTPUT].setChannels(numActiveChannels);
+                outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
+
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
@@ -90,23 +118,38 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         q.engine.pluck(args.sampleRate);
 
                     q.engine.setPitch(voctVoltage);
+                    q.engine.sim.deriv.stiffness = stiffnessQuantity->value;
                     auto frame = q.engine.update(args.sampleRate, q.gateReceiver.isGateActive());
-                    outputs[AUDIO_LEFT_OUTPUT].setVoltage (frame.sample[0], c);
+                    outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
+
+                stiffnessQuantity->changed = false;
             }
         };
 
         struct VinaWidget : SapphireWidget
         {
+            VinaModule* vinaModule{};
+
             explicit VinaWidget(VinaModule *module)
                 : SapphireWidget("vina", asset::plugin(pluginInstance, "res/vina.svg"))
+                , vinaModule(module)
             {
                 setModule(module);
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(VOCT_INPUT, "voct_input");
-                addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+            }
+
+            void appendContextMenu(Menu* menu) override
+            {
+                if (vinaModule)
+                {
+                    menu->addChild(new MenuSeparator);
+                    menu->addChild(new StiffnessSlider(vinaModule->stiffnessQuantity));
+                }
             }
         };
     }
