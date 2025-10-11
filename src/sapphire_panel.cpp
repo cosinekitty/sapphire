@@ -495,7 +495,9 @@ namespace Sapphire
             }},
         { "vina", {
             {"_panel",                 {  45.720,  128.500}},
+            {"audio_left_input",       {  16.860,   52.667}},
             {"audio_left_output",      {  16.860,  114.000}},
+            {"audio_right_input",      {  28.860,   52.667}},
             {"audio_right_output",     {  28.860,  114.000}},
             {"gate_input",             {  22.860,   37.333}},
             {"voct_input",             {  22.860,   22.000}},

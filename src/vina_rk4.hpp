@@ -12,7 +12,6 @@ namespace Sapphire
         static_assert(nParticles > nMobileParticles);
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
-        constexpr float verSpace = 0.01;    // vertical spacing in meters
 
         struct VinaStereoFrame
         {
@@ -48,7 +47,6 @@ namespace Sapphire
         };
 
         using vina_state_t = std::vector<VinaParticle>;
-        extern const vina_state_t EngineInit;
     }
 }
 
@@ -76,7 +74,7 @@ namespace Sapphire
             bool isFirstSample = true;
             channel_info_t channelInfo[2];
             LoHiPassFilter<float> pluckFilter;
-            float thump = 0;
+            bool prevGate{};
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -110,6 +108,7 @@ namespace Sapphire
                 pluckFilter.Reset();
                 pluckFilter.SetCutoffFrequency(4000);
                 setPitch(0);
+                prevGate = false;
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
@@ -128,16 +127,16 @@ namespace Sapphire
                 return q.gravy.process(sampleRateHz, audio).lowpass;
             }
 
-            void pluck(float sampleRateHz)
+            VinaStereoFrame update(float sampleRateHz, bool gate, float leftAudioIn, float rightAudioIn)
             {
-                thump = 1.7;
-            }
+                const float thump = (gate > prevGate) ? 1.7f : 0.0f;
+                prevGate = gate;
 
-            VinaStereoFrame update(float sampleRateHz, bool gate)
-            {
                 updateFilter(pluckFilter, sampleRateHz, thump);
-                thump = 0;
-                sim.state[3].vel[0] += pluckFilter.LoPass();
+                sim.state[10].vel[0] += pluckFilter.LoPass();
+                //sim.state[10].vel[1] += pluckFilter.LoPass();
+                sim.state[14].vel[0] += leftAudioIn;
+                sim.state[18].vel[0] += rightAudioIn;
 
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
@@ -149,15 +148,12 @@ namespace Sapphire
                 const float halfLifeSeconds = gate ? 1.0 : 0.045;
                 brake(sampleRateHz, halfLifeSeconds);
                 constexpr float level = 1.0e+03;
-                float rawLeft  = sim.state[37].pos[0];
+                float rawLeft  = sim.state[32].pos[0];
                 float rawRight = sim.state[38].pos[0];
                 if (!std::isfinite(rawLeft) || !std::isfinite(rawRight))
                 {
-                    // [4.372 warn src/vina_rk4.hpp:142 update] Vina auto-reset at dt=0.00503117
-                    //WARN("Vina auto-reset at dt=%0.6g", dt);
                     initialize();
-                    rawLeft = 0;
-                    rawRight = 0;
+                    return VinaStereoFrame{0, 0};
                 }
                 float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = level * audioFilter(sampleRateHz, rawRight, 1);
@@ -173,21 +169,6 @@ namespace Sapphire
 
                 for (VinaParticle& p : sim.state)
                     p.vel *= factor;
-            }
-
-            void settle(
-                float sampleRateHz = 48000,
-                float settleTimeSeconds = 5.0)
-            {
-                const unsigned nFrames = static_cast<unsigned>(sampleRateHz * settleTimeSeconds);
-                for (unsigned frameCount = 0; frameCount < nFrames; ++frameCount)
-                    update(sampleRateHz, false);
-            }
-
-            void setPreSettledState()
-            {
-                assert(sim.state.size() == EngineInit.size());
-                sim.state = EngineInit;
             }
 
             void setPitch(float voct)

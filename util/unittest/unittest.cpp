@@ -1509,53 +1509,6 @@ static int CalculatorTest()
 }
 
 
-//---------------------------------------------------------------------------------------
-
-
-static int SaveVinaEngine(
-    const Sapphire::Vina::VinaEngine& engine,
-    const char *outFileName)
-{
-    using namespace Sapphire::Vina;
-
-    char buffer [300];
-    std::string text;
-    text += "//***** GENERATED CODE ***** DO NOT EDIT ******\n";
-    text += "#include \"vina_rk4.hpp\"\n";
-    text += "namespace Sapphire\n";
-    text += "{\n";
-    text += "    namespace Vina\n";
-    text += "    {\n";
-    text += "        const std::vector<VinaParticle> EngineInit\n";
-    text += "        {\n";
-    for (const VinaParticle& p : engine.sim.state)
-    {
-        snprintf(
-            buffer,
-            sizeof(buffer),
-            "            VinaParticle { {%12.6g, %12.6g, %12.6g, 0}, {%12.6g, %12.6g, %12.6g, 0} },\n",
-            p.pos[0], p.pos[1], p.pos[2],
-            p.vel[0], p.vel[1], p.vel[2]
-        );
-
-        text += buffer;
-    }
-    text += "        };\n";
-    text += "    }\n";
-    text += "}\n";
-
-    auto tempFileName = std::string(outFileName) + ".tmp";
-    if (FILE* outfile = fopen(tempFileName.c_str(), "wt"))
-    {
-        fprintf(outfile, "%s", text.c_str());
-        fclose(outfile);
-        return UpdateFile("SaveVinaEngine", tempFileName.c_str(), outFileName);
-    }
-    printf("SaveVinaEngine: cannot open file for write: %s\n", outFileName);
-    return 1;
-}
-
-
 static int VinaTest()
 {
     using namespace Sapphire::Vina;
@@ -1571,24 +1524,18 @@ static int VinaTest()
     if (!outwave.Open(outFileName, sampleRateHz, channels))
         return Fail("VinaTest", std::string("Could not open output file: ") + outFileName);
 
-    printf("VinaTest: settling...\n");
-    engine.settle();
-    if (SaveVinaEngine(engine, "../../src/vina_engine_init.cpp")) return 1;
     printf("VinaTest: rendering...\n");
 
     const float durationSeconds = 5;
     const float pluckSeconds = 0.2;
     const float releaseSeconds = 2.5;
-    const unsigned nFrames = static_cast<unsigned>(sampleRateHz * durationSeconds);
-    const unsigned pluckFrame = static_cast<unsigned>(sampleRateHz * pluckSeconds);
+    const unsigned nFrames      = static_cast<unsigned>(sampleRateHz * durationSeconds);
+    const unsigned pluckFrame   = static_cast<unsigned>(sampleRateHz * pluckSeconds);
     const unsigned releaseFrame = static_cast<unsigned>(sampleRateHz * releaseSeconds);
     for (unsigned f = 0; f < nFrames; ++f)
     {
-        const bool gate    = (f >= pluckFrame) && (f <= releaseFrame);
-        const bool trigger = (f == pluckFrame);
-        if (trigger)
-            engine.pluck(sampleRateHz);
-        VinaStereoFrame frame = engine.update(sampleRateHz, gate);
+        const bool gate = (f >= pluckFrame) && (f <= releaseFrame);
+        VinaStereoFrame frame = engine.update(sampleRateHz, gate, 0, 0);
         outwave.WriteSamples(frame.sample, 2);
     }
 

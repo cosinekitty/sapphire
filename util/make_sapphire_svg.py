@@ -2414,10 +2414,13 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yFence = FencePost(22.0, 114.0, 7)
         yVoctInput = yFence.value(0)
         yGateInput = yFence.value(1)
+        yAudioInputs = yFence.value(2)
         yAudioOutputs = yFence.value(6)
         dxPortFromCenter = 6.0
         controls.append(Component('voct_input', xmid, yVoctInput))
         controls.append(Component('gate_input', xmid, yGateInput))
+        controls.append(Component('audio_left_input',  xmid - dxPortFromCenter, yAudioInputs))
+        controls.append(Component('audio_right_input', xmid + dxPortFromCenter, yAudioInputs))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yAudioOutputs))
         return Save(panel, svgFileName)
