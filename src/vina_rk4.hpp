@@ -22,30 +22,32 @@ namespace Sapphire
                 {}
         };
 
-        struct VinaParticle
+        template <typename batch_t>
+        struct ParticleBatch
         {
-            PhysicsVector pos;
-            PhysicsVector vel;
+            batch_t pos;
+            batch_t vel;
 
-            explicit VinaParticle()
+            explicit ParticleBatch()
                 {}
 
-            explicit VinaParticle(PhysicsVector _pos, PhysicsVector _vel)
+            explicit ParticleBatch(batch_t _pos, batch_t _vel)
                 : pos(_pos)
                 , vel(_vel)
                 {}
 
-            friend VinaParticle operator * (float k, const VinaParticle& p)
+            friend ParticleBatch operator * (float k, const ParticleBatch& p)
             {
-                return VinaParticle(k*p.pos, k*p.vel);
+                return ParticleBatch(k*p.pos, k*p.vel);
             }
 
-            friend VinaParticle operator + (const VinaParticle& a, const VinaParticle& b)
+            friend ParticleBatch operator + (const ParticleBatch& a, const ParticleBatch& b)
             {
-                return VinaParticle(a.pos + b.pos, a.vel + b.vel);
+                return ParticleBatch(a.pos + b.pos, a.vel + b.vel);
             }
         };
 
+        using VinaParticle = ParticleBatch<float>;
         using vina_state_t = std::vector<VinaParticle>;
     }
 }
@@ -102,8 +104,8 @@ namespace Sapphire
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned i = 0; i < nParticles; ++i)
                 {
-                    sim.state[i].pos = PhysicsVector{horSpace*i, 0, 0, 0};
-                    sim.state[i].vel = PhysicsVector{0, 0, 0, 0};
+                    sim.state[i].pos = horSpace * i;
+                    sim.state[i].vel = 0;
                 }
                 pluckFilter.Reset();
                 pluckFilter.SetCutoffFrequency(4000);
@@ -129,14 +131,13 @@ namespace Sapphire
 
             VinaStereoFrame update(float sampleRateHz, bool gate, float leftAudioIn, float rightAudioIn)
             {
-                const float thump = (gate > prevGate) ? 1.7f : 0.0f;
+                const float thump = (gate && !prevGate) ? 1.7f : 0.0f;
                 prevGate = gate;
 
                 updateFilter(pluckFilter, sampleRateHz, thump);
-                sim.state[10].vel[0] += pluckFilter.LoPass();
-                //sim.state[10].vel[1] += pluckFilter.LoPass();
-                sim.state[14].vel[0] += leftAudioIn;
-                sim.state[18].vel[0] += rightAudioIn;
+                sim.state[10].vel += pluckFilter.LoPass();
+                sim.state[14].vel += leftAudioIn;
+                sim.state[18].vel += rightAudioIn;
 
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
@@ -148,8 +149,8 @@ namespace Sapphire
                 const float halfLifeSeconds = gate ? 1.0 : 0.045;
                 brake(sampleRateHz, halfLifeSeconds);
                 constexpr float level = 1.0e+03;
-                float rawLeft  = sim.state[32].pos[0];
-                float rawRight = sim.state[38].pos[0];
+                float rawLeft  = sim.state[32].pos;
+                float rawRight = sim.state[38].pos;
                 if (!std::isfinite(rawLeft) || !std::isfinite(rawRight))
                 {
                     initialize();
