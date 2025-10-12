@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-nMobileColumns = 42
-nColumns = nMobileColumns + 2
+nMobileParticles = 42
+nParticles = nMobileParticles + 2
 
 
 def UpdateFileIfChanged(filename:str, newText:str) -> bool:
@@ -31,7 +31,7 @@ def Line(s:str, indent:int = 4) -> str:
 
 
 def GenVinaSourceCode() -> str:
-    s = r'''//**** GENERATED CODE **** DO NOT EDIT ****
+    front = r'''//**** GENERATED CODE **** DO NOT EDIT ****
 #pragma once
 namespace Sapphire
 {
@@ -47,31 +47,36 @@ namespace Sapphire
 
             void operator() (vina_state_t& slope, const vina_state_t& state)
             {
-                assert(nParticles == slope.size());
-                assert(nParticles == state.size());
-                assert(nParticles > 2);
+                float dr, length, fmag, acc;
 
-                slope[0].pos = state[0].vel;
-                slope[0].vel = 0;
-                for (unsigned i = 1; i < nParticles; ++i)
-                {
-                    slope[i].pos = state[i].vel;
-                    slope[i].vel = 0;
-                    float dr = state[i].pos - state[i-1].pos;
-                    float length = std::abs(dr);
-                    float fmag = stiffness*(length - restLength);
-                    float acc = (fmag/(mass * length)) * dr;
-                    if (i >= 2)
-                        slope[i-1].vel += acc;
-                    if (i < nParticles-1)
-                        slope[i].vel -= acc;
-                }
-            }
+'''
+
+    middle = ''
+
+    i = 0
+    while i < nParticles:
+        middle += Line('// i = {:d}'.format(i))
+        middle += Line('slope[{0:d}].pos = state[{0:d}].vel;'.format(i))
+        middle += Line('slope[{0:d}].vel = 0;'.format(i))
+        if i > 0:
+            middle += Line('dr = state[{0:d}].pos - state[{1:d}].pos;'.format(i, i-1))
+            middle += Line('length = std::abs(dr);')
+            middle += Line('fmag = stiffness*(length - restLength);')
+            middle += Line('acc = (fmag/(mass * length)) * dr;')
+            if i > 1:
+                middle += Line('slope[{:d}].vel += acc;'.format(i-1))
+            if i < nParticles-1:
+                middle += Line('slope[{:d}].vel -= acc;'.format(i))
+        middle += '\n'
+        i += 1
+
+    back = r'''            }
         };
     }
 }
 '''
-    return s
+
+    return front + middle + back
 
 
 def main() -> int:
