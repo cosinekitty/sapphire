@@ -31,7 +31,7 @@ def Line(s:str, indent:int = 4) -> str:
 
 
 def GenVinaSourceCode() -> str:
-    front = r'''//**** GENERATED CODE **** DO NOT EDIT ****
+    s = r'''//**** GENERATED CODE **** DO NOT EDIT ****
 #pragma once
 namespace Sapphire
 {
@@ -51,32 +51,32 @@ namespace Sapphire
 
 '''
 
-    middle = ''
-
     i = 0
     while i < nParticles:
-        middle += Line('// i = {:d}'.format(i))
-        middle += Line('slope[{0:d}].pos = state[{0:d}].vel;'.format(i))
-        middle += Line('slope[{0:d}].vel = 0;'.format(i))
+        s += Line('// i = {:d}'.format(i))
+        s += Line('slope[{0:d}].pos = state[{0:d}].vel;'.format(i))
+        needVel = True
         if i > 0:
-            middle += Line('dr = state[{0:d}].pos - state[{1:d}].pos;'.format(i, i-1))
-            middle += Line('length = std::abs(dr);')
-            middle += Line('fmag = stiffness*(length - restLength);')
-            middle += Line('acc = (fmag/(mass * length)) * dr;')
+            s += Line('dr = state[{0:d}].pos - state[{1:d}].pos;'.format(i, i-1))
+            s += Line('length = (dr < 0) ? -dr : dr;')
+            s += Line('fmag = stiffness*(length - restLength);')
+            s += Line('acc = (fmag/(mass * length)) * dr;')
             if i > 1:
-                middle += Line('slope[{:d}].vel += acc;'.format(i-1))
+                s += Line('slope[{:d}].vel += acc;'.format(i-1))
             if i < nParticles-1:
-                middle += Line('slope[{:d}].vel -= acc;'.format(i))
-        middle += '\n'
+                s += Line('slope[{:d}].vel = -acc;'.format(i))
+                needVel = False
+        if needVel:
+            s += Line('slope[{:d}].vel = 0;'.format(i))
+        s += '\n'
         i += 1
 
-    back = r'''            }
+    s += r'''            }
         };
     }
 }
 '''
-
-    return front + middle + back
+    return s
 
 
 def main() -> int:
