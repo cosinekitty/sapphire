@@ -70,6 +70,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configInput(AUDIO_RIGHT_INPUT, "Right audio");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
+                configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
                 addStiffnessSlider();
                 initialize();
             }

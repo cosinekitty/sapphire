@@ -2423,6 +2423,8 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         controls.append(Component('audio_right_input', xmid + dxPortFromCenter, yAudioInputs))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yAudioOutputs))
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yAudioInputs))
+        pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yAudioOutputs))
         return Save(panel, svgFileName)
 
 
