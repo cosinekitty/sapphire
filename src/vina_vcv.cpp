@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "vina_rk4.hpp"
+#include "vina_engine.hpp"
 
 namespace Sapphire      // Indranīla (इन्द्रनील)
 {
