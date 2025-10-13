@@ -6,7 +6,7 @@ namespace Sapphire
     {
         struct VinaDeriv
         {
-            float k = 89000;            // stiffness/mass
+            float k = 1000 * defaultStiffness;            // stiffness/mass, where mass = 0.001 kg
             float restLength = 0.004;
 
             explicit VinaDeriv() {}

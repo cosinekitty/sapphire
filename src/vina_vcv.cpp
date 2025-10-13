@@ -80,7 +80,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 {
                     stiffnessQuantity = configParam<SapphireQuantity>(
                         STIFFNESS_PARAM,
-                        40.0, 160.0, 89.0,
+                        Vina::defaultStiffness - 1,
+                        Vina::defaultStiffness + 1,
+                        Vina::defaultStiffness,
                         "Stiffness"
                     );
                 }
@@ -122,7 +124,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
                     q.engine.setPitch(voctVoltage);
-                    q.engine.sim.deriv.k = stiffnessQuantity->value / 1.0e-3f;       // stiffness/mass
+                    q.engine.setStiffness(stiffnessQuantity->value);
                     auto frame = q.engine.update(args.sampleRate, gate, leftAudioIn, rightAudioIn);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);

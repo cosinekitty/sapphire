@@ -12,6 +12,7 @@ namespace Sapphire
         static_assert(nParticles > nMobileParticles);
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
+        constexpr float defaultStiffness = 89;
 
         struct VinaStereoFrame
         {
@@ -110,6 +111,7 @@ namespace Sapphire
                 pluckFilter.Reset();
                 pluckFilter.SetCutoffFrequency(4000);
                 setPitch(0);
+                setStiffness(defaultStiffness);
                 prevGate = false;
             }
 
@@ -178,6 +180,11 @@ namespace Sapphire
                 const float limit = voct + 2.9;
                 channelInfo[0].gravy.setFrequency(limit);
                 channelInfo[1].gravy.setFrequency(limit);
+            }
+
+            void setStiffness(float stiff)
+            {
+                sim.deriv.k = 1000 * stiff;      // stiffness/mass
             }
         };
     }
