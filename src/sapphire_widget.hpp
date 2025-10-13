@@ -849,9 +849,10 @@ namespace Sapphire
         void drawAudioPortLabels(
             NVGcontext* vg,
             PortLabelMode mode,
-            float xCenter_mm,
-            float yCenterL_mm,
-            float yCenterR_mm)
+            float xL_mm,
+            float yL_mm,
+            float xR_mm,
+            float yR_mm)
         {
             char left[3]{};
             char right[3]{};
@@ -894,14 +895,26 @@ namespace Sapphire
             nvgFillColor(vg, SCHEME_BLACK);
 
             float yNudge = -0.3;
-            float xc = mm2px(xCenter_mm);
-            float yL = mm2px(yCenterL_mm + yNudge);
-            float yR = mm2px(yCenterR_mm + yNudge);
+            float xL = mm2px(xL_mm);
+            float xR = mm2px(xR_mm);
+            float yL = mm2px(yL_mm + yNudge);
+            float yR = mm2px(yR_mm + yNudge);
 
-            drawCenteredText(vg, xc, yL, left);
+            drawCenteredText(vg, xL, yL, left);
 
             if (right[0])
-                drawCenteredText(vg, xc, yR, right);
+                drawCenteredText(vg, xR, yR, right);
+        }
+
+        void drawAudioPortLabels(
+            NVGcontext* vg,
+            PortLabelMode mode,
+            const std::string& leftLabel,
+            const std::string& rightLabel)
+        {
+            ComponentLocation L = FindComponent(modcode, leftLabel);
+            ComponentLocation R = FindComponent(modcode, rightLabel);
+            drawAudioPortLabels(vg, mode, L.cx, L.cy, R.cx, R.cy);
         }
     };
 

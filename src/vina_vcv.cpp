@@ -59,6 +59,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
             SapphireQuantity* stiffnessQuantity{};
+            PortLabelMode inputPortMode = PortLabelMode::Stereo;
+            PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -136,6 +138,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             }
         };
 
+
         struct VinaWidget : SapphireWidget
         {
             VinaModule* vinaModule{};
@@ -159,6 +162,16 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 {
                     menu->addChild(new MenuSeparator);
                     menu->addChild(new StiffnessSlider(vinaModule->stiffnessQuantity));
+                }
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                SapphireWidget::draw(args);
+                if (vinaModule)
+                {
+                    drawAudioPortLabels(args.vg, vinaModule->inputPortMode,  "left_input_label",  "right_input_label" );
+                    drawAudioPortLabels(args.vg, vinaModule->outputPortMode, "left_output_label", "right_output_label");
                 }
             }
         };

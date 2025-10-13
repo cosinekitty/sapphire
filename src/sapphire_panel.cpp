@@ -500,6 +500,10 @@ namespace Sapphire
             {"audio_right_input",      {  28.860,   52.667}},
             {"audio_right_output",     {  28.860,  114.000}},
             {"gate_input",             {  22.860,   37.333}},
+            {"left_input_label",       {  10.560,   52.667}},
+            {"left_output_label",      {  10.560,  114.000}},
+            {"right_input_label",      {  35.160,   52.667}},
+            {"right_output_label",     {  35.160,  114.000}},
             {"voct_input",             {  22.860,   22.000}},
             }},
         { "zoo", {

@@ -15,6 +15,8 @@ from sapphire import *
 
 previewComponentPositions = ((len(sys.argv) > 1) and (sys.argv[1] == 'preview'))
 
+dxHorizontalStereoLabels = 6.3
+
 
 def Print(message:str) -> int:
     print('make_sapphire_svg.py:', message)
@@ -750,7 +752,7 @@ def GenerateStereoInputLabels(svgFileName:str, leftPortLabel:str, rightPortLabel
     panel.append(pl)
     xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
-    dxLeftRight = dxPortFromCenter + 6.3
+    dxLeftRight = dxPortFromCenter + dxHorizontalStereoLabels
     yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -2417,12 +2419,17 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yAudioInputs = yFence.value(2)
         yAudioOutputs = yFence.value(6)
         dxPortFromCenter = 6.0
+        dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
         controls.append(Component('voct_input', xmid, yVoctInput))
         controls.append(Component('gate_input', xmid, yGateInput))
         controls.append(Component('audio_left_input',  xmid - dxPortFromCenter, yAudioInputs))
         controls.append(Component('audio_right_input', xmid + dxPortFromCenter, yAudioInputs))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yAudioOutputs))
+        controls.append(Component('left_input_label',  xmid - dxLabelFromCenter, yAudioInputs))
+        controls.append(Component('right_input_label', xmid + dxLabelFromCenter, yAudioInputs))
+        controls.append(Component('left_output_label',  xmid - dxLabelFromCenter, yAudioOutputs))
+        controls.append(Component('right_output_label', xmid + dxLabelFromCenter, yAudioOutputs))
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yAudioInputs))
         pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yAudioOutputs))
         return Save(panel, svgFileName)

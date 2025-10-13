@@ -1847,7 +1847,7 @@ namespace Sapphire
 
                     ComponentLocation L = FindComponent(modcode, "sendreturn_label_left");
                     ComponentLocation R = FindComponent(modcode, "sendreturn_label_right");
-                    drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cy);
+                    drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cx, R.cy);
                     NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
                     drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup, color);
                 }
@@ -2602,7 +2602,7 @@ namespace Sapphire
                     PortLabelMode label = echoModule ? echoModule->inputLabels : PortLabelMode::Stereo;
                     ComponentLocation L = FindComponent(modcode, "input_label_left");
                     ComponentLocation R = FindComponent(modcode, "input_label_right");
-                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cy);
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
 
                     if (!isClockPortConnected())
                         drawClockSyncSymbol(args.vg, SCHEME_BLACK, 1.25);
@@ -3325,7 +3325,7 @@ namespace Sapphire
                     PortLabelMode label = echoOutModule ? echoOutModule->outputLabels : PortLabelMode::Stereo;
                     ComponentLocation L = FindComponent(modcode, "output_label_left");
                     ComponentLocation R = FindComponent(modcode, "output_label_right");
-                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cy);
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
                 }
             };
         }
