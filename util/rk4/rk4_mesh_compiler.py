@@ -45,30 +45,27 @@ namespace Sapphire
 
             explicit VinaDeriv() {}
 
-            void operator() (vina_state_t& slope, const vina_state_t& state)
+            void operator() (vina_state_t& y, const vina_state_t& x)
             {
-                float dr, length, fmag, acc;
+                float acc;
 
 '''
 
     i = 0
     while i < nParticles:
-        s += Line('// i = {:d}'.format(i))
-        s += Line('slope[{0:d}].pos = state[{0:d}].vel;'.format(i))
+        if i > 0:
+            s += '\n'
+        s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
         needVel = True
         if i > 0:
-            s += Line('dr = state[{0:d}].pos - state[{1:d}].pos;'.format(i, i-1))
-            s += Line('length = (dr < 0) ? -dr : dr;')
-            s += Line('fmag = stiffness*(length - restLength);')
-            s += Line('acc = (fmag/(mass * length)) * dr;')
+            s += Line('acc = (stiffness*((x[{0:d}].pos - x[{1:d}].pos) - restLength)) / mass;'.format(i, i-1))
             if i > 1:
-                s += Line('slope[{:d}].vel += acc;'.format(i-1))
+                s += Line('y[{:d}].vel += acc;'.format(i-1))
             if i < nParticles-1:
-                s += Line('slope[{:d}].vel = -acc;'.format(i))
+                s += Line('y[{:d}].vel = -acc;'.format(i))
                 needVel = False
         if needVel:
-            s += Line('slope[{:d}].vel = 0;'.format(i))
-        s += '\n'
+            s += Line('y[{:d}].vel = 0;'.format(i))
         i += 1
 
     s += r'''            }
