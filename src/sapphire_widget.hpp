@@ -460,6 +460,14 @@ namespace Sapphire
     };
 
 
+    enum class PortLabelMode
+    {
+        Stereo = -2,
+        Mono = -1,
+        Poly = 0,       // add the number of channels: +1..16
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -472,6 +480,8 @@ namespace Sapphire
         SvgOverlay* inputStereoLabelLR = nullptr;
         SvgOverlay* inputStereoLabelL2 = nullptr;
         SvgOverlay* inputStereoLabelR2 = nullptr;
+
+        const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
         explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
             : modcode(moduleCode)
@@ -824,6 +834,75 @@ namespace Sapphire
 
         bool shouldOfferChaops();
         void addChaopsExpander();
+
+        void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
+        {
+            float bounds[4]{};
+            nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+            // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
+            //                xmin       ymin       xmax      ymax
+            float width = bounds[2] - bounds[0];
+            float ascent = -bounds[1];
+            nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
+        }
+
+        void drawAudioPortLabels(
+            NVGcontext* vg,
+            PortLabelMode mode,
+            float xCenter_mm,
+            float yCenterL_mm,
+            float yCenterR_mm)
+        {
+            char left[3]{};
+            char right[3]{};
+
+            switch (mode)
+            {
+            case PortLabelMode::Mono:
+                left[0] = 'M';
+                break;
+
+            case PortLabelMode::Stereo:
+                left[0] = 'L';
+                right[0] = 'R';
+                break;
+
+            default:
+                const int nc = static_cast<int>(mode);
+                if (nc >= 1 && nc <= 9)
+                {
+                    left[0] = '0' + nc;
+                }
+                else if (nc >= 10 && nc <= 16)
+                {
+                    left[0] = '1';
+                    left[1] = '0' + (nc % 10);
+                }
+                else
+                {
+                    left[0] = '?';
+                }
+                break;
+            }
+
+            std::shared_ptr<Font> font = APP->window->loadFont(portLabelFontPath);
+            if (!font)
+                return;
+
+            nvgFontSize(vg, 12);
+            nvgFontFaceId(vg, font->handle);
+            nvgFillColor(vg, SCHEME_BLACK);
+
+            float yNudge = -0.3;
+            float xc = mm2px(xCenter_mm);
+            float yL = mm2px(yCenterL_mm + yNudge);
+            float yR = mm2px(yCenterR_mm + yNudge);
+
+            drawCenteredText(vg, xc, yL, left);
+
+            if (right[0])
+                drawCenteredText(vg, xc, yR, right);
+        }
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone);

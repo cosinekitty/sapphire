@@ -50,13 +50,6 @@ namespace Sapphire
 
         const Fraction& PickClosestFraction(float ratio);
 
-        enum class PortLabelMode
-        {
-            Stereo = -2,
-            Mono = -1,
-            Poly = 0,       // add the number of channels: +1..16
-        };
-
 
         enum class TimeMode
         {
