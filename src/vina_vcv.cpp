@@ -122,7 +122,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
                     q.engine.setPitch(voctVoltage);
-                    q.engine.sim.deriv.stiffness = stiffnessQuantity->value;
+                    q.engine.sim.deriv.k = stiffnessQuantity->value / 1.0e-3f;       // stiffness/mass
                     auto frame = q.engine.update(args.sampleRate, gate, leftAudioIn, rightAudioIn);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);

@@ -39,9 +39,8 @@ namespace Sapphire
     {
         struct VinaDeriv
         {
-            float stiffness = 89.0;
+            float k = 89000;            // stiffness/mass
             float restLength = 0.004;
-            float mass = 1.0e-03;
 
             explicit VinaDeriv() {}
 
@@ -58,7 +57,7 @@ namespace Sapphire
         s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
         needVel = True
         if i > 0:
-            s += Line('acc = (stiffness*((x[{0:d}].pos - x[{1:d}].pos) - restLength)) / mass;'.format(i, i-1))
+            s += Line('acc = k*((x[{0:d}].pos - x[{1:d}].pos) - restLength);'.format(i, i-1))
             if i > 1:
                 s += Line('y[{:d}].vel += acc;'.format(i-1))
             if i < nParticles-1:
