@@ -2412,6 +2412,7 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
+        dyButtonText = 7.0
         xmid = panel.mmWidth/2
         yFence = FencePost(22.0, 114.0, 7)
         yFreq = yFence.value(0)
@@ -2423,6 +2424,8 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         AddFlatControlGroup(pl, controls, xmid, yOct, 'oct')
+        pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'OCT',  xmid, yOct - dyButtonText))
         controls.append(Component('voct_input', xmid, yVoctInput))
         controls.append(Component('gate_input', xmid, yGateInput))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
