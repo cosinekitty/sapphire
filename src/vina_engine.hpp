@@ -131,15 +131,13 @@ namespace Sapphire
                 return q.gravy.process(sampleRateHz, audio).lowpass;
             }
 
-            VinaStereoFrame update(float sampleRateHz, bool gate, float leftAudioIn, float rightAudioIn)
+            VinaStereoFrame update(float sampleRateHz, bool gate)
             {
                 const float thump = (gate && !prevGate) ? 1.7f : 0.0f;
                 prevGate = gate;
 
                 updateFilter(pluckFilter, sampleRateHz, thump);
                 sim.state[10].vel += pluckFilter.LoPass();
-                sim.state[14].vel += leftAudioIn;
-                sim.state[18].vel += rightAudioIn;
 
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;

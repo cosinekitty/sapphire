@@ -16,8 +16,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             GATE_INPUT,
             VOCT_INPUT,
-            AUDIO_LEFT_INPUT,
-            AUDIO_RIGHT_INPUT,
             INPUTS_LEN
         };
 
@@ -68,12 +66,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
-                configInput(AUDIO_LEFT_INPUT, "Left audio");
-                configInput(AUDIO_RIGHT_INPUT, "Right audio");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
-                configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
-                configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
                 addStiffnessSlider();
                 initialize();
             }
@@ -114,8 +108,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
-                float leftAudioIn = 0;
-                float rightAudioIn = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -123,13 +115,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
-                    nextChannelInputVoltage(leftAudioIn, AUDIO_LEFT_INPUT, c);
-                    nextChannelInputVoltage(rightAudioIn, AUDIO_RIGHT_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
                     q.engine.setPitch(voctVoltage);
                     q.engine.setStiffness(stiffnessQuantity->value);
-                    auto frame = q.engine.update(args.sampleRate, gate, leftAudioIn, rightAudioIn);
+                    auto frame = q.engine.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
@@ -150,8 +140,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 setModule(module);
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(VOCT_INPUT, "voct_input");
-                addSapphireInput(AUDIO_LEFT_INPUT, "audio_left_input");
-                addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
             }

@@ -1535,7 +1535,7 @@ static int VinaTest()
     for (unsigned f = 0; f < nFrames; ++f)
     {
         const bool gate = (f >= pluckFrame) && (f <= releaseFrame);
-        VinaStereoFrame frame = engine.update(sampleRateHz, gate, 0, 0);
+        VinaStereoFrame frame = engine.update(sampleRateHz, gate);
         outwave.WriteSamples(frame.sample, 2);
     }
 
