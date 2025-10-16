@@ -15,6 +15,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             STIFFNESS_PARAM,
             FREQ_PARAM,
             FREQ_ATTEN,
+            OCT_PARAM,
+            OCT_ATTEN,
             PARAMS_LEN
         };
 
@@ -23,6 +25,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             GATE_INPUT,
             VOCT_INPUT,
             FREQ_CV_INPUT,
+            OCT_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -74,6 +77,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configParam(FREQ_PARAM, MinOctave, MaxOctave, 0, "Frequency", " Hz", 2, CenterFreqHz);
                 configAtten(FREQ_ATTEN, "Frequency");
                 configInput(FREQ_CV_INPUT, "Frequency CV");
+                if (ParamQuantity* octParam = configParam(OCT_PARAM, MinOctave, MaxOctave, 0, "Octave"))
+                    octParam->snapEnabled = true;
+                configAtten(OCT_ATTEN, "Octave");
+                configInput(OCT_CV_INPUT, "Octave CV");
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -153,6 +160,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
+                addSapphireFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override
