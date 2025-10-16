@@ -6,9 +6,15 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 {
     namespace Vina      // (Sanskrit: वीणा IAST: vīṇā)
     {
+        constexpr int MinOctave = -3;
+        constexpr int MaxOctave = +3;
+        constexpr float CenterFreqHz = 261.6255653005986;   // C4 = 440/(2**0.75) Hz
+
         enum ParamId
         {
             STIFFNESS_PARAM,
+            FREQ_PARAM,
+            FREQ_ATTEN,
             PARAMS_LEN
         };
 
@@ -16,6 +22,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             GATE_INPUT,
             VOCT_INPUT,
+            FREQ_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -64,6 +71,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configParam(FREQ_PARAM, MinOctave, MaxOctave, 0, "Frequency", " Hz", 2, CenterFreqHz);
+                configAtten(FREQ_ATTEN, "Frequency");
+                configInput(FREQ_CV_INPUT, "Frequency CV");
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -142,6 +152,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireInput(VOCT_INPUT, "voct_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override
