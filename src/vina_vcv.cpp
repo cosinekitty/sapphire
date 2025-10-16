@@ -67,7 +67,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
             SapphireQuantity* stiffnessQuantity{};
-            PortLabelMode inputPortMode = PortLabelMode::Stereo;
+            PortLabelMode inputPortMode  = PortLabelMode::Stereo;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
             explicit VinaModule()
@@ -125,6 +125,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
+                float freqCv = 0;
+                float octCv = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -132,9 +134,19 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
+                    nextChannelInputVoltage(freqCv, FREQ_CV_INPUT, c);
+                    nextChannelInputVoltage(octCv, OCT_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
-                    q.engine.setPitch(voctVoltage);
+
+                    float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqCv, MinOctave, MaxOctave);
+                    float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  octCv,  MinOctave, MaxOctave);
+                    float freq = raw + std::round(oct) + voctVoltage;
+                    if (freq < MinOctave || freq > 1+MaxOctave)
+                        gate = false;       // ignore notes outside the instrument's range
+                    else
+                        q.engine.setPitch(freq);
+
                     q.engine.setStiffness(stiffnessQuantity->value);
                     auto frame = q.engine.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
