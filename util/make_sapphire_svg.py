@@ -2474,7 +2474,7 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
-        GenerateVcoPanel(cdict, 'vīṇā', 'vina', Target.VcvRack) or
+        GenerateVcoPanel(cdict, 'vina', 'vina', Target.VcvRack) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

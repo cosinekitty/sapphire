@@ -1,8 +1,9 @@
 #pragma once
-#include <cassert>
 #include "sapphire_engine.hpp"
 #include "sauce_engine.hpp"
 #include "rk4_simulator.hpp"
+#include "galaxy_engine.hpp"
+
 namespace Sapphire
 {
     namespace Vina
@@ -78,6 +79,7 @@ namespace Sapphire
             channel_info_t channelInfo[2];
             LoHiPassFilter<float> pluckFilter;
             bool prevGate{};
+            Galaxy::Engine reverb;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -113,6 +115,17 @@ namespace Sapphire
                 setPitch(0);
                 setStiffness(defaultStiffness);
                 prevGate = false;
+                initReverb();
+            }
+
+            void initReverb()
+            {
+                reverb.initialize();
+                reverb.setReplace(0.906);
+                reverb.setBrightness(0.628);
+                reverb.setDetune(0.476);
+                reverb.setBigness(0.0615);
+                reverb.setMix(0.163);
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
@@ -129,6 +142,13 @@ namespace Sapphire
                 updateFilter(q.dcReject, sampleRateHz, sample);
                 float audio = q.dcReject.HiPass();
                 return q.gravy.process(sampleRateHz, audio).lowpass;
+            }
+
+            VinaStereoFrame stereoReverb(float sampleRateHz, float inLeft, float inRight)
+            {
+                float outLeft{}, outRight{};
+                reverb.process(sampleRateHz, inLeft, inRight, outLeft, outRight);
+                return VinaStereoFrame(outLeft, outRight);
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
@@ -151,15 +171,18 @@ namespace Sapphire
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
                 float rawRight = sim.state[38].pos;
-                if (!std::isfinite(rawLeft) || !std::isfinite(rawRight))
-                {
-                    initialize();
-                    return VinaStereoFrame{0, 0};
-                }
                 float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = level * audioFilter(sampleRateHz, rawRight, 1);
+                VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
+                left = rvb.sample[0];
+                right = rvb.sample[1];
+                if (!std::isfinite(left) || !std::isfinite(right))
+                {
+                    initialize();
+                    return VinaStereoFrame(0, 0);
+                }
                 isFirstSample = false;
-                return VinaStereoFrame {left, right};
+                return VinaStereoFrame(left, right);
             }
 
             void brake(float sampleRateHz, float halfLifeSeconds)

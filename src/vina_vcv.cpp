@@ -189,7 +189,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireWidget::draw(args);
                 if (vinaModule)
                 {
-                    drawAudioPortLabels(args.vg, vinaModule->inputPortMode,  "left_input_label",  "right_input_label" );
                     drawAudioPortLabels(args.vg, vinaModule->outputPortMode, "left_output_label", "right_output_label");
                 }
             }
