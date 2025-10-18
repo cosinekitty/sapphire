@@ -70,6 +70,7 @@ namespace Sapphire
             {
                 Gravy::SingleChannelGravyEngine<float> gravy;
                 LoHiPassFilter<float> dcReject;
+                LoHiPassFilter<float> pluckFilter;
             };
 
             vina_sim_t sim;
@@ -79,7 +80,6 @@ namespace Sapphire
             float releaseHalfLife{};
             bool isFirstSample = true;
             channel_info_t channelInfo[2];
-            LoHiPassFilter<float> pluckFilter;
             bool prevGate{};
             Galaxy::Engine reverb;
 
@@ -99,6 +99,9 @@ namespace Sapphire
 
                 q.dcReject.Reset();
                 q.dcReject.SetCutoffFrequency(10);
+
+                q.pluckFilter.Reset();
+                q.pluckFilter.SetCutoffFrequency(3000);
             }
 
             void initialize()
@@ -112,8 +115,6 @@ namespace Sapphire
                     sim.state[i].pos = horSpace * i;
                     sim.state[i].vel = 0;
                 }
-                pluckFilter.Reset();
-                pluckFilter.SetCutoffFrequency(3000);
                 setPitch(0);
                 setStiffness(defaultStiffness);
                 setAttack();
@@ -158,11 +159,23 @@ namespace Sapphire
 
             void updatePluck(float sampleRateHz, bool gate)
             {
-                const float thump = (gate && !prevGate) ? 1.7f : 0.0f;
+                float thump;
+                if (gate && !prevGate)
+                {
+                    thump = 1.7;
+                }
+                else
+                {
+                    thump = 0;
+                }
+
+                updateFilter(channelInfo[0].pluckFilter, sampleRateHz, thump);
+                updateFilter(channelInfo[1].pluckFilter, sampleRateHz, thump);
+
+                sim.state[10].vel += channelInfo[0].pluckFilter.LoPass();
+                sim.state[19].vel += channelInfo[1].pluckFilter.LoPass();
+
                 prevGate = gate;
-                updateFilter(pluckFilter, sampleRateHz, thump);
-                sim.state[10].vel += pluckFilter.LoPass();
-                sim.state[19].vel += pluckFilter.LoPass();
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
