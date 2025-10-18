@@ -1,5 +1,6 @@
 #pragma once
 #include "sapphire_engine.hpp"
+#include "sapphire_random.hpp"
 #include "sauce_engine.hpp"
 #include "rk4_simulator.hpp"
 #include "galaxy_engine.hpp"
@@ -82,6 +83,7 @@ namespace Sapphire
             channel_info_t channelInfo[2];
             bool prevGate{};
             Galaxy::Engine reverb;
+            RandomVectorGenerator rand;
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -159,18 +161,21 @@ namespace Sapphire
 
             void updatePluck(float sampleRateHz, bool gate)
             {
-                float thump;
+                float thump[2];
                 if (gate && !prevGate)
                 {
-                    thump = 1.7;
+                    constexpr float denom = 8;
+                    thump[0] = 1.7 + ((rand.next()-0.5) / denom);
+                    thump[1] = 1.7 + ((rand.next()-0.5) / denom);
                 }
                 else
                 {
-                    thump = 0;
+                    thump[0] = 0;
+                    thump[1] = 0;
                 }
 
-                updateFilter(channelInfo[0].pluckFilter, sampleRateHz, thump);
-                updateFilter(channelInfo[1].pluckFilter, sampleRateHz, thump);
+                updateFilter(channelInfo[0].pluckFilter, sampleRateHz, thump[0]);
+                updateFilter(channelInfo[1].pluckFilter, sampleRateHz, thump[1]);
 
                 sim.state[10].vel += channelInfo[0].pluckFilter.LoPass();
                 sim.state[19].vel += channelInfo[1].pluckFilter.LoPass();
