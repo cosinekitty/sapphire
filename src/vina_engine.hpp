@@ -146,7 +146,7 @@ namespace Sapphire
 
             VinaStereoFrame stereoReverb(float sampleRateHz, float inLeft, float inRight)
             {
-                float outLeft{}, outRight{};
+                float outLeft, outRight;
                 reverb.process(sampleRateHz, inLeft, inRight, outLeft, outRight);
                 return VinaStereoFrame(outLeft, outRight);
             }
@@ -161,7 +161,7 @@ namespace Sapphire
 
                 constexpr float rho = 0.98;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
-                const float dt = 76.0808 * (speedFactor / sampleRateHz);
+                const float dt = 75.897 * (speedFactor / sampleRateHz);
                 const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
@@ -198,7 +198,7 @@ namespace Sapphire
             void setPitch(float voct)
             {
                 targetSpeedFactor = pow(2.0, voct);
-                const float limit = voct + 2.9;
+                const float limit = voct + 2.25;
                 channelInfo[0].gravy.setFrequency(limit);
                 channelInfo[1].gravy.setFrequency(limit);
             }
