@@ -106,7 +106,7 @@ namespace Sapphire
                 q.dcReject.SetCutoffFrequency(10);
 
                 q.pluckFilter.Reset();
-                q.pluckFilter.SetCutoffFrequency(3000);
+                q.pluckFilter.SetCutoffFrequency(1400);
 
                 q.pluckIndex = pluckIndexBase[channel];
             }
@@ -209,15 +209,14 @@ namespace Sapphire
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
-                const float halfLifeSeconds = gate ? decayHalfLife : releaseHalfLife;
-                brake(sampleRateHz, halfLifeSeconds);
+                brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
                 float rawRight = sim.state[34].pos;
                 float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = level * audioFilter(sampleRateHz, rawRight, 1);
                 VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
-                left = rvb.sample[0];
+                left  = rvb.sample[0];
                 right = rvb.sample[1];
                 if (!std::isfinite(left) || !std::isfinite(right))
                 {
@@ -253,8 +252,8 @@ namespace Sapphire
 
             static float decay(float knob)
             {
-                constexpr float minExponent = -3;
-                constexpr float maxExponent = +1;
+                constexpr float minExponent = -2.9;
+                constexpr float maxExponent = +1.1;
                 const float k = std::clamp<float>(knob, 0, 1);
                 const float exponent = (1-k)*minExponent + k*maxExponent;
                 return TenToPower(exponent);
@@ -262,7 +261,7 @@ namespace Sapphire
 
             void setAttack(float knob = 0.5)
             {
-                // FIXFIXFIX: not yet implemented
+                // FIXFIXFIX: not used
             }
 
             void setDecay(float knob = 0.5)
