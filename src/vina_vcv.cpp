@@ -17,6 +17,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             FREQ_ATTEN,
             OCT_PARAM,
             OCT_ATTEN,
+            ATTACK_PARAM,
+            ATTACK_ATTEN,
+            DECAY_PARAM,
+            DECAY_ATTEN,
+            RELEASE_PARAM,
+            RELEASE_ATTEN,
             PARAMS_LEN
         };
 
@@ -26,6 +32,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             VOCT_INPUT,
             FREQ_CV_INPUT,
             OCT_CV_INPUT,
+            ATTACK_CV_INPUT,
+            DECAY_CV_INPUT,
+            RELEASE_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -77,10 +86,24 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configParam(FREQ_PARAM, MinOctave, MaxOctave, 0, "Frequency", " Hz", 2, CenterFreqHz);
                 configAtten(FREQ_ATTEN, "Frequency");
                 configInput(FREQ_CV_INPUT, "Frequency CV");
+
                 if (ParamQuantity* octParam = configParam(OCT_PARAM, MinOctave, MaxOctave, 0, "Octave"))
                     octParam->snapEnabled = true;
                 configAtten(OCT_ATTEN, "Octave");
                 configInput(OCT_CV_INPUT, "Octave CV");
+
+                configParam(ATTACK_PARAM, 0, 1, 0.5, "Attack");
+                configAtten(ATTACK_ATTEN, "Attack CV");
+                configInput(ATTACK_CV_INPUT, "Attack CV");
+
+                configParam(DECAY_PARAM, 0, 1, 0.5, "Decay");
+                configAtten(DECAY_ATTEN, "Decay CV");
+                configInput(DECAY_CV_INPUT, "Decay CV");
+
+                configParam(RELEASE_PARAM, 0, 1, 0.5, "Release");
+                configAtten(RELEASE_ATTEN, "Release CV");
+                configInput(RELEASE_CV_INPUT, "Release CV");
+
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
@@ -125,8 +148,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
-                float freqCv = 0;
-                float octCv = 0;
+                float cvFreq = 0;
+                float cvOct = 0;
+                float cvAttack = 0;
+                float cvDecay = 0;
+                float cvRelease = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -134,20 +160,27 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
-                    nextChannelInputVoltage(freqCv, FREQ_CV_INPUT, c);
-                    nextChannelInputVoltage(octCv, OCT_CV_INPUT, c);
+                    nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
+                    nextChannelInputVoltage(cvOct, OCT_CV_INPUT, c);
+                    nextChannelInputVoltage(cvAttack, ATTACK_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
-                    float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqCv, MinOctave, MaxOctave);
-                    float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  octCv,  MinOctave, MaxOctave);
+                    float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
+                    float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
+                    float attack  = cvGetControlValue(ATTACK_PARAM, ATTACK_ATTEN, cvAttack, 0, 1);
+                    float decay   = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
+                    float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
                     float freq = raw + std::round(oct) + voctVoltage;
-                    if (freq < MinOctave || freq > 1+MaxOctave)
+                    if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
                     else
                         q.engine.setPitch(freq);
 
                     q.engine.setStiffness(stiffnessQuantity->value);
+                    q.engine.setAttack(attack);
+                    q.engine.setDecay(decay);
+                    q.engine.setRelease(release);
                     auto frame = q.engine.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
@@ -171,8 +204,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireInput(VOCT_INPUT, "voct_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
-                addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
-                addSapphireFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSapphireFlatControlGroup("freq",    FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
+                addSapphireFlatControlGroup("oct",     OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSapphireFlatControlGroup("attack",  ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
+                addSapphireFlatControlGroup("decay",   DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
+                addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override

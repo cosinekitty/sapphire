@@ -75,6 +75,8 @@ namespace Sapphire
             vina_sim_t sim;
             float speedFactor = 1;
             float targetSpeedFactor = 1;
+            float decayHalfLife{};
+            float releaseHalfLife{};
             bool isFirstSample = true;
             channel_info_t channelInfo[2];
             LoHiPassFilter<float> pluckFilter;
@@ -114,6 +116,9 @@ namespace Sapphire
                 pluckFilter.SetCutoffFrequency(4000);
                 setPitch(0);
                 setStiffness(defaultStiffness);
+                setAttack();
+                setDecay();
+                setRelease();
                 prevGate = false;
                 initReverb();
             }
@@ -160,13 +165,14 @@ namespace Sapphire
                 sim.state[10].vel += pluckFilter.LoPass();
 
                 constexpr float rho = 0.98;
+                constexpr float tuning = 75.897;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
-                const float dt = 75.897 * (speedFactor / sampleRateHz);
+                const float dt = tuning * (speedFactor / sampleRateHz);
                 const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
                 const float et = dt / oversample;
                 for (unsigned k = 0; k < oversample; ++k)
                     sim.step(et);
-                const float halfLifeSeconds = gate ? 1.0 : 0.045;
+                const float halfLifeSeconds = gate ? decayHalfLife : releaseHalfLife;
                 brake(sampleRateHz, halfLifeSeconds);
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
@@ -206,6 +212,30 @@ namespace Sapphire
             void setStiffness(float stiff)
             {
                 sim.deriv.k = 1000 * stiff;      // stiffness/mass
+            }
+
+            static float decay(float knob)
+            {
+                constexpr float minExponent = -3;
+                constexpr float maxExponent = +1;
+                const float k = std::clamp<float>(knob, 0, 1);
+                const float exponent = (1-k)*minExponent + k*maxExponent;
+                return TenToPower(exponent);
+            }
+
+            void setAttack(float knob = 0.5)
+            {
+                // FIXFIXFIX: not yet implemented
+            }
+
+            void setDecay(float knob = 0.5)
+            {
+                decayHalfLife = decay(knob);
+            }
+
+            void setRelease(float knob = 0.5)
+            {
+                releaseHalfLife = decay(knob) / 8;
             }
         };
     }

@@ -2401,7 +2401,7 @@ def GenerateMultiTapButtons() -> int:
 
 def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        PANEL_WIDTH = 9
+        PANEL_WIDTH = 6
         svgFileName = SvgFileName(slug, target)
         panel = Panel(PANEL_WIDTH)
         cdict[slug] = controls = ControlLayer(panel)
@@ -2412,20 +2412,29 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
-        dyButtonText = 7.0
+        dyButtonText = 6.0
         xmid = panel.mmWidth/2
-        yFence = FencePost(22.0, 114.0, 7)
-        yFreq = yFence.value(0)
-        yOct = yFence.value(1)
-        yVoctInput = yFence.value(4)
-        yGateInput = yFence.value(5)
-        yAudioOutputs = yFence.value(6)
+        yFence = FencePost(22.0, 130.0, 9)
+        yFreq           = yFence.value(0)
+        yOct            = yFence.value(1)
+        yAttack         = yFence.value(2)
+        yDecay          = yFence.value(3)
+        yRelease        = yFence.value(4)
+        yVoctInput      = yFence.value(5)
+        yGateInput      = yFence.value(6)
+        yAudioOutputs   = yFence.value(7)
         dxPortFromCenter = 6.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
-        AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
-        AddFlatControlGroup(pl, controls, xmid, yOct, 'oct')
+        AddFlatControlGroup(pl, controls, xmid, yFreq,    'freq')
+        AddFlatControlGroup(pl, controls, xmid, yOct,     'oct')
+        AddFlatControlGroup(pl, controls, xmid, yAttack,  'attack')
+        AddFlatControlGroup(pl, controls, xmid, yDecay,   'decay')
+        AddFlatControlGroup(pl, controls, xmid, yRelease, 'release')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'OCT',  xmid, yOct - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'ATT',  xmid, yAttack - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'DEC',  xmid, yDecay - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'REL',  xmid, yRelease - dyButtonText))
         controls.append(Component('voct_input', xmid, yVoctInput))
         controls.append(Component('gate_input', xmid, yGateInput))
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
