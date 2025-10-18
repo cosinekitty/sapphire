@@ -78,6 +78,7 @@ namespace Sapphire
             unsigned pluckIndexBase[2] { 10, 19 };
 
             vina_sim_t sim;
+            float gain{};
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             float decayHalfLife{};
@@ -124,7 +125,7 @@ namespace Sapphire
                 }
                 setPitch(0);
                 setStiffness(defaultStiffness);
-                setAttack();
+                setLevel();
                 setDecay();
                 setRelease();
                 prevGate = false;
@@ -213,8 +214,8 @@ namespace Sapphire
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
                 float rawRight = sim.state[34].pos;
-                float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
-                float right = level * audioFilter(sampleRateHz, rawRight, 1);
+                float left  = level * gain * audioFilter(sampleRateHz, rawLeft,  0);
+                float right = level * gain * audioFilter(sampleRateHz, rawRight, 1);
                 VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
                 left  = rvb.sample[0];
                 right = rvb.sample[1];
@@ -259,9 +260,10 @@ namespace Sapphire
                 return TenToPower(exponent);
             }
 
-            void setAttack(float knob = 0.5)
+            void setLevel(float knob = 1)
             {
-                // FIXFIXFIX: not used
+                float k = std::clamp<float>(knob, 0, 2);
+                gain = Cube(k);
             }
 
             void setDecay(float knob = 0.5)
@@ -269,7 +271,7 @@ namespace Sapphire
                 decayHalfLife = decay(knob);
             }
 
-            void setRelease(float knob = 0.5)
+            void setRelease(float knob = 1)
             {
                 releaseHalfLife = decay(knob) / 8;
             }

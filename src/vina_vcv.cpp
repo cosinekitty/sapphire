@@ -17,8 +17,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             FREQ_ATTEN,
             OCT_PARAM,
             OCT_ATTEN,
-            ATTACK_PARAM,
-            ATTACK_ATTEN,
+            LEVEL_PARAM,
+            LEVEL_ATTEN,
             DECAY_PARAM,
             DECAY_ATTEN,
             RELEASE_PARAM,
@@ -32,7 +32,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             VOCT_INPUT,
             FREQ_CV_INPUT,
             OCT_CV_INPUT,
-            ATTACK_CV_INPUT,
+            LEVEL_CV_INPUT,
             DECAY_CV_INPUT,
             RELEASE_CV_INPUT,
             INPUTS_LEN
@@ -92,9 +92,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configAtten(OCT_ATTEN, "Octave");
                 configInput(OCT_CV_INPUT, "Octave CV");
 
-                configParam(ATTACK_PARAM, 0, 1, 0.5, "Attack");
-                configAtten(ATTACK_ATTEN, "Attack CV");
-                configInput(ATTACK_CV_INPUT, "Attack CV");
+                configParam(LEVEL_PARAM, 0, 2, 1, "Level", " dB", -10, 20*3);
+                configAtten(LEVEL_ATTEN, "Level CV");
+                configInput(LEVEL_CV_INPUT, "Level CV");
 
                 configParam(DECAY_PARAM, 0, 1, 0.5, "Decay");
                 configAtten(DECAY_ATTEN, "Decay CV");
@@ -150,7 +150,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float voctVoltage = 0;
                 float cvFreq = 0;
                 float cvOct = 0;
-                float cvAttack = 0;
+                float cvLevel = 0;
                 float cvDecay = 0;
                 float cvRelease = 0;
 
@@ -162,13 +162,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
                     nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                     nextChannelInputVoltage(cvOct, OCT_CV_INPUT, c);
-                    nextChannelInputVoltage(cvAttack, ATTACK_CV_INPUT, c);
+                    nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
                     float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
                     float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
-                    float attack  = cvGetControlValue(ATTACK_PARAM, ATTACK_ATTEN, cvAttack, 0, 1);
+                    float level   = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
                     float decay   = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
                     float freq = raw + std::round(oct) + voctVoltage;
@@ -178,7 +178,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         q.engine.setPitch(freq);
 
                     q.engine.setStiffness(stiffnessQuantity->value);
-                    q.engine.setAttack(attack);
+                    q.engine.setLevel(level);
                     q.engine.setDecay(decay);
                     q.engine.setRelease(release);
                     auto frame = q.engine.update(args.sampleRate, gate);
@@ -206,7 +206,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSapphireFlatControlGroup("freq",    FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSapphireFlatControlGroup("oct",     OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
-                addSapphireFlatControlGroup("attack",  ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
+                addSapphireFlatControlGroup("level",   LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                 addSapphireFlatControlGroup("decay",   DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
             }
