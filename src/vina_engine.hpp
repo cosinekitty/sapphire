@@ -164,7 +164,7 @@ namespace Sapphire
                 return VinaStereoFrame(outLeft, outRight);
             }
 
-            void updatePluckChannel(float sampleRateHz, bool trigger, unsigned channel)
+            void updatePluckChannel(float sampleRateHz, bool trigger, unsigned channel, unsigned index)
             {
                 channel_info_t& q = channelInfo[channel];
                 float thump;
@@ -172,7 +172,7 @@ namespace Sapphire
                 {
                     constexpr float denom = 8;
                     thump = 1.7 + ((rand.next()-0.5) / denom);
-                    q.pluckIndex = pluckIndexBase[channel] + (rand.rand() & 3);
+                    q.pluckIndex = index;   // sample and hold on trigger
                 }
                 else
                 {
@@ -185,8 +185,15 @@ namespace Sapphire
             void updatePluck(float sampleRateHz, bool gate)
             {
                 const bool trigger = (gate && !prevGate);
-                updatePluckChannel(sampleRateHz, trigger, 0);
-                updatePluckChannel(sampleRateHz, trigger, 1);
+                unsigned r = rand.rand();
+                unsigned leftOffset = r & 3;
+                r >>= 2;
+                unsigned rightOffset = r & 3;
+                r >>= 2;
+                if (r & 1)
+                    std::swap(pluckIndexBase[0], pluckIndexBase[1]);
+                updatePluckChannel(sampleRateHz, trigger, 0, pluckIndexBase[0] + leftOffset);
+                updatePluckChannel(sampleRateHz, trigger, 1, pluckIndexBase[1] + rightOffset);
                 prevGate = gate;
             }
 
@@ -206,7 +213,7 @@ namespace Sapphire
                 brake(sampleRateHz, halfLifeSeconds);
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
-                float rawRight = sim.state[38].pos;
+                float rawRight = sim.state[34].pos;
                 float left  = level * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = level * audioFilter(sampleRateHz, rawRight, 1);
                 VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
