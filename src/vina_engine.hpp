@@ -113,7 +113,7 @@ namespace Sapphire
                     sim.state[i].vel = 0;
                 }
                 pluckFilter.Reset();
-                pluckFilter.SetCutoffFrequency(4000);
+                pluckFilter.SetCutoffFrequency(3000);
                 setPitch(0);
                 setStiffness(defaultStiffness);
                 setAttack();
@@ -163,6 +163,7 @@ namespace Sapphire
 
                 updateFilter(pluckFilter, sampleRateHz, thump);
                 sim.state[10].vel += pluckFilter.LoPass();
+                sim.state[19].vel += pluckFilter.LoPass();
 
                 constexpr float rho = 0.98;
                 constexpr float tuning = 75.897;
