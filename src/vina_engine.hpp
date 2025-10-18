@@ -156,14 +156,18 @@ namespace Sapphire
                 return VinaStereoFrame(outLeft, outRight);
             }
 
-            VinaStereoFrame update(float sampleRateHz, bool gate)
+            void updatePluck(float sampleRateHz, bool gate)
             {
                 const float thump = (gate && !prevGate) ? 1.7f : 0.0f;
                 prevGate = gate;
-
                 updateFilter(pluckFilter, sampleRateHz, thump);
                 sim.state[10].vel += pluckFilter.LoPass();
                 sim.state[19].vel += pluckFilter.LoPass();
+            }
+
+            VinaStereoFrame update(float sampleRateHz, bool gate)
+            {
+                updatePluck(sampleRateHz, gate);
 
                 constexpr float rho = 0.98;
                 constexpr float tuning = 75.897;
