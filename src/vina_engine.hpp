@@ -72,7 +72,10 @@ namespace Sapphire
                 Gravy::SingleChannelGravyEngine<float> gravy;
                 LoHiPassFilter<float> dcReject;
                 LoHiPassFilter<float> pluckFilter;
+                unsigned pluckIndex{};
             };
+
+            unsigned pluckIndexBase[2] { 10, 19 };
 
             vina_sim_t sim;
             float speedFactor = 1;
@@ -104,6 +107,8 @@ namespace Sapphire
 
                 q.pluckFilter.Reset();
                 q.pluckFilter.SetCutoffFrequency(3000);
+
+                q.pluckIndex = pluckIndexBase[channel];
             }
 
             void initialize()
@@ -159,27 +164,29 @@ namespace Sapphire
                 return VinaStereoFrame(outLeft, outRight);
             }
 
-            void updatePluck(float sampleRateHz, bool gate)
+            void updatePluckChannel(float sampleRateHz, bool trigger, unsigned channel)
             {
-                float thump[2];
-                if (gate && !prevGate)
+                channel_info_t& q = channelInfo[channel];
+                float thump;
+                if (trigger)
                 {
                     constexpr float denom = 8;
-                    thump[0] = 1.7 + ((rand.next()-0.5) / denom);
-                    thump[1] = 1.7 + ((rand.next()-0.5) / denom);
+                    thump = 1.7 + ((rand.next()-0.5) / denom);
+                    q.pluckIndex = pluckIndexBase[channel] + (rand.rand() & 3);
                 }
                 else
                 {
-                    thump[0] = 0;
-                    thump[1] = 0;
+                    thump = 0;
                 }
+                updateFilter(q.pluckFilter, sampleRateHz, thump);
+                sim.state[q.pluckIndex].vel += q.pluckFilter.LoPass();
+            }
 
-                updateFilter(channelInfo[0].pluckFilter, sampleRateHz, thump[0]);
-                updateFilter(channelInfo[1].pluckFilter, sampleRateHz, thump[1]);
-
-                sim.state[10].vel += channelInfo[0].pluckFilter.LoPass();
-                sim.state[19].vel += channelInfo[1].pluckFilter.LoPass();
-
+            void updatePluck(float sampleRateHz, bool gate)
+            {
+                const bool trigger = (gate && !prevGate);
+                updatePluckChannel(sampleRateHz, trigger, 0);
+                updatePluckChannel(sampleRateHz, trigger, 1);
                 prevGate = gate;
             }
 
