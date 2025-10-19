@@ -2415,16 +2415,16 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         dyButtonText = 6.0
         xmid = panel.mmWidth/2
         yFence = FencePost(22.0, 130.0, 9)
-        yFreq           = yFence.value(0)
-        yOct            = yFence.value(1)
-        yDecay          = yFence.value(2)
-        yRelease        = yFence.value(3)
-        yLevel          = yFence.value(4)
-        yPan            = yFence.value(5)
-        yVoctGate       = yFence.value(6)
+        yVoctGate       = yFence.value(0)
+        yFreq           = yFence.value(1)
+        yOct            = yFence.value(2)
+        yDecay          = yFence.value(3)
+        yRelease        = yFence.value(4)
+        yLevel          = yFence.value(5)
+        yPan            = yFence.value(6)
         yAudioOutputs   = yFence.value(7)
         dxPortFromCenter = 6.0
-        dxVoctGate = 8.0
+        dxVoctGate = 7.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
         AddFlatControlGroup(pl, controls, xmid, yFreq,    'freq')
         AddFlatControlGroup(pl, controls, xmid, yOct,     'oct')
