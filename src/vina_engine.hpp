@@ -79,6 +79,8 @@ namespace Sapphire
 
             vina_sim_t sim;
             float gain{};
+            float panLeftFactor{};
+            float panRightFactor{};
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             float decayHalfLife{};
@@ -126,6 +128,7 @@ namespace Sapphire
                 setPitch(0);
                 setStiffness(defaultStiffness);
                 setLevel();
+                setPan();
                 setDecay();
                 setRelease();
                 prevGate = false;
@@ -214,8 +217,8 @@ namespace Sapphire
                 constexpr float level = 1.0e+03;
                 float rawLeft  = sim.state[32].pos;
                 float rawRight = sim.state[34].pos;
-                float left  = level * gain * audioFilter(sampleRateHz, rawLeft,  0);
-                float right = level * gain * audioFilter(sampleRateHz, rawRight, 1);
+                float left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
+                float right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
                 VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
                 left  = rvb.sample[0];
                 right = rvb.sample[1];
@@ -264,6 +267,14 @@ namespace Sapphire
             {
                 float k = std::clamp<float>(knob, 0, 2);
                 gain = Cube(k);
+            }
+
+            void setPan(float knob = 0)
+            {
+                const float k = std::clamp<float>(knob, -1, +1);
+                const float theta = M_PI_4 * (k+1);       // map [-1, +1] onto [0, pi/2]
+                panLeftFactor  = M_SQRT2 * std::cos(theta);
+                panRightFactor = M_SQRT2 * std::sin(theta);
             }
 
             void setDecay(float knob = 0.5)

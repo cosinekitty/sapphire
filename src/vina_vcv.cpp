@@ -23,6 +23,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             DECAY_ATTEN,
             RELEASE_PARAM,
             RELEASE_ATTEN,
+            PAN_PARAM,
+            PAN_ATTEN,
             PARAMS_LEN
         };
 
@@ -35,6 +37,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             LEVEL_CV_INPUT,
             DECAY_CV_INPUT,
             RELEASE_CV_INPUT,
+            PAN_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -96,6 +99,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configAtten(LEVEL_ATTEN, "Level CV");
                 configInput(LEVEL_CV_INPUT, "Level CV");
 
+                configParam(PAN_PARAM, -1, +1, 0, "Pan");
+                configAtten(PAN_ATTEN, "Pan CV");
+                configInput(PAN_CV_INPUT, "Pan CV");
+
                 configParam(DECAY_PARAM, 0, 1, 0.5, "Decay");
                 configAtten(DECAY_ATTEN, "Decay CV");
                 configInput(DECAY_CV_INPUT, "Decay CV");
@@ -153,6 +160,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvLevel = 0;
                 float cvDecay = 0;
                 float cvRelease = 0;
+                float cvPan = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -163,12 +171,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                     nextChannelInputVoltage(cvOct, OCT_CV_INPUT, c);
                     nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
+                    nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
                     float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
                     float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
                     float level   = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
+                    float pan     = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
                     float decay   = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
                     float freq = raw + std::round(oct) + voctVoltage;
@@ -181,6 +191,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     q.engine.setLevel(level);
                     q.engine.setDecay(decay);
                     q.engine.setRelease(release);
+                    q.engine.setPan(pan);
                     auto frame = q.engine.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
@@ -207,6 +218,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireFlatControlGroup("freq",    FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSapphireFlatControlGroup("oct",     OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
                 addSapphireFlatControlGroup("level",   LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
+                addSapphireFlatControlGroup("pan",     PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("decay",   DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
             }
