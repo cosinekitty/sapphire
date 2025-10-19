@@ -2420,8 +2420,8 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yOct            = yFence.value(2)
         yDecay          = yFence.value(3)
         yRelease        = yFence.value(4)
-        yLevel          = yFence.value(5)
-        yPan            = yFence.value(6)
+        yPan            = yFence.value(5)
+        yLevel          = yFence.value(6)
         yAudioOutputs   = yFence.value(7)
         dxPortFromCenter = 6.0
         dxVoctGate = 7.0
@@ -2434,7 +2434,7 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         AddFlatControlGroup(pl, controls, xmid, yRelease, 'release')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'OCT',  xmid, yOct - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'GAIN', xmid, yLevel - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yLevel - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'PAN',  xmid, yPan - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'DEC',  xmid, yDecay - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'REL',  xmid, yRelease - dyButtonText))
