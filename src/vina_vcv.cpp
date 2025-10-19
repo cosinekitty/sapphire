@@ -171,6 +171,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                     nextChannelInputVoltage(cvOct, OCT_CV_INPUT, c);
                     nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
+                    nextChannelInputVoltage(cvDecay, DECAY_CV_INPUT, c);
+                    nextChannelInputVoltage(cvRelease, RELEASE_CV_INPUT, c);
                     nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
