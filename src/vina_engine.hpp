@@ -119,6 +119,7 @@ namespace Sapphire
                 isFirstSample = true;
                 initChannel(0);
                 initChannel(1);
+                initReverb();
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned i = 0; i < nParticles; ++i)
                 {
@@ -132,7 +133,6 @@ namespace Sapphire
                 setDecay();
                 setRelease();
                 prevGate = false;
-                initReverb();
             }
 
             void initReverb()
@@ -142,7 +142,7 @@ namespace Sapphire
                 reverb.setBrightness(0.628);
                 reverb.setDetune(0.476);
                 reverb.setBigness(0.0615);
-                reverb.setMix(0.163);
+                //reverb.setMix(0.163);     // MIX is initialized by setRelease() as a side-effect
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
@@ -282,9 +282,15 @@ namespace Sapphire
                 decayHalfLife = decay(knob);
             }
 
-            void setRelease(float knob = 1)
+            void setRelease(float knob = 0.5)
             {
+                // Vina's RELEASE controls both the release decay coefficient
+                // and the reverb mix.
+
                 releaseHalfLife = decay(knob) / 8;
+
+                const float k = std::clamp<float>(knob, 0, 1);
+                reverb.setMix(0.163 * (1 + 2*(k-0.5)));
             }
         };
     }
