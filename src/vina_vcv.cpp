@@ -12,7 +12,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         enum ParamId
         {
-            STIFFNESS_PARAM,
+            OBSOLETE_1_PARAM,
             FREQ_PARAM,
             FREQ_ATTEN,
             OCT_PARAM,
@@ -54,14 +54,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         };
 
 
-        struct StiffnessSlider : SapphireSlider
-        {
-            explicit StiffnessSlider(SapphireQuantity* _quantity)
-                : SapphireSlider(_quantity, "spring stiffness")
-                {}
-        };
-
-
         struct ChannelInfo
         {
             VinaEngine engine;
@@ -78,7 +70,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
-            SapphireQuantity* stiffnessQuantity{};
             PortLabelMode inputPortMode  = PortLabelMode::Stereo;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
@@ -115,22 +106,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
-                addStiffnessSlider();
                 initialize();
-            }
-
-            void addStiffnessSlider()
-            {
-                if (stiffnessQuantity == nullptr)
-                {
-                    stiffnessQuantity = configParam<SapphireQuantity>(
-                        STIFFNESS_PARAM,
-                        Vina::defaultStiffness - 1,
-                        Vina::defaultStiffness + 1,
-                        Vina::defaultStiffness,
-                        "Stiffness"
-                    );
-                }
             }
 
             void onReset(const ResetEvent& e) override
@@ -143,9 +119,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     channelInfo[c].initialize();
-
-                stiffnessQuantity->value = stiffnessQuantity->defaultValue;
-                stiffnessQuantity->changed = true;
             }
 
             void process(const ProcessArgs& args) override
@@ -177,11 +150,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
-                    float raw  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
-                    float oct  = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
-                    float level   = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
-                    float pan     = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
-                    float decay   = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
+                    float raw = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
+                    float oct = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
+                    float level = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
+                    float pan = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
+                    float decay = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
                     float freq = raw + std::round(oct) + voctVoltage;
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
@@ -189,7 +162,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     else
                         q.engine.setPitch(freq);
 
-                    q.engine.setStiffness(stiffnessQuantity->value);
                     q.engine.setLevel(level);
                     q.engine.setDecay(decay);
                     q.engine.setRelease(release);
@@ -198,8 +170,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
-
-                stiffnessQuantity->changed = false;
             }
         };
 
@@ -229,8 +199,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 if (vinaModule)
                 {
-                    menu->addChild(new MenuSeparator);
-                    menu->addChild(new StiffnessSlider(vinaModule->stiffnessQuantity));
+                    //menu->addChild(new MenuSeparator);
                 }
             }
 
