@@ -1947,6 +1947,10 @@ def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:
     if caption:
         pl.append(CenteredControlTextPath(font, caption, xPorts, yLeftPort - dyCaption))
 
+#-----------------------------------------------------------------------------------------------------
+#
+#   ECHO
+#
 
 MULTITAP_INSERT_BUTTON_DX    = 4.0
 MULTITAP_INSERT_BUTTON_DY    = 4.0
@@ -2398,6 +2402,7 @@ def GenerateMultiTapButtons() -> int:
         GenerateMultiTapRemoveButton()
     )
 
+#-----------------------------------------------------------------------------------------------------
 
 def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -2425,7 +2430,10 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yAudioOutputs   = yFence.value(7)
         dxPortFromCenter = 6.0
         dxVoctGate = 7.0
+        dyArtwork = 10.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
+        defs.append(Gradient(yVoctGate-dyArtwork, yVoctGate+dyArtwork, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
+        pl.append(ControlGroupArt(name, 'voct_gate_art', panel, yVoctGate-dyArtwork, yVoctGate+dyArtwork, 'gradient_in'))
         AddFlatControlGroup(pl, controls, xmid, yFreq,    'freq')
         AddFlatControlGroup(pl, controls, xmid, yOct,     'oct')
         AddFlatControlGroup(pl, controls, xmid, yLevel,   'level')
