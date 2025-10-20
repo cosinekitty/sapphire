@@ -197,6 +197,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
             void appendContextMenu(Menu* menu) override
             {
+                SapphireWidget::appendContextMenu(menu);
                 if (vinaModule)
                 {
                     //menu->addChild(new MenuSeparator);
