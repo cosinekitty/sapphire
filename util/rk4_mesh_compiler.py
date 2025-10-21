@@ -54,7 +54,10 @@ namespace Sapphire
     while i < nParticles:
         if i > 0:
             s += '\n'
-        s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
+        if i==0 or i==nParticles-1:
+            s += Line('y[{0:d}].pos = 0;'.format(i))
+        else:
+            s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
         needVel = True
         if i > 0:
             s += Line('acc = k*((x[{0:d}].pos - x[{1:d}].pos) - restLength);'.format(i, i-1))
