@@ -2432,24 +2432,39 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         dxVoctGate = 7.0
         dyArtwork = 10.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
-        defs.append(Gradient(yVoctGate-dyArtwork, yVoctGate+dyArtwork, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
-        pl.append(ControlGroupArt(name, 'voct_gate_art', panel, yVoctGate-dyArtwork, yVoctGate+dyArtwork, 'gradient_in'))
-        AddFlatControlGroup(pl, controls, xmid, yFreq,    'freq')
-        AddFlatControlGroup(pl, controls, xmid, yOct,     'oct')
-        AddFlatControlGroup(pl, controls, xmid, yLevel,   'level')
-        AddFlatControlGroup(pl, controls, xmid, yPan,     'pan')
-        AddFlatControlGroup(pl, controls, xmid, yDecay,   'decay')
-        AddFlatControlGroup(pl, controls, xmid, yRelease, 'release')
-        pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'OCT',  xmid, yOct - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yLevel - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'PAN',  xmid, yPan - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'DEC',  xmid, yDecay - dyButtonText))
-        pl.append(CenteredControlTextPath(font, 'REL',  xmid, yRelease - dyButtonText))
+
+        defs.append(Gradient(yVoctGate-dyArtwork, yVoctGate+dyArtwork, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_voct_gate'))
+        pl.append(ControlGroupArt(name, 'voct_gate_art', panel, yVoctGate-dyArtwork, yVoctGate+dyArtwork, 'gradient_voct_gate'))
+
         controls.append(Component('voct_input', xmid - dxVoctGate, yVoctGate))
-        controls.append(Component('gate_input', xmid + dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid - dxVoctGate, yVoctGate - dyButtonText))
+
+        controls.append(Component('gate_input', xmid + dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'GATE',  xmid + dxVoctGate, yVoctGate - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
+        pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yOct, 'oct')
+        pl.append(CenteredControlTextPath(font, 'OCT',  xmid, yOct - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yLevel, 'level')
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yLevel - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yPan, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN',  xmid, yPan - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yDecay, 'decay')
+        pl.append(CenteredControlTextPath(font, 'DEC',  xmid, yDecay - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmid, yRelease, 'release')
+        pl.append(CenteredControlTextPath(font, 'REL',  xmid, yRelease - dyButtonText))
+
+        y1 = yAudioOutputs - 6.0
+        y2 = yAudioOutputs + 4.0
+        defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
+        pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
+
         controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yAudioOutputs))
         controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yAudioOutputs))
         controls.append(Component('left_output_label',  xmid - dxLabelFromCenter, yAudioOutputs))
