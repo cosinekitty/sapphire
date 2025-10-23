@@ -2,9 +2,11 @@
 
 Vina is a polyphonic stereo VCO based on a physics simulation of a plucked string.
 
-*Polyphonic stereo* means that Vina accepts polyphonic gate and V/OCT inputs to play a chord of up to 16 simultaneous notes, with each note producing a stereo field across left and right output channels. The L and R outputs each are polyphonic with the same number of channels as the maximum channel count of all input ports (including CV).
+Vina is "opinionated". It allows making a specific kind of string-like voice, rather than having many controls to modify the timbre of the voice. Think of it as a particular instrument, not a sound-design tool.
 
-Vina is "opinionated" in that it strives to favor easily making a specific kind of string-like voice, rather than having lots of controls to modify the timbre of the voice. Think of it as a particular instrument, not a sound-design tool.
+However, Vina does come with a sort of internal envelope, as a side-effect of the physics simulation it uses. You have control over the decay and release parameters. The attack in Vina is always a "pluck" effect that is rather quick.
+
+Vina produces *polyphonic stereo* output. That means that Vina accepts polyphonic gate and V/OCT inputs to play a chord of up to 16 simultaneous notes, with each note producing a nuanced stereo field across left and right output channels. The L and R outputs each are polyphonic with the same number of channels as the maximum channel count of all input ports (including CV).
 
 ![Vina](images/vina.png)
 
@@ -33,10 +35,14 @@ All input ports are **polyphonic**. Whichever input port has the most channels c
 
 ### Physics model
 
-Vina is a simulation of a one-dimensional series of 42 balls connected by springs. Vibration travels longitudinally only, meaning along the direction of the string and in the form of stretching and compressing the springs. The endpoints are fixed in place, and the string is under positive tension while at rest. Being one-dimensional not only reduces CPU usage greatly, it actually improves the sound quality by eliminating discordant modes of vibration. Essentially, there is only one resonant frequency at a time, resulting in cleaner sounding notes.
+Vina is a fourth-order [Runge-Kutta](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods)  (RK4) simulation of a one-dimensional series of 42 particles connected by springs. Vibration travels longitudinally only, meaning along the direction of the string and in the form of stretching and compressing the springs. The endpoints are fixed in place, and the whole string is stretched with tension while at rest. Being one-dimensional not only reduces CPU usage greatly, it actually improves the sound quality by eliminating discordant modes of vibration. Essentially, there is one primary resonant mode at a time, resulting in cleaner sounding notes.
 
-The string is plucked by randomly picking a pair of balls along a region of the string near 1/3 its length and imparting a velocity impulse to them. Different balls are picked on each pluck to provide a subtle variation in the sound as Vina is played. The velocity impulse itself is band-limited to keep the tone mellow and to prevent simulation aliasing.
+The string is plucked by randomly picking a pair of particles along a region of the string near 1/3 its length and imparting a velocity impulse to them. Different particles are chosen on each pluck to provide a subtle variation in the sound as Vina is played. The velocity impulse itself is band-limited to keep the tone mellow and to minimize aliasing.
 
-The string stereo output is produced by taking the position of two different balls. The position values are fed through a bandpass filter to eliminate DC at the low end of the frequency spectrum and harsh harmonics at the upper end.
+The string stereo output is produced by taking the position of two different particles. The position values are fed through a bandpass filter to eliminate DC at the low end of the frequency spectrum and harsh harmonics at the upper end.
 
-Finally, the left and right signals are mixed with a tiny amount of small-chamber reverb, to produce a more realistic stereo voice by emulating the resonance of a guitar body. The reverb mix is increased slightly with larger values of the **REL** control, in addition to making the string itself take longer to stop vibrating after being released.
+Finally, the left and right signals are mixed with a tiny amount of small-chamber reverb, to produce a more realistic stereo voice by emulating the resonance of a guitar body. The reverb mix is increased slightly with larger values of the **REL** control, in addition to making the string itself take longer to stop vibrating after being released. Vina's internal reverb is the Airwindows Galactic algorithm, the same one used by [Sapphire Galaxy](Galaxy.md).
+
+In the Vina model, pitch is controlled by changing how fast time flows, not by changing the length of the string, its tension, or anything else inside the model. More specifically, the value of the simulated time step $\Delta t$ multiplied by a pitch scaling factor $2^p$, where $p$ is V/OCT. This keeps the simulation stable across a wide variety of frequencies, but numerical stability does require automatic oversampling at higher frequencies, causing increasing CPU usage.
+
+The decay (DEC) and release (REL) parameters are inversely scaled by $2^p$, keeping them consistent as the pitch is changed.
