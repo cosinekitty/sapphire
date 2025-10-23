@@ -70,7 +70,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
-            PortLabelMode inputPortMode  = PortLabelMode::Stereo;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
             explicit VinaModule()
@@ -207,14 +206,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             void draw(const DrawArgs& args) override
             {
                 SapphireWidget::draw(args);
-                if (vinaModule)
-                {
-                    drawAudioPortLabels(args.vg, vinaModule->outputPortMode, "left_output_label", "right_output_label");
-                }
+                PortLabelMode outputPortMode = vinaModule ? vinaModule->outputPortMode : PortLabelMode::Stereo;
+                drawAudioPortLabels(args.vg, outputPortMode, "left_output_label", "right_output_label");
             }
         };
     }
 }
+
 
 Model* modelSapphireVina = createSapphireModel<Sapphire::Vina::VinaModule, Sapphire::Vina::VinaWidget>(
     "Vina",
