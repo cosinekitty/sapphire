@@ -9,13 +9,23 @@
 </tr>
 
 <tr valign="top">
+<td align="center">23 Oct 2025</td>
+<td align="center">2.6.002</td>
+<td align="left">
+    <ul>
+        <li>Added new module <a href="doc/Vina.md">Vina</a>: a VCO instrument voice based on a simulation of a plucked string.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">17 Aug 2025</td>
 <td align="center">2.6.001</td>
 <td align="left">
     <ul>
-        <li><b>Added new module <a href="doc/Zoo.md">Zoo</a></b>: a chaotic oscillator toolkit. It lets you create your own chaotic oscillator by typing in formulas. Or you can choose from several factory presets to get started.</li>
-        <li><b>Insert Tricorder on right</b>: This is a new menu option present in all Sapphire modules that work with Tricorder, including the <a href="doc/SapphireChaosModules.md">chaos modules</a>. Many other Sapphire modules also work with Tricorder, so look in the context menu if you're not sure.</li>
-        <li><b>Insert Chaops on left</b>: The <a href="doc/SapphireChaosModules.md">chaos modules</a> now include this menu option to make it faster to insert the Chaops expander on the left side.</li>
+        <li>Added new module <a href="doc/Zoo.md">Zoo</a>: a chaotic oscillator toolkit. It lets you create your own chaotic oscillator by typing in formulas. Or you can choose from several factory presets to get started.</li>
+        <li>Insert Tricorder on right: This is a new menu option present in all Sapphire modules that work with Tricorder, including the <a href="doc/SapphireChaosModules.md">chaos modules</a>. Many other Sapphire modules also work with Tricorder, so look in the context menu if you're not sure.</li>
+        <li>Insert Chaops on left: The <a href="doc/SapphireChaosModules.md">chaos modules</a> now include this menu option to make it faster to insert the Chaops expander on the left side.</li>
     </ul>
 </td>
 </tr>
