@@ -68,7 +68,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             VinaEngine engine;
             int numActiveChannels = 0;
-            ChannelInfo channelInfo[PORT_MAX_CHANNELS];
+            static_assert(MaxWires == PORT_MAX_CHANNELS);
+            std::array<ChannelInfo, PORT_MAX_CHANNELS> channelInfo;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
             explicit VinaModule()
@@ -134,7 +135,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvRelease = 0;
                 float cvPan = 0;
 
-                static_assert(MaxWires == PORT_MAX_CHANNELS);
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];

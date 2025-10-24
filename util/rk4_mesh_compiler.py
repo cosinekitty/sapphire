@@ -3,6 +3,11 @@ import sys
 
 nMobileParticles = 42
 nParticles = nMobileParticles + 2
+if nParticles % 4 != 0:
+    print('Invalid number of particles.')
+    sys.exit(1)
+
+nQuads = nParticles // 4
 
 
 def UpdateFileIfChanged(filename:str, newText:str) -> bool:
@@ -65,14 +70,17 @@ namespace Sapphire
     def yvel(i:int) -> str:
         return address('y', 'vel', i)
 
+    q = 0
+    while q < nQuads:
+        s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(q))
+        q += 1
+
+    s += '\n'
+
     i = 0
     while i < nParticles:
         if i > 0:
             s += '\n'
-        if i==0 or i==nParticles-1:
-            s += Line(ypos(i) + ' = 0;')
-        else:
-            s += Line(ypos(i) + ' = ' + xvel(i) + ';')
         needVel = True
         if i > 0:
             s += Line('acc = k*((' + xpos(i) + ' - ' + xpos(i-1) + ') - restLength);')
