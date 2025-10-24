@@ -1513,8 +1513,8 @@ static int VinaTest()
 {
     using namespace Sapphire::Vina;
 
-    VinaEngine engine;
-    engine.initialize();
+    VinaWire wire;
+    wire.initialize();
 
     const float sampleRateHz = 48000;
     const int channels = 2;
@@ -1535,7 +1535,7 @@ static int VinaTest()
     for (unsigned f = 0; f < nFrames; ++f)
     {
         const bool gate = (f >= pluckFrame) && (f <= releaseFrame);
-        VinaStereoFrame frame = engine.update(sampleRateHz, gate);
+        VinaStereoFrame frame = wire.update(sampleRateHz, gate);
         outwave.WriteSamples(frame.sample, 2);
     }
 

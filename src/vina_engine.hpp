@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include "sapphire_engine.hpp"
 #include "sapphire_random.hpp"
 #include "sauce_engine.hpp"
@@ -67,7 +68,7 @@ namespace Sapphire
 
         constexpr float max_dt = 0.004;
 
-        struct VinaEngine
+        struct VinaWire     // a single vibrating wire under tension
         {
             struct channel_info_t
             {
@@ -93,7 +94,7 @@ namespace Sapphire
             Galaxy::Engine reverb;
             RandomVectorGenerator rand;
 
-            explicit VinaEngine()
+            explicit VinaWire()
                 : sim(VinaDeriv(), nQuads)
                 {}
 
@@ -308,6 +309,19 @@ namespace Sapphire
 
                 const float k = std::clamp<float>(knob, 0, 1);
                 reverb.setMix(0.163 * (1 + 2*(k-0.5)));
+            }
+        };
+
+        constexpr unsigned MaxWires = 16;
+
+        struct VinaEngine
+        {
+            std::array<VinaWire,MaxWires> wire;
+
+            void initialize()
+            {
+                for (VinaWire& w : wire)
+                    w.initialize();
             }
         };
     }

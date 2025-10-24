@@ -56,18 +56,17 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         struct ChannelInfo
         {
-            VinaEngine engine;
             GateTriggerReceiver gateReceiver;
 
             void initialize()
             {
-                engine.initialize();
                 gateReceiver.initialize();
             }
         };
 
         struct VinaModule : SapphireModule
         {
+            VinaEngine engine;
             int numActiveChannels = 0;
             ChannelInfo channelInfo[PORT_MAX_CHANNELS];
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
@@ -116,6 +115,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
             void initialize()
             {
+                engine.initialize();
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                     channelInfo[c].initialize();
             }
@@ -134,9 +134,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvRelease = 0;
                 float cvPan = 0;
 
+                static_assert(MaxWires == PORT_MAX_CHANNELS);
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
+                    VinaWire& w = engine.wire[c];
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
@@ -159,13 +161,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
                     else
-                        q.engine.setPitch(freq);
+                        w.setPitch(freq);
 
-                    q.engine.setLevel(level);
-                    q.engine.setDecay(decay);
-                    q.engine.setRelease(release);
-                    q.engine.setPan(pan);
-                    auto frame = q.engine.update(args.sampleRate, gate);
+                    w.setLevel(level);
+                    w.setDecay(decay);
+                    w.setRelease(release);
+                    w.setPan(pan);
+                    auto frame = w.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
