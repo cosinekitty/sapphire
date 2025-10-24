@@ -12,6 +12,8 @@ namespace Sapphire
         constexpr unsigned nMobileParticles = 42;
         constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
         static_assert(nParticles > nMobileParticles);
+        static_assert(nParticles % 4 == 0);     // for SIMD
+        constexpr unsigned nQuads = nParticles / 4;
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float defaultStiffness = 89;
@@ -50,8 +52,8 @@ namespace Sapphire
             }
         };
 
-        using VinaParticle = ParticleBatch<float>;
-        using vina_state_t = std::vector<VinaParticle>;
+        using QuadParticle = ParticleBatch<PhysicsVector>;
+        using vina_state_t = std::vector<QuadParticle>;
     }
 }
 
@@ -61,7 +63,7 @@ namespace Sapphire
 {
     namespace Vina
     {
-        using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
+        using vina_sim_t = RungeKutta::ListSimulator<float, QuadParticle, VinaDeriv>;
 
         constexpr float max_dt = 0.004;
 
@@ -92,8 +94,18 @@ namespace Sapphire
             RandomVectorGenerator rand;
 
             explicit VinaEngine()
-                : sim(VinaDeriv(), nParticles)
+                : sim(VinaDeriv(), nQuads)
                 {}
+
+            float& accessPos(unsigned particleIndex)
+            {
+                return sim.state[particleIndex >> 2].pos[particleIndex & 3];
+            }
+
+            float& accessVel(unsigned particleIndex)
+            {
+                return sim.state[particleIndex >> 2].vel[particleIndex & 3];
+            }
 
             void initChannel(unsigned channel)
             {
@@ -121,10 +133,14 @@ namespace Sapphire
                 initChannel(1);
                 initReverb();
                 speedFactor = targetSpeedFactor = 1;
-                for (unsigned i = 0; i < nParticles; ++i)
+                for (unsigned j = 0; j < nQuads; ++j)
                 {
-                    sim.state[i].pos = horSpace * i;
-                    sim.state[i].vel = 0;
+                    for (unsigned k = 0; k < 4; ++k)
+                    {
+                        int i = 4*j + k;
+                        sim.state[j].pos[k] = horSpace * i;
+                        sim.state[j].vel[k] = 0;
+                    }
                 }
                 setPitch(0);
                 setStiffness(defaultStiffness);
@@ -142,7 +158,7 @@ namespace Sapphire
                 reverb.setBrightness(0.628);
                 reverb.setDetune(0.476);
                 reverb.setBigness(0.0615);
-                //reverb.setMix(0.163);     // MIX is initialized by setRelease() as a side-effect
+                // Reverb mix is initialized by setRelease() as a side-effect. Don't do it here!
             }
 
             void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
@@ -183,7 +199,7 @@ namespace Sapphire
                     thump = 0;
                 }
                 updateFilter(q.pluckFilter, sampleRateHz, thump);
-                sim.state[q.pluckIndex].vel += q.pluckFilter.LoPass();
+                accessVel(q.pluckIndex) += q.pluckFilter.LoPass();
             }
 
             void updatePluck(float sampleRateHz, bool gate)
@@ -215,8 +231,8 @@ namespace Sapphire
                     sim.step(et);
                 brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
                 constexpr float level = 1.0e+03;
-                float rawLeft  = sim.state[32].pos;
-                float rawRight = sim.state[34].pos;
+                float rawLeft  = accessPos(32);
+                float rawRight = accessPos(34);
                 float left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
                 VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
@@ -233,12 +249,13 @@ namespace Sapphire
 
             void brake(float sampleRateHz, float halfLifeSeconds)
             {
-                const float factor = static_cast<float>(
+                const float factor = static_cast<float>
+                (
                     std::pow<double>(0.5, 1.0/(sampleRateHz*halfLifeSeconds))
                 );
 
-                for (VinaParticle& p : sim.state)
-                    p.vel *= factor;
+                for (QuadParticle& q : sim.state)
+                    q.vel *= factor;
             }
 
             void setPitch(float voct)

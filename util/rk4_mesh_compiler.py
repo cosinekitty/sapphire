@@ -50,24 +50,39 @@ namespace Sapphire
 
 '''
 
+    def address(var:str, fld:str, i: int) -> str:
+        return  '{:s}[{:d}].{:s}[{:d}]'.format(var, i//4, fld, i%4)
+
+    def xpos(i:int) -> str:
+        return address('x', 'pos', i)
+
+    def xvel(i:int) -> str:
+        return address('x', 'vel', i)
+
+    def ypos(i:int) -> str:
+        return address('y', 'pos', i)
+
+    def yvel(i:int) -> str:
+        return address('y', 'vel', i)
+
     i = 0
     while i < nParticles:
         if i > 0:
             s += '\n'
         if i==0 or i==nParticles-1:
-            s += Line('y[{0:d}].pos = 0;'.format(i))
+            s += Line(ypos(i) + ' = 0;')
         else:
-            s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
+            s += Line(ypos(i) + ' = ' + xvel(i) + ';')
         needVel = True
         if i > 0:
-            s += Line('acc = k*((x[{0:d}].pos - x[{1:d}].pos) - restLength);'.format(i, i-1))
+            s += Line('acc = k*((' + xpos(i) + ' - ' + xpos(i-1) + ') - restLength);')
             if i > 1:
-                s += Line('y[{:d}].vel += acc;'.format(i-1))
+                s += Line(yvel(i-1) + ' += acc;')
             if i < nParticles-1:
-                s += Line('y[{:d}].vel = -acc;'.format(i))
+                s += Line(yvel(i) + ' = -acc;')
                 needVel = False
         if needVel:
-            s += Line('y[{:d}].vel = 0;'.format(i))
+            s += Line(yvel(i) + ' = 0;')
         i += 1
 
     s += r'''            }
