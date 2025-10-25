@@ -15,7 +15,7 @@ namespace Sapphire
             {
                 float acc;
 
-                y[0].pos = 0;
+                y[0].pos = x[0].vel;
                 y[1].pos = x[1].vel;
                 y[2].pos = x[2].vel;
                 y[3].pos = x[3].vel;
@@ -58,7 +58,7 @@ namespace Sapphire
                 y[40].pos = x[40].vel;
                 y[41].pos = x[41].vel;
                 y[42].pos = x[42].vel;
-                y[43].pos = 0;
+                y[43].pos = x[43].vel;
                 y[0].vel = 0;
 
                 acc = k*((x[1].pos - x[0].pos) - restLength);
