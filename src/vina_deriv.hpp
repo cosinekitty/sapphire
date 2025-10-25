@@ -1,4 +1,12 @@
-//**** GENERATED CODE **** DO NOT EDIT ****
+//*****************************************
+//****
+//**** GENERATED CODE **** DO NOT EDIT
+//****
+//**** If you want to change this code,
+//**** edit util/rk4_mesh_compiler.py,
+//**** then run that script again.
+//****
+//*****************************************
 #pragma once
 namespace Sapphire
 {

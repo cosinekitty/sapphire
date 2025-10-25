@@ -31,7 +31,15 @@ def Line(s:str, indent:int = 4) -> str:
 
 
 def GenVinaSourceCode() -> str:
-    s = r'''//**** GENERATED CODE **** DO NOT EDIT ****
+    s = r'''//*****************************************
+//****
+//**** GENERATED CODE **** DO NOT EDIT
+//****
+//**** If you want to change this code,
+//**** edit util/rk4_mesh_compiler.py,
+//**** then run that script again.
+//****
+//*****************************************
 #pragma once
 namespace Sapphire
 {
