@@ -55,6 +55,7 @@ namespace Sapphire
         s += Line('y[{0:d}].pos = x[{0:d}].vel;'.format(i))
         i += 1
 
+    s += '\n'
     i = 0
     while i < nParticles:
         if i > 0:

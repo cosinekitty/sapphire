@@ -59,6 +59,7 @@ namespace Sapphire
                 y[41].pos = x[41].vel;
                 y[42].pos = x[42].vel;
                 y[43].pos = x[43].vel;
+
                 y[0].vel = 0;
 
                 acc = k*((x[1].pos - x[0].pos) - restLength);
