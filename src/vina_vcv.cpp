@@ -56,12 +56,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         struct ChannelInfo
         {
-            VinaEngine engine;
+            VinaWire wire;
             GateTriggerReceiver gateReceiver;
 
             void initialize()
             {
-                engine.initialize();
+                wire.initialize();
                 gateReceiver.initialize();
             }
         };
@@ -105,6 +105,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configInput(VOCT_INPUT, "V/OCT");
                 configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+
                 initialize();
             }
 
@@ -122,13 +123,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
             bool isReverbEnabled() const
             {
-                return channelInfo[0].engine.isReverbEnabled;
+                return channelInfo[0].wire.isReverbEnabled;
             }
 
             void setReverbEnabled(bool enable)
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                    channelInfo[c].engine.isReverbEnabled = enable;
+                    channelInfo[c].wire.isReverbEnabled = enable;
             }
 
             json_t* dataToJson() override
@@ -141,7 +142,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+                loadReverbEnabledFlag(root);
+            }
 
+            void loadReverbEnabledFlag(json_t* root)
+            {
                 bool e = isReverbEnabled();
                 jsonLoadBool(root, "isReverbEnabled", e);
                 setReverbEnabled(e);
@@ -186,13 +191,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
                     else
-                        q.engine.setPitch(freq);
+                        q.wire.setPitch(freq);
 
-                    q.engine.setLevel(level);
-                    q.engine.setDecay(decay);
-                    q.engine.setRelease(release);
-                    q.engine.setPan(pan);
-                    auto frame = q.engine.update(args.sampleRate, gate);
+                    q.wire.setLevel(level);
+                    q.wire.setDecay(decay);
+                    q.wire.setRelease(release);
+                    q.wire.setPan(pan);
+                    auto frame = q.wire.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }

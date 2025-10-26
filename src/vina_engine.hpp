@@ -65,7 +65,7 @@ namespace Sapphire
 
         constexpr float max_dt = 0.004;
 
-        struct VinaEngine
+        struct VinaWire
         {
             struct channel_info_t
             {
@@ -92,7 +92,7 @@ namespace Sapphire
             RandomVectorGenerator rand;
             bool isReverbEnabled{};
 
-            explicit VinaEngine()
+            explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
                 {}
 
