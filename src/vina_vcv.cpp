@@ -120,6 +120,33 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     channelInfo[c].initialize();
             }
 
+            bool isReverbEnabled() const
+            {
+                return channelInfo[0].engine.isReverbEnabled;
+            }
+
+            void setReverbEnabled(bool enable)
+            {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    channelInfo[c].engine.isReverbEnabled = enable;
+            }
+
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                jsonSetBool(root, "isReverbEnabled", isReverbEnabled());
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+
+                bool e = isReverbEnabled();
+                jsonLoadBool(root, "isReverbEnabled", e);
+                setReverbEnabled(e);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
@@ -173,6 +200,22 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         };
 
 
+        struct ToggleReverbAction : history::Action
+        {
+            const int64_t moduleId;
+
+            explicit ToggleReverbAction(int64_t _moduleId)
+                : moduleId(_moduleId)
+            {
+                name = "toggle internal reverb";
+            }
+
+            void toggle();
+            void undo() override { toggle(); }
+            void redo() override { toggle(); }
+        };
+
+
         struct VinaWidget : SapphireWidget
         {
             VinaModule* vinaModule{};
@@ -199,7 +242,18 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireWidget::appendContextMenu(menu);
                 if (vinaModule)
                 {
-                    //menu->addChild(new MenuSeparator);
+                    menu->addChild(new MenuSeparator);
+
+                    menu->addChild(createBoolMenuItem(
+                        "Enable internal reverb",
+                        "",
+                        [=]() { return vinaModule->isReverbEnabled(); },
+                        [=](bool state)
+                        {
+                            if (state != vinaModule->isReverbEnabled())
+                                InvokeAction(new ToggleReverbAction(vinaModule->id));
+                        }
+                    ));
                 }
             }
 
@@ -210,6 +264,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 drawAudioPortLabels(args.vg, outputPortMode, "left_output_label", "right_output_label");
             }
         };
+
+
+        void ToggleReverbAction::toggle()
+        {
+            if (VinaWidget* w = FindSapphireWidget<VinaWidget>(moduleId))
+                if (VinaModule* m = w->vinaModule)
+                    m->setReverbEnabled(!m->isReverbEnabled());
+        }
     }
 }
 

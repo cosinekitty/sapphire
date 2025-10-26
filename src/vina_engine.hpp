@@ -90,6 +90,7 @@ namespace Sapphire
             bool prevGate{};
             Galaxy::Engine reverb;
             RandomVectorGenerator rand;
+            bool isReverbEnabled{};
 
             explicit VinaEngine()
                 : sim(VinaDeriv(), nParticles)
@@ -133,6 +134,7 @@ namespace Sapphire
                 setDecay();
                 setRelease();
                 prevGate = false;
+                isReverbEnabled = true;
             }
 
             void initReverb()
@@ -219,9 +221,12 @@ namespace Sapphire
                 float rawRight = sim.state[34].pos;
                 float left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
                 float right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
-                VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
-                left  = rvb.sample[0];
-                right = rvb.sample[1];
+                if (isReverbEnabled)
+                {
+                    VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
+                    left  = rvb.sample[0];
+                    right = rvb.sample[1];
+                }
                 if (!std::isfinite(left) || !std::isfinite(right))
                 {
                     initialize();
@@ -284,13 +289,17 @@ namespace Sapphire
 
             void setRelease(float knob = 0.5)
             {
+                const float k = std::clamp<float>(knob, 0, 1);
+                const float u = k - 0.5f;
+
                 // Vina's RELEASE controls both the release decay coefficient
                 // and the reverb mix.
 
-                releaseHalfLife = decay(knob) / 8;
+                constexpr float weakness = 1;
+                const float weakKnob = u*weakness + 0.5;
+                releaseHalfLife = decay(weakKnob) / 8;
 
-                const float k = std::clamp<float>(knob, 0, 1);
-                reverb.setMix(0.163 * (1 + 2*(k-0.5)));
+                reverb.setMix(0.163 * (1 + 2*u));
             }
         };
     }
