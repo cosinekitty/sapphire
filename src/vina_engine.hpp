@@ -148,10 +148,7 @@ namespace Sapphire
                 setRelease();
                 prevGate = false;
                 isReverbEnabled = true;
-                isStandbyEnabled = true;
-                renderSamples = 0;
-                fadeSamples = 0;
-                renderState = RenderState::Quiet;
+                setStandbyEnabled(true);
             }
 
             void initReverb()
@@ -162,6 +159,14 @@ namespace Sapphire
                 reverb.setDetune(0.476);
                 reverb.setBigness(0.0615);
                 //reverb.setMix(0.163);     // MIX is initialized by setRelease() as a side-effect
+            }
+
+            void setStandbyEnabled(bool enable)
+            {
+                isStandbyEnabled = enable;
+                renderState = enable ? RenderState::Quiet : RenderState::Playing;
+                renderSamples = 0;
+                fadeSamples = 0;
             }
 
             float leftParticlePos() const

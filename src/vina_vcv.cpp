@@ -132,6 +132,17 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     channelInfo[c].wire.isReverbEnabled = enable;
             }
 
+            bool isStandbyEnabled() const
+            {
+                return channelInfo[0].wire.isStandbyEnabled;
+            }
+
+            void setStandbyEnabled(bool enable)
+            {
+                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    channelInfo[c].wire.setStandbyEnabled(enable);
+            }
+
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
@@ -257,6 +268,17 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         {
                             if (state != vinaModule->isReverbEnabled())
                                 InvokeAction(new ToggleReverbAction(vinaModule->id));
+                        }
+                    ));
+
+                    menu->addChild(createBoolMenuItem(
+                        "Enable standby",
+                        "",
+                        [=]() { return vinaModule->isStandbyEnabled(); },
+                        [=](bool state)
+                        {
+                            if (state != vinaModule->isStandbyEnabled())
+                                vinaModule->setStandbyEnabled(state);
                         }
                     ));
                 }
