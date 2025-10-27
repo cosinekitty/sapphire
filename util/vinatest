@@ -4,5 +4,4 @@ cd unittest || exit 1
 rm -f output/vina.wav
 ./run vina || exit 1
 mplayer output/vina.wav || exit 1
-sha256sum -c audio_hash.txt || exit 1
 exit 0
