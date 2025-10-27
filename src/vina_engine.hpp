@@ -271,6 +271,7 @@ namespace Sapphire
                             constexpr float minPower = 0.0001;
                             if (power < minPower)
                             {
+                                // See if we have an extended period of lower power.
                                 ++renderSamples;
                                 const unsigned timeoutSamples = static_cast<unsigned>(sampleRateHz/20);
                                 if (renderSamples > timeoutSamples)
@@ -282,6 +283,7 @@ namespace Sapphire
                             }
                             else
                             {
+                                // Something was loud enough to reset the low-power count.
                                 renderSamples = 0;
                             }
                         }
@@ -306,6 +308,7 @@ namespace Sapphire
 
                 if (isReverbEnabled)
                 {
+                    // FIXFIXFIX: enable auto-standby of reverb.
                     VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
                     left  = rvb.sample[0];
                     right = rvb.sample[1];
