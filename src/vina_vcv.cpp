@@ -147,6 +147,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 json_t* root = SapphireModule::dataToJson();
                 jsonSetBool(root, "isReverbEnabled", isReverbEnabled());
+                jsonSetBool(root, "isStandbyEnabled", isStandbyEnabled());
                 return root;
             }
 
@@ -154,6 +155,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 SapphireModule::dataFromJson(root);
                 loadReverbEnabledFlag(root);
+                loadStandbyEnabledFlag(root);
             }
 
             void loadReverbEnabledFlag(json_t* root)
@@ -161,6 +163,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 bool e = isReverbEnabled();
                 jsonLoadBool(root, "isReverbEnabled", e);
                 setReverbEnabled(e);
+            }
+
+            void loadStandbyEnabledFlag(json_t* root)
+            {
+                bool e = isStandbyEnabled();
+                jsonLoadBool(root, "isStandbyEnabled", e);
+                setStandbyEnabled(e);
             }
 
             void process(const ProcessArgs& args) override
