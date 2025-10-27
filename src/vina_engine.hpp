@@ -75,6 +75,13 @@ namespace Sapphire
                 unsigned pluckIndex{};
             };
 
+            enum class RenderState
+            {
+                Playing,
+                RampingDown,
+                Quiet,
+            };
+
             unsigned pluckIndexBase[2] { 10, 19 };
 
             vina_sim_t sim;
@@ -85,12 +92,17 @@ namespace Sapphire
             float targetSpeedFactor = 1;
             float decayHalfLife{};
             float releaseHalfLife{};
-            bool isFirstSample = true;
             channel_info_t channelInfo[2];
             bool prevGate{};
             Galaxy::Engine reverb;
             RandomVectorGenerator rand;
             bool isReverbEnabled{};
+            bool isStandbyEnabled{};
+            unsigned renderSamples{};
+            unsigned fadeSamples{};
+            RenderState renderState{};
+            float originLeft{};
+            float originRight{};
 
             explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
@@ -117,7 +129,6 @@ namespace Sapphire
 
             void initialize()
             {
-                isFirstSample = true;
                 initChannel(0);
                 initChannel(1);
                 initReverb();
@@ -127,6 +138,8 @@ namespace Sapphire
                     sim.state[i].pos = horSpace * i;
                     sim.state[i].vel = 0;
                 }
+                originLeft  = leftParticlePos();
+                originRight = rightParticlePos();
                 setPitch(0);
                 setStiffness(defaultStiffness);
                 setLevel();
@@ -135,6 +148,10 @@ namespace Sapphire
                 setRelease();
                 prevGate = false;
                 isReverbEnabled = true;
+                isStandbyEnabled = false;
+                renderSamples = 0;
+                fadeSamples = 0;
+                renderState = RenderState::Playing;
             }
 
             void initReverb()
@@ -147,18 +164,20 @@ namespace Sapphire
                 //reverb.setMix(0.163);     // MIX is initialized by setRelease() as a side-effect
             }
 
-            void updateFilter(LoHiPassFilter<float>& filter, float sampleRateHz, float sample)
+            float leftParticlePos() const
             {
-                if (isFirstSample)
-                    filter.Snap(sample);
-                else
-                    filter.Update(sample, sampleRateHz);
+                return sim.state[32].pos;
+            }
+
+            float rightParticlePos() const
+            {
+                return sim.state[34].pos;
             }
 
             float audioFilter(float sampleRateHz, float sample, unsigned channel)
             {
                 auto& q = channelInfo[channel];
-                updateFilter(q.dcReject, sampleRateHz, sample);
+                q.dcReject.Update(sample, sampleRateHz);
                 float audio = q.dcReject.HiPass();
                 return q.gravy.process(sampleRateHz, audio).lowpass;
             }
@@ -184,13 +203,12 @@ namespace Sapphire
                 {
                     thump = 0;
                 }
-                updateFilter(q.pluckFilter, sampleRateHz, thump);
+                q.pluckFilter.Update(thump, sampleRateHz);
                 sim.state[q.pluckIndex].vel += q.pluckFilter.LoPass();
             }
 
-            void updatePluck(float sampleRateHz, bool gate)
+            void updatePluck(float sampleRateHz, bool gate, bool trigger)
             {
-                const bool trigger = (gate && !prevGate);
                 unsigned r = rand.rand();
                 unsigned leftOffset = r & 3;
                 r >>= 2;
@@ -200,39 +218,93 @@ namespace Sapphire
                     std::swap(pluckIndexBase[0], pluckIndexBase[1]);
                 updatePluckChannel(sampleRateHz, trigger, 0, pluckIndexBase[0] + leftOffset);
                 updatePluckChannel(sampleRateHz, trigger, 1, pluckIndexBase[1] + rightOffset);
-                prevGate = gate;
             }
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
-                updatePluck(sampleRateHz, gate);
+                const bool trigger = (gate && !prevGate);
+                prevGate = gate;
+
+                if (trigger)
+                {
+                    renderSamples = 0;
+                    renderState = RenderState::Playing;
+                }
+
+                updatePluck(sampleRateHz, gate, trigger);
 
                 constexpr float rho = 0.98;
                 constexpr float tuning = 75.897;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
-                const float dt = tuning * (speedFactor / sampleRateHz);
-                const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
-                const float et = dt / oversample;
-                for (unsigned k = 0; k < oversample; ++k)
-                    sim.step(et);
-                brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
-                constexpr float level = 1.0e+03;
-                float rawLeft  = sim.state[32].pos;
-                float rawRight = sim.state[34].pos;
-                float left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
-                float right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
+
+                float left = 0;
+                float right = 0;
+                if (renderState != RenderState::Quiet)
+                {
+                    const float dt = tuning * (speedFactor / sampleRateHz);
+                    const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
+                    const float et = dt / oversample;
+                    for (unsigned k = 0; k < oversample; ++k)
+                        sim.step(et);
+                    brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
+                    constexpr float level = 1.0e+03;
+                    float rawLeft  = leftParticlePos()  - originLeft;
+                    float rawRight = rightParticlePos() - originRight;
+                    left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
+                    right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
+                    if (isStandbyEnabled)
+                    {
+                        if (renderState == RenderState::Playing)
+                        {
+                            float power = std::hypotf(left, right);
+                            constexpr float minPower = 0.002;
+                            if (power < minPower)
+                            {
+                                ++renderSamples;
+                                const unsigned timeoutSamples = static_cast<unsigned>(0.1 * sampleRateHz);
+                                if (renderSamples > timeoutSamples)
+                                {
+                                    renderState = RenderState::RampingDown;
+                                    fadeSamples = static_cast<unsigned>(0.25 * sampleRateHz);
+                                    renderSamples = fadeSamples;
+                                }
+                            }
+                            else
+                            {
+                                renderSamples = 0;
+                            }
+                        }
+                        else // (renderState == RenderState::RampingDown)
+                        {
+                            if (renderSamples > 0)
+                            {
+                                float fade = static_cast<float>(renderSamples) / static_cast<float>(fadeSamples);
+                                left *= fade;
+                                right *= fade;
+                                --renderSamples;
+                            }
+                            else
+                            {
+                                renderState = RenderState::Quiet;
+                                renderSamples = 0;
+                            }
+                        }
+                    }
+                }
+
                 if (isReverbEnabled)
                 {
                     VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
                     left  = rvb.sample[0];
                     right = rvb.sample[1];
                 }
+
                 if (!std::isfinite(left) || !std::isfinite(right))
                 {
                     initialize();
-                    return VinaStereoFrame(0, 0);
+                    left = right = 0;
                 }
-                isFirstSample = false;
+
                 return VinaStereoFrame(left, right);
             }
 

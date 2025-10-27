@@ -1515,6 +1515,8 @@ static int VinaTest()
 
     VinaWire wire;
     wire.initialize();
+    wire.isStandbyEnabled = false;
+    wire.renderState = VinaWire::RenderState::Playing;
 
     const float sampleRateHz = 48000;
     const int channels = 2;
