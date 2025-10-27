@@ -64,6 +64,8 @@ namespace Sapphire
         using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
 
         constexpr float max_dt = 0.004;
+        constexpr float inputScale = 1;
+        constexpr float outputScale = 1.0e+03 / inputScale;
 
         struct VinaWire
         {
@@ -201,7 +203,7 @@ namespace Sapphire
                 if (trigger)
                 {
                     constexpr float denom = 8;
-                    thump = 1.7 + ((rand.next()-0.5) / denom);
+                    thump = inputScale * (1.7 + ((rand.next()-0.5) / denom));
                     q.pluckIndex = index;   // sample and hold on trigger
                 }
                 else
@@ -257,9 +259,8 @@ namespace Sapphire
                     for (unsigned k = 0; k < oversample; ++k)
                         sim.step(et);
                     brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
-                    constexpr float level = 1.0e+03;
-                    float rawLeft  = level*(leftParticlePos()  - originLeft );
-                    float rawRight = level*(rightParticlePos() - originRight);
+                    float rawLeft  = outputScale*(leftParticlePos()  - originLeft );
+                    float rawRight = outputScale*(rightParticlePos() - originRight);
                     float power = std::hypotf(rawLeft, rawRight);
                     left  = (gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
                     right = (gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
