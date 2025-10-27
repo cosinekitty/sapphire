@@ -494,7 +494,7 @@ namespace Sapphire
             {"width_knob",             {  16.500,   55.000}},
             }},
         { "vina", {
-            {"_panel",                 {  30.480,  128.500}},
+            {"_panel",                 {  66.040,  128.500}},
             {"audio_left_output",      {   9.240,  116.500}},
             {"audio_right_output",     {  21.240,  116.500}},
             {"decay_atten",            {  15.240,   62.500}},

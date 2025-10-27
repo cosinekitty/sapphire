@@ -2406,19 +2406,22 @@ def GenerateMultiTapButtons() -> int:
 
 def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        PANEL_WIDTH = 6
+        leftWidthHp = 6
+        middleHp = 1
+        rightWidthHp = 6
+        panelWidthHp = leftWidthHp + middleHp + rightWidthHp
         svgFileName = SvgFileName(slug, target)
-        panel = Panel(PANEL_WIDTH)
+        panel = Panel(panelWidthHp)
         cdict[slug] = controls = ControlLayer(panel)
         pl = Element('g', 'PanelLayer')
         defs = Element('defs')
         pl.append(defs)
         panel.append(pl)
-        pl.append(MakeBorder(target, PANEL_WIDTH))
+        pl.append(MakeBorder(target, panelWidthHp))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         dyButtonText = 6.0
-        xmid = panel.mmWidth/2
+        xmid = (HP_WIDTH_MM/2)*leftWidthHp
         yFence = FencePost(22.0, 130.0, 9)
         yVoctGate       = yFence.value(0)
         yFreq           = yFence.value(1)
