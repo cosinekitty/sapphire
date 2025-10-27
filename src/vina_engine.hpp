@@ -148,10 +148,10 @@ namespace Sapphire
                 setRelease();
                 prevGate = false;
                 isReverbEnabled = true;
-                isStandbyEnabled = false;
+                isStandbyEnabled = true;
                 renderSamples = 0;
                 fadeSamples = 0;
-                renderState = RenderState::Playing;
+                renderState = RenderState::Quiet;
             }
 
             void initReverb()
@@ -220,11 +220,16 @@ namespace Sapphire
                 updatePluckChannel(sampleRateHz, trigger, 1, pluckIndexBase[1] + rightOffset);
             }
 
-            VinaStereoFrame update(float sampleRateHz, bool gate)
+            bool updateTrigger(bool gate)
             {
                 const bool trigger = (gate && !prevGate);
                 prevGate = gate;
+                return trigger;
+            }
 
+            VinaStereoFrame update(float sampleRateHz, bool gate)
+            {
+                const bool trigger = updateTrigger(gate);
                 if (trigger)
                 {
                     renderSamples = 0;
@@ -248,24 +253,24 @@ namespace Sapphire
                         sim.step(et);
                     brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
                     constexpr float level = 1.0e+03;
-                    float rawLeft  = leftParticlePos()  - originLeft;
-                    float rawRight = rightParticlePos() - originRight;
-                    left  = (level * gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
-                    right = (level * gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
+                    float rawLeft  = level*(leftParticlePos()  - originLeft );
+                    float rawRight = level*(rightParticlePos() - originRight);
+                    float power = std::hypotf(rawLeft, rawRight);
+                    left  = (gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
+                    right = (gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
                     if (isStandbyEnabled)
                     {
                         if (renderState == RenderState::Playing)
                         {
-                            float power = std::hypotf(left, right);
-                            constexpr float minPower = 0.002;
+                            constexpr float minPower = 0.004;
                             if (power < minPower)
                             {
                                 ++renderSamples;
-                                const unsigned timeoutSamples = static_cast<unsigned>(0.1 * sampleRateHz);
+                                const unsigned timeoutSamples = static_cast<unsigned>(sampleRateHz/20);
                                 if (renderSamples > timeoutSamples)
                                 {
                                     renderState = RenderState::RampingDown;
-                                    fadeSamples = static_cast<unsigned>(0.25 * sampleRateHz);
+                                    fadeSamples = static_cast<unsigned>(2 * sampleRateHz);
                                     renderSamples = fadeSamples;
                                 }
                             }
@@ -279,7 +284,7 @@ namespace Sapphire
                             if (renderSamples > 0)
                             {
                                 float fade = static_cast<float>(renderSamples) / static_cast<float>(fadeSamples);
-                                left *= fade;
+                                left  *= fade;
                                 right *= fade;
                                 --renderSamples;
                             }
@@ -287,6 +292,7 @@ namespace Sapphire
                             {
                                 renderState = RenderState::Quiet;
                                 renderSamples = 0;
+                                left = right = 0;
                             }
                         }
                     }
