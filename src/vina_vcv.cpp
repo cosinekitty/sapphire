@@ -241,6 +241,22 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         };
 
 
+        struct ToggleStandbyAction : history::Action
+        {
+            const int64_t moduleId;
+
+            explicit ToggleStandbyAction(int64_t _moduleId)
+                : moduleId(_moduleId)
+            {
+                name = "toggle standby";
+            }
+
+            void toggle();
+            void undo() override { toggle(); }
+            void redo() override { toggle(); }
+        };
+
+
         struct VinaWidget : SapphireWidget
         {
             VinaModule* vinaModule{};
@@ -287,7 +303,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         [=](bool state)
                         {
                             if (state != vinaModule->isStandbyEnabled())
-                                vinaModule->setStandbyEnabled(state);
+                                InvokeAction(new ToggleStandbyAction(vinaModule->id));
                         }
                     ));
                 }
@@ -307,6 +323,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             if (VinaWidget* w = FindSapphireWidget<VinaWidget>(moduleId))
                 if (VinaModule* m = w->vinaModule)
                     m->setReverbEnabled(!m->isReverbEnabled());
+        }
+
+
+        void ToggleStandbyAction::toggle()
+        {
+            if (VinaWidget* w = FindSapphireWidget<VinaWidget>(moduleId))
+                if (VinaModule* m = w->vinaModule)
+                    m->setStandbyEnabled(!m->isStandbyEnabled());
         }
     }
 }
