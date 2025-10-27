@@ -64,8 +64,8 @@ namespace Sapphire
         using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
 
         constexpr float max_dt = 0.004;
-        constexpr float inputScale = 1;
-        constexpr float outputScale = 1.0e+03 / inputScale;
+        constexpr float inputScale = 1000;
+        constexpr float outputScale = 1000 / inputScale;
 
         struct VinaWire
         {
@@ -268,7 +268,7 @@ namespace Sapphire
                     {
                         if (renderState == RenderState::Playing)
                         {
-                            constexpr float minPower = 0.004;
+                            constexpr float minPower = 0.0001;
                             if (power < minPower)
                             {
                                 ++renderSamples;
