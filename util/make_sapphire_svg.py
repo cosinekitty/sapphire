@@ -2424,20 +2424,20 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         xmidLeft  = HP_WIDTH_MM*(leftWidthHp/2)
         xmidRight = HP_WIDTH_MM*(leftWidthHp + middleHp + rightWidthHp/2)
         yFence = FencePost(20.0, 114.0, 8)
-        yVoctGate       = yFence.value(0)
-        yFreq           = yFence.value(1)
-        yOct            = yFence.value(2)
-        yDecay          = yFence.value(3)
-        yRelease        = yFence.value(4)
-        yPan            = yFence.value(5)
-        yLevel          = yFence.value(6)
-        yAudioOutputs   = yFence.value(7)
+
+
         dxPortFromCenter = 6.0
         dxVoctGate = 7.0
         dyArtwork = 10.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
 
         # LEFT PANEL ----------------------------------------------------------
+
+        yVoctGate       = yFence.value(0)
+        yFreq           = yFence.value(1)
+        yOct            = yFence.value(2)
+        yDecay          = yFence.value(3)
+        yRelease        = yFence.value(4)
 
         gradients = False
 
@@ -2465,11 +2465,19 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
 
         # RIGHT PANEL ---------------------------------------------------------
 
-        AddFlatControlGroup(pl, controls, xmidRight, yLevel, 'level')
-        pl.append(CenteredControlTextPath(font, 'LEVEL', xmidRight, yLevel - dyButtonText))
+        ySpread         = yFence.value(4)
+        yPan            = yFence.value(5)
+        yLevel          = yFence.value(6)
+        yAudioOutputs   = yFence.value(7)
+
+        AddFlatControlGroup(pl, controls, xmidRight, ySpread, 'spread')
+        pl.append(CenteredControlTextPath(font, 'SPREAD',  xmidRight, ySpread - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidRight, yPan, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN',  xmidRight, yPan - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmidRight, yLevel, 'level')
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xmidRight, yLevel - dyButtonText))
 
         if gradients:
             y1 = yAudioOutputs - 6.0

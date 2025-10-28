@@ -105,6 +105,9 @@ namespace Sapphire
             RenderState renderState{};
             float originLeft{};
             float originRight{};
+            float pan{};
+            float spread{};
+            float currentSpreadAngle{};
 
             explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
@@ -146,6 +149,7 @@ namespace Sapphire
                 setStiffness(defaultStiffness);
                 setLevel();
                 setPan();
+                setSpread();
                 setDecay();
                 setRelease();
                 prevGate = false;
@@ -241,7 +245,13 @@ namespace Sapphire
                 {
                     renderSamples = 0;
                     renderState = RenderState::Playing;
+                    currentSpreadAngle = M_PI_4 * std::clamp<float>(rand.next()/2, -1, +1);
                 }
+
+                float theta = M_PI_4*(pan+1);       // map [-1, +1] onto [0, pi/2]
+                theta = std::clamp<float>(spread*currentSpreadAngle + theta, 0, M_PI_2);
+                panLeftFactor  = M_SQRT2 * std::cos(theta);
+                panRightFactor = M_SQRT2 * std::sin(theta);
 
                 updatePluck(sampleRateHz, gate, trigger);
 
@@ -253,15 +263,19 @@ namespace Sapphire
                 float right = 0;
                 if (renderState != RenderState::Quiet)
                 {
+                    // Oversample the RK4 simulation as needed to compensate for high pitch (speedFactor).
                     const float dt = tuning * (speedFactor / sampleRateHz);
                     const unsigned oversample = std::max<unsigned>(1, static_cast<unsigned>(std::ceil(dt/max_dt)));
                     const float et = dt / oversample;
                     for (unsigned k = 0; k < oversample; ++k)
                         sim.step(et);
+
                     brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
+
                     float rawLeft  = outputScale*(leftParticlePos()  - originLeft );
                     float rawRight = outputScale*(rightParticlePos() - originRight);
                     float power = std::hypotf(rawLeft, rawRight);
+
                     left  = (gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
                     right = (gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
                     if (isStandbyEnabled)
@@ -363,10 +377,12 @@ namespace Sapphire
 
             void setPan(float knob = 0)
             {
-                const float k = std::clamp<float>(knob, -1, +1);
-                const float theta = M_PI_4 * (k+1);       // map [-1, +1] onto [0, pi/2]
-                panLeftFactor  = M_SQRT2 * std::cos(theta);
-                panRightFactor = M_SQRT2 * std::sin(theta);
+                pan = std::clamp<float>(knob, -1, +1);
+            }
+
+            void setSpread(float knob = 0)
+            {
+                spread = std::clamp<float>(knob, 0, 1);
             }
 
             void setDecay(float knob = 0.5)

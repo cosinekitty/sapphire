@@ -518,6 +518,9 @@ namespace Sapphire
             {"release_cv",             {   6.240,   73.714}},
             {"release_knob",           {  24.240,   73.714}},
             {"right_output_label",     {  63.100,  114.000}},
+            {"spread_atten",           {  50.800,   73.714}},
+            {"spread_cv",              {  41.800,   73.714}},
+            {"spread_knob",            {  59.800,   73.714}},
             {"voct_input",             {   8.240,   20.000}},
             }},
         { "zoo", {
