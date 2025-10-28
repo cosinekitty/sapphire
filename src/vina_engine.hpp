@@ -108,6 +108,7 @@ namespace Sapphire
             float pan{};
             float spread{};
             float currentSpreadAngle{};
+            float feedback{};
 
             explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
@@ -152,6 +153,7 @@ namespace Sapphire
                 setSpread();
                 setDecay();
                 setRelease();
+                setFeedback();
                 prevGate = false;
                 isReverbEnabled = true;
                 setStandbyEnabled(true);
@@ -183,6 +185,16 @@ namespace Sapphire
             float rightParticlePos() const
             {
                 return sim.state[34].pos;
+            }
+
+            float leftParticleDisp() const
+            {
+                return outputScale * (leftParticlePos() - originLeft);
+            }
+
+            float rightParticleDisp() const
+            {
+                return outputScale * (rightParticlePos() - originRight);
             }
 
             float audioFilter(float sampleRateHz, float sample, unsigned channel)
@@ -272,8 +284,8 @@ namespace Sapphire
 
                     brake(sampleRateHz, gate ? decayHalfLife : releaseHalfLife);
 
-                    float rawLeft  = outputScale*(leftParticlePos()  - originLeft );
-                    float rawRight = outputScale*(rightParticlePos() - originRight);
+                    float rawLeft  = leftParticleDisp();
+                    float rawRight = rightParticleDisp();
                     float power = std::hypotf(rawLeft, rawRight);
 
                     left  = (gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
@@ -403,6 +415,11 @@ namespace Sapphire
                 releaseHalfLife = decay(weakKnob) / 8;
 
                 reverb.setMix(0.163 * (1 + 2*u));
+            }
+
+            void setFeedback(float knob = 0)
+            {
+                feedback = std::clamp<float>(knob, -1, +1);
             }
         };
     }

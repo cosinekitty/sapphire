@@ -27,6 +27,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             PAN_ATTEN,
             SPREAD_PARAM,
             SPREAD_ATTEN,
+            FEEDBACK_PARAM,
+            FEEDBACK_ATTEN,
             PARAMS_LEN
         };
 
@@ -41,6 +43,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             RELEASE_CV_INPUT,
             PAN_CV_INPUT,
             SPREAD_CV_INPUT,
+            FEEDBACK_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -97,7 +100,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configAtten(PAN_ATTEN, "Pan CV");
                 configInput(PAN_CV_INPUT, "Pan CV");
 
-                configParam(SPREAD_PARAM, 0, +1, 0, "Spread");
+                configParam(SPREAD_PARAM, 0, 1, 0, "Spread");
                 configAtten(SPREAD_ATTEN, "Spread CV");
                 configInput(SPREAD_CV_INPUT, "Spread CV");
 
@@ -108,6 +111,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configParam(RELEASE_PARAM, 0, 1, 0.5, "Release");
                 configAtten(RELEASE_ATTEN, "Release CV");
                 configInput(RELEASE_CV_INPUT, "Release CV");
+
+                configParam(FEEDBACK_PARAM, -1, +1, 0, "Feedback");
+                configAtten(FEEDBACK_ATTEN, "Feedback CV");
+                configInput(FEEDBACK_CV_INPUT, "Feedback CV");
 
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
@@ -194,6 +201,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvRelease = 0;
                 float cvPan = 0;
                 float cvSpread = 0;
+                float cvFeedback = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -208,6 +216,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvRelease, RELEASE_CV_INPUT, c);
                     nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
                     nextChannelInputVoltage(cvSpread, SPREAD_CV_INPUT, c);
+                    nextChannelInputVoltage(cvFeedback, FEEDBACK_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
@@ -218,6 +227,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     float spread = cvGetControlValue(SPREAD_PARAM, SPREAD_ATTEN, cvSpread, 0, +1);
                     float decay = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
+                    float feedback = cvGetControlValue(FEEDBACK_PARAM, FEEDBACK_ATTEN, cvFeedback, -1, +1);
                     float freq = raw + std::round(oct) + voctVoltage;
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
@@ -229,6 +239,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     q.wire.setRelease(release);
                     q.wire.setPan(pan);
                     q.wire.setSpread(spread);
+                    q.wire.setFeedback(feedback);
                     auto frame = q.wire.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
@@ -282,13 +293,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireInput(VOCT_INPUT, "voct_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
-                addSapphireFlatControlGroup("freq",    FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
-                addSapphireFlatControlGroup("oct",     OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
-                addSapphireFlatControlGroup("level",   LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
-                addSapphireFlatControlGroup("spread",  SPREAD_PARAM, SPREAD_ATTEN, SPREAD_CV_INPUT);
-                addSapphireFlatControlGroup("pan",     PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                addSapphireFlatControlGroup("decay",   DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
+                addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
+                addSapphireFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSapphireFlatControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
+                addSapphireFlatControlGroup("spread", SPREAD_PARAM, SPREAD_ATTEN, SPREAD_CV_INPUT);
+                addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+                addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override

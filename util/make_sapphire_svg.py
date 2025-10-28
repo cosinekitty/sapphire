@@ -2438,6 +2438,7 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yOct            = yFence.value(2)
         yDecay          = yFence.value(3)
         yRelease        = yFence.value(4)
+        yFeedback       = yFence.value(5)
 
         gradients = False
 
@@ -2462,6 +2463,9 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
 
         AddFlatControlGroup(pl, controls, xmidLeft, yRelease, 'release')
         pl.append(CenteredControlTextPath(font, 'REL',  xmidLeft, yRelease - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmidLeft, yFeedback, 'feedback')
+        pl.append(CenteredControlTextPath(font, 'FDBK',  xmidLeft, yFeedback - dyButtonText))
 
         # RIGHT PANEL ---------------------------------------------------------
 
