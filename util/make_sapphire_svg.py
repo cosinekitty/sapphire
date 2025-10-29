@@ -2469,10 +2469,14 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
 
         # RIGHT PANEL ---------------------------------------------------------
 
+        ySpace          = yFence.value(3)
         ySpread         = yFence.value(4)
         yPan            = yFence.value(5)
         yLevel          = yFence.value(6)
         yAudioOutputs   = yFence.value(7)
+
+        AddFlatControlGroup(pl, controls, xmidRight, ySpace, 'space')
+        pl.append(CenteredControlTextPath(font, 'SPACE', xmidRight, ySpace - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidRight, ySpread, 'spread')
         pl.append(CenteredControlTextPath(font, 'SPREAD',  xmidRight, ySpread - dyButtonText))

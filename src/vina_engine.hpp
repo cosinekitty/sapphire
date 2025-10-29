@@ -152,6 +152,7 @@ namespace Sapphire
                 setDecay();
                 setRelease();
                 setFeedback();
+                setSpace();
                 prevGate = false;
                 isReverbEnabled = true;
                 setStandbyEnabled(true);
@@ -404,15 +405,15 @@ namespace Sapphire
             {
                 const float k = std::clamp<float>(knob, 0, 1);
                 const float u = k - 0.5f;
-
-                // Vina's RELEASE controls both the release decay coefficient
-                // and the reverb mix.
-
                 constexpr float weakness = 1;
                 const float weakKnob = u*weakness + 0.5;
                 releaseHalfLife = decay(weakKnob) / 8;
+            }
 
-                reverb.setMix(0.163 * (1 + 2*u));
+            void setSpace(float knob = 0.5)
+            {
+                const float k = std::clamp<float>(knob, 0, 1);
+                reverb.setMix(0.163 * (2*k));
             }
 
             void setFeedback(float knob = 0)
