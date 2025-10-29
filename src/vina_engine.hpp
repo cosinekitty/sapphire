@@ -88,8 +88,6 @@ namespace Sapphire
 
             vina_sim_t sim;
             float gain{};
-            float panLeftFactor{};
-            float panRightFactor{};
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             float decayHalfLife{};
@@ -262,8 +260,8 @@ namespace Sapphire
 
                 float theta = M_PI_4*(pan+1);       // map [-1, +1] onto [0, pi/2]
                 theta = std::clamp<float>(spread*currentSpreadAngle + theta, 0, M_PI_2);
-                panLeftFactor  = M_SQRT2 * std::cos(theta);
-                panRightFactor = M_SQRT2 * std::sin(theta);
+                float panLeftFactor  = M_SQRT2 * std::cos(theta);
+                float panRightFactor = M_SQRT2 * std::sin(theta);
 
                 updatePluck(sampleRateHz, gate, trigger);
 
