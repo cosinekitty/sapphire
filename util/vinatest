@@ -2,6 +2,13 @@
 ./gen_vina_code || exit 1
 cd unittest || exit 1
 rm -f output/vina.wav
-./run vina || exit 1
-mplayer output/vina.wav || exit 1
-exit 0
+./run vina
+VINA_RC=$?
+mplayer -msglevel all=4 output/vina.wav | egrep '^(Playing|AUDIO:)'
+if [[ "${VINA_RC}" != "0" ]]; then
+    echo "***********************************"
+    echo "        FAILURE in vinatest"
+    echo "   Look for error message above."
+    echo "***********************************"
+fi
+exit ${VINA_RC}
