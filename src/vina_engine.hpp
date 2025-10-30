@@ -100,6 +100,7 @@ namespace Sapphire
             bool isStandbyEnabled{};
             unsigned renderSamples{};
             unsigned fadeSamples{};
+            unsigned resetSamples{};
             RenderState renderState{};
             float originLeft{};
             float originRight{};
@@ -156,6 +157,7 @@ namespace Sapphire
                 prevGate = false;
                 isReverbEnabled = true;
                 setStandbyEnabled(true);
+                resetSamples = 0;
             }
 
             void initReverb()
@@ -251,6 +253,12 @@ namespace Sapphire
 
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
+                if (resetSamples > 0)
+                {
+                    --resetSamples;
+                    return VinaStereoFrame(0, 0);
+                }
+
                 const bool trigger = updateTrigger(gate);
                 if (trigger)
                 {
@@ -343,6 +351,7 @@ namespace Sapphire
                 {
                     initialize();
                     left = right = 0;
+                    resetSamples = static_cast<unsigned>(sampleRateHz / 2);
                 }
 
                 return VinaStereoFrame(left, right);
