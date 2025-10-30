@@ -31,6 +31,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             FEEDBACK_ATTEN,
             SPACE_PARAM,
             SPACE_ATTEN,
+            CHORUS_DEPTH_PARAM,
+            CHORUS_DEPTH_ATTEN,
+            CHORUS_RATE_PARAM,
+            CHORUS_RATE_ATTEN,
             PARAMS_LEN
         };
 
@@ -47,6 +51,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             SPREAD_CV_INPUT,
             FEEDBACK_CV_INPUT,
             SPACE_CV_INPUT,
+            CHORUS_DEPTH_CV_INPUT,
+            CHORUS_RATE_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -122,6 +128,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configParam(SPACE_PARAM, 0, 1, 0.5, "Space");
                 configAtten(SPACE_ATTEN, "Space CV");
                 configInput(SPACE_CV_INPUT, "Space CV");
+
+                configParam(CHORUS_DEPTH_PARAM, 0, 1, 0.5, "Chorus depth");
+                configAtten(CHORUS_DEPTH_ATTEN, "Chorus depth CV");
+                configInput(CHORUS_DEPTH_CV_INPUT, "Chorus depth CV");
+
+                configParam(CHORUS_RATE_PARAM, -1, +1, 0, "Chorus rate");
+                configAtten(CHORUS_RATE_ATTEN, "Chorus rate CV");
+                configInput(CHORUS_RATE_CV_INPUT, "Chorus rate CV");
 
                 configInput(GATE_INPUT, "Gate");
                 configInput(VOCT_INPUT, "V/OCT");
@@ -210,6 +224,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvSpread = 0;
                 float cvFeedback = 0;
                 float cvSpace = 0;
+                float cvChorusDepth = 0;
+                float cvChorusRate = 0;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -217,6 +233,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
+
                     nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                     nextChannelInputVoltage(cvOct, OCT_CV_INPUT, c);
                     nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
@@ -226,10 +243,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvSpread, SPREAD_CV_INPUT, c);
                     nextChannelInputVoltage(cvFeedback, FEEDBACK_CV_INPUT, c);
                     nextChannelInputVoltage(cvSpace, SPACE_CV_INPUT, c);
+                    nextChannelInputVoltage(cvChorusDepth, CHORUS_DEPTH_CV_INPUT, c);
+                    nextChannelInputVoltage(cvChorusRate, CHORUS_RATE_CV_INPUT, c);
 
                     bool gate = q.gateReceiver.updateGate(gateVoltage);
 
-                    float raw = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
+                    float rawFreq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
                     float oct = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
                     float level = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
                     float pan = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
@@ -238,7 +257,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
                     float space = cvGetControlValue(SPACE_PARAM, SPACE_ATTEN, cvSpace, 0, 1);
                     float feedback = cvGetControlValue(FEEDBACK_PARAM, FEEDBACK_ATTEN, cvFeedback, -1, +1);
-                    float freq = raw + std::round(oct) + voctVoltage;
+                    float chorusDepth = cvGetControlValue(CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, cvChorusDepth, 0, 1);
+                    float chorusRate = cvGetControlValue(CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, cvChorusRate, -1, +1);
+
+                    float freq = rawFreq + std::round(oct) + voctVoltage;
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
                     else
@@ -251,6 +273,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     q.wire.setSpread(spread);
                     q.wire.setFeedback(feedback);
                     q.wire.setSpace(space);
+                    q.wire.setChorusDepth(chorusDepth);
+                    q.wire.setChorusRate(chorusRate);
                     auto frame = q.wire.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
@@ -313,6 +337,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
                 addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                 addSapphireFlatControlGroup("space", SPACE_PARAM, SPACE_ATTEN, SPACE_CV_INPUT);
+                addSapphireFlatControlGroup("chorus_depth", CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, CHORUS_DEPTH_CV_INPUT);
+                addSapphireFlatControlGroup("chorus_rate", CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, CHORUS_RATE_CV_INPUT);
             }
 
             void appendContextMenu(Menu* menu) override

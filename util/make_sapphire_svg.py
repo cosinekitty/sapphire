@@ -2404,7 +2404,7 @@ def GenerateMultiTapButtons() -> int:
 
 #-----------------------------------------------------------------------------------------------------
 
-def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
+def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         leftWidthHp = 6
         middleHp = 1
@@ -2439,6 +2439,8 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         yDecay          = yFence.value(3)
         yRelease        = yFence.value(4)
         yFeedback       = yFence.value(5)
+        yChorusDepth    = yFence.value(6)
+        yChorusRate     = yFence.value(7)
 
         gradients = False
 
@@ -2456,16 +2458,22 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         pl.append(CenteredControlTextPath(font, 'FREQ', xmidLeft, yFreq - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidLeft, yOct, 'oct')
-        pl.append(CenteredControlTextPath(font, 'OCT',  xmidLeft, yOct - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'OCT', xmidLeft, yOct - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidLeft, yDecay, 'decay')
-        pl.append(CenteredControlTextPath(font, 'DEC',  xmidLeft, yDecay - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'DEC', xmidLeft, yDecay - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidLeft, yRelease, 'release')
-        pl.append(CenteredControlTextPath(font, 'REL',  xmidLeft, yRelease - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'REL', xmidLeft, yRelease - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidLeft, yFeedback, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK',  xmidLeft, yFeedback - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'FDBK', xmidLeft, yFeedback - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmidLeft, yChorusDepth, 'chorus_depth')
+        pl.append(CenteredControlTextPath(font, 'DEPTH', xmidLeft, yChorusDepth - dyButtonText))
+
+        AddFlatControlGroup(pl, controls, xmidLeft, yChorusRate, 'chorus_rate')
+        pl.append(CenteredControlTextPath(font, 'RATE', xmidLeft, yChorusRate - dyButtonText))
 
         # RIGHT PANEL ---------------------------------------------------------
 
@@ -2498,8 +2506,10 @@ def GenerateVcoPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> i
         controls.append(Component('left_output_label',  xmidRight - dxLabelFromCenter, yAudioOutputs))
         controls.append(Component('right_output_label', xmidRight + dxLabelFromCenter, yAudioOutputs))
         pl.append(HorizontalLinePath(xmidRight - dxPortFromCenter, xmidRight + dxPortFromCenter, yAudioOutputs))
+
         return Save(panel, svgFileName)
 
+#--------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     cdict:ControlDict = {}
@@ -2539,7 +2549,7 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
-        GenerateVcoPanel(cdict, 'vina', 'vina', Target.VcvRack) or
+        GenerateVinaPanel(cdict, 'vina', 'vina', Target.VcvRack) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

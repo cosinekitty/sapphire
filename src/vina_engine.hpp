@@ -108,6 +108,8 @@ namespace Sapphire
             float spread{};
             float currentSpreadAngle{};
             float feedback{};
+            float chorusDepth{};
+            float chorusRate{};
 
             explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
@@ -154,6 +156,8 @@ namespace Sapphire
                 setRelease();
                 setFeedback();
                 setSpace();
+                setChorusDepth();
+                setChorusRate();
                 prevGate = false;
                 isReverbEnabled = true;
                 setStandbyEnabled(true);
@@ -428,6 +432,16 @@ namespace Sapphire
             void setFeedback(float knob = 0)
             {
                 feedback = std::clamp<float>(knob, -1, +1);
+            }
+
+            void setChorusDepth(float knob = 0.5)
+            {
+                chorusDepth = std::clamp<float>(knob, 0, 1);
+            }
+
+            void setChorusRate(float knob = 0)
+            {
+                chorusRate = std::clamp<float>(knob, -1, +1);
             }
         };
     }
