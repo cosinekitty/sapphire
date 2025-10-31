@@ -15,14 +15,27 @@ namespace Sapphire
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float defaultStiffness = 89;
+        constexpr float defaultChorusHz = 1;
 
         struct VinaStereoFrame
         {
-            float sample[2];
+            float sample[2]{};
+
+            VinaStereoFrame() {}
 
             explicit VinaStereoFrame(float left, float right)
                 : sample{left, right}
                 {}
+
+            friend VinaStereoFrame operator* (float k, const VinaStereoFrame& f)
+            {
+                return VinaStereoFrame(k*f.sample[0], k*f.sample[1]);
+            }
+
+            friend VinaStereoFrame operator+ (const VinaStereoFrame& a, const VinaStereoFrame& b)
+            {
+                return VinaStereoFrame(a.sample[0] + b.sample[0], a.sample[1] + b.sample[1]);
+            }
         };
 
         template <typename batch_t>
@@ -62,6 +75,8 @@ namespace Sapphire
     namespace Vina
     {
         using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
+        constexpr unsigned delayLineFrames = 48000;     // up to 1 second at typical rate, less at higher rates.
+        using chorus_delay_t = DelayLine<VinaStereoFrame, delayLineFrames>;
 
         constexpr float max_dt = 0.004;
         constexpr float inputScale = 1000;
@@ -108,8 +123,11 @@ namespace Sapphire
             float spread{};
             float currentSpreadAngle{};
             float feedback{};
+            bool isChorusEnabled = true;
             float chorusDepth{};
             float chorusRate{};
+            float chorusAngle{};
+            chorus_delay_t chorusDelay{};
 
             explicit VinaWire()
                 : sim(VinaDeriv(), nParticles)
@@ -156,12 +174,19 @@ namespace Sapphire
                 setRelease();
                 setFeedback();
                 setSpace();
-                setChorusDepth();
-                setChorusRate();
+                initChorus();
                 prevGate = false;
                 isReverbEnabled = true;
                 setStandbyEnabled(true);
                 resetSamples = 0;
+            }
+
+            void initChorus()
+            {
+                setChorusDepth();
+                setChorusRate();
+                chorusAngle = 0;
+                chorusDelay.clear();
             }
 
             void initReverb()
@@ -255,6 +280,16 @@ namespace Sapphire
                 return trigger;
             }
 
+            VinaStereoFrame interpolateBackward(float sampleRateHz, float timeOffsetSec)
+            {
+                float s = std::max<float>(0, sampleRateHz * timeOffsetSec);
+                unsigned s1 = static_cast<unsigned>(std::floor(s));
+                float frac = s - s1;
+                VinaStereoFrame f1 = chorusDelay.readBackward(s1);
+                VinaStereoFrame f2 = chorusDelay.readBackward(s1+1);
+                return (1-frac)*f1 + frac*f2;
+            }
+
             VinaStereoFrame update(float sampleRateHz, bool gate)
             {
                 if (resetSamples > 0)
@@ -341,6 +376,36 @@ namespace Sapphire
                             }
                         }
                     }
+                }
+
+                if (isChorusEnabled)
+                {
+                    chorusDelay.write(VinaStereoFrame(left, right));
+
+                    // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
+                    // Slowly modulate position in time using linear/sinc interpolation (like Echo).
+                    constexpr float chorusMaxSeconds = 0.01;
+                    constexpr float depthAdjust = 0.8;
+                    constexpr float rateAdjust = 0.7;
+
+                    // Calculate sample offsets into the past for the 3 chorus voices.
+
+                    const float timeFactor = Square(depthAdjust*chorusDepth) * (chorusMaxSeconds/2);
+                    const float t0 = timeFactor*(1 - std::cos(chorusAngle));
+                    const float t1 = timeFactor*(1 - std::cos(chorusAngle + (M_PI*2)/3));
+                    const float t2 = timeFactor*(1 - std::cos(chorusAngle - (M_PI*2)/3));
+
+                    VinaStereoFrame f0 = interpolateBackward(sampleRateHz, t0);
+                    VinaStereoFrame f1 = interpolateBackward(sampleRateHz, t1);
+                    VinaStereoFrame f2 = interpolateBackward(sampleRateHz, t2);
+
+                    // Mix with the original using chorusDepth as the mix parameter.
+                    left  = (left  + f0.sample[0] + f1.sample[0] + f2.sample[0]) / 4;
+                    right = (right + f0.sample[1] + f1.sample[1] + f2.sample[1]) / 4;
+
+                    // Update chorusAngle for next iteration.
+                    chorusAngle += defaultChorusHz*(2*M_PI/sampleRateHz) * TenToPower<float>(rateAdjust*chorusRate);
+                    chorusAngle = std::fmod(chorusAngle, 2*M_PI);
                 }
 
                 if (isReverbEnabled)
