@@ -454,7 +454,8 @@ namespace Sapphire
                 const float u = k - 0.5f;
                 constexpr float weakness = 1;
                 const float weakKnob = u*weakness + 0.5;
-                releaseHalfLife = decay(weakKnob) / 8;
+                constexpr float scale = 0.17;
+                releaseHalfLife = scale * decay(weakKnob);
             }
 
             void setFeedback(float knob = 0)
