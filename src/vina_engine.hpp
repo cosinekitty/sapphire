@@ -3,7 +3,6 @@
 #include "sapphire_random.hpp"
 #include "sauce_engine.hpp"
 #include "rk4_simulator.hpp"
-#include "galaxy_engine.hpp"
 
 namespace Sapphire
 {
@@ -15,7 +14,7 @@ namespace Sapphire
 
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float defaultStiffness = 89;
-        constexpr float defaultChorusHz = 1;
+        constexpr float defaultChorusHz = 0.2;
 
         struct VinaStereoFrame
         {
@@ -109,9 +108,7 @@ namespace Sapphire
             float releaseHalfLife{};
             channel_info_t channelInfo[2];
             bool prevGate{};
-            Galaxy::Engine reverb;
             RandomVectorGenerator rand;
-            bool isReverbEnabled{};
             bool isStandbyEnabled{};
             unsigned renderSamples{};
             unsigned fadeSamples{};
@@ -156,7 +153,6 @@ namespace Sapphire
             {
                 initChannel(0);
                 initChannel(1);
-                initReverb();
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned i = 0; i < nParticles; ++i)
                 {
@@ -173,10 +169,8 @@ namespace Sapphire
                 setDecay();
                 setRelease();
                 setFeedback();
-                setSpace();
                 initChorus();
                 prevGate = false;
-                isReverbEnabled = true;
                 setStandbyEnabled(true);
                 resetSamples = 0;
             }
@@ -187,16 +181,6 @@ namespace Sapphire
                 setChorusRate();
                 chorusAngle = 0;
                 chorusDelay.clear();
-            }
-
-            void initReverb()
-            {
-                reverb.initialize();
-                reverb.setReplace(0.906);
-                reverb.setBrightness(0.628);
-                reverb.setDetune(0.476);
-                reverb.setBigness(0.0615);
-                //reverb.setMix(0.163);     // MIX is initialized by setRelease() as a side-effect
             }
 
             void setStandbyEnabled(bool enable)
@@ -233,13 +217,6 @@ namespace Sapphire
                 q.dcReject.Update(sample, sampleRateHz);
                 float audio = q.dcReject.HiPass();
                 return q.gravy.process(sampleRateHz, audio).lowpass;
-            }
-
-            VinaStereoFrame stereoReverb(float sampleRateHz, float inLeft, float inRight)
-            {
-                float outLeft, outRight;
-                reverb.process(sampleRateHz, inLeft, inRight, outLeft, outRight);
-                return VinaStereoFrame(outLeft, outRight);
             }
 
             void updatePluckChannel(float sampleRateHz, bool trigger, unsigned channel, unsigned index)
@@ -408,14 +385,6 @@ namespace Sapphire
                     chorusAngle = std::fmod(chorusAngle, 2*M_PI);
                 }
 
-                if (isReverbEnabled)
-                {
-                    // FIXFIXFIX: enable auto-standby of reverb.
-                    VinaStereoFrame rvb = stereoReverb(sampleRateHz, left, right);
-                    left  = rvb.sample[0];
-                    right = rvb.sample[1];
-                }
-
                 if (!std::isfinite(left) || !std::isfinite(right))
                 {
                     initialize();
@@ -486,12 +455,6 @@ namespace Sapphire
                 constexpr float weakness = 1;
                 const float weakKnob = u*weakness + 0.5;
                 releaseHalfLife = decay(weakKnob) / 8;
-            }
-
-            void setSpace(float knob = 0.5)
-            {
-                const float k = std::clamp<float>(knob, 0, 1);
-                reverb.setMix(0.163 * (2*k));
             }
 
             void setFeedback(float knob = 0)

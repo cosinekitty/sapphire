@@ -12,7 +12,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         enum ParamId
         {
-            OBSOLETE_1_PARAM,
+            _OBSOLETE_1_PARAM,
             FREQ_PARAM,
             FREQ_ATTEN,
             OCT_PARAM,
@@ -29,8 +29,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             SPREAD_ATTEN,
             FEEDBACK_PARAM,
             FEEDBACK_ATTEN,
-            SPACE_PARAM,
-            SPACE_ATTEN,
+            _OBSOLETE_2_PARAM,
+            _OBSOLETE_3_PARAM,
             CHORUS_DEPTH_PARAM,
             CHORUS_DEPTH_ATTEN,
             CHORUS_RATE_PARAM,
@@ -50,7 +50,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             PAN_CV_INPUT,
             SPREAD_CV_INPUT,
             FEEDBACK_CV_INPUT,
-            SPACE_CV_INPUT,
+            _OBSOLETE_1_CV_INPUT,
             CHORUS_DEPTH_CV_INPUT,
             CHORUS_RATE_CV_INPUT,
             INPUTS_LEN
@@ -125,10 +125,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configAtten(FEEDBACK_ATTEN, "Feedback CV");
                 configInput(FEEDBACK_CV_INPUT, "Feedback CV");
 
-                configParam(SPACE_PARAM, 0, 1, 0.5, "Space");
-                configAtten(SPACE_ATTEN, "Space CV");
-                configInput(SPACE_CV_INPUT, "Space CV");
-
                 configParam(CHORUS_DEPTH_PARAM, 0, 1, 0.5, "Chorus depth");
                 configAtten(CHORUS_DEPTH_ATTEN, "Chorus depth CV");
                 configInput(CHORUS_DEPTH_CV_INPUT, "Chorus depth CV");
@@ -157,17 +153,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     channelInfo[c].initialize();
             }
 
-            bool isReverbEnabled() const
-            {
-                return channelInfo[0].wire.isReverbEnabled;
-            }
-
-            void setReverbEnabled(bool enable)
-            {
-                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                    channelInfo[c].wire.isReverbEnabled = enable;
-            }
-
             bool isStandbyEnabled() const
             {
                 return channelInfo[0].wire.isStandbyEnabled;
@@ -182,7 +167,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                jsonSetBool(root, "isReverbEnabled", isReverbEnabled());
                 jsonSetBool(root, "isStandbyEnabled", isStandbyEnabled());
                 return root;
             }
@@ -190,15 +174,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                loadReverbEnabledFlag(root);
                 loadStandbyEnabledFlag(root);
-            }
-
-            void loadReverbEnabledFlag(json_t* root)
-            {
-                bool e = isReverbEnabled();
-                jsonLoadBool(root, "isReverbEnabled", e);
-                setReverbEnabled(e);
             }
 
             void loadStandbyEnabledFlag(json_t* root)
@@ -223,7 +199,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvPan = 0;
                 float cvSpread = 0;
                 float cvFeedback = 0;
-                float cvSpace = 0;
                 float cvChorusDepth = 0;
                 float cvChorusRate = 0;
 
@@ -242,7 +217,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
                     nextChannelInputVoltage(cvSpread, SPREAD_CV_INPUT, c);
                     nextChannelInputVoltage(cvFeedback, FEEDBACK_CV_INPUT, c);
-                    nextChannelInputVoltage(cvSpace, SPACE_CV_INPUT, c);
                     nextChannelInputVoltage(cvChorusDepth, CHORUS_DEPTH_CV_INPUT, c);
                     nextChannelInputVoltage(cvChorusRate, CHORUS_RATE_CV_INPUT, c);
 
@@ -255,7 +229,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     float spread = cvGetControlValue(SPREAD_PARAM, SPREAD_ATTEN, cvSpread, 0, +1);
                     float decay = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
-                    float space = cvGetControlValue(SPACE_PARAM, SPACE_ATTEN, cvSpace, 0, 1);
                     float feedback = cvGetControlValue(FEEDBACK_PARAM, FEEDBACK_ATTEN, cvFeedback, -1, +1);
                     float chorusDepth = cvGetControlValue(CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, cvChorusDepth, 0, 1);
                     float chorusRate = cvGetControlValue(CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, cvChorusRate, -1, +1);
@@ -272,7 +245,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     q.wire.setPan(pan);
                     q.wire.setSpread(spread);
                     q.wire.setFeedback(feedback);
-                    q.wire.setSpace(space);
                     q.wire.setChorusDepth(chorusDepth);
                     q.wire.setChorusRate(chorusRate);
                     auto frame = q.wire.update(args.sampleRate, gate);
@@ -280,22 +252,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
             }
-        };
-
-
-        struct ToggleReverbAction : history::Action
-        {
-            const int64_t moduleId;
-
-            explicit ToggleReverbAction(int64_t _moduleId)
-                : moduleId(_moduleId)
-            {
-                name = "toggle internal reverb";
-            }
-
-            void toggle();
-            void undo() override { toggle(); }
-            void redo() override { toggle(); }
         };
 
 
@@ -336,7 +292,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
                 addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
-                addSapphireFlatControlGroup("space", SPACE_PARAM, SPACE_ATTEN, SPACE_CV_INPUT);
                 addSapphireFlatControlGroup("chorus_depth", CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, CHORUS_DEPTH_CV_INPUT);
                 addSapphireFlatControlGroup("chorus_rate", CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, CHORUS_RATE_CV_INPUT);
             }
@@ -347,17 +302,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 if (vinaModule)
                 {
                     menu->addChild(new MenuSeparator);
-
-                    menu->addChild(createBoolMenuItem(
-                        "Enable internal reverb",
-                        "",
-                        [=]() { return vinaModule->isReverbEnabled(); },
-                        [=](bool state)
-                        {
-                            if (state != vinaModule->isReverbEnabled())
-                                InvokeAction(new ToggleReverbAction(vinaModule->id));
-                        }
-                    ));
 
                     menu->addChild(createBoolMenuItem(
                         "Enable standby",
@@ -379,14 +323,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 drawAudioPortLabels(args.vg, outputPortMode, "left_output_label", "right_output_label");
             }
         };
-
-
-        void ToggleReverbAction::toggle()
-        {
-            if (VinaWidget* w = FindSapphireWidget<VinaWidget>(moduleId))
-                if (VinaModule* m = w->vinaModule)
-                    m->setReverbEnabled(!m->isReverbEnabled());
-        }
 
 
         void ToggleStandbyAction::toggle()
