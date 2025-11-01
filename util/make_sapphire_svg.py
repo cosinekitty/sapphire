@@ -2405,6 +2405,12 @@ def GenerateMultiTapButtons() -> int:
 #-----------------------------------------------------------------------------------------------------
 
 def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
+    def connectorStyle(color:str) -> str:
+        return 'fill:none; stroke:' + color + '; stroke-width: 1.5;'
+    
+    def connector(x:float, y1:float, y2:float, color:str) -> LineElement:
+        return LineElement(x, y1, x, y2, connectorStyle(color))
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         leftWidthHp = 6
         middleHp = 1
@@ -2425,7 +2431,6 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         xmidRight = HP_WIDTH_MM*(leftWidthHp + middleHp + rightWidthHp/2)
         yFence = FencePost(20.0, 114.0, 8)
 
-
         dxPortFromCenter = 6.0
         dxVoctGate = 7.0
         dyArtwork = 10.0
@@ -2441,6 +2446,8 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         yFeedback       = yFence.value(5)
         yChorusDepth    = yFence.value(6)
         yChorusRate     = yFence.value(7)
+
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate, '#058026'))
 
         gradients = False
 
