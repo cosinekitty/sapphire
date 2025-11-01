@@ -355,19 +355,18 @@ namespace Sapphire
                     }
                 }
 
-                if (isChorusEnabled)
+                // Keep the chorusDelay consistently fed, whether or not chorus is enabled.
+                // The CPU cost is very small, and it prevents unwanted glitches.
+                chorusDelay.write(VinaStereoFrame(left, right));
+                if (isChorusEnabled && chorusDepth>0)
                 {
-                    chorusDelay.write(VinaStereoFrame(left, right));
-
                     // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
                     // Slowly modulate position in time using linear/sinc interpolation (like Echo).
-                    constexpr float chorusMaxSeconds = 0.01;
-                    constexpr float depthAdjust = 0.8;
-                    constexpr float rateAdjust = 0.7;
+                    constexpr float chorusMaxSeconds = 0.03;
+                    constexpr float rateAdjust = 0.5;
 
                     // Calculate sample offsets into the past for the 3 chorus voices.
-
-                    const float timeFactor = Square(depthAdjust*chorusDepth) * (chorusMaxSeconds/2);
+                    const float timeFactor = chorusDepth * (chorusMaxSeconds/2);
                     const float t0 = timeFactor*(1 - std::cos(chorusAngle));
                     const float t1 = timeFactor*(1 - std::cos(chorusAngle + (M_PI*2)/3));
                     const float t2 = timeFactor*(1 - std::cos(chorusAngle - (M_PI*2)/3));
@@ -377,12 +376,13 @@ namespace Sapphire
                     VinaStereoFrame f2 = interpolateBackward(sampleRateHz, t2);
 
                     // Mix with the original using chorusDepth as the mix parameter.
-                    left  = (left  + f0.sample[0] + f1.sample[0] + f2.sample[0]) / 4;
-                    right = (right + f0.sample[1] + f1.sample[1] + f2.sample[1]) / 4;
+                    left  = (1-chorusDepth)*left  + (chorusDepth/3)*(f0.sample[0] + f1.sample[0] + f2.sample[0]);
+                    right = (1-chorusDepth)*right + (chorusDepth/3)*(f0.sample[1] + f1.sample[1] + f2.sample[1]);
 
                     // Update chorusAngle for next iteration.
-                    chorusAngle += defaultChorusHz*(2*M_PI/sampleRateHz) * TenToPower<float>(rateAdjust*chorusRate);
-                    chorusAngle = std::fmod(chorusAngle, 2*M_PI);
+                    const float power = TenToPower<float>(rateAdjust * chorusRate);
+                    const float increment = power * (2*M_PI)*(defaultChorusHz/sampleRateHz);
+                    chorusAngle = std::fmod(chorusAngle + increment, 2*M_PI);
                 }
 
                 if (!std::isfinite(left) || !std::isfinite(right))
