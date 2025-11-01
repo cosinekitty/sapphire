@@ -2447,8 +2447,9 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         yChorusDepth    = yFence.value(6)
         yChorusRate     = yFence.value(7)
 
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate, "#0F7C2C"))
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yFreq, yOct, "#7E6C09"))
         pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yDecay, yRelease, "#6F6AB6"))
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate, "#0F7C2C"))
 
         gradients = False
 
