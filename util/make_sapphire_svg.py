@@ -2406,9 +2406,9 @@ def GenerateMultiTapButtons() -> int:
 
 def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
     def connectorStyle(color:str) -> str:
-        return 'fill:none; stroke:' + color + '; stroke-width: 1.5;'
-    
-    def connector(x:float, y1:float, y2:float, color:str) -> LineElement:
+        return 'fill:none; stroke:' + color + '; stroke-width: 1.0;'
+
+    def connector(x:float, y1:float, y2:float, color:str = '#0F7C2C') -> LineElement:
         return LineElement(x, y1, x, y2, connectorStyle(color))
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -2443,13 +2443,13 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         yOct            = yFence.value(2)
         yDecay          = yFence.value(3)
         yRelease        = yFence.value(4)
-        yFeedback       = yFence.value(5)
-        yChorusDepth    = yFence.value(6)
-        yChorusRate     = yFence.value(7)
+        yChorusDepth    = yFence.value(5)
+        yChorusRate     = yFence.value(6)
+        yFeedback       = yFence.value(7)
 
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yFreq, yOct, "#7E6C09"))
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yDecay, yRelease, "#6F6AB6"))
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate, "#0F7C2C"))
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yFreq, yOct))
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yDecay, yRelease))
+        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate))
 
         gradients = False
 
@@ -2490,6 +2490,8 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         yPan            = yFence.value(5)
         yLevel          = yFence.value(6)
         yAudioOutputs   = yFence.value(7)
+
+        pl.append(connector(xmidRight + DX_FLAT_CONTROL_GROUP, ySpread, yPan))
 
         AddFlatControlGroup(pl, controls, xmidRight, ySpread, 'spread')
         pl.append(CenteredControlTextPath(font, 'SPREAD',  xmidRight, ySpread - dyButtonText))
