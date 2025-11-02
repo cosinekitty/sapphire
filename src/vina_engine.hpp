@@ -356,7 +356,7 @@ namespace Sapphire
                     // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
                     // Slowly modulate position in time using linear/sinc interpolation (like Echo).
                     constexpr float chorusMaxSeconds = 0.03;
-                    constexpr float rateAdjust = 0.5;
+                    constexpr float rateAdjust = 0.35;
 
                     // Calculate sample offsets into the past for the 3 chorus voices.
                     const float timeFactor = chorusDepth * (chorusMaxSeconds/2);
