@@ -45,6 +45,9 @@ namespace Sapphire
 {
     namespace Vina
     {
+        constexpr unsigned nMobileParticles = $N_MOBILE_PARTICLES$;
+        constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
+
         struct VinaDeriv
         {
             float k = 1000 * defaultStiffness;            // stiffness/mass, where mass = 0.001 kg
@@ -56,7 +59,7 @@ namespace Sapphire
             {
                 float acc;
 
-'''
+'''.replace('$N_MOBILE_PARTICLES$', str(nMobileParticles))
 
     i = 0
     while i < nParticles:

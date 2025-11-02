@@ -8,10 +8,6 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr unsigned nMobileParticles = 42;
-        constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
-        static_assert(nParticles > nMobileParticles);
-
         constexpr float horSpace = 0.01;    // horizontal spacing in meters
         constexpr float defaultStiffness = 89;
         constexpr float defaultChorusHz = 0.2;

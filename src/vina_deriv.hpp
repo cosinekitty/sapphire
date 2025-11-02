@@ -12,6 +12,9 @@ namespace Sapphire
 {
     namespace Vina
     {
+        constexpr unsigned nMobileParticles = 42;
+        constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
+
         struct VinaDeriv
         {
             float k = 1000 * defaultStiffness;            // stiffness/mass, where mass = 0.001 kg
