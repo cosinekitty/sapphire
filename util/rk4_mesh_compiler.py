@@ -55,6 +55,7 @@ namespace Sapphire
         constexpr float restLength = 0.004;
         constexpr float silenceTension = 0.534;    // [N] desired tension force in each spring when silent
         constexpr float defaultStiffness = silenceTension / (horSpace - restLength);
+        constexpr float tuning = 75.845;
 
         struct VinaDeriv
         {

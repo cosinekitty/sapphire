@@ -285,7 +285,6 @@ namespace Sapphire
                 updatePluck(sampleRateHz, gate, trigger);
 
                 constexpr float rho = 0.97;
-                constexpr float tuning = 75.845;
                 speedFactor = rho*speedFactor + (1-rho)*targetSpeedFactor;
 
                 float left = 0;
