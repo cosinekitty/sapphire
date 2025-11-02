@@ -8,8 +8,6 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr float horSpace = 0.01;    // horizontal spacing in meters
-        constexpr float defaultStiffness = 89;
         constexpr float defaultChorusHz = 0.2;
 
         struct VinaStereoFrame

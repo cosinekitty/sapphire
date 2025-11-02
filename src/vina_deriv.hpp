@@ -18,11 +18,14 @@ namespace Sapphire
         constexpr unsigned pluckBaseRight   = 1 + (2*nMobileParticles)/5;
         constexpr unsigned leftOutputIndex  = 1 + (3*nMobileParticles)/5;
         constexpr unsigned rightOutputIndex = 1 + (4*nMobileParticles)/5;
+        constexpr float horSpace = 0.01;    // horizontal spacing between adjacent particles in meters
+        constexpr float restLength = 0.004;
+        constexpr float silenceTension = 0.534;    // [N] desired tension force in each spring when silent
+        constexpr float defaultStiffness = silenceTension / (horSpace - restLength);
 
         struct VinaDeriv
         {
             float k = 1000 * defaultStiffness;            // stiffness/mass, where mass = 0.001 kg
-            float restLength = 0.004;
 
             explicit VinaDeriv() {}
 
