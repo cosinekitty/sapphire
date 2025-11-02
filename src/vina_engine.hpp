@@ -94,7 +94,7 @@ namespace Sapphire
                 Quiet,
             };
 
-            unsigned pluckIndexBase[2] { 10, 19 };
+            unsigned pluckIndexBase[2] { pluckBaseLeft, pluckBaseRight };
 
             vina_sim_t sim;
             float gain{};
@@ -189,12 +189,12 @@ namespace Sapphire
 
             float leftParticlePos() const
             {
-                return sim.state[32].pos;
+                return sim.state[leftOutputIndex].pos;
             }
 
             float rightParticlePos() const
             {
-                return sim.state[34].pos;
+                return sim.state[rightOutputIndex].pos;
             }
 
             float leftParticleDisp() const

@@ -47,6 +47,10 @@ namespace Sapphire
     {
         constexpr unsigned nMobileParticles = $N_MOBILE_PARTICLES$;
         constexpr unsigned nParticles = 2 + nMobileParticles;    // one anchor at each end of the chain
+        constexpr unsigned pluckBaseLeft    = 1 + (1*nMobileParticles)/5;
+        constexpr unsigned pluckBaseRight   = 1 + (2*nMobileParticles)/5;
+        constexpr unsigned leftOutputIndex  = 1 + (3*nMobileParticles)/5;
+        constexpr unsigned rightOutputIndex = 1 + (4*nMobileParticles)/5;
 
         struct VinaDeriv
         {
