@@ -20,7 +20,7 @@ namespace RungeKutta
         deriv_proc_t deriv;
         add_func_t add;
         mul_func_t mul;
-        state_t state{};
+        state_t state;
 
 
         explicit Simulator(deriv_proc_t _deriv, add_func_t _add, mul_func_t _mul)
@@ -63,62 +63,6 @@ namespace RungeKutta
             add(w, w, k4);
             mul(w, w, dt/6);
             add(state, state, w);
-        }
-    };
-
-
-    // Often we need a list of particle states as our system state.
-    // If the number of particles is very large or unpredictable,
-    // a std::vector can be useful.
-    // With that in mind, here are some functor classes for connecting
-    // Simulator with vector-based states.
-
-    template <typename item_t>
-    struct ListAdd
-    {
-        using list_t = std::vector<item_t>;
-
-        void operator() (list_t& t, const list_t& a, const list_t& b)
-        {
-            std::size_t n = a.size();
-            if (n == b.size() && n == t.size())
-            {
-                for (std::size_t i=0; i < n; ++i)
-                    t[i] = a[i] + b[i];
-            }
-        }
-    };
-
-
-    template <typename item_t, typename real_t>
-    struct ListMul
-    {
-        using list_t = std::vector<item_t>;
-
-        void operator() (list_t& t, const list_t& a, real_t k)
-        {
-            std::size_t n = a.size();
-            if (n == t.size())
-            {
-                for (std::size_t i=0; i < n; ++i)
-                    t[i] = k * a[i];
-            }
-        }
-    };
-
-
-    template <typename real_t, typename item_t, typename deriv_proc_t>
-    class ListSimulator
-        : public Simulator<real_t, std::vector<item_t>, deriv_proc_t, ListAdd<item_t>, ListMul<item_t, real_t>>
-    {
-    public:
-        using state_t = std::vector<item_t>;
-
-        explicit ListSimulator(deriv_proc_t deriv, std::size_t itemCount)
-            : Simulator<real_t, state_t, deriv_proc_t, ListAdd<item_t>, ListMul<item_t, real_t>>(
-                deriv, ListAdd<item_t>(), ListMul<item_t, real_t>())
-        {
-            this->resize(itemCount);
         }
     };
 }

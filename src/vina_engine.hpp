@@ -8,7 +8,7 @@ namespace Sapphire
 {
     namespace Vina
     {
-        constexpr float defaultChorusHz = 0.2;
+        constexpr float defaultChorusHz = 0.076;
 
         struct VinaStereoFrame
         {
@@ -57,7 +57,6 @@ namespace Sapphire
         };
 
         using VinaParticle = ParticleBatch<float>;
-        using vina_state_t = std::vector<VinaParticle>;
     }
 }
 
@@ -67,7 +66,6 @@ namespace Sapphire
 {
     namespace Vina
     {
-        using vina_sim_t = RungeKutta::ListSimulator<float, VinaParticle, VinaDeriv>;
         constexpr unsigned delayLineFrames = 48000;     // up to 1 second at typical rate, less at higher rates.
         using chorus_delay_t = DelayLine<VinaStereoFrame, delayLineFrames>;
 
@@ -94,7 +92,7 @@ namespace Sapphire
 
             unsigned pluckIndexBase[2] { pluckBaseLeft, pluckBaseRight };
 
-            vina_sim_t sim;
+            VinaSimulator sim;
             float gain{};
             float speedFactor = 1;
             float targetSpeedFactor = 1;
@@ -121,7 +119,6 @@ namespace Sapphire
             chorus_delay_t chorusDelay{};
 
             explicit VinaWire()
-                : sim(VinaDeriv(), nParticles)
                 {}
 
             void initChannel(unsigned channel)
@@ -447,7 +444,7 @@ namespace Sapphire
                 const float u = k - 0.5f;
                 constexpr float weakness = 1;
                 const float weakKnob = u*weakness + 0.5;
-                constexpr float scale = 0.17;
+                constexpr float scale = 0.35;
                 releaseHalfLife = scale * decay(weakKnob);
             }
 

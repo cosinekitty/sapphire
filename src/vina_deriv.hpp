@@ -8,6 +8,8 @@
 //****
 //*****************************************
 #pragma once
+#include <array>
+
 namespace Sapphire
 {
     namespace Vina
@@ -23,6 +25,8 @@ namespace Sapphire
         constexpr float silenceTension = 0.534;    // [N] desired tension force in each spring when silent
         constexpr float defaultStiffness = silenceTension / (horSpace - restLength);
         constexpr float tuning = 75.54;
+
+        using vina_state_t = std::array<VinaParticle, nParticles>;
 
         struct VinaDeriv
         {
@@ -252,6 +256,37 @@ namespace Sapphire
                 y[42].vel += acc;
                 y[43].vel = 0;
             }
+        };
+
+
+        struct VinaAdd
+        {
+            void operator() (vina_state_t& t, const vina_state_t& a, const vina_state_t& b)
+            {
+                for (std::size_t i=0; i < nParticles; ++i)
+                    t[i] = a[i] + b[i];
+            }
+        };
+
+
+        struct VinaMul
+        {
+            void operator() (vina_state_t& t, const vina_state_t& a, float k)
+            {
+                for (std::size_t i=0; i < nParticles; ++i)
+                    t[i] = k * a[i];
+            }
+        };
+
+
+        using sim_base_t = RungeKutta::Simulator<float, vina_state_t, VinaDeriv, VinaAdd, VinaMul>;
+
+        class VinaSimulator : public sim_base_t
+        {
+        public:
+            explicit VinaSimulator()
+                : sim_base_t(VinaDeriv(), VinaAdd(), VinaMul())
+                {}
         };
     }
 }
