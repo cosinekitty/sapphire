@@ -75,7 +75,7 @@ namespace Sapphire
 
         struct VinaWire
         {
-            struct channel_info_t
+            struct stereo_side_info_t
             {
                 Gravy::SingleChannelGravyEngine<float> gravy;
                 LoHiPassFilter<float> dcReject;
@@ -90,15 +90,13 @@ namespace Sapphire
                 Quiet,
             };
 
-            unsigned pluckIndexBase[2] { pluckBaseLeft, pluckBaseRight };
-
             VinaSimulator sim;
             float gain{};
             float speedFactor = 1;
             float targetSpeedFactor = 1;
             float decayHalfLife{};
             float releaseHalfLife{};
-            channel_info_t channelInfo[2];
+            stereo_side_info_t sideInfo[2];
             bool prevGate{};
             RandomVectorGenerator rand;
             bool isStandbyEnabled{};
@@ -117,13 +115,15 @@ namespace Sapphire
             float chorusRate{};
             float chorusAngle{};
             chorus_delay_t chorusDelay{};
+            unsigned pluckIndexBase[2] { pluckBaseLeft, pluckBaseRight };
+            int assignedPolyChannel = -1;
 
             explicit VinaWire()
                 {}
 
-            void initChannel(unsigned channel)
+            void initSide(unsigned channel)
             {
-                auto& q = channelInfo[channel];
+                auto& q = sideInfo[channel];
 
                 q.gravy.initialize();
                 q.gravy.setFrequency(0.0);
@@ -142,8 +142,8 @@ namespace Sapphire
 
             void initialize()
             {
-                initChannel(0);
-                initChannel(1);
+                initSide(0);
+                initSide(1);
                 speedFactor = targetSpeedFactor = 1;
                 for (unsigned i = 0; i < nParticles; ++i)
                 {
@@ -164,6 +164,7 @@ namespace Sapphire
                 prevGate = false;
                 setStandbyEnabled(true);
                 resetSamples = 0;
+                assignedPolyChannel = -1;
             }
 
             void initChorus()
@@ -204,7 +205,7 @@ namespace Sapphire
 
             float audioFilter(float sampleRateHz, float sample, unsigned channel)
             {
-                auto& q = channelInfo[channel];
+                auto& q = sideInfo[channel];
                 q.dcReject.Update(sample, sampleRateHz);
                 float audio = q.dcReject.HiPass();
                 return q.gravy.process(sampleRateHz, audio).lowpass;
@@ -212,7 +213,7 @@ namespace Sapphire
 
             void updatePluckChannel(float sampleRateHz, bool trigger, unsigned channel, unsigned index)
             {
-                channel_info_t& q = channelInfo[channel];
+                stereo_side_info_t& q = sideInfo[channel];
                 float thump;
                 if (trigger)
                 {
@@ -399,8 +400,8 @@ namespace Sapphire
             {
                 targetSpeedFactor = pow(2.0, voct);
                 const float limit = voct + 2.25;
-                channelInfo[0].gravy.setFrequency(limit);
-                channelInfo[1].gravy.setFrequency(limit);
+                sideInfo[0].gravy.setFrequency(limit);
+                sideInfo[1].gravy.setFrequency(limit);
             }
 
             void setStiffness(float stiff)

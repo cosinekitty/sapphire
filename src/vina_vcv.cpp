@@ -205,6 +205,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
+                    VinaWire& w = q.wire;
+
+                    w.assignedPolyChannel = c;
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
@@ -237,17 +240,17 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
                         gate = false;       // ignore notes outside the instrument's range
                     else
-                        q.wire.setPitch(freq);
+                        w.setPitch(freq);
 
-                    q.wire.setLevel(level);
-                    q.wire.setDecay(decay);
-                    q.wire.setRelease(release);
-                    q.wire.setPan(pan);
-                    q.wire.setSpread(spread);
-                    q.wire.setFeedback(feedback);
-                    q.wire.setChorusDepth(chorusDepth);
-                    q.wire.setChorusRate(chorusRate);
-                    auto frame = q.wire.update(args.sampleRate, gate);
+                    w.setLevel(level);
+                    w.setDecay(decay);
+                    w.setRelease(release);
+                    w.setPan(pan);
+                    w.setSpread(spread);
+                    w.setFeedback(feedback);
+                    w.setChorusDepth(chorusDepth);
+                    w.setChorusRate(chorusRate);
+                    auto frame = w.update(args.sampleRate, gate);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
