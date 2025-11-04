@@ -184,6 +184,13 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 setStandbyEnabled(e);
             }
 
+            VinaWire& pickWire(int c, bool trigger)
+            {
+                VinaWire* wire = &channelInfo[c].wire;
+                wire->assignedPolyChannel = c;
+                return *wire;
+            }
+
             void process(const ProcessArgs& args) override
             {
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
@@ -205,9 +212,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
                     ChannelInfo& q = channelInfo[c];
-                    VinaWire& w = q.wire;
-
-                    w.assignedPolyChannel = c;
 
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                     nextChannelInputVoltage(voctVoltage, VOCT_INPUT, c);
@@ -223,8 +227,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvChorusDepth, CHORUS_DEPTH_CV_INPUT, c);
                     nextChannelInputVoltage(cvChorusRate, CHORUS_RATE_CV_INPUT, c);
 
-                    bool gate = q.gateReceiver.updateGate(gateVoltage);
-
+                    q.gateReceiver.update(gateVoltage);
+                    bool gate = q.gateReceiver.isGateActive();
+                    bool trigger = q.gateReceiver.isTriggerActive();
                     float rawFreq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, MinOctave, MaxOctave);
                     float oct = cvGetVoltPerOctave(OCT_PARAM,  OCT_ATTEN,  cvOct,  MinOctave, MaxOctave);
                     float level = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 2);
@@ -236,10 +241,14 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     float chorusDepth = cvGetControlValue(CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, cvChorusDepth, 0, 1);
                     float chorusRate = cvGetControlValue(CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, cvChorusRate, -1, +1);
 
+                    bool validPitch = true;
                     float freq = rawFreq + std::round(oct) + voctVoltage;
                     if (freq < MinOctave-1 || freq > MaxOctave+1)
-                        gate = false;       // ignore notes outside the instrument's range
-                    else
+                        validPitch = trigger = gate = false;       // ignore notes outside the instrument's range
+
+                    VinaWire& w = pickWire(c, trigger);
+
+                    if (validPitch)
                         w.setPitch(freq);
 
                     w.setLevel(level);
@@ -250,7 +259,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     w.setFeedback(feedback);
                     w.setChorusDepth(chorusDepth);
                     w.setChorusRate(chorusRate);
-                    auto frame = w.update(args.sampleRate, gate);
+                    auto frame = w.update(args.sampleRate, gate, trigger);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }

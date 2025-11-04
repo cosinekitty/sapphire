@@ -1532,10 +1532,13 @@ static int VinaTest()
     const unsigned nFrames      = static_cast<unsigned>(sampleRateHz * durationSeconds);
     const unsigned pluckFrame   = static_cast<unsigned>(sampleRateHz * pluckSeconds);
     const unsigned releaseFrame = static_cast<unsigned>(sampleRateHz * releaseSeconds);
+    bool prevGate = false;
     for (unsigned f = 0; f < nFrames; ++f)
     {
         const bool gate = (f >= pluckFrame) && (f <= releaseFrame);
-        VinaStereoFrame frame = wire.update(sampleRateHz, gate);
+        const bool trigger = gate && !prevGate;
+        prevGate = gate;
+        VinaStereoFrame frame = wire.update(sampleRateHz, gate, trigger);
         outwave.WriteSamples(frame.sample, 2);
     }
 

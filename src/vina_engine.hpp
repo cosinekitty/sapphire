@@ -20,6 +20,12 @@ namespace Sapphire
                 : sample{left, right}
                 {}
 
+            void operator += (const VinaStereoFrame& other)
+            {
+                sample[0] += other.sample[0];
+                sample[1] += other.sample[1];
+            }
+
             friend VinaStereoFrame operator* (float k, const VinaStereoFrame& f)
             {
                 return VinaStereoFrame(k*f.sample[0], k*f.sample[1]);
@@ -97,7 +103,6 @@ namespace Sapphire
             float decayHalfLife{};
             float releaseHalfLife{};
             stereo_side_info_t sideInfo[2];
-            bool prevGate{};
             RandomVectorGenerator rand;
             bool isStandbyEnabled{};
             unsigned renderSamples{};
@@ -120,6 +125,11 @@ namespace Sapphire
 
             explicit VinaWire()
                 {}
+
+            bool isQuiet() const
+            {
+                return renderState == RenderState::Quiet;
+            }
 
             void initSide(unsigned channel)
             {
@@ -161,7 +171,6 @@ namespace Sapphire
                 setRelease();
                 setFeedback();
                 initChorus();
-                prevGate = false;
                 setStandbyEnabled(true);
                 resetSamples = 0;
                 assignedPolyChannel = -1;
@@ -242,13 +251,6 @@ namespace Sapphire
                 updatePluckChannel(sampleRateHz, trigger, 1, pluckIndexBase[1] + rightOffset);
             }
 
-            bool updateTrigger(bool gate)
-            {
-                const bool trigger = (gate && !prevGate);
-                prevGate = gate;
-                return trigger;
-            }
-
             VinaStereoFrame interpolateBackward(float sampleRateHz, float timeOffsetSec)
             {
                 float s = std::max<float>(0, sampleRateHz * timeOffsetSec);
@@ -259,7 +261,7 @@ namespace Sapphire
                 return (1-frac)*f1 + frac*f2;
             }
 
-            VinaStereoFrame update(float sampleRateHz, bool gate)
+            VinaStereoFrame update(float sampleRateHz, bool gate, bool trigger)
             {
                 if (resetSamples > 0)
                 {
@@ -267,7 +269,6 @@ namespace Sapphire
                     return VinaStereoFrame(0, 0);
                 }
 
-                const bool trigger = updateTrigger(gate);
                 if (trigger)
                 {
                     renderSamples = 0;
