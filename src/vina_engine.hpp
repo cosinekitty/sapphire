@@ -104,7 +104,6 @@ namespace Sapphire
             float releaseHalfLife{};
             stereo_side_info_t sideInfo[2];
             RandomVectorGenerator rand;
-            bool isStandbyEnabled{};
             unsigned renderSamples{};
             unsigned fadeSamples{};
             unsigned resetSamples{};
@@ -170,7 +169,9 @@ namespace Sapphire
                 setRelease();
                 setFeedback();
                 initChorus();
-                setStandbyEnabled(true);
+                renderState = RenderState::Quiet;
+                renderSamples = 0;
+                fadeSamples = 0;
                 resetSamples = 0;
                 assignedPolyChannel = -1;
             }
@@ -181,14 +182,6 @@ namespace Sapphire
                 setChorusRate();
                 chorusAngle = 0;
                 chorusDelay.clear();
-            }
-
-            void setStandbyEnabled(bool enable)
-            {
-                isStandbyEnabled = enable;
-                renderState = enable ? RenderState::Quiet : RenderState::Playing;
-                renderSamples = 0;
-                fadeSamples = 0;
             }
 
             float leftParticlePos() const
@@ -304,44 +297,41 @@ namespace Sapphire
 
                     left  = (gain * panLeftFactor ) * audioFilter(sampleRateHz, rawLeft,  0);
                     right = (gain * panRightFactor) * audioFilter(sampleRateHz, rawRight, 1);
-                    if (isStandbyEnabled)
+                    if (renderState == RenderState::Playing)
                     {
-                        if (renderState == RenderState::Playing)
+                        constexpr float minPower = 0.0001;
+                        if (power < minPower)
                         {
-                            constexpr float minPower = 0.0001;
-                            if (power < minPower)
+                            // See if we have an extended period of lower power.
+                            ++renderSamples;
+                            const unsigned timeoutSamples = static_cast<unsigned>(sampleRateHz/20);
+                            if (renderSamples > timeoutSamples)
                             {
-                                // See if we have an extended period of lower power.
-                                ++renderSamples;
-                                const unsigned timeoutSamples = static_cast<unsigned>(sampleRateHz/20);
-                                if (renderSamples > timeoutSamples)
-                                {
-                                    renderState = RenderState::RampingDown;
-                                    fadeSamples = static_cast<unsigned>(2 * sampleRateHz);
-                                    renderSamples = fadeSamples;
-                                }
-                            }
-                            else
-                            {
-                                // Something was loud enough to reset the low-power count.
-                                renderSamples = 0;
+                                renderState = RenderState::RampingDown;
+                                fadeSamples = static_cast<unsigned>(2 * sampleRateHz);
+                                renderSamples = fadeSamples;
                             }
                         }
-                        else // (renderState == RenderState::RampingDown)
+                        else
                         {
-                            if (renderSamples > 0)
-                            {
-                                float fade = static_cast<float>(renderSamples) / static_cast<float>(fadeSamples);
-                                left  *= fade;
-                                right *= fade;
-                                --renderSamples;
-                            }
-                            else
-                            {
-                                renderState = RenderState::Quiet;
-                                renderSamples = 0;
-                                left = right = 0;
-                            }
+                            // Something was loud enough to reset the low-power count.
+                            renderSamples = 0;
+                        }
+                    }
+                    else // (renderState == RenderState::RampingDown)
+                    {
+                        if (renderSamples > 0)
+                        {
+                            float fade = static_cast<float>(renderSamples) / static_cast<float>(fadeSamples);
+                            left  *= fade;
+                            right *= fade;
+                            --renderSamples;
+                        }
+                        else
+                        {
+                            renderState = RenderState::Quiet;
+                            renderSamples = 0;
+                            left = right = 0;
                         }
                     }
                 }

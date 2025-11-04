@@ -1,3 +1,4 @@
+#include <array>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "vina_engine.hpp"
@@ -71,12 +72,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         struct ChannelInfo
         {
-            VinaWire wire;
             GateTriggerReceiver gateReceiver;
 
             void initialize()
             {
-                wire.initialize();
                 gateReceiver.initialize();
             }
         };
@@ -85,7 +84,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         struct VinaModule : SapphireModule
         {
             int numActiveChannels = 0;
-            ChannelInfo channelInfo[PORT_MAX_CHANNELS];
+            std::array<ChannelInfo, PORT_MAX_CHANNELS> channelInfo;
+            std::array<VinaWire, PORT_MAX_CHANNELS> wire;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
 
             explicit VinaModule()
@@ -150,45 +150,35 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             void initialize()
             {
                 for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                {
                     channelInfo[c].initialize();
-            }
-
-            bool isStandbyEnabled() const
-            {
-                return channelInfo[0].wire.isStandbyEnabled;
-            }
-
-            void setStandbyEnabled(bool enable)
-            {
-                for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                    channelInfo[c].wire.setStandbyEnabled(enable);
+                    wire[c].initialize();
+                }
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                jsonSetBool(root, "isStandbyEnabled", isStandbyEnabled());
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                loadStandbyEnabledFlag(root);
-            }
-
-            void loadStandbyEnabledFlag(json_t* root)
-            {
-                bool e = isStandbyEnabled();
-                jsonLoadBool(root, "isStandbyEnabled", e);
-                setStandbyEnabled(e);
             }
 
             VinaWire& pickWire(int c, bool trigger)
             {
-                VinaWire* wire = &channelInfo[c].wire;
-                wire->assignedPolyChannel = c;
-                return *wire;
+                VinaWire* w = &wire[c];
+                w->assignedPolyChannel = c;
+                return *w;
+            }
+
+            VinaStereoFrame updateWiresForChannel(int c, float sampleRateHz, bool gate, bool trigger)
+            {
+                // The gate and trigger apply only to the wire assigned to this polyphonic channel.
+                VinaStereoFrame frame = wire[c].update(sampleRateHz, gate, trigger);
+                return frame;
             }
 
             void process(const ProcessArgs& args) override
@@ -259,27 +249,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     w.setFeedback(feedback);
                     w.setChorusDepth(chorusDepth);
                     w.setChorusRate(chorusRate);
-                    auto frame = w.update(args.sampleRate, gate, trigger);
+                    VinaStereoFrame frame = updateWiresForChannel(c, args.sampleRate, gate, trigger);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
                 }
             }
-        };
-
-
-        struct ToggleStandbyAction : history::Action
-        {
-            const int64_t moduleId;
-
-            explicit ToggleStandbyAction(int64_t _moduleId)
-                : moduleId(_moduleId)
-            {
-                name = "toggle standby";
-            }
-
-            void toggle();
-            void undo() override { toggle(); }
-            void redo() override { toggle(); }
         };
 
 
@@ -313,18 +287,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireWidget::appendContextMenu(menu);
                 if (vinaModule)
                 {
-                    menu->addChild(new MenuSeparator);
-
-                    menu->addChild(createBoolMenuItem(
-                        "Enable standby",
-                        "",
-                        [=]() { return vinaModule->isStandbyEnabled(); },
-                        [=](bool state)
-                        {
-                            if (state != vinaModule->isStandbyEnabled())
-                                InvokeAction(new ToggleStandbyAction(vinaModule->id));
-                        }
-                    ));
                 }
             }
 
@@ -335,14 +297,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 drawAudioPortLabels(args.vg, outputPortMode, "left_output_label", "right_output_label");
             }
         };
-
-
-        void ToggleStandbyAction::toggle()
-        {
-            if (VinaWidget* w = FindSapphireWidget<VinaWidget>(moduleId))
-                if (VinaModule* m = w->vinaModule)
-                    m->setStandbyEnabled(!m->isStandbyEnabled());
-        }
     }
 }
 
