@@ -127,7 +127,7 @@ namespace Sapphire
             float pan{};
             float spread{};
             float currentSpreadAngle{};
-            float feedback{};
+            float tone{};
             float chorusDepth{};
             float chorusRate{};
             float chorusAngle{};
@@ -159,7 +159,6 @@ namespace Sapphire
 
                 q.pluckFilter.Reset();
                 q.pluckFilter.SetCutoffFrequency(1400);
-
                 q.pluckIndex = pluckIndexBase[channel];
             }
 
@@ -182,7 +181,7 @@ namespace Sapphire
                 setSpread();
                 setDecay();
                 setRelease();
-                setFeedback();
+                setTone();
                 initChorus();
                 renderState = RenderState::Quiet;
                 renderSamples = 0;
@@ -402,10 +401,15 @@ namespace Sapphire
                     p.vel *= factor;
             }
 
-            void setPitch(float voct)
+            void setTone(float knob = 0)
+            {
+                tone = std::clamp<float>(knob, -1, +1);
+            }
+
+            void setPitch(float voct)       // MUST call setTone BEFORE calling setPitch.
             {
                 targetSpeedFactor = pow(2.0, voct);
-                const float limit = voct + 2.25;
+                const float limit = voct + 2.25 + 2.0*tone;
                 sideInfo[0].gravy.setFrequency(limit);
                 sideInfo[1].gravy.setFrequency(limit);
             }
@@ -453,11 +457,6 @@ namespace Sapphire
                 const float weakKnob = u*weakness + 0.5;
                 constexpr float scale = 0.35;
                 releaseHalfLife = scale * decay(weakKnob);
-            }
-
-            void setFeedback(float knob = 0)
-            {
-                feedback = std::clamp<float>(knob, -1, +1);
             }
 
             void setChorusDepth(float knob = 0.5)

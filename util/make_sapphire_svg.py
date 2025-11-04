@@ -2445,7 +2445,7 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         yRelease        = yFence.value(4)
         yChorusDepth    = yFence.value(5)
         yChorusRate     = yFence.value(6)
-        yFeedback       = yFence.value(7)
+        yTone           = yFence.value(7)
 
         pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yFreq, yOct))
         pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yDecay, yRelease))
@@ -2475,8 +2475,8 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         AddFlatControlGroup(pl, controls, xmidLeft, yRelease, 'release')
         pl.append(CenteredControlTextPath(font, 'REL', xmidLeft, yRelease - dyButtonText))
 
-        AddFlatControlGroup(pl, controls, xmidLeft, yFeedback, 'feedback')
-        pl.append(CenteredControlTextPath(font, 'FDBK', xmidLeft, yFeedback - dyButtonText))
+        AddFlatControlGroup(pl, controls, xmidLeft, yTone, 'tone')
+        pl.append(CenteredControlTextPath(font, 'TONE', xmidLeft, yTone - dyButtonText))
 
         AddFlatControlGroup(pl, controls, xmidLeft, yChorusDepth, 'chorus_depth')
         pl.append(CenteredControlTextPath(font, 'DEPTH', xmidLeft, yChorusDepth - dyButtonText))

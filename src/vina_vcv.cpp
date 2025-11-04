@@ -28,8 +28,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             PAN_ATTEN,
             SPREAD_PARAM,
             SPREAD_ATTEN,
-            FEEDBACK_PARAM,
-            FEEDBACK_ATTEN,
+            TONE_PARAM,
+            TONE_ATTEN,
             _OBSOLETE_2_PARAM,
             _OBSOLETE_3_PARAM,
             CHORUS_DEPTH_PARAM,
@@ -50,7 +50,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             RELEASE_CV_INPUT,
             PAN_CV_INPUT,
             SPREAD_CV_INPUT,
-            FEEDBACK_CV_INPUT,
+            TONE_CV_INPUT,
             _OBSOLETE_1_CV_INPUT,
             CHORUS_DEPTH_CV_INPUT,
             CHORUS_RATE_CV_INPUT,
@@ -124,9 +124,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 configAtten(RELEASE_ATTEN, "Release CV");
                 configInput(RELEASE_CV_INPUT, "Release CV");
 
-                configParam(FEEDBACK_PARAM, -1, +1, 0, "Feedback");
-                configAtten(FEEDBACK_ATTEN, "Feedback CV");
-                configInput(FEEDBACK_CV_INPUT, "Feedback CV");
+                configParam(TONE_PARAM, -1, +1, 0, "Tone");
+                configAtten(TONE_ATTEN, "Tone CV");
+                configInput(TONE_CV_INPUT, "Tone CV");
 
                 configParam(CHORUS_DEPTH_PARAM, 0, 1, 0.5, "Chorus depth");
                 configAtten(CHORUS_DEPTH_ATTEN, "Chorus depth CV");
@@ -262,7 +262,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvRelease = 0;
                 float cvPan = 0;
                 float cvSpread = 0;
-                float cvFeedback = 0;
+                float cvTone = 0;
                 float cvChorusDepth = 0;
                 float cvChorusRate = 0;
 
@@ -280,7 +280,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     nextChannelInputVoltage(cvRelease, RELEASE_CV_INPUT, c);
                     nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
                     nextChannelInputVoltage(cvSpread, SPREAD_CV_INPUT, c);
-                    nextChannelInputVoltage(cvFeedback, FEEDBACK_CV_INPUT, c);
+                    nextChannelInputVoltage(cvTone, TONE_CV_INPUT, c);
                     nextChannelInputVoltage(cvChorusDepth, CHORUS_DEPTH_CV_INPUT, c);
                     nextChannelInputVoltage(cvChorusRate, CHORUS_RATE_CV_INPUT, c);
 
@@ -294,7 +294,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     float spread = cvGetControlValue(SPREAD_PARAM, SPREAD_ATTEN, cvSpread, 0, +1);
                     float decay = cvGetControlValue(DECAY_PARAM, DECAY_ATTEN, cvDecay, 0, 1);
                     float release = cvGetControlValue(RELEASE_PARAM, RELEASE_ATTEN, cvRelease, 0, 1);
-                    float feedback = cvGetControlValue(FEEDBACK_PARAM, FEEDBACK_ATTEN, cvFeedback, -1, +1);
+                    float tone = cvGetControlValue(TONE_PARAM, TONE_ATTEN, cvTone, -1, +1);
                     float chorusDepth = cvGetControlValue(CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, cvChorusDepth, 0, 1);
                     float chorusRate = cvGetControlValue(CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, cvChorusRate, -1, +1);
 
@@ -308,17 +308,17 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     if (trigger)
                         w.pluckCounter = ++pluckCounter;
 
-                    if (validPitch)
-                        w.setPitch(freq);
-
                     w.setLevel(level);
                     w.setDecay(decay);
                     w.setRelease(release);
                     w.setPan(pan);
                     w.setSpread(spread);
-                    w.setFeedback(feedback);
                     w.setChorusDepth(chorusDepth);
                     w.setChorusRate(chorusRate);
+                    w.setTone(tone);
+
+                    if (validPitch)
+                        w.setPitch(freq);     // must set pitch AFTER tone
 
                     VinaStereoFrame frame = updateWiresForChannel(c, args.sampleRate, gate, trigger);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
@@ -348,7 +348,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
-                addSapphireFlatControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
+                addSapphireFlatControlGroup("tone", TONE_PARAM, TONE_ATTEN, TONE_CV_INPUT);
                 addSapphireFlatControlGroup("chorus_depth", CHORUS_DEPTH_PARAM, CHORUS_DEPTH_ATTEN, CHORUS_DEPTH_CV_INPUT);
                 addSapphireFlatControlGroup("chorus_rate", CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, CHORUS_RATE_CV_INPUT);
             }
