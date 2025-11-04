@@ -79,6 +79,20 @@ namespace Sapphire
         constexpr float inputScale = 1000;
         constexpr float outputScale = 1000 / inputScale;
 
+        constexpr int InvalidIndex = -1;
+
+        constexpr bool IsValidIndex(int index)
+        {
+            return (index & 0xf) == index;      // 0 <= index <= 15
+        }
+
+        // Compile-time unit tests...
+        static_assert(!IsValidIndex(InvalidIndex));
+        static_assert(IsValidIndex(0));
+        static_assert(IsValidIndex(1));
+        static_assert(IsValidIndex(15));
+        static_assert(!IsValidIndex(16));
+
         struct VinaWire
         {
             struct stereo_side_info_t
@@ -119,7 +133,8 @@ namespace Sapphire
             float chorusAngle{};
             chorus_delay_t chorusDelay{};
             unsigned pluckIndexBase[2] { pluckBaseLeft, pluckBaseRight };
-            int assignedPolyChannel = -1;
+            int assignedPolyChannel = InvalidIndex;
+            long pluckCounter{};
 
             explicit VinaWire()
                 {}
@@ -173,7 +188,8 @@ namespace Sapphire
                 renderSamples = 0;
                 fadeSamples = 0;
                 resetSamples = 0;
-                assignedPolyChannel = -1;
+                assignedPolyChannel = InvalidIndex;
+                pluckCounter = 0;
             }
 
             void initChorus()

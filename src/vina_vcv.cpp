@@ -89,6 +89,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             std::array<ChannelInfo, PORT_MAX_CHANNELS> channelInfo;
             std::array<VinaWire, PORT_MAX_CHANNELS> wire;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
+            long pluckCounter = 0;
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -155,6 +156,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 {
                     channelInfo[c].initialize();
                     wire[c].initialize();
+
+                    // Start out with wire[c] assigned to channelInfo[c].
+                    // That way we start out without having to search for a wire.
+                    channelInfo[c].activeWireIndex = c;
+                    wire[c].assignedPolyChannel = c;
                 }
             }
 
@@ -169,24 +175,76 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireModule::dataFromJson(root);
             }
 
+            bool needToPickNewWire(int c, bool trigger) const
+            {
+                // Do we have a currently assigned wire?
+                const int wi = channelInfo[c].activeWireIndex;
+                if (!IsValidIndex(wi))
+                    return true;
+
+                // When triggered, we don't want to stop the current wire's vibration.
+                // Is the current wire still vibrating?
+                // If it is quiet, we can keep using it.
+                // Otherwise, we try to pick a different wire.
+                return trigger && !wire[wi].isQuiet();
+            }
+
+            void makeChannelOwnWire(int c, int k)
+            {
+                assert(IsValidIndex(c));
+                assert(IsValidIndex(k));
+
+                for (int i = 0; i < PORT_MAX_CHANNELS; ++i)
+                    if (i != c && channelInfo[i].activeWireIndex == k)
+                        channelInfo[i].activeWireIndex = InvalidIndex;
+
+                channelInfo[c].activeWireIndex = k;
+                wire[k].assignedPolyChannel = c;
+            }
+
+            void claimQuietestWire(int c)
+            {
+                // Steal any quiet wire we can find, from any channel.
+                for (int k = 0; k < PORT_MAX_CHANNELS; ++k)
+                    if (wire[k].isQuiet())
+                        return makeChannelOwnWire(c, k);
+
+                // Fallback: pick the wire we plucked the longest in the past.
+                int wi = InvalidIndex;
+                for (int k = 0; k < PORT_MAX_CHANNELS; ++k)
+                    if (wi==InvalidIndex || wire[k].pluckCounter < wire[wi].pluckCounter)
+                        wi = k;
+
+                makeChannelOwnWire(c, wi);
+            }
+
             VinaWire& pickWire(int c, bool trigger)
             {
-                int wi = c;
-                channelInfo[c].activeWireIndex = wi;
-                wire[wi].assignedPolyChannel = c;
+                if (needToPickNewWire(c, trigger))
+                    claimQuietestWire(c);
+
+                const int wi = channelInfo[c].activeWireIndex;
+                if (!IsValidIndex(wi))
+                {
+                    // Crashing is better than returning an invalid reference.
+                    // That way, the caller has no need to handle failures.
+                    FATAL("Did not pick a wire for channel %d.", c);
+                    throw std::logic_error("Vina did not pick a wire for a channel.");
+                }
                 return wire[wi];
             }
 
             VinaStereoFrame updateWiresForChannel(int c, float sampleRateHz, bool gate, bool trigger)
             {
-                // The gate and trigger apply only to the wire assigned to this polyphonic channel.
-                VinaStereoFrame frame = wire[c].update(sampleRateHz, gate, trigger);
-
-                // Mix in the audio from other wires assigned to this channel.
+                VinaStereoFrame frame;
                 for (int k = 0; k < PORT_MAX_CHANNELS; ++k)
-                    if ((k != c) && (wire[k].assignedPolyChannel == c))
-                        frame += wire[k].update(sampleRateHz, false, false);
-
+                {
+                    if (wire[k].assignedPolyChannel == c)
+                    {
+                        const bool isActive = (channelInfo[c].activeWireIndex == k);
+                        frame += wire[k].update(sampleRateHz, isActive && gate, isActive && trigger);
+                    }
+                }
                 return frame;
             }
 
@@ -247,6 +305,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
                     VinaWire& w = pickWire(c, trigger);
 
+                    if (trigger)
+                        w.pluckCounter = ++pluckCounter;
+
                     if (validPitch)
                         w.setPitch(freq);
 
@@ -258,6 +319,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     w.setFeedback(feedback);
                     w.setChorusDepth(chorusDepth);
                     w.setChorusRate(chorusRate);
+
                     VinaStereoFrame frame = updateWiresForChannel(c, args.sampleRate, gate, trigger);
                     outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
                     outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
