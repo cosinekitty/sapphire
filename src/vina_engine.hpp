@@ -115,7 +115,6 @@ namespace Sapphire
             float spread{};
             float currentSpreadAngle{};
             float feedback{};
-            bool isChorusEnabled = true;
             float chorusDepth{};
             float chorusRate{};
             float chorusAngle{};
@@ -350,7 +349,7 @@ namespace Sapphire
                 // Keep the chorusDelay consistently fed, whether or not chorus is enabled.
                 // The CPU cost is very small, and it prevents unwanted glitches.
                 chorusDelay.write(VinaStereoFrame(left, right));
-                if (isChorusEnabled && chorusDepth>0)
+                if (chorusDepth > 0)
                 {
                     // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
                     // Slowly modulate position in time using linear/sinc interpolation (like Echo).
