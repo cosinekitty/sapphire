@@ -73,10 +73,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         struct ChannelInfo
         {
             GateTriggerReceiver gateReceiver;
+            int activeWireIndex = -1;
 
             void initialize()
             {
                 gateReceiver.initialize();
+                activeWireIndex = -1;
             }
         };
 
@@ -169,15 +171,22 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
             VinaWire& pickWire(int c, bool trigger)
             {
-                VinaWire* w = &wire[c];
-                w->assignedPolyChannel = c;
-                return *w;
+                int wi = c;
+                channelInfo[c].activeWireIndex = wi;
+                wire[wi].assignedPolyChannel = c;
+                return wire[wi];
             }
 
             VinaStereoFrame updateWiresForChannel(int c, float sampleRateHz, bool gate, bool trigger)
             {
                 // The gate and trigger apply only to the wire assigned to this polyphonic channel.
                 VinaStereoFrame frame = wire[c].update(sampleRateHz, gate, trigger);
+
+                // Mix in the audio from other wires assigned to this channel.
+                for (int k = 0; k < PORT_MAX_CHANNELS; ++k)
+                    if ((k != c) && (wire[k].assignedPolyChannel == c))
+                        frame += wire[k].update(sampleRateHz, false, false);
+
                 return frame;
             }
 
