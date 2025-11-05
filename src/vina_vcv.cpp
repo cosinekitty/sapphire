@@ -7,8 +7,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 {
     namespace Vina      // (Sanskrit: वीणा IAST: vīṇā)
     {
-        constexpr int MinOctave = -3;
-        constexpr int MaxOctave = +3;
+        constexpr int MinOctave = -2;
+        constexpr int MaxOctave = +2;
         constexpr float CenterFreqHz = 261.6255653005986;   // C4 = 440/(2**0.75) Hz
 
         enum ParamId

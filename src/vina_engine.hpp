@@ -247,13 +247,18 @@ namespace Sapphire
 
             void updatePluck(float sampleRateHz, bool gate, bool trigger)
             {
-                unsigned r = rand.rand();
-                unsigned leftOffset = r & 3;
-                r >>= 2;
-                unsigned rightOffset = r & 3;
-                r >>= 2;
-                if (r & 1)
-                    std::swap(pluckIndexBase[0], pluckIndexBase[1]);
+                unsigned leftOffset  = 0;
+                unsigned rightOffset = 0;
+                if (trigger)
+                {
+                    unsigned r = rand.rand();
+                    leftOffset = r & 3;
+                    r >>= 2;
+                    rightOffset = r & 3;
+                    r >>= 2;
+                    if (r & 1)
+                        std::swap(pluckIndexBase[0], pluckIndexBase[1]);
+                }
                 updatePluckChannel(sampleRateHz, trigger, 0, pluckIndexBase[0] + leftOffset);
                 updatePluckChannel(sampleRateHz, trigger, 1, pluckIndexBase[1] + rightOffset);
             }
