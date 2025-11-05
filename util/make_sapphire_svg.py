@@ -2431,7 +2431,7 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         xmidRight = HP_WIDTH_MM*(leftWidthHp + middleHp + rightWidthHp/2)
         yFence = FencePost(20.0, 114.0, 8)
 
-        dxPortFromCenter = 6.0
+        dxPortFromCenter = 6.25
         dxVoctGate = 7.0
         dyArtwork = 10.0
         dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
@@ -2457,10 +2457,12 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
             defs.append(Gradient(yVoctGate-dyArtwork, yVoctGate+dyArtwork, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_voct_gate'))
             pl.append(ControlGroupArt(name, 'voct_gate_art', panel, yVoctGate-dyArtwork, yVoctGate+dyArtwork, 'gradient_voct_gate'))
 
+
+        pl.append(HorizontalLinePath(xmidLeft - dxVoctGate, xmidLeft + dxVoctGate, yVoctGate))
+        controls.append(Component('dynamic_wire_button', xmidLeft, yVoctGate))
+
         controls.append(Component('voct_input', xmidLeft - dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmidLeft - dxVoctGate, yVoctGate - dyButtonText))
-
-        controls.append(Component('dynamic_wire_button', xmidLeft, yVoctGate))
 
         controls.append(Component('gate_input', xmidLeft + dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'GATE',  xmidLeft + dxVoctGate, yVoctGate - dyButtonText))
@@ -2510,6 +2512,7 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
             defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
             pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
+        controls.append(Component('stereo_button',      xmidRight, yAudioOutputs))
         controls.append(Component('audio_left_output',  xmidRight - dxPortFromCenter, yAudioOutputs))
         controls.append(Component('audio_right_output', xmidRight + dxPortFromCenter, yAudioOutputs))
         controls.append(Component('left_output_label',  xmidRight - dxLabelFromCenter, yAudioOutputs))

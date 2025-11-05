@@ -30,7 +30,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             SPREAD_ATTEN,
             TONE_PARAM,
             TONE_ATTEN,
-            _OBSOLETE_2_PARAM,
+            STEREO_BUTTON_PARAM,
             _OBSOLETE_3_PARAM,
             CHORUS_DEPTH_PARAM,
             CHORUS_DEPTH_ATTEN,
@@ -102,6 +102,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     dwButton->setValue(1);
                 }
 
+                if (auto stereoButton = configButton(STEREO_BUTTON_PARAM))
+                {
+                    stereoButton->defaultValue = 1;
+                    stereoButton->setValue(1);
+                }
+
                 configParam(FREQ_PARAM, MinOctave, MaxOctave, 0, "Frequency", " Hz", 2, CenterFreqHz);
                 configAtten(FREQ_ATTEN, "Frequency");
                 configInput(FREQ_CV_INPUT, "Frequency CV");
@@ -169,8 +175,6 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     channelInfo[c].activeWireIndex = c;
                     wire[c].assignedPolyChannel = c;
                 }
-
-                params[DYNAMIC_WIRE_BUTTON_PARAM].setValue(1);      // enable by default
             }
 
             json_t* dataToJson() override
@@ -189,6 +193,11 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 return getParamQuantity(DYNAMIC_WIRE_BUTTON_PARAM)->getValue() > 0.5f;
             }
 
+            bool isPolyphonicStereoEnabled()
+            {
+                return getParamQuantity(STEREO_BUTTON_PARAM)->getValue() > 0.5f;
+            }
+
             bool needToPickNewWire(int c, bool trigger)
             {
                 // Do we have a currently assigned wire?
@@ -200,7 +209,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 // Is the current wire still vibrating?
                 // If it is quiet, we can keep using it.
                 // Otherwise, we try to pick a different wire.
-                return isDynamicWireAssignmentEnabled() && trigger && !wire[wi].isQuiet();
+                return trigger && isDynamicWireAssignmentEnabled() && !wire[wi].isQuiet();
             }
 
             void makeChannelOwnWire(int c, int k)
@@ -257,8 +266,10 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             void process(const ProcessArgs& args) override
             {
                 numActiveChannels = numOutputChannels(INPUTS_LEN, 1);
-                outputs[AUDIO_LEFT_OUTPUT ].setChannels(numActiveChannels);
-                outputs[AUDIO_RIGHT_OUTPUT].setChannels(numActiveChannels);
+                const bool polyphonicOutput = isPolyphonicStereoEnabled();
+                const int numOutputChannels = polyphonicOutput ? numActiveChannels : 1;
+                outputs[AUDIO_LEFT_OUTPUT ].setChannels(numOutputChannels);
+                outputs[AUDIO_RIGHT_OUTPUT].setChannels(numOutputChannels);
                 float gateVoltage = 0;
                 float voctVoltage = 0;
                 float cvFreq = 0;
@@ -271,6 +282,8 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 float cvTone = 0;
                 float cvChorusDepth = 0;
                 float cvChorusRate = 0;
+
+                VinaStereoFrame sum;
 
                 for (int c = 0; c < numActiveChannels; ++c)
                 {
@@ -327,8 +340,21 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         w.setPitch(freq);     // must set pitch AFTER tone
 
                     VinaStereoFrame frame = updateWiresForChannel(c, args.sampleRate, gate, trigger);
-                    outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
-                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
+                    if (polyphonicOutput)
+                    {
+                        outputs[AUDIO_LEFT_OUTPUT ].setVoltage(frame.sample[0], c);
+                        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(frame.sample[1], c);
+                    }
+                    else
+                    {
+                        sum += frame;
+                    }
+                }
+
+                if (!polyphonicOutput)
+                {
+                    outputs[AUDIO_LEFT_OUTPUT ].setVoltage(sum.sample[0], 0);
+                    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sum.sample[1], 0);
                 }
             }
         };
@@ -344,6 +370,16 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         };
 
 
+        struct StereoButton : SapphireTinyToggleButton
+        {
+            explicit StereoButton()
+            {
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+            }
+        };
+
+
         struct VinaWidget : SapphireWidget
         {
             VinaModule* vinaModule{};
@@ -354,6 +390,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 setModule(module);
                 addDynamicWireButton();
+                addStereoButton();
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(VOCT_INPUT, "voct_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
@@ -374,6 +411,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             {
                 auto button = createParamCentered<DynamicWireButton>(Vec{}, vinaModule, DYNAMIC_WIRE_BUTTON_PARAM);
                 addSapphireParam(button, "dynamic_wire_button");
+            }
+
+            void addStereoButton()
+            {
+                auto button = createParamCentered<StereoButton>(Vec{}, vinaModule, STEREO_BUTTON_PARAM);
+                addSapphireParam(button, "stereo_button");
             }
 
             void appendContextMenu(Menu* menu) override
@@ -397,6 +440,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         DYNAMIC_WIRE_BUTTON_PARAM,
                         "Single decaying note per channel (less CPU)",
                         "Multiple decaying notes per channel (more CPU)"
+                    );
+
+                    vinaModule->updateToggleButtonTooltip(
+                        STEREO_BUTTON_PARAM,
+                        "Monophonic output on L and R ports (unity mix)",
+                        "Polyphonic output on L and R ports"
                     );
                 }
             }
