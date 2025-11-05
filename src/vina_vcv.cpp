@@ -90,6 +90,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             std::array<VinaWire, PORT_MAX_CHANNELS> wire;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
             long pluckCounter = 0;
+            bool enableDynamicWireAssignment{};
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -162,17 +163,21 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     channelInfo[c].activeWireIndex = c;
                     wire[c].assignedPolyChannel = c;
                 }
+
+                enableDynamicWireAssignment = true;
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
+                jsonSetBool(root, "enableDynamicWireAssignment", enableDynamicWireAssignment);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+                jsonLoadBool(root, "enableDynamicWireAssignment", enableDynamicWireAssignment);
             }
 
             bool needToPickNewWire(int c, bool trigger) const
@@ -186,7 +191,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 // Is the current wire still vibrating?
                 // If it is quiet, we can keep using it.
                 // Otherwise, we try to pick a different wire.
-                return trigger && !wire[wi].isQuiet();
+                return enableDynamicWireAssignment && trigger && !wire[wi].isQuiet();
             }
 
             void makeChannelOwnWire(int c, int k)
@@ -358,6 +363,12 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireWidget::appendContextMenu(menu);
                 if (vinaModule)
                 {
+                    menu->addChild(createBoolMenuItem(
+                        "Allow multiple note decays per channel (more CPU)",
+                        "",
+                        [=](){ return vinaModule->enableDynamicWireAssignment; },
+                        [=](bool state){ vinaModule->enableDynamicWireAssignment = state; }
+                    ));
                 }
             }
 
