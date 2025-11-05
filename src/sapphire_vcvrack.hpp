@@ -1508,6 +1508,13 @@ namespace Sapphire
             if (lightId >= 0)
                 lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
         }
+
+        void updateToggleButtonTooltip(int buttonId, const char* offText, const char *onText)
+        {
+            if (buttonId >= 0 && buttonId < static_cast<int>(params.size()))
+                if (ParamQuantity* qty = getParamQuantity(buttonId))
+                    qty->name = (qty->getValue() < 0.5f) ? offText : onText;
+        }
     };
 
 

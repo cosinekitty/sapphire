@@ -13,7 +13,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
 
         enum ParamId
         {
-            _OBSOLETE_1_PARAM,
+            DYNAMIC_WIRE_BUTTON_PARAM,
             FREQ_PARAM,
             FREQ_ATTEN,
             OCT_PARAM,
@@ -90,12 +90,18 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
             std::array<VinaWire, PORT_MAX_CHANNELS> wire;
             PortLabelMode outputPortMode = PortLabelMode::Stereo;
             long pluckCounter = 0;
-            bool enableDynamicWireAssignment{};
 
             explicit VinaModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+                if (auto dwButton = configButton(DYNAMIC_WIRE_BUTTON_PARAM))
+                {
+                    dwButton->defaultValue = 1;
+                    dwButton->setValue(1);
+                }
+
                 configParam(FREQ_PARAM, MinOctave, MaxOctave, 0, "Frequency", " Hz", 2, CenterFreqHz);
                 configAtten(FREQ_ATTEN, "Frequency");
                 configInput(FREQ_CV_INPUT, "Frequency CV");
@@ -164,23 +170,26 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                     wire[c].assignedPolyChannel = c;
                 }
 
-                enableDynamicWireAssignment = true;
+                params[DYNAMIC_WIRE_BUTTON_PARAM].setValue(1);      // enable by default
             }
 
             json_t* dataToJson() override
             {
                 json_t* root = SapphireModule::dataToJson();
-                jsonSetBool(root, "enableDynamicWireAssignment", enableDynamicWireAssignment);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                jsonLoadBool(root, "enableDynamicWireAssignment", enableDynamicWireAssignment);
             }
 
-            bool needToPickNewWire(int c, bool trigger) const
+            bool isDynamicWireAssignmentEnabled()
+            {
+                return getParamQuantity(DYNAMIC_WIRE_BUTTON_PARAM)->getValue() > 0.5f;
+            }
+
+            bool needToPickNewWire(int c, bool trigger)
             {
                 // Do we have a currently assigned wire?
                 const int wi = channelInfo[c].activeWireIndex;
@@ -191,7 +200,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 // Is the current wire still vibrating?
                 // If it is quiet, we can keep using it.
                 // Otherwise, we try to pick a different wire.
-                return enableDynamicWireAssignment && trigger && !wire[wi].isQuiet();
+                return isDynamicWireAssignmentEnabled() && trigger && !wire[wi].isQuiet();
             }
 
             void makeChannelOwnWire(int c, int k)
@@ -215,9 +224,9 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                         return makeChannelOwnWire(c, k);
 
                 // Fallback: pick the wire we plucked the longest in the past.
-                int wi = InvalidIndex;
-                for (int k = 0; k < PORT_MAX_CHANNELS; ++k)
-                    if (wi==InvalidIndex || wire[k].pluckCounter < wire[wi].pluckCounter)
+                int wi = 0;
+                for (int k = 1; k < PORT_MAX_CHANNELS; ++k)
+                    if (wire[k].pluckCounter < wire[wi].pluckCounter)
                         wi = k;
 
                 makeChannelOwnWire(c, wi);
@@ -228,15 +237,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 if (needToPickNewWire(c, trigger))
                     claimQuietestWire(c);
 
-                const int wi = channelInfo[c].activeWireIndex;
-                if (!IsValidIndex(wi))
-                {
-                    // Crashing is better than returning an invalid reference.
-                    // That way, the caller has no need to handle failures.
-                    FATAL("Did not pick a wire for channel %d.", c);
-                    throw std::logic_error("Vina did not pick a wire for a channel.");
-                }
-                return wire[wi];
+                return wire[channelInfo[c].activeWireIndex];
             }
 
             VinaStereoFrame updateWiresForChannel(int c, float sampleRateHz, bool gate, bool trigger)
@@ -333,6 +334,16 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         };
 
 
+        struct DynamicWireButton : SapphireTinyToggleButton
+        {
+            explicit DynamicWireButton()
+            {
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+            }
+        };
+
+
         struct VinaWidget : SapphireWidget
         {
             VinaModule* vinaModule{};
@@ -342,6 +353,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 , vinaModule(module)
             {
                 setModule(module);
+                addDynamicWireButton();
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(VOCT_INPUT, "voct_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT,  "audio_left_output");
@@ -358,18 +370,15 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 addSapphireFlatControlGroup("chorus_rate", CHORUS_RATE_PARAM, CHORUS_RATE_ATTEN, CHORUS_RATE_CV_INPUT);
             }
 
+            void addDynamicWireButton()
+            {
+                auto button = createParamCentered<DynamicWireButton>(Vec{}, vinaModule, DYNAMIC_WIRE_BUTTON_PARAM);
+                addSapphireParam(button, "dynamic_wire_button");
+            }
+
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
-                if (vinaModule)
-                {
-                    menu->addChild(createBoolMenuItem(
-                        "Allow multiple note decays per channel (more CPU)",
-                        "",
-                        [=](){ return vinaModule->enableDynamicWireAssignment; },
-                        [=](bool state){ vinaModule->enableDynamicWireAssignment = state; }
-                    ));
-                }
             }
 
             void draw(const DrawArgs& args) override
@@ -377,6 +386,19 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
                 SapphireWidget::draw(args);
                 PortLabelMode outputPortMode = vinaModule ? vinaModule->outputPortMode : PortLabelMode::Stereo;
                 drawAudioPortLabels(args.vg, outputPortMode, "left_output_label", "right_output_label");
+            }
+
+            void step() override
+            {
+                SapphireWidget::step();
+                if (vinaModule)
+                {
+                    vinaModule->updateToggleButtonTooltip(
+                        DYNAMIC_WIRE_BUTTON_PARAM,
+                        "Single decaying note per channel (less CPU)",
+                        "Multiple decaying notes per channel (more CPU)"
+                    );
+                }
             }
         };
     }

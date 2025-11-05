@@ -2460,6 +2460,8 @@ def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> 
         controls.append(Component('voct_input', xmidLeft - dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmidLeft - dxVoctGate, yVoctGate - dyButtonText))
 
+        controls.append(Component('dynamic_wire_button', xmidLeft, yVoctGate))
+
         controls.append(Component('gate_input', xmidLeft + dxVoctGate, yVoctGate))
         pl.append(CenteredControlTextPath(font, 'GATE',  xmidLeft + dxVoctGate, yVoctGate - dyButtonText))
 

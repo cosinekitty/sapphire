@@ -506,6 +506,7 @@ namespace Sapphire
             {"decay_atten",            {  15.240,   60.286}},
             {"decay_cv",               {   6.240,   60.286}},
             {"decay_knob",             {  24.240,   60.286}},
+            {"dynamic_wire_button",    {  15.240,   20.000}},
             {"freq_atten",             {  15.240,   33.429}},
             {"freq_cv",                {   6.240,   33.429}},
             {"freq_knob",              {  24.240,   33.429}},
