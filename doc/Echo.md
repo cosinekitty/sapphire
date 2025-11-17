@@ -68,10 +68,18 @@ There’s a toggle button between the ports to switch between **Stereo mode** an
 
 ![Echo polyphonic mode](images/echo_polyphonic_mode.png)
 
+In **Stereo mode**, all send/return outputs, and the final output audio, will be simple stereo, with a monophonic signal sent to each L output and each R output.
 
-In **Stereo mode**, mono or stereo signals are processed normally. If you send polyphonic signals here, they’ll be summed and treated as mono. See [Polyphonic Operation](#polyphonic-operation) for more technical details.
+In **Polyphonic mode**, all send L outputs, and the final L output, are polyphonic with a channel count 1..16, depending on the maximum polyphony in any input port.
 
-In **Polyphonic mode**, the left input accepts a polyphonic signal and the left output on Echo Out will send out a processed polyphonic signal. The Send/Return paths will also operate in polyphonic mode, enabling deeper per-voice processing.
+**IMPORTANT** This button affects the **output** ports (send and final audio). The input audio ports allow for either a polyphonic cable to L, or a stereo pair of cables to L and R. For example, you can be in stereo mode, but put a 2-channel cable into the input L port, and it will be split into stereo automatically.
+
+The input labels L, R change to a number when they interpret polyphony, or M for mono. Again, this is independent of the output mode button. The port labels give you feedback about how Echo is interpreting the inputs, so feel free to experiment with common-sense cabling. Visually check the labels to confirm Echo is receiving your audio in the form you expect.
+
+See [Polyphonic Operation](#polyphonic-operation) for more technical details.
+
+#### DRIVE
+This group controls the level of the audio going into Echo from the input ports. Defaults to 0&nbsp;dB, which leaves the input level unchanged. The level can be anywhere from silent to a factor of 8 (about +18&nbsp;dB).
 
 #### Initialize Entire Chain
 This button resets all settings on Echo, Echo Tap, and Echo Out, returning the whole system to its default state. Useful for starting over or saving time when building a fresh delay patch.

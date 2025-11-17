@@ -14,6 +14,7 @@
 <td align="left">
     <ul>
         <li>Added new module <a href="doc/Vina.md">Vina</a>: a VCO instrument voice based on a simulation of a plucked string.</li>
+        <li><a href="doc/Echo.md">Echo</a> now has a DRIVE control group to adjust the input audio level.</li>
     </ul>
 </td>
 </tr>

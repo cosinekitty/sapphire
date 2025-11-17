@@ -134,6 +134,9 @@ def CenteredGemstone(panel:Panel, yCenter:float = GEMSTONE_DEFAULT_Y) -> Sapphir
 def HorizontalLinePath(x1:float, x2:float, y:float) -> Path:
     return Path(Move(x1,y) + Line(x2,y) + ClosePath(), CONNECTOR_LINE_STYLE)
 
+def VerticalLinePath(x:float, y1:float, y2:float) -> Path:
+    return Path(Move(x,y1) + Line(x,y2) + ClosePath(), CONNECTOR_LINE_STYLE)
+
 
 DX_FLAT_CONTROL_GROUP = 9.0
 
@@ -142,7 +145,18 @@ def AddFlatControlGroup(pl: Element, controls: ControlLayer, x: float, y: float,
     controls.append(Component(symbol + '_cv', x - dx, y))
     controls.append(Component(symbol + '_atten', x, y))
     controls.append(Component(symbol + '_knob', x + dx, y))
-    pl.append(HorizontalLinePath(x - dx, x + dx, y))
+    pl.append(HorizontalLinePath(x-dx, x+dx, y))
+
+
+DY_FLAT_CONTROL_GROUP = 9.0
+
+def AddVerticalControlGroup(pl: Element, controls: ControlLayer, x: float, y: float, symbol: str) -> None:
+    dy = DX_FLAT_CONTROL_GROUP
+    controls.append(Component(symbol + '_cv', x, y+dy))
+    controls.append(Component(symbol + '_atten', x, y))
+    controls.append(Component(symbol + '_knob', x, y-dy))
+    pl.append(VerticalLinePath(x, y-dy, y+dy))
+
 
 
 class FencePost:

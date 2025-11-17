@@ -2131,9 +2131,12 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
     ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
     xClockInput = xGlobalCenter
     xClockButtons = xClockInput + 10.0
-    yInitChainButton = MULTIMAP_ENV_PORTS_Y1
+    yInitChainButton = MULTIMAP_ENV_PORTS_Y1 - 3.0
     yBottomButtons = panel.mmHeight - 5.0
-    xInputLabels = xGlobalCenter - 6.5
+    xInputPorts = xGlobalCenter - 4.0
+    xInputLabels = xInputPorts - 6.5
+    xDriveControl = xGlobalCenter + 7.0
+    yDriveControl = MULTIMAP_AUDIO_PORTS_Y1 + DY_FLAT_CONTROL_GROUP
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, MULTITAP_ECHO_HP_WIDTH))
@@ -2144,14 +2147,17 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
         pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
 
+        AddVerticalControlGroup(pl, controls, xDriveControl, yDriveControl, 'drive')
+        pl.append(CenteredControlTextPath(font, 'DRIVE', xDriveControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
+
         AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xGlobalCenter,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         controls.append(Component('input_mode_button', xInputLabels, ySendReturnButton))
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
         controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
-        controls.append(Component('init_chain_button', xGlobalCenter, yInitChainButton))
+        controls.append(Component('init_chain_button', xInputPorts, yInitChainButton))
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
         AddMultiTapEnvGroup(controls, xControlCenter)
@@ -2201,7 +2207,6 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
         AddMuteSoloButtons(pl, controls, xControlCenter, yGainControl)
         pl.append(CenteredControlTextPath(font, 'LEVEL', xControlCenter, yGainControl - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        # Global stuff
         AddShortToggleGroup(pl, controls, font, 'FRZ', 'freeze', xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yFreezeControl)
         AddShortToggleGroup(pl, controls, font, 'CLR', 'clear' , xGlobalCenter - DX_FLAT_CONTROL_GROUP, xGlobalCenter + DX_FLAT_CONTROL_GROUP, yClearControl)
 
