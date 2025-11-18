@@ -2148,7 +2148,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
         pl.append(Gemstone(xGlobalCenter))
 
         AddVerticalControlGroup(pl, controls, xDriveControl, yDriveControl, 'drive')
-        pl.append(CenteredControlTextPath(font, 'DRIVE', xDriveControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
+        pl.append(CenteredControlTextPath(font, 'GAIN', xDriveControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
 
         AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')

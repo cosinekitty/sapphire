@@ -2343,7 +2343,7 @@ namespace Sapphire
 
                 void configDriveControls()
                 {
-                    const std::string name = "Input drive";
+                    const std::string name = "Input gain";
                     configParam(DRIVE_PARAM, 0, 2, 1, name, " dB", -10, 20*3);
                     configAttenCv(DRIVE_ATTEN, DRIVE_CV_INPUT, name);
                 }

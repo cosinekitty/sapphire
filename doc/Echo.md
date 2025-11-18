@@ -78,8 +78,8 @@ The input labels L, R change to a number when they interpret polyphony, or M for
 
 See [Polyphonic Operation](#polyphonic-operation) for more technical details.
 
-#### DRIVE
-This group controls the level of the audio going into Echo from the input ports. Defaults to 0&nbsp;dB, which leaves the input level unchanged. The level can be anywhere from silent to a factor of 8 (about +18&nbsp;dB).
+#### GAIN
+This group controls the level of the audio going into Echo from the input ports. Defaults to 0&nbsp;dB, which leaves the input level unchanged. The gain can be anywhere from silence to a factor of 8 (about +18&nbsp;dB).
 
 #### Initialize Entire Chain
 This button resets all settings on Echo, Echo Tap, and Echo Out, returning the whole system to its default state. Useful for starting over or saving time when building a fresh delay patch.
