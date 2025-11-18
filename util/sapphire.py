@@ -24,6 +24,7 @@ BRAND_NAME_STYLE    = 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-lin
 
 CONTROL_LABEL_POINTS = 10.0
 CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
+HILIGHT_LABEL_STYLE  = 'stroke:#6f02b8;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
 
 GEMSTONE_STYLE = 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1'
 CONNECTOR_LINE_STYLE = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'

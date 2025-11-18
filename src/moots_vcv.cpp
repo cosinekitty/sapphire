@@ -420,11 +420,13 @@ namespace Sapphire
 
         struct MootsWidget : SapphireWidget
         {
-            MootsModule* mootsModule = nullptr;
-            SvgOverlay* gateLabel = nullptr;
-            SvgOverlay* triggerLabel = nullptr;
+            MootsModule* mootsModule{};
+            SvgOverlay* gateLabel{};
+            SvgOverlay* gateLabelHilight{};
+            SvgOverlay* triggerLabel{};
+            SvgOverlay* triggerLabelHilight{};
             const Vec gateTriggerLabelPos = mm_to_px(FindComponent("moots", "gate_trigger_label"));
-            SapphireTooltip* gateTriggerTooltip = nullptr;
+            SapphireTooltip* gateTriggerTooltip{};
             bool insideLabel = false;
             bool hilightLabel = false;
 
@@ -437,9 +439,17 @@ namespace Sapphire
                 gateLabel = SvgOverlay::Load("res/moots_label_gate.svg");
                 addChild(gateLabel);
 
+                gateLabelHilight = SvgOverlay::Load("res/moots_label_gate_h.svg");
+                gateLabelHilight->hide();
+                addChild(gateLabelHilight);
+
                 triggerLabel = SvgOverlay::Load("res/moots_label_trigger.svg");
                 triggerLabel->hide();
                 addChild(triggerLabel);
+
+                triggerLabelHilight = SvgOverlay::Load("res/moots_label_trigger_h.svg");
+                triggerLabelHilight->hide();
+                addChild(triggerLabelHilight);
 
                 addMootsButton(25.05,  17.25, TOGGLEBUTTON1_PARAM, MOOTLIGHT1, 0);
                 addMootsButton(25.05,  38.75, TOGGLEBUTTON2_PARAM, MOOTLIGHT2, 1);
@@ -535,15 +545,15 @@ namespace Sapphire
 
             void step() override
             {
-                if (mootsModule && gateLabel && triggerLabel)
+                if (mootsModule && gateLabel && triggerLabel && gateLabelHilight && triggerLabelHilight)
                 {
                     // Toggle between showing "GATE" or "TRIGGER" depending on the toggle state.
+                    // Toggle between purple "hilight" version or normal black version.
                     bool showGate = (mootsModule->controlMode == ControlMode::Gate);
-                    if (gateLabel->isVisible() != showGate)
-                    {
-                        gateLabel->setVisible(showGate);
-                        triggerLabel->setVisible(!showGate);
-                    }
+                    gateLabel->setVisible(showGate && !hilightLabel);
+                    gateLabelHilight->setVisible(showGate && hilightLabel);
+                    triggerLabel->setVisible(!showGate && !hilightLabel);
+                    triggerLabelHilight->setVisible(!showGate && hilightLabel);
 
                     updateTooltip(hilightLabel, insideLabel, gateTriggerTooltip, "Toggle gate/trigger");
                 }

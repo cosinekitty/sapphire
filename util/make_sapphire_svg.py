@@ -717,11 +717,11 @@ def GenerateMootsPanel(cdict: ControlDict) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateMootsLabel(svgFileName:str, text:str) -> int:
+def GenerateMootsLabel(svgFileName:str, text:str, style:str) -> int:
     panel = Panel(MOOTS_PANEL_WIDTH)
     x = panel.mmWidth / 2
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        panel.append(CenteredControlTextPath(font, text, x, MOOTS_LABEL_Y, pointSize = 8.0))
+        panel.append(CenteredControlTextPath(font, text, x, MOOTS_LABEL_Y, pointSize = 8.0, style = style))
     return Save(panel, svgFileName)
 
 
@@ -2545,8 +2545,10 @@ if __name__ == '__main__':
         GeneratePolynucleusPanel(cdict) or
         GenerateHissPanel(cdict) or
         GenerateMootsPanel(cdict) or
-        GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE') or
-        GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER') or
+        GenerateMootsLabel('../res/moots_label_gate.svg', 'GATE', CONTROL_LABEL_STYLE) or
+        GenerateMootsLabel('../res/moots_label_gate_h.svg', 'GATE', HILIGHT_LABEL_STYLE) or
+        GenerateMootsLabel('../res/moots_label_trigger.svg', 'TRIGGER', CONTROL_LABEL_STYLE) or
+        GenerateMootsLabel('../res/moots_label_trigger_h.svg', 'TRIGGER', HILIGHT_LABEL_STYLE) or
         GenerateStereoOutputLabels('../res/stereo_out_lr.svg', 'L', 'R') or
         GenerateStereoOutputLabels('../res/stereo_out_2.svg', '2', '') or
         GenerateStereoInputLabels('../res/stereo_in_lr.svg', 'L', 'R') or
