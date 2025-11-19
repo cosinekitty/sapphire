@@ -200,8 +200,7 @@ namespace Sapphire
 
             explicit ClockButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
 
             void action() override;
@@ -212,8 +211,7 @@ namespace Sapphire
         {
             explicit IntervalButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+                addTinyButtonFrames(this, "yellow");
             }
         };
 
@@ -224,8 +222,7 @@ namespace Sapphire
 
             explicit InitChainButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
 
             void action() override;
@@ -238,8 +235,7 @@ namespace Sapphire
 
             explicit InitTapButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
 
             void action() override;
@@ -252,8 +248,7 @@ namespace Sapphire
 
             explicit SendReturnButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
         };
 
@@ -264,8 +259,7 @@ namespace Sapphire
 
             explicit InputModeButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
         };
 
@@ -277,8 +271,7 @@ namespace Sapphire
             explicit MuteButton()
             {
                 momentary = false;
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/mute_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/mute_button_1.svg")));
+                addTinyButtonFrames(this, "red");
             }
         };
 
@@ -290,8 +283,7 @@ namespace Sapphire
             explicit SoloButton()
             {
                 momentary = false;
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
         };
 

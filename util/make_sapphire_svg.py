@@ -2358,9 +2358,8 @@ def GenerateMultiTapRemoveButton() -> int:
         panel.append(CenteredControlTextPath(font, '<', cx, cy, pointSize = 12.0, style = style))
     return Save(panel, svgFileName)
 
-
-def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
-    svgFileName = '../res/clock_button_{:d}.svg'.format(step)
+def GenerateTinyButton(name:str, step:int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
+    svgFileName = '../res/{0:s}_button_{1:d}.svg'.format(name, step)
     panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
     xc = MULTITAP_CLOCK_BUTTON_DX / 2
     yc = MULTITAP_CLOCK_BUTTON_DY / 2
@@ -2369,41 +2368,16 @@ def GenerateMultiTapClockButton(step: int, fillColor1:str, fillColor2:str, strok
     panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
     panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
     return Save(panel, svgFileName)
-
-
-def GenerateMultiTapIntervalButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
-    svgFileName = '../res/interval_button_{:d}.svg'.format(step)
-    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
-    xc = MULTITAP_CLOCK_BUTTON_DX / 2
-    yc = MULTITAP_CLOCK_BUTTON_DY / 2
-    r1 = 0.77
-    r2 = 1.44
-    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
-    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
-    return Save(panel, svgFileName)
-
-
-def GenerateMultiTapMuteButton(step: int, fillColor1:str, fillColor2:str, strokeColor1:str, strokeColor2:str) -> int:
-    svgFileName = '../res/mute_button_{:d}.svg'.format(step)
-    panel = BasePanel(MULTITAP_CLOCK_BUTTON_DX, MULTITAP_CLOCK_BUTTON_DY)
-    xc = MULTITAP_CLOCK_BUTTON_DX / 2
-    yc = MULTITAP_CLOCK_BUTTON_DY / 2
-    r1 = 0.77
-    r2 = 1.44
-    panel.append(Circle(xc, yc, r2, strokeColor2, 0.11, fillColor2))
-    panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
-    return Save(panel, svgFileName)
-
 
 def GenerateMultiTapButtons() -> int:
     return (
         GenerateMultiTapExtenderButton() or
-        GenerateMultiTapClockButton(0, '#585858', '#353535', '#434343', '#353535') or
-        GenerateMultiTapClockButton(1, '#4df04d', '#4d904d', '#356235', '#353535') or
-        GenerateMultiTapIntervalButton(0, '#585858', '#353535', '#434343', '#353535') or
-        GenerateMultiTapIntervalButton(1, '#edce1c', '#b59d14', '#356235', '#353535') or
-        GenerateMultiTapMuteButton(0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
-        GenerateMultiTapMuteButton(1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
+        GenerateTinyButton('green',  0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateTinyButton('green',  1, '#4df04d', '#4d904d', '#356235', '#353535') or
+        GenerateTinyButton('yellow', 0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateTinyButton('yellow', 1, '#edce1c', '#b59d14', '#356235', '#353535') or
+        GenerateTinyButton('red',    0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
+        GenerateTinyButton('red',    1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
         GenerateMultiTapRemoveButton()
     )
 

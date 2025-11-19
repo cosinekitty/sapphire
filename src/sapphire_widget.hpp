@@ -394,6 +394,16 @@ namespace Sapphire
     };
 
 
+    inline void addTinyButtonFrames(tiny_button_base_t* button, const std::string& name)
+    {
+        if (button)
+        {
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_0.svg")));
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_1.svg")));
+        }
+    }
+
+
     struct SplashState
     {
         bool active = false;

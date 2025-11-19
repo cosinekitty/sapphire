@@ -364,8 +364,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             explicit DynamicWireButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
         };
 
@@ -374,8 +373,7 @@ namespace Sapphire      // Indranīla (इन्द्रनील)
         {
             explicit StereoButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+                addTinyButtonFrames(this, "yellow");
             }
         };
 

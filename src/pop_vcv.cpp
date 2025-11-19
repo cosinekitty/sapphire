@@ -224,8 +224,7 @@ namespace Sapphire
 
             explicit SyncButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/clock_button_1.svg")));
+                addTinyButtonFrames(this, "green");
             }
 
             void action() override
@@ -243,8 +242,7 @@ namespace Sapphire
             explicit PulseModeButton()
             {
                 chainButtonClicks = false;      // prevent toggle of underlying Param; needed for undo/redo
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/interval_button_1.svg")));
+                addTinyButtonFrames(this, "yellow");
             }
 
             void action() override
