@@ -827,8 +827,10 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+            controls.append(Component('stereo_split_button', xmid, yInPort))
             controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
             controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+            controls.append(Component('stereo_merge_button', xmid, yOutPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
 

@@ -364,6 +364,16 @@ namespace Sapphire
     };
 
 
+    inline void addTinyButtonFrames(tiny_button_base_t* button, const std::string& name)
+    {
+        if (button)
+        {
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_0.svg")));
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_1.svg")));
+        }
+    }
+
+
     struct SapphireTinyActionButton : SapphireTinyButton
     {
         float blinkTimeSeconds = 0.02;
@@ -394,14 +404,54 @@ namespace Sapphire
     };
 
 
-    inline void addTinyButtonFrames(tiny_button_base_t* button, const std::string& name)
+    struct StereoSplitterButton : SapphireTinyButton
     {
-        if (button)
+        SapphireModule* smod{};
+
+        explicit StereoSplitterButton()
         {
-            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_0.svg")));
-            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/" + name + "_button_1.svg")));
+            addTinyButtonFrames(this, "green");
         }
-    }
+
+        void action() override
+        {
+            if (smod)
+                InvokeAction(new BoolToggleAction(smod->enableStereoSplitter, "input stereo splitter"));
+        }
+
+        void step() override
+        {
+            if (smod)
+                getParamQuantity()->setValue(smod->enableStereoSplitter);
+
+            SapphireTinyButton::step();
+        }
+    };
+
+
+    struct StereoMergeButton : SapphireTinyButton
+    {
+        SapphireModule* smod{};
+
+        explicit StereoMergeButton()
+        {
+            addTinyButtonFrames(this, "yellow");
+        }
+
+        void action() override
+        {
+            if (smod)
+                InvokeAction(new BoolToggleAction(smod->enableStereoMerge, "output stereo merge"));
+        }
+
+        void step() override
+        {
+            if (smod)
+                getParamQuantity()->setValue(smod->enableStereoMerge);
+
+            SapphireTinyButton::step();
+        }
+    };
 
 
     struct SplashState
@@ -925,6 +975,20 @@ namespace Sapphire
             ComponentLocation L = FindComponent(modcode, leftLabel);
             ComponentLocation R = FindComponent(modcode, rightLabel);
             drawAudioPortLabels(vg, mode, L.cx, L.cy, R.cx, R.cy);
+        }
+
+        void addStereoSplitterButton(int buttonParamId)
+        {
+            auto button = createParamCentered<StereoSplitterButton>(Vec{}, module, buttonParamId);
+            button->smod = getSapphireModule();
+            addSapphireParam(button, "stereo_split_button");
+        }
+
+        void addStereoMergeButton(int buttonParamId)
+        {
+            auto button = createParamCentered<StereoMergeButton>(Vec{}, module, buttonParamId);
+            button->smod = getSapphireModule();
+            addSapphireParam(button, "stereo_merge_button");
         }
     };
 

@@ -225,6 +225,8 @@ namespace Sapphire
             {"replace_atten",          {  15.240,   37.333}},
             {"replace_cv",             {   6.240,   37.333}},
             {"replace_knob",           {  24.240,   37.333}},
+            {"stereo_merge_button",    {  15.240,  114.000}},
+            {"stereo_split_button",    {  15.240,   22.000}},
             }},
         { "galaxy_export", {
             {"_panel",                 {  30.480,  128.500}},
