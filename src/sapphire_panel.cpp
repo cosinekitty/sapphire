@@ -152,6 +152,8 @@ namespace Sapphire
             {"span_atten",             {  30.480,   72.000}},
             {"span_cv",                {  30.480,   81.740}},
             {"span_slider",            {  30.480,   46.000}},
+            {"stereo_merge_button",    {  46.960,  115.000}},
+            {"stereo_split_button",    {  14.000,  115.000}},
             {"stif_atten",             {  19.240,   72.000}},
             {"stif_cv",                {  19.240,   81.740}},
             {"stif_slider",            {  19.240,   46.000}},

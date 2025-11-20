@@ -1426,6 +1426,10 @@ def PlaceElastikaControls(controls:ControlLayer, pl:Element, shrink:float, targe
 
 
 def PlaceElastikaRackControls(controls: ControlLayer) -> None:
+    xInLeftAudio   =  7.50
+    xInRightAudio  = 20.50
+    xOutLeftAudio  = 40.46
+    xOutRightAudio = 53.46
     controls.append(Component("fric_atten",          8.00,  72.00))
     controls.append(Component("stif_atten",         19.24,  72.00))
     controls.append(Component("span_atten",         30.48,  72.00))
@@ -1440,11 +1444,13 @@ def PlaceElastikaRackControls(controls: ControlLayer) -> None:
     controls.append(Component("mass_cv",            52.96,  81.74))
     controls.append(Component("input_tilt_cv",       8.00,  22.50))
     controls.append(Component("output_tilt_cv",     53.00,  22.50))
-    controls.append(Component("audio_left_input",    7.50, 115.00))
-    controls.append(Component("audio_right_input",  20.50, 115.00))
+    controls.append(Component("audio_left_input",   xInLeftAudio,  115.00))
+    controls.append(Component("audio_right_input",  xInRightAudio, 115.00))
+    controls.append(Component("stereo_split_button", (xInLeftAudio + xInRightAudio)/2, 115.00))
     controls.append(Component("power_gate_input",   30.48, 104.00))
-    controls.append(Component("audio_left_output",  40.46, 115.00))
-    controls.append(Component("audio_right_output", 53.46, 115.00))
+    controls.append(Component("audio_left_output",  xOutLeftAudio,  115.00))
+    controls.append(Component("audio_right_output", xOutRightAudio, 115.00))
+    controls.append(Component("stereo_merge_button", (xOutLeftAudio + xOutRightAudio)/2, 115.00))
     controls.append(Component("power_toggle",       30.48,  95.00))
 
 

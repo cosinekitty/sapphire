@@ -31,6 +31,8 @@ namespace Sapphire
             OUTPUT_TILT_ATTEN_PARAM,
             DC_REJECT_PARAM,
             AGC_LEVEL_PARAM,
+            IN_STEREO_BUTTON_PARAM,
+            OUT_STEREO_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -432,6 +434,10 @@ namespace Sapphire
                 // Audio output jacks
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+
+                // Input/output audio splitter option buttons
+                addStereoSplitterButton(IN_STEREO_BUTTON_PARAM);
+                addStereoMergeButton(OUT_STEREO_BUTTON_PARAM);
 
                 // Power enable/disable
                 auto toggle = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, POWER_TOGGLE_PARAM, POWER_LIGHT);
