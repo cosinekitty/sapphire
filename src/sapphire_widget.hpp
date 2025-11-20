@@ -404,53 +404,55 @@ namespace Sapphire
     };
 
 
-    struct StereoSplitterButton : SapphireTinyButton
+    struct SapphireStereoButton : SapphireTinyButton
     {
+        const char *offText{};
+        const char *onText{};
+        const char *actionText{};
         SapphireModule* smod{};
+        bool* flag{};
 
-        explicit StereoSplitterButton()
+        explicit SapphireStereoButton(const char* name, const char *_offText, const char *_onText, const char *_actionText)
+            : offText(_offText)
+            , onText(_onText)
+            , actionText(_actionText)
         {
-            addTinyButtonFrames(this, "green");
-        }
-
-        void action() override
-        {
-            if (smod)
-                InvokeAction(new BoolToggleAction(smod->enableStereoSplitter, "input stereo splitter"));
+            addTinyButtonFrames(this, name);
         }
 
         void step() override
         {
-            if (smod)
-                getParamQuantity()->setValue(smod->enableStereoSplitter);
+            if (smod && flag)
+            {
+                auto qty = getParamQuantity();
+                qty->setValue(*flag ? 1.0f : 0.0f);
+                smod->updateToggleButtonTooltip(qty->paramId, offText, onText);
+            }
 
             SapphireTinyButton::step();
+        }
+
+        void action() override
+        {
+            if (smod && flag)
+                InvokeAction(new BoolToggleAction(*flag, actionText));
         }
     };
 
 
-    struct StereoMergeButton : SapphireTinyButton
+    struct StereoSplitterButton : SapphireStereoButton
     {
-        SapphireModule* smod{};
+        explicit StereoSplitterButton()
+            : SapphireStereoButton("green", "Stereo split DISABLED", "Stereo split ENABLED", "input stereo splitter")
+            {}
+    };
 
+
+    struct StereoMergeButton : SapphireStereoButton
+    {
         explicit StereoMergeButton()
-        {
-            addTinyButtonFrames(this, "yellow");
-        }
-
-        void action() override
-        {
-            if (smod)
-                InvokeAction(new BoolToggleAction(smod->enableStereoMerge, "output stereo merge"));
-        }
-
-        void step() override
-        {
-            if (smod)
-                getParamQuantity()->setValue(smod->enableStereoMerge);
-
-            SapphireTinyButton::step();
-        }
+            : SapphireStereoButton("yellow", "Stereo merge DISABLED", "Stereo merge ENABLED", "output stereo merge")
+            {}
     };
 
 
@@ -981,6 +983,7 @@ namespace Sapphire
         {
             auto button = createParamCentered<StereoSplitterButton>(Vec{}, module, buttonParamId);
             button->smod = getSapphireModule();
+            button->flag = &button->smod->enableStereoSplitter;
             addSapphireParam(button, "stereo_split_button");
         }
 
@@ -988,6 +991,7 @@ namespace Sapphire
         {
             auto button = createParamCentered<StereoMergeButton>(Vec{}, module, buttonParamId);
             button->smod = getSapphireModule();
+            button->flag = &button->smod->enableStereoMerge;
             addSapphireParam(button, "stereo_merge_button");
         }
     };

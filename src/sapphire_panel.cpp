@@ -268,6 +268,8 @@ namespace Sapphire
             {"resonance_atten",        {  15.240,   52.667}},
             {"resonance_cv",           {   6.240,   52.667}},
             {"resonance_knob",         {  24.240,   52.667}},
+            {"stereo_merge_button",    {  15.240,  114.000}},
+            {"stereo_split_button",    {  15.240,   22.000}},
             }},
         { "gravy_export", {
             {"_panel",                 {  30.480,  128.500}},

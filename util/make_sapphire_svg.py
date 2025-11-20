@@ -915,8 +915,10 @@ def GenerateGravyPanel(cdict:ControlDict, name:str, target:Target) -> int:
             # Stereo IN/OUT ports.
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+            controls.append(Component('stereo_split_button', xmid, yInPort))
             controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
             controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
+            controls.append(Component('stereo_merge_button', xmid, yOutPort))
 
         # Text label for 3-way MODE switch (LP, BP, HP).
         pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyTextSwitch))

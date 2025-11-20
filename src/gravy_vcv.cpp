@@ -24,6 +24,8 @@ namespace Sapphire
             GAIN_ATTEN,
             FILTER_MODE_PARAM,
             AGC_LEVEL_PARAM,
+            IN_STEREO_BUTTON_PARAM,
+            OUT_STEREO_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -212,6 +214,8 @@ namespace Sapphire
 
                 loadInputStereoLabels();
                 loadOutputStereoLabels();
+                addStereoSplitterButton(IN_STEREO_BUTTON_PARAM);
+                addStereoMergeButton(OUT_STEREO_BUTTON_PARAM);
             }
 
             void appendContextMenu(Menu* menu) override
