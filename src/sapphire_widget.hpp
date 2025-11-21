@@ -533,7 +533,6 @@ namespace Sapphire
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
-        const static NVGcolor neonColor;
         SplashState splash;
 
         SvgOverlay* outputStereoLabelLR = nullptr;
@@ -557,6 +556,7 @@ namespace Sapphire
             return sm && sm->neonMode;
         }
 
+        static NVGcolor getNeonColor();
         static void ToggleAllNeonBorders();
         static void ToggleNeonBorder(SapphireModule* smod);
 

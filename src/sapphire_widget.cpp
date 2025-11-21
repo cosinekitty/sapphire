@@ -169,14 +169,30 @@ namespace Sapphire
         }
     }
 
-    const NVGcolor SapphireWidget::neonColor = nvgRGB(0xd4, 0x8f, 0xff);
+
+    NVGcolor SapphireWidget::getNeonColor()
+    {
+        // Adjust the neon color to fit the room brightness.
+        NVGcolor c0 = nvgRGB(0xd4, 0x8f, 0xff);
+        NVGcolor c1 = nvgRGB(0xfa, 0xc8, 0x40);
+        static float m = -999;
+        if (rack::settings::rackBrightness != m)
+        {
+            m = rack::settings::rackBrightness;
+            INFO("brightness = %f", m);
+        }
+        float r = (1-m)*c0.r + m*c1.r;
+        float g = (1-m)*c0.g + m*c1.g;
+        float b = (1-m)*c0.b + m*c1.b;
+        return nvgRGBf(r, g, b);
+    }
 
 
     static void DrawGlowingBorders(NVGcontext* vg, const Rect& box, bool hideLeft, bool hideRight)
     {
         const float margin = 1;
         const float vertical = box.size.y - 2*margin;
-        const NVGcolor glowColor = SapphireWidget::neonColor;
+        const NVGcolor glowColor = SapphireWidget::getNeonColor();
 
         // Top border
         DrawBorder(vg, glowColor, 0, 0, box.size.x, margin);

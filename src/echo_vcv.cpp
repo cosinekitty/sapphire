@@ -1844,7 +1844,7 @@ namespace Sapphire
                 if (layer==1 && loopModule)
                 {
                     if (loopModule->neonMode)
-                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, neonColor);
+                        drawChainIndex(args.vg, loopModule->chainIndex, loopModule->receivedInputRouting, getNeonColor());
 
                     if (loopModule->recordingLevelOverflow)
                         splash.begin(0xb0, 0x10, 0x00);
