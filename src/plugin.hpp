@@ -33,5 +33,4 @@ extern Model* modelSapphireTin;
 extern Model* modelSapphireTout;
 extern Model* modelSapphireTricorder;
 extern Model* modelSapphireTubeUnit;
-extern Model* modelSapphireVina;
 extern Model* modelSapphireZoo;

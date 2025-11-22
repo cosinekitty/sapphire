@@ -13,7 +13,6 @@
 <td align="center">2.6.002</td>
 <td align="left">
     <ul>
-        <li>Added new module <a href="doc/Vina.md">Vina</a>: a VCO instrument voice based on a simulation of a plucked string.</li>
         <li><a href="doc/Echo.md">Echo</a> now has a GAIN control group to adjust the input audio level.</li>
         <li><a href="doc/Moots.md">Moots</a>: when you hover the mouse over the GATE/TRIGGER text, it now changes to a purple color to emphasize that it is a clickable toggle.</li>
     </ul>

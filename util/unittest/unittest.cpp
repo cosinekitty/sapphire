@@ -12,7 +12,6 @@
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
 #include "sapphire_prog_chaos.hpp"
-#include "vina_engine.hpp"
 #include "file_updater.hpp"
 
 static int Fail(const std::string name, const std::string message)
@@ -49,7 +48,6 @@ static int PopTest();
 static int QuadraticTest();
 static int ReadWave();
 static int TaperTest();
-static int VinaTest();
 
 static const UnitTest CommandTable[] =
 {
@@ -67,7 +65,6 @@ static const UnitTest CommandTable[] =
     { "readwave",   ReadWave         },
     { "scale",      AutoScale        },
     { "taper",      TaperTest        },
-    { "vina",       VinaTest         },
     { nullptr,  nullptr }
 };
 
@@ -1506,44 +1503,6 @@ static int CalculatorTest()
         Calc_Bytecode("a^9 + b^8 + c^(3+4) + a^6 + b^5", a, b, c, std::pow(a,9.0) + std::pow(b,8.0) + std::pow(c,7.0) + std::pow(a,6.0) + std::pow(b,5.0)) ||
         ProgChaosTest()
     ;
-}
-
-
-static int VinaTest()
-{
-    using namespace Sapphire::Vina;
-
-    VinaWire wire;
-    wire.initialize();
-
-    const float sampleRateHz = 48000;
-    const int channels = 2;
-    const char *outFileName = "output/vina.wav";
-
-    ScaledWaveFileWriter outwave;
-    if (!outwave.Open(outFileName, sampleRateHz, channels))
-        return Fail("VinaTest", std::string("Could not open output file: ") + outFileName);
-
-    printf("VinaTest: rendering...\n");
-
-    const float durationSeconds = 5;
-    const float pluckSeconds = 0.2;
-    const float releaseSeconds = 2.5;
-    const unsigned nFrames      = static_cast<unsigned>(sampleRateHz * durationSeconds);
-    const unsigned pluckFrame   = static_cast<unsigned>(sampleRateHz * pluckSeconds);
-    const unsigned releaseFrame = static_cast<unsigned>(sampleRateHz * releaseSeconds);
-    bool prevGate = false;
-    for (unsigned f = 0; f < nFrames; ++f)
-    {
-        const bool gate = (f >= pluckFrame) && (f <= releaseFrame);
-        const bool trigger = gate && !prevGate;
-        prevGate = gate;
-        VinaStereoFrame frame = wire.update(sampleRateHz, gate, trigger);
-        outwave.WriteSamples(frame.sample, 2);
-    }
-
-    outwave.Close();
-    return Pass("VinaTest");
 }
 
 

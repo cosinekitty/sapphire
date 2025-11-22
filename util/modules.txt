@@ -19,5 +19,4 @@ tin
 tout
 tricorder
 tubeUnit
-vina
 zoo

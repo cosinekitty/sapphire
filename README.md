@@ -249,13 +249,7 @@ A complex tubular waveguide synthesizer.
 
 <a href="doc/TubeUnit.md"><img src="doc/images/tubeunit.png" /></a>
 
-## Vina
-
-Vina is a polyphonic stereo VCO based on a physics simulation of a plucked string.
-
-<a href="doc/Vina.md">Sapphire Vina documentation</a>
-
-<a href="doc/Vina.md"><img src="doc/images/vina.png" /></a>
+---
 
 ## Zoo
 

@@ -2391,125 +2391,6 @@ def GenerateMultiTapButtons() -> int:
         GenerateMultiTapRemoveButton()
     )
 
-#-----------------------------------------------------------------------------------------------------
-
-def GenerateVinaPanel(cdict: ControlDict, name:str, slug:str, target:Target) -> int:
-    def connectorStyle(color:str) -> str:
-        return 'fill:none; stroke:' + color + '; stroke-width: 1.0;'
-
-    def connector(x:float, y1:float, y2:float, color:str = '#0F7C2C') -> LineElement:
-        return LineElement(x, y1, x, y2, connectorStyle(color))
-
-    with Font(SAPPHIRE_FONT_FILENAME) as font:
-        leftWidthHp = 6
-        middleHp = 1
-        rightWidthHp = 6
-        panelWidthHp = leftWidthHp + middleHp + rightWidthHp
-        svgFileName = SvgFileName(slug, target)
-        panel = Panel(panelWidthHp)
-        cdict[slug] = controls = ControlLayer(panel)
-        pl = Element('g', 'PanelLayer')
-        defs = Element('defs')
-        pl.append(defs)
-        panel.append(pl)
-        pl.append(MakeBorder(target, panelWidthHp))
-        pl.append(SapphireInsignia(panel, font))
-        pl.append(ModelNamePath(panel, font, name))
-        dyButtonText = 6.0
-        xmidLeft  = HP_WIDTH_MM*(leftWidthHp/2)
-        xmidRight = HP_WIDTH_MM*(leftWidthHp + middleHp + rightWidthHp/2)
-        yFence = FencePost(20.0, 114.0, 8)
-
-        dxPortFromCenter = 6.25
-        dxVoctGate = 7.0
-        dyArtwork = 10.0
-        dxLabelFromCenter = dxPortFromCenter + dxHorizontalStereoLabels
-
-        # LEFT PANEL ----------------------------------------------------------
-
-        yVoctGate       = yFence.value(0)
-        yFreq           = yFence.value(1)
-        yOct            = yFence.value(2)
-        yDecay          = yFence.value(3)
-        yRelease        = yFence.value(4)
-        yChorusDepth    = yFence.value(5)
-        yChorusRate     = yFence.value(6)
-        yTone           = yFence.value(7)
-
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yFreq, yOct))
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yDecay, yRelease))
-        pl.append(connector(xmidLeft + DX_FLAT_CONTROL_GROUP, yChorusDepth, yChorusRate))
-
-        gradients = False
-
-        if gradients:
-            defs.append(Gradient(yVoctGate-dyArtwork, yVoctGate+dyArtwork, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_voct_gate'))
-            pl.append(ControlGroupArt(name, 'voct_gate_art', panel, yVoctGate-dyArtwork, yVoctGate+dyArtwork, 'gradient_voct_gate'))
-
-
-        pl.append(HorizontalLinePath(xmidLeft - dxVoctGate, xmidLeft + dxVoctGate, yVoctGate))
-        controls.append(Component('dynamic_wire_button', xmidLeft, yVoctGate))
-
-        controls.append(Component('voct_input', xmidLeft - dxVoctGate, yVoctGate))
-        pl.append(CenteredControlTextPath(font, 'V/OCT', xmidLeft - dxVoctGate, yVoctGate - dyButtonText))
-
-        controls.append(Component('gate_input', xmidLeft + dxVoctGate, yVoctGate))
-        pl.append(CenteredControlTextPath(font, 'GATE',  xmidLeft + dxVoctGate, yVoctGate - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yFreq, 'freq')
-        pl.append(CenteredControlTextPath(font, 'FREQ', xmidLeft, yFreq - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yOct, 'oct')
-        pl.append(CenteredControlTextPath(font, 'OCT', xmidLeft, yOct - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yDecay, 'decay')
-        pl.append(CenteredControlTextPath(font, 'DEC', xmidLeft, yDecay - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yRelease, 'release')
-        pl.append(CenteredControlTextPath(font, 'REL', xmidLeft, yRelease - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yTone, 'tone')
-        pl.append(CenteredControlTextPath(font, 'TONE', xmidLeft, yTone - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yChorusDepth, 'chorus_depth')
-        pl.append(CenteredControlTextPath(font, 'DEPTH', xmidLeft, yChorusDepth - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidLeft, yChorusRate, 'chorus_rate')
-        pl.append(CenteredControlTextPath(font, 'RATE', xmidLeft, yChorusRate - dyButtonText))
-
-        # RIGHT PANEL ---------------------------------------------------------
-
-        ySpread         = yFence.value(4)
-        yPan            = yFence.value(5)
-        yLevel          = yFence.value(6)
-        yAudioOutputs   = yFence.value(7)
-
-        pl.append(connector(xmidRight + DX_FLAT_CONTROL_GROUP, ySpread, yPan))
-
-        AddFlatControlGroup(pl, controls, xmidRight, ySpread, 'spread')
-        pl.append(CenteredControlTextPath(font, 'SPREAD',  xmidRight, ySpread - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidRight, yPan, 'pan')
-        pl.append(CenteredControlTextPath(font, 'PAN',  xmidRight, yPan - dyButtonText))
-
-        AddFlatControlGroup(pl, controls, xmidRight, yLevel, 'level')
-        pl.append(CenteredControlTextPath(font, 'LEVEL', xmidRight, yLevel - dyButtonText))
-
-        if gradients:
-            y1 = yAudioOutputs - 6.0
-            y2 = yAudioOutputs + 4.0
-            defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
-            pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
-
-        controls.append(Component('stereo_button',      xmidRight, yAudioOutputs))
-        controls.append(Component('audio_left_output',  xmidRight - dxPortFromCenter, yAudioOutputs))
-        controls.append(Component('audio_right_output', xmidRight + dxPortFromCenter, yAudioOutputs))
-        controls.append(Component('left_output_label',  xmidRight - dxLabelFromCenter, yAudioOutputs))
-        controls.append(Component('right_output_label', xmidRight + dxLabelFromCenter, yAudioOutputs))
-        pl.append(HorizontalLinePath(xmidRight - dxPortFromCenter, xmidRight + dxPortFromCenter, yAudioOutputs))
-
-        return Save(panel, svgFileName)
-
 #--------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -2552,7 +2433,6 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
-        GenerateVinaPanel(cdict, 'vina', 'vina', Target.VcvRack) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )
