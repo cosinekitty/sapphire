@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_engine.hpp"
 
 namespace Sapphire
 {
@@ -175,12 +176,7 @@ namespace Sapphire
         // Adjust the neon color to fit the room brightness.
         NVGcolor c0 = nvgRGB(0xd4, 0x8f, 0xff);
         NVGcolor c1 = nvgRGB(0xfa, 0xc8, 0x40);
-        static float m = -999;
-        if (rack::settings::rackBrightness != m)
-        {
-            m = rack::settings::rackBrightness;
-            INFO("brightness = %f", m);
-        }
+        const float m = Cube(rack::settings::rackBrightness);
         float r = (1-m)*c0.r + m*c1.r;
         float g = (1-m)*c0.g + m*c1.g;
         float b = (1-m)*c0.b + m*c1.b;
