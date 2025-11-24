@@ -724,7 +724,7 @@ namespace Sapphire
     };
 
 
-    static Model* PeekModel(Module* module, ExpanderDirection dir)
+    static const Model* PeekModel(Module* module, ExpanderDirection dir)
     {
         if (module)
         {
@@ -750,7 +750,7 @@ namespace Sapphire
                 // Look in the requested insertion direction to see if
                 // the desired model is already present.
                 // If so, suppress adding a redundant instance of that model.
-                Model* peekModel = PeekModel(parentWidget->module, direction);
+                const Model* peekModel = PeekModel(parentWidget->module, direction);
                 if (expanderModel != peekModel)
                     AddExpander(expanderModel, parentWidget, direction, false);
             }
