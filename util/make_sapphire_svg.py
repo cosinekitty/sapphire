@@ -240,6 +240,15 @@ def AddTricorderButton(controls:ControlLayer, panel:Panel) -> None:
     yButtons = panel.mmHeight - 5.5
     controls.append(Component('tricorder_button', xTricorderButton, yButtons))
 
+def AddTinButton(controls:ControlLayer) -> None:
+    xButton = 4.0
+    yButton = 4.0
+    controls.append(Component('tin_button', xButton, yButton))
+
+def AddToutButton(controls:ControlLayer, panel:Panel) -> None:
+    xButton = panel.mmWidth - 4.0
+    yButton = 4.0
+    controls.append(Component('tout_button', xButton, yButton))
 
 def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
     target = Target.VcvRack
@@ -291,15 +300,19 @@ def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
     return Save(panel, svgFileName)
 
 
-def GenerateTricorderPanel() -> int:
+def GenerateTricorderPanel(cdict:ControlDict) -> int:
     target = Target.VcvRack
     PANEL_WIDTH = 25
     svgFileName = '../res/tricorder.svg'
     panel = Panel(PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
+    name = 'tricorder'
+    cdict[name] = controls = ControlLayer(panel)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(SapphireModelInsignia(panel, font, 'tricorder'))
+        AddTinButton(controls)
+        AddToutButton(controls, panel)
     panel.append(pl)
     return Save(panel, svgFileName)
 
@@ -2432,7 +2445,7 @@ if __name__ == '__main__':
         GenerateChaosPanel(cdict, 'lark') or
         GenerateChaosPanel(cdict, 'zoo') or
         GenerateChaosOperatorsPanel(cdict) or
-        GenerateTricorderPanel() or
+        GenerateTricorderPanel(cdict) or
         GenerateTinToutPanel(cdict, 'tin',  'input',  'IN',  +5.2) or
         GenerateTinToutPanel(cdict, 'tout', 'output', 'OUT', -7.1) or
         GenerateNucleusPanel(cdict) or

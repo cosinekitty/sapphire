@@ -328,6 +328,8 @@ namespace Sapphire
         enum ParamId
         {
             ROTATION_SPEED_PARAM,
+            TIN_BUTTON_PARAM,
+            TOUT_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -406,6 +408,8 @@ namespace Sapphire
             {
                 pointList.resize(TRAIL_LENGTH);     // maintain fixed length for entire lifetime
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configButton(TIN_BUTTON_PARAM, "Insert Tin");
+                configButton(TOUT_BUTTON_PARAM, "Insert Tout");
                 makeRotationQuantity();
                 initialize();
             }
@@ -1720,6 +1724,8 @@ namespace Sapphire
             {
                 setModule(module);
                 addChild(new TricorderDisplay(module));
+                addTinButton();
+                addToutButton();
             }
 
             void appendContextMenu(Menu* menu) override
@@ -1729,6 +1735,26 @@ namespace Sapphire
                 {
                     menu->addChild(new RotationSpeedSlider(tricorderModule->rotationSpeedQuantity));
                 }
+            }
+
+            void addTinButton()
+            {
+                auto button = createParamCentered<VectorInsertButton>(Vec{}, module, TIN_BUTTON_PARAM);
+                button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/left_extender_button.svg")));
+                button->parentWidget = this;
+                button->expanderModel = modelSapphireTin;
+                button->direction = ExpanderDirection::Left;
+                addSapphireParam(button, "tin_button");
+            }
+
+            void addToutButton()
+            {
+                auto button = createParamCentered<VectorInsertButton>(Vec{}, module, TOUT_BUTTON_PARAM);
+                button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/right_extender_button.svg")));
+                button->parentWidget = this;
+                button->expanderModel = modelSapphireTout;
+                button->direction = ExpanderDirection::Right;
+                addSapphireParam(button, "tout_button");
             }
         };
     }

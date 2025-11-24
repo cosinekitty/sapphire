@@ -467,6 +467,11 @@ namespace Sapphire
             {"y_output",               {  10.160,   35.000}},
             {"z_output",               {  10.160,   45.000}},
             }},
+        { "tricorder", {
+            {"_panel",                 { 127.000,  128.500}},
+            {"tin_button",             {   4.000,    4.000}},
+            {"tout_button",            { 123.000,    4.000}},
+            }},
         { "tubeunit", {
             {"_panel",                 {  60.960,  128.500}},
             {"airflow_atten",          {  10.500,   30.000}},
