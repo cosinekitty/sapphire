@@ -13,6 +13,7 @@ namespace Sapphire
         {
             TWIST_PARAM,
             TWIST_ATTEN,
+            ADD_TRICORDER_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -58,6 +59,8 @@ namespace Sapphire
                 configParam(TWIST_PARAM, MIN_TWIST, MAX_TWIST, 0, "Twist");
                 configParam(TWIST_ATTEN, -1, +1, 0, "Twist attenuverter", "%", 0, 100);
                 configInput(TWIST_INPUT, "Twist CV");
+
+                configButton(ADD_TRICORDER_BUTTON_PARAM, "Insert Tricorder");
 
                 initialize();
             }
@@ -114,6 +117,7 @@ namespace Sapphire
                 addFlippableOutputPort(Y_OUTPUT, "y_output", module);
                 addFlippableOutputPort(Z_OUTPUT, "z_output", module);
                 addSapphireControlGroup("twist", TWIST_PARAM, TWIST_ATTEN, TWIST_INPUT);
+                addInsertTricorderButton(ADD_TRICORDER_BUTTON_PARAM);
             }
 
             void draw(const DrawArgs& args) override

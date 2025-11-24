@@ -530,6 +530,21 @@ namespace Sapphire
     };
 
 
+    struct VectorInsertButton : app::SvgSwitch
+    {
+        SapphireWidget* parentWidget{};
+        Model* expanderModel{};
+        ExpanderDirection direction{};
+
+        explicit VectorInsertButton()
+        {
+            momentary = true;
+        }
+
+        void onButton(const event::Button& e) override;
+    };
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -993,6 +1008,16 @@ namespace Sapphire
             button->smod = getSapphireModule();
             button->flag = &button->smod->enableStereoMerge;
             addSapphireParam(button, "stereo_merge_button");
+        }
+
+        void addInsertTricorderButton(int buttonParamId)
+        {
+            auto button = createParamCentered<VectorInsertButton>(Vec{}, module, buttonParamId);
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/right_extender_button.svg")));
+            button->parentWidget = this;
+            button->expanderModel = modelSapphireTricorder;
+            button->direction = ExpanderDirection::Right;
+            addSapphireParam(button, "tricorder_button");
         }
     };
 

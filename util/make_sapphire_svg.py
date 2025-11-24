@@ -229,11 +229,15 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
     return Save(panel, svgFileName)
 
 
-def AddTricorderChaopsButtons(controls:ControlLayer, panel:Panel) -> None:
+def AddChaopsButton(controls:ControlLayer, panel:Panel) -> None:
     xChaopsButton = 4.0
-    xTricorderButton = panel.mmWidth - xChaopsButton
     yButtons = panel.mmHeight - 5.5
     controls.append(Component('chaops_button', xChaopsButton, yButtons))
+
+
+def AddTricorderButton(controls:ControlLayer, panel:Panel) -> None:
+    xTricorderButton = panel.mmWidth - 4.0
+    yButtons = panel.mmHeight - 5.5
     controls.append(Component('tricorder_button', xTricorderButton, yButtons))
 
 
@@ -282,7 +286,8 @@ def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*outputPortDY, 'port_label_z'))
         pl.append(ControlTextPath(font, 'P',  xPortLabel, yPortLabel + 3*outputPortDY, 'port_label_p'))
         pl.append(PolyPortHexagon(xmid, outputPortY1 + 3*outputPortDY))
-        AddTricorderChaopsButtons(controls, panel)
+        AddChaopsButton(controls, panel)
+        AddTricorderButton(controls, panel)
     return Save(panel, svgFileName)
 
 
@@ -347,6 +352,8 @@ def GenerateTinToutPanel(cdict:ControlDict, name:str, dir:str, ioLabel:str, dxCo
         pl.append(CenteredControlTextPath(font, ioLabel, xmid, yInLabel + 2.5, 'io_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'clear_label'))
         pl.append(PolyPortHexagon(xmid, inputPortY1 + 3*inputPortDY))
+        if name == 'tin':
+            AddTricorderButton(controls, panel)
     return Save(panel, svgFileName)
 
 
@@ -1076,6 +1083,7 @@ def GenerateRotiniPanel(cdict:ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'Z', xmid - dxText, outPortY + 2*outputPortDY))
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
         pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
+        AddTricorderButton(controls, panel)
     return Save(panel, svgFileName)
 
 
@@ -1134,6 +1142,7 @@ def GeneratePivotPanel(cdict:ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'P', xmid - dxText, outPortY + 3*outputPortDY))
 
         pl.append(PolyPortHexagon(xmid, outPortY + 3*outputPortDY))
+        AddTricorderButton(controls, panel)
     return Save(panel, svgFileName)
 
 

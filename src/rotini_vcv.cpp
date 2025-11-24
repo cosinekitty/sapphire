@@ -10,6 +10,7 @@ namespace Sapphire
     {
         enum ParamId
         {
+            ADD_TRICORDER_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -49,6 +50,7 @@ namespace Sapphire
                 configOutput(Y_OUTPUT, "Y");
                 configOutput(Z_OUTPUT, "Z");
                 configOutput(C_OUTPUT, "Polyphonic (X, Y, Z)");
+                configButton(ADD_TRICORDER_BUTTON_PARAM, "Insert Tricorder");
                 initialize();
             }
 
@@ -111,6 +113,7 @@ namespace Sapphire
                 addFlippableOutputPort(X_OUTPUT, "x_output", module);
                 addFlippableOutputPort(Y_OUTPUT, "y_output", module);
                 addFlippableOutputPort(Z_OUTPUT, "z_output", module);
+                addInsertTricorderButton(ADD_TRICORDER_BUTTON_PARAM);
             }
 
             void draw(const DrawArgs& args) override
