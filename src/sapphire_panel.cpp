@@ -195,6 +195,7 @@ namespace Sapphire
             }},
         { "frolic", {
             {"_panel",                 {  20.320,  128.500}},
+            {"chaops_button",          {   4.000,  123.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -202,6 +203,7 @@ namespace Sapphire
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
+            {"tricorder_button",       {  16.320,  123.000}},
             {"x_output",               {  10.160,   88.000}},
             {"y_output",               {  10.160,   97.000}},
             {"z_output",               {  10.160,  106.000}},
@@ -240,6 +242,7 @@ namespace Sapphire
             }},
         { "glee", {
             {"_panel",                 {  20.320,  128.500}},
+            {"chaops_button",          {   4.000,  123.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -247,6 +250,7 @@ namespace Sapphire
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
+            {"tricorder_button",       {  16.320,  123.000}},
             {"x_output",               {  10.160,   88.000}},
             {"y_output",               {  10.160,   97.000}},
             {"z_output",               {  10.160,  106.000}},
@@ -297,6 +301,7 @@ namespace Sapphire
             }},
         { "lark", {
             {"_panel",                 {  20.320,  128.500}},
+            {"chaops_button",          {   4.000,  123.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -304,6 +309,7 @@ namespace Sapphire
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
+            {"tricorder_button",       {  16.320,  123.000}},
             {"x_output",               {  10.160,   88.000}},
             {"y_output",               {  10.160,   97.000}},
             {"z_output",               {  10.160,  106.000}},
@@ -504,6 +510,7 @@ namespace Sapphire
             }},
         { "zoo", {
             {"_panel",                 {  20.320,  128.500}},
+            {"chaops_button",          {   4.000,  123.000}},
             {"chaos_atten",            {   5.160,   68.000}},
             {"chaos_cv",               {  15.160,   68.000}},
             {"chaos_knob",             {  10.160,   57.000}},
@@ -511,6 +518,7 @@ namespace Sapphire
             {"speed_atten",            {   5.160,   37.000}},
             {"speed_cv",               {  15.160,   37.000}},
             {"speed_knob",             {  10.160,   26.000}},
+            {"tricorder_button",       {  16.320,  123.000}},
             {"x_output",               {  10.160,   88.000}},
             {"y_output",               {  10.160,   97.000}},
             {"z_output",               {  10.160,  106.000}},

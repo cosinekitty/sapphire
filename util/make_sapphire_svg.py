@@ -229,6 +229,14 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
     return Save(panel, svgFileName)
 
 
+def AddTricorderChaopsButtons(controls:ControlLayer, panel:Panel) -> None:
+    xChaopsButton = 4.0
+    xTricorderButton = panel.mmWidth - xChaopsButton
+    yButtons = panel.mmHeight - 5.5
+    controls.append(Component('chaops_button', xChaopsButton, yButtons))
+    controls.append(Component('tricorder_button', xTricorderButton, yButtons))
+
+
 def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
     target = Target.VcvRack
     PANEL_WIDTH = 4
@@ -274,6 +282,7 @@ def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yPortLabel + 2*outputPortDY, 'port_label_z'))
         pl.append(ControlTextPath(font, 'P',  xPortLabel, yPortLabel + 3*outputPortDY, 'port_label_p'))
         pl.append(PolyPortHexagon(xmid, outputPortY1 + 3*outputPortDY))
+        AddTricorderChaopsButtons(controls, panel)
     return Save(panel, svgFileName)
 
 
@@ -2348,13 +2357,23 @@ def GenerateMultiTapPanels(cdict: ControlDict) -> int:
     )
 
 
-def GenerateMultiTapExtenderButton() -> int:
-    svgFileName = '../res/extender_button.svg'
+def GenerateRightExtenderButton() -> int:
+    svgFileName = '../res/right_extender_button.svg'
     panel = BasePanel(MULTITAP_INSERT_BUTTON_DX, MULTITAP_INSERT_BUTTON_DY)
     cx = (panel.mmWidth / 2) - 0.4
     cy = panel.mmHeight / 2
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         panel.append(CenteredControlTextPath(font, '>', cx, cy, pointSize = 12.0))
+    return Save(panel, svgFileName)
+
+
+def GenerateLeftExtenderButton() -> int:
+    svgFileName = '../res/left_extender_button.svg'
+    panel = BasePanel(MULTITAP_INSERT_BUTTON_DX, MULTITAP_INSERT_BUTTON_DY)
+    cx = (panel.mmWidth / 2) - 0.4
+    cy = panel.mmHeight / 2
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        panel.append(CenteredControlTextPath(font, '<', cx, cy, pointSize = 12.0))
     return Save(panel, svgFileName)
 
 
@@ -2381,7 +2400,8 @@ def GenerateTinyButton(name:str, step:int, fillColor1:str, fillColor2:str, strok
 
 def GenerateMultiTapButtons() -> int:
     return (
-        GenerateMultiTapExtenderButton() or
+        GenerateLeftExtenderButton() or
+        GenerateRightExtenderButton() or
         GenerateTinyButton('green',  0, '#585858', '#353535', '#434343', '#353535') or
         GenerateTinyButton('green',  1, '#4df04d', '#4d904d', '#356235', '#353535') or
         GenerateTinyButton('yellow', 0, '#585858', '#353535', '#434343', '#353535') or

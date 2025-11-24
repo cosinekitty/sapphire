@@ -164,7 +164,7 @@ namespace Sapphire
             explicit InsertButton()
             {
                 momentary = true;
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/extender_button.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/right_extender_button.svg")));
             }
 
             void onButton(const event::Button& e) override;
@@ -1431,7 +1431,7 @@ namespace Sapphire
                 addSapphireParam(button, "sendreturn_button");
             }
 
-            void addExpanderInsertButton(int paramId, int lightId)
+            void addExpanderInsertButton(int paramId)
             {
                 auto button = createParamCentered<InsertButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -1464,7 +1464,7 @@ namespace Sapphire
                 addChild(graph);
             }
 
-            void addExpanderRemoveButton(int paramId, int lightId)
+            void addExpanderRemoveButton(int paramId)
             {
                 auto button = createParamCentered<RemoveButton>(Vec{}, loopModule, paramId);
                 button->loopWidget = this;
@@ -2081,7 +2081,6 @@ namespace Sapphire
 
             enum LightId
             {
-                INSERT_BUTTON_LIGHT,
                 REVERSE_BUTTON_LIGHT,
                 FREEZE_BUTTON_LIGHT,
                 CLEAR_BUTTON_LIGHT,
@@ -2378,7 +2377,7 @@ namespace Sapphire
                 {
                     splash.x1 = 6 * HP_MM;
                     setModule(module);
-                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addLabelOverlays();
 
                     // Global controls/ports
@@ -2968,10 +2967,7 @@ namespace Sapphire
 
             enum LightId
             {
-                INSERT_BUTTON_LIGHT,
                 REVERSE_BUTTON_LIGHT,
-                _OBSOLETE_LIGHT,
-                REMOVE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -3134,8 +3130,8 @@ namespace Sapphire
                     , echoTapModule(module)
                 {
                     setModule(module);
-                    addExpanderInsertButton(INSERT_BUTTON_PARAM, INSERT_BUTTON_LIGHT);
-                    addExpanderRemoveButton(REMOVE_BUTTON_PARAM, REMOVE_BUTTON_LIGHT);
+                    addExpanderInsertButton(INSERT_BUTTON_PARAM);
+                    addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
                     addStereoOutputPorts(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     addStereoInputPorts(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
