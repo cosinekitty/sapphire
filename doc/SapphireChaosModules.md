@@ -27,3 +27,7 @@ If you are comfortable with algebra and vectors, you can enter in your own chaot
 All of the Sapphire chaos modules allow using [Chaops](Chaops.md) on the left and [Tricorder](Tricorder.md) on the right. See their documentation pages for more details.
 
 ![Chaops/Zoo/Tricorder expander chain](images/zoo_chaops_tricorder.png)
+
+## Expander Buttons
+
+There are also [buttons for adding expanders](SapphireExpanderButtons.md) in many Sapphire modules.
