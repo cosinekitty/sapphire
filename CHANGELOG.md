@@ -15,7 +15,7 @@
     <ul>
         <li><a href="doc/Echo.md">Echo</a> now has a GAIN control group to adjust the input audio level.</li>
         <li>Added buttons to the <a href="doc/SapphireChaosModules.md">chaos modules</a> insert a Chaops expander on the left.</li>
-        <li>Added buttons to the chaos modules, plus Rotini and Pivot, to insert a Tricorder expander on the right.</li>
+        <li>Added buttons to Rotini, Pivot, Tin, Tout, and the chaos modules, to insert a Tricorder expander.</li>
         <li>Added buttons in Tricorder to insert Tin on the left, Tout on the right.</li>
         <li><a href="doc/Moots.md">Moots</a>: when you hover the mouse over the GATE/TRIGGER text, it now changes to a purple color to emphasize that it is a clickable toggle.</li>
     </ul>
