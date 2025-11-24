@@ -12,6 +12,7 @@ namespace Sapphire
         {
             LEVEL_PARAM,
             LEVEL_ATTEN,
+            TRICORDER_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -55,6 +56,7 @@ namespace Sapphire
                 configParam(LEVEL_PARAM, 0, 2, 1, "Level", " dB", -10, 80);
                 configParam(LEVEL_ATTEN, -1, +1, 0, "Level attenuverter", "%", 0, 100);
                 configInput(LEVEL_INPUT, "Level CV");
+                configButton(TRICORDER_BUTTON_PARAM, "Insert Tricorder");
                 initialize();
             }
 
@@ -131,6 +133,7 @@ namespace Sapphire
                 addKnob(LEVEL_PARAM, "level_knob");
                 addSapphireAttenuverter(LEVEL_ATTEN, "level_atten");
                 addSapphireInput(LEVEL_INPUT, "level_cv");
+                addInsertTricorderButtonLeft(TRICORDER_BUTTON_PARAM);
             }
         };
     }

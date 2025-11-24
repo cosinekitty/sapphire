@@ -463,6 +463,7 @@ namespace Sapphire
             {"level_cv",               {  15.160,   86.000}},
             {"level_knob",             {  10.160,   75.000}},
             {"p_output",               {  10.160,   55.000}},
+            {"tricorder_button",       {   4.000,  123.000}},
             {"x_output",               {  10.160,   25.000}},
             {"y_output",               {  10.160,   35.000}},
             {"z_output",               {  10.160,   45.000}},

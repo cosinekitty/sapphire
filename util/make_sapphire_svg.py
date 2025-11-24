@@ -230,25 +230,34 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
 
 
 def AddChaopsButton(controls:ControlLayer, panel:Panel) -> None:
-    xChaopsButton = 4.0
-    yButtons = panel.mmHeight - 5.5
-    controls.append(Component('chaops_button', xChaopsButton, yButtons))
+    xButton = 4.0
+    yButton = panel.mmHeight - 5.5
+    controls.append(Component('chaops_button', xButton, yButton))
 
 
 def AddTricorderButton(controls:ControlLayer, panel:Panel) -> None:
-    xTricorderButton = panel.mmWidth - 4.0
-    yButtons = panel.mmHeight - 5.5
-    controls.append(Component('tricorder_button', xTricorderButton, yButtons))
+    xButton = panel.mmWidth - 4.0
+    yButton = panel.mmHeight - 5.5
+    controls.append(Component('tricorder_button', xButton, yButton))
+
+
+def AddTricorderLeftButton(controls:ControlLayer, panel:Panel) -> None:
+    xButton = 4.0
+    yButton = panel.mmHeight - 5.5
+    controls.append(Component('tricorder_button', xButton, yButton))
+
 
 def AddTinButton(controls:ControlLayer) -> None:
     xButton = 4.0
     yButton = 4.0
     controls.append(Component('tin_button', xButton, yButton))
 
+
 def AddToutButton(controls:ControlLayer, panel:Panel) -> None:
     xButton = panel.mmWidth - 4.0
     yButton = 4.0
     controls.append(Component('tout_button', xButton, yButton))
+
 
 def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
     target = Target.VcvRack
@@ -367,6 +376,8 @@ def GenerateTinToutPanel(cdict:ControlDict, name:str, dir:str, ioLabel:str, dxCo
         pl.append(PolyPortHexagon(xmid, inputPortY1 + 3*inputPortDY))
         if name == 'tin':
             AddTricorderButton(controls, panel)
+        elif name == 'tout':
+            AddTricorderLeftButton(controls, panel)
     return Save(panel, svgFileName)
 
 

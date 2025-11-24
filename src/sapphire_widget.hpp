@@ -1019,6 +1019,16 @@ namespace Sapphire
             button->direction = ExpanderDirection::Right;
             addSapphireParam(button, "tricorder_button");
         }
+
+        void addInsertTricorderButtonLeft(int buttonParamId)
+        {
+            auto button = createParamCentered<VectorInsertButton>(Vec{}, module, buttonParamId);
+            button->addFrame(Svg::load(asset::plugin(pluginInstance, "res/left_extender_button.svg")));
+            button->parentWidget = this;
+            button->expanderModel = modelSapphireTricorder;
+            button->direction = ExpanderDirection::Left;
+            addSapphireParam(button, "tricorder_button");
+        }
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone);
