@@ -724,17 +724,29 @@ namespace Sapphire
     };
 
 
-    static const Model* PeekModel(Module* module, ExpanderDirection dir)
+    const Model* PeekAdjacentModel(const ModuleWidget* origin, ExpanderDirection dir)
     {
-        if (module)
+        if (origin)
         {
-            Module* nextModule =
-                (dir == ExpanderDirection::Left) ?
-                module->leftExpander.module :
-                module->rightExpander.module;
+            float oy = px2mm(origin->box.pos.y);
+            float ox = px2mm(origin->box.pos.x);
+            if (dir == ExpanderDirection::Right)
+                ox += px2mm(origin->box.size.x);
 
-            if (nextModule)
-                return nextModule->model;
+            for (const Widget* w : APP->scene->rack->getModuleContainer()->children)
+            {
+                if (auto mw = dynamic_cast<const ModuleWidget*>(w))
+                {
+                    float my = px2mm(mw->box.pos.y);
+                    float mx = px2mm(mw->box.pos.x);
+                    if (dir == ExpanderDirection::Left)
+                        mx += px2mm(mw->box.size.x);
+                    int row = railDistance(my - oy);
+                    int col = hpDistance(mx - ox);
+                    if (row==0 && col==0)
+                        return mw->model;
+                }
+            }
         }
         return nullptr;
     }
@@ -750,7 +762,7 @@ namespace Sapphire
                 // Look in the requested insertion direction to see if
                 // the desired model is already present.
                 // If so, suppress adding a redundant instance of that model.
-                const Model* peekModel = PeekModel(parentWidget->module, direction);
+                const Model* peekModel = PeekAdjacentModel(parentWidget, direction);
                 if (expanderModel != peekModel)
                     AddExpander(expanderModel, parentWidget, direction, false);
             }

@@ -1034,6 +1034,7 @@ namespace Sapphire
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone);
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
     void AppendFactoryPresets(ui::Menu *menu, WeakPtr<ModuleWidget> moduleWidget, std::string presetDir);
+    const Model* PeekAdjacentModel(const ModuleWidget* origin, ExpanderDirection dir);
 
     struct PanelState
     {
