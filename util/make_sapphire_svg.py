@@ -1287,6 +1287,7 @@ def GeneratePopPanel(cdict:ControlDict) -> int:
     dxButton = 6.5
     xSyncButton = xmid + dxButton
     xPulseButton = xmid - dxButton
+    xWaitButton = xmid + dxButton
     yChannelDisplay = 80.0
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
@@ -1315,9 +1316,10 @@ def GeneratePopPanel(cdict:ControlDict) -> int:
         pl.append(HorizontalLine(xmid, xSyncButton, ySyncPort))
         controls.append(Component('sync_input', xmid, ySyncPort))
         controls.append(Component('sync_button', xSyncButton, ySyncPort))
-        pl.append(HorizontalLine(xmid, xPulseButton, yPulsePort))
+        pl.append(HorizontalLine(xWaitButton, xPulseButton, yPulsePort))
         controls.append(Component('pulse_output', xmid, yPulsePort))
         controls.append(Component('pulse_mode_button', xPulseButton, yPulsePort))
+        controls.append(Component('wait_button', xWaitButton, yPulsePort))
         pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
         pl.append(CenteredControlTextPath(font, 'PULSE', xmid, yOutLabel, 'pulse_label'))

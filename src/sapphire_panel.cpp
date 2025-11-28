@@ -402,6 +402,7 @@ namespace Sapphire
             {"speed_knob",             {  10.160,   26.000}},
             {"sync_button",            {  16.660,   99.000}},
             {"sync_input",             {  10.160,   99.000}},
+            {"wait_button",            {  16.660,  115.000}},
             }},
         { "rotini", {
             {"_panel",                 {  20.320,  128.500}},

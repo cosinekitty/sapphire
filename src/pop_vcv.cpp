@@ -15,6 +15,7 @@ namespace Sapphire
             CHANNEL_COUNT_PARAM,
             SYNC_BUTTON_PARAM,
             PULSE_MODE_BUTTON_PARAM,
+            WAIT_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -50,6 +51,7 @@ namespace Sapphire
             ChannelCountQuantity *channelCountQuantity{};
             bool prevTriggerOnReset = false;
             bool sendTriggerOnReset = false;
+            bool prevWait = false;
 
             PopModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -72,6 +74,7 @@ namespace Sapphire
 
                 configButton(SYNC_BUTTON_PARAM, "Sync polyphonic channels");
                 configButton(PULSE_MODE_BUTTON_PARAM, "Toggle pulse mode");
+                configButton(WAIT_BUTTON_PARAM, "Wait for sync");
 
                 initialize();
             }
@@ -90,6 +93,7 @@ namespace Sapphire
                 }
                 sendTriggerOnReset = false;
                 prevTriggerOnReset = false;
+                prevWait = false;
                 setOutputMode(static_cast<size_t>(OutputMode::Default));
             }
 
@@ -138,12 +142,17 @@ namespace Sapphire
                         engine[c].sendTriggerOnReset = sendTriggerOnReset;
                 }
 
+                const bool wait = (params.at(WAIT_BUTTON_PARAM).getValue() > 0.5f);
+                const bool waitTrigger = (wait && !prevWait);
+                prevWait = wait;
+
                 const int nc = desiredChannelCount();
                 currentChannelCount = nc;       // keep channel display panel updated
                 outputs.at(PULSE_OUTPUT).setChannels(nc);
                 float cvSpeed = 0;
                 float cvChaos = 0;
                 float vSync = 0;
+                bool anyChannelSync = isSyncPending;
                 for (int c = 0; c < nc; ++c)
                 {
                     nextChannelInputVoltage(cvSpeed, SPEED_CV_INPUT, c);
@@ -154,15 +163,29 @@ namespace Sapphire
                     float speed = cvGetVoltPerOctave(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
                     float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
 
-                    if (isSyncTrigger || isSyncPending)
+                    if (isSyncTrigger || isSyncPending || waitTrigger)
                         engine[c].initialize();
-                    engine[c].setSpeed(speed);
-                    engine[c].setChaos(chaos);
 
-                    const float v = engine[c].process(args.sampleRate);
+                    if (isSyncTrigger)
+                        anyChannelSync = true;
+
+                    float v;
+                    if (wait)
+                    {
+                        v = 0;
+                    }
+                    else
+                    {
+                        engine[c].setSpeed(speed);
+                        engine[c].setChaos(chaos);
+                        v = engine[c].process(args.sampleRate);
+                    }
                     outputs.at(PULSE_OUTPUT).setVoltage(v, c);
                 }
                 isSyncPending = false;
+
+                if (wait && anyChannelSync)
+                    params.at(WAIT_BUTTON_PARAM).setValue(0);
             }
 
             int desiredChannelCount() const
@@ -271,6 +294,17 @@ namespace Sapphire
         };
 
 
+        struct WaitButton : SapphireTinyToggleButton
+        {
+            PopModule* popModule{};
+
+            explicit WaitButton()
+            {
+                addTinyButtonFrames(this, "red");
+            }
+        };
+
+
         struct PopWidget : SapphireWidget
         {
             PopModule* popModule{};
@@ -297,6 +331,7 @@ namespace Sapphire
 
                 addSyncButton();
                 addPulseModeButton();
+                addWaitButton();
             }
 
             void addSyncButton()
@@ -311,6 +346,13 @@ namespace Sapphire
                 auto button = createParamCentered<PulseModeButton>(Vec{}, popModule, PULSE_MODE_BUTTON_PARAM);
                 button->popModule = popModule;
                 addSapphireParam(button, "pulse_mode_button");
+            }
+
+            void addWaitButton()
+            {
+                auto button = createParamCentered<WaitButton>(Vec{}, popModule, WAIT_BUTTON_PARAM);
+                button->popModule = popModule;
+                addSapphireParam(button, "wait_button");
             }
 
             void appendContextMenu(Menu* menu) override
