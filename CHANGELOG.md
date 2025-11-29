@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">29 Nov 2025</td>
+<td align="center">2.6.003</td>
+<td align="left">
+    <ul>
+        <li>Added a "wait for sync" button to Sapphire <a href="doc/Pop.md">Pop</a> that makes it silent until the next reset trigger/button.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">24 Nov 2025</td>
 <td align="center">2.6.002</td>
 <td align="left">
