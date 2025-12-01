@@ -435,6 +435,15 @@ namespace Sapphire
     };
 
 
+    struct StereoButtonQuantity : ParamQuantity
+    {
+        std::string getDisplayValueString() override
+        {
+            return (getValue() > 0.5f) ? "ENABLED" : "DISABLED";
+        }
+    };
+
+
     template <typename enum_t>
     struct ChangeEnumAction : history::Action
     {
@@ -1302,6 +1311,21 @@ namespace Sapphire
         {
             configOutput(leftPortId, "Left " + suffix);
             configOutput(rightPortId, "Right " + suffix);
+        }
+
+        void configStereoButton(int paramId, const std::string& name)
+        {
+            configParam<StereoButtonQuantity>(paramId, 0, 1, 0, name);
+        }
+
+        void configInputStereoButton(int paramId)
+        {
+            configStereoButton(paramId, "Input stereo split");
+        }
+
+        void configOutputStereoButton(int paramId)
+        {
+            configStereoButton(paramId, "Output stereo merge");
         }
 
         ParamQuantity* configAtten(int attenId, const std::string& name)

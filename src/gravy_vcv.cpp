@@ -87,6 +87,9 @@ namespace Sapphire
                 configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
                 configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
 
+                configInputStereoButton(IN_STEREO_BUTTON_PARAM);
+                configOutputStereoButton(OUT_STEREO_BUTTON_PARAM);
+
                 initialize();
             }
 

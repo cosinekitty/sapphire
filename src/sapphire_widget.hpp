@@ -406,17 +406,14 @@ namespace Sapphire
 
     struct SapphireStereoButton : SapphireTinyButton
     {
-        const char *offText{};
-        const char *onText{};
         const char *actionText{};
         SapphireModule* smod{};
         bool* flag{};
 
-        explicit SapphireStereoButton(const char* name, const char *_offText, const char *_onText, const char *_actionText)
-            : offText(_offText)
-            , onText(_onText)
-            , actionText(_actionText)
+        explicit SapphireStereoButton(const char* name, const char *_actionText)
+            : actionText(_actionText)
         {
+            momentary = true;
             addTinyButtonFrames(this, name);
         }
 
@@ -426,9 +423,7 @@ namespace Sapphire
             {
                 auto qty = getParamQuantity();
                 qty->setValue(*flag ? 1.0f : 0.0f);
-                smod->updateToggleButtonTooltip(qty->paramId, offText, onText);
             }
-
             SapphireTinyButton::step();
         }
 
@@ -443,7 +438,7 @@ namespace Sapphire
     struct StereoSplitterButton : SapphireStereoButton
     {
         explicit StereoSplitterButton()
-            : SapphireStereoButton("green", "Stereo split DISABLED", "Stereo split ENABLED", "input stereo splitter")
+            : SapphireStereoButton("green", "input stereo splitter")
             {}
     };
 
@@ -451,7 +446,7 @@ namespace Sapphire
     struct StereoMergeButton : SapphireStereoButton
     {
         explicit StereoMergeButton()
-            : SapphireStereoButton("yellow", "Stereo merge DISABLED", "Stereo merge ENABLED", "output stereo merge")
+            : SapphireStereoButton("yellow", "output stereo merge")
             {}
     };
 
