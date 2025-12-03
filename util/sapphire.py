@@ -281,6 +281,31 @@ def AddShortToggleGroup(
     return group
 
 
+def AddLineToggleGroup(
+        pl: Element,
+        controls: ControlLayer,
+        font: Font,
+        caption: str,
+        prefix: str,
+        x1: float,
+        x2: float,
+        yControl: float,
+        dyText: float,
+        id: str = '') -> Element:
+
+    group = Element('g', id)
+
+    if caption:
+        pl.append(CenteredControlTextPath(font, caption, (x1+x2)/2, yControl - dyText))
+
+    pl.append(HorizontalLinePath(x1, x2, yControl))
+
+    controls.append(Component(prefix + '_input',  x1, yControl))
+    controls.append(Component(prefix + '_button', x2, yControl))
+    controls.append(Component(prefix + '_label',  (x1+x2)/2, yControl))
+    return group
+
+
 @enum.unique
 class Target(enum.Enum):
     VcvRack = 1

@@ -9,11 +9,12 @@
 </tr>
 
 <tr valign="top">
-<td align="center">1 Dec 2025</td>
+<td align="center">3 Dec 2025</td>
 <td align="center">2.6.003</td>
 <td align="left">
     <ul>
         <li>Added a "wait for sync" button to Sapphire <a href="doc/Pop.md">Pop</a> that makes it silent until the next reset trigger/button.</li>
+        <li><a href="doc/Galaxy.md">Galaxy</a> now includes a trigger input and a button to clear out the reverberation tank. This instantly silences any lingering sound remaining in the reverb.</li>
         <li>Fixed minor bug in undo/redo of the stereo merge/split buttons in Galaxy, Gravy, and Elastika. There was an extraneous step "move switch" added to the history that had no effect. Now only the correct actions are listed in the history.</li>
     </ul>
 </td>

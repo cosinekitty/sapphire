@@ -824,17 +824,19 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
     dxPortFromCenter = 6.0
 
     if target == Target.VcvRack:
-        yRow = FencePost(22.0, 114.0, 7)
-        dyText = 6.5
-        dyTopArt = 9.5
+        yRow = FencePost(22.0, 114.0, 8)
+        dyText = 5.5
+        dyTopArt = 8.5
     elif target == Target.Lite:
         yRow = FencePost(10.0, 129.0, 7)
         dyText = 8.5
         dyTopArt = 14.0
     else:
         raise TargetError(target)
+
     yInPort  = yRow.value(0)
-    yOutPort = yRow.value(6)
+    yClear   = yRow.value(1)
+    yOutPort = yRow.value(7)
     dyGrad = 6.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -850,20 +852,25 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
             pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
         # Controls gradient
-        y1 = yRow.value(1) - dyTopArt
+        if target == Target.VcvRack:
+            firstControlRow = 2
+        else:
+            firstControlRow = 1
+
+        y1 = yRow.value(firstControlRow) - dyTopArt
         y2 = yRow.value(5) + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
         if target == Target.VcvRack:
             # Gradient for stereo output ports
-            y1 = yOutPort - 9.5
+            y1 = yOutPort - 8.5
             y2 = yOutPort + dyGrad
             defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
             pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         if target == Target.VcvRack:
-            pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - dyText))
+            pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - 6.5))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
             controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
@@ -873,8 +880,9 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
             controls.append(Component('stereo_merge_button', xmid, yOutPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
+            AddLineToggleGroup(pl, controls, font, 'CLR', 'clear' , xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yClear, 3.5)
 
-        row = 1
+        row = firstControlRow
         for (symbol, label) in table:
             y = yRow.value(row)
             pl.append(CenteredControlTextPath(font, label, xmid, y-dyText))

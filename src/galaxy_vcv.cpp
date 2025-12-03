@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_smoother.hpp"
 #include "galaxy_engine.hpp"
 
 // Sapphire Galaxy for VCV Rack by Don Cross <cosinekitty@gmail.com>
@@ -27,6 +28,7 @@ namespace Sapphire
             MIX_ATTEN,
             IN_STEREO_BUTTON_PARAM,
             OUT_STEREO_BUTTON_PARAM,
+            CLEAR_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -39,6 +41,7 @@ namespace Sapphire
             DETUNE_CV_INPUT,
             BIGNESS_CV_INPUT,
             MIX_CV_INPUT,
+            CLEAR_INPUT,
             INPUTS_LEN
         };
 
@@ -51,12 +54,15 @@ namespace Sapphire
 
         enum LightId
         {
+            CLEAR_BUTTON_LIGHT,
             LIGHTS_LEN
         };
 
         struct GalaxyModule : SapphireModule
         {
             Engine engine;
+            AnimatedTriggerReceiver clearReceiver;
+            Smoother clearSmoother;
 
             GalaxyModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -84,6 +90,8 @@ namespace Sapphire
                 configInputStereoButton(IN_STEREO_BUTTON_PARAM);
                 configOutputStereoButton(OUT_STEREO_BUTTON_PARAM);
 
+                configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
+
                 initialize();
             }
 
@@ -97,6 +105,8 @@ namespace Sapphire
                 engine.initialize();
                 enableStereoSplitter = false;
                 limiterRecoveryCountdown = 0;
+                clearReceiver.initialize();
+                clearSmoother.initialize();
             }
 
             void onReset(const ResetEvent& e) override
@@ -116,6 +126,8 @@ namespace Sapphire
                 }
                 else
                 {
+                    updateClearState(args.sampleRate);
+
                     engine.setReplace(getControlValue(REPLACE_PARAM, REPLACE_ATTEN, REPLACE_CV_INPUT));
                     engine.setBrightness(getControlValue(BRIGHTNESS_PARAM, BRIGHTNESS_ATTEN, BRIGHTNESS_CV_INPUT));
                     engine.setDetune(getControlValue(DETUNE_PARAM, DETUNE_ATTEN, DETUNE_CV_INPUT));
@@ -125,12 +137,36 @@ namespace Sapphire
                     float inLeft, inRight;
                     loadStereoInputs(inLeft, inRight, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
 
+                    inLeft  *= clearSmoother.getGain();
+                    inRight *= clearSmoother.getGain();
+
                     engine.process(args.sampleRate, inLeft, inRight, output[0], output[1]);
+
+                    output[0] *= clearSmoother.getGain();
+                    output[1] *= clearSmoother.getGain();
 
                     if (checkOutputs(args.sampleRate, output, 2))
                         engine.initialize();
                 }
                 writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
+            }
+
+            void updateClearState(float sampleRateHz)
+            {
+                const bool clearRequested = updateTriggerGroup(
+                    sampleRateHz,
+                    clearReceiver,
+                    CLEAR_INPUT,
+                    CLEAR_BUTTON_PARAM,
+                    CLEAR_BUTTON_LIGHT
+                );
+
+                if (clearRequested)
+                    clearSmoother.begin();
+
+                clearSmoother.process(sampleRateHz);
+                if (clearSmoother.isDelayedActionReady())
+                    engine.initialize();
             }
         };
 
@@ -160,6 +196,22 @@ namespace Sapphire
                 loadOutputStereoLabels();
                 addStereoSplitterButton(IN_STEREO_BUTTON_PARAM);
                 addStereoMergeButton(OUT_STEREO_BUTTON_PARAM);
+                addClearTriggerGroup();
+            }
+
+            void addClearTriggerGroup()
+            {
+                addToggleGroup(
+                    nullptr,
+                    "clear",
+                    CLEAR_INPUT,
+                    CLEAR_BUTTON_PARAM,
+                    CLEAR_BUTTON_LIGHT,
+                    '\0',
+                    0.0,
+                    SCHEME_GREEN,
+                    true
+                );
             }
 
             void appendContextMenu(Menu* menu) override
