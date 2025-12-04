@@ -77,3 +77,7 @@ The following example also demonstrates that you can place a [Tricorder](Tricode
 immediately to the right of a Split/Add/Merge and it will graph the output vector.
 
 ![Adder example](images/sam_add_example.png)
+
+## Insert Tricorder button
+
+Split/Add/Merge has a [button to insert a Tricorder](SapphireExpanderButtons.md) graphing module to the right. This will graph whatever vector value is sent to the output.

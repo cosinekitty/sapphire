@@ -235,9 +235,13 @@ def AddChaopsButton(controls:ControlLayer, panel:Panel) -> None:
     controls.append(Component('chaops_button', xButton, yButton))
 
 
-def AddTricorderButton(controls:ControlLayer, panel:Panel) -> None:
-    xButton = panel.mmWidth - 4.0
-    yButton = panel.mmHeight - 5.5
+def AddTricorderButton(controls:ControlLayer, panel:Panel, xButton:float = -1.0, yButton:float = -1.0) -> None:
+    if xButton < 0.0:
+        xButton = panel.mmWidth - 4.0
+
+    if yButton < 0.0:
+        yButton = panel.mmHeight - 5.5
+
     controls.append(Component('tricorder_button', xButton, yButton))
 
 
@@ -1232,8 +1236,11 @@ def GenerateSamPanel(cdict:ControlDict) -> int:
     dyArrowMargin = 10.0
     dxArrow = 2.75
     dyArrow = 5.0
+    dyArrowAdjust = 3.0
     xmid = panel.mmWidth / 2.0
     yChannelDisplay = 14.75
+    xTricorderButton = xmid
+    yTricorderButton = yInput.value(3.9)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, 's'))
@@ -1246,8 +1253,8 @@ def GenerateSamPanel(cdict:ControlDict) -> int:
 
         pl.append(PolyPortHexagon(xmid, yInput.value(3)))
 
-        y1Arrow = yInput.value(3) + dyArrowMargin
-        y2Arrow = yOutput.value(0) - dyArrowMargin
+        y1Arrow = yInput.value(3) + dyArrowMargin + dyArrowAdjust
+        y2Arrow = yOutput.value(0) - dyArrowMargin + dyArrowAdjust
         pl.append(VerticalArrow(xmid, y1Arrow, y2Arrow, dxArrow, dyArrow))
 
         controls.append(Component('x_output', xmid, yOutput.value(0)))
@@ -1258,6 +1265,8 @@ def GenerateSamPanel(cdict:ControlDict) -> int:
         controls.append(Component('channel_display', xmid, yChannelDisplay))
 
         pl.append(PolyPortHexagon(xmid, yOutput.value(3)))
+
+        AddTricorderButton(controls, panel, xTricorderButton, yTricorderButton)
     return Save(panel, svgFileName)
 
 

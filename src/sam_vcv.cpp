@@ -12,6 +12,7 @@ namespace Sapphire
         enum ParamId
         {
             CHANNEL_COUNT_PARAM,
+            ADD_TRICORDER_BUTTON_PARAM,
             PARAMS_LEN
         };
 
@@ -60,6 +61,8 @@ namespace Sapphire
                 configOutput(X_OUTPUT, "X");
                 configOutput(Y_OUTPUT, "Y");
                 configOutput(Z_OUTPUT, "Z");
+
+                configButton(ADD_TRICORDER_BUTTON_PARAM, "Insert Tricorder");
 
                 initialize();
             }
@@ -158,6 +161,7 @@ namespace Sapphire
                 addSapphireOutput(Y_OUTPUT, "y_output");
                 addSapphireOutput(Z_OUTPUT, "z_output");
                 addSapphireChannelDisplay("channel_display");
+                addInsertTricorderButton(ADD_TRICORDER_BUTTON_PARAM);
             }
 
             void appendContextMenu(Menu* menu) override

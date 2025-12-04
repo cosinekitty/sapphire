@@ -15,6 +15,7 @@
     <ul>
         <li>Added a "wait for sync" button to Sapphire <a href="doc/Pop.md">Pop</a> that makes it silent until the next reset trigger/button.</li>
         <li><a href="doc/Galaxy.md">Galaxy</a> now includes a trigger input and a button to clear out the reverberation tank. This instantly silences any lingering sound remaining in the reverb.</li>
+        <li>Added an <a href="doc/SapphireExpanderButtons.md">Insert Tricorder</a> expander button to <a href="doc/SplitAddMerge.md">Split/Add/Merge</a>.</li>
         <li>Fixed minor bug in undo/redo of the stereo merge/split buttons in Galaxy, Gravy, and Elastika. There was an extraneous step "move switch" added to the history that had no effect. Now only the correct actions are listed in the history.</li>
     </ul>
 </td>
@@ -26,7 +27,7 @@
 <td align="left">
     <ul>
         <li><a href="doc/Echo.md">Echo</a> now has a GAIN control group to adjust the input audio level.</li>
-        <li>Added buttons to the <a href="doc/SapphireChaosModules.md">chaos modules</a> insert a Chaops expander on the left.</li>
+        <li>Added buttons to the <a href="doc/SapphireChaosModules.md">chaos modules</a> insert a Chaops expander on the left. See <a href="doc/SapphireExpanderButtons.md">expander button documentation</a>.</li>
         <li>Added buttons to Rotini, Pivot, Tin, Tout, and the chaos modules, to insert a Tricorder expander.</li>
         <li>Added buttons in Tricorder to insert Tin on the left, Tout on the right.</li>
         <li><a href="doc/Moots.md">Moots</a>: when you hover the mouse over the GATE/TRIGGER text, it now changes to a purple color to emphasize that it is a clickable toggle.</li>

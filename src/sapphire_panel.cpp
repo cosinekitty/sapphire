@@ -422,6 +422,7 @@ namespace Sapphire
             {"channel_display",        {   5.080,   14.750}},
             {"p_input",                {   5.080,   52.000}},
             {"p_output",               {   5.080,  115.000}},
+            {"tricorder_button",       {   5.080,   60.100}},
             {"x_input",                {   5.080,   25.000}},
             {"x_output",               {   5.080,   88.000}},
             {"y_input",                {   5.080,   34.000}},
