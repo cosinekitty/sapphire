@@ -619,71 +619,6 @@ namespace Sapphire
         };
 
 
-        struct SnapVoctAction : history::Action
-        {
-            Param* atten{};
-            SapphireAttenuverterKnob* knob{};
-            const bool prevLowSensitive;
-            const float prevAttenValue;
-
-            explicit SnapVoctAction(Param* _atten, SapphireAttenuverterKnob* _knob)
-                : atten(_atten)
-                , knob(_knob)
-                , prevLowSensitive(_knob && _knob->isLowSensitive())
-                , prevAttenValue(_atten ? _atten->getValue() : 0.0f)
-            {
-                name = "snap attenuverter to V/OCT";
-            }
-
-            void undo() override
-            {
-                if (atten && knob)
-                {
-                    atten->setValue(prevAttenValue);
-                    knob->setLowSensitive(prevLowSensitive);
-                }
-            }
-
-            void redo() override
-            {
-                if (atten && knob)
-                {
-                    // Disable low sensitivity if set, in order to get the correct percentage.
-                    knob->setLowSensitive(false);
-
-                    // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
-                    // if the attenuverter were set to 100%. We want to bring the ratio down
-                    // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
-                    const float cvRange = 5;
-                    const float knobRange = 2*ChaosOctaveRange;
-                    atten->setValue(cvRange/knobRange);
-                }
-            }
-        };
-
-
-        struct SpeedAttenuverterKnob : SapphireAttenuverterKnob
-        {
-            Param* atten = nullptr;
-
-            void appendContextMenu(Menu* menu) override
-            {
-                SapphireAttenuverterKnob::appendContextMenu(menu);
-                if (atten)
-                {
-                    menu->addChild(createMenuItem(
-                        "Snap to V/OCT",
-                        "",
-                        [=]()
-                        {
-                            InvokeAction(new SnapVoctAction(atten, this));
-                        }
-                    ));
-                }
-            }
-        };
-
-
         template <typename module_t>
         struct ChaosWidget : SapphireWidget
         {
@@ -714,6 +649,11 @@ namespace Sapphire
 
                 auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
                 knob->atten = module ? &module->params.at(SPEED_ATTEN) : nullptr;
+
+                // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
+                // if the attenuverter were set to 100%. We want to bring the ratio down
+                // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
+                knob->voctSetting = 5.0f / (2*ChaosOctaveRange);
 
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 

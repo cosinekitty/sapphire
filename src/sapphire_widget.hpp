@@ -176,6 +176,68 @@ namespace Sapphire
     };
 
 
+    struct SnapVoctAction : history::Action
+    {
+        Param* atten{};
+        SapphireAttenuverterKnob* knob{};
+        const bool prevLowSensitive;
+        const float prevAttenValue;
+        const float voctSetting;
+
+        explicit SnapVoctAction(Param* _atten, SapphireAttenuverterKnob* _knob, const float _voctSetting)
+            : atten(_atten)
+            , knob(_knob)
+            , prevLowSensitive(_knob && _knob->isLowSensitive())
+            , prevAttenValue(_atten ? _atten->getValue() : 0.0f)
+            , voctSetting(_voctSetting)
+        {
+            name = "snap attenuverter to V/OCT";
+        }
+
+        void undo() override
+        {
+            if (atten && knob)
+            {
+                atten->setValue(prevAttenValue);
+                knob->setLowSensitive(prevLowSensitive);
+            }
+        }
+
+        void redo() override
+        {
+            if (atten && knob)
+            {
+                // Disable low sensitivity if set, in order to get the correct percentage.
+                knob->setLowSensitive(false);
+                atten->setValue(voctSetting);
+            }
+        }
+    };
+
+
+    struct SpeedAttenuverterKnob : SapphireAttenuverterKnob
+    {
+        Param* atten = nullptr;
+        float voctSetting = 1;
+
+        void appendContextMenu(Menu* menu) override
+        {
+            SapphireAttenuverterKnob::appendContextMenu(menu);
+            if (atten)
+            {
+                menu->addChild(createMenuItem(
+                    "Snap to V/OCT",
+                    "",
+                    [=]()
+                    {
+                        InvokeAction(new SnapVoctAction(atten, this, voctSetting));
+                    }
+                ));
+            }
+        }
+    };
+
+
     struct SapphireChannelDisplay : Widget
     {
         SapphireModule* module = nullptr;

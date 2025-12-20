@@ -320,7 +320,9 @@ namespace Sapphire
                 addKnob(SPEED_PARAM, "speed_knob");
                 addKnob(CHAOS_PARAM, "chaos_knob");
 
-                addSapphireAttenuverter(SPEED_ATTEN, "speed_atten");
+                auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
+                knob->atten = popModule ? &popModule->params.at(SPEED_ATTEN) : nullptr;
+
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
 
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
