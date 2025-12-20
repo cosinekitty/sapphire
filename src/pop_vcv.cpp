@@ -319,12 +319,8 @@ namespace Sapphire
 
                 addKnob(SPEED_PARAM, "speed_knob");
                 addKnob(CHAOS_PARAM, "chaos_knob");
-
-                auto knob = addSapphireAttenuverter<SpeedAttenuverterKnob>(SPEED_ATTEN, "speed_atten");
-                knob->atten = popModule ? &popModule->params.at(SPEED_ATTEN) : nullptr;
-
+                addSnapVoctAttenuverter(SPEED_ATTEN, "speed_atten", 1);
                 addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
-
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");

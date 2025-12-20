@@ -253,7 +253,7 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_BANDPASS_OUTPUT, "audio_bp_output");
                 addSapphireOutput(AUDIO_HIGHPASS_OUTPUT, "audio_hp_output");
 
-                addSapphireFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
+                addSnapVoctFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
                 addSapphireFlatControlGroupWithWarningLight("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);

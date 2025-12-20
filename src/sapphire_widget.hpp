@@ -215,7 +215,7 @@ namespace Sapphire
     };
 
 
-    struct SpeedAttenuverterKnob : SapphireAttenuverterKnob
+    struct SnapVoctAttenuverterKnob : SapphireAttenuverterKnob
     {
         Param* atten = nullptr;
         float voctSetting = 1;
@@ -851,6 +851,15 @@ namespace Sapphire
             return knob;
         }
 
+        template <typename knob_t = RoundSmallBlackKnob>
+        knob_t* addSnapVoctFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        {
+            knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
+            addSnapVoctAttenuverter(attenId, prefix + "_atten", 1);
+            addSapphireInput(cvInputId, prefix + "_cv");
+            return knob;
+        }
+
         template <typename knob_t = OutputLimiterSmallKnob>
         knob_t* addSapphireFlatControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
         {
@@ -881,6 +890,14 @@ namespace Sapphire
             input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
             port->group = group;
             return port;
+        }
+
+        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting)
+        {
+            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, label);
+            knob->atten = module ? &module->getParam(attenId) : nullptr;
+            knob->voctSetting = voctSetting;
+            return knob;
         }
 
         SvgOverlay* loadLabel(const char *svgFileName)
