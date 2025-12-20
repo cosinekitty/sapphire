@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+<td align="center">20 Dec 2025</td>
+<td align="center">2.6.004</td>
+<td align="left">
+    <ul>
+        <li>The following modules have speed/frequency attenuverter knobs with a new option "Snap to V/OCT": <a href="doc/Pop.md">Pop</a>, <a href="doc/Gravy.md">Gravy</a>, <a href="doc/Sauce.md">Sauce</a>. This action sets the attenuverter to the correct setting for V/OCT behavior on the input port. The <a href="doc/SapphireChaosModules.md">chaos modules</a> already had "Snap to V/OCT" on the SPEED attenuverter, but in their case for a different value (5/14 = 35.714%). These changes provide a uniform way to select V/OCT behavior.</li>
+    </ul>
+</td>
+</tr>
+
+<tr valign="top">
 <td align="center">3 Dec 2025</td>
 <td align="center">2.6.003</td>
 <td align="left">
