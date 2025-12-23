@@ -51,6 +51,8 @@ namespace Sapphire
                 configInput(AUDIO_RIGHT_INPUT, "Audio right");
                 configOutput(AUDIO_LEFT_OUTPUT, "Audio left");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Audio right");
+                configBypass(AUDIO_LEFT_INPUT, AUDIO_LEFT_OUTPUT);
+                configBypass(AUDIO_RIGHT_INPUT, AUDIO_RIGHT_OUTPUT);
                 initialize();
             }
 
@@ -62,10 +64,20 @@ namespace Sapphire
 
             void initialize()
             {
+                engine.initialize();
             }
 
             void process(const ProcessArgs& args) override
             {
+                float depthKnob = getControlValue(DEPTH_PARAM, DEPTH_ATTEN, DEPTH_CV_INPUT, 0, 1);
+                float rateKnob = getControlValue(RATE_PARAM, RATE_ATTEN, RATE_CV_INPUT, -1, +1);
+                engine.setChorusDepth(depthKnob);
+                engine.setChorusRate(rateKnob);
+                float leftInput = inputs.at(AUDIO_LEFT_INPUT).getVoltageSum();
+                float rightInput = inputs.at(AUDIO_RIGHT_INPUT).getVoltageSum();
+                StereoFrame frame = engine.update(args.sampleRate, leftInput, rightInput);
+                outputs.at(AUDIO_LEFT_OUTPUT).setVoltage(frame.sample[0]);
+                outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(frame.sample[1]);
             }
         };
 
