@@ -8,16 +8,26 @@ namespace Sapphire
     {
         enum ParamId
         {
+            DEPTH_PARAM,
+            DEPTH_ATTEN,
+            RATE_PARAM,
+            RATE_ATTEN,
             PARAMS_LEN
         };
 
         enum InputId
         {
+            AUDIO_LEFT_INPUT,
+            AUDIO_RIGHT_INPUT,
+            DEPTH_CV_INPUT,
+            RATE_CV_INPUT,
             INPUTS_LEN
         };
 
         enum OutputId
         {
+            AUDIO_LEFT_OUTPUT,
+            AUDIO_RIGHT_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -35,6 +45,12 @@ namespace Sapphire
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                configControlGroup("Depth", DEPTH_PARAM, DEPTH_ATTEN, DEPTH_CV_INPUT, 0, 1, 0.5);
+                configControlGroup("Rate", RATE_PARAM, RATE_ATTEN, RATE_CV_INPUT, -1, +1, 0);
+                configInput(AUDIO_LEFT_INPUT, "Audio left");
+                configInput(AUDIO_RIGHT_INPUT, "Audio right");
+                configOutput(AUDIO_LEFT_OUTPUT, "Audio left");
+                configOutput(AUDIO_RIGHT_OUTPUT, "Audio right");
                 initialize();
             }
 
@@ -63,6 +79,12 @@ namespace Sapphire
                 , chorusModule(module)
             {
                 setModule(module);
+                addSapphireInput(AUDIO_LEFT_INPUT, "audio_left_input");
+                addSapphireInput(AUDIO_RIGHT_INPUT, "audio_right_input");
+                addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSapphireFlatControlGroup("depth", DEPTH_PARAM, DEPTH_ATTEN, DEPTH_CV_INPUT);
+                addSapphireFlatControlGroup("rate", RATE_PARAM, RATE_ATTEN, RATE_CV_INPUT);
             }
         };
     }

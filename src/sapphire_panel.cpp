@@ -26,6 +26,16 @@ namespace Sapphire
             }},
         { "chorus", {
             {"_panel",                 {  30.480,  128.500}},
+            {"audio_left_input",       {   9.240,   22.000}},
+            {"audio_left_output",      {   9.240,  114.000}},
+            {"audio_right_input",      {  21.240,   22.000}},
+            {"audio_right_output",     {  21.240,  114.000}},
+            {"depth_atten",            {  15.240,   35.143}},
+            {"depth_cv",               {   6.240,   35.143}},
+            {"depth_knob",             {  24.240,   35.143}},
+            {"rate_atten",             {  15.240,   48.286}},
+            {"rate_cv",                {   6.240,   48.286}},
+            {"rate_knob",              {  24.240,   48.286}},
             }},
         { "echo", {
             {"_panel",                 {  60.960,  128.500}},

@@ -907,10 +907,26 @@ def GenerateChorusPanel(cdict:ControlDict, name:str, target:Target) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     cdict[name] = controls = ControlLayer(panel)
+    xmid = panel.mmWidth/2
+    dxPortFromCenter = 6.0
+    dyText = 6.0
+    yFence = FencePost(22.0, 114.0, 8)
+    yInPort = yFence.value(0)
+    yDepth = yFence.value(1)
+    yRate = yFence.value(2)
+    yOutPort = yFence.value(7)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
+        AddFlatControlGroup(pl, controls, xmid, yDepth, 'depth')
+        AddFlatControlGroup(pl, controls, xmid, yRate, 'rate')
+        pl.append(CenteredControlTextPath(font, 'DEPTH', xmid, yDepth - dyText))
+        pl.append(CenteredControlTextPath(font, 'RATE', xmid, yRate - dyText))
+        controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
+        controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
+        controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
     return Save(panel, svgFileName)
 
 
