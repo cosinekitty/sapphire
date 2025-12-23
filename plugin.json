@@ -23,6 +23,16 @@
       ]
     },
     {
+      "slug": "Chorus",
+      "name": "Chorus",
+      "description": "Stereo chorus effect.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Chorus.md",
+      "tags": [
+        "Chorus",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "Echo",
       "name": "Echo",
       "description": "A multi-layer stereo/polyphonic delay looper.",

@@ -900,6 +900,20 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateChorusPanel(cdict:ControlDict, name:str, target:Target) -> int:
+    svgFileName = SvgFileName(name, target)
+    PANEL_WIDTH = 6
+    panel = Panel(PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    cdict[name] = controls = ControlLayer(panel)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, PANEL_WIDTH))
+        pl.append(ModelNamePath(panel, font, name))
+        pl.append(CenteredGemstone(panel))
+    return Save(panel, svgFileName)
+
+
 def GenerateGravyPanel(cdict:ControlDict, name:str, target:Target) -> int:
     table:List[Tuple[str, str]] = [
         ('frequency',   'FREQ'),
@@ -2505,6 +2519,7 @@ if __name__ == '__main__':
         GenerateElastikaPanel(cdict, Target.Lite) or
         GenerateEnvPitchPanel(cdict, Target.VcvRack) or
         GenerateTubeUnit(cdict, 'tube unit', 'tubeunit') or
+        GenerateChorusPanel(cdict, 'chorus', Target.VcvRack) or
         SaveControls(cdict) or
         Print('SUCCESS')
     )

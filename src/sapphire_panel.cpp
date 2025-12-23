@@ -24,6 +24,9 @@ namespace Sapphire
             {"store_button",           {   7.240,   42.000}},
             {"store_trigger",          {   7.240,   53.000}},
             }},
+        { "chorus", {
+            {"_panel",                 {  30.480,  128.500}},
+            }},
         { "echo", {
             {"_panel",                 {  60.960,  128.500}},
             {"audio_left_input",       {  11.240,   93.000}},

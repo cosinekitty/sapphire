@@ -1,4 +1,5 @@
 chaops
+chorus
 elastika
 env
 frolic
