@@ -3,85 +3,45 @@
 
 namespace Sapphire
 {
-    namespace Vina
+    namespace Chorus
     {
         constexpr float defaultChorusHz = 0.076;
 
-        struct VinaStereoFrame
+        struct StereoFrame
         {
             float sample[2]{};
 
-            VinaStereoFrame() {}
+            StereoFrame() {}
 
-            explicit VinaStereoFrame(float left, float right)
+            explicit StereoFrame(float left, float right)
                 : sample{left, right}
                 {}
 
-            void operator += (const VinaStereoFrame& other)
+            void operator += (const StereoFrame& other)
             {
                 sample[0] += other.sample[0];
                 sample[1] += other.sample[1];
             }
 
-            friend VinaStereoFrame operator* (float k, const VinaStereoFrame& f)
+            friend StereoFrame operator* (float k, const StereoFrame& f)
             {
-                return VinaStereoFrame(k*f.sample[0], k*f.sample[1]);
+                return StereoFrame(k*f.sample[0], k*f.sample[1]);
             }
 
-            friend VinaStereoFrame operator+ (const VinaStereoFrame& a, const VinaStereoFrame& b)
+            friend StereoFrame operator+ (const StereoFrame& a, const StereoFrame& b)
             {
-                return VinaStereoFrame(a.sample[0] + b.sample[0], a.sample[1] + b.sample[1]);
-            }
-        };
-
-        template <typename batch_t>
-        struct ParticleBatch
-        {
-            batch_t pos;
-            batch_t vel;
-
-            explicit ParticleBatch()
-                {}
-
-            explicit ParticleBatch(batch_t _pos, batch_t _vel)
-                : pos(_pos)
-                , vel(_vel)
-                {}
-
-            friend ParticleBatch operator * (float k, const ParticleBatch& p)
-            {
-                return ParticleBatch(k*p.pos, k*p.vel);
-            }
-
-            friend ParticleBatch operator + (const ParticleBatch& a, const ParticleBatch& b)
-            {
-                return ParticleBatch(a.pos + b.pos, a.vel + b.vel);
+                return StereoFrame(a.sample[0] + b.sample[0], a.sample[1] + b.sample[1]);
             }
         };
 
-        using VinaParticle = ParticleBatch<float>;
         constexpr unsigned delayLineFrames = 48000;     // up to 1 second at typical rate, less at higher rates.
-        using chorus_delay_t = DelayLine<VinaStereoFrame, delayLineFrames>;
+        using chorus_delay_t = DelayLine<StereoFrame, delayLineFrames>;
 
         constexpr float max_dt = 0.004;
         constexpr float inputScale = 1000;
         constexpr float outputScale = 1000 / inputScale;
 
-        constexpr int InvalidIndex = -1;
-
-        constexpr bool IsValidIndex(int index)
-        {
-            return (index & 0xf) == index;      // 0 <= index <= 15
-        }
-
-        // Compile-time unit tests...
-        static_assert(!IsValidIndex(InvalidIndex));
-        static_assert(IsValidIndex(0));
-        static_assert(IsValidIndex(1));
-        static_assert(IsValidIndex(15));
-        static_assert(!IsValidIndex(16));
-
-        struct VinaWire
+        struct Engine
         {
             float chorusDepth{};
             float chorusRate{};
@@ -90,7 +50,7 @@ namespace Sapphire
             float gain{};
             unsigned resetSamples{};
 
-            explicit VinaWire()
+            explicit Engine()
                 {}
 
             void initialize()
@@ -103,27 +63,27 @@ namespace Sapphire
                 resetSamples = 0;
             }
 
-            VinaStereoFrame interpolateBackward(float sampleRateHz, float timeOffsetSec)
+            StereoFrame interpolateBackward(float sampleRateHz, float timeOffsetSec)
             {
                 float s = std::max<float>(0, sampleRateHz * timeOffsetSec);
                 unsigned s1 = static_cast<unsigned>(std::floor(s));
                 float frac = s - s1;
-                VinaStereoFrame f1 = chorusDelay.readBackward(s1);
-                VinaStereoFrame f2 = chorusDelay.readBackward(s1+1);
+                StereoFrame f1 = chorusDelay.readBackward(s1);
+                StereoFrame f2 = chorusDelay.readBackward(s1+1);
                 return (1-frac)*f1 + frac*f2;
             }
 
-            VinaStereoFrame update(float sampleRateHz, float left, float right)
+            StereoFrame update(float sampleRateHz, float left, float right)
             {
                 if (resetSamples > 0)
                 {
                     --resetSamples;
-                    return VinaStereoFrame(0, 0);
+                    return StereoFrame(0, 0);
                 }
 
                 // Keep the chorusDelay consistently fed, whether or not chorus is enabled.
                 // The CPU cost is very small, and it prevents unwanted glitches.
-                chorusDelay.write(VinaStereoFrame(left, right));
+                chorusDelay.write(StereoFrame(left, right));
                 if (chorusDepth > 0)
                 {
                     // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
@@ -137,9 +97,9 @@ namespace Sapphire
                     const float t1 = timeFactor*(1 - std::cos(chorusAngle + (M_PI*2)/3));
                     const float t2 = timeFactor*(1 - std::cos(chorusAngle - (M_PI*2)/3));
 
-                    VinaStereoFrame f0 = interpolateBackward(sampleRateHz, t0);
-                    VinaStereoFrame f1 = interpolateBackward(sampleRateHz, t1);
-                    VinaStereoFrame f2 = interpolateBackward(sampleRateHz, t2);
+                    StereoFrame f0 = interpolateBackward(sampleRateHz, t0);
+                    StereoFrame f1 = interpolateBackward(sampleRateHz, t1);
+                    StereoFrame f2 = interpolateBackward(sampleRateHz, t2);
 
                     // Mix with the original using chorusDepth as the mix parameter.
                     left  = (1-chorusDepth)*left  + (chorusDepth/3)*(f0.sample[0] + f1.sample[0] + f2.sample[0]);
@@ -158,7 +118,7 @@ namespace Sapphire
                     resetSamples = static_cast<unsigned>(sampleRateHz / 2);
                 }
 
-                return VinaStereoFrame(left, right);
+                return StereoFrame(left, right);
             }
 
             void setLevel(float knob = 1)
