@@ -37,10 +37,6 @@ namespace Sapphire
         constexpr unsigned delayLineFrames = 48000;     // up to 1 second at typical rate, less at higher rates.
         using chorus_delay_t = DelayLine<StereoFrame, delayLineFrames>;
 
-        constexpr float max_dt = 0.004;
-        constexpr float inputScale = 1000;
-        constexpr float outputScale = 1000 / inputScale;
-
         struct Engine
         {
             float chorusDepth{};
@@ -57,9 +53,9 @@ namespace Sapphire
             {
                 setChorusDepth();
                 setChorusRate();
+                setLevel();
                 chorusAngle = 0;
                 chorusDelay.clear();
-                gain = 1;
                 resetSamples = 0;
             }
 

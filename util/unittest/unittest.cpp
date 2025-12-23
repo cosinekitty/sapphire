@@ -718,6 +718,10 @@ static int ChaosTest()
 
 static int ChorusTest()
 {
+    constexpr float sampleRateHz = 48000;
+    Sapphire::Chorus::Engine engine;
+    engine.initialize();
+    engine.update(sampleRateHz, 0, 0);
     return Pass("ChorusTest");
 }
 
