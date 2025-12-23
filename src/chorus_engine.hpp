@@ -61,6 +61,7 @@ namespace Sapphire
 
             StereoFrame interpolateBackward(float sampleRateHz, float timeOffsetSec)
             {
+                // FIXFIXFIX: support SINC interpolation.
                 float s = std::max<float>(0, sampleRateHz * timeOffsetSec);
                 unsigned s1 = static_cast<unsigned>(std::floor(s));
                 float frac = s - s1;

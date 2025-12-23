@@ -719,9 +719,22 @@ static int ChaosTest()
 static int ChorusTest()
 {
     constexpr float sampleRateHz = 48000;
+    constexpr unsigned preframes = 4000;
+    constexpr unsigned nframes = 1000;
     Sapphire::Chorus::Engine engine;
     engine.initialize();
-    engine.update(sampleRateHz, 0, 0);
+    for (unsigned f = 0; f < preframes; ++f)
+        engine.update(sampleRateHz, 0, 0);
+
+    float left  = -1;
+    float right = +1;
+    for (unsigned f = 0; f < nframes; ++f)
+    {
+        auto frame = engine.update(sampleRateHz, left, right);
+        left = right = 0;
+        if (frame.sample[0] != 0 || frame.sample[1] != 0)
+        printf("ChorusTest: frame %6u: L = %10.6f, R = %10.6f\n", f, frame.sample[0], frame.sample[1]);
+    }
     return Pass("ChorusTest");
 }
 
