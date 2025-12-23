@@ -13,6 +13,7 @@
 #include "Galactic.h"
 #include "sapphire_prog_chaos.hpp"
 #include "file_updater.hpp"
+#include "chorus_engine.hpp"
 
 static int Fail(const std::string name, const std::string message)
 {
@@ -38,6 +39,7 @@ static int AutoGainControl();
 static int AutoScale();
 static int CalculatorTest();
 static int ChaosTest();
+static int ChorusTest();
 static int DelayLineTest();
 static int EnvPitchTest();
 static int FilterTest();
@@ -54,6 +56,7 @@ static const UnitTest CommandTable[] =
     { "agc",        AutoGainControl  },
     { "calc",       CalculatorTest   },
     { "chaos",      ChaosTest        },
+    { "chorus",     ChorusTest       },
     { "delay",      DelayLineTest    },
     { "env",        EnvPitchTest     },
     { "galaxy",     GalaxyTest       },
@@ -710,6 +713,12 @@ static int ChaosTest()
         RangeTest(aiza, 2, "Aizawa_Cantaloupe", 5.0) ||
         RangeTest(aiza, 3, "Aizawa_Elderberry", 4.85) ||
         Pass("ChaosTest");
+}
+
+
+static int ChorusTest()
+{
+    return Pass("ChorusTest");
 }
 
 
