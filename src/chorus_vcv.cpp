@@ -73,11 +73,10 @@ namespace Sapphire
                 float rateKnob = getControlValue(RATE_PARAM, RATE_ATTEN, RATE_CV_INPUT, -1, +1);
                 engine.setChorusDepth(depthKnob);
                 engine.setChorusRate(rateKnob);
-                float leftInput = inputs.at(AUDIO_LEFT_INPUT).getVoltageSum();
-                float rightInput = inputs.at(AUDIO_RIGHT_INPUT).getVoltageSum();
+                float leftInput, rightInput;
+                loadStereoInputs(leftInput, rightInput, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT);
                 StereoFrame frame = engine.update(args.sampleRate, leftInput, rightInput);
-                outputs.at(AUDIO_LEFT_OUTPUT).setVoltage(frame.sample[0]);
-                outputs.at(AUDIO_RIGHT_OUTPUT).setVoltage(frame.sample[1]);
+                writeStereoOutputs(frame.sample[0], frame.sample[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }
         };
 
