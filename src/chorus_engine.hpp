@@ -70,6 +70,14 @@ namespace Sapphire
                 return (1-frac)*f1 + frac*f2;
             }
 
+
+            void pan(StereoFrame& f, float c, float s)
+            {
+                f.sample[0] *= c * M_SQRT2;
+                f.sample[1] *= s * M_SQRT2;
+            }
+
+
             StereoFrame update(float sampleRateHz, float left, float right)
             {
                 if (resetSamples > 0)
@@ -83,20 +91,28 @@ namespace Sapphire
                 chorusDelay.write(StereoFrame(left, right));
                 if (chorusDepth > 0)
                 {
-                    // FIXFIXFIX: 3 phase-shifted copies of each voice, preserving (left, right) as a unit.
-                    // Slowly modulate position in time using linear/sinc interpolation (like Echo).
                     constexpr float chorusMaxSeconds = 0.03;
                     constexpr float rateAdjust = 0.35;
 
                     // Calculate sample offsets into the past for the 3 chorus voices.
                     const float timeFactor = chorusDepth * (chorusMaxSeconds/2);
-                    const float t0 = timeFactor*(1 - std::cos(chorusAngle));
-                    const float t1 = timeFactor*(1 - std::cos(chorusAngle + (M_PI*2)/3));
-                    const float t2 = timeFactor*(1 - std::cos(chorusAngle - (M_PI*2)/3));
+                    const float s0 = std::sin(chorusAngle);
+                    const float c0 = std::cos(chorusAngle);
+                    const float s1 = std::sin(chorusAngle + (M_PI*2)/3);
+                    const float c1 = std::cos(chorusAngle + (M_PI*2)/3);
+                    const float s2 = std::sin(chorusAngle - (M_PI*2)/3);
+                    const float c2 = std::cos(chorusAngle - (M_PI*2)/3);
+                    const float t0 = timeFactor*(1-c0);
+                    const float t1 = timeFactor*(1-c1);
+                    const float t2 = timeFactor*(1-c2);
 
                     StereoFrame f0 = interpolateBackward(sampleRateHz, t0);
                     StereoFrame f1 = interpolateBackward(sampleRateHz, t1);
                     StereoFrame f2 = interpolateBackward(sampleRateHz, t2);
+
+                    pan(f0, c1, s1);
+                    pan(f1, c2, s2);
+                    pan(f2, c0, s0);
 
                     // Mix with the original using chorusDepth as the mix parameter.
                     left  = (1-chorusDepth)*left  + (chorusDepth/3)*(f0.sample[0] + f1.sample[0] + f2.sample[0]);
