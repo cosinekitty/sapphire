@@ -2465,8 +2465,9 @@ def GenerateMultiTapButtons() -> int:
 
 #--------------------------------------------------------------------------------------------------
 
-EMPATH_INPUT_HP_WIDTH = 6
-
+EMPATH_INPUT_HP_WIDTH = 8
+EMPATH_FILTER_HP_WIDTH = 6
+EMPATH_OUTPUT_HP_WIDTH = 4
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2483,11 +2484,27 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
 
 
 def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
-    return 0
+    name = 'empath_filter'
+    target = Target.VcvRack
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(EMPATH_FILTER_HP_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+    return Save(panel, svgFileName)
 
 
 def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
-    return 0
+    name = 'empath_output'
+    target = Target.VcvRack
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(EMPATH_OUTPUT_HP_WIDTH)
+    xmid = panel.mmWidth / 2
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
+    AddOmriLogo(pl, xmid)
+    return Save(panel, svgFileName)
 
 
 def GenerateEmpathPanels(cdict: ControlDict) -> int:
