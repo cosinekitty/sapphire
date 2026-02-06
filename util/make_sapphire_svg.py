@@ -2465,11 +2465,46 @@ def GenerateMultiTapButtons() -> int:
 
 #--------------------------------------------------------------------------------------------------
 
+EMPATH_INPUT_HP_WIDTH = 6
+
+
+def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
+    name = 'empath_input'
+    target = Target.VcvRack
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(EMPATH_INPUT_HP_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
+        pl.append(CenteredGemstone(panel))
+        pl.append(ModelNamePath(panel, font, 'empath'))
+    return Save(panel, svgFileName)
+
+
+def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
+    return 0
+
+
+def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
+    return 0
+
+
+def GenerateEmpathPanels(cdict: ControlDict) -> int:
+    return (
+        GenerateEmpathInputPanel(cdict) or
+        GenerateEmpathFilterPanel(cdict) or
+        GenerateEmpathOutputPanel(cdict)
+    )
+
+#--------------------------------------------------------------------------------------------------
+
 if __name__ == '__main__':
     cdict:ControlDict = {}
     sys.exit(
         GenerateMultiTapButtons() or
         GenerateMultiTapPanels(cdict) or
+        GenerateEmpathPanels(cdict) or
         GenerateChaosPanel(cdict, 'frolic') or
         GenerateChaosPanel(cdict, 'glee') or
         GenerateChaosPanel(cdict, 'lark') or
