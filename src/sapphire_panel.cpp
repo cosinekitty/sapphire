@@ -171,6 +171,15 @@ namespace Sapphire
             {"span_slider",            {  30.480,   46.000}},
             {"stif_slider",            {  19.240,   46.000}},
             }},
+        { "empath_filter", {
+            {"_panel",                 {  30.480,  128.500}},
+            }},
+        { "empath_input", {
+            {"_panel",                 {  40.640,  128.500}},
+            }},
+        { "empath_output", {
+            {"_panel",                 {  20.320,  128.500}},
+            }},
         { "env", {
             {"_panel",                 {  30.480,  128.500}},
             {"audio_input",            {  15.240,   87.143}},

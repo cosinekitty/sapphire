@@ -2474,6 +2474,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_INPUT_HP_WIDTH)
+    cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
@@ -2488,6 +2489,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_FILTER_HP_WIDTH)
+    cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
@@ -2499,6 +2501,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_OUTPUT_HP_WIDTH)
+    cdict[name] = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
