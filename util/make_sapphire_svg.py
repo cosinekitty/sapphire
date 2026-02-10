@@ -2474,9 +2474,14 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_INPUT_HP_WIDTH)
-    cdict[name] = ControlLayer(panel)
+    controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+    controls.append(Component('insert_button', xInsertButton, yInsertButton))
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2489,7 +2494,15 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_FILTER_HP_WIDTH)
-    cdict[name] = ControlLayer(panel)
+    controls = cdict[name] = ControlLayer(panel)
+
+    xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yInsertButton = MULTITAP_INSERT_BUTTON_Y1
+    xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
+    yBottomButtons = panel.mmHeight - 5.0
+
+    controls.append(Component('insert_button', xInsertButton, yInsertButton))
+    controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
