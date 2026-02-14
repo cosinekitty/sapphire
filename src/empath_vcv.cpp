@@ -5,6 +5,18 @@ namespace Sapphire
 {
     namespace Empath
     {
+        struct ForwardMessage
+        {
+            bool valid = false;
+            int chainIndex = -1;
+        };
+
+        struct BackwardMessage
+        {
+            bool valid = false;
+            int soloCount = 0;  // how many filters are soloing right now
+        };
+
         inline bool IsInput(const Module* module)
         {
             return IsModelType(module, modelSapphireEmpathInput);
@@ -36,10 +48,66 @@ namespace Sapphire
             int chainIndex = -1;
             float pendingMoveX{};
             int pendingMoveStepCount{};
+            ForwardMessage forwardMessageBuffer[2];
+            BackwardMessage backwardMessageBuffer[2];
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
-                {}
+            {
+                rightExpander.producerMessage = &forwardMessageBuffer[0];
+                rightExpander.consumerMessage = &forwardMessageBuffer[1];
+
+                leftExpander.producerMessage = &backwardMessageBuffer[0];
+                leftExpander.consumerMessage = &backwardMessageBuffer[1];
+            }
+
+            ForwardMessage& rightMessageBuffer()
+            {
+                assert(rightExpander.producerMessage == &forwardMessageBuffer[0] || rightExpander.producerMessage == &forwardMessageBuffer[1]);
+                return *static_cast<ForwardMessage*>(rightExpander.producerMessage);
+            }
+
+            void sendMessage(const ForwardMessage& message)
+            {
+                ForwardMessage& destination = rightMessageBuffer();
+                destination = message;
+                destination.valid = true;
+                rightExpander.requestMessageFlip();
+            }
+
+            const ForwardMessage* receiveMessage()
+            {
+                if (IsFilterReceiver(this) && IsFilterSender(leftExpander.module))
+                    return static_cast<const ForwardMessage*>(leftExpander.module->rightExpander.consumerMessage);
+                return nullptr;
+            }
+
+            ForwardMessage receiveMessageOrDefault()
+            {
+                const ForwardMessage* ptr = receiveMessage();
+                return ptr ? *ptr : ForwardMessage{};
+            }
+
+            void sendBackwardMessage(const BackwardMessage& backMessage)
+            {
+                BackwardMessage& destination = *static_cast<BackwardMessage*>(leftExpander.producerMessage);
+                destination = backMessage;
+                destination.valid = true;
+                leftExpander.requestMessageFlip();
+            }
+
+            const BackwardMessage* receiveBackwardMessage()
+            {
+                if (rightExpander.module)
+                    return static_cast<const BackwardMessage*>(rightExpander.module->leftExpander.consumerMessage);
+                return nullptr;
+            }
+
+            BackwardMessage receiveBackwardMessageOrDefault()
+            {
+                const BackwardMessage* ptr = receiveBackwardMessage();
+                return ptr ? *ptr : BackwardMessage{};
+            }
 
             void beginMoveChain(float x)
             {
@@ -278,7 +346,15 @@ namespace Sapphire
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
+                    chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                }
+
+                void process(const ProcessArgs& args) override
+                {
+                    ForwardMessage outMessage;
+                    outMessage.chainIndex = 1;
+                    sendMessage(outMessage);
                 }
             };
 
@@ -339,11 +415,25 @@ namespace Sapphire
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                 }
+
+                void process(const ProcessArgs& args) override
+                {
+                    const ForwardMessage inMessage = receiveMessageOrDefault();
+                    ForwardMessage outMessage = inMessage;
+
+                    chainIndex = inMessage.chainIndex;
+
+                    if (inMessage.chainIndex > 0)
+                        outMessage.chainIndex = 1 + inMessage.chainIndex;
+
+                    sendMessage(outMessage);
+                }
             };
 
             struct FilterWidget : EmpathWidget
             {
                 FilterModule* filterModule{};
+                const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -369,6 +459,60 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    EmpathWidget::draw(args);
+                    if (filterModule)
+                    {
+                        if (!filterModule->neonMode)
+                            drawChainIndex(args.vg, filterModule->chainIndex, nvgRGB(0x66, 0x06, 0x5c));
+                    }
+                }
+
+                void drawLayer(const DrawArgs& args, int layer) override
+                {
+                    EmpathWidget::drawLayer(args, layer);
+                    if (layer==1 && filterModule)
+                    {
+                        if (filterModule->neonMode)
+                            drawChainIndex(args.vg, filterModule->chainIndex, getNeonColor());
+                    }
+                }
+
+
+                Vec getChainIndexCenterPos() const
+                {
+                    float yCenter = mm2px(4.5);
+                    float xCenter = box.size.x/2;
+                    return Vec(xCenter, yCenter);
+                }
+
+
+                void drawChainIndex(
+                    NVGcontext* vg,
+                    int chainIndex,
+                    NVGcolor textColor)
+                {
+                    if (module == nullptr)
+                        return;
+
+                    if (auto font = APP->window->loadFont(chainFontPath))
+                    {
+                        char text[20];
+
+                        nvgFontSize(vg, 18);
+                        nvgFontFaceId(vg, font->handle);
+                        nvgFillColor(vg, textColor);
+
+                        if (chainIndex > 0)
+                        {
+                            snprintf(text, sizeof(text), "%d", chainIndex);
+                            Vec center = getChainIndexCenterPos();
+                            drawCenteredText(vg, center.x, center.y, text);
+                        }
+                    }
                 }
             };
         }
