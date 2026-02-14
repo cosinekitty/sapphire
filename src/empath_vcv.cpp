@@ -9,6 +9,7 @@ namespace Sapphire
         {
             bool valid = false;
             int chainIndex = -1;
+            bool neonMode{};
         };
 
         struct BackwardMessage
@@ -354,6 +355,7 @@ namespace Sapphire
                 {
                     ForwardMessage outMessage;
                     outMessage.chainIndex = 1;
+                    outMessage.neonMode = neonMode;
                     sendMessage(outMessage);
                 }
             };
@@ -425,6 +427,10 @@ namespace Sapphire
 
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
+
+                    includeNeonModeMenuItem = !inMessage.valid;
+                    if (inMessage.valid)
+                        neonMode = inMessage.neonMode;
 
                     sendMessage(outMessage);
                 }
@@ -547,6 +553,16 @@ namespace Sapphire
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                }
+
+                void process(const ProcessArgs& args) override
+                {
+                    const ForwardMessage message = receiveMessageOrDefault();
+                    chainIndex = message.chainIndex;
+
+                    includeNeonModeMenuItem = !message.valid;
+                    if (message.valid)
+                        neonMode = message.neonMode;
                 }
             };
 
