@@ -344,11 +344,26 @@ namespace Sapphire
 
             struct InputModule : EmpathModule
             {
+                bool autoCreateExpanders = true;
+
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                }
+
+                json_t* dataToJson() override
+                {
+                    json_t* root = EmpathModule::dataToJson();
+                    jsonSetBool(root, "autoCreateExpanders", autoCreateExpanders);
+                    return root;
+                }
+
+                void dataFromJson(json_t* root) override
+                {
+                    EmpathModule::dataFromJson(root);
+                    jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -363,6 +378,7 @@ namespace Sapphire
             struct InputWidget : EmpathWidget
             {
                 InputModule* inputModule{};
+                int expanderCountdown = 8;
 
                 explicit InputWidget(InputModule* module)
                     : EmpathWidget("empath_input", asset::plugin(pluginInstance, "res/empath_input.svg"))
@@ -380,6 +396,26 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void step() override
+                {
+                    EmpathWidget::step();
+                    if (inputModule)
+                    {
+                        // When we first add the input module, it needs to automatically create
+                        // an output module, then insert a filter between.
+                        // But prevent auto-creation when reloading the patch later.
+                        if (inputModule->autoCreateExpanders && OneShotCountdown(expanderCountdown))
+                        {
+                            inputModule->autoCreateExpanders = false;   // prevent automatic creation when loading the patch
+                            if (!IsFilterReceiver(module->rightExpander.module) && !APP->history->canRedo())
+                            {
+                                AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false);
+                                AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
+                            }
+                        }
+                    }
                 }
             };
         };
