@@ -20,6 +20,11 @@ namespace Sapphire
             return IsModelType(module, modelSapphireEmpathOutput);
         }
 
+        inline bool IsFilterSender(const Module* module)
+        {
+            return IsInput(module) || IsFilter(module);
+        }
+
         inline bool IsFilterReceiver(const Module* module)
         {
             return IsFilter(module) || IsOutput(module);
@@ -117,7 +122,12 @@ namespace Sapphire
             void step() override
             {
                 SapphireWidget::step();
+                pullFromRightWhenNeeded();
+                updateBorderVisibility();
+            }
 
+            void pullFromRightWhenNeeded()
+            {
                 auto emod = dynamic_cast<EmpathModule*>(module);
                 if (emod && OneShotCountdown(emod->pendingMoveStepCount))
                 {
@@ -184,6 +194,18 @@ namespace Sapphire
                             APP->history->push(moveAction);
                         }
                     }
+                }
+            }
+
+            virtual bool isConnectedOnLeft()  const = 0;
+            virtual bool isConnectedOnRight() const = 0;
+
+            void updateBorderVisibility()
+            {
+                if (auto emod = dynamic_cast<EmpathModule*>(module))
+                {
+                    emod->hideLeftBorder  = isConnectedOnLeft();
+                    emod->hideRightBorder = isConnectedOnRight();
                 }
             }
         };
@@ -271,6 +293,16 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                 }
+
+                bool isConnectedOnLeft() const override
+                {
+                    return false;
+                }
+
+                bool isConnectedOnRight() const override
+                {
+                    return module && IsFilterReceiver(module->rightExpander.module);
+                }
             };
         };
 
@@ -328,6 +360,16 @@ namespace Sapphire
                     button->empathWidget = this;
                     addSapphireParam(button, "remove_button");
                 }
+
+                bool isConnectedOnLeft() const override
+                {
+                    return module && IsFilterSender(module->leftExpander.module);
+                }
+
+                bool isConnectedOnRight() const override
+                {
+                    return module && IsFilterReceiver(module->rightExpander.module);
+                }
             };
         }
 
@@ -373,6 +415,16 @@ namespace Sapphire
                     , outputModule(module)
                 {
                     setModule(module);
+                }
+
+                bool isConnectedOnLeft() const override
+                {
+                    return module && IsFilterSender(module->leftExpander.module);
+                }
+
+                bool isConnectedOnRight() const override
+                {
+                    return false;
                 }
             };
         }
