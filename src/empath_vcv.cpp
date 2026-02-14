@@ -113,6 +113,79 @@ namespace Sapphire
                 // Can't do anything more to this object!
                 removeAction();
             }
+
+            void step() override
+            {
+                SapphireWidget::step();
+
+                auto emod = dynamic_cast<EmpathModule*>(module);
+                if (emod && OneShotCountdown(emod->pendingMoveStepCount))
+                {
+                    // Make a list of all the widgets on the same row, here and to the right.
+                    std::vector<EmpathWidget*> widgetsToRight;
+                    for (Widget* w : APP->scene->rack->getModuleContainer()->children)
+                    {
+                        auto other = dynamic_cast<EmpathWidget*>(w);
+                        if (other && other->box.pos.y == box.pos.y && other->box.pos.x >= box.pos.x)
+                            widgetsToRight.push_back(other);
+                    }
+
+                    // Make an ordered list of all the remaining widgets in the chain, before moving anything.
+                    std::vector<EmpathWidget*> widgetsInOrder;
+                    for (const Module* m = emod; IsFilterReceiver(m); m = m->rightExpander.module)
+                    {
+                        if (auto otherModule =  dynamic_cast<const EmpathModule*>(m))
+                            for (EmpathWidget* otherWidget : widgetsToRight)
+                                if (otherWidget->module == otherModule)
+                                    widgetsInOrder.push_back(otherWidget);
+                    }
+
+                    // Try to move everyone!
+
+                    std::vector<PanelState> panelsInOrder;
+
+                    const float dx = emod->pendingMoveX - box.pos.x;
+                    for (auto w : widgetsInOrder)
+                    {
+                        PanelState s{w};
+                        s.newPos = w->box.pos;
+                        s.newPos.x += dx;
+                        if (APP->scene->rack->requestModulePos(w, s.newPos))
+                            panelsInOrder.push_back(s);
+                    }
+
+                    if (panelsInOrder.size() > 0)
+                    {
+                        // When we undo the movement, we have to execute them in reverse order.
+                        std::reverse(panelsInOrder.begin(), panelsInOrder.end());
+
+                        // Instead of pushing a separate action onto the history stack,
+                        // try to inject the movement as part of the existing history action
+                        // that deleted the module.  This is a ComplexAction, as seen in
+                        // Rack/src/app/ModuleWidget.cpp, ModuleWidget::removeAction().
+
+                        history::ComplexAction* existingComplexAction = nullptr;
+                        if (!APP->history->actions.empty() && APP->history->actionIndex == (int)APP->history->actions.size())
+                        {
+                            history::Action* oldAction = APP->history->actions.back();
+                            existingComplexAction = dynamic_cast<history::ComplexAction*>(oldAction);
+                        }
+
+                        auto moveAction = new MoveExpanderAction(panelsInOrder);
+                        if (existingComplexAction)
+                        {
+                            // Good, we can extend the existing chain of actions.
+                            existingComplexAction->push(moveAction);
+                        }
+                        else
+                        {
+                            // In case something goes wrong, at least push as a separate action.
+                            // The user will have to undo twice to undo the deletion, but at least it is possible.
+                            APP->history->push(moveAction);
+                        }
+                    }
+                }
+            }
         };
 
 
