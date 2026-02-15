@@ -329,6 +329,8 @@ namespace Sapphire
 
             enum InputId
             {
+                AUDIO_LEFT_INPUT,
+                AUDIO_RIGHT_INPUT,
                 INPUTS_LEN
             };
 
@@ -345,12 +347,14 @@ namespace Sapphire
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
+                PortLabelMode inputLabels = PortLabelMode::Stereo;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
                 json_t* dataToJson() override
@@ -386,6 +390,7 @@ namespace Sapphire
                 {
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
+                    addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
                 bool isConnectedOnLeft() const override
@@ -396,6 +401,15 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    EmpathWidget::draw(args);
+                    PortLabelMode label = inputModule ? inputModule->inputLabels : PortLabelMode::Stereo;
+                    ComponentLocation L = FindComponent(modcode, "input_label_left");
+                    ComponentLocation R = FindComponent(modcode, "input_label_right");
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
                 }
 
                 void step() override

@@ -178,6 +178,10 @@ namespace Sapphire
             }},
         { "empath_input", {
             {"_panel",                 {  40.640,  128.500}},
+            {"audio_left_input",       {  16.320,   93.000}},
+            {"audio_right_input",      {  16.320,  103.000}},
+            {"input_label_left",       {   9.820,   93.000}},
+            {"input_label_right",      {   9.820,  103.000}},
             {"insert_button",          {  37.640,    4.500}},
             }},
         { "empath_output", {

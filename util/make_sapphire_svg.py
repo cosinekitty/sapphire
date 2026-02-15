@@ -2477,15 +2477,21 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+    xmid = panel.mmWidth / 2.0
 
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
 
+    xInputPorts = xmid - 4.0
+    xInputLabels = xInputPorts - 6.5
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'empath'))
+        AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
     return Save(panel, svgFileName)
 
 
