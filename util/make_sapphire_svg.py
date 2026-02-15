@@ -2514,12 +2514,18 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(EMPATH_OUTPUT_HP_WIDTH)
-    cdict[name] = ControlLayer(panel)
+    controls = cdict[name] = ControlLayer(panel)
     xmid = panel.mmWidth / 2
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
-    AddOmriLogo(pl, xmid)
+    yFence = MakeLoopControlFence()
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
+        AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
+        AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
+        AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 
 

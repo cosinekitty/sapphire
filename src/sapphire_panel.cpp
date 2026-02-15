@@ -182,6 +182,16 @@ namespace Sapphire
             }},
         { "empath_output", {
             {"_panel",                 {  20.320,  128.500}},
+            {"audio_left_output",      {  10.160,   93.000}},
+            {"audio_right_output",     {  10.160,  103.000}},
+            {"global_level_atten",     {   5.160,   71.250}},
+            {"global_level_cv",        {  15.160,   71.250}},
+            {"global_level_knob",      {  10.160,   60.250}},
+            {"global_mix_atten",       {   5.160,   37.325}},
+            {"global_mix_cv",          {  15.160,   37.325}},
+            {"global_mix_knob",        {  10.160,   26.325}},
+            {"output_label_left",      {  16.660,   93.000}},
+            {"output_label_right",     {  16.660,  103.000}},
             }},
         { "env", {
             {"_panel",                 {  30.480,  128.500}},

@@ -565,16 +565,24 @@ namespace Sapphire
         {
             enum ParamId
             {
+                GLOBAL_MIX_PARAM,
+                GLOBAL_MIX_ATTEN,
+                GLOBAL_LEVEL_PARAM,
+                GLOBAL_LEVEL_ATTEN,
                 PARAMS_LEN
             };
 
             enum InputId
             {
+                GLOBAL_MIX_CV_INPUT,
+                GLOBAL_LEVEL_CV_INPUT,
                 INPUTS_LEN
             };
 
             enum OutputId
             {
+                AUDIO_LEFT_OUTPUT,
+                AUDIO_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -585,14 +593,22 @@ namespace Sapphire
 
             struct OutputModule : EmpathModule
             {
+                PortLabelMode outputLabels = PortLabelMode::Stereo;
+
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
+                    configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                    configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 0.5, "%", 0, 100);
+                    configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                 }
 
                 void process(const ProcessArgs& args) override
                 {
+                    // FIXFIXFIX: send backward message.
+
                     const ForwardMessage message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
 
@@ -611,6 +627,10 @@ namespace Sapphire
                     , outputModule(module)
                 {
                     setModule(module);
+                    addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                    addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                    addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
+                    addSapphireControlGroup("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
@@ -621,6 +641,15 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return false;
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    EmpathWidget::draw(args);
+                    PortLabelMode label = outputModule ? outputModule->outputLabels : PortLabelMode::Stereo;
+                    ComponentLocation L = FindComponent(modcode, "output_label_left");
+                    ComponentLocation R = FindComponent(modcode, "output_label_right");
+                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
                 }
             };
         }
