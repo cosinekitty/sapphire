@@ -56,11 +56,23 @@ namespace Sapphire
                 return setKnob(gainKnob, k);
             }
 
+            static value_t MixFactor(value_t mixKnob)
+            {
+                const value_t k = std::clamp<value_t>(mixKnob, 0, 1);
+                return 1 - Cube(1-k);
+            }
+
+            static value_t GainFactor(value_t gainKnob)
+            {
+                const value_t k = std::clamp<value_t>(gainKnob, 0, 2);
+                return Cube(k * 2);     // 0.5, the default value, should have unity gain.
+            }
+
             FilterResult<value_t> process(value_t sampleRateHz, const value_t inSample)
             {
                 value_t cornerFreqHz = TwoToPower(freqKnob) * DefaultFrequencyHz;
-                value_t gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain.
-                value_t mix = 1-Cube(1-mixKnob);
+                value_t gain = GainFactor(gainKnob);
+                value_t mix = MixFactor(mixKnob);
 
                 FilterResult<value_t> result = filter.process(sampleRateHz, cornerFreqHz, resKnob, inSample);
                 result.lowpass  = gain * (mix*result.lowpass  + (1-mix)*inSample);

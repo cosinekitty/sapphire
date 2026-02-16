@@ -6,6 +6,8 @@ namespace Sapphire
 {
     namespace Empath
     {
+        using filter_t = Gravy::SingleChannelGravyEngine<float>;
+
         struct Frame
         {
             int nchannels = 0;
@@ -541,8 +543,6 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            using filter_t = Gravy::SingleChannelGravyEngine<float>;
-
             struct ChannelInfo
             {
                 filter_t filter;
@@ -769,7 +769,8 @@ namespace Sapphire
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
-                    Frame audio = message.filteredAudio;
+                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio);
+
                     if (!message.polyphonic && audio.nchannels == 2)
                     {
                         outputLabels = PortLabelMode::Stereo;
@@ -793,6 +794,27 @@ namespace Sapphire
                         audioRightOutput.setChannels(1);
                         audioRightOutput.setVoltage(0, 0);
                     }
+                }
+
+                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio)
+                {
+                    float cvMix = 0;
+                    float cvLevel = 0;
+                    const int nc = rawAudio.nchannels;
+                    Frame result;
+                    result.nchannels = nc;
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        // Apply MIX and LEVEL polyphonically.
+                        nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
+                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, cvLevel);
+                        float mixKnob = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix);
+                        float levelKnob = cvGetControlValue(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2);
+                        float mix = filter_t::MixFactor(mixKnob);
+                        float level = filter_t::GainFactor(levelKnob);
+                        result.sample[c] = level * (mix*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
+                    }
+                    return result;
                 }
             };
 
