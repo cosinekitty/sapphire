@@ -515,12 +515,15 @@ namespace Sapphire
                 REMOVE_BUTTON_PARAM,
                 FREQ_PARAM,
                 FREQ_ATTEN,
+                RES_PARAM,
+                RES_ATTEN,
                 PARAMS_LEN
             };
 
             enum InputId
             {
                 FREQ_CV_INPUT,
+                RES_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -545,6 +548,7 @@ namespace Sapphire
 
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
+                    configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -578,6 +582,7 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
+                    addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }

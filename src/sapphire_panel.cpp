@@ -182,6 +182,9 @@ namespace Sapphire
             {"output_label_left",      {  21.740,   93.000}},
             {"output_label_right",     {  21.740,  103.000}},
             {"remove_button",          {   3.000,  123.500}},
+            {"res_atten",              {  15.240,   62.000}},
+            {"res_cv",                 {   6.240,   62.000}},
+            {"res_knob",               {  24.240,   62.000}},
             }},
         { "empath_input", {
             {"_panel",                 {  40.640,  128.500}},
