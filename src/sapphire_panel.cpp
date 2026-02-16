@@ -173,7 +173,11 @@ namespace Sapphire
             }},
         { "empath_filter", {
             {"_panel",                 {  30.480,  128.500}},
+            {"audio_left_output",      {  15.240,   93.000}},
+            {"audio_right_output",     {  15.240,  103.000}},
             {"insert_button",          {  27.480,    4.500}},
+            {"output_label_left",      {  21.740,   93.000}},
+            {"output_label_right",     {  21.740,  103.000}},
             {"remove_button",          {   3.000,  123.500}},
             }},
         { "empath_input", {

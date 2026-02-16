@@ -59,6 +59,7 @@ namespace Sapphire
             int pendingMoveStepCount{};
             ForwardMessage forwardMessageBuffer[2];
             BackwardMessage backwardMessageBuffer[2];
+            PortLabelMode outputLabels = PortLabelMode::Stereo;
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -232,6 +233,20 @@ namespace Sapphire
                 // The following code deletes `this`.
                 // Can't do anything more to this object!
                 removeAction();
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                SapphireWidget::draw(args);
+                if (ComponentLocation L = FindComponent(modcode, "output_label_left"); L.cy > 0)
+                {
+                    if (ComponentLocation R = FindComponent(modcode, "output_label_right"); R.cy > 0)
+                    {
+                        auto emod = dynamic_cast<EmpathModule*>(module);
+                        PortLabelMode label = emod ? emod->outputLabels : PortLabelMode::Stereo;
+                        drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
+                    }
+                }
             }
 
             void step() override
@@ -507,6 +522,8 @@ namespace Sapphire
 
             enum OutputId
             {
+                AUDIO_LEFT_OUTPUT,
+                AUDIO_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -553,6 +570,8 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
+                    addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                    addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -662,8 +681,6 @@ namespace Sapphire
 
             struct OutputModule : EmpathModule
             {
-                PortLabelMode outputLabels = PortLabelMode::Stereo;
-
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -737,15 +754,6 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return false;
-                }
-
-                void draw(const DrawArgs& args) override
-                {
-                    EmpathWidget::draw(args);
-                    PortLabelMode label = outputModule ? outputModule->outputLabels : PortLabelMode::Stereo;
-                    ComponentLocation L = FindComponent(modcode, "output_label_left");
-                    ComponentLocation R = FindComponent(modcode, "output_label_right");
-                    drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
                 }
             };
         }

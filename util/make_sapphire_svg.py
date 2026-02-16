@@ -2502,6 +2502,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     panel = Panel(EMPATH_FILTER_HP_WIDTH)
     controls = cdict[name] = ControlLayer(panel)
 
+    xmid = panel.mmWidth/2
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
@@ -2511,7 +2512,12 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+        AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+
     return Save(panel, svgFileName)
 
 
