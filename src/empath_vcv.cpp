@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "gravy_engine.hpp"
+#include "sauce_engine.hpp"
 
 namespace Sapphire
 {
@@ -18,7 +18,8 @@ namespace Sapphire
             int chainIndex = -1;
             bool neonMode{};
             bool polyphonic{};
-            Frame rawAudio;
+            Frame rawAudio;         // original input audio from the leftmost module in the chain
+            Frame filteredAudio;    // cumulative filtered audio from the immediate left module
         };
 
         struct BackwardMessage
@@ -446,6 +447,7 @@ namespace Sapphire
                     outMessage.neonMode = neonMode;
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
+                    outMessage.filteredAudio = outMessage.rawAudio;
                     sendMessage(outMessage);
                 }
             };
@@ -539,8 +541,22 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
+            using filter_t = Gravy::SingleChannelGravyEngine<float>;
+
+            struct ChannelInfo
+            {
+                filter_t filter;
+
+                void initialize()
+                {
+                    filter.initialize();
+                }
+            };
+
             struct FilterModule : EmpathModule
             {
+                ChannelInfo channel[PORT_MAX_CHANNELS];
+
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -551,8 +567,22 @@ namespace Sapphire
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                 }
 
+                void FilterModule_initialize()
+                {
+                    for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                        channel[c].initialize();
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    EmpathModule::onReset(e);
+                    FilterModule_initialize();
+                }
+
                 void process(const ProcessArgs& args) override
                 {
+                    using namespace Sapphire::Gravy;
+
                     const ForwardMessage inMessage = receiveMessageOrDefault();
                     ForwardMessage outMessage = inMessage;
 
@@ -561,6 +591,28 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
+                    if (inMessage.valid)
+                    {
+                        const int nc = inMessage.rawAudio.nchannels;
+
+                        float cvFreq = 0;
+                        float cvRes = 0;
+
+                        for (int c = 0; c < nc; ++c)
+                        {
+                            auto& q = channel[c];
+                            nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
+                            nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
+                            float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
+                            float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
+                            q.filter.setFrequency(freqKnob);
+                            q.filter.setResonance(resKnob);
+                            auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
+                            outMessage.filteredAudio.sample[c] += result.bandpass;
+                        }
+                    }
+
+                    // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
                     if (inMessage.valid)
                         neonMode = inMessage.neonMode;
@@ -717,7 +769,7 @@ namespace Sapphire
 
                     Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
                     Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
-                    Frame audio = message.rawAudio;     // FIXFIXFIX - this is just to test the audio path
+                    Frame audio = message.filteredAudio;
                     if (!message.polyphonic && audio.nchannels == 2)
                     {
                         outputLabels = PortLabelMode::Stereo;
