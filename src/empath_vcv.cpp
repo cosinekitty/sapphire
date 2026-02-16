@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "gravy_engine.hpp"
 
 namespace Sapphire
 {
@@ -512,11 +513,14 @@ namespace Sapphire
             {
                 INSERT_BUTTON_PARAM,
                 REMOVE_BUTTON_PARAM,
+                FREQ_PARAM,
+                FREQ_ATTEN,
                 PARAMS_LEN
             };
 
             enum InputId
             {
+                FREQ_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -537,7 +541,10 @@ namespace Sapphire
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
+                    using namespace Sapphire::Gravy;
+
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -570,6 +577,7 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
+                    addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }
