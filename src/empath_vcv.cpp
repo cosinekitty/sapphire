@@ -5,11 +5,19 @@ namespace Sapphire
 {
     namespace Empath
     {
+        struct Frame
+        {
+            int nchannels = 0;
+            float sample[PORT_MAX_CHANNELS]{};
+        };
+
         struct ForwardMessage
         {
             bool valid = false;
             int chainIndex = -1;
             bool neonMode{};
+            bool polyphonic{};
+            Frame rawAudio;
         };
 
         struct BackwardMessage
@@ -114,6 +122,44 @@ namespace Sapphire
             {
                 pendingMoveX = x;
                 pendingMoveStepCount = 2;
+            }
+
+            Frame readFrame(int leftInputId, int rightInputId, bool polyphonic, PortLabelMode& mode)
+            {
+                mode = PortLabelMode::Stereo;
+
+                Input& inLeft  = inputs.at(leftInputId);
+                Input& inRight = inputs.at(rightInputId);
+
+                Frame frame;
+                frame.nchannels = 2;
+                frame.sample[0] = inLeft.getVoltageSum();
+                frame.sample[1] = inRight.getVoltageSum();
+
+                if (!inRight.isConnected())
+                {
+                    const int ncLeft = inLeft.getChannels();
+                    if (ncLeft > 0)
+                    {
+                        if (ncLeft == 1 || (ncLeft >= 3 && !polyphonic))
+                        {
+                            // Mono input, so split the signal across both stereo output channels.
+                            frame.sample[0] /= 2;
+                            frame.sample[1] = frame.sample[0];
+                            mode = PortLabelMode::Mono;
+                        }
+                        else if (ncLeft == 2 || polyphonic)
+                        {
+                            // Polyphonic mode!
+                            frame.nchannels = VcvSafeChannelCount(ncLeft);
+                            for (int c = 0; c < frame.nchannels; ++c)
+                                frame.sample[c] = inLeft.getVoltage(c);
+                            mode = static_cast<PortLabelMode>(ncLeft);
+                        }
+                    }
+                }
+
+                return frame;
             }
         };
 
@@ -319,7 +365,7 @@ namespace Sapphire
         };
 
 
-        namespace Input
+        namespace EInput
         {
             enum ParamId
             {
@@ -370,11 +416,20 @@ namespace Sapphire
                     jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
                 }
 
+                bool polyphonicMode()
+                {
+                    // FIXFIXFIX - reinstate when button exists
+                    //return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                    return false;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     ForwardMessage outMessage;
                     outMessage.chainIndex = 1;
                     outMessage.neonMode = neonMode;
+                    outMessage.polyphonic = polyphonicMode();
+                    outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     sendMessage(outMessage);
                 }
             };
@@ -575,7 +630,7 @@ namespace Sapphire
 
         //----------------------------------------------------------------------------
 
-        namespace Output
+        namespace EOutput
         {
             enum ParamId
             {
@@ -629,6 +684,33 @@ namespace Sapphire
                     includeNeonModeMenuItem = !message.valid;
                     if (message.valid)
                         neonMode = message.neonMode;
+
+                    Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
+                    Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
+                    Frame audio = message.rawAudio;     // FIXFIXFIX - this is just to test the audio path
+                    if (!message.polyphonic && audio.nchannels == 2)
+                    {
+                        outputLabels = PortLabelMode::Stereo;
+
+                        audioLeftOutput.setChannels(1);
+                        audioLeftOutput.setVoltage(audio.sample[0], 0);
+
+                        audioRightOutput.setChannels(1);
+                        audioRightOutput.setVoltage(audio.sample[1], 0);
+                    }
+                    else
+                    {
+                        // Polyphonic output to the L port only.
+
+                        outputLabels = static_cast<PortLabelMode>(audio.nchannels);
+
+                        audioLeftOutput.setChannels(audio.nchannels);
+                        for (int c = 0; c < audio.nchannels; ++c)
+                            audioLeftOutput.setVoltage(audio.sample[c], c);
+
+                        audioRightOutput.setChannels(1);
+                        audioRightOutput.setVoltage(0, 0);
+                    }
                 }
             };
 
@@ -698,7 +780,7 @@ namespace Sapphire
     }
 }
 
-Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::Input::InputModule, Sapphire::Empath::Input::InputWidget>(
+Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::EInput::InputModule, Sapphire::Empath::EInput::InputWidget>(
     "Empath",
     Sapphire::ExpanderRole::Empath
 );
@@ -708,7 +790,7 @@ Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::Filter:
     Sapphire::ExpanderRole::Empath
 );
 
-Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::Output::OutputModule, Sapphire::Empath::Output::OutputWidget>(
+Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::EOutput::OutputModule, Sapphire::Empath::EOutput::OutputWidget>(
     "EmpathOutput",
     Sapphire::ExpanderRole::Empath
 );
