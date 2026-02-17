@@ -807,7 +807,7 @@ namespace Sapphire
                     {
                         // Apply MIX and LEVEL polyphonically.
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
-                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, cvLevel);
+                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
                         float mixKnob = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix);
                         float levelKnob = cvGetControlValue(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2);
                         float mix = filter_t::MixFactor(mixKnob);
