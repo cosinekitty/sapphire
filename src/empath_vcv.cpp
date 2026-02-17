@@ -479,7 +479,6 @@ namespace Sapphire
                     outMessage.neonMode = neonMode;
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
-                    outMessage.filteredAudio = outMessage.rawAudio;
                     sendMessage(outMessage);
                 }
             };
