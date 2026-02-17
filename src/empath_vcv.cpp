@@ -803,27 +803,29 @@ namespace Sapphire
                     if (message.valid)
                         neonMode = message.neonMode;
 
-                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio);
+                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio, message.chainIndex-1);
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
                 }
 
-                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio)
+                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio, int nFilterStages)
                 {
+                    constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
                     float cvLevel = 0;
                     const int nc = rawAudio.nchannels;
                     Frame result;
                     result.nchannels = nc;
-                    for (int c = 0; c < nc; ++c)
+                    if (nFilterStages > 0)
                     {
-                        // Apply MIX and LEVEL polyphonically.
-                        nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
-                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
-                        float mixKnob = cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix);
-                        float levelKnob = cvGetControlValue(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel, 0, 2);
-                        float mix = filter_t::MixFactor(mixKnob);
-                        float level = filter_t::GainFactor(levelKnob);
-                        result.sample[c] = level * (mix*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
+                        for (int c = 0; c < nc; ++c)
+                        {
+                            // Apply MIX and LEVEL polyphonically.
+                            nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
+                            nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
+                            float level = filter_t::GainFactor(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
+                            float mix = filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
+                            result.sample[c] = level * ((mix/nFilterStages)*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
+                        }
                     }
                     return result;
                 }

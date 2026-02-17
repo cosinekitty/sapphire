@@ -65,7 +65,7 @@ namespace Sapphire
             static value_t GainFactor(value_t gainKnob)
             {
                 const value_t k = std::clamp<value_t>(gainKnob, 0, 2);
-                return Cube(k * 2);     // 0.5, the default value, should have unity gain.
+                return Cube(k);
             }
 
             FilterResult<value_t> process(value_t sampleRateHz, const value_t inSample)
