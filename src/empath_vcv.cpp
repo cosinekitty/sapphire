@@ -166,6 +166,36 @@ namespace Sapphire
 
                 return frame;
             }
+
+            void writeFrame(int leftOutputId, int rightOutputId, const Frame& audio, bool polyphonic)
+            {
+                Output& audioLeftOutput  = outputs.at(leftOutputId);
+                Output& audioRightOutput = outputs.at(rightOutputId);
+
+                if (!polyphonic && audio.nchannels == 2)
+                {
+                    outputLabels = PortLabelMode::Stereo;
+
+                    audioLeftOutput.setChannels(1);
+                    audioLeftOutput.setVoltage(audio.sample[0], 0);
+
+                    audioRightOutput.setChannels(1);
+                    audioRightOutput.setVoltage(audio.sample[1], 0);
+                }
+                else
+                {
+                    // Polyphonic output to the L port only.
+
+                    outputLabels = static_cast<PortLabelMode>(audio.nchannels);
+
+                    audioLeftOutput.setChannels(audio.nchannels);
+                    for (int c = 0; c < audio.nchannels; ++c)
+                        audioLeftOutput.setVoltage(audio.sample[c], c);
+
+                    audioRightOutput.setChannels(1);
+                    audioRightOutput.setVoltage(0, 0);
+                }
+            }
         };
 
 
@@ -591,9 +621,12 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
+                    Frame solo;
+
                     if (inMessage.valid)
                     {
                         const int nc = inMessage.rawAudio.nchannels;
+                        solo.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
@@ -608,9 +641,12 @@ namespace Sapphire
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
                             auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
+                            solo.sample[c] = result.bandpass;
                             outMessage.filteredAudio.sample[c] += result.bandpass;
                         }
                     }
+
+                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, solo, inMessage.polyphonic);
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
@@ -767,33 +803,8 @@ namespace Sapphire
                     if (message.valid)
                         neonMode = message.neonMode;
 
-                    Output& audioLeftOutput  = outputs.at(AUDIO_LEFT_OUTPUT);
-                    Output& audioRightOutput = outputs.at(AUDIO_RIGHT_OUTPUT);
                     Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio);
-
-                    if (!message.polyphonic && audio.nchannels == 2)
-                    {
-                        outputLabels = PortLabelMode::Stereo;
-
-                        audioLeftOutput.setChannels(1);
-                        audioLeftOutput.setVoltage(audio.sample[0], 0);
-
-                        audioRightOutput.setChannels(1);
-                        audioRightOutput.setVoltage(audio.sample[1], 0);
-                    }
-                    else
-                    {
-                        // Polyphonic output to the L port only.
-
-                        outputLabels = static_cast<PortLabelMode>(audio.nchannels);
-
-                        audioLeftOutput.setChannels(audio.nchannels);
-                        for (int c = 0; c < audio.nchannels; ++c)
-                            audioLeftOutput.setVoltage(audio.sample[c], c);
-
-                        audioRightOutput.setChannels(1);
-                        audioRightOutput.setVoltage(0, 0);
-                    }
+                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
                 }
 
                 Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio)
