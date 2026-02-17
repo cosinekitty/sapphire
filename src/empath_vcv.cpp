@@ -821,7 +821,7 @@ namespace Sapphire
                             // Apply MIX and LEVEL polyphonically.
                             nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                             nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
-                            float level = filter_t::GainFactor(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
+                            float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
                             float mix = filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
                             result.sample[c] = level * ((mix/nFilterStages)*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
                         }
