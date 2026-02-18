@@ -2512,13 +2512,30 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     yFreq = yControlFence.value(0)
     yRes  = yControlFence.value(1)
 
+    dyTopArt = 9.5
+    dyGrad = 6.0
+    y1_controlGradient = yControlFence.value(0) - dyTopArt
+    y2_controlGradient = yControlFence.value(2) + dyGrad
+
+    y1_outputGradient = MULTIMAP_AUDIO_PORTS_Y1 - dyTopArt
+    y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
+
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
 
+    defs = Element('defs')
+    pl.append(defs)
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+
+        defs.append(Gradient(y1_controlGradient, y2_controlGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
+        pl.append(ControlGroupArt(name, 'controls_art', panel, y1_controlGradient, y2_controlGradient, 'gradient_controls'))
+
+        defs.append(Gradient(y1_outputGradient, y2_outputGradient, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_output'))
+        pl.append(ControlGroupArt(name, 'output_art', panel, y1_outputGradient, y2_outputGradient, 'gradient_output'))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))
