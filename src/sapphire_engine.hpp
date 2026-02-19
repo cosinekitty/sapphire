@@ -698,11 +698,13 @@ namespace Sapphire
         value_t lowpass;
         value_t bandpass;
         value_t highpass;
+        value_t notch;
 
         explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp)
             : lowpass(lp)
             , bandpass(bp)
             , highpass(hp)
+            , notch(lp + hp)    // https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf : page 7
         {
         }
 

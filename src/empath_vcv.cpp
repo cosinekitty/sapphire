@@ -641,7 +641,8 @@ namespace Sapphire
                             q.filter.setResonance(resKnob);
                             auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
                             solo.sample[c] = result.bandpass;
-                            outMessage.filteredAudio.sample[c] += result.bandpass;
+                            //solo.sample[c] = result.notch;
+                            outMessage.filteredAudio.sample[c] += solo.sample[c];
                         }
                     }
 
