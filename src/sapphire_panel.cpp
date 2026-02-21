@@ -185,6 +185,9 @@ namespace Sapphire
             {"res_atten",              {  15.240,   62.000}},
             {"res_cv",                 {   6.240,   62.000}},
             {"res_knob",               {  24.240,   62.000}},
+            {"shape_button",           {  24.240,   16.000}},
+            {"shape_input",            {   6.240,   16.000}},
+            {"shape_label",            {  15.240,   16.000}},
             }},
         { "empath_input", {
             {"_panel",                 {  40.640,  128.500}},

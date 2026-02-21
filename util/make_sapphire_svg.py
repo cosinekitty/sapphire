@@ -2520,6 +2520,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     y1_outputGradient = MULTIMAP_AUDIO_PORTS_Y1 - dyTopArt
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
 
+    yShapeControl = 16.0
+
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
     pl = Element('g', 'PanelLayer')
@@ -2536,6 +2538,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         defs.append(Gradient(y1_outputGradient, y2_outputGradient, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_output'))
         pl.append(ControlGroupArt(name, 'output_art', panel, y1_outputGradient, y2_outputGradient, 'gradient_output'))
+
+        AddShortToggleGroup(pl, controls, font, 'SHP', 'shape', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yShapeControl)
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))

@@ -1,5 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
+#include "sapphire_smoother.hpp"
 #include "sauce_engine.hpp"
 
 namespace Sapphire
@@ -22,6 +23,7 @@ namespace Sapphire
             bool polyphonic{};
             Frame rawAudio;         // original input audio from the leftmost module in the chain
             Frame filteredAudio;    // cumulative filtered audio from the immediate left module
+            int stageCount = 0;     // how many aggregate bandpass filters were added together in this chain
         };
 
         struct BackwardMessage
@@ -479,6 +481,7 @@ namespace Sapphire
                     outMessage.neonMode = neonMode;
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
+                    outMessage.filteredAudio = outMessage.rawAudio;     // confusing: will be multiplied by 0 when first stage is in bandpass mode, but needed for notch mode.
                     sendMessage(outMessage);
                 }
             };
@@ -550,6 +553,7 @@ namespace Sapphire
                 FREQ_ATTEN,
                 RES_PARAM,
                 RES_ATTEN,
+                SHAPE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -557,6 +561,7 @@ namespace Sapphire
             {
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
+                SHAPE_INPUT,
                 INPUTS_LEN
             };
 
@@ -569,6 +574,7 @@ namespace Sapphire
 
             enum LightId
             {
+                SHAPE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -582,9 +588,25 @@ namespace Sapphire
                 }
             };
 
+            enum class FilterShape
+            {
+                Bandpass,
+                Notch
+            };
+
+            class ShapeSmoother : public EnumSmoother<FilterShape>
+            {
+            public:
+                explicit ShapeSmoother()
+                    : EnumSmoother(FilterShape::Bandpass, "filterShape")
+                    {}
+            };
+
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
+                ToggleGroup shapeToggleGroup;
+                ShapeSmoother shapeSmoother;
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -594,18 +616,35 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
+                    shapeToggleGroup.config(this, "Shape", "shapeToggleGroup", SHAPE_INPUT, SHAPE_BUTTON_PARAM, SHAPE_BUTTON_LIGHT, "Shape", "");
                 }
 
                 void FilterModule_initialize()
                 {
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                         channel[c].initialize();
+
+                    shapeToggleGroup.initialize();
+                    shapeSmoother.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
                 {
                     EmpathModule::onReset(e);
                     FilterModule_initialize();
+                }
+
+                json_t* dataToJson() override
+                {
+                    json_t* root = EmpathModule::dataToJson();
+                    shapeToggleGroup.jsonSave(root);
+                    return root;
+                }
+
+                void dataFromJson(json_t* root) override
+                {
+                    EmpathModule::dataFromJson(root);
+                    shapeToggleGroup.jsonLoad(root);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -620,10 +659,16 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
+                    shapeSmoother.targetValue = shapeToggleGroup.process() ? FilterShape::Notch : FilterShape::Bandpass;
+                    const float smooth = shapeSmoother.process(args.sampleRate);
+
                     Frame solo;
 
                     if (inMessage.valid)
                     {
+                        if (shapeSmoother.currentValue == FilterShape::Bandpass)
+                            ++outMessage.stageCount;   // increment value already copied from inMessage.stageCount
+
                         const int nc = inMessage.rawAudio.nchannels;
                         solo.nchannels = nc;
 
@@ -633,16 +678,26 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
+                            float& y = outMessage.filteredAudio.sample[c];
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
-                            auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
-                            solo.sample[c] = result.bandpass;
-                            //solo.sample[c] = result.notch;
-                            outMessage.filteredAudio.sample[c] += solo.sample[c];
+                            if (shapeSmoother.currentValue == FilterShape::Bandpass)
+                            {
+                                auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
+                                solo.sample[c] = result.bandpass;
+                                y = (y*inMessage.stageCount + solo.sample[c]) / outMessage.stageCount;
+                            }
+                            else
+                            {
+                                auto result = q.filter.process(args.sampleRate, inMessage.filteredAudio.sample[c]);
+                                solo.sample[c] = result.notch;
+                                y = result.notch;
+                            }
+                            y *= smooth;
                         }
                     }
 
@@ -669,10 +724,27 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
+                    addShapeToggleGroup();
                     addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                }
+
+                void addShapeToggleGroup()
+                {
+                    ToggleGroup* group = filterModule ? &(filterModule->shapeToggleGroup) : nullptr;
+
+                    addToggleGroup(
+                        group,
+                        "shape",
+                        SHAPE_INPUT,
+                        SHAPE_BUTTON_PARAM,
+                        SHAPE_BUTTON_LIGHT,
+                        '\0',
+                        0.0,
+                        SCHEME_GREEN
+                    );
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -803,11 +875,11 @@ namespace Sapphire
                     if (message.valid)
                         neonMode = message.neonMode;
 
-                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio, message.chainIndex-1);
+                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio);
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
                 }
 
-                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio, int nFilterStages)
+                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio)
                 {
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
@@ -815,17 +887,14 @@ namespace Sapphire
                     const int nc = rawAudio.nchannels;
                     Frame result;
                     result.nchannels = nc;
-                    if (nFilterStages > 0)
+                    for (int c = 0; c < nc; ++c)
                     {
-                        for (int c = 0; c < nc; ++c)
-                        {
-                            // Apply MIX and LEVEL polyphonically.
-                            nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
-                            nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
-                            float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
-                            float mix = filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
-                            result.sample[c] = level * ((mix/nFilterStages)*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
-                        }
+                        // Apply MIX and LEVEL polyphonically.
+                        nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
+                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
+                        float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
+                        float mix = filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
+                        result.sample[c] = level * (mix*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
                     }
                     return result;
                 }
