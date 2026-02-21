@@ -668,6 +668,8 @@ namespace Sapphire
                     {
                         if (shapeSmoother.currentValue == FilterShape::Bandpass)
                             ++outMessage.stageCount;   // increment value already copied from inMessage.stageCount
+                        else
+                            outMessage.stageCount = std::max(1, outMessage.stageCount);
 
                         const int nc = inMessage.rawAudio.nchannels;
                         solo.nchannels = nc;
