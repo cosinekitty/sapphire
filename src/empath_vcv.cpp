@@ -771,6 +771,12 @@ namespace Sapphire
                 {
                     EmpathWidget::step();
                     updateShapePortTooltip();
+                    updateShapeButtonTooltip();
+                }
+
+                bool isShapeTriggered() const
+                {
+                    return filterModule && (filterModule->shapeToggleGroup.mode == ToggleGroupMode::Trigger);
                 }
 
                 void updateShapePortTooltip()
@@ -779,9 +785,21 @@ namespace Sapphire
                     {
                         if (auto portInfo = shapeInputPortWidget->getPortInfo())
                         {
-                            bool trigger = filterModule && (filterModule->shapeToggleGroup.mode == ToggleGroupMode::Trigger);
-                            portInfo->name = std::string("Shape ") + (trigger ? "trigger" : "gate");
+                            portInfo->name = std::string("Shape ") + (isShapeTriggered() ? "trigger" : "gate");
                         }
+                    }
+                }
+
+                void updateShapeButtonTooltip()
+                {
+                    if (filterModule)
+                    {
+                        filterModule->paramQuantities.at(SHAPE_BUTTON_PARAM)->name =
+                            std::string("Shape: ") + (
+                                (filterModule->shapeSmoother.currentValue == FilterShape::Bandpass) ?
+                                "BANDPASS" :
+                                "NOTCH"
+                            );
                     }
                 }
 
