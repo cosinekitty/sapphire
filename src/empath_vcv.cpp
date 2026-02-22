@@ -745,7 +745,7 @@ namespace Sapphire
                         SHAPE_BUTTON_LIGHT,
                         '\0',
                         0.0,
-                        SCHEME_GREEN
+                        SCHEME_ORANGE
                     );
                 }
 
