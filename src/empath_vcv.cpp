@@ -718,6 +718,7 @@ namespace Sapphire
             {
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
+                ToggleGroupInputPort* shapeInputPortWidget{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -737,7 +738,7 @@ namespace Sapphire
                 {
                     ToggleGroup* group = filterModule ? &(filterModule->shapeToggleGroup) : nullptr;
 
-                    addToggleGroup(
+                    shapeInputPortWidget = addToggleGroup(
                         group,
                         "shape",
                         SHAPE_INPUT,
@@ -764,6 +765,24 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void step() override
+                {
+                    EmpathWidget::step();
+                    updateShapePortTooltip();
+                }
+
+                void updateShapePortTooltip()
+                {
+                    if (shapeInputPortWidget)
+                    {
+                        if (auto portInfo = shapeInputPortWidget->getPortInfo())
+                        {
+                            bool trigger = filterModule && (filterModule->shapeToggleGroup.mode == ToggleGroupMode::Trigger);
+                            portInfo->name = std::string("Shape ") + (trigger ? "trigger" : "gate");
+                        }
+                    }
                 }
 
                 void draw(const DrawArgs& args) override
