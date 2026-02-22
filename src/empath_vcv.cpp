@@ -728,7 +728,7 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addShapeToggleGroup();
-                    addSapphireFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
+                    addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
