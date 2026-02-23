@@ -2511,6 +2511,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     yControlFence = FencePost(49.0, 75.0, 3)
     yFreq = yControlFence.value(0)
     yRes  = yControlFence.value(1)
+    yCasc = yControlFence.value(2)
 
     dyTopArt = 9.5
     dyGrad = 6.0
@@ -2546,6 +2547,9 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'res')
         pl.append(CenteredControlTextPath(font, 'RES', xmid, yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
+        pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)

@@ -555,6 +555,8 @@ namespace Sapphire
                 RES_PARAM,
                 RES_ATTEN,
                 SHAPE_BUTTON_PARAM,
+                CASCADE_PARAM,
+                CASCADE_ATTEN,
                 PARAMS_LEN
             };
 
@@ -563,6 +565,7 @@ namespace Sapphire
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
                 SHAPE_INPUT,
+                CASCADE_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -579,13 +582,16 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
+            constexpr int MAX_FILTER_STAGES = 3;
+
             struct ChannelInfo
             {
-                filter_t filter;
+                filter_t stage[MAX_FILTER_STAGES];
 
                 void initialize()
                 {
-                    filter.initialize();
+                    for (int s = 0; s < MAX_FILTER_STAGES; ++s)
+                        stage[s].initialize();
                 }
             };
 
@@ -619,6 +625,7 @@ namespace Sapphire
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
+                    configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, 0, MAX_FILTER_STAGES, 1);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
                     shapeToggleGroup.config(this, "Shape", "shapeToggleGroup", SHAPE_INPUT, SHAPE_BUTTON_PARAM, SHAPE_BUTTON_LIGHT, "Shape", "");
                 }
@@ -680,6 +687,8 @@ namespace Sapphire
 
                         float cvFreq = 0;
                         float cvRes = 0;
+                        float cvCascade = 0;
+                        float stageSample[1 + MAX_FILTER_STAGES]{};
 
                         for (int c = 0; c < nc; ++c)
                         {
@@ -687,21 +696,37 @@ namespace Sapphire
                             float& y = outMessage.filteredAudio.sample[c];
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
+                            nextChannelInputVoltage(cvCascade, CASCADE_CV_INPUT, c);
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
-                            q.filter.setFrequency(freqKnob);
-                            q.filter.setResonance(resKnob);
+                            float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, 0, MAX_FILTER_STAGES);
+
+                            for (int s = 0; s < MAX_FILTER_STAGES; ++s)
+                            {
+                                q.stage[s].setFrequency(freqKnob);
+                                q.stage[s].setResonance(resKnob);
+                            }
+
                             if (shapeSmoother.currentValue == FilterShape::Bandpass)
                             {
-                                auto result = q.filter.process(args.sampleRate, inMessage.rawAudio.sample[c]);
-                                solo.sample[c] = result.bandpass;
+                                stageSample[0] = inMessage.rawAudio.sample[c];
+                                for (int s = 0; s < MAX_FILTER_STAGES; ++s)
+                                {
+                                    auto result = q.stage[s].process(args.sampleRate, stageSample[s]);
+                                    stageSample[s+1] = result.bandpass;
+                                }
+                                solo.sample[c] = blend(stageSample, cascade);
                                 y = (y*inMessage.stageCount + solo.sample[c]) / outMessage.stageCount;
                             }
                             else
                             {
-                                auto result = q.filter.process(args.sampleRate, inMessage.filteredAudio.sample[c]);
-                                solo.sample[c] = result.notch;
-                                y = result.notch;
+                                stageSample[0] = inMessage.filteredAudio.sample[c];
+                                for (int s = 0; s < MAX_FILTER_STAGES; ++s)
+                                {
+                                    auto result = q.stage[s].process(args.sampleRate, stageSample[s]);
+                                    stageSample[s+1] = result.notch;
+                                }
+                                y = solo.sample[c] = blend(stageSample, cascade);
                             }
                             y *= smooth;
                         }
@@ -715,6 +740,19 @@ namespace Sapphire
                         neonMode = inMessage.neonMode;
 
                     sendMessage(outMessage);
+                }
+
+                static float blend(const float* stageSample, float cascade)
+                {
+                    if (cascade >= MAX_FILTER_STAGES)
+                        return stageSample[MAX_FILTER_STAGES];
+
+                    if (cascade <= 0)
+                        return stageSample[0];
+
+                    unsigned index = std::floor(cascade);
+                    float frac = cascade - index;
+                    return (1-frac)*stageSample[index] + frac*stageSample[index+1];
                 }
             };
 
@@ -734,6 +772,7 @@ namespace Sapphire
                     addShapeToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
+                    addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }
