@@ -619,6 +619,7 @@ namespace Sapphire
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
+                    configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
                     shapeToggleGroup.config(this, "Shape", "shapeToggleGroup", SHAPE_INPUT, SHAPE_BUTTON_PARAM, SHAPE_BUTTON_LIGHT, "Shape", "");
                 }
 
@@ -900,8 +901,7 @@ namespace Sapphire
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                    configOutput(AUDIO_LEFT_OUTPUT, "Left audio");
-                    configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                    configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "audio");
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 0.5, "%", 0, 100);
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                 }
