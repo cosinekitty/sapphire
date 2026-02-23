@@ -253,11 +253,11 @@ namespace Sapphire
         };
 
 
-        struct InputModeButton : SapphireTinyToggleButton
+        struct OutputChannelModeButton : SapphireTinyToggleButton
         {
             Echo::EchoWidget* echoWidget{};
 
-            explicit InputModeButton()
+            explicit OutputChannelModeButton()
             {
                 addTinyButtonFrames(this, "green");
             }
@@ -2044,7 +2044,7 @@ namespace Sapphire
                 SEND_RETURN_BUTTON_PARAM,
                 INIT_CHAIN_BUTTON_PARAM,
                 INIT_TAP_BUTTON_PARAM,
-                INPUT_MODE_BUTTON_PARAM,
+                OUTPUT_CHANNEL_MODE_BUTTON_PARAM,
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
                 TAPE_SLEW_PARAM,
@@ -2135,7 +2135,7 @@ namespace Sapphire
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
-                    configButton(INPUT_MODE_BUTTON_PARAM);      // tooltip changed dynamically
+                    configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);      // tooltip changed dynamically
                     configButton(MUTE_BUTTON_PARAM);            // tooltip changed dynamically
                     configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
@@ -2213,7 +2213,7 @@ namespace Sapphire
 
                 bool polyphonicMode()
                 {
-                    return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                    return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2390,7 +2390,7 @@ namespace Sapphire
                     addClockButton();
                     addIntervalButton();
                     addInitChainButton();
-                    addInputModeButton();
+                    addOutputChannelModeButton();
 
                     // Per-tap controls/ports
                     addSendReturnButton(SEND_RETURN_BUTTON_PARAM);
@@ -2470,11 +2470,11 @@ namespace Sapphire
                     APP->history->push(h);
                 }
 
-                void addInputModeButton()
+                void addOutputChannelModeButton()
                 {
-                    auto button = createParamCentered<InputModeButton>(Vec{}, echoModule, INPUT_MODE_BUTTON_PARAM);
+                    auto button = createParamCentered<OutputChannelModeButton>(Vec{}, echoModule, OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
                     button->echoWidget = this;
-                    addSapphireParam(button, "input_mode_button");
+                    addSapphireParam(button, "channel_mode_button");
                 }
 
                 void addClockButton()
@@ -2662,7 +2662,7 @@ namespace Sapphire
 
                     if (echoModule)
                     {
-                        echoModule->updateToggleButtonTooltip(INPUT_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
+                        echoModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
 
                         clockLabel   ->setVisible(!isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
                         clockSelLabel->setVisible( isMouseInsideClockLabel && echoModule->clockSignalFormat == ClockSignalFormat::Pulses);
