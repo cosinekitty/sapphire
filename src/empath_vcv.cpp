@@ -451,6 +451,7 @@ namespace Sapphire
                 {
                     chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
@@ -614,6 +615,8 @@ namespace Sapphire
                     using namespace Sapphire::Gravy;
 
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+                    configButton(INSERT_BUTTON_PARAM, "Add filter");
+                    configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     shapeToggleGroup.config(this, "Shape", "shapeToggleGroup", SHAPE_INPUT, SHAPE_BUTTON_PARAM, SHAPE_BUTTON_LIGHT, "Shape", "");
