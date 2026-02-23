@@ -421,6 +421,7 @@ namespace Sapphire
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
+                OUTPUT_CHANNEL_MODE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -441,6 +442,18 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
+            struct InputWidget;
+
+            struct OutputChannelModeButton : SapphireTinyToggleButton
+            {
+                InputWidget* inputWidget{};
+
+                explicit OutputChannelModeButton()
+                {
+                    addTinyButtonFrames(this, "green");
+                }
+            };
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -452,6 +465,7 @@ namespace Sapphire
                     chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
+                    configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);     // dynamic tooltip / hovertext
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
@@ -470,9 +484,7 @@ namespace Sapphire
 
                 bool polyphonicMode()
                 {
-                    // FIXFIXFIX - reinstate when button exists
-                    //return getParamQuantity(INPUT_MODE_BUTTON_PARAM)->getValue() > 0.5f;
-                    return false;
+                    return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -499,6 +511,7 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
+                    addOutputChannelModeButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -509,6 +522,13 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void addOutputChannelModeButton()
+                {
+                    auto button = createParamCentered<OutputChannelModeButton>(Vec{}, inputModule, OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
+                    button->inputWidget = this;
+                    addSapphireParam(button, "channel_mode_button");
                 }
 
                 void draw(const DrawArgs& args) override
@@ -537,6 +557,9 @@ namespace Sapphire
                                 AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
                             }
                         }
+
+                        // Keep the button's hovertext in sync with its actual state.
+                        inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
                     }
                 }
             };

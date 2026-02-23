@@ -196,6 +196,7 @@ namespace Sapphire
             {"_panel",                 {  40.640,  128.500}},
             {"audio_left_input",       {  16.320,   93.000}},
             {"audio_right_input",      {  16.320,  103.000}},
+            {"channel_mode_button",    {   9.820,   98.000}},
             {"input_label_left",       {   9.820,   93.000}},
             {"input_label_right",      {   9.820,  103.000}},
             {"insert_button",          {  37.640,    4.500}},
