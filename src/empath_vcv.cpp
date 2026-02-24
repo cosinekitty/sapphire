@@ -29,7 +29,6 @@ namespace Sapphire
         struct BackwardMessage
         {
             bool valid = false;
-            int soloCount = 0;  // how many filters are soloing right now
         };
 
         inline bool IsInput(const Module* module)
