@@ -2509,10 +2509,11 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
     yBottomButtons = panel.mmHeight - 5.0
 
-    yControlFence = FencePost(49.0, 75.0, 3)
-    yFreq = yControlFence.value(0)
-    yRes  = yControlFence.value(1)
-    yCasc = yControlFence.value(2)
+    yControlFence = FencePost(16.0, 75.0, 5)
+    yMorph = yControlFence.value(0)
+    yFreq  = yControlFence.value(1)
+    yRes   = yControlFence.value(2)
+    yCasc  = yControlFence.value(3)
 
     dyTopArt = 9.5
     dyGrad = 6.0
@@ -2522,7 +2523,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     y1_outputGradient = MULTIMAP_AUDIO_PORTS_Y1 - dyTopArt
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
 
-    yShapeControl = 16.0
 
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
@@ -2541,7 +2541,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         defs.append(Gradient(y1_outputGradient, y2_outputGradient, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_output'))
         pl.append(ControlGroupArt(name, 'output_art', panel, y1_outputGradient, y2_outputGradient, 'gradient_output'))
 
-        AddShortToggleGroup(pl, controls, font, 'SHP', 'shape', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yShapeControl)
+        AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
+        pl.append(CenteredControlTextPath(font, 'MORPH', xmid, yMorph - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))

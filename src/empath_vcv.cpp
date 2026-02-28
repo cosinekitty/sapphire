@@ -1,7 +1,7 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_smoother.hpp"
-#include "sauce_engine.hpp"
+#include "cascade_filter.hpp"
 
 namespace Sapphire
 {
@@ -23,7 +23,6 @@ namespace Sapphire
             bool polyphonic{};
             Frame rawAudio;         // original input audio from the leftmost module in the chain
             Frame filteredAudio;    // cumulative filtered audio from the immediate left module
-            int stageCount = 0;     // how many aggregate bandpass filters were added together in this chain
         };
 
         struct BackwardMessage
@@ -576,9 +575,11 @@ namespace Sapphire
                 FREQ_ATTEN,
                 RES_PARAM,
                 RES_ATTEN,
-                SHAPE_BUTTON_PARAM,
+                _OBSOLETE_PARAM_1,
                 CASCADE_PARAM,
                 CASCADE_ATTEN,
+                MORPH_PARAM,
+                MORPH_ATTEN,
                 PARAMS_LEN
             };
 
@@ -586,7 +587,7 @@ namespace Sapphire
             {
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
-                SHAPE_INPUT,
+                MORPH_CV_INPUT,
                 CASCADE_CV_INPUT,
                 INPUTS_LEN
             };
@@ -600,7 +601,6 @@ namespace Sapphire
 
             enum LightId
             {
-                SHAPE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -617,25 +617,9 @@ namespace Sapphire
                 }
             };
 
-            enum class FilterShape
-            {
-                Bandpass,
-                Notch
-            };
-
-            class ShapeSmoother : public EnumSmoother<FilterShape>
-            {
-            public:
-                explicit ShapeSmoother()
-                    : EnumSmoother(FilterShape::Bandpass, "filterShape")
-                    {}
-            };
-
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
-                ToggleGroup shapeToggleGroup;
-                ShapeSmoother shapeSmoother;
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -649,16 +633,12 @@ namespace Sapphire
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, 0, MAX_FILTER_STAGES, 1);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
-                    shapeToggleGroup.config(this, "Shape", "shapeToggleGroup", SHAPE_INPUT, SHAPE_BUTTON_PARAM, SHAPE_BUTTON_LIGHT, "Shape", "");
                 }
 
                 void FilterModule_initialize()
                 {
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                         channel[c].initialize();
-
-                    shapeToggleGroup.initialize();
-                    shapeSmoother.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -670,14 +650,12 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    shapeToggleGroup.jsonSave(root);
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
-                    shapeToggleGroup.jsonLoad(root);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -692,25 +670,16 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
-                    shapeSmoother.targetValue = shapeToggleGroup.process() ? FilterShape::Notch : FilterShape::Bandpass;
-                    const float smooth = shapeSmoother.process(args.sampleRate);
-
                     Frame solo;
 
                     if (inMessage.valid)
                     {
-                        if (shapeSmoother.currentValue == FilterShape::Bandpass)
-                            ++outMessage.stageCount;   // increment value already copied from inMessage.stageCount
-                        else
-                            outMessage.stageCount = std::max(1, outMessage.stageCount);
-
                         const int nc = inMessage.rawAudio.nchannels;
                         solo.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
                         float cvCascade = 0;
-                        float stageSample[1 + MAX_FILTER_STAGES]{};
 
                         for (int c = 0; c < nc; ++c)
                         {
@@ -729,6 +698,15 @@ namespace Sapphire
                                 q.stage[s].setResonance(resKnob);
                             }
 
+#if 1
+                            // FIXFIXFIX: all these concepts come together here
+                            // - morphing between bandpass and notch
+                            // - mix of receiving wet input or dry input into the filter (input mix)
+                            // - mix of output adding to or replacing wet input (variable percentage of wet)
+                            // - cascade: how many times we pass through the filter
+                            y = 0;
+                            (void)cascade;
+#else
                             if (shapeSmoother.currentValue == FilterShape::Bandpass)
                             {
                                 stageSample[0] = inMessage.rawAudio.sample[c];
@@ -751,6 +729,7 @@ namespace Sapphire
                                 y = solo.sample[c] = blend(stageSample, cascade);
                             }
                             y *= smooth;
+#endif
                         }
                     }
 
@@ -782,7 +761,6 @@ namespace Sapphire
             {
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
-                ToggleGroupInputPort* shapeInputPortWidget{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -791,28 +769,11 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
-                    addShapeToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
-                }
-
-                void addShapeToggleGroup()
-                {
-                    ToggleGroup* group = filterModule ? &(filterModule->shapeToggleGroup) : nullptr;
-
-                    shapeInputPortWidget = addToggleGroup(
-                        group,
-                        "shape",
-                        SHAPE_INPUT,
-                        SHAPE_BUTTON_PARAM,
-                        SHAPE_BUTTON_LIGHT,
-                        '\0',
-                        0.0,
-                        SCHEME_ORANGE
-                    );
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -835,37 +796,6 @@ namespace Sapphire
                 void step() override
                 {
                     EmpathWidget::step();
-                    updateShapePortTooltip();
-                    updateShapeButtonTooltip();
-                }
-
-                bool isShapeTriggered() const
-                {
-                    return filterModule && (filterModule->shapeToggleGroup.mode == ToggleGroupMode::Trigger);
-                }
-
-                void updateShapePortTooltip()
-                {
-                    if (shapeInputPortWidget)
-                    {
-                        if (auto portInfo = shapeInputPortWidget->getPortInfo())
-                        {
-                            portInfo->name = std::string("Shape ") + (isShapeTriggered() ? "trigger" : "gate");
-                        }
-                    }
-                }
-
-                void updateShapeButtonTooltip()
-                {
-                    if (filterModule)
-                    {
-                        filterModule->paramQuantities.at(SHAPE_BUTTON_PARAM)->name =
-                            std::string("Shape: ") + (
-                                (filterModule->shapeSmoother.currentValue == FilterShape::Bandpass) ?
-                                "BANDPASS" :
-                                "NOTCH"
-                            );
-                    }
                 }
 
                 void draw(const DrawArgs& args) override
