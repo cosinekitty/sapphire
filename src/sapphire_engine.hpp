@@ -695,10 +695,20 @@ namespace Sapphire
     template <typename value_t>
     struct FilterResult
     {
-        value_t lowpass;
-        value_t bandpass;
-        value_t highpass;
-        value_t notch;
+        value_t lowpass{};
+        value_t bandpass{};
+        value_t highpass{};
+        value_t notch{};
+
+        explicit FilterResult() {}
+
+        explicit FilterResult(const value_t& dry)
+            : lowpass(dry)
+            , bandpass(dry)
+            , highpass(dry)
+            , notch(dry)
+        {
+        }
 
         explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp)
             : lowpass(lp)
@@ -727,8 +737,8 @@ namespace Sapphire
     private:
         value_t c1{};
         value_t c2{};
-        value_t v1{};
-        value_t v2{};
+        value_t bandpass{};
+        value_t lowpass{};
         value_t v3{};
         value_t a1{};
         value_t a2{};
@@ -743,8 +753,8 @@ namespace Sapphire
         {
             c1 = 0;
             c2 = 0;
-            v1 = 0;
-            v2 = 0;
+            bandpass = 0;
+            lowpass = 0;
             v3 = 0;
         }
 
@@ -767,12 +777,12 @@ namespace Sapphire
             }
 
             v3 = input - c2;
-            v1 = a1*c1 + a2*v3;
-            v2 = c2 + a2*c1 + a3*v3;
-            c1 = 2*v1 - c1;
-            c2 = 2*v2 - c2;
+            bandpass = a1*c1 + a2*v3;
+            lowpass = c2 + a2*c1 + a3*v3;
+            c1 = 2*bandpass - c1;
+            c2 = 2*lowpass - c2;
 
-            return FilterResult<value_t>(v2, v1, input - k*v1 - v2);
+            return FilterResult<value_t>(lowpass, bandpass, input - k*bandpass - lowpass);
         }
     };
 

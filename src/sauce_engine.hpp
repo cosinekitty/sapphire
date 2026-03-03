@@ -72,6 +72,7 @@ namespace Sapphire
                 result.lowpass  = gain * (mix*result.lowpass  + (1-mix)*inSample);
                 result.bandpass = gain * (mix*result.bandpass + (1-mix)*inSample);
                 result.highpass = gain * (mix*result.highpass + (1-mix)*inSample);
+                result.notch = result.lowpass + result.highpass;
 
                 return result;
             }

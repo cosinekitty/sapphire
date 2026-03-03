@@ -14,45 +14,63 @@ namespace Sapphire
 
         public:
             using result_t = FilterResult<value_t>;
+            using filter_t = Gravy::SingleChannelGravyEngine<value_t>;
 
         private:
-            using filter_t = Gravy::SingleChannelGravyEngine<value_t>;
-            std::array<filter_t, MAX_FILTER_STAGES> stage;
+            std::array<filter_t, MAX_FILTER_STAGES> bandpassStage;
+            std::array<filter_t, MAX_FILTER_STAGES> notchStage;
 
         public:
             void initialize()
             {
-                for (filter_t& f : stage)
+                for (filter_t& f : bandpassStage)
+                    f.initialize();
+
+                for (filter_t& f : notchStage)
                     f.initialize();
             }
 
-            result_t process(float sampleRateHz, const value_t inSample, float cascade)
+            float process(float sampleRateHz, float inSample, float cascade, float morph)
             {
-                std::array<result_t, 1+MAX_FILTER_STAGES> result;
+                const float c = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
 
-                // The first interpolation waypoint is the original dry audio.
-                result[0] = inSample;
+                float bandpass[1+MAX_FILTER_STAGES];
+                float notch[1+MAX_FILTER_STAGES];
 
-                // The remaining interpolation waypoints are successive stages of
-                // feeding one filter's output into the next filter's input.
+                bandpass[0] = notch[0] = inSample;
+
                 for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
-                    result[i+1] = stage[i].process(sampleRateHz, result[i]);
-
-                // Clamp extreme cases.
-
-                if (!std::isfinite(cascade))
-                    return result[0];
-
-                if (cascade <= 0)
-                    return result[0];
-
-                if (cascade >= static_cast<float>(MAX_FILTER_STAGES))
-                    return result[MAX_FILTER_STAGES];
+                {
+                    bandpass[i+1] = bandpassStage[i].process(sampleRateHz, bandpass[i]).bandpass;
+                    notch[i+1] = notchStage[i].process(sampleRateHz, notch[i]).notch;
+                }
 
                 // Return the linear interpolation between the outputs of the adjacent stages.
-                unsigned k = static_cast<unsigned>(std::floor(cascade));
-                float m = cascade - k;
-                return (1-m)*result.at(k) + m*result.at(k+1);
+                unsigned k = static_cast<unsigned>(std::floor(c));
+                float m = c - k;
+                float yb = (1-m)*bandpass[k] + m*bandpass[k+1];
+                float yn = (1-m)*notch[k] + m*notch[k+1];
+
+                const float z = (morph+1)/2;    // convert range [-1, +1] to [0, 1].
+                return (1-z)*yn + z*yb;
+            }
+
+            void setFrequency(float knob)
+            {
+                for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                {
+                    bandpassStage[i].setFrequency(knob);
+                    notchStage[i].setFrequency(knob);
+                }
+            }
+
+            void setResonance(float knob)
+            {
+                for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                {
+                    bandpassStage[i].setResonance(knob);
+                    notchStage[i].setResonance(knob);
+                }
             }
         };
     }

@@ -7,7 +7,8 @@ namespace Sapphire
 {
     namespace Empath
     {
-        using filter_t = Gravy::SingleChannelGravyEngine<float>;
+        constexpr int MAX_FILTER_STAGES = 3;
+        using filter_t = CascadeFilter<float, MAX_FILTER_STAGES>;
 
         struct Frame
         {
@@ -580,6 +581,8 @@ namespace Sapphire
                 CASCADE_ATTEN,
                 MORPH_PARAM,
                 MORPH_ATTEN,
+                ROUTE_PARAM,
+                ROUTE_ATTEN,
                 PARAMS_LEN
             };
 
@@ -589,6 +592,7 @@ namespace Sapphire
                 RES_CV_INPUT,
                 MORPH_CV_INPUT,
                 CASCADE_CV_INPUT,
+                ROUTE_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -604,16 +608,13 @@ namespace Sapphire
                 LIGHTS_LEN
             };
 
-            constexpr int MAX_FILTER_STAGES = 3;
-
             struct ChannelInfo
             {
-                filter_t stage[MAX_FILTER_STAGES];
+                filter_t filter;
 
                 void initialize()
                 {
-                    for (int s = 0; s < MAX_FILTER_STAGES; ++s)
-                        stage[s].initialize();
+                    filter.initialize();
                 }
             };
 
@@ -632,6 +633,8 @@ namespace Sapphire
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, 0, MAX_FILTER_STAGES, 1);
+                    configControlGroup("Morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT, -1, +1, 1);
+                    configControlGroup("Route", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT, 0, 1, 0.5);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
                 }
 
@@ -680,56 +683,40 @@ namespace Sapphire
                         float cvFreq = 0;
                         float cvRes = 0;
                         float cvCascade = 0;
+                        float cvMorph = 0;
+                        float cvRoute = 0;
 
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
-                            float& y = outMessage.filteredAudio.sample[c];
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
                             nextChannelInputVoltage(cvCascade, CASCADE_CV_INPUT, c);
+                            nextChannelInputVoltage(cvMorph, MORPH_CV_INPUT, c);
+                            nextChannelInputVoltage(cvRoute, ROUTE_CV_INPUT, c);
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
                             float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, 0, MAX_FILTER_STAGES);
+                            float morph = cvGetControlValue(MORPH_PARAM, MORPH_ATTEN, cvMorph, -1, +1);
+                            float route = cvGetControlValue(ROUTE_PARAM, ROUTE_ATTEN, cvRoute, 0, 1);
 
-                            for (int s = 0; s < MAX_FILTER_STAGES; ++s)
-                            {
-                                q.stage[s].setFrequency(freqKnob);
-                                q.stage[s].setResonance(resKnob);
-                            }
+                            q.filter.setFrequency(freqKnob);
+                            q.filter.setResonance(resKnob);
 
-#if 1
-                            // FIXFIXFIX: all these concepts come together here
-                            // - morphing between bandpass and notch
-                            // - mix of receiving wet input or dry input into the filter (input mix)
-                            // - mix of output adding to or replacing wet input (variable percentage of wet)
-                            // - cascade: how many times we pass through the filter
-                            y = 0;
-                            (void)cascade;
-#else
-                            if (shapeSmoother.currentValue == FilterShape::Bandpass)
-                            {
-                                stageSample[0] = inMessage.rawAudio.sample[c];
-                                for (int s = 0; s < MAX_FILTER_STAGES; ++s)
-                                {
-                                    auto result = q.stage[s].process(args.sampleRate, stageSample[s]);
-                                    stageSample[s+1] = result.bandpass;
-                                }
-                                solo.sample[c] = blend(stageSample, cascade);
-                                y = (y*inMessage.stageCount + solo.sample[c]) / outMessage.stageCount;
-                            }
-                            else
-                            {
-                                stageSample[0] = inMessage.filteredAudio.sample[c];
-                                for (int s = 0; s < MAX_FILTER_STAGES; ++s)
-                                {
-                                    auto result = q.stage[s].process(args.sampleRate, stageSample[s]);
-                                    stageSample[s+1] = result.notch;
-                                }
-                                y = solo.sample[c] = blend(stageSample, cascade);
-                            }
-                            y *= smooth;
-#endif
+                            float inSample = LinearMix(
+                                route,
+                                inMessage.rawAudio.sample[c],
+                                inMessage.filteredAudio.sample[c]
+                            );
+
+                            solo.sample[c] = q.filter.process(
+                                args.sampleRate,
+                                inSample,
+                                cascade,
+                                morph
+                            );
+
+                            outMessage.filteredAudio.sample[c] += solo.sample[c];
                         }
                     }
 
@@ -772,6 +759,8 @@ namespace Sapphire
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
+                    addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
+                    addSapphireFlatControlGroup("route", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 }
@@ -926,7 +915,7 @@ namespace Sapphire
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
-                        float mix = filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
+                        float mix = filter_t::filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
                         result.sample[c] = level * (mix*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
                     }
                     return result;
