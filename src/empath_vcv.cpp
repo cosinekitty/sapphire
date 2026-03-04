@@ -782,11 +782,6 @@ namespace Sapphire
                     return module && IsFilterReceiver(module->rightExpander.module);
                 }
 
-                void step() override
-                {
-                    EmpathWidget::step();
-                }
-
                 void draw(const DrawArgs& args) override
                 {
                     EmpathWidget::draw(args);
