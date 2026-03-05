@@ -7,7 +7,10 @@ namespace Sapphire
 {
     namespace Empath
     {
+        constexpr int MIN_FILTER_STAGES = 1;
         constexpr int MAX_FILTER_STAGES = 3;
+        constexpr int DEFAULT_FILTER_STAGES = 1;
+
         using filter_t = CascadeFilter<float, MAX_FILTER_STAGES>;
 
         struct Frame
@@ -632,7 +635,7 @@ namespace Sapphire
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
-                    configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, 0, MAX_FILTER_STAGES, 1);
+                    configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configControlGroup("Morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT, -1, +1, 1);
                     configControlGroup("Source", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT, 0, 1, 0);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
@@ -696,7 +699,7 @@ namespace Sapphire
                             nextChannelInputVoltage(cvRoute, ROUTE_CV_INPUT, c);
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
-                            float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, 0, MAX_FILTER_STAGES);
+                            float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
                             float morph = cvGetControlValue(MORPH_PARAM, MORPH_ATTEN, cvMorph, -1, +1);
                             float route = cvGetControlValue(ROUTE_PARAM, ROUTE_ATTEN, cvRoute, 0, 1);
 
