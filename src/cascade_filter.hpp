@@ -7,6 +7,14 @@ namespace Sapphire
 {
     namespace Empath
     {
+        inline float SpreadKnob(float knob)
+        {
+            // I want to concentrate the density of the knob range near the extremes [-1, +1].
+            // Also, convert the linear knob range [-1, +1] to the mixer-friendly range [0, 1].
+            return (knob < 0) ? Cube(1+knob)/2 : (1 - Cube(1-knob)/2);
+        }
+
+
         template <typename value_t, unsigned MAX_FILTER_STAGES>
         class CascadeFilter
         {
@@ -51,7 +59,7 @@ namespace Sapphire
                 float yb = (1-m)*bandpass[k] + m*bandpass[k+1];
                 float yn = (1-m)*notch[k] + m*notch[k+1];
 
-                const float z = (morph+1)/2;    // convert range [-1, +1] to [0, 1].
+                const float z = SpreadKnob(morph);
                 return (1-z)*yn + z*yb;
             }
 

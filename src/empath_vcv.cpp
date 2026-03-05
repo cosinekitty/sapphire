@@ -493,7 +493,7 @@ namespace Sapphire
                     outMessage.neonMode = neonMode;
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
-                    outMessage.filteredAudio = outMessage.rawAudio;     // confusing: will be multiplied by 0 when first stage is in bandpass mode, but needed for notch mode.
+                    outMessage.filteredAudio.nchannels = outMessage.rawAudio.nchannels;
                     sendMessage(outMessage);
                 }
             };
