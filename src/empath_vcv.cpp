@@ -634,7 +634,7 @@ namespace Sapphire
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, 0, MAX_FILTER_STAGES, 1);
                     configControlGroup("Morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT, -1, +1, 1);
-                    configControlGroup("Route", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT, 0, 1, 0.5);
+                    configControlGroup("Source", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT, 0, 1, 0);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
                 }
 

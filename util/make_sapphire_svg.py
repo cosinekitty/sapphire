@@ -2510,11 +2510,11 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     yBottomButtons = panel.mmHeight - 5.0
 
     yControlFence = FencePost(20.0, 75.0, 5)
-    yMorph = yControlFence.value(0)
-    yFreq  = yControlFence.value(1)
-    yRes   = yControlFence.value(2)
-    yCasc  = yControlFence.value(3)
-    yRoute = yControlFence.value(4)
+    yRoute = yControlFence.value(0)
+    yMorph = yControlFence.value(1)
+    yFreq  = yControlFence.value(2)
+    yRes   = yControlFence.value(3)
+    yCasc  = yControlFence.value(4)
 
     dyTopArt = 9.5
     dyGrad = 6.0
@@ -2554,7 +2554,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xmid, yRoute, 'route')
-        pl.append(CenteredControlTextPath(font, 'ROUTE', xmid, yRoute - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        pl.append(CenteredControlTextPath(font, 'SOURCE', xmid, yRoute - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
