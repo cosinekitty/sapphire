@@ -778,6 +778,7 @@ namespace Sapphire
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
                 ToggleGroupInputPort* modeInputPortWidget{};
+                SapphireCaptionButton* modeToggleButton{};
                 ToggleGroupInputPort* sourceInputPortWidget{};
                 SapphireCaptionButton* sourceToggleButton{};
 
@@ -799,7 +800,7 @@ namespace Sapphire
 
                 void addModeToggleGroup()
                 {
-                    modeInputPortWidget = addToggleGroup(
+                    auto tgc = addToggleGroup2(
                         filterModule ? &(filterModule->modeToggleGroup) : nullptr,
                         "mode",
                         MODE_INPUT,
@@ -807,8 +808,12 @@ namespace Sapphire
                         MODE_BUTTON_LIGHT,
                         '\0',
                         0,
-                        SCHEME_ORANGE
+                        SCHEME_ORANGE,
+                        false
                     );
+
+                    modeInputPortWidget = tgc.port;
+                    modeToggleButton = tgc.button;
                 }
 
                 void addSourceToggleGroup()
@@ -850,7 +855,7 @@ namespace Sapphire
                 {
                     EmpathWidget::step();
                     updateModePortTooltip();
-                    updateModeButtonTooltip();
+                    updateModeButton();
                     updateSourcePortTooltip();
                     updateSourceButton();
                 }
@@ -876,16 +881,20 @@ namespace Sapphire
                     }
                 }
 
-                void updateModeButtonTooltip()
+                void updateModeButton()
                 {
                     if (filterModule)
                     {
+                        const bool isBandpass = filterModule->modeFader.atFront();
+
                         filterModule->paramQuantities.at(MODE_BUTTON_PARAM)->name =
-                            std::string("Mode: ") + (
-                                filterModule->modeFader.atFront() ?
-                                "BANDPASS" :
-                                "NOTCH"
-                            );
+                            std::string("Mode: ") + (isBandpass ? "BANDPASS" : "NOTCH");
+
+                        if (modeToggleButton)
+                        {
+                            modeToggleButton->setCaption(isBandpass ? 'B' : 'N');
+                            modeToggleButton->dxText = (isBandpass ? 8.0f : 9.0f);
+                        }
                     }
                 }
 
