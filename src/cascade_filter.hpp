@@ -7,14 +7,6 @@ namespace Sapphire
 {
     namespace Empath
     {
-        inline float SpreadKnob(float knob)
-        {
-            // I want to concentrate the density of the knob range near the extremes [-1, +1].
-            // Also, convert the linear knob range [-1, +1] to the mixer-friendly range [0, 1].
-            return (knob < 0) ? Cube(1+knob)/2 : (1 - Cube(1-knob)/2);
-        }
-
-
         template <typename value_t, unsigned MAX_FILTER_STAGES>
         class CascadeFilter
         {
@@ -38,7 +30,7 @@ namespace Sapphire
                     f.initialize();
             }
 
-            float process(float sampleRateHz, float inSample, float cascade, float morph)
+            float process(float sampleRateHz, float inSample, float cascade, float modeMix)
             {
                 const float c = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
 
@@ -56,11 +48,9 @@ namespace Sapphire
                 // Return the linear interpolation between the outputs of the adjacent stages.
                 unsigned k = static_cast<unsigned>(std::floor(c));
                 float m = c - k;
-                float yb = (1-m)*bandpass[k] + m*bandpass[k+1];
-                float yn = (1-m)*notch[k] + m*notch[k+1];
-
-                const float z = SpreadKnob(morph);
-                return (1-z)*yn + z*yb;
+                float yb = LinearMix(m, bandpass[k], bandpass[k+1]);
+                float yn = LinearMix(m, notch[k], notch[k+1]);
+                return LinearMix(modeMix, yb, yn);
             }
 
             void setFrequency(float knob)

@@ -224,7 +224,7 @@ namespace Sapphire
             // Therefore we need to make sure the ratio count/rampLength
             // is bounded to the range [0, 1].
 
-            float gain = std::clamp(static_cast<float>(count) / static_cast<float>(rampLength), 0.0f, 1.0f);
+            float gain = std::clamp<float>(static_cast<float>(count) / static_cast<float>(rampLength), 0, 1);
 
             for (int c = 0; c < channels; ++c)
                 volts[c] *= gain;

@@ -1,6 +1,6 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "sapphire_smoother.hpp"
+#include "sapphire_crossfader.hpp"
 #include "cascade_filter.hpp"
 
 namespace Sapphire
@@ -25,8 +25,8 @@ namespace Sapphire
             int chainIndex = -1;
             bool neonMode{};
             bool polyphonic{};
-            Frame rawAudio;         // original input audio from the leftmost module in the chain
-            Frame filteredAudio;    // cumulative filtered audio from the immediate left module
+            Frame dryAudio;         // original input audio from the leftmost module in the chain
+            Frame wetAudio;         // cumulative filtered audio from the immediate left module
         };
 
         struct BackwardMessage
@@ -495,8 +495,8 @@ namespace Sapphire
                     outMessage.chainIndex = 1;
                     outMessage.neonMode = neonMode;
                     outMessage.polyphonic = polyphonicMode();
-                    outMessage.rawAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
-                    outMessage.filteredAudio.nchannels = outMessage.rawAudio.nchannels;
+                    outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
+                    outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     sendMessage(outMessage);
                 }
             };
@@ -579,13 +579,10 @@ namespace Sapphire
                 FREQ_ATTEN,
                 RES_PARAM,
                 RES_ATTEN,
-                _OBSOLETE_PARAM_1,
                 CASCADE_PARAM,
                 CASCADE_ATTEN,
-                MORPH_PARAM,
-                MORPH_ATTEN,
-                ROUTE_PARAM,
-                ROUTE_ATTEN,
+                MODE_BUTTON_PARAM,
+                SOURCE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -593,9 +590,9 @@ namespace Sapphire
             {
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
-                MORPH_CV_INPUT,
                 CASCADE_CV_INPUT,
-                ROUTE_CV_INPUT,
+                MODE_INPUT,
+                SOURCE_INPUT,
                 INPUTS_LEN
             };
 
@@ -608,6 +605,8 @@ namespace Sapphire
 
             enum LightId
             {
+                MODE_BUTTON_LIGHT,
+                SOURCE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -621,9 +620,25 @@ namespace Sapphire
                 }
             };
 
+            enum class FilterMode
+            {
+                Bandpass,
+                Notch,
+            };
+
+            enum class FilterSource
+            {
+                Dry,
+                Wet,
+            };
+
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
+                ToggleGroup modeToggleGroup;
+                Crossfader modeFader;       // front=bandpass, back=notch
+                ToggleGroup sourceToggleGroup;
+                Crossfader sourceFader;     // front=dry, back=wet
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -636,15 +651,20 @@ namespace Sapphire
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
-                    configControlGroup("Morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT, -1, +1, 1);
-                    configControlGroup("Source", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT, 0, 1, 0);
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
+                    modeToggleGroup.config(this, "Mode", "modeToggleGroup", MODE_INPUT, MODE_BUTTON_PARAM, MODE_BUTTON_LIGHT, "Mode", "mode");
+                    sourceToggleGroup.config(this, "Source", "sourceToggleGroup", SOURCE_INPUT, SOURCE_BUTTON_PARAM, SOURCE_BUTTON_LIGHT, "Source", "source");
                 }
 
                 void FilterModule_initialize()
                 {
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                         channel[c].initialize();
+
+                    modeToggleGroup.initialize();
+                    modeFader.snapToFront();
+                    sourceToggleGroup.initialize();
+                    sourceFader.snapToFront();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -656,12 +676,16 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
+                    modeToggleGroup.jsonSave(root);
+                    sourceToggleGroup.jsonSave(root);
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
+                    modeToggleGroup.jsonLoad(root);
+                    sourceToggleGroup.jsonLoad(root);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -676,50 +700,52 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
+                    sourceFader.setTarget(sourceToggleGroup.process());
+                    const float sourceMix = sourceFader.process(args.sampleRate, 0, 1);     // 0=dry, 1=wet
+
+                    modeFader.setTarget(modeToggleGroup.process());
+                    const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
+
                     Frame solo;
 
                     if (inMessage.valid)
                     {
-                        const int nc = inMessage.rawAudio.nchannels;
+                        const int nc = inMessage.dryAudio.nchannels;
                         solo.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
                         float cvCascade = 0;
-                        float cvMorph = 0;
-                        float cvRoute = 0;
 
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
+
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
                             nextChannelInputVoltage(cvCascade, CASCADE_CV_INPUT, c);
-                            nextChannelInputVoltage(cvMorph, MORPH_CV_INPUT, c);
-                            nextChannelInputVoltage(cvRoute, ROUTE_CV_INPUT, c);
+
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
                             float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
-                            float morph = cvGetControlValue(MORPH_PARAM, MORPH_ATTEN, cvMorph, -1, +1);
-                            float route = cvGetControlValue(ROUTE_PARAM, ROUTE_ATTEN, cvRoute, 0, 1);
 
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
 
                             float inSample = LinearMix(
-                                route,
-                                inMessage.rawAudio.sample[c],
-                                inMessage.filteredAudio.sample[c]
+                                sourceMix,
+                                inMessage.dryAudio.sample[c],
+                                inMessage.wetAudio.sample[c]
                             );
 
                             solo.sample[c] = q.filter.process(
                                 args.sampleRate,
                                 inSample,
                                 cascade,
-                                morph
+                                modeMix
                             );
 
-                            outMessage.filteredAudio.sample[c] += solo.sample[c];
+                            outMessage.wetAudio.sample[c] += solo.sample[c];
                         }
                     }
 
@@ -751,6 +777,8 @@ namespace Sapphire
             {
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
+                ToggleGroupInputPort* modeInputPortWidget{};
+                ToggleGroupInputPort* sourceInputPortWidget{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -759,13 +787,41 @@ namespace Sapphire
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
+                    addModeToggleGroup();
+                    addSourceToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
-                    addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
-                    addSapphireFlatControlGroup("route", ROUTE_PARAM, ROUTE_ATTEN, ROUTE_CV_INPUT);
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                }
+
+                void addModeToggleGroup()
+                {
+                    modeInputPortWidget = addToggleGroup(
+                        filterModule ? &(filterModule->modeToggleGroup) : nullptr,
+                        "mode",
+                        MODE_INPUT,
+                        MODE_BUTTON_PARAM,
+                        MODE_BUTTON_LIGHT,
+                        '\0',
+                        0,
+                        SCHEME_ORANGE
+                    );
+                }
+
+                void addSourceToggleGroup()
+                {
+                    sourceInputPortWidget = addToggleGroup(
+                        filterModule ? &(filterModule->sourceToggleGroup) : nullptr,
+                        "source",
+                        SOURCE_INPUT,
+                        SOURCE_BUTTON_PARAM,
+                        SOURCE_BUTTON_LIGHT,
+                        '\0',
+                        0,
+                        SCHEME_GREEN
+                    );
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -783,6 +839,73 @@ namespace Sapphire
                 bool isConnectedOnRight() const override
                 {
                     return module && IsFilterReceiver(module->rightExpander.module);
+                }
+
+                void step() override
+                {
+                    EmpathWidget::step();
+                    updateModePortTooltip();
+                    updateModeButtonTooltip();
+                    updateSourcePortTooltip();
+                    updateSourceButtonTooltip();
+                }
+
+                bool isModeTriggered() const
+                {
+                    return filterModule && (filterModule->modeToggleGroup.mode == ToggleGroupMode::Trigger);
+                }
+
+                bool isSourceTriggered() const
+                {
+                    return filterModule && (filterModule->sourceToggleGroup.mode == ToggleGroupMode::Trigger);
+                }
+
+                void updateModePortTooltip()
+                {
+                    if (modeInputPortWidget)
+                    {
+                        if (auto portInfo = modeInputPortWidget->getPortInfo())
+                        {
+                            portInfo->name = std::string("Mode ") + (isModeTriggered() ? "trigger" : "gate");
+                        }
+                    }
+                }
+
+                void updateModeButtonTooltip()
+                {
+                    if (filterModule)
+                    {
+                        filterModule->paramQuantities.at(MODE_BUTTON_PARAM)->name =
+                            std::string("Mode: ") + (
+                                filterModule->modeFader.atFront() ?
+                                "BANDPASS" :
+                                "NOTCH"
+                            );
+                    }
+                }
+
+                void updateSourcePortTooltip()
+                {
+                    if (sourceInputPortWidget)
+                    {
+                        if (auto portInfo = sourceInputPortWidget->getPortInfo())
+                        {
+                            portInfo->name = std::string("Source ") + (isModeTriggered() ? "trigger" : "gate");
+                        }
+                    }
+                }
+
+                void updateSourceButtonTooltip()
+                {
+                    if (filterModule)
+                    {
+                        filterModule->paramQuantities.at(SOURCE_BUTTON_PARAM)->name =
+                            std::string("Source: ") + (
+                                filterModule->sourceFader.atFront() ?
+                                "DRY" :
+                                "WET"
+                            );
+                    }
                 }
 
                 void draw(const DrawArgs& args) override
@@ -895,26 +1018,25 @@ namespace Sapphire
                     if (message.valid)
                         neonMode = message.neonMode;
 
-                    Frame audio = outputAudioFrame(message.rawAudio, message.filteredAudio);
+                    Frame audio = outputAudioFrame(message.dryAudio, message.wetAudio);
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
                 }
 
-                Frame outputAudioFrame(const Frame& rawAudio, const Frame& filteredAudio)
+                Frame outputAudioFrame(const Frame& dryAudio, const Frame& wetAudio)
                 {
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
                     float cvLevel = 0;
-                    const int nc = rawAudio.nchannels;
+                    const int nc = dryAudio.nchannels;
                     Frame result;
                     result.nchannels = nc;
                     for (int c = 0; c < nc; ++c)
                     {
-                        // Apply MIX and LEVEL polyphonically.
                         nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
                         nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
                         float mix = filter_t::filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
-                        result.sample[c] = level * (mix*filteredAudio.sample[c] + (1-mix)*rawAudio.sample[c]);
+                        result.sample[c] = level * LinearMix(mix, dryAudio.sample[c], wetAudio.sample[c]);
                     }
                     return result;
                 }

@@ -2510,11 +2510,11 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     yBottomButtons = panel.mmHeight - 5.0
 
     yControlFence = FencePost(20.0, 75.0, 5)
-    yRoute = yControlFence.value(0)
-    yMorph = yControlFence.value(1)
-    yFreq  = yControlFence.value(2)
-    yRes   = yControlFence.value(3)
-    yCasc  = yControlFence.value(4)
+    ySource = yControlFence.value(0)
+    yMode   = yControlFence.value(1)
+    yFreq   = yControlFence.value(2)
+    yRes    = yControlFence.value(3)
+    yCasc   = yControlFence.value(4)
 
     dyTopArt = 9.5
     dyGrad = 6.0
@@ -2541,8 +2541,9 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         defs.append(Gradient(y1_outputGradient, y2_outputGradient, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_output'))
         pl.append(ControlGroupArt(name, 'output_art', panel, y1_outputGradient, y2_outputGradient, 'gradient_output'))
 
-        AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
-        pl.append(CenteredControlTextPath(font, 'MORPH', xmid, yMorph - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddLineToggleGroup(pl, controls, font, 'SRC', 'source', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, ySource, 3.5)
+
+        AddLineToggleGroup(pl, controls, font, 'MODE', 'mode', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yMode, 3.5)
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2552,9 +2553,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
         pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
-        AddFlatControlGroup(pl, controls, xmid, yRoute, 'route')
-        pl.append(CenteredControlTextPath(font, 'SOURCE', xmid, yRoute - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
