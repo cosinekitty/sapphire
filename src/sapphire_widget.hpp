@@ -868,6 +868,43 @@ namespace Sapphire
             return knob;
         }
 
+        template <typename button_t, typename port_t>
+        struct ToggleGroupControls
+        {
+            button_t* button{};
+            port_t* port{};
+
+            ToggleGroupControls(button_t* _button, port_t* _port)
+                : button(_button)
+                , port(_port)
+                {}
+        };
+
+        template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
+        ToggleGroupControls<caption_button_t, input_port_t> addToggleGroup2(
+            ToggleGroup* group,
+            const std::string& prefix,
+            int inputId,
+            int buttonId,
+            int lightId,
+            char buttonLetter,
+            float dxText,
+            NVGcolor baseColor,
+            bool momentary)
+        {
+            caption_button_t* button = createLightParamCentered<caption_button_t>(Vec{}, module, buttonId, lightId);
+            button->momentary = momentary;
+            button->dxText = dxText;
+            button->setCaption(buttonLetter);
+            button->initBaseColor(baseColor);
+
+            addSapphireParam(button, prefix + "_button");
+            input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
+            port->group = group;
+
+            return {button, port};
+        }
+
         template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
         input_port_t* addToggleGroup(
             ToggleGroup* group,
@@ -880,16 +917,8 @@ namespace Sapphire
             NVGcolor baseColor,
             bool momentary = false)
         {
-            caption_button_t* button = createLightParamCentered<caption_button_t>(Vec{}, module, buttonId, lightId);
-            button->momentary = momentary;
-            button->dxText = dxText;
-            button->setCaption(buttonLetter);
-            button->initBaseColor(baseColor);
-
-            addSapphireParam(button, prefix + "_button");
-            input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
-            port->group = group;
-            return port;
+            auto tg = addToggleGroup2(group, prefix, inputId, buttonId, lightId, buttonLetter, dxText, baseColor, momentary);
+            return tg.port;
         }
 
         SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting)

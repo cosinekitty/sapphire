@@ -779,6 +779,7 @@ namespace Sapphire
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
                 ToggleGroupInputPort* modeInputPortWidget{};
                 ToggleGroupInputPort* sourceInputPortWidget{};
+                SapphireCaptionButton* sourceToggleButton{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -812,7 +813,7 @@ namespace Sapphire
 
                 void addSourceToggleGroup()
                 {
-                    sourceInputPortWidget = addToggleGroup(
+                    auto tgc = addToggleGroup2(
                         filterModule ? &(filterModule->sourceToggleGroup) : nullptr,
                         "source",
                         SOURCE_INPUT,
@@ -820,8 +821,12 @@ namespace Sapphire
                         SOURCE_BUTTON_LIGHT,
                         '\0',
                         0,
-                        SCHEME_GREEN
+                        SCHEME_GREEN,
+                        false
                     );
+
+                    sourceInputPortWidget = tgc.port;
+                    sourceToggleButton = tgc.button;
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -847,7 +852,7 @@ namespace Sapphire
                     updateModePortTooltip();
                     updateModeButtonTooltip();
                     updateSourcePortTooltip();
-                    updateSourceButtonTooltip();
+                    updateSourceButton();
                 }
 
                 bool isModeTriggered() const
@@ -895,16 +900,20 @@ namespace Sapphire
                     }
                 }
 
-                void updateSourceButtonTooltip()
+                void updateSourceButton()
                 {
                     if (filterModule)
                     {
+                        const bool isDryInput = filterModule->sourceFader.atFront();
+
                         filterModule->paramQuantities.at(SOURCE_BUTTON_PARAM)->name =
-                            std::string("Source: ") + (
-                                filterModule->sourceFader.atFront() ?
-                                "DRY" :
-                                "WET"
-                            );
+                            std::string("Source: ") + (isDryInput ? "DRY" : "WET");
+
+                        if (sourceToggleButton)
+                        {
+                            sourceToggleButton->setCaption(isDryInput ? 'D' : 'W');
+                            sourceToggleButton->dxText = (isDryInput ? 9.0f : 12.5f);
+                        }
                     }
                 }
 
