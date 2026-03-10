@@ -2468,6 +2468,7 @@ def GenerateMultiTapButtons() -> int:
 EMPATH_INPUT_HP_WIDTH = 8
 EMPATH_FILTER_HP_WIDTH = 6
 EMPATH_OUTPUT_HP_WIDTH = 4
+EMPATH_AUDIO_PORTS_Y1 = 102.0
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2490,9 +2491,9 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'empath'))
-        controls.append(Component('channel_mode_button', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
-        AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
+        AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
     return Save(panel, svgFileName)
 
 
@@ -2521,7 +2522,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     y1_controlGradient = yControlFence.value(0) - dyTopArt
     y2_controlGradient = yControlFence.value(2) + dyGrad
 
-    y1_outputGradient = MULTIMAP_AUDIO_PORTS_Y1 - dyTopArt
+    y1_outputGradient = EMPATH_AUDIO_PORTS_Y1 - dyTopArt
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
 
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
@@ -2554,8 +2555,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
         pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xmid, EMPATH_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
 
     return Save(panel, svgFileName)
 
@@ -2572,8 +2573,8 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     yFence = MakeLoopControlFence()
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
-        AddVerticalStereoPorts(font, pl, controls, xmid, MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, MULTIMAP_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xmid, EMPATH_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
+        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
         AddOmriLogo(pl, xmid)
