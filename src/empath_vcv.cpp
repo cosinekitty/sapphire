@@ -276,9 +276,9 @@ namespace Sapphire
             void draw(const DrawArgs& args) override
             {
                 SapphireWidget::draw(args);
-                if (ComponentLocation L = FindComponent(modcode, "output_label_left"); L.cy > 0)
+                if (ComponentLocation L = FindComponent(modcode, "sendreturn_label_left"); L.cy > 0)
                 {
-                    if (ComponentLocation R = FindComponent(modcode, "output_label_right"); R.cy > 0)
+                    if (ComponentLocation R = FindComponent(modcode, "sendreturn_label_right"); R.cy > 0)
                     {
                         auto emod = dynamic_cast<EmpathModule*>(module);
                         PortLabelMode label = emod ? emod->outputLabels : PortLabelMode::Stereo;
@@ -593,13 +593,15 @@ namespace Sapphire
                 CASCADE_CV_INPUT,
                 MODE_INPUT,
                 SOURCE_INPUT,
+                AUDIO_LEFT_INPUT,       // return L
+                AUDIO_RIGHT_INPUT,      // return R
                 INPUTS_LEN
             };
 
             enum OutputId
             {
-                AUDIO_LEFT_OUTPUT,
-                AUDIO_RIGHT_OUTPUT,
+                AUDIO_LEFT_OUTPUT,      // send L
+                AUDIO_RIGHT_OUTPUT,     // send R
                 OUTPUTS_LEN
             };
 
@@ -651,7 +653,8 @@ namespace Sapphire
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
-                    configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "filter");
+                    configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
+                    configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                     modeToggleGroup.config(this, "Mode", "modeToggleGroup", MODE_INPUT, MODE_BUTTON_PARAM, MODE_BUTTON_LIGHT, "Mode", "mode");
                     sourceToggleGroup.config(this, "Source", "sourceToggleGroup", SOURCE_INPUT, SOURCE_BUTTON_PARAM, SOURCE_BUTTON_LIGHT, "Source", "source");
                 }
@@ -794,8 +797,8 @@ namespace Sapphire
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
-                    addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
-                    addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                    addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
+                    addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }
 
                 void addModeToggleGroup()

@@ -2469,6 +2469,7 @@ EMPATH_INPUT_HP_WIDTH = 8
 EMPATH_FILTER_HP_WIDTH = 6
 EMPATH_OUTPUT_HP_WIDTH = 4
 EMPATH_AUDIO_PORTS_Y1 = 102.0
+EMPATH_DX_SEND_RETURN = 7.0
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2525,6 +2526,9 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     y1_outputGradient = EMPATH_AUDIO_PORTS_Y1 - dyTopArt
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
 
+    xSendPorts = xmid - EMPATH_DX_SEND_RETURN
+    xReturnPorts = xmid + EMPATH_DX_SEND_RETURN
+
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
     pl = Element('g', 'PanelLayer')
@@ -2555,8 +2559,9 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
         pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        AddVerticalStereoPorts(font, pl, controls, xmid, EMPATH_AUDIO_PORTS_Y1, 'audio_left_output',  'audio_right_output', 'OUT')
-        AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
+        AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
+        AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
+        AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
 
     return Save(panel, svgFileName)
 
