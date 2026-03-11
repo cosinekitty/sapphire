@@ -2511,19 +2511,28 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
     yBottomButtons = panel.mmHeight - 5.0
 
-    yControlFence = FencePost(20.0, 75.0, 5)
-    ySource = yControlFence.value(0)
-    yMode   = yControlFence.value(1)
-    yFreq   = yControlFence.value(2)
-    yRes    = yControlFence.value(3)
-    yCasc   = yControlFence.value(4)
+    yToggleFence = FencePost(18.0, 30.0, 2)
+    ySource = yToggleFence.value(0)
+    yMode   = yToggleFence.value(1)
 
-    dyTopArt = 9.5
+    yControlFence = FencePost(50.0, 80.0, 3)
+    yFreq   = yControlFence.value(0)
+    yRes    = yControlFence.value(1)
+    yCasc   = yControlFence.value(2)
+
     dyGrad = 6.0
-    y1_controlGradient = yControlFence.value(0) - dyTopArt
-    y2_controlGradient = yControlFence.value(2) + dyGrad
 
-    y1_outputGradient = EMPATH_AUDIO_PORTS_Y1 - dyTopArt
+    dxGradient = 15.0
+    x1_gradient = xmid - dxGradient
+    x2_gradient = xmid + dxGradient
+
+    y1_toggleGradient = ySource - 7.5
+    y2_toggleGradient = yMode + dyGrad
+
+    y1_controlGradient = yFreq - 10.0
+    y2_controlGradient = yCasc + dyGrad
+
+    y1_outputGradient = EMPATH_AUDIO_PORTS_Y1 - 10.25
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
 
     xSendPorts = xmid - EMPATH_DX_SEND_RETURN
@@ -2540,11 +2549,42 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
 
+        toggleGradientColor = "#188B31"
+        defs.append(Gradient(y1_toggleGradient, y2_toggleGradient, toggleGradientColor, SAPPHIRE_PANEL_COLOR, 'gradient_toggles'))
+        pl.append(ControlGroupArt(
+            name,
+            'toggles_art',
+            panel,
+            y1_toggleGradient,
+            y2_toggleGradient,
+            'gradient_toggles',
+            x1_gradient,
+            x2_gradient
+        ))
+
         defs.append(Gradient(y1_controlGradient, y2_controlGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
-        pl.append(ControlGroupArt(name, 'controls_art', panel, y1_controlGradient, y2_controlGradient, 'gradient_controls'))
+        pl.append(ControlGroupArt(
+            name,
+            'controls_art',
+            panel,
+            y1_controlGradient,
+            y2_controlGradient,
+            'gradient_controls',
+            x1_gradient,
+            x2_gradient
+        ))
 
         defs.append(Gradient(y1_outputGradient, y2_outputGradient, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_output'))
-        pl.append(ControlGroupArt(name, 'output_art', panel, y1_outputGradient, y2_outputGradient, 'gradient_output'))
+        pl.append(ControlGroupArt(
+            name,
+            'output_art',
+            panel,
+            y1_outputGradient,
+            y2_outputGradient,
+            'gradient_output',
+            x1_gradient,
+            x2_gradient
+        ))
 
         AddLineToggleGroup(pl, controls, font, 'SRC', 'source', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, ySource, 3.5)
 
