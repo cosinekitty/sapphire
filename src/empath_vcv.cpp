@@ -709,12 +709,12 @@ namespace Sapphire
                     modeFader.setTarget(modeToggleGroup.process());
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
 
-                    Frame solo;
+                    Frame sendFrame;
 
                     if (inMessage.valid)
                     {
                         const int nc = inMessage.dryAudio.nchannels;
-                        solo.nchannels = nc;
+                        sendFrame.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
@@ -723,6 +723,7 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
+                            float& y = outMessage.wetAudio.sample[c];
 
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
@@ -741,18 +742,23 @@ namespace Sapphire
                                 inMessage.wetAudio.sample[c]
                             );
 
-                            solo.sample[c] = q.filter.process(
+                            sendFrame.sample[c] = q.filter.process(
                                 args.sampleRate,
                                 inSample,
                                 cascade,
                                 modeMix
                             );
 
-                            outMessage.wetAudio.sample[c] += solo.sample[c];
+                            // When processing DRY audio, mix with wet audio from the left (sourceMix==0).
+                            // When processing WET audio, replace the wet audio from the left (sourceMix==1).
+                            y = (1-sourceMix)*y + sendFrame.sample[c];
+
+                            // Override output when RETURN input port(s) connected.
+                            y = readSample(y, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, c);
                         }
                     }
 
-                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, solo, inMessage.polyphonic);
+                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;

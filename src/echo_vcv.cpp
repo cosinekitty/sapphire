@@ -395,37 +395,6 @@ namespace Sapphire
                 }
             }
 
-            float readSample(float normal, Input& inLeft, Input& inRight, int c)
-            {
-                if (inLeft.isConnected())
-                {
-                    if (inRight.isConnected())
-                    {
-                        // Stereo input
-                        if (c == 0)
-                            return inLeft.getVoltageSum();
-                        if (c == 1)
-                            return inRight.getVoltageSum();
-                        return 0;
-                    }
-
-                    const int ncLeft = inLeft.getChannels();
-                    if (ncLeft > 1)
-                    {
-                        // Polyphonic input
-                        if (0 <= c && c < ncLeft)
-                            return inLeft.getVoltage(c);
-                        return 0;
-                    }
-
-                    // Mono input, so split the signal across both stereo output channels.
-                    if (c==0 || c==1)
-                        return inLeft.getVoltageSum() / 2;
-                    return 0;
-                }
-                return normal;
-            }
-
             Frame readFrame(int leftInputId, int rightInputId, bool polyphonic, PortLabelMode& mode)
             {
                 mode = PortLabelMode::Stereo;
