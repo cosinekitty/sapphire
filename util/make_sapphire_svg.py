@@ -2587,7 +2587,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         ))
 
 
-        AddLineToggleGroup(pl, controls, font, 'MODE', 'mode', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yMode, 3.5)
+        controls.append(Component('mode_button', xmid, yMode))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))

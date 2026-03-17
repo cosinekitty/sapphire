@@ -590,7 +590,7 @@ namespace Sapphire
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
                 CASCADE_CV_INPUT,
-                MODE_INPUT,
+                _OBSOLETE_INPUT_0,
                 _OBSOLETE_INPUT_1,
                 AUDIO_LEFT_INPUT,       // return L
                 AUDIO_RIGHT_INPUT,      // return R
@@ -635,7 +635,6 @@ namespace Sapphire
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
-                ToggleGroup modeToggleGroup;
                 Crossfader modeFader;       // front=bandpass, back=notch
 
                 explicit FilterModule()
@@ -651,7 +650,6 @@ namespace Sapphire
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
-                    modeToggleGroup.config(this, "Mode", "modeToggleGroup", MODE_INPUT, MODE_BUTTON_PARAM, MODE_BUTTON_LIGHT, "Mode", "mode");
                 }
 
                 void FilterModule_initialize()
@@ -659,7 +657,6 @@ namespace Sapphire
                     for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                         channel[c].initialize();
 
-                    modeToggleGroup.initialize();
                     modeFader.snapToFront();
                 }
 
@@ -672,14 +669,20 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    modeToggleGroup.jsonSave(root);
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
-                    modeToggleGroup.jsonLoad(root);
+                }
+
+                FilterMode updateFilterMode()
+                {
+                    float x = params.at(MODE_BUTTON_PARAM).getValue();
+                    FilterMode mode = (x > 0.5f) ? FilterMode::Notch : FilterMode::Bandpass;
+                    setLightBrightness(MODE_BUTTON_LIGHT, mode == FilterMode::Notch);
+                    return mode;
                 }
 
                 void process(const ProcessArgs& args) override
@@ -694,7 +697,8 @@ namespace Sapphire
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
 
-                    modeFader.setTarget(modeToggleGroup.process());
+                    const FilterMode mode = updateFilterMode();
+                    modeFader.setTarget(mode == FilterMode::Notch);
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
 
                     Frame sendFrame;
@@ -767,7 +771,6 @@ namespace Sapphire
             {
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
-                ToggleGroupInputPort* modeInputPortWidget{};
                 SapphireCaptionButton* modeToggleButton{};
 
                 explicit FilterWidget(FilterModule* module)
@@ -787,20 +790,17 @@ namespace Sapphire
 
                 void addModeToggleGroup()
                 {
-                    auto tgc = addToggleGroup2(
-                        filterModule ? &(filterModule->modeToggleGroup) : nullptr,
-                        "mode",
-                        MODE_INPUT,
+                    modeToggleButton = createLightParamCentered<SapphireCaptionButton>(
+                        Vec{},
+                        filterModule,
                         MODE_BUTTON_PARAM,
-                        MODE_BUTTON_LIGHT,
-                        '\0',
-                        0,
-                        SCHEME_ORANGE,
-                        false
+                        MODE_BUTTON_LIGHT
                     );
 
-                    modeInputPortWidget = tgc.port;
-                    modeToggleButton = tgc.button;
+                    modeToggleButton->initBaseColor(SCHEME_ORANGE);
+                    modeToggleButton->momentary = false;
+
+                    addSapphireParam(modeToggleButton, "mode_button");
                 }
 
                 void addExpanderRemoveButton(int paramId)
@@ -823,24 +823,7 @@ namespace Sapphire
                 void step() override
                 {
                     EmpathWidget::step();
-                    updateModePortTooltip();
                     updateModeButton();
-                }
-
-                bool isModeTriggered() const
-                {
-                    return filterModule && (filterModule->modeToggleGroup.mode == ToggleGroupMode::Trigger);
-                }
-
-                void updateModePortTooltip()
-                {
-                    if (modeInputPortWidget)
-                    {
-                        if (auto portInfo = modeInputPortWidget->getPortInfo())
-                        {
-                            portInfo->name = std::string("Mode ") + (isModeTriggered() ? "trigger" : "gate");
-                        }
-                    }
                 }
 
                 void updateModeButton()
