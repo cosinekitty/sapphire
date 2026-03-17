@@ -2586,7 +2586,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
             x2_gradient
         ))
 
-        AddLineToggleGroup(pl, controls, font, 'SRC', 'source', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, ySource, 3.5)
 
         AddLineToggleGroup(pl, controls, font, 'MODE', 'mode', xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yMode, 3.5)
 

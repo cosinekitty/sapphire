@@ -582,7 +582,6 @@ namespace Sapphire
                 CASCADE_PARAM,
                 CASCADE_ATTEN,
                 MODE_BUTTON_PARAM,
-                SOURCE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -592,7 +591,7 @@ namespace Sapphire
                 RES_CV_INPUT,
                 CASCADE_CV_INPUT,
                 MODE_INPUT,
-                SOURCE_INPUT,
+                _OBSOLETE_INPUT_1,
                 AUDIO_LEFT_INPUT,       // return L
                 AUDIO_RIGHT_INPUT,      // return R
                 INPUTS_LEN
@@ -608,7 +607,6 @@ namespace Sapphire
             enum LightId
             {
                 MODE_BUTTON_LIGHT,
-                SOURCE_BUTTON_LIGHT,
                 LIGHTS_LEN
             };
 
@@ -639,8 +637,6 @@ namespace Sapphire
                 ChannelInfo channel[PORT_MAX_CHANNELS];
                 ToggleGroup modeToggleGroup;
                 Crossfader modeFader;       // front=bandpass, back=notch
-                ToggleGroup sourceToggleGroup;
-                Crossfader sourceFader;     // front=dry, back=wet
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -656,7 +652,6 @@ namespace Sapphire
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                     modeToggleGroup.config(this, "Mode", "modeToggleGroup", MODE_INPUT, MODE_BUTTON_PARAM, MODE_BUTTON_LIGHT, "Mode", "mode");
-                    sourceToggleGroup.config(this, "Source", "sourceToggleGroup", SOURCE_INPUT, SOURCE_BUTTON_PARAM, SOURCE_BUTTON_LIGHT, "Source", "source");
                 }
 
                 void FilterModule_initialize()
@@ -666,8 +661,6 @@ namespace Sapphire
 
                     modeToggleGroup.initialize();
                     modeFader.snapToFront();
-                    sourceToggleGroup.initialize();
-                    sourceFader.snapToFront();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -680,7 +673,6 @@ namespace Sapphire
                 {
                     json_t* root = EmpathModule::dataToJson();
                     modeToggleGroup.jsonSave(root);
-                    sourceToggleGroup.jsonSave(root);
                     return root;
                 }
 
@@ -688,7 +680,6 @@ namespace Sapphire
                 {
                     EmpathModule::dataFromJson(root);
                     modeToggleGroup.jsonLoad(root);
-                    sourceToggleGroup.jsonLoad(root);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -702,9 +693,6 @@ namespace Sapphire
 
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
-
-                    sourceFader.setTarget(sourceToggleGroup.process());
-                    const float sourceMix = sourceFader.process(args.sampleRate, 0, 1);     // 0=dry, 1=wet
 
                     modeFader.setTarget(modeToggleGroup.process());
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
@@ -736,22 +724,15 @@ namespace Sapphire
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
 
-                            float inSample = LinearMix(
-                                sourceMix,
-                                inMessage.dryAudio.sample[c],
-                                inMessage.wetAudio.sample[c]
-                            );
-
                             sendFrame.sample[c] = q.filter.process(
                                 args.sampleRate,
-                                inSample,
+                                inMessage.dryAudio.sample[c],
                                 cascade,
                                 modeMix
                             );
 
-                            // When processing DRY audio, mix with wet audio from the left (sourceMix==0).
-                            // When processing WET audio, replace the wet audio from the left (sourceMix==1).
-                            y = (1-sourceMix)*y + sendFrame.sample[c];
+                            // Mix this stage's output into the running sum going left-to-right through the chain.
+                            y += sendFrame.sample[c];
 
                             // Override output when RETURN input port(s) connected.
                             y = readSample(y, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, c);
@@ -788,8 +769,6 @@ namespace Sapphire
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
                 ToggleGroupInputPort* modeInputPortWidget{};
                 SapphireCaptionButton* modeToggleButton{};
-                ToggleGroupInputPort* sourceInputPortWidget{};
-                SapphireCaptionButton* sourceToggleButton{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
@@ -799,7 +778,6 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addModeToggleGroup();
-                    addSourceToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
@@ -825,24 +803,6 @@ namespace Sapphire
                     modeToggleButton = tgc.button;
                 }
 
-                void addSourceToggleGroup()
-                {
-                    auto tgc = addToggleGroup2(
-                        filterModule ? &(filterModule->sourceToggleGroup) : nullptr,
-                        "source",
-                        SOURCE_INPUT,
-                        SOURCE_BUTTON_PARAM,
-                        SOURCE_BUTTON_LIGHT,
-                        '\0',
-                        0,
-                        SCHEME_GREEN,
-                        false
-                    );
-
-                    sourceInputPortWidget = tgc.port;
-                    sourceToggleButton = tgc.button;
-                }
-
                 void addExpanderRemoveButton(int paramId)
                 {
                     auto button = createParamCentered<RemoveButton>(Vec{}, filterModule, paramId);
@@ -865,18 +825,11 @@ namespace Sapphire
                     EmpathWidget::step();
                     updateModePortTooltip();
                     updateModeButton();
-                    updateSourcePortTooltip();
-                    updateSourceButton();
                 }
 
                 bool isModeTriggered() const
                 {
                     return filterModule && (filterModule->modeToggleGroup.mode == ToggleGroupMode::Trigger);
-                }
-
-                bool isSourceTriggered() const
-                {
-                    return filterModule && (filterModule->sourceToggleGroup.mode == ToggleGroupMode::Trigger);
                 }
 
                 void updateModePortTooltip()
@@ -903,34 +856,6 @@ namespace Sapphire
                         {
                             modeToggleButton->setCaption(isBandpass ? 'B' : 'N');
                             modeToggleButton->dxText = (isBandpass ? 8.0f : 9.0f);
-                        }
-                    }
-                }
-
-                void updateSourcePortTooltip()
-                {
-                    if (sourceInputPortWidget)
-                    {
-                        if (auto portInfo = sourceInputPortWidget->getPortInfo())
-                        {
-                            portInfo->name = std::string("Source ") + (isModeTriggered() ? "trigger" : "gate");
-                        }
-                    }
-                }
-
-                void updateSourceButton()
-                {
-                    if (filterModule)
-                    {
-                        const bool isDryInput = filterModule->sourceFader.atFront();
-
-                        filterModule->paramQuantities.at(SOURCE_BUTTON_PARAM)->name =
-                            std::string("Source: ") + (isDryInput ? "DRY" : "WET");
-
-                        if (sourceToggleButton)
-                        {
-                            sourceToggleButton->setCaption(isDryInput ? 'D' : 'W');
-                            sourceToggleButton->dxText = (isDryInput ? 9.0f : 12.5f);
                         }
                     }
                 }
