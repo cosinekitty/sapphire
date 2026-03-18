@@ -27,6 +27,7 @@ namespace Sapphire
             bool polyphonic{};
             Frame dryAudio;         // original input audio from the leftmost module in the chain
             Frame wetAudio;         // cumulative filtered audio from the immediate left module
+            Frame cascade;
         };
 
         struct BackwardMessage
@@ -424,6 +425,8 @@ namespace Sapphire
             {
                 INSERT_BUTTON_PARAM,
                 OUTPUT_CHANNEL_MODE_BUTTON_PARAM,
+                CASCADE_PARAM,
+                CASCADE_ATTEN,
                 PARAMS_LEN
             };
 
@@ -431,6 +434,7 @@ namespace Sapphire
             {
                 AUDIO_LEFT_INPUT,
                 AUDIO_RIGHT_INPUT,
+                CASCADE_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -468,6 +472,7 @@ namespace Sapphire
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);     // dynamic tooltip / hovertext
+                    configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
@@ -489,6 +494,19 @@ namespace Sapphire
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
+                Frame readCascade(int nchannels)
+                {
+                    Frame frame;
+                    float cv = 0;
+                    frame.nchannels = nchannels;
+                    for (int c = 0; c < nchannels; ++c)
+                    {
+                        nextChannelInputVoltage(cv, CASCADE_CV_INPUT, c);
+                        frame.sample[c] = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cv, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
+                    }
+                    return frame;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     ForwardMessage outMessage;
@@ -497,6 +515,7 @@ namespace Sapphire
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
+                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels);
                     sendMessage(outMessage);
                 }
             };
@@ -514,6 +533,7 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addOutputChannelModeButton();
+                    addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
@@ -579,8 +599,8 @@ namespace Sapphire
                 FREQ_ATTEN,
                 RES_PARAM,
                 RES_ATTEN,
-                CASCADE_PARAM,
-                CASCADE_ATTEN,
+                _OBSOLETE_PARAM_1,
+                _OBSOLETE_PARAM_2,
                 MODE_BUTTON_PARAM,
                 PARAMS_LEN
             };
@@ -589,7 +609,7 @@ namespace Sapphire
             {
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
-                CASCADE_CV_INPUT,
+                _OBSOLETE_INPUT_2,
                 _OBSOLETE_INPUT_0,
                 _OBSOLETE_INPUT_1,
                 AUDIO_LEFT_INPUT,       // return L
@@ -647,7 +667,6 @@ namespace Sapphire
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
-                    configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }
@@ -710,7 +729,6 @@ namespace Sapphire
 
                         float cvFreq = 0;
                         float cvRes = 0;
-                        float cvCascade = 0;
 
                         for (int c = 0; c < nc; ++c)
                         {
@@ -719,11 +737,9 @@ namespace Sapphire
 
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
-                            nextChannelInputVoltage(cvCascade, CASCADE_CV_INPUT, c);
 
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
-                            float cascade = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cvCascade, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
 
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
@@ -731,7 +747,7 @@ namespace Sapphire
                             sendFrame.sample[c] = q.filter.process(
                                 args.sampleRate,
                                 inMessage.dryAudio.sample[c],
-                                cascade,
+                                inMessage.cascade.sample[c],
                                 modeMix
                             );
 
@@ -783,7 +799,6 @@ namespace Sapphire
                     addModeToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
-                    addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }

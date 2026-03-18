@@ -2488,6 +2488,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xInputPorts = xmid - 4.0
     xInputLabels = xInputPorts - 6.5
 
+    yCasc = 40.0
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2495,6 +2497,10 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+
+        AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
+        pl.append(CenteredControlTextPath(font, 'CASCADE', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
     return Save(panel, svgFileName)
 
 
@@ -2594,9 +2600,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'res')
         pl.append(CenteredControlTextPath(font, 'RES', xmid, yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
-        AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
-        pl.append(CenteredControlTextPath(font, 'CASC', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
