@@ -2,6 +2,7 @@
 #include <array>
 #include <cmath>
 #include "sauce_engine.hpp"
+#include "comb_filter.hpp"
 
 namespace Sapphire
 {
@@ -13,61 +14,85 @@ namespace Sapphire
             static_assert(MAX_FILTER_STAGES > 0);
 
         public:
-            using result_t = FilterResult<value_t>;
             using filter_t = Gravy::SingleChannelGravyEngine<value_t>;
+            using comb_t = CombFilter<value_t>;
 
         private:
-            std::array<filter_t, MAX_FILTER_STAGES> bandpassStage;
-            std::array<filter_t, MAX_FILTER_STAGES> notchStage;
+            struct MultiFilter
+            {
+                filter_t    bandpassFilter;
+                filter_t    notchFilter;
+                comb_t      combFilter;
+
+                void initialize()
+                {
+                    bandpassFilter.initialize();
+                    notchFilter.initialize();
+                    combFilter.initialize();
+                }
+            };
+
+            std::array<MultiFilter, MAX_FILTER_STAGES> multi;
 
         public:
             void initialize()
             {
-                for (filter_t& f : bandpassStage)
-                    f.initialize();
-
-                for (filter_t& f : notchStage)
-                    f.initialize();
+                for (MultiFilter& m : multi)
+                    m.initialize();
             }
 
-            float process(float sampleRateHz, float inSample, float cascade, float modeMix)
+            value_t process(float sampleRateHz, value_t inSample, float cascade, float modeMix)
             {
                 const float c = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
 
-                float bandpass[1+MAX_FILTER_STAGES];
-                float notch[1+MAX_FILTER_STAGES];
+                struct iter_t
+                {
+                    value_t bandpass{};
+                    value_t notch{};
+                    value_t comb{};
 
-                bandpass[0] = notch[0] = inSample;
+                    void setDrySample(value_t dry)
+                    {
+                        bandpass = dry;
+                        notch = dry;
+                        comb = dry;
+                    }
+                };
+
+                std::array<iter_t, 1+MAX_FILTER_STAGES> iter;
+                iter[0].setDrySample(inSample);
 
                 for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
                 {
-                    bandpass[i+1] = bandpassStage[i].process(sampleRateHz, bandpass[i]).bandpass;
-                    notch[i+1] = notchStage[i].process(sampleRateHz, notch[i]).notch;
+                    iter[i+1].bandpass = multi[i].bandpassFilter.process(sampleRateHz, iter[i].bandpass).bandpass;
+                    iter[i+1].notch = multi[i].notchFilter.process(sampleRateHz, iter[i].notch).notch;
                 }
 
                 // Return the linear interpolation between the outputs of the adjacent stages.
                 unsigned k = static_cast<unsigned>(std::floor(c));
                 float m = c - k;
-                float yb = LinearMix(m, bandpass[k], bandpass[k+1]);
-                float yn = LinearMix(m, notch[k], notch[k+1]);
+                float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
+                float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
                 return LinearMix(modeMix, yb, yn);
             }
 
             void setFrequency(float knob)
             {
-                for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                for (auto& m : multi)
                 {
-                    bandpassStage[i].setFrequency(knob);
-                    notchStage[i].setFrequency(knob);
+                    m.bandpassFilter.setFrequency(knob);
+                    m.notchFilter.setFrequency(knob);
+                    // comb
                 }
             }
 
             void setResonance(float knob)
             {
-                for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                for (auto& m : multi)
                 {
-                    bandpassStage[i].setResonance(knob);
-                    notchStage[i].setResonance(knob);
+                    m.bandpassFilter.setResonance(knob);
+                    m.notchFilter.setResonance(knob);
+                    // comb
                 }
             }
         };
