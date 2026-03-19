@@ -75,9 +75,7 @@ namespace Sapphire
                 float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
                 float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
                 float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
-
-                float ync = (1-resonanceKnob)*yn + yc;
-
+                float ync = LinearMix(resonanceKnob, yn, yc);
                 return LinearMix(modeMix, yb, ync);
             }
 
