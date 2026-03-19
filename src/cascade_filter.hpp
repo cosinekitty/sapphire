@@ -8,14 +8,14 @@ namespace Sapphire
 {
     namespace Empath
     {
-        template <typename value_t, unsigned MAX_FILTER_STAGES>
+        template <unsigned MAX_FILTER_STAGES>
         class CascadeFilter
         {
             static_assert(MAX_FILTER_STAGES > 0);
 
         public:
-            using filter_t = Gravy::SingleChannelGravyEngine<value_t>;
-            using comb_t = CombFilter<value_t>;
+            using filter_t = Gravy::SingleChannelGravyEngine<float>;
+            using comb_t = CombFilter<float>;
 
         private:
             struct MultiFilter
@@ -33,6 +33,7 @@ namespace Sapphire
             };
 
             std::array<MultiFilter, MAX_FILTER_STAGES> multi;
+            float resonanceKnob{};
 
         public:
             void initialize()
@@ -41,17 +42,17 @@ namespace Sapphire
                     m.initialize();
             }
 
-            value_t process(float sampleRateHz, value_t inSample, float cascade, float modeMix)
+            float process(float sampleRateHz, float inSample, float cascade, float modeMix)
             {
                 const float c = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
 
                 struct iter_t
                 {
-                    value_t bandpass{};
-                    value_t notch{};
-                    value_t comb{};
+                    float bandpass{};
+                    float notch{};
+                    float comb{};
 
-                    void setDrySample(value_t dry)
+                    void setDrySample(float dry)
                     {
                         bandpass = dry;
                         notch = dry;
@@ -66,6 +67,7 @@ namespace Sapphire
                 {
                     iter[i+1].bandpass = multi[i].bandpassFilter.process(sampleRateHz, iter[i].bandpass).bandpass;
                     iter[i+1].notch = multi[i].notchFilter.process(sampleRateHz, iter[i].notch).notch;
+                    iter[i+1].comb = multi[i].combFilter.process(sampleRateHz, iter[i].comb);
                 }
 
                 // Return the linear interpolation between the outputs of the adjacent stages.
@@ -73,7 +75,13 @@ namespace Sapphire
                 float m = c - k;
                 float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
                 float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
-                return LinearMix(modeMix, yb, yn);
+                float yc = LinearMix(m, iter[k].comb, iter[k+1].notch);
+
+                // Because high resonance values are not very interesting in a notch filter,
+                // we also use RES to morph between notch and comb filters.
+                float ync = LinearMix(resonanceKnob, yn, yc);
+
+                return LinearMix(modeMix, yb, ync);
             }
 
             void setFrequency(float knob)
@@ -82,17 +90,18 @@ namespace Sapphire
                 {
                     m.bandpassFilter.setFrequency(knob);
                     m.notchFilter.setFrequency(knob);
-                    // comb
+                    m.combFilter.setFrequency(knob);
                 }
             }
 
             void setResonance(float knob)
             {
+                resonanceKnob = std::clamp<float>(knob, 0, 1);
                 for (auto& m : multi)
                 {
-                    m.bandpassFilter.setResonance(knob);
-                    m.notchFilter.setResonance(knob);
-                    // comb
+                    m.bandpassFilter.setResonance(resonanceKnob);
+                    m.notchFilter.setResonance(resonanceKnob);
+                    m.combFilter.setResonance(resonanceKnob);        // FIXFIXFIX: also allow negative resonance
                 }
             }
         };
