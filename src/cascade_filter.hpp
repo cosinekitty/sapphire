@@ -11,8 +11,6 @@ namespace Sapphire
         template <unsigned MAX_FILTER_STAGES>
         class CascadeFilter
         {
-            static_assert(MAX_FILTER_STAGES > 0);
-
         public:
             using filter_t = Gravy::SingleChannelGravyEngine<float>;
             using comb_t = CombFilter<float>;
@@ -32,6 +30,7 @@ namespace Sapphire
                 }
             };
 
+            static_assert(MAX_FILTER_STAGES > 0);
             std::array<MultiFilter, MAX_FILTER_STAGES> multi;
             float resonanceKnob{};
 
@@ -75,18 +74,16 @@ namespace Sapphire
                 float m = c - k;
                 float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
                 float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
-                float yc = LinearMix(m, iter[k].comb, iter[k+1].notch);
+                float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
 
-                // Because high resonance values are not very interesting in a notch filter,
-                // we also use RES to morph between notch and comb filters.
-                float ync = LinearMix(resonanceKnob, yn, yc);
+                float ync = (1-resonanceKnob)*yn + yc;
 
                 return LinearMix(modeMix, yb, ync);
             }
 
             void setFrequency(float knob)
             {
-                for (auto& m : multi)
+                for (MultiFilter& m : multi)
                 {
                     m.bandpassFilter.setFrequency(knob);
                     m.notchFilter.setFrequency(knob);
@@ -96,12 +93,14 @@ namespace Sapphire
 
             void setResonance(float knob)
             {
+                constexpr float combScale = 0.6;
+
                 resonanceKnob = std::clamp<float>(knob, 0, 1);
-                for (auto& m : multi)
+                for (MultiFilter& m : multi)
                 {
                     m.bandpassFilter.setResonance(resonanceKnob);
                     m.notchFilter.setResonance(resonanceKnob);
-                    m.combFilter.setResonance(resonanceKnob);        // FIXFIXFIX: also allow negative resonance
+                    m.combFilter.setResonance(combScale * resonanceKnob);        // FIXFIXFIX: also allow negative resonance
                 }
             }
         };
