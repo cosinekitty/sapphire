@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="30.48mm" height="128.50mm" viewBox="0 0 30.48 128.50">
     <g id="PanelLayer">
         <defs>
-            <linearGradient id="gradient_toggles" x1="0" y1="10.5" x2="0" y2="36" gradientUnits="userSpaceOnUse">
+            <linearGradient id="gradient_toggles" x1="0" y1="10.5" x2="0" y2="24" gradientUnits="userSpaceOnUse">
                 <stop style="stop-color:#188B31;stop-opacity:1;" offset="0" />
                 <stop style="stop-color:#4f8df2;stop-opacity:1;" offset="1" />
             </linearGradient>
@@ -16,7 +16,7 @@
             </linearGradient>
         </defs>
         <rect id="border_rect" width="30.48" height="128.5" x="0" y="0" style="display:inline;fill:#4f8df2;fill-opacity:1;stroke:none;" />
-        <path id="toggles_art" d="M 0.24,36.00 L 0.24,14.50 A 4 4 0 0 1 4.24 10.5 L 26.24,10.50 A 4 4 0 0 1 30.24 14.5 L 30.24,10.50 L 30.24,36.00 z" style="fill:url(#gradient_toggles);fill-opacity:1;stroke-width:0;" />
+        <path id="toggles_art" d="M 0.24,24.00 L 0.24,14.50 A 4 4 0 0 1 4.24 10.5 L 26.24,10.50 A 4 4 0 0 1 30.24 14.5 L 30.24,10.50 L 30.24,24.00 z" style="fill:url(#gradient_toggles);fill-opacity:1;stroke-width:0;" />
         <path id="controls_art" d="M 0.24,86.00 L 0.24,44.00 A 4 4 0 0 1 4.24 40 L 26.24,40.00 A 4 4 0 0 1 30.24 44 L 30.24,40.00 L 30.24,86.00 z" style="fill:url(#gradient_controls);fill-opacity:1;stroke-width:0;" />
         <path id="output_art" d="M 0.24,107.75 L 0.24,95.75 A 4 4 0 0 1 4.24 91.75 L 26.24,91.75 A 4 4 0 0 1 30.24 95.75 L 30.24,91.75 L 30.24,107.75 z" style="fill:url(#gradient_output);fill-opacity:1;stroke-width:0;" />
         <path d="M 6.24,50.00 L 24.24,50.00 z " style="stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none" />

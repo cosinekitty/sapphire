@@ -2519,7 +2519,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
     yToggleFence = FencePost(18.0, 30.0, 2)
     ySource = yToggleFence.value(0)
-    yMode   = yToggleFence.value(1)
+    yMode   = ySource
 
     yControlFence = FencePost(50.0, 80.0, 3)
     yFreq   = yControlFence.value(0)

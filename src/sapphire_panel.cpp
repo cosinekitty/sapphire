@@ -177,7 +177,7 @@ namespace Sapphire
             {"freq_cv",                {   6.240,   50.000}},
             {"freq_knob",              {  24.240,   50.000}},
             {"insert_button",          {  27.480,    4.500}},
-            {"mode_button",            {  15.240,   30.000}},
+            {"mode_button",            {  15.240,   18.000}},
             {"remove_button",          {   3.000,  123.500}},
             {"res_atten",              {  15.240,   65.000}},
             {"res_cv",                 {   6.240,   65.000}},
