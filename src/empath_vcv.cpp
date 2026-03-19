@@ -8,7 +8,7 @@ namespace Sapphire
     namespace Empath
     {
         constexpr int MIN_FILTER_STAGES = 1;
-        constexpr int MAX_FILTER_STAGES = 4;
+        constexpr int MAX_FILTER_STAGES = 3;
         constexpr int DEFAULT_FILTER_STAGES = 1;
 
         using filter_t = CascadeFilter<MAX_FILTER_STAGES>;
