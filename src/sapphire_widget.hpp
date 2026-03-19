@@ -835,11 +835,11 @@ namespace Sapphire
             return knob;
         }
 
-        void addSapphireControlGroup(const std::string& name, int knobId, int attenId, int cvInputId)
+        void addSapphireControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
         {
-            addKnob(knobId, name + "_knob");
-            addSapphireAttenuverter(attenId, name + "_atten");
-            addSapphireInput(cvInputId, name + "_cv");
+            addKnob(knobId, prefix + "_knob");
+            addSapphireAttenuverter(attenId, prefix + "_atten");
+            addSapphireInput(cvInputId, prefix + "_cv");
         }
 
         template <typename knob_t = RoundSmallBlackKnob>

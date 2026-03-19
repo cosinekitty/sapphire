@@ -2470,6 +2470,7 @@ EMPATH_FILTER_HP_WIDTH = 6
 EMPATH_OUTPUT_HP_WIDTH = 4
 EMPATH_AUDIO_PORTS_Y1 = 102.0
 EMPATH_DX_SEND_RETURN = 7.0
+EMPATH_MIX_KNOB_Y = 26.325
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2480,16 +2481,11 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     xmid = panel.mmWidth / 2.0
-
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
-
     xInputPorts = xmid - 4.0
     xInputLabels = xInputPorts - 6.5
-
-    yCasc = 40.0
-
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2497,10 +2493,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
-
-        AddFlatControlGroup(pl, controls, xmid, yCasc, 'casc')
-        pl.append(CenteredControlTextPath(font, 'CASCADE', xmid, yCasc - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
+        AddControlGroup(pl, controls, font, 'casc', 'CASCADE', xmid, EMPATH_MIX_KNOB_Y)
     return Save(panel, svgFileName)
 
 
@@ -2592,7 +2585,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
             x2_gradient
         ))
 
-
         controls.append(Component('mode_button', xmid, yMode))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
@@ -2622,7 +2614,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
         AddVerticalStereoPorts(font, pl, controls, xmid, EMPATH_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
-        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yFence.value(MULTIMAP_TOP_GROUP_FRACTION))
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, EMPATH_MIX_KNOB_Y)
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yFence.value(3))
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)

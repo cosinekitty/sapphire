@@ -533,7 +533,7 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addOutputChannelModeButton();
-                    addSapphireFlatControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
+                    addSapphireControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
