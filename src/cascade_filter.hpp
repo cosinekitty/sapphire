@@ -91,13 +91,15 @@ namespace Sapphire
 
             void setResonance(float knob)
             {
+                constexpr float bandScale = 0.6;
+                constexpr float notchScale = 0.25;
                 constexpr float combScale = 0.6;
 
                 resonanceKnob = std::clamp<float>(knob, 0, 1);
                 for (MultiFilter& m : multi)
                 {
-                    m.bandpassFilter.setResonance(resonanceKnob);
-                    m.notchFilter.setResonance(resonanceKnob);
+                    m.bandpassFilter.setResonance(bandScale * resonanceKnob);
+                    m.notchFilter.setResonance(notchScale * resonanceKnob);
                     m.combFilter.setResonance(combScale * resonanceKnob);        // FIXFIXFIX: also allow negative resonance
                 }
             }
