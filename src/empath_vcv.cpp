@@ -733,7 +733,6 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
-                            float& y = outMessage.wetAudio.sample[c];
 
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
@@ -752,10 +751,12 @@ namespace Sapphire
                             );
 
                             // Mix this stage's output into the running sum going left-to-right through the chain.
-                            y += sendFrame.sample[c];
-
-                            // Override output when RETURN input port(s) connected.
-                            y = readSample(y, AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, c);
+                            outMessage.wetAudio.sample[c] += readSample(
+                                sendFrame.sample[c],
+                                AUDIO_LEFT_INPUT,
+                                AUDIO_RIGHT_INPUT,
+                                c
+                            );
                         }
                     }
 
