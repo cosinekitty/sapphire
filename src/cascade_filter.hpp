@@ -96,7 +96,7 @@ namespace Sapphire
 
             void setResonance(float knob)
             {
-                constexpr float bandScale = 0.6;
+                constexpr float bandScale = 0.75;
                 constexpr float notchScale = 0.25;
                 constexpr float combScale = 0.6;
 
