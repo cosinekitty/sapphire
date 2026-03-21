@@ -25,8 +25,13 @@ namespace Sapphire
                 void initialize()
                 {
                     bandpassFilter.initialize();
+                    bandpassFilter.centerFrequencyHz = C4_FREQUENCY_HZ;
+
                     notchFilter.initialize();
+                    notchFilter.centerFrequencyHz = C4_FREQUENCY_HZ;
+
                     combFilter.initialize();
+                    combFilter.centerFrequencyHz = C4_FREQUENCY_HZ;
                 }
             };
 

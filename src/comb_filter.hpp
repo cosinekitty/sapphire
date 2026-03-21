@@ -27,6 +27,8 @@ namespace Sapphire
         }
 
     public:
+        float centerFrequencyHz = C4_FREQUENCY_HZ;
+
         void initialize()
         {
             delay.clear();
@@ -42,7 +44,7 @@ namespace Sapphire
 
         void setFrequency(float knob)
         {
-            frequencyVoct = std::clamp<float>(knob, -Gravy::OctaveRange, +Gravy::OctaveRange);
+            frequencyVoct = knob;
         }
 
         value_t process(float sampleRateHz, value_t inSample)
@@ -50,7 +52,7 @@ namespace Sapphire
             dcRejectFilter.Update(inSample, sampleRateHz);
             value_t filtSample = dcRejectFilter.HiPass();
 
-            float frequencyHz = TwoToPower(frequencyVoct) * Gravy::DefaultFrequencyHz;
+            float frequencyHz = TwoToPower(frequencyVoct) * centerFrequencyHz;
             float delaySamples = sampleRateHz / frequencyHz;
             std::size_t centerSample = static_cast<std::size_t>(std::round(delaySamples));
 

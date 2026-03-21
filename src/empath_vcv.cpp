@@ -60,6 +60,7 @@ namespace Sapphire
             return IsFilter(module) || IsOutput(module);
         }
 
+        constexpr int OctaveRange = 5;
 
         struct EmpathModule : SapphireModule
         {
@@ -660,13 +661,22 @@ namespace Sapphire
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
-                    using namespace Sapphire::Gravy;
-
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
-                    configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
-                    configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, DefaultResonanceKnob);
+                    configControlGroup(
+                        "Frequency",
+                        FREQ_PARAM,
+                        FREQ_ATTEN,
+                        FREQ_CV_INPUT,
+                        -OctaveRange,
+                        +OctaveRange,
+                        0,
+                        " Hz",
+                        2,
+                        C4_FREQUENCY_HZ     // match VCV VCO frequency
+                    );
+                    configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, 0);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }
@@ -706,8 +716,6 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
-                    using namespace Sapphire::Gravy;
-
                     const ForwardMessage inMessage = receiveMessageOrDefault();
                     ForwardMessage outMessage = inMessage;
 

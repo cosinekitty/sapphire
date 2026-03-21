@@ -26,6 +26,10 @@ namespace Sapphire
             }
 
         public:
+            float centerFrequencyHz = DefaultFrequencyHz;
+            int minOctave = -OctaveRange;
+            int maxOctave = +OctaveRange;
+
             SingleChannelGravyEngine()
             {
                 initialize();
@@ -38,7 +42,7 @@ namespace Sapphire
 
             value_t setFrequency(value_t k)
             {
-                return setKnob(freqKnob, k, -OctaveRange, +OctaveRange);
+                return setKnob(freqKnob, k, minOctave, maxOctave);
             }
 
             value_t setResonance(value_t k)
@@ -64,8 +68,8 @@ namespace Sapphire
 
             FilterResult<value_t> process(float sampleRateHz, const value_t inSample)
             {
-                value_t cornerFreqHz = TwoToPower(freqKnob) * DefaultFrequencyHz;
-                value_t gain  = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain
+                value_t cornerFreqHz = TwoToPower(freqKnob) * centerFrequencyHz;
+                value_t gain = Cube(gainKnob * 2);    // 0.5, the default value, should have unity gain
                 value_t mix = MixFactor(mixKnob);
 
                 FilterResult<value_t> result = filter.process(sampleRateHz, cornerFreqHz, resKnob, inSample);
