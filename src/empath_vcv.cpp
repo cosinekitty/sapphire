@@ -706,11 +706,16 @@ namespace Sapphire
                     EmpathModule::dataFromJson(root);
                 }
 
+                bool isModeNotch()
+                {
+                    return params.at(MODE_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
                 FilterMode updateFilterMode()
                 {
-                    float x = params.at(MODE_BUTTON_PARAM).getValue();
-                    FilterMode mode = (x > 0.5f) ? FilterMode::Notch : FilterMode::Bandpass;
-                    setLightBrightness(MODE_BUTTON_LIGHT, mode == FilterMode::Notch);
+                    bool notch = isModeNotch();
+                    FilterMode mode = notch ? FilterMode::Notch : FilterMode::Bandpass;
+                    setLightBrightness(MODE_BUTTON_LIGHT, notch);
                     return mode;
                 }
 
@@ -797,12 +802,19 @@ namespace Sapphire
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
                 SapphireCaptionButton* modeToggleButton{};
+                SvgOverlay* resLabel{};
+                SvgOverlay* morphLabel{};
 
                 explicit FilterWidget(FilterModule* module)
                     : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
                     , filterModule(module)
                 {
                     setModule(module);
+                    resLabel = SvgOverlay::Load("res/empath_label_res.svg");
+                    addChild(resLabel);
+                    morphLabel = SvgOverlay::Load("res/empath_label_morph.svg");
+                    morphLabel->hide();
+                    addChild(morphLabel);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addModeToggleGroup();
@@ -848,6 +860,7 @@ namespace Sapphire
                 {
                     EmpathWidget::step();
                     updateModeButton();
+                    updateResLabel();
                 }
 
                 void updateModeButton()
@@ -865,6 +878,13 @@ namespace Sapphire
                             modeToggleButton->dxText = (isBandpass ? 8.0f : 9.0f);
                         }
                     }
+                }
+
+                void updateResLabel()
+                {
+                    const bool showMorph = filterModule && filterModule->isModeNotch();
+                    resLabel->setVisible(!showMorph);
+                    morphLabel->setVisible(showMorph);
                 }
 
                 void draw(const DrawArgs& args) override

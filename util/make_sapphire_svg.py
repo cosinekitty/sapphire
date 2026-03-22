@@ -2591,13 +2591,22 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'res')
-        pl.append(CenteredControlTextPath(font, 'RES', xmid, yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        # Caption 'RES' / 'MORPH' loaded from separate svg.
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
 
     return Save(panel, svgFileName)
+
+
+def GenerateEmpathLabelSvg(xCenter:float, yCenter:float, text:str, suffix:str) -> int:
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        ti = TextItem(text, font, CONTROL_LABEL_POINTS)
+    tp = ti.toPath(xCenter, yCenter, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE)
+    panel = Panel(EMPATH_FILTER_HP_WIDTH)
+    panel.append(tp)
+    return Save(panel, '../res/empath_label_{}.svg'.format(suffix))
 
 
 def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
@@ -2621,10 +2630,15 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
 
 
 def GenerateEmpathPanels(cdict: ControlDict) -> int:
+    xResLabel = 15.24
+    yResLabel = 59.00
+
     return (
         GenerateEmpathInputPanel(cdict) or
         GenerateEmpathFilterPanel(cdict) or
-        GenerateEmpathOutputPanel(cdict)
+        GenerateEmpathOutputPanel(cdict) or
+        GenerateEmpathLabelSvg(xResLabel, yResLabel, 'RES', 'res') or
+        GenerateEmpathLabelSvg(xResLabel, yResLabel, 'MORPH', 'morph')
     )
 
 #--------------------------------------------------------------------------------------------------
