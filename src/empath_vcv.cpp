@@ -746,6 +746,8 @@ namespace Sapphire
 
                         float cvFreq = 0;
                         float cvRes = 0;
+                        float cvPan = 0;
+                        float cvLevel = 0;
 
                         for (int c = 0; c < nc; ++c)
                         {
@@ -753,9 +755,13 @@ namespace Sapphire
 
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
+                            nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
+                            nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
 
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
+                            float panKnob = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
+                            float levelKnob = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 1);
 
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
@@ -768,12 +774,15 @@ namespace Sapphire
                             );
 
                             // Mix this stage's output into the running sum going left-to-right through the chain.
-                            outMessage.wetAudio.sample[c] += readSample(
+                            outMessage.wetAudio.sample[c] += levelKnob * readSample(
                                 sendFrame.sample[c],
                                 AUDIO_LEFT_INPUT,
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
+
+                            // FIXFIXFIX: apply panning here
+                            (void)panKnob;
                         }
                     }
 
