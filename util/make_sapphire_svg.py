@@ -2497,6 +2497,10 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     return Save(panel, svgFileName)
 
 
+def EmpathFencePost() -> FencePost:
+    return FencePost(35.0, 75.0, 4)
+
+
 def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     name = 'empath_filter'
     target = Target.VcvRack
@@ -2514,10 +2518,11 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     ySource = yToggleFence.value(0)
     yMode   = ySource
 
-    yControlFence = FencePost(35.0, 65.0, 3)
+    yControlFence = EmpathFencePost()
     yFreq   = yControlFence.value(0)
     yRes    = yControlFence.value(1)
-    yCasc   = yControlFence.value(2)
+    yPan    = yControlFence.value(2)
+    yLevel  = yControlFence.value(3)
 
     dyGrad = 6.0
 
@@ -2529,7 +2534,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     y2_toggleGradient = yMode + dyGrad
 
     y1_controlGradient = yFreq - 10.0
-    y2_controlGradient = yCasc + dyGrad
+    y2_controlGradient = yLevel + dyGrad
 
     y1_outputGradient = EMPATH_AUDIO_PORTS_Y1 - 10.25
     y2_outputGradient = y1_outputGradient + DY_STEREO_PORTS + dyGrad
@@ -2594,6 +2599,12 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         # Caption 'RES' / 'MORPH' loaded from separate svg.
         # print('yResMorphLabel = {:0.3g}'.format(yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
+        AddFlatControlGroup(pl, controls, xmid, yPan, 'pan')
+        pl.append(CenteredControlTextPath(font, 'PAN', xmid, yPan - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xmid, yLevel, 'level')
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
@@ -2632,7 +2643,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
 
 def GenerateEmpathPanels(cdict: ControlDict) -> int:
     xCenter = 15.24
-    yCenter = 44.00
+    yCenter = EmpathFencePost().value(1) - MULTITAP_DY_CONTROL_LOOP_LABEL
     return (
         GenerateEmpathInputPanel(cdict) or
         GenerateEmpathFilterPanel(cdict) or

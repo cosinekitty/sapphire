@@ -600,9 +600,11 @@ namespace Sapphire
                 FREQ_ATTEN,
                 RES_PARAM,
                 RES_ATTEN,
-                _OBSOLETE_PARAM_1,
-                _OBSOLETE_PARAM_2,
+                PAN_PARAM,
+                PAN_ATTEN,
                 MODE_BUTTON_PARAM,
+                LEVEL_PARAM,
+                LEVEL_ATTEN,
                 PARAMS_LEN
             };
 
@@ -610,8 +612,8 @@ namespace Sapphire
             {
                 FREQ_CV_INPUT,
                 RES_CV_INPUT,
-                _OBSOLETE_INPUT_2,
-                _OBSOLETE_INPUT_0,
+                PAN_CV_INPUT,
+                LEVEL_CV_INPUT,
                 _OBSOLETE_INPUT_1,
                 AUDIO_LEFT_INPUT,       // return L
                 AUDIO_RIGHT_INPUT,      // return R
@@ -677,6 +679,8 @@ namespace Sapphire
                         C4_FREQUENCY_HZ     // match VCV VCO frequency
                     );
                     configControlGroup("Resonance", RES_PARAM, RES_ATTEN, RES_CV_INPUT, 0, 1, 0);
+                    configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
+                    configControlGroup("Level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 1, 1, " dB", -10, 20);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }
@@ -820,6 +824,8 @@ namespace Sapphire
                     addModeToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
+                    addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                    addSapphireFlatControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                 }
