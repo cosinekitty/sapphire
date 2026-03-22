@@ -2514,7 +2514,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     ySource = yToggleFence.value(0)
     yMode   = ySource
 
-    yControlFence = FencePost(50.0, 80.0, 3)
+    yControlFence = FencePost(35.0, 65.0, 3)
     yFreq   = yControlFence.value(0)
     yRes    = yControlFence.value(1)
     yCasc   = yControlFence.value(2)
@@ -2592,6 +2592,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'res')
         # Caption 'RES' / 'MORPH' loaded from separate svg.
+        # print('yResMorphLabel = {:0.3g}'.format(yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
@@ -2630,15 +2631,14 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
 
 
 def GenerateEmpathPanels(cdict: ControlDict) -> int:
-    xResLabel = 15.24
-    yResLabel = 59.00
-
+    xCenter = 15.24
+    yCenter = 44.00
     return (
         GenerateEmpathInputPanel(cdict) or
         GenerateEmpathFilterPanel(cdict) or
         GenerateEmpathOutputPanel(cdict) or
-        GenerateEmpathLabelSvg(xResLabel, yResLabel, 'RES', 'res') or
-        GenerateEmpathLabelSvg(xResLabel, yResLabel, 'MORPH', 'morph')
+        GenerateEmpathLabelSvg(xCenter, yCenter, 'RES', 'res') or
+        GenerateEmpathLabelSvg(xCenter, yCenter, 'MORPH', 'morph')
     )
 
 #--------------------------------------------------------------------------------------------------
