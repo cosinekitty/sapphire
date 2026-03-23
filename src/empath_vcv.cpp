@@ -723,6 +723,31 @@ namespace Sapphire
                     return mode;
                 }
 
+                Frame panFrame(const Frame& rawAudio)
+                {
+                    Frame pannedAudio = rawAudio;
+                    if (const int nc = pannedAudio.nchannels; nc >= 2)
+                    {
+                        constexpr float sensitivity = 1.0 / 5.0;        // 1 knob unit per 5V at 100%
+                        const float x = getControlValueVoltPerOctave(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, sensitivity);
+
+                        // Use a power law to smoothly transition from either channel dominating,
+                        // but with consistent power sum across both channels.
+                        const float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
+                        const float leftFactor  = M_SQRT2 * std::cos(theta);
+                        const float rightFactor = M_SQRT2 * std::sin(theta);
+
+                        // Support panning for all pairs of supplied channels.
+                        // Any odd channels left over are ignored.
+                        for (int c=0; c+1 < nc; c+=2)
+                        {
+                            pannedAudio.sample[c+0] *= leftFactor;
+                            pannedAudio.sample[c+1] *= rightFactor;
+                        }
+                    }
+                    return pannedAudio;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const ForwardMessage inMessage = receiveMessageOrDefault();
@@ -741,12 +766,14 @@ namespace Sapphire
 
                     if (inMessage.valid)
                     {
+                        Frame addFrame;
+
                         const int nc = inMessage.dryAudio.nchannels;
                         sendFrame.nchannels = nc;
+                        addFrame.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
-                        float cvPan = 0;
                         float cvLevel = 0;
 
                         for (int c = 0; c < nc; ++c)
@@ -755,12 +782,10 @@ namespace Sapphire
 
                             nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                             nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
-                            nextChannelInputVoltage(cvPan, PAN_CV_INPUT, c);
                             nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
 
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
-                            float panKnob = cvGetControlValue(PAN_PARAM, PAN_ATTEN, cvPan, -1, +1);
                             float levelKnob = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 1);
 
                             q.filter.setFrequency(freqKnob);
@@ -774,16 +799,17 @@ namespace Sapphire
                             );
 
                             // Mix this stage's output into the running sum going left-to-right through the chain.
-                            outMessage.wetAudio.sample[c] += levelKnob * readSample(
+                            addFrame.sample[c] = levelKnob * readSample(
                                 sendFrame.sample[c],
                                 AUDIO_LEFT_INPUT,
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
-
-                            // FIXFIXFIX: apply panning here
-                            (void)panKnob;
                         }
+
+                        Frame panned = panFrame(addFrame);
+                        for (int c = 0; c < outMessage.wetAudio.nchannels; ++c)
+                            outMessage.wetAudio.sample[c] += panned.sample[c];
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
