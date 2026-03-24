@@ -787,4 +787,31 @@ namespace Sapphire
     };
 
     //-----------------------------------------------------------------------------------------
+
+    struct PanningFactors
+    {
+        float left{};
+        float right{};
+
+        explicit PanningFactors(float _left, float _right)
+            : left(_left)
+            , right(_right)
+            {}
+    };
+
+
+    inline PanningFactors Panning(float knob)
+    {
+        float x = std::clamp<float>(knob, -1, +1);
+
+        // Use a power law to smoothly transition from either channel dominating,
+        // but with consistent power sum across both channels.
+        const float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
+        const float leftFactor  = M_SQRT2 * std::cos(theta);
+        const float rightFactor = M_SQRT2 * std::sin(theta);
+
+        return PanningFactors(leftFactor, rightFactor);
+    }
+
+    //-----------------------------------------------------------------------------------------
 }

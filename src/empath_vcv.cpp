@@ -730,19 +730,14 @@ namespace Sapphire
                     {
                         constexpr float sensitivity = 1.0 / 5.0;        // 1 knob unit per 5V at 100%
                         const float x = getControlValueVoltPerOctave(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, sensitivity);
-
-                        // Use a power law to smoothly transition from either channel dominating,
-                        // but with consistent power sum across both channels.
-                        const float theta = M_PI_4 * (x+1);       // map [-1, +1] onto [0, pi/2]
-                        const float leftFactor  = M_SQRT2 * std::cos(theta);
-                        const float rightFactor = M_SQRT2 * std::sin(theta);
+                        const PanningFactors pf = Panning(x);
 
                         // Support panning for all pairs of supplied channels.
-                        // Any odd channels left over are ignored.
+                        // Any remaining odd channel will be left as-is.
                         for (int c=0; c+1 < nc; c+=2)
                         {
-                            pannedAudio.sample[c+0] *= leftFactor;
-                            pannedAudio.sample[c+1] *= rightFactor;
+                            pannedAudio.sample[c+0] *= pf.left;
+                            pannedAudio.sample[c+1] *= pf.right;
                         }
                     }
                     return pannedAudio;
