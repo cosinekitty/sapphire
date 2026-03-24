@@ -28,11 +28,14 @@ namespace Sapphire
             Frame dryAudio;         // original input audio from the leftmost module in the chain
             Frame wetAudio;         // cumulative filtered audio from the immediate left module
             Frame cascade;
+            int soloCount = 0;      // how many taps have solo enabled
+            Frame soloAudio;        // the sum of all output audio for taps with solo enabled
         };
 
         struct BackwardMessage
         {
             bool valid = false;
+            int soloCount = 0;      // the correct solo count, being reported back from the end of the chain
         };
 
         inline bool IsInput(const Module* module)
@@ -682,6 +685,9 @@ namespace Sapphire
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
                 Crossfader modeFader;       // front=bandpass, back=notch
+                Crossfader muteFader;       // front=normal,   back=muted
+                Crossfader soloFader;       // front=normal,   back=solo
+                int totalSoloCount = 0;     // the total number of solo-enabled filters in this chain
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -716,6 +722,9 @@ namespace Sapphire
                         channel[c].initialize();
 
                     modeFader.snapToFront();
+                    muteFader.snapToFront();
+                    soloFader.snapToFront();
+                    totalSoloCount = 0;
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -735,9 +744,24 @@ namespace Sapphire
                     EmpathModule::dataFromJson(root);
                 }
 
+                bool isAudible() const
+                {
+                    // If other filter(s) enable solo, but not this filter, then this filter is silent.
+                    if (totalSoloCount>0 && !soloFader.atBack())
+                        return false;
+
+                    // If we are not muted, we are audible.
+                    return !muteFader.atBack();
+                }
+
                 bool isModeNotch()
                 {
                     return params.at(MODE_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
+                bool isSoloEnabled()
+                {
+                    return params.at(SOLO_BUTTON_PARAM).getValue() > 0.5f;
                 }
 
                 FilterMode updateFilterMode()
@@ -774,10 +798,33 @@ namespace Sapphire
                     updateToggleButtonTooltip(SOLO_BUTTON_PARAM, "Solo: OFF", "Solo: ON");
                 }
 
+                int updateSolo(Frame& soloFrame, const Frame& inFrame, float sampleRateHz)
+                {
+                    soloFrame.nchannels = inFrame.nchannels;
+                    soloFader.setTarget(isSoloEnabled());
+                    float factor = soloFader.process(sampleRateHz, 0, 1);
+                    if (factor > 0)
+                    {
+                        for (int c=0; c < inFrame.nchannels; ++c)
+                            soloFrame.sample[c] += factor * inFrame.sample[c];
+                        return 1;
+                    }
+                    return 0;
+                }
+
+                float updateMuteState(float sampleRateHz)
+                {
+                    muteFader.setTarget(params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f);
+                    return muteFader.process(sampleRateHz, 1, 0);
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const ForwardMessage inMessage = receiveMessageOrDefault();
                     ForwardMessage outMessage = inMessage;
+
+                    const BackwardMessage inBackMessage = receiveBackwardMessageOrDefault();
+                    totalSoloCount = inBackMessage.soloCount;
 
                     chainIndex = inMessage.chainIndex;
 
@@ -787,16 +834,17 @@ namespace Sapphire
                     const FilterMode mode = updateFilterMode();
                     modeFader.setTarget(mode == FilterMode::Notch);
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
+                    const float muteFactor = updateMuteState(args.sampleRate);
 
                     Frame sendFrame;
 
                     if (inMessage.valid)
                     {
-                        Frame addFrame;
+                        Frame levelFrame;
 
                         const int nc = inMessage.dryAudio.nchannels;
                         sendFrame.nchannels = nc;
-                        addFrame.nchannels = nc;
+                        levelFrame.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
@@ -825,7 +873,7 @@ namespace Sapphire
                             );
 
                             // Mix this stage's output into the running sum going left-to-right through the chain.
-                            addFrame.sample[c] = levelKnob * readSample(
+                            levelFrame.sample[c] = levelKnob * muteFactor * readSample(
                                 sendFrame.sample[c],
                                 AUDIO_LEFT_INPUT,
                                 AUDIO_RIGHT_INPUT,
@@ -833,9 +881,10 @@ namespace Sapphire
                             );
                         }
 
-                        Frame panned = panFrame(addFrame);
+                        Frame outputFrame = panFrame(levelFrame);
+                        outMessage.soloCount += updateSolo(outMessage.soloAudio, outputFrame, args.sampleRate);
                         for (int c = 0; c < outMessage.wetAudio.nchannels; ++c)
-                            outMessage.wetAudio.sample[c] += panned.sample[c];
+                            outMessage.wetAudio.sample[c] += outputFrame.sample[c];
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
@@ -845,7 +894,22 @@ namespace Sapphire
                     if (inMessage.valid)
                         neonMode = inMessage.neonMode;
 
+                    // Either create or copy the backward message.
+                    BackwardMessage outBackMessage;
+                    if (inBackMessage.valid)
+                    {
+                        // We received a valid backward-message from the module to the right of us.
+                        outBackMessage = inBackMessage;
+                    }
+                    else
+                    {
+                        // This module is the rightmost of the expander chain currently.
+                        // Therefore, we become the source-of-truth for all backward-traveling information.
+                        outBackMessage.soloCount = outMessage.soloCount;
+                    }
+
                     sendMessage(outMessage);
+                    sendBackwardMessage(outBackMessage);
                 }
 
                 static float blend(const float* stageSample, float cascade)
@@ -1056,6 +1120,8 @@ namespace Sapphire
 
             struct OutputModule : EmpathModule
             {
+                Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
+
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
@@ -1065,22 +1131,42 @@ namespace Sapphire
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                 }
 
+                void initialize()
+                {
+                    firstSoloFader.snapToFront();
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    EmpathModule::onReset(e);
+                    initialize();
+                }
+
                 void process(const ProcessArgs& args) override
                 {
-                    // FIXFIXFIX: send backward message.
-
+                    BackwardMessage backMessage;
                     const ForwardMessage message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
+                    backMessage.soloCount = message.soloCount;
 
                     includeNeonModeMenuItem = !message.valid;
                     if (message.valid)
                         neonMode = message.neonMode;
 
-                    Frame audio = outputAudioFrame(message.dryAudio, message.wetAudio);
+                    firstSoloFader.setTarget(message.soloCount > 0);
+                    float solo = firstSoloFader.process(args.sampleRate, 0, 1);
+
+                    Frame audio = outputAudioFrame(message.dryAudio, message.wetAudio, message.soloAudio, solo);
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
+
+                    sendBackwardMessage(backMessage);
                 }
 
-                Frame outputAudioFrame(const Frame& dryAudio, const Frame& wetAudio)
+                Frame outputAudioFrame(
+                    const Frame& dryAudio,
+                    const Frame& wetAudio,
+                    const Frame& soloAudio,
+                    float soloFactor)
                 {
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
@@ -1094,7 +1180,8 @@ namespace Sapphire
                         nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
                         float mix = filter_t::filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
-                        result.sample[c] = level * LinearMix(mix, dryAudio.sample[c], wetAudio.sample[c]);
+                        float wet = LinearMix(soloFactor, wetAudio.sample[c], soloAudio.sample[c]);
+                        result.sample[c] = level * LinearMix(mix, dryAudio.sample[c], wet);
                     }
                     return result;
                 }
