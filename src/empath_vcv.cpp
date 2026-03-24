@@ -605,6 +605,8 @@ namespace Sapphire
                 MODE_BUTTON_PARAM,
                 LEVEL_PARAM,
                 LEVEL_ATTEN,
+                MUTE_BUTTON_PARAM,
+                SOLO_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -655,6 +657,27 @@ namespace Sapphire
                 Wet,
             };
 
+
+            struct MuteButton : app::SvgSwitch
+            {
+                explicit MuteButton()
+                {
+                    momentary = false;
+                    addTinyButtonFrames(this, "red");
+                }
+            };
+
+
+            struct SoloButton : app::SvgSwitch
+            {
+                explicit SoloButton()
+                {
+                    momentary = false;
+                    addTinyButtonFrames(this, "green");
+                }
+            };
+
+
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
@@ -683,6 +706,8 @@ namespace Sapphire
                     configControlGroup("Level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 1, 1, " dB", -10, 20);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
+                    configButton(MUTE_BUTTON_PARAM);            // tooltip changed dynamically
+                    configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                 }
 
                 void FilterModule_initialize()
@@ -741,6 +766,12 @@ namespace Sapphire
                         }
                     }
                     return pannedAudio;
+                }
+
+                void updateMuteSoloControls()
+                {
+                    updateToggleButtonTooltip(MUTE_BUTTON_PARAM, "Mute: OFF", "Mute: ON");
+                    updateToggleButtonTooltip(SOLO_BUTTON_PARAM, "Solo: OFF", "Solo: ON");
                 }
 
                 void process(const ProcessArgs& args) override
@@ -858,6 +889,16 @@ namespace Sapphire
                     addSapphireFlatControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
+                    addMuteSoloButtons();
+                }
+
+                void addMuteSoloButtons()
+                {
+                    auto muteButton = createParamCentered<MuteButton>(Vec{}, module, MUTE_BUTTON_PARAM);
+                    addSapphireParam(muteButton, "mute_button");
+
+                    auto soloButton = createParamCentered<SoloButton>(Vec{}, module, SOLO_BUTTON_PARAM);
+                    addSapphireParam(soloButton, "solo_button");
                 }
 
                 void addModeToggleGroup()
@@ -897,6 +938,10 @@ namespace Sapphire
                     EmpathWidget::step();
                     updateModeButton();
                     updateResLabel();
+                    if (filterModule)
+                    {
+                        filterModule->updateMuteSoloControls();
+                    }
                 }
 
                 void updateModeButton()
@@ -943,14 +988,12 @@ namespace Sapphire
                     }
                 }
 
-
                 Vec getChainIndexCenterPos() const
                 {
                     float yCenter = mm2px(4.5);
                     float xCenter = box.size.x/2;
                     return Vec(xCenter, yCenter);
                 }
-
 
                 void drawChainIndex(
                     NVGcontext* vg,

@@ -181,6 +181,7 @@ namespace Sapphire
             {"level_cv",               {   6.240,   75.000}},
             {"level_knob",             {  24.240,   75.000}},
             {"mode_button",            {  15.240,   18.000}},
+            {"mute_button",            {  11.240,   79.000}},
             {"pan_atten",              {  15.240,   61.667}},
             {"pan_cv",                 {   6.240,   61.667}},
             {"pan_knob",               {  24.240,   61.667}},
@@ -194,6 +195,7 @@ namespace Sapphire
             {"send_right_output",      {   8.240,  112.000}},
             {"sendreturn_label_left",  {  15.240,  102.000}},
             {"sendreturn_label_right", {  15.240,  112.000}},
+            {"solo_button",            {  19.240,   79.000}},
             }},
         { "empath_input", {
             {"_panel",                 {  40.640,  128.500}},

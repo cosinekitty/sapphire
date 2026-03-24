@@ -2604,6 +2604,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yLevel, 'level')
         pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddMuteSoloButtons(pl, controls, xmid, yLevel)
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
