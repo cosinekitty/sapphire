@@ -571,6 +571,11 @@ namespace Sapphire
             InvokeAction(new BoolToggleAction(envelopeFollower.polyphonicOutput, "mono/polyphonic envelope output"));
     }
 
+    void SapphireModule::toggleEnvDuck()
+    {
+        InvokeAction(new BoolToggleAction(envelopeFollower.duck, "envelope/duck"));
+    }
+
     void EnvelopeOutputPort::appendContextMenu(Menu* menu)
     {
         SapphirePort::appendContextMenu(menu);

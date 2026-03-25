@@ -2,6 +2,9 @@
 // https://github.com/cosinekitty/sapphire
 #pragma once
 #include "plugin.hpp"
+#include "sapphire_crossfader.hpp"
+#include "sapphire_engine.hpp"
+
 namespace Sapphire
 {
     struct SapphireModule;
@@ -890,31 +893,91 @@ namespace Sapphire
     };
 
 
-    struct EnvelopeFollowerInfo
+    class EnvelopeFollower
+    {
+    private:
+        float prevSampleRate{};
+        float envAttack{};
+        float envDecay{};
+        float envelope{};
+        LoHiPassFilter<float> filter;
+
+    public:
+        void initialize()
+        {
+            envelope = 0;
+            filter.Reset();
+            filter.SetCutoffFrequency(80);
+        }
+
+        float update(float signal, int sampleRate)
+        {
+            // Based on Surge XT Tree Monster's envelope follower:
+            // https://github.com/surge-synthesizer/sst-effects/blob/main/include/sst/effects-shared/TreemonsterCore.h
+            if (sampleRate != prevSampleRate)
+            {
+                prevSampleRate = sampleRate;
+                envAttack = std::pow(0.01, 1.0 / (0.003*sampleRate));
+                envDecay  = std::pow(0.01, 1.0 / (0.150*sampleRate));
+            }
+            float v = std::abs(signal);
+            float k = (v > envelope) ? envAttack : envDecay;
+            envelope = k*(envelope - v) + v;
+
+            const float correction = (5.0 / 4.783);     // experimentally derived using sinewave input
+            filter.Update(correction * envelope, sampleRate);
+            return filter.LoPass();
+        }
+    };
+
+
+    struct EnvelopeFollowerFeature
     {
         bool enabled{};
         bool polyphonicOutput{};
+        bool duck{};
+        Crossfader envDuckFader;
+        EnvelopeFollower follower[PORT_MAX_CHANNELS];
 
         void initialize()
         {
             polyphonicOutput = false;
+            duck = false;
+            envDuckFader.snapToFront();
+            for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                follower[c].initialize();
         }
 
         void loadJson(json_t* root)
         {
             if (enabled)
+            {
                 jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicOutput);
+                jsonLoadBool(root, "duck", duck);
+            }
         }
 
         void saveJson(json_t* root)
         {
             if (enabled)
+            {
                 jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicOutput);
+                jsonSetBool(root, "duck", duck);
+            }
         }
 
-        void copyFrom(const EnvelopeFollowerInfo& other)
+        void copyFrom(const EnvelopeFollowerFeature& other)
         {
             polyphonicOutput = other.polyphonicOutput;
+            duck = other.duck;
+        }
+
+        float scaleEnvelope(float env, float sampleRateHz)
+        {
+            constexpr float limit = 10;      // maximum voltage
+            float scale = BicubicLimiter(env, limit);
+            envDuckFader.setTarget(duck);
+            return envDuckFader.process(sampleRateHz, scale, limit - scale);
         }
     };
 
@@ -946,7 +1009,7 @@ namespace Sapphire
         DcRejectQuantity *dcRejectQuantity = nullptr;
         AgcLevelQuantity *agcLevelQuantity = nullptr;
         std::vector<RemovalSubscriber*> removalSubscriberList;
-        EnvelopeFollowerInfo envelopeFollower;
+        EnvelopeFollowerFeature envelopeFollower;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -971,6 +1034,11 @@ namespace Sapphire
         void enableEnvelopeFollower()
         {
             envelopeFollower.enabled = true;
+        }
+
+        bool duck() const
+        {
+            return envelopeFollower.duck;
         }
 
         void onReset(const ResetEvent& e) override
@@ -1005,7 +1073,7 @@ namespace Sapphire
             if (agcLevelQuantity)
                 agcLevelQuantity->initialize();
 
-            envelopeFollower.polyphonicOutput = false;
+            envelopeFollower.initialize();
         }
 
 
@@ -1626,6 +1694,39 @@ namespace Sapphire
 
         void addPolyphonicEnvelopeMenuItem(Menu* menu);
         void setPolyphonicEnvelopeOutput(bool state);
+        void toggleEnvDuck();
+
+        void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, int nchannels, const float* sample)
+        {
+            Output& envOutput = outputs.at(outputId);
+            if (envOutput.isConnected())
+            {
+                const int nc = VcvSafeChannelCount(nchannels);
+                const float gain = FourthPower(params.at(envGainParamId).getValue());
+
+                if (envelopeFollower.polyphonicOutput)
+                {
+                    envOutput.setChannels(nc);
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        float v = gain * envelopeFollower.follower[c].update(sample[c], sampleRateHz);
+                        float s = envelopeFollower.scaleEnvelope(v, sampleRateHz);
+                        envOutput.setVoltage(s, c);
+                    }
+                }
+                else
+                {
+                    float sum = 0;
+                    for (int c = 0; c < nc; ++c)
+                        sum += sample[c];
+
+                    float v = gain * envelopeFollower.follower[0].update(sum, sampleRateHz);
+                    float s = envelopeFollower.scaleEnvelope(v, sampleRateHz);
+                    envOutput.setChannels(1);
+                    envOutput.setVoltage(s, 0);
+                }
+            }
+        }
     };
 
 

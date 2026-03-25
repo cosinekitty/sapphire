@@ -678,8 +678,6 @@ namespace Sapphire
             Smoother clearSmoother;
             ReverseComboSmoother reverseComboSmoother;
             bool flip{};
-            bool duck{};
-            Crossfader envDuckFader;
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
             PortLabelMode sendReturnPortLabels = PortLabelMode::Stereo;
             SendReturnLocationSmoother sendReturnLocationSmoother;
@@ -725,10 +723,8 @@ namespace Sapphire
                 clearSmoother.initialize();
                 sendReturnLocationSmoother.initialize();
                 flip = false;
-                duck = false;
                 muteFader.snapToFront();
                 soloFader.snapToFront();
-                envDuckFader.snapToFront();
                 totalSoloCount = 0;
                 if (graph)
                     graph->initialize();
@@ -779,11 +775,6 @@ namespace Sapphire
                 InvokeAction(new BoolToggleAction(flip, "reverse/flip"));
             }
 
-            void toggleEnvDuck()
-            {
-                InvokeAction(new BoolToggleAction(duck, "envelope/duck"));
-            }
-
             bool isActivelyClocked() const
             {
                 // Actively clocked means both are true:
@@ -807,7 +798,6 @@ namespace Sapphire
                 json_t* root = MultiTapModule::dataToJson();
                 jsonSetEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonSetBool(root, "flip", flip);
-                jsonSetBool(root, "duck", duck);
                 sendReturnLocationSmoother.jsonSave(root);
                 reverseToggleGroup.jsonSave(root);
                 return root;
@@ -818,50 +808,9 @@ namespace Sapphire
                 MultiTapModule::dataFromJson(root);
                 jsonLoadEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonLoadBool(root, "flip", flip);
-                jsonLoadBool(root, "duck", duck);
                 sendReturnLocationSmoother.jsonLoad(root);
                 reverseToggleGroup.jsonLoad(root);
                 updateFlipControls();
-            }
-
-            float scaleEnvelope(float env, float sampleRateHz)
-            {
-                constexpr float limit = 10;      // maximum voltage
-                float scale = BicubicLimiter(env, limit);
-                envDuckFader.setTarget(duck);
-                return envDuckFader.process(sampleRateHz, scale, limit - scale);
-            }
-
-            void updateEnvelope(int outputId, int envGainParamId, float sampleRateHz, const Frame& audio)
-            {
-                Output& envOutput = outputs.at(outputId);
-                if (envOutput.isConnected())
-                {
-                    const int nc = VcvSafeChannelCount(audio.nchannels);
-                    const float gain = FourthPower(params.at(envGainParamId).getValue());
-
-                    if (envelopeFollower.polyphonicOutput)
-                    {
-                        envOutput.setChannels(nc);
-                        for (int c = 0; c < nc; ++c)
-                        {
-                            float v = gain * info[c].env.update(audio.sample[c], sampleRateHz);
-                            float s = scaleEnvelope(v, sampleRateHz);
-                            envOutput.setVoltage(s, c);
-                        }
-                    }
-                    else
-                    {
-                        float sum = 0;
-                        for (int c = 0; c < nc; ++c)
-                            sum += audio.sample[c];
-
-                        float v = gain * info[0].env.update(sum, sampleRateHz);
-                        float s = scaleEnvelope(v, sampleRateHz);
-                        envOutput.setChannels(1);
-                        envOutput.setVoltage(s, 0);
-                    }
-                }
             }
 
             int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId, float sampleRateHz)
@@ -1487,10 +1436,10 @@ namespace Sapphire
 
             void updateEnvDuck()
             {
-                envLabel->setVisible(!loopModule->duck && !hilightEnvDuckButton);
-                envSelLabel->setVisible(!loopModule->duck && hilightEnvDuckButton);
-                dckLabel->setVisible(loopModule->duck && !hilightEnvDuckButton);
-                dckSelLabel->setVisible(loopModule->duck && hilightEnvDuckButton);
+                envLabel->setVisible(!loopModule->duck() && !hilightEnvDuckButton);
+                envSelLabel->setVisible(!loopModule->duck() && hilightEnvDuckButton);
+                dckLabel->setVisible(loopModule->duck() && !hilightEnvDuckButton);
+                dckSelLabel->setVisible(loopModule->duck() && hilightEnvDuckButton);
             }
 
             void step() override
@@ -2177,7 +2126,7 @@ namespace Sapphire
                     outMessage.neonMode = neonMode;
                     outMessage.clockSignalFormat = clockSignalFormat;
                     outMessage.tapeSlewRate = tapeSlewQuantity->getValue();
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio.nchannels, result.envelopeAudio.sample);
                     sendMessage(outMessage);
                 }
 
@@ -2972,7 +2921,6 @@ namespace Sapphire
                         timeKnobInfo = emod->timeKnobInfo;
                         envelopeFollower.copyFrom(emod->envelopeFollower);
                         flip = emod->flip;
-                        duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
                         reverseToggleGroup.mode = emod->reverseToggleGroup.mode;
                         copyParamFrom(emod, TIME_PARAM, Echo::TIME_PARAM);
@@ -3023,7 +2971,7 @@ namespace Sapphire
                     outMessage.summedAudio += result.globalAudioOutput;
                     outMessage.soloCount += updateSolo(outMessage.soloAudio, result.globalAudioOutput, SOLO_BUTTON_PARAM, args.sampleRate);
                     outMessage.clockVoltage = result.clockVoltage;
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, result.envelopeAudio.nchannels, result.envelopeAudio.sample);
                     sendMessage(outMessage);
 
                     BackwardMessage outBackMessage;

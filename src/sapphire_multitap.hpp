@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
-#include "sapphire_envelope_follower.hpp"
 #include "sapphire_tapeloop.hpp"
 #include "sapphire_smoother.hpp"
 
@@ -161,7 +160,6 @@ namespace Sapphire
             int samplesSinceClockTrigger = 0;
             bool isReceivingTriggers = false;
             float clockSyncTime = 0;
-            EnvelopeFollower env;
 
             void initialize()
             {
@@ -169,7 +167,6 @@ namespace Sapphire
                 clockReceiver.initialize();
                 samplesSinceClockTrigger = 0;
                 isReceivingTriggers = false;
-                env.initialize();
                 clockSyncTime = 0;
             }
         };

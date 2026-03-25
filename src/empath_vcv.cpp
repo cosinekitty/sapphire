@@ -730,6 +730,7 @@ namespace Sapphire
                     muteFader.snapToFront();
                     soloFader.snapToFront();
                     totalSoloCount = 0;
+                    envelopeFollower.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -893,6 +894,7 @@ namespace Sapphire
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, sendFrame.nchannels, sendFrame.sample);
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
