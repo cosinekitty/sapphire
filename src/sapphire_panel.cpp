@@ -173,6 +173,8 @@ namespace Sapphire
             }},
         { "empath_filter", {
             {"_panel",                 {  30.480,  128.500}},
+            {"env_gain_knob",          {   6.240,  115.000}},
+            {"env_output",             {  24.240,  115.000}},
             {"freq_atten",             {  15.240,   35.000}},
             {"freq_cv",                {   6.240,   35.000}},
             {"freq_knob",              {  24.240,   35.000}},

@@ -555,6 +555,32 @@ namespace Sapphire
     }
 
 
+    void SapphireModule::addPolyphonicEnvelopeMenuItem(Menu* menu)
+    {
+        menu->addChild(createBoolMenuItem(
+            "Polyphonic envelope output",
+            "",
+            [=]{ return polyphonicEnvelopeOutput; },
+            [=](bool state){ setPolyphonicEnvelopeOutput(state); }
+        ));
+    }
+
+    void SapphireModule::setPolyphonicEnvelopeOutput(bool state)
+    {
+        if (polyphonicEnvelopeOutput != state)
+            InvokeAction(new BoolToggleAction(polyphonicEnvelopeOutput, "mono/polyphonic envelope output"));
+    }
+
+    void EnvelopeOutputPort::appendContextMenu(Menu* menu)
+    {
+        SapphirePort::appendContextMenu(menu);
+        if (auto smod = dynamic_cast<SapphireModule*>(module))
+        {
+            menu->addChild(new MenuSeparator);
+            smod->addPolyphonicEnvelopeMenuItem(menu);
+        }
+    }
+
     MenuItem* BoolToggleAction::CreateMenuItem(
         bool& flag,
         const std::string& menuItemText,
@@ -768,4 +794,5 @@ namespace Sapphire
             }
         }
     }
+
 }

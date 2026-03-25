@@ -610,6 +610,7 @@ namespace Sapphire
                 LEVEL_ATTEN,
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
+                ENV_GAIN_PARAM,
                 PARAMS_LEN
             };
 
@@ -629,6 +630,7 @@ namespace Sapphire
             {
                 AUDIO_LEFT_OUTPUT,      // send L
                 AUDIO_RIGHT_OUTPUT,     // send R
+                ENV_OUTPUT,
                 OUTPUTS_LEN
             };
 
@@ -692,6 +694,7 @@ namespace Sapphire
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
+                    enableEnvelopeFollower = true;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
@@ -714,6 +717,8 @@ namespace Sapphire
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                     configButton(MUTE_BUTTON_PARAM);            // tooltip changed dynamically
                     configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
+                    configOutput(ENV_OUTPUT, "Envelope follower");
+                    configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                 }
 
                 void FilterModule_initialize()
@@ -954,6 +959,8 @@ namespace Sapphire
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                     addMuteSoloButtons();
+                    addSapphireOutput<EnvelopeOutputPort>(ENV_OUTPUT, "env_output");
+                    addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                 }
 
                 void addMuteSoloButtons()

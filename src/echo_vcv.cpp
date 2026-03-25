@@ -677,7 +677,6 @@ namespace Sapphire
             TapInputRouting receivedInputRouting{};
             Smoother clearSmoother;
             ReverseComboSmoother reverseComboSmoother;
-            bool polyphonicEnvelopeOutput{};
             bool flip{};
             bool duck{};
             Crossfader envDuckFader;
@@ -693,6 +692,7 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
+                enableEnvelopeFollower = true;
                 LoopModule_initialize();
             }
 
@@ -724,7 +724,6 @@ namespace Sapphire
                 recordingLevelOverflow = false;
                 clearSmoother.initialize();
                 sendReturnLocationSmoother.initialize();
-                polyphonicEnvelopeOutput = false;
                 flip = false;
                 duck = false;
                 muteFader.snapToFront();
@@ -808,7 +807,6 @@ namespace Sapphire
                 jsonSetEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonSetBool(root, "flip", flip);
                 jsonSetBool(root, "duck", duck);
-                jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonSave(root);
                 reverseToggleGroup.jsonSave(root);
                 return root;
@@ -820,7 +818,6 @@ namespace Sapphire
                 jsonLoadEnum(root, "timeMode", timeKnobInfo.timeMode);
                 jsonLoadBool(root, "flip", flip);
                 jsonLoadBool(root, "duck", duck);
-                jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
                 sendReturnLocationSmoother.jsonLoad(root);
                 reverseToggleGroup.jsonLoad(root);
                 updateFlipControls();
@@ -1160,22 +1157,6 @@ namespace Sapphire
                 configParam(paramId, 0, 1, 1, name, " dB", -10, 20);
                 configAttenCv(attenId, cvInputId, name);
             }
-
-            void addPolyphonicEnvelopeMenuItem(Menu* menu)
-            {
-                menu->addChild(createBoolMenuItem(
-                    "Polyphonic envelope output",
-                    "",
-                    [=]{ return polyphonicEnvelopeOutput; },
-                    [=](bool state){ setPolyphonicEnvelopeOutput(state); }
-                ));
-            }
-
-            void setPolyphonicEnvelopeOutput(bool state)
-            {
-                if (polyphonicEnvelopeOutput != state)
-                    InvokeAction(new BoolToggleAction(polyphonicEnvelopeOutput, "mono/polyphonic envelope output"));
-            }
         };
 
 
@@ -1276,17 +1257,6 @@ namespace Sapphire
                 nvgMoveTo(vg, left.x, left.y);
                 nvgLineTo(vg, right.x, right.y);
                 nvgStroke(vg);
-            }
-        }
-
-
-        void EnvelopeOutputPort::appendContextMenu(Menu* menu)
-        {
-            SapphirePort::appendContextMenu(menu);
-            if (auto lmod = dynamic_cast<LoopModule*>(module))
-            {
-                menu->addChild(new MenuSeparator);
-                lmod->addPolyphonicEnvelopeMenuItem(menu);
             }
         }
 

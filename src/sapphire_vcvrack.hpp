@@ -917,6 +917,8 @@ namespace Sapphire
         DcRejectQuantity *dcRejectQuantity = nullptr;
         AgcLevelQuantity *agcLevelQuantity = nullptr;
         std::vector<RemovalSubscriber*> removalSubscriberList;
+        bool enableEnvelopeFollower = false;
+        bool polyphonicEnvelopeOutput{};
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -964,6 +966,8 @@ namespace Sapphire
 
             if (agcLevelQuantity)
                 agcLevelQuantity->initialize();
+
+            polyphonicEnvelopeOutput = false;
         }
 
 
@@ -1125,6 +1129,9 @@ namespace Sapphire
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
             }
 
+            if (enableEnvelopeFollower)
+                jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
+
             return root;
         }
 
@@ -1205,6 +1212,9 @@ namespace Sapphire
 
             if (agcLevelQuantity)
                 agcLevelQuantity->load(root, "agcLevel");
+
+            if (enableEnvelopeFollower)
+                jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
         }
 
         virtual void tryCopySettingsFrom(SapphireModule* other)
@@ -1578,6 +1588,9 @@ namespace Sapphire
             Input& inRight = inputs.at(inRightPortId);
             return readSample(normal, inLeft, inRight, c);
         }
+
+        void addPolyphonicEnvelopeMenuItem(Menu* menu);
+        void setPolyphonicEnvelopeOutput(bool state);
     };
 
 
@@ -1820,6 +1833,12 @@ namespace Sapphire
                 group->addMenuItems(menu);
             }
         }
+    };
+
+
+    struct EnvelopeOutputPort : SapphirePort
+    {
+        void appendContextMenu(Menu* menu) override;
     };
 
 

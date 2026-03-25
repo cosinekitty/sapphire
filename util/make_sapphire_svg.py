@@ -2091,14 +2091,14 @@ def AddMultiTapSendReturnGradient(panel:Panel, defs:Element, pl:Element, xCenter
     ))
 
 
-def AddMultiTapEnvGradient(panel:Panel, defs:Element, pl:Element, xCenter:float) -> None:
+def AddEnvDetectGradient(panel:Panel, defs:Element, pl:Element, xCenter:float, moduleName:str) -> None:
     y1 = MULTIMAP_ENV_PORTS_Y1
     y2 = panel.mmHeight - 2.0
     gradname = 'gradient_env'
     gradientColor = '#4b9488'
     defs.append(Gradient(y1, y2, gradientColor, SAPPHIRE_PANEL_COLOR, gradname))
     pl.append(ControlGroupArt(
-        'multitap',
+        moduleName,
         'env_art',
         panel,
         y1 - 5.0,
@@ -2109,7 +2109,7 @@ def AddMultiTapEnvGradient(panel:Panel, defs:Element, pl:Element, xCenter:float)
     ))
 
 
-def AddMultiTapEnvGroup(controls:ControlLayer, xmid:float) -> None:
+def AddEnvDetectorGroup(controls:ControlLayer, xmid:float) -> None:
     xKnob = xmid - DX_FLAT_CONTROL_GROUP
     xPort = xmid + DX_FLAT_CONTROL_GROUP
     y = MULTIMAP_ENV_PORTS_Y1
@@ -2213,7 +2213,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, MULTITAP_ECHO_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
-        AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
+        AddEnvDetectGradient(panel, defs, pl, xControlCenter, 'multitap')
 
         pl.append(ModelNamePathX(xGlobalCenter, font, 'echo'))
         pl.append(Gemstone(xGlobalCenter))
@@ -2231,7 +2231,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
         controls.append(Component('init_chain_button', xInputPorts, yInitChainButton))
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
-        AddMultiTapEnvGroup(controls, xControlCenter)
+        AddEnvDetectorGroup(controls, xControlCenter)
         controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
         if (
             SaveRectangleCaption(SvgFileName('echo_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
@@ -2320,7 +2320,7 @@ def GenerateEchoTapPanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, MULTITAP_ECHOTAP_HP_WIDTH))
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
-        AddMultiTapEnvGradient(panel, defs, pl, xControlCenter)
+        AddEnvDetectGradient(panel, defs, pl, xControlCenter, 'multitap')
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
         controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
 
@@ -2330,7 +2330,7 @@ def GenerateEchoTapPanel(cdict: ControlDict) -> int:
         controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
         controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
 
-        AddMultiTapEnvGroup(controls, xControlCenter)
+        AddEnvDetectorGroup(controls, xControlCenter)
         controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
         if (
             SaveRectangleCaption(SvgFileName('echotap_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
@@ -2590,6 +2590,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
             x2_gradient
         ))
 
+        AddEnvDetectGradient(panel, defs, pl, xmid, 'empath')
+
         controls.append(Component('mode_button', xmid, yMode))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
@@ -2609,6 +2611,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   EMPATH_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, EMPATH_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
+
+        AddEnvDetectorGroup(controls, xmid)
 
     return Save(panel, svgFileName)
 

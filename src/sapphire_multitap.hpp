@@ -407,12 +407,6 @@ namespace Sapphire
         };
 
 
-        struct EnvelopeOutputPort : SapphirePort
-        {
-            void appendContextMenu(Menu* menu) override;
-        };
-
-
         struct ClockSyncState
         {
             int64_t moduleId{};
