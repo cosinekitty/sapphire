@@ -890,6 +890,35 @@ namespace Sapphire
     };
 
 
+    struct EnvelopeFollowerInfo
+    {
+        bool enabled{};
+        bool polyphonicOutput{};
+
+        void initialize()
+        {
+            polyphonicOutput = false;
+        }
+
+        void loadJson(json_t* root)
+        {
+            if (enabled)
+                jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicOutput);
+        }
+
+        void saveJson(json_t* root)
+        {
+            if (enabled)
+                jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicOutput);
+        }
+
+        void copyFrom(const EnvelopeFollowerInfo& other)
+        {
+            polyphonicOutput = other.polyphonicOutput;
+        }
+    };
+
+
     struct SapphireModule : public Module
     {
         static std::vector<SapphireModule*> All;
@@ -917,8 +946,7 @@ namespace Sapphire
         DcRejectQuantity *dcRejectQuantity = nullptr;
         AgcLevelQuantity *agcLevelQuantity = nullptr;
         std::vector<RemovalSubscriber*> removalSubscriberList;
-        bool enableEnvelopeFollower = false;
-        bool polyphonicEnvelopeOutput{};
+        EnvelopeFollowerInfo envelopeFollower;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -933,6 +961,16 @@ namespace Sapphire
             // This assert should only fail if somebody destructs a SapphireModule without calling
             // its onRemove() method first.
             assert(removalSubscriberList.empty());
+        }
+
+        bool isEnvelopeFollowerEnabled() const
+        {
+            return envelopeFollower.enabled;
+        }
+
+        void enableEnvelopeFollower()
+        {
+            envelopeFollower.enabled = true;
         }
 
         void onReset(const ResetEvent& e) override
@@ -967,7 +1005,7 @@ namespace Sapphire
             if (agcLevelQuantity)
                 agcLevelQuantity->initialize();
 
-            polyphonicEnvelopeOutput = false;
+            envelopeFollower.polyphonicOutput = false;
         }
 
 
@@ -1129,9 +1167,7 @@ namespace Sapphire
                 json_object_set_new(root, "limiterWarningLight", json_boolean(enableLimiterWarning));
             }
 
-            if (enableEnvelopeFollower)
-                jsonSetBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
-
+            envelopeFollower.saveJson(root);
             return root;
         }
 
@@ -1213,8 +1249,7 @@ namespace Sapphire
             if (agcLevelQuantity)
                 agcLevelQuantity->load(root, "agcLevel");
 
-            if (enableEnvelopeFollower)
-                jsonLoadBool(root, "polyphonicEnvelopeOutput", polyphonicEnvelopeOutput);
+            envelopeFollower.loadJson(root);
         }
 
         virtual void tryCopySettingsFrom(SapphireModule* other)

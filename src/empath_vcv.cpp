@@ -694,7 +694,7 @@ namespace Sapphire
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
-                    enableEnvelopeFollower = true;
+                    enableEnvelopeFollower();
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");

@@ -560,15 +560,15 @@ namespace Sapphire
         menu->addChild(createBoolMenuItem(
             "Polyphonic envelope output",
             "",
-            [=]{ return polyphonicEnvelopeOutput; },
+            [=]{ return envelopeFollower.polyphonicOutput; },
             [=](bool state){ setPolyphonicEnvelopeOutput(state); }
         ));
     }
 
     void SapphireModule::setPolyphonicEnvelopeOutput(bool state)
     {
-        if (polyphonicEnvelopeOutput != state)
-            InvokeAction(new BoolToggleAction(polyphonicEnvelopeOutput, "mono/polyphonic envelope output"));
+        if (envelopeFollower.polyphonicOutput != state)
+            InvokeAction(new BoolToggleAction(envelopeFollower.polyphonicOutput, "mono/polyphonic envelope output"));
     }
 
     void EnvelopeOutputPort::appendContextMenu(Menu* menu)

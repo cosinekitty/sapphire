@@ -692,7 +692,7 @@ namespace Sapphire
             explicit LoopModule(std::size_t nParams, std::size_t nOutputPorts)
                 : MultiTapModule(nParams, nOutputPorts)
             {
-                enableEnvelopeFollower = true;
+                enableEnvelopeFollower();
                 LoopModule_initialize();
             }
 
@@ -733,6 +733,7 @@ namespace Sapphire
                 if (graph)
                     graph->initialize();
                 clockSignalFormat = ClockSignalFormat::Default;
+                envelopeFollower.initialize();
             }
 
             void initialize() override
@@ -839,7 +840,7 @@ namespace Sapphire
                     const int nc = VcvSafeChannelCount(audio.nchannels);
                     const float gain = FourthPower(params.at(envGainParamId).getValue());
 
-                    if (polyphonicEnvelopeOutput)
+                    if (envelopeFollower.polyphonicOutput)
                     {
                         envOutput.setChannels(nc);
                         for (int c = 0; c < nc; ++c)
@@ -2740,14 +2741,14 @@ namespace Sapphire
                     const int countPoly = tallyTaps(
                         [](const LoopModule *lmod)
                         {
-                            return lmod->polyphonicEnvelopeOutput;
+                            return lmod->envelopeFollower.polyphonicOutput;
                         }
                     );
 
                     const int countMono = tallyTaps(
                         [](const LoopModule *lmod)
                         {
-                            return !lmod->polyphonicEnvelopeOutput;
+                            return !lmod->envelopeFollower.polyphonicOutput;
                         }
                     );
 
@@ -2759,7 +2760,7 @@ namespace Sapphire
                     visitTaps(
                         [=](const LoopModule *lmod)
                         {
-                            action->stateList.push_back(PolyEnvelopeState(lmod->id, lmod->polyphonicEnvelopeOutput));
+                            action->stateList.push_back(PolyEnvelopeState(lmod->id, lmod->envelopeFollower.polyphonicOutput));
                         }
                     );
 
@@ -2840,7 +2841,7 @@ namespace Sapphire
         {
             for (const PolyEnvelopeState& s : stateList)
                 if (LoopModule* lmod = FindSapphireModule<LoopModule>(s.moduleId))
-                    lmod->polyphonicEnvelopeOutput = s.state;
+                    lmod->envelopeFollower.polyphonicOutput = s.state;
         }
 
         void ToggleAllPolyphonicEnvelopeAction::redo()
@@ -2851,7 +2852,7 @@ namespace Sapphire
                 echoWidget->visitTaps(
                     [=](LoopModule* lmod)
                     {
-                        lmod->polyphonicEnvelopeOutput = newState;
+                        lmod->envelopeFollower.polyphonicOutput = newState;
                     }
                 );
             }
@@ -2969,7 +2970,7 @@ namespace Sapphire
                     if (auto emod = dynamic_cast<Echo::EchoModule*>(other))
                     {
                         timeKnobInfo = emod->timeKnobInfo;
-                        polyphonicEnvelopeOutput = emod->polyphonicEnvelopeOutput;
+                        envelopeFollower.copyFrom(emod->envelopeFollower);
                         flip = emod->flip;
                         duck = emod->duck;
                         clockSignalFormat = emod->clockSignalFormat;
