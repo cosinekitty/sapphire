@@ -843,6 +843,7 @@ namespace Sapphire
                     const float muteFactor = updateMuteState(args.sampleRate);
 
                     Frame sendFrame;
+                    Frame envelopeFrame;
 
                     if (inMessage.valid)
                     {
@@ -879,12 +880,13 @@ namespace Sapphire
                             );
 
                             // Mix this stage's output into the running sum going left-to-right through the chain.
-                            levelFrame.sample[c] = levelKnob * muteFactor * readSample(
+                            envelopeFrame.sample[c] = readSample(
                                 sendFrame.sample[c],
                                 AUDIO_LEFT_INPUT,
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
+                            levelFrame.sample[c] = levelKnob * muteFactor * envelopeFrame.sample[c];
                         }
 
                         Frame outputFrame = panFrame(levelFrame);
@@ -894,7 +896,7 @@ namespace Sapphire
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, sendFrame.nchannels, sendFrame.sample);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, envelopeFrame.nchannels, envelopeFrame.sample);
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
