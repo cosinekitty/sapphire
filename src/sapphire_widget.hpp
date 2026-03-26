@@ -670,18 +670,6 @@ namespace Sapphire
             ModuleWidget::onLeave(e);
         }
 
-        bool isInsideEnvDuckButton(Vec pos) const
-        {
-            if (envDuckLabelPos.y <= 0)
-                return false;       // no ENV/DCK resource generated for this module?
-
-            const float dx = pos.x - envDuckLabelPos.x;
-            const float dy = pos.y - envDuckLabelPos.y;
-            const float rectWidth = mm2px(8.0);
-            const float rectHeight = mm2px(4.5);
-            return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
-        }
-
         bool isNeonModeActive() const
         {
             const SapphireModule* sm = getSapphireModule();
@@ -701,77 +689,10 @@ namespace Sapphire
             return addLabelOverlay(svgFileName, visible);
         }
 
-        void addEnvelopeFollowerLabels()
-        {
-            envLabel = addEnvelopeLabel("env", true);
-            envSelLabel = addEnvelopeLabel("env_sel");
-            dckLabel = addEnvelopeLabel("dck");
-            dckSelLabel = addEnvelopeLabel("dck_sel");
-        }
-
-        void updateEnvDuck()
-        {
-            SapphireModule* smod = getSapphireModule();
-            const bool duck = smod && smod->duck();
-
-            if (envLabel)
-                envLabel->setVisible(!duck && !hilightEnvDuckButton);
-
-            if (envSelLabel)
-                envSelLabel->setVisible(!duck && hilightEnvDuckButton);
-
-            if (dckLabel)
-                dckLabel->setVisible(duck && !hilightEnvDuckButton);
-
-            if (dckSelLabel)
-                dckSelLabel->setVisible(duck && hilightEnvDuckButton);
-        }
-
-        void appendContextMenu(Menu* menu) override
-        {
-            if (SapphireModule* sm = getSapphireModule())
-            {
-                menu->addChild(new MenuSeparator);
-
-                if (sm->includeNeonModeMenuItem)
-                {
-                    menu->addChild(createMenuItem(
-                        "Toggle neon borders (this module only)",
-                        "",
-                        [=]() { ToggleNeonBorder(sm); }
-                    ));
-                }
-
-                menu->addChild(createMenuItem(
-                    "Toggle neon borders in all Sapphire modules",
-                    "",
-                    ToggleAllNeonBorders
-                ));
-
-                if (sm->dcRejectQuantity)
-                    menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
-
-                sm->addLimiterMenuItems(menu);
-
-                if (shouldOfferTricorder())
-                {
-                    menu->addChild(createMenuItem(
-                        "Insert Tricorder on right",
-                        "",
-                        [this]{ addTricorderExpander(); }
-                    ));
-                }
-
-                if (shouldOfferChaops())
-                {
-                    menu->addChild(createMenuItem(
-                        "Insert Chaops on left",
-                        "",
-                        [this]{ addChaopsExpander(); }
-                    ));
-                }
-            }
-        }
+        bool isInsideEnvDuckButton(Vec pos) const;
+        void addEnvelopeFollowerLabels();
+        void updateEnvDuck();
+        void appendContextMenu(Menu* menu) override;
 
         void position(Widget* widget, const std::string& label)
         {
