@@ -1229,7 +1229,6 @@ namespace Sapphire
             float dyFlipRev{};
             bool hilightInputRoutingButton = false;
             bool hilightRevFlipButton = false;
-            bool hilightEnvDuckButton = false;
             bool hilightRevGateTrigger = false;
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
@@ -1412,14 +1411,6 @@ namespace Sapphire
                 flpSelLabel->setVisible(loopModule->flip && hilightRevFlipButton);
                 revLabel->setVisible(!loopModule->flip && !hilightRevFlipButton);
                 revSelLabel->setVisible(!loopModule->flip && hilightRevFlipButton);
-            }
-
-            void updateEnvDuck()
-            {
-                envLabel->setVisible(!loopModule->duck() && !hilightEnvDuckButton);
-                envSelLabel->setVisible(!loopModule->duck() && hilightEnvDuckButton);
-                dckLabel->setVisible(loopModule->duck() && !hilightEnvDuckButton);
-                dckSelLabel->setVisible(loopModule->duck() && hilightEnvDuckButton);
             }
 
             void step() override

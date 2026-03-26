@@ -179,6 +179,7 @@ namespace Sapphire
             {"freq_cv",                {   6.240,   35.000}},
             {"freq_knob",              {  24.240,   35.000}},
             {"insert_button",          {  27.480,    4.500}},
+            {"label_env_duck",         {  15.240,  115.000}},
             {"level_atten",            {  15.240,   75.000}},
             {"level_cv",               {   6.240,   75.000}},
             {"level_knob",             {  24.240,   75.000}},

@@ -618,6 +618,7 @@ namespace Sapphire
         SvgOverlay* envSelLabel{};
         SvgOverlay* dckLabel{};
         SvgOverlay* dckSelLabel{};
+        bool hilightEnvDuckButton{};
 
         const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
@@ -652,6 +653,24 @@ namespace Sapphire
             envSelLabel = addEnvelopeLabel("env_sel");
             dckLabel = addEnvelopeLabel("dck");
             dckSelLabel = addEnvelopeLabel("dck_sel");
+        }
+
+        void updateEnvDuck()
+        {
+            SapphireModule* smod = getSapphireModule();
+            const bool duck = smod && smod->duck();
+
+            if (envLabel)
+                envLabel->setVisible(!duck && !hilightEnvDuckButton);
+
+            if (envSelLabel)
+                envSelLabel->setVisible(!duck && hilightEnvDuckButton);
+
+            if (dckLabel)
+                dckLabel->setVisible(duck && !hilightEnvDuckButton);
+
+            if (dckSelLabel)
+                dckSelLabel->setVisible(duck && hilightEnvDuckButton);
         }
 
         void appendContextMenu(Menu* menu) override

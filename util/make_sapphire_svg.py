@@ -2613,6 +2613,13 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
 
         AddEnvDetectorGroup(controls, xmid)
+        controls.append(Component('label_env_duck', xmid, MULTIMAP_ENV_PORTS_Y1))
+        if (
+            SaveRectangleCaption(SvgFileName('empath_filter_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('empath_filter_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
+            SaveRectangleCaption(SvgFileName('empath_filter_dck',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
+            SaveRectangleCaption(SvgFileName('empath_filter_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
+        ): return 1
 
     return Save(panel, svgFileName)
 

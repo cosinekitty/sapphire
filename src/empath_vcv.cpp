@@ -963,6 +963,7 @@ namespace Sapphire
                     addMuteSoloButtons();
                     addSapphireOutput<EnvelopeOutputPort>(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                    addEnvelopeFollowerLabels();
                 }
 
                 void addMuteSoloButtons()
@@ -1011,6 +1012,7 @@ namespace Sapphire
                     EmpathWidget::step();
                     updateModeButton();
                     updateResLabel();
+                    updateEnvDuck();
                     if (filterModule)
                     {
                         filterModule->updateMuteSoloControls();
