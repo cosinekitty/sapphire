@@ -210,8 +210,18 @@ namespace Sapphire
 
         struct EmpathWidget : SapphireWidget
         {
-            explicit EmpathWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
+            ComponentLocation leftPortLoc;
+            ComponentLocation rightPortLoc;
+
+            static ComponentLocation Loc(const std::string& moduleCode, const std::string& prefix, const std::string& suffix)
+            {
+                return FindComponent(moduleCode, prefix + "_label_" + suffix);
+            }
+
+            explicit EmpathWidget(const std::string& moduleCode, const std::string& panelSvgFileName, const std::string& outputPortLabelPrefix)
                 : SapphireWidget(moduleCode, panelSvgFileName)
+                , leftPortLoc(Loc(moduleCode, outputPortLabelPrefix, "left"))
+                , rightPortLoc(Loc(moduleCode, outputPortLabelPrefix, "right"))
                 {}
 
             EmpathModule* filterReceiverWithinRange()
@@ -281,14 +291,11 @@ namespace Sapphire
             void draw(const DrawArgs& args) override
             {
                 SapphireWidget::draw(args);
-                if (ComponentLocation L = FindComponent(modcode, "sendreturn_label_left"); L.cy > 0)
+                if (leftPortLoc.cy > 0 && rightPortLoc.cy > 0)
                 {
-                    if (ComponentLocation R = FindComponent(modcode, "sendreturn_label_right"); R.cy > 0)
-                    {
-                        auto emod = dynamic_cast<EmpathModule*>(module);
-                        PortLabelMode label = emod ? emod->outputLabels : PortLabelMode::Stereo;
-                        drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
-                    }
+                    auto emod = dynamic_cast<EmpathModule*>(module);
+                    PortLabelMode label = emod ? emod->outputLabels : PortLabelMode::Stereo;
+                    drawAudioPortLabels(args.vg, label, leftPortLoc.cx, leftPortLoc.cy, rightPortLoc.cx, rightPortLoc.cy);
                 }
             }
 
@@ -530,7 +537,7 @@ namespace Sapphire
                 int expanderCountdown = 8;
 
                 explicit InputWidget(InputModule* module)
-                    : EmpathWidget("empath_input", asset::plugin(pluginInstance, "res/empath_input.svg"))
+                    : EmpathWidget("empath_input", asset::plugin(pluginInstance, "res/empath_input.svg"), "")
                     , inputModule(module)
                 {
                     setModule(module);
@@ -945,7 +952,7 @@ namespace Sapphire
                 SvgOverlay* morphLabel{};
 
                 explicit FilterWidget(FilterModule* module)
-                    : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"))
+                    : EmpathWidget("empath_filter", asset::plugin(pluginInstance, "res/empath_filter.svg"), "sendreturn")
                     , filterModule(module)
                 {
                     setModule(module);
@@ -1208,7 +1215,7 @@ namespace Sapphire
                 OutputModule* outputModule{};
 
                 explicit OutputWidget(OutputModule* module)
-                    : EmpathWidget("empath_output", asset::plugin(pluginInstance, "res/empath_output.svg"))
+                    : EmpathWidget("empath_output", asset::plugin(pluginInstance, "res/empath_output.svg"), "output")
                     , outputModule(module)
                 {
                     setModule(module);
