@@ -390,12 +390,11 @@ namespace Sapphire
                 setModule(module);
 
                 // Extra SVG layers for changing port labels: "L/R" versus "2".
-                outputStereoLabel2  = loadLabel("res/elastika_out_2.svg");
-                outputStereoLabelLR = loadLabel("res/elastika_out_lr.svg");
-                outputStereoLabelLR->setVisible(true);
-                inputStereoLabelL2  = loadLabel("res/elastika_in_l2.svg");
-                inputStereoLabelR2  = loadLabel("res/elastika_in_r2.svg");
-                inputStereoLabelLR  = loadLabel("res/elastika_in_lr.svg");
+                outputStereoLabel2  = addLabelOverlay("res/elastika_out_2.svg", false);
+                outputStereoLabelLR = addLabelOverlay("res/elastika_out_lr.svg", true);
+                inputStereoLabelL2  = addLabelOverlay("res/elastika_in_l2.svg", false);
+                inputStereoLabelR2  = addLabelOverlay("res/elastika_in_r2.svg", false);
+                inputStereoLabelLR  = addLabelOverlay("res/elastika_in_lr.svg", false);
 
                 // Sliders
                 addSlider(FRICTION_SLIDER_PARAM, FRICTION_LIGHT, "fric_slider");

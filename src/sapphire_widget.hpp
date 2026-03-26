@@ -607,12 +607,17 @@ namespace Sapphire
         const std::string modcode;
         SplashState splash;
 
-        SvgOverlay* outputStereoLabelLR = nullptr;
-        SvgOverlay* outputStereoLabel2  = nullptr;
+        SvgOverlay* outputStereoLabelLR{};
+        SvgOverlay* outputStereoLabel2{};
 
-        SvgOverlay* inputStereoLabelLR = nullptr;
-        SvgOverlay* inputStereoLabelL2 = nullptr;
-        SvgOverlay* inputStereoLabelR2 = nullptr;
+        SvgOverlay* inputStereoLabelLR{};
+        SvgOverlay* inputStereoLabelL2{};
+        SvgOverlay* inputStereoLabelR2{};
+
+        SvgOverlay* envLabel{};
+        SvgOverlay* envSelLabel{};
+        SvgOverlay* dckLabel{};
+        SvgOverlay* dckSelLabel{};
 
         const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
@@ -631,6 +636,23 @@ namespace Sapphire
         static NVGcolor getNeonColor();
         static void ToggleAllNeonBorders();
         static void ToggleNeonBorder(SapphireModule* smod);
+
+        SvgOverlay* addEnvelopeLabel(const std::string& suffix, bool visible = false)
+        {
+            const std::string svgFileName = asset::plugin(
+                pluginInstance,
+                "res/" + modcode + "_" + suffix + ".svg"
+            );
+            return addLabelOverlay(svgFileName, visible);
+        }
+
+        void addEnvelopeFollowerLabels()
+        {
+            envLabel = addEnvelopeLabel("env", true);
+            envSelLabel = addEnvelopeLabel("env_sel");
+            dckLabel = addEnvelopeLabel("dck");
+            dckSelLabel = addEnvelopeLabel("dck_sel");
+        }
 
         void appendContextMenu(Menu* menu) override
         {
@@ -929,26 +951,25 @@ namespace Sapphire
             return knob;
         }
 
-        SvgOverlay* loadLabel(const char *svgFileName)
+        SvgOverlay* addLabelOverlay(const std::string& svgFileName, bool visible)
         {
-            SvgOverlay* label = SvgOverlay::Load(svgFileName);
-            label->setVisible(false);
-            addChild(label);
-            return label;
+            SvgOverlay* overlay = SvgOverlay::Load(svgFileName);
+            overlay->setVisible(visible);
+            addChild(overlay);
+            return overlay;
         }
 
         void loadOutputStereoLabels()
         {
-            outputStereoLabel2  = loadLabel("res/stereo_out_2.svg");
-            outputStereoLabelLR = loadLabel("res/stereo_out_lr.svg");
-            outputStereoLabelLR->setVisible(true);
+            outputStereoLabel2  = addLabelOverlay("res/stereo_out_2.svg", false);
+            outputStereoLabelLR = addLabelOverlay("res/stereo_out_lr.svg", true);
         }
 
         void loadInputStereoLabels()
         {
-            inputStereoLabelL2 = loadLabel("res/stereo_in_l2.svg");
-            inputStereoLabelR2 = loadLabel("res/stereo_in_r2.svg");
-            inputStereoLabelLR = loadLabel("res/stereo_in_lr.svg");
+            inputStereoLabelL2 = addLabelOverlay("res/stereo_in_l2.svg", false);
+            inputStereoLabelR2 = addLabelOverlay("res/stereo_in_r2.svg", false);
+            inputStereoLabelLR = addLabelOverlay("res/stereo_in_lr.svg", false);
         }
 
         bool isOutputStereoMergeEnabled()
