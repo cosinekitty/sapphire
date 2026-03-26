@@ -852,6 +852,7 @@ namespace Sapphire
                         const int nc = inMessage.dryAudio.nchannels;
                         sendFrame.nchannels = nc;
                         levelFrame.nchannels = nc;
+                        envelopeFrame.nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
