@@ -557,23 +557,28 @@ namespace Sapphire
 
     void SapphireModule::addPolyphonicEnvelopeMenuItem(Menu* menu)
     {
-        menu->addChild(createBoolMenuItem(
-            "Polyphonic envelope output",
-            "",
-            [=]{ return envelopeFollower.polyphonicOutput; },
-            [=](bool state){ setPolyphonicEnvelopeOutput(state); }
-        ));
+        if (envelopeFollower.enabled)
+        {
+            menu->addChild(new MenuSeparator);
+            menu->addChild(createBoolMenuItem(
+                "Polyphonic envelope output",
+                "",
+                [=]{ return envelopeFollower.polyphonicOutput; },
+                [=](bool state){ setPolyphonicEnvelopeOutput(state); }
+            ));
+        }
     }
 
     void SapphireModule::setPolyphonicEnvelopeOutput(bool state)
     {
-        if (envelopeFollower.polyphonicOutput != state)
+        if (envelopeFollower.enabled && envelopeFollower.polyphonicOutput != state)
             InvokeAction(new BoolToggleAction(envelopeFollower.polyphonicOutput, "mono/polyphonic envelope output"));
     }
 
     void SapphireModule::toggleEnvDuck()
     {
-        InvokeAction(new BoolToggleAction(envelopeFollower.duck, "envelope/duck"));
+        if (envelopeFollower.enabled)
+            InvokeAction(new BoolToggleAction(envelopeFollower.duck, "envelope/duck"));
     }
 
     void EnvelopeOutputPort::appendContextMenu(Menu* menu)
@@ -581,7 +586,6 @@ namespace Sapphire
         SapphirePort::appendContextMenu(menu);
         if (auto smod = dynamic_cast<SapphireModule*>(module))
         {
-            menu->addChild(new MenuSeparator);
             smod->addPolyphonicEnvelopeMenuItem(menu);
         }
     }

@@ -1224,7 +1224,6 @@ namespace Sapphire
             SvgOverlay* flpLabel = nullptr;
             SvgOverlay* flpSelLabel = nullptr;
             Vec flpRevLabelPos;
-            Vec envDuckLabelPos;
             float dxFlipRev{};
             float dyFlipRev{};
             bool hilightInputRoutingButton = false;
@@ -1233,7 +1232,6 @@ namespace Sapphire
             SapphireTooltip* routingTooltip = nullptr;
             SapphireTooltip* revFlipTooltip = nullptr;
             SapphireTooltip* revGateTriggerTooltip = nullptr;
-            SapphireTooltip* envDuckTooltip = nullptr;
             bool isMouseInsideRevFlipGateTriggerToggle = false;
 
             explicit LoopWidget(
@@ -1266,7 +1264,6 @@ namespace Sapphire
                 addEnvelopeFollowerLabels();
 
                 flpRevLabelPos  = mm_to_px(FindComponent(modcode, "label_flp_rev"));
-                envDuckLabelPos = mm_to_px(FindComponent(modcode, "label_env_duck"));
                 ComponentLocation inputLoc  = FindComponent(modcode, "reverse_input");
                 ComponentLocation buttonLoc = FindComponent(modcode, "reverse_button");
                 constexpr float dxCushion = 8.0;
@@ -1281,7 +1278,6 @@ namespace Sapphire
                 destroyTooltip(routingTooltip);
                 destroyTooltip(revFlipTooltip);
                 destroyTooltip(revGateTriggerTooltip);
-                destroyTooltip(envDuckTooltip);
                 MultiTapWidget::onRemove(e);
             }
 
@@ -1461,15 +1457,6 @@ namespace Sapphire
                 return (std::abs(dx) < dxFlipRev) && (std::abs(dy) < dyFlipRev);
             }
 
-            bool isInsideEnvDuckButton(Vec pos) const
-            {
-                const float dx = pos.x - envDuckLabelPos.x;
-                const float dy = pos.y - envDuckLabelPos.y;
-                const float rectWidth = mm2px(8.0);
-                const float rectHeight = mm2px(4.5);
-                return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
-            }
-
             virtual void onMousePress(const ButtonEvent& e)
             {
                 if (loopModule)
@@ -1479,9 +1466,6 @@ namespace Sapphire
 
                     if (isInsideFlipRevButton(e.pos))
                         loopModule->toggleFlip();
-
-                    if (isInsideEnvDuckButton(e.pos))
-                        loopModule->toggleEnvDuck();
 
                     if (isInsideGateTriggerToggle(flpRevLabelPos, e.pos))
                     {
@@ -1519,11 +1503,6 @@ namespace Sapphire
             void updateFlipRevButton(bool state)
             {
                 updateTooltip(hilightRevFlipButton, state, revFlipTooltip, "Toggle reverse/flip");
-            }
-
-            void updateEnvDuckButton(bool state)
-            {
-                updateTooltip(hilightEnvDuckButton, state, envDuckTooltip, "Toggle envelope follow/duck");
             }
 
             void updateRevGateTriggerTooltip(bool state)

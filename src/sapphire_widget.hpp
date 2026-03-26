@@ -619,6 +619,8 @@ namespace Sapphire
         SvgOverlay* dckLabel{};
         SvgOverlay* dckSelLabel{};
         bool hilightEnvDuckButton{};
+        SapphireTooltip* envDuckTooltip{};
+        Vec envDuckLabelPos{};
 
         const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
@@ -626,6 +628,58 @@ namespace Sapphire
             : modcode(moduleCode)
         {
             setPanel(MakeSapphirePanel(panelSvgFileName));
+            envDuckLabelPos = mm_to_px(FindComponent(modcode, "label_env_duck"));
+        }
+
+        void onRemove(const RemoveEvent& e) override
+        {
+            destroyTooltip(envDuckTooltip);
+            ModuleWidget::onRemove(e);
+        }
+
+        void onButton(const ButtonEvent& e) override
+        {
+            if (SapphireModule* smod = getSapphireModule())
+            {
+                if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    if (e.action == GLFW_PRESS)
+                    {
+                        if (isInsideEnvDuckButton(e.pos))
+                            smod->toggleEnvDuck();
+                    }
+                }
+            }
+            ModuleWidget::onButton(e);
+        }
+
+        void updateEnvDuckButton(bool state)
+        {
+            updateTooltip(hilightEnvDuckButton, state, envDuckTooltip, "Toggle envelope follow/duck");
+        }
+
+        void onHover(const HoverEvent& e) override
+        {
+            updateEnvDuckButton(isInsideEnvDuckButton(e.pos));
+            ModuleWidget::onHover(e);
+        }
+
+        void onLeave(const LeaveEvent& e) override
+        {
+            updateEnvDuckButton(false);
+            ModuleWidget::onLeave(e);
+        }
+
+        bool isInsideEnvDuckButton(Vec pos) const
+        {
+            if (envDuckLabelPos.y <= 0)
+                return false;       // no ENV/DCK resource generated for this module?
+
+            const float dx = pos.x - envDuckLabelPos.x;
+            const float dy = pos.y - envDuckLabelPos.y;
+            const float rectWidth = mm2px(8.0);
+            const float rectHeight = mm2px(4.5);
+            return (std::abs(dx) <= rectWidth/2) && (std::abs(dy) <= rectHeight/2);
         }
 
         bool isNeonModeActive() const
