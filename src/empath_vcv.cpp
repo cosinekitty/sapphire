@@ -949,11 +949,8 @@ namespace Sapphire
                     , filterModule(module)
                 {
                     setModule(module);
-                    resLabel = SvgOverlay::Load("res/empath_label_res.svg");
-                    addChild(resLabel);
-                    morphLabel = SvgOverlay::Load("res/empath_label_morph.svg");
-                    morphLabel->hide();
-                    addChild(morphLabel);
+                    addResMorphLabels();
+                    addEnvelopeFollowerLabels();
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addModeToggleGroup();
@@ -966,7 +963,12 @@ namespace Sapphire
                     addMuteSoloButtons();
                     addSapphireOutput<EnvelopeOutputPort>(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
-                    addEnvelopeFollowerLabels();
+                }
+
+                void addResMorphLabels()
+                {
+                    resLabel = addLabelOverlay("res/empath_label_res.svg", true);
+                    morphLabel = addLabelOverlay("res/empath_label_morph.svg", false);
                 }
 
                 void addMuteSoloButtons()
