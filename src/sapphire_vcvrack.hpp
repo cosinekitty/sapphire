@@ -4,6 +4,7 @@
 #include "plugin.hpp"
 #include "sapphire_crossfader.hpp"
 #include "sapphire_engine.hpp"
+#include "sapphire_attenuverter_context.hpp"
 
 namespace Sapphire
 {
@@ -821,12 +822,10 @@ namespace Sapphire
     };
 
 
-    const float AttenuverterLowSensitivityDenom = 10;
-
     struct SapphireParamInfo
     {
         bool isAttenuverter = false;
-        bool isLowSensitive = false;
+        SapphireAttenuverterContext context;
     };
 
     struct SapphirePortInfo
@@ -1151,19 +1150,19 @@ namespace Sapphire
             return paramInfo.at(paramId).isAttenuverter;
         }
 
-        bool isLowSensitive(int attenId) const
+        SapphireAttenuverterContext* getAttenuverterContext(int attenId)
         {
-            return paramInfo.at(attenId).isLowSensitive;
+            return &paramInfo.at(attenId).context;
         }
 
-        bool *lowSensitiveFlag(int attenId)
+        bool isLowSensitive(int attenId) const
         {
-            return &paramInfo.at(attenId).isLowSensitive;
+            return paramInfo.at(attenId).context.lowSensitivityMode;
         }
 
         void setLowSensitive(int attenId, bool state)
         {
-            paramInfo.at(attenId).isLowSensitive = state;
+            paramInfo.at(attenId).context.lowSensitivityMode = state;
         }
 
         MenuItem* createToggleAllSensitivityMenuItem()
@@ -1250,7 +1249,7 @@ namespace Sapphire
             // This way, we at least clear out the state even if something is wrong the the JSON.
             const int nparams = static_cast<int>(paramInfo.size());
             for (int attenId = 0; attenId < nparams; ++attenId)
-                paramInfo.at(attenId).isLowSensitive = false;
+                paramInfo.at(attenId).context.lowSensitivityMode = false;
 
             json_t* aList = json_object_get(root, "lowSensitivityAttenuverters");
             if (aList)
@@ -1263,7 +1262,7 @@ namespace Sapphire
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
                         if (attenId >= 0 && attenId < nparams)
-                            paramInfo.at(attenId).isLowSensitive = true;
+                            paramInfo.at(attenId).context.lowSensitivityMode = true;
                     }
                 }
             }

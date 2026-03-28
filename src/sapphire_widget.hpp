@@ -6,6 +6,7 @@
 #pragma once
 #include "plugin.hpp"
 #include "sapphire_panel.hpp"
+#include "sapphire_attenuverter_context.hpp"
 
 namespace Sapphire
 {
@@ -120,24 +121,24 @@ namespace Sapphire
 
     struct SapphireAttenuverterKnob : Trimpot
     {
-        bool* lowSensitivityMode = nullptr;
+        SapphireAttenuverterContext* context{};
 
         void appendContextMenu(Menu* menu) override
         {
             Trimpot::appendContextMenu(menu);
-            if (lowSensitivityMode)
+            if (context)
             {
                 menu->addChild(createBoolMenuItem(
                     "Low sensitivity",
                     "",
                     [=]() -> bool       // getter
                     {
-                        return *lowSensitivityMode;
+                        return context->lowSensitivityMode;
                     },
                     [=](bool state)     // setter
                     {
-                        if (state != *lowSensitivityMode)
-                            InvokeAction(new BoolToggleAction(*lowSensitivityMode, "attenuverter sensitivity"));
+                        if (state != context->lowSensitivityMode)
+                            InvokeAction(new BoolToggleAction(context->lowSensitivityMode, "attenuverter sensitivity"));
                     }
                 ));
             }
@@ -145,13 +146,24 @@ namespace Sapphire
 
         bool isLowSensitive() const
         {
-            return lowSensitivityMode && *lowSensitivityMode;
+            return context && context->lowSensitivityMode;
         }
 
-        void setLowSensitive(bool s)
+        void setLowSensitive(bool lowSensitivityMode)
         {
-            if (lowSensitivityMode)
-                *lowSensitivityMode = s;
+            if (context)
+                context->lowSensitivityMode = lowSensitivityMode;
+        }
+
+        bool unipolarClampEnabled() const
+        {
+            return context && context->unipolar;
+        }
+
+        void setUnipolarClampEnabled(bool unipolar)
+        {
+            if (context)
+                context->unipolar = unipolar;
         }
 
         void drawLayer(const DrawArgs& args, int layer) override
@@ -840,7 +852,7 @@ namespace Sapphire
             if (sapphireModule)
             {
                 // Restore the persisted sensitivity state we loaded from JSON (or false if none).
-                knob->lowSensitivityMode = sapphireModule->lowSensitiveFlag(attenId);
+                knob->context = sapphireModule->getAttenuverterContext(attenId);
 
                 // Let the sensitivity toggler know this ID belongs to an attenuverter knob.
                 sapphireModule->defineAttenuverterId(attenId);

@@ -363,7 +363,7 @@ namespace Sapphire
                     if (module)
                     {
                         // Allow Tube Unit's attenuverter knobs to participate in the "low-sensitivity" feature.
-                        knob->lowSensitivityMode = module->lowSensitiveFlag(cg.attenId);
+                        knob->context = module->getAttenuverterContext(cg.attenId);
                         module->defineAttenuverterId(cg.attenId);
                     }
                     addParam(knob);
