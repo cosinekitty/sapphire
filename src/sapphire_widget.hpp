@@ -141,6 +141,22 @@ namespace Sapphire
                             InvokeAction(new BoolToggleAction(context->lowSensitivityMode, "attenuverter sensitivity"));
                     }
                 ));
+
+                menu->addChild(createBoolMenuItem(
+                    "Unipolar mode",
+                    "",
+                    [=]() -> bool       // getter
+                    {
+                        return context->unipolar;
+                    },
+                    [=](bool state)     // setter
+                    {
+                        if (state != context->unipolar)
+                            InvokeAction(new BoolToggleAction(context->unipolar, "unipolar mode"));
+                    }
+                ));
+
+                // FIXFIXFIX: add slider for 'adjust' field (unipolar offset)
             }
         }
 

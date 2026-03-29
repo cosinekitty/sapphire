@@ -1056,8 +1056,7 @@ namespace Sapphire
             // Disable low sensitivity on all attenuverters.
             const int nparams = static_cast<int>(paramInfo.size());
             for (int paramId = 0; paramId < nparams; ++paramId)
-                if (isAttenuverter(paramId))
-                    setLowSensitive(paramId, false);
+                resetAttenuverter(paramId);
 
             // Clear any voltage-flipping on output ports.
             const int nOutputs = static_cast<int>(outputPortInfo.size());
@@ -1085,9 +1084,10 @@ namespace Sapphire
             // Thus we allow the complete range of control for any CV whose
             // range is [-5, +5] volts.
             float attenu = params.at(attenId).getValue();
+            const auto& context = paramInfo.at(attenId).context;
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
-            slider += attenu*(cv / 5)*(maxValue - minValue);
+            slider += attenu*(context.adjustVoltage(cv) / 5)*(maxValue - minValue);
             return std::clamp(slider, minValue, maxValue);
         }
 
@@ -1098,9 +1098,10 @@ namespace Sapphire
             // and each 1V change in CV is reflected in the return value (within clamping limits).
             float slider = params.at(paramId).getValue();
             float attenu = params.at(attenId).getValue();
+            const auto& context = paramInfo.at(attenId).context;
             if (isLowSensitive(attenId))
                 attenu /= AttenuverterLowSensitivityDenom;
-            slider += attenu * cv;
+            slider += attenu * context.adjustVoltage(cv);
             return std::clamp(slider, minValue, maxValue);
         }
 
@@ -1165,6 +1166,16 @@ namespace Sapphire
             paramInfo.at(attenId).context.lowSensitivityMode = state;
         }
 
+        void resetAttenuverter(int attenId)
+        {
+            paramInfo.at(attenId).context.initialize();
+        }
+
+        bool isUnipolar(int attenId) const
+        {
+            return paramInfo.at(attenId).context.unipolar;
+        }
+
         MenuItem* createToggleAllSensitivityMenuItem()
         {
             return createMenuItem(
@@ -1206,6 +1217,19 @@ namespace Sapphire
                 if (isLowSensitive(attenId))
                     json_array_append(aList, json_integer(attenId));
             json_object_set_new(root, "lowSensitivityAttenuverters", aList);
+
+            // List attenuverters with unipolar clamping enabled.
+            json_t* uList = json_array();
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                if (isUnipolar(attenId))
+                    json_array_append(uList, json_integer(attenId));
+            json_object_set_new(root, "unipolarAttenuverters", uList);
+
+            // List all attenuverter offsets.
+            json_t* adjustList = json_array();
+            for (int attenId = 0; attenId < nparams; ++attenId)
+                json_array_append(adjustList, json_real(paramInfo.at(attenId).context.adjust));
+            json_object_set_new(root, "unipolarOffsetVolts", adjustList);
 
             json_t* oList = json_array();
             const int nOutputPorts = static_cast<int>(outputPortInfo.size());
@@ -1249,10 +1273,9 @@ namespace Sapphire
             // This way, we at least clear out the state even if something is wrong the the JSON.
             const int nparams = static_cast<int>(paramInfo.size());
             for (int attenId = 0; attenId < nparams; ++attenId)
-                paramInfo.at(attenId).context.lowSensitivityMode = false;
+                paramInfo.at(attenId).context.initialize();
 
-            json_t* aList = json_object_get(root, "lowSensitivityAttenuverters");
-            if (aList)
+            if (json_t* aList = json_object_get(root, "lowSensitivityAttenuverters"))
             {
                 std::size_t listLength = static_cast<int>(json_array_size(aList));
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
@@ -1267,10 +1290,24 @@ namespace Sapphire
                 }
             }
 
-            json_t* oList = json_object_get(root, "voltageFlippedOutputPorts");
-            if (oList)
+            if (json_t* uList = json_object_get(root, "unipolarAttenuverters"))
             {
-                std::size_t listLength = static_cast<int>(json_array_size(oList));
+                std::size_t listLength = json_array_size(uList);
+                for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
+                {
+                    json_t *item = json_array_get(uList, listIndex);
+                    if (json_is_integer(item))
+                    {
+                        int attenId = static_cast<int>(json_integer_value(item));
+                        if (attenId >= 0 && attenId < nparams)
+                            paramInfo.at(attenId).context.unipolar = true;
+                    }
+                }
+            }
+
+            if (json_t* oList = json_object_get(root, "voltageFlippedOutputPorts"))
+            {
+                std::size_t listLength = json_array_size(oList);
                 for (std::size_t listIndex = 0; listIndex < listLength; ++listIndex)
                 {
                     json_t *item = json_array_get(oList, listIndex);
@@ -1282,6 +1319,14 @@ namespace Sapphire
                             outputPortInfo.at(outputId).flipVoltagePolarity = true;
                     }
                 }
+            }
+
+            if (json_t* adjustList = json_object_get(root, "unipolarOffsetVolts"))
+            {
+                std::size_t listLength = json_array_size(adjustList);
+                for (std::size_t listIndex = 0; listIndex < listLength && (int)listIndex < nparams; ++listIndex)
+                    if (json_t* item = json_array_get(adjustList, listIndex); json_is_real(item))
+                        paramInfo.at(listIndex).context.adjust = json_real_value(item);
             }
 
             if (provideStereoSplitter)

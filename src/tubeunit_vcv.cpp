@@ -176,7 +176,8 @@ namespace Sapphire
                     float attenu = params.at(cg.attenId).getValue();
                     if (isLowSensitive(cg.attenId))
                         attenu /= AttenuverterLowSensitivityDenom;
-                    slider += attenu*(cv / 5)*(cg.maxValue - cg.minValue);
+                    const auto& context = paramInfo.at(cg.attenId).context;
+                    slider += attenu*(context.adjustVoltage(cv) / 5)*(cg.maxValue - cg.minValue);
                 }
                 return std::clamp(slider, cg.minValue, cg.maxValue);
             }
