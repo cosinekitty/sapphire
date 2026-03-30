@@ -723,7 +723,6 @@ static int ChaosFountainTest()
     constexpr float sampleRateHz = 48000;
     constexpr float simTimeSeconds = 900;
     constexpr unsigned nsamples = static_cast<unsigned>(sampleRateHz * simTimeSeconds);
-    printf("ChaosFountainTest: nsamples = %u\n", nsamples);
 
     Sapphire::ChaosFountain<nsignals> fountain;
     std::array<float, nsignals> minValue{};
@@ -764,8 +763,14 @@ static int ChaosFountainTest()
         printf("    signal[%2u] : min=%8.3f, max=%8.3f, orbits=%4u\n",
             i, minValue.at(i), maxValue.at(i), orbitCount.at(i));
 
-        if (orbitCount.at(i) < 100)
+        if (orbitCount.at(i) < 17000 || orbitCount.at(i) > 27000)
             ++badOrbitCountsFound;
+
+        if (minValue[i] < -5.6 || minValue[i] > -4.7)
+            return Fail("ChaosFountainTest", "Minimum value is out of bounds.");
+
+        if (maxValue[i] < 5.0 || maxValue[i] > 5.2)
+            return Fail("ChaosFountaintest", "Maximum value is out of bounds.");
     }
 
     if (badOrbitCountsFound > 0)

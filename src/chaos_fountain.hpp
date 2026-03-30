@@ -36,9 +36,9 @@ namespace Sapphire
             batch_t batch;
 
             const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;
-            const double r = 1.0 / std::sqrt(3.0);
-            const double w = (r+1)/2;
-            const double u = (r-1)/2;
+            static const double r = 1.0 / std::sqrt(3.0);
+            static const double w = (r+1)/2;
+            static const double u = (r-1)/2;
 
             unsigned n = 0;     // how many signals have been generated
 
@@ -52,6 +52,7 @@ namespace Sapphire
                 // We prefer to generate 3 signals with overall similar behavior.
                 // Solution: rotate the coordinate space along 3D diagonals,
                 // so that the resulting data are combinations of (x, y, z).
+
                 const double x = o.xpos();
                 const double y = o.ypos();
                 const double z = o.zpos();
