@@ -730,6 +730,7 @@ static int ChaosFountainTest()
     std::array<unsigned, nsignals> orbitCount{};
     Sapphire::ChaosBatch<nsignals> prevBatch;
 
+    printf("ChaosFountainTest: Simulating the Aizawa attractor.\n");
     for (unsigned s = 0; s < nsamples; ++s)
     {
         Sapphire::ChaosBatch<nsignals> batch = fountain.process(speedKnob, sampleRateHz);
@@ -754,27 +755,24 @@ static int ChaosFountainTest()
         prevBatch = batch;
     }
 
-    printf("ChaosFountaintest results:\n");
-
-    unsigned badOrbitCountsFound = 0;
-
+    printf("ChaosFountainTest results:\n");
     for (unsigned i = 0; i < nsignals; ++i)
     {
-        printf("    signal[%2u] : min=%8.3f, max=%8.3f, orbits=%4u\n",
-            i, minValue.at(i), maxValue.at(i), orbitCount.at(i));
+        const unsigned count = orbitCount.at(i);
+        const double freq = count / simTimeSeconds;
 
-        if (orbitCount.at(i) < 17000 || orbitCount.at(i) > 27000)
-            ++badOrbitCountsFound;
+        printf("    signal[%2u] : min=%8.3f, max=%8.3f, orbits=%4u  (%0.1f Hz)\n",
+            i, minValue.at(i), maxValue.at(i), count, freq);
 
         if (minValue[i] < -5.6 || minValue[i] > -4.7)
             return Fail("ChaosFountainTest", "Minimum value is out of bounds.");
 
         if (maxValue[i] < 5.0 || maxValue[i] > 5.2)
             return Fail("ChaosFountaintest", "Maximum value is out of bounds.");
-    }
 
-    if (badOrbitCountsFound > 0)
-        return Fail("ChaosFountainTest", "At least one orbit count was bad.");
+        if (freq < 19.0 || freq > 30.0)
+            return Fail("ChaosFountainTest", "Frequency is out of bounds.");
+    }
 
     return Pass("ChaosFountainTest");
 }
