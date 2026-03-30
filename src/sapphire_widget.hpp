@@ -123,42 +123,7 @@ namespace Sapphire
     {
         SapphireAttenuverterContext* context{};
 
-        void appendContextMenu(Menu* menu) override
-        {
-            Trimpot::appendContextMenu(menu);
-            if (context)
-            {
-                menu->addChild(createBoolMenuItem(
-                    "Low sensitivity",
-                    "",
-                    [=]() -> bool       // getter
-                    {
-                        return context->lowSensitivityMode;
-                    },
-                    [=](bool state)     // setter
-                    {
-                        if (state != context->lowSensitivityMode)
-                            InvokeAction(new BoolToggleAction(context->lowSensitivityMode, "attenuverter sensitivity"));
-                    }
-                ));
-
-                menu->addChild(createBoolMenuItem(
-                    "Unipolar mode",
-                    "",
-                    [=]() -> bool       // getter
-                    {
-                        return context->unipolar;
-                    },
-                    [=](bool state)     // setter
-                    {
-                        if (state != context->unipolar)
-                            InvokeAction(new BoolToggleAction(context->unipolar, "unipolar mode"));
-                    }
-                ));
-
-                // FIXFIXFIX: add slider for 'adjust' field (unipolar offset)
-            }
-        }
+        void appendContextMenu(Menu* menu) override;
 
         bool isLowSensitive() const
         {

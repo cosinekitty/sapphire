@@ -9,7 +9,7 @@ namespace Sapphire
     struct SapphireAttenuverterContext
     {
         bool lowSensitivityMode{};
-        bool unipolar{};    // voltage --> max(0, voltage+5)
+        bool unipolar{};
         float adjust = UnipolarAdjustVoltsDefault;
 
         void initialize()
