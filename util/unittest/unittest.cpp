@@ -8,6 +8,7 @@
 #include "galaxy_engine.hpp"
 #include "wavefile.hpp"
 #include "chaos.hpp"
+#include "chaos_fountain.hpp"
 #include "pop_engine.hpp"
 #include "env_pitch_detect.hpp"
 #include "Galactic.h"
@@ -38,6 +39,7 @@ static int AutoGainControl();
 static int AutoScale();
 static int CalculatorTest();
 static int ChaosTest();
+static int ChaosFountainTest();
 static int DelayLineTest();
 static int EnvPitchTest();
 static int FilterTest();
@@ -51,21 +53,22 @@ static int TaperTest();
 
 static const UnitTest CommandTable[] =
 {
-    { "agc",        AutoGainControl  },
-    { "calc",       CalculatorTest   },
-    { "chaos",      ChaosTest        },
-    { "delay",      DelayLineTest    },
-    { "env",        EnvPitchTest     },
-    { "galaxy",     GalaxyTest       },
-    { "filter",     FilterTest       },
-    { "interp",     InterpolatorTest },
-    { "pivot",      PivotTest        },
-    { "pop",        PopTest          },
-    { "quad",       QuadraticTest    },
-    { "readwave",   ReadWave         },
-    { "scale",      AutoScale        },
-    { "taper",      TaperTest        },
-    { nullptr,  nullptr }
+    { "agc",        AutoGainControl     },
+    { "calc",       CalculatorTest      },
+    { "chaos",      ChaosTest           },
+    { "delay",      DelayLineTest       },
+    { "env",        EnvPitchTest        },
+    { "galaxy",     GalaxyTest          },
+    { "filter",     FilterTest          },
+    { "fountain",   ChaosFountainTest   },
+    { "interp",     InterpolatorTest    },
+    { "pivot",      PivotTest           },
+    { "pop",        PopTest             },
+    { "quad",       QuadraticTest       },
+    { "readwave",   ReadWave            },
+    { "scale",      AutoScale           },
+    { "taper",      TaperTest           },
+    { nullptr, nullptr }
 };
 
 
@@ -710,6 +713,65 @@ static int ChaosTest()
         RangeTest(aiza, 2, "Aizawa_Cantaloupe", 5.0) ||
         RangeTest(aiza, 3, "Aizawa_Elderberry", 4.85) ||
         Pass("ChaosTest");
+}
+
+
+static int ChaosFountainTest()
+{
+    constexpr float speedKnob = 7;
+    constexpr unsigned nsignals = 7;
+    constexpr float sampleRateHz = 48000;
+    constexpr float simTimeSeconds = 900;
+    constexpr unsigned nsamples = static_cast<unsigned>(sampleRateHz * simTimeSeconds);
+    printf("ChaosFountainTest: nsamples = %u\n", nsamples);
+
+    Sapphire::ChaosFountain<nsignals> fountain;
+    std::array<float, nsignals> minValue{};
+    std::array<float, nsignals> maxValue{};
+    std::array<unsigned, nsignals> orbitCount{};
+    Sapphire::ChaosBatch<nsignals> prevBatch;
+
+    for (unsigned s = 0; s < nsamples; ++s)
+    {
+        Sapphire::ChaosBatch<nsignals> batch = fountain.process(speedKnob, sampleRateHz);
+        if (s == 0)
+        {
+            for (unsigned i = 0; i < nsignals; ++i)
+            {
+                minValue[i] = maxValue[i] = batch.signal[i];
+                orbitCount[i] = 0;
+            }
+        }
+        else
+        {
+            for (unsigned i = 0; i < nsignals; ++i)
+            {
+                minValue[i] = std::min(minValue[i], batch.signal[i]);
+                maxValue[i] = std::max(maxValue[i], batch.signal[i]);
+                if (prevBatch.signal.at(i) < 0 && batch.signal.at(i) >= 0)
+                    ++orbitCount[i];
+            }
+        }
+        prevBatch = batch;
+    }
+
+    printf("ChaosFountaintest results:\n");
+
+    unsigned badOrbitCountsFound = 0;
+
+    for (unsigned i = 0; i < nsignals; ++i)
+    {
+        printf("    signal[%2u] : min=%8.3f, max=%8.3f, orbits=%4u\n",
+            i, minValue.at(i), maxValue.at(i), orbitCount.at(i));
+
+        if (orbitCount.at(i) < 100)
+            ++badOrbitCountsFound;
+    }
+
+    if (badOrbitCountsFound > 0)
+        return Fail("ChaosFountainTest", "At least one orbit count was bad.");
+
+    return Pass("ChaosFountainTest");
 }
 
 
