@@ -2,6 +2,7 @@
 #include "sapphire_widget.hpp"
 #include "sapphire_crossfader.hpp"
 #include "cascade_filter.hpp"
+#include "chaos_fountain.hpp"
 
 namespace Sapphire
 {
@@ -30,6 +31,7 @@ namespace Sapphire
             Frame cascade;
             int soloCount = 0;      // how many taps have solo enabled
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
+            float chaosSpeedKnob{};
         };
 
         struct BackwardMessage
@@ -203,6 +205,16 @@ namespace Sapphire
                     audioRightOutput.setChannels(1);
                     audioRightOutput.setVoltage(0, 0);
                 }
+            }
+
+            float nextVoltage(float& voltage, int inputId, int channel, float chaos)
+            {
+                Input& input = inputs.at(inputId);
+                if (!input.isConnected())
+                    voltage = chaos;
+                else if (channel >= 0 && channel < input.getChannels())
+                    voltage = input.getVoltage(channel);
+                return voltage;
             }
         };
 
@@ -689,6 +701,11 @@ namespace Sapphire
             };
 
 
+            constexpr unsigned nChaoticSignals = 4;
+            using fountain_t = ChaosFountain<nChaoticSignals>;
+            using batch_t = ChaosBatch<nChaoticSignals>;
+
+
             struct FilterModule : EmpathModule
             {
                 ChannelInfo channel[PORT_MAX_CHANNELS];
@@ -696,6 +713,7 @@ namespace Sapphire
                 Crossfader muteFader;       // front=normal,   back=muted
                 Crossfader soloFader;       // front=normal,   back=solo
                 int totalSoloCount = 0;     // the total number of solo-enabled filters in this chain
+                fountain_t fountain;
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -737,6 +755,7 @@ namespace Sapphire
                     soloFader.snapToFront();
                     totalSoloCount = 0;
                     envelopeFollower.initialize();
+                    fountain.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -848,6 +867,11 @@ namespace Sapphire
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
                     const float muteFactor = updateMuteState(args.sampleRate);
 
+                    const batch_t batch = fountain.process(inMessage.chaosSpeedKnob, args.sampleRate);
+                    const float freqChaos = batch.signal.at(0);
+                    const float resChaos = batch.signal.at(1);
+                    const float levelChaos = batch.signal.at(2);
+
                     Frame sendFrame;
                     Frame envelopeFrame;
 
@@ -868,9 +892,9 @@ namespace Sapphire
                         {
                             auto& q = channel[c];
 
-                            nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
-                            nextChannelInputVoltage(cvRes, RES_CV_INPUT, c);
-                            nextChannelInputVoltage(cvLevel, LEVEL_CV_INPUT, c);
+                            nextVoltage(cvFreq, FREQ_CV_INPUT, c, freqChaos);
+                            nextVoltage(cvRes, RES_CV_INPUT, c, resChaos);
+                            nextVoltage(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
 
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
