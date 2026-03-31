@@ -9,11 +9,17 @@
 </tr>
 
 <tr valign="top">
-<td align="center">20 Dec 2025</td>
+<td align="center">30 Mar 2026</td>
 <td align="center">2.6.004</td>
 <td align="left">
     <ul>
+        <li>Added new module: <a href="doc/Empath.md">Empath</a>.</li>
+    </ul>
+    <ul>
         <li>The following modules have speed/frequency attenuverter knobs with a new option "Snap to V/OCT": <a href="doc/Pop.md">Pop</a>, <a href="doc/Gravy.md">Gravy</a>, <a href="doc/Sauce.md">Sauce</a>. This action sets the attenuverter to the correct setting for V/OCT behavior on the input port. The <a href="doc/SapphireChaosModules.md">chaos modules</a> already had "Snap to V/OCT" on the SPEED attenuverter, but in their case for a different value (5/14 = 35.714%). These changes provide a uniform way to select V/OCT behavior.</li>
+    </ul>
+    <ul>
+        <li>Fixed a bug when <a href="doc/Echo.md">Echo</a> is given monophonic input to the L input port only. Echo was incorrectly dividing the voltage by 2 before sending to the left and right channels. This does not match the documented behavior of sending the monophonic input equally to both channels (or "normalling"). This has been fixed, but it means older patches may have to adjust levels. There is no issue in other cases like stereo input or polyphonic input; they all work correctly and have not been changed.</li>
     </ul>
 </td>
 </tr>

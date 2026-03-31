@@ -414,8 +414,7 @@ namespace Sapphire
                     {
                         if (ncLeft == 1 || (ncLeft >= 3 && !polyphonic))
                         {
-                            // Mono input, so split the signal across both stereo output channels.
-                            frame.sample[0] /= 2;
+                            // Mono input, so normal the left input to the right channel.
                             frame.sample[1] = frame.sample[0];
                             mode = PortLabelMode::Mono;
                         }
