@@ -803,13 +803,13 @@ namespace Sapphire
                     return mode;
                 }
 
-                Frame panFrame(const Frame& rawAudio)
+                Frame panFrame(const Frame& rawAudio, float chaos)
                 {
                     Frame pannedAudio = rawAudio;
                     if (const int nc = pannedAudio.nchannels; nc >= 2)
                     {
                         constexpr float sensitivity = 1.0 / 5.0;        // 1 knob unit per 5V at 100%
-                        const float x = getControlValueVoltPerOctave(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, sensitivity);
+                        const float x = getControlValueChaos(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, chaos, -1, +1, sensitivity);
                         const PanningFactors pf = Panning(x);
 
                         // Support panning for all pairs of supplied channels.
@@ -868,9 +868,10 @@ namespace Sapphire
                     const float muteFactor = updateMuteState(args.sampleRate);
 
                     const batch_t batch = fountain.process(inMessage.chaosSpeedKnob, args.sampleRate);
-                    const float freqChaos = batch.signal.at(0);
-                    const float resChaos = batch.signal.at(1);
+                    const float freqChaos  = batch.signal.at(0);
+                    const float resChaos   = batch.signal.at(1);
                     const float levelChaos = batch.signal.at(2);
+                    const float panChaos   = batch.signal.at(3);
 
                     Frame sendFrame;
                     Frame envelopeFrame;
@@ -920,7 +921,7 @@ namespace Sapphire
                             levelFrame.sample[c] = levelKnob * muteFactor * envelopeFrame.sample[c];
                         }
 
-                        Frame outputFrame = panFrame(levelFrame);
+                        Frame outputFrame = panFrame(levelFrame, panChaos);
                         outMessage.soloCount += updateSolo(outMessage.soloAudio, outputFrame, args.sampleRate);
                         for (int c = 0; c < outMessage.wetAudio.nchannels; ++c)
                             outMessage.wetAudio.sample[c] += outputFrame.sample[c];
