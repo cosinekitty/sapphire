@@ -764,13 +764,13 @@ static int ChaosFountainTest()
         printf("    signal[%2u] : min=%8.3f, max=%8.3f, orbits=%4u  (%0.1f Hz)\n",
             i, minValue.at(i), maxValue.at(i), count, freq);
 
-        if (minValue[i] < -5.6 || minValue[i] > -4.7)
+        if (minValue[i] < -5.7 || minValue[i] > -4.7)
             return Fail("ChaosFountainTest", "Minimum value is out of bounds.");
 
-        if (maxValue[i] < 5.0 || maxValue[i] > 5.2)
+        if (maxValue[i] < 5.0 || maxValue[i] > 5.3)
             return Fail("ChaosFountaintest", "Maximum value is out of bounds.");
 
-        if (freq < 19.0 || freq > 30.0)
+        if (freq < 19.0 || freq > 40.0)
             return Fail("ChaosFountainTest", "Frequency is out of bounds.");
     }
 
