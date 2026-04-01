@@ -92,23 +92,38 @@ namespace Sapphire
         {
             using namespace std;
 
+            static const std::array<float, 4> chaosKnobChoices
+            {
+                -0.42,
+                +0.10,
+                +0.50,
+                +0.82
+            };
+
             // Restart all chaotic oscillators deterministically based on the seed.
             assert(seed != 0);
 
             mt19937 gen(seed);
-            normal_distribution<float> dist(-3, +3);
             ChaoticOscillatorState state;
+
+            uint32_t accum = 0;
+            uint32_t bits = 0;
 
             for (auto& osc : oscillators)
             {
+                if (bits < 2)
+                {
+                    accum = gen();
+                    bits = 32;
+                }
                 osc.initialize();
+                osc.setMode(0);     // Glee: Apple
 
-                state.x = dist(gen);
-                state.y = dist(gen);
-                state.z = dist(gen);
+                uint32_t r = accum & 3;
+                accum >>= 2;
+                bits -= 2;
 
-                // FIXFIXFIX : this is not a good way to initialize Aizawa!
-                //osc.setState(state);
+                osc.setKnob(chaosKnobChoices.at(r));
             }
         }
     };
