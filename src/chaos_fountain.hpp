@@ -102,9 +102,12 @@ namespace Sapphire
             for (auto& osc : oscillators)
             {
                 osc.initialize();
+
                 state.x = dist(gen);
                 state.y = dist(gen);
                 state.z = dist(gen);
+
+                // FIXFIXFIX : this is not a good way to initialize Aizawa!
                 //osc.setState(state);
             }
         }
