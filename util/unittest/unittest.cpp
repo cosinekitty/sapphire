@@ -725,6 +725,8 @@ static int ChaosFountainTest()
     constexpr unsigned nsamples = static_cast<unsigned>(sampleRateHz * simTimeSeconds);
 
     Sapphire::ChaosFountain<nsignals> fountain;
+    fountain.seed = 1775060954301140506;    // simulate restoring a seed for determinstic behavior
+
     std::array<float, nsignals> minValue{};
     std::array<float, nsignals> maxValue{};
     std::array<unsigned, nsignals> orbitCount{};
