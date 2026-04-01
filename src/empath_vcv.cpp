@@ -770,12 +770,15 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
+                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.seed));
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
+                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
+                        fountain.seed = json_integer_value(jseed);
                 }
 
                 bool isAudible() const
@@ -850,6 +853,15 @@ namespace Sapphire
                 {
                     muteFader.setTarget(params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f);
                     return muteFader.process(sampleRateHz, 1, 0);
+                }
+
+                void postCloneHook() override
+                {
+                    // After cloning one FilterModule to create another (using json),
+                    // we have also copied over the seed value. We want each FilterModule
+                    // to have its own seed. Invalidate the seed to force the cloned module
+                    // to pick a new seed and regenerate the chaotic oscillators.
+                    fountain.seed = 0;
                 }
 
                 void process(const ProcessArgs& args) override

@@ -347,6 +347,7 @@ namespace Sapphire
                 if (auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module))
                     expanderModule->tryCopySettingsFrom(parentModule);
             }
+            expanderModule->postCloneHook();        // give a chance for cleanup, re-init, etc, after cloning
         }
         APP->engine->addModule(expanderModule);
         ModuleWidget* rawWidget = model->createModuleWidget(expanderModule);

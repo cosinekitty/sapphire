@@ -1375,6 +1375,10 @@ namespace Sapphire
         {
         }
 
+        virtual void postCloneHook()
+        {
+        }
+
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
         {
             const int ncl = inputs.at(leftPortIndex ).channels;
