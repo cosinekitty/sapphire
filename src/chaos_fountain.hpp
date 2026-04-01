@@ -2,6 +2,9 @@
 #include <cassert>
 #include <array>
 #include <cmath>
+#include <random>
+#include <chrono>
+#include <cstdint>
 #include "chaos.hpp"
 
 namespace Sapphire
@@ -14,25 +17,39 @@ namespace Sapphire
 
 
     template <unsigned nsignals>
-    class ChaosFountain
+    struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
-    private:
-        using osc_t = Aizawa;       // same as used by Sapphire Glee
-        static constexpr unsigned nosc = (nsignals + 2) / 3;
+        // We produce any number of one-channel signals by using the equivalent
+        // of several Sapphire Glee modules (Aizawa).
+        // Calculate how many Aizawa triplet-generators we need by rounding up.
+        static constexpr unsigned nTriplets = (nsignals + 2) / 3;
 
-        std::array<osc_t, nosc> osc;
+        std::array<Aizawa, nTriplets> oscillators{};
+        std::uint64_t seed = 0;     // IMPORTANT: this is the value to save/load in your application.
 
-    public:
         using batch_t = ChaosBatch<nsignals>;
 
-        void initialize()
+        void commitSeed()
         {
-            for (auto& o : osc)
-                o.initialize();
+            using namespace std;
+
+            if (seed != 0)
+                return;     // we already picked a seed, and once picked, we don't change it.
+
+            // Generate a high-precision timestamp as a pseudorandom seed.
+            const auto now = chrono::high_resolution_clock::now();
+            seed = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
+            INFO("seed = %lu", seed);
+
+            // The seed is now valid for use to generate a series of
+            // determinsitic and pseudorandon numbers.
+            reset();
         }
 
         batch_t process(float speedKnob, float sampleRateHz)
         {
+            commitSeed();
+
             batch_t batch;
 
             const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;
@@ -42,9 +59,9 @@ namespace Sapphire
 
             unsigned n = 0;     // how many signals have been generated
 
-            for (osc_t& o : osc)
+            for (auto& osc : oscillators)
             {
-                o.update(dt, 1);
+                osc.update(dt, 1);
 
                 // The Aizawa attractor has a different average orbital period
                 // for its z-component than for the x- and y-components.
@@ -53,9 +70,9 @@ namespace Sapphire
                 // Solution: rotate the coordinate space along 3D diagonals,
                 // so that the resulting data are combinations of (x, y, z).
 
-                const double x = o.xpos();
-                const double y = o.ypos();
-                const double z = o.zpos();
+                const double x = osc.xpos();
+                const double y = osc.ypos();
+                const double z = osc.zpos();
 
                 if (n < nsignals)
                     batch.signal[n++] = (x + y + z)*r;
@@ -69,6 +86,27 @@ namespace Sapphire
 
             assert(n == nsignals);
             return batch;
+        }
+
+        void reset()
+        {
+            using namespace std;
+
+            // Restart all chaotic oscillators deterministically based on the seed.
+            assert(seed != 0);
+
+            mt19937 gen(seed);
+            normal_distribution<float> dist(-3, +3);
+            ChaoticOscillatorState state;
+
+            for (auto& osc : oscillators)
+            {
+                osc.initialize();
+                state.x = dist(gen);
+                state.y = dist(gen);
+                state.z = dist(gen);
+                //osc.setState(state);
+            }
         }
     };
 }

@@ -5,6 +5,7 @@
 #include "sapphire_crossfader.hpp"
 #include "sapphire_engine.hpp"
 #include "sapphire_attenuverter_context.hpp"
+#include "chaos_fountain.hpp"
 
 namespace Sapphire
 {

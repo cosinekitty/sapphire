@@ -743,6 +743,8 @@ namespace Sapphire
                     configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
+
+                    FilterModule_initialize();
                 }
 
                 void FilterModule_initialize()
@@ -755,13 +757,14 @@ namespace Sapphire
                     soloFader.snapToFront();
                     totalSoloCount = 0;
                     envelopeFollower.initialize();
-                    fountain.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
                 {
                     EmpathModule::onReset(e);
                     FilterModule_initialize();
+                    if (fountain.seed)
+                        fountain.reset();
                 }
 
                 json_t* dataToJson() override
