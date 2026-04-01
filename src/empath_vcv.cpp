@@ -206,16 +206,6 @@ namespace Sapphire
                     audioRightOutput.setVoltage(0, 0);
                 }
             }
-
-            float nextVoltage(float& voltage, int inputId, int channel, float chaos)
-            {
-                Input& input = inputs.at(inputId);
-                if (!input.isConnected())
-                    voltage = chaos;
-                else if (channel >= 0 && channel < input.getChannels())
-                    voltage = input.getVoltage(channel);
-                return voltage;
-            }
         };
 
 
@@ -908,9 +898,9 @@ namespace Sapphire
                         {
                             auto& q = channel[c];
 
-                            nextVoltage(cvFreq, FREQ_CV_INPUT, c, freqChaos);
-                            nextVoltage(cvRes, RES_CV_INPUT, c, resChaos);
-                            nextVoltage(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
+                            nextVoltageOrChaosSignal(cvFreq, FREQ_CV_INPUT, c, freqChaos);
+                            nextVoltageOrChaosSignal(cvRes, RES_CV_INPUT, c, resChaos);
+                            nextVoltageOrChaosSignal(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
 
                             float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
                             float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);

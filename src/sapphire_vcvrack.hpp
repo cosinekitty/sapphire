@@ -1470,6 +1470,16 @@ namespace Sapphire
             return voltage;
         }
 
+        float nextVoltageOrChaosSignal(float& voltage, int inputId, int channel, float chaos)
+        {
+            Input& input = inputs.at(inputId);
+            if (!input.isConnected())
+                voltage = chaos;
+            else if (channel >= 0 && channel < input.getChannels())
+                voltage = input.getVoltage(channel);
+            return voltage;
+        }
+
         void configStereoInputs(int leftPortId, int rightPortId, const std::string& suffix)
         {
             configInput(leftPortId, "Left " + suffix);
