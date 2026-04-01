@@ -13,8 +13,6 @@ namespace Sapphire
 {
     namespace Chaos
     {
-        const int ChaosOctaveRange = 7;     // the number of octaves above *OR* below zero.
-
         enum ParamId
         {
             // Large knobs for manual parameter adjustment

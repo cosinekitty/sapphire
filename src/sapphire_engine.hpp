@@ -11,6 +11,8 @@
 
 namespace Sapphire
 {
+    constexpr int ChaosOctaveRange = 7;     // the number of octaves above *OR* below zero for chaos SPEED knobs.
+
     constexpr double C4_FREQUENCY_HZ = 261.6255653005986;    // note C4 = (440 / (2**0.75)) Hz, because C4 is 3/4 octave below A4.
 
     template <typename value_t>

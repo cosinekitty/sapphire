@@ -439,6 +439,8 @@ namespace Sapphire
                 OUTPUT_CHANNEL_MODE_BUTTON_PARAM,
                 CASCADE_PARAM,
                 CASCADE_ATTEN,
+                CHAOS_SPEED_PARAM,
+                CHAOS_SPEED_ATTEN,
                 PARAMS_LEN
             };
 
@@ -447,6 +449,7 @@ namespace Sapphire
                 AUDIO_LEFT_INPUT,
                 AUDIO_RIGHT_INPUT,
                 CASCADE_CV_INPUT,
+                CHAOS_SPEED_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -485,6 +488,7 @@ namespace Sapphire
                     configButton(INSERT_BUTTON_PARAM, "Add filter");
                     configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);     // dynamic tooltip / hovertext
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
+                    configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
@@ -528,6 +532,7 @@ namespace Sapphire
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.cascade = readCascade(outMessage.dryAudio.nchannels);
+                    outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     sendMessage(outMessage);
                 }
             };
@@ -545,7 +550,8 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addOutputChannelModeButton();
-                    addSapphireControlGroup("casc", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
+                    addSapphireControlGroup("cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
+                    addSapphireControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override
