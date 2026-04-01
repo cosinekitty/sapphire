@@ -39,7 +39,7 @@ namespace Sapphire
             // Generate a high-precision timestamp as a pseudorandom seed.
             const auto now = chrono::high_resolution_clock::now();
             seed = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
-            INFO("seed = %lu", seed);
+            assert(seed != 0);
 
             // The seed is now valid for use to generate a series of
             // determinsitic and pseudorandon numbers.
