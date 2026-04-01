@@ -768,7 +768,7 @@ namespace Sapphire
                 {
                     EmpathModule::dataFromJson(root);
                     if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
-                        fountain.seed = json_integer_value(jseed);
+                        fountain.reset(json_integer_value(jseed));
                 }
 
                 bool isAudible() const

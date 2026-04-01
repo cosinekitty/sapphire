@@ -126,5 +126,11 @@ namespace Sapphire
                 osc.setKnob(chaosKnobChoices.at(r));
             }
         }
+
+        void reset(uint64_t newSeed)
+        {
+            seed = newSeed;
+            reset();
+        }
     };
 }
