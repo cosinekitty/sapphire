@@ -2498,18 +2498,35 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     dxChaosText = 7.5
     xChaosBoxTextLeft  = xmid - dxChaosText
     xChaosBoxTextRight = xmid + dxChaosText
+    arcRadius = 4.0
 
     def LineArtPath(path:str, id:str) -> Path:
         lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
         return Path(path, lineStyle, id, 'none')
 
+    def UpperLeftArc() -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxLeft, yChaosBoxTop + arcRadius)
+
+    def UpperRightArc() -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxRight - arcRadius, yChaosBoxTop)
+
+    def LowerLeftArc() -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxLeft + arcRadius, yChaosBoxBottom)
+
+    def LowerRightArc() -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxRight, yChaosBoxBottom - arcRadius)
+
     def BoxArt() -> Path:
         path = ''
         path += Move(xChaosBoxTextLeft, yChaosBoxTop)
-        path += Line(xChaosBoxLeft, yChaosBoxTop)
-        path += Line(xChaosBoxLeft, yChaosBoxBottom)
-        path += Line(xChaosBoxRight, yChaosBoxBottom)
-        path += Line(xChaosBoxRight, yChaosBoxTop)
+        path += Line(xChaosBoxLeft + arcRadius, yChaosBoxTop)
+        path += UpperLeftArc()
+        path += Line(xChaosBoxLeft, yChaosBoxBottom - arcRadius)
+        path += LowerLeftArc()
+        path += Line(xChaosBoxRight - arcRadius, yChaosBoxBottom)
+        path += LowerRightArc()
+        path += Line(xChaosBoxRight, yChaosBoxTop + arcRadius)
+        path += UpperRightArc()
         path += Line(xChaosBoxTextRight, yChaosBoxTop)
         return LineArtPath(path, 'chaos_box_art')
 
@@ -2522,7 +2539,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
 
-        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, CHAOS_BOX_LABEL_STYLE))
+        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
         pl.append(BoxArt())
 
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')

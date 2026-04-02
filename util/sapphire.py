@@ -15,7 +15,7 @@ SAPPHIRE_EGGPLANT_COLOR = '#ba60d1'
 SAPPHIRE_SALMON_COLOR = '#b9818b'
 SAPPHIRE_TEAL_COLOR = '#29aab4'
 SAPPHIRE_GEMSTONE_COLOR = '#2e2114'
-SAPPHIRE_CHAOS_BOX_COLOR = "#7A0A0A"
+SAPPHIRE_CHAOS_BOX_COLOR = "#670A83"
 
 
 MODEL_NAME_POINTS   = 22.0
@@ -27,7 +27,7 @@ BRAND_NAME_STYLE    = 'fill:#000000;stroke:#000000;stroke-width:0.265;stroke-lin
 CONTROL_LABEL_POINTS = 10.0
 CONTROL_LABEL_STYLE  = 'stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
 HILIGHT_LABEL_STYLE  = 'stroke:#6f02b8;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
-CHAOS_BOX_LABEL_STYLE  = 'stroke:{};stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'.format(SAPPHIRE_CHAOS_BOX_COLOR)
+CHAOS_BOX_LABEL_STYLE  = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel'
 
 
 GEMSTONE_STYLE = 'stroke-width:0;fill:#0000ff;stroke:#2e2114;stroke-linecap:square;stroke-opacity:1'
