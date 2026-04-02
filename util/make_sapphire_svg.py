@@ -2490,6 +2490,29 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     yChaosSpeed = EMPATH_BIG_KNOBS_Y2
     dyChaos = 14.0
     yChaosLevel = yChaosSpeed + dyChaos
+    yChaosBoxTop = yChaosSpeed - 12.0
+    yChaosBoxBottom = yChaosLevel + 8.0
+    dxChaosBox = 16.5
+    xChaosBoxLeft  = xmid - dxChaosBox
+    xChaosBoxRight = xmid + dxChaosBox
+    dxChaosText = 7.5
+    xChaosBoxTextLeft  = xmid - dxChaosText
+    xChaosBoxTextRight = xmid + dxChaosText
+
+    def LineArtPath(path:str, id:str) -> Path:
+        lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
+        return Path(path, lineStyle, id, 'none')
+
+    def BoxArt() -> Path:
+        path = ''
+        path += Move(xChaosBoxTextLeft, yChaosBoxTop)
+        path += Line(xChaosBoxLeft, yChaosBoxTop)
+        path += Line(xChaosBoxLeft, yChaosBoxBottom)
+        path += Line(xChaosBoxRight, yChaosBoxBottom)
+        path += Line(xChaosBoxRight, yChaosBoxTop)
+        path += Line(xChaosBoxTextRight, yChaosBoxTop)
+        return LineArtPath(path, 'chaos_box_art')
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2498,6 +2521,9 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
+
+        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, CHAOS_BOX_LABEL_STYLE))
+        pl.append(BoxArt())
 
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
         pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
