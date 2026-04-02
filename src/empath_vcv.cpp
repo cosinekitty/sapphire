@@ -552,7 +552,7 @@ namespace Sapphire
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addOutputChannelModeButton();
                     addSapphireControlGroup("cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
-                    addSapphireControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
+                    addSapphireFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override

@@ -2496,7 +2496,9 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
+
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
+        pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
 
