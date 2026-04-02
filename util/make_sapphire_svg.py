@@ -2488,6 +2488,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xInputPorts = xmid
     xInputLabels = xInputPorts - 6.5
     yChaosSpeed = EMPATH_BIG_KNOBS_Y2
+    dyChaos = 14.0
+    yChaosLevel = yChaosSpeed + dyChaos
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2499,6 +2501,9 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
         pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        AddFlatControlGroup(pl, controls, xmid, yChaosLevel, 'clevel')
+        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
     return Save(panel, svgFileName)
 
 

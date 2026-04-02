@@ -32,7 +32,7 @@ namespace Sapphire
             int soloCount = 0;      // how many taps have solo enabled
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
             float chaosSpeedKnob{};
-            float chaosLevelKnob = 1;
+            float chaosLevelKnob{};
         };
 
         struct BackwardMessage
@@ -442,6 +442,8 @@ namespace Sapphire
                 CASCADE_ATTEN,
                 CHAOS_SPEED_PARAM,
                 CHAOS_SPEED_ATTEN,
+                CHAOS_LEVEL_PARAM,
+                CHAOS_LEVEL_ATTEN,
                 PARAMS_LEN
             };
 
@@ -451,6 +453,7 @@ namespace Sapphire
                 AUDIO_RIGHT_INPUT,
                 CASCADE_CV_INPUT,
                 CHAOS_SPEED_CV_INPUT,
+                CHAOS_LEVEL_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -490,6 +493,7 @@ namespace Sapphire
                     configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);     // dynamic tooltip / hovertext
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
+                    configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                 }
 
@@ -534,6 +538,7 @@ namespace Sapphire
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.cascade = readCascade(outMessage.dryAudio.nchannels);
                     outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
+                    outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     sendMessage(outMessage);
                 }
             };
@@ -553,6 +558,7 @@ namespace Sapphire
                     addOutputChannelModeButton();
                     addSapphireControlGroup("cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                     addSapphireFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
+                    addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
                 }
 
                 bool isConnectedOnLeft() const override

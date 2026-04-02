@@ -59,7 +59,7 @@ namespace Sapphire
         batch_t process(
             float sampleRateHz,
             float speedKnob,        // relative time-flow rate in octaves
-            float levelKnob)        // 0..1 to control how intense the chaos is across all attenuverters
+            float levelKnob)        // how intense the chaos is across all attenuverters
         {
             commitSeed();
 
@@ -98,6 +98,10 @@ namespace Sapphire
             }
 
             assert(n == nsignals);
+
+            for (float& x : batch.signal)
+                x *= levelKnob;
+
             return batch;
         }
 
