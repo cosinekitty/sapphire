@@ -23,15 +23,21 @@ namespace Sapphire
     template <unsigned nsignals>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
+    private:
+        std::uint64_t seed = 0;
+
+    public:
         // We produce any number of one-channel signals by using the equivalent
         // of several Sapphire Glee modules (Aizawa).
         // Calculate how many Aizawa triplet-generators we need by rounding up.
         static constexpr unsigned nTriplets = (nsignals + 2) / 3;
 
         std::array<Aizawa, nTriplets> oscillators{};
-        std::uint64_t seed = 0;     // IMPORTANT: this is the value to save/load in your application.
 
         using batch_t = ChaosBatch<nsignals>;
+
+        std::uint64_t getSeed() const { return seed; }
+        void forgetSeed() { seed = 0; }
 
         void commitSeed()
         {
@@ -50,7 +56,10 @@ namespace Sapphire
             reset();
         }
 
-        batch_t process(float speedKnob, float sampleRateHz)
+        batch_t process(
+            float sampleRateHz,
+            float speedKnob,        // relative time-flow rate in octaves
+            float levelKnob)        // 0..1 to control how intense the chaos is across all attenuverters
         {
             commitSeed();
 

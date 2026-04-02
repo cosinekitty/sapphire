@@ -32,6 +32,7 @@ namespace Sapphire
             int soloCount = 0;      // how many taps have solo enabled
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
             float chaosSpeedKnob{};
+            float chaosLevelKnob = 1;
         };
 
         struct BackwardMessage
@@ -759,14 +760,14 @@ namespace Sapphire
                 {
                     EmpathModule::onReset(e);
                     FilterModule_initialize();
-                    if (fountain.seed)
+                    if (fountain.getSeed())
                         fountain.reset();
                 }
 
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.seed));
+                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
                     return root;
                 }
 
@@ -857,7 +858,7 @@ namespace Sapphire
                     // we have also copied over the seed value. We want each FilterModule
                     // to have its own seed. Invalidate the seed to force the cloned module
                     // to pick a new seed and regenerate the chaotic oscillators.
-                    fountain.seed = 0;
+                    fountain.forgetSeed();
                 }
 
                 void process(const ProcessArgs& args) override
@@ -878,7 +879,12 @@ namespace Sapphire
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
                     const float muteFactor = updateMuteState(args.sampleRate);
 
-                    const batch_t batch = fountain.process(inMessage.chaosSpeedKnob, args.sampleRate);
+                    const batch_t batch = fountain.process(
+                        args.sampleRate,
+                        inMessage.chaosSpeedKnob,
+                        inMessage.chaosLevelKnob
+                    );
+
                     const float freqChaos  = batch.signal.at(0);
                     const float resChaos   = batch.signal.at(1);
                     const float levelChaos = batch.signal.at(2);

@@ -2487,6 +2487,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     xInputPorts = xmid
     xInputLabels = xInputPorts - 6.5
+    yChaosSpeed = EMPATH_BIG_KNOBS_Y2
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
@@ -2495,7 +2496,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
-        AddControlGroup(pl, controls, font, 'cspeed', 'CHAOS  SPEED', xmid, EMPATH_BIG_KNOBS_Y2)
+        AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
     return Save(panel, svgFileName)
 
 

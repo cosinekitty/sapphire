@@ -784,10 +784,10 @@ static int ChaosFountainTest()
     std::array<unsigned, nsignals> orbitCount{};
     Sapphire::ChaosBatch<nsignals> prevBatch;
 
-    printf("ChaosFountainTest: Simulating the Aizawa attractor.\n");
+    printf("ChaosFountainTest: Running the fountain for %u iterations...\n", nsamples);
     for (unsigned s = 0; s < nsamples; ++s)
     {
-        Sapphire::ChaosBatch<nsignals> batch = fountain.process(speedKnob, sampleRateHz);
+        Sapphire::ChaosBatch<nsignals> batch = fountain.process(sampleRateHz, speedKnob, 1);
         if (s == 0)
         {
             for (unsigned i = 0; i < nsignals; ++i)
