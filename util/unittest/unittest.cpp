@@ -33,6 +33,7 @@ struct UnitTest
 {
     const char *name;
     UnitTestFunction func;
+    bool skip;
 };
 
 static int AutoGainControl();
@@ -51,9 +52,12 @@ static int QuadraticTest();
 static int ReadWave();
 static int TaperTest();
 
+static int FountainInitBootstrap();
+
 static const UnitTest CommandTable[] =
 {
     { "agc",        AutoGainControl     },
+    { "boot",       FountainInitBootstrap, true },
     { "calc",       CalculatorTest      },
     { "chaos",      ChaosTest           },
     { "delay",      DelayLineTest       },
@@ -79,7 +83,7 @@ int main(int argc, const char *argv[])
         if (!strcmp(argv[1], "all"))
         {
             for (int i = 0; CommandTable[i].name; ++i)
-                if (CommandTable[i].func())
+                if (!CommandTable[i].skip && CommandTable[i].func())
                     return 1;
             printf("unittest: All tests passed.\n");
             return 0;
@@ -716,6 +720,54 @@ static int ChaosTest()
 }
 
 
+static int FountainInitBootstrap()
+{
+    using namespace Sapphire;
+
+    static constexpr unsigned nbits = 8;
+    static constexpr unsigned npoints = 1 << nbits;
+
+    // Simulate running at turbo mode with speed = +7.
+    // Thus the effective speed is +12 octaves.
+    const double speedFactor = (1 << 12);
+    const double sampleRateHz = 48000;
+    const double dt = speedFactor / sampleRateHz;
+
+    Aizawa glee;
+    glee.setMode(0);
+    glee.setKnob(+0.10);
+
+    constexpr unsigned startcount = 10000;
+    unsigned countdown = startcount;
+    std::vector<ChaoticOscillatorState> list;
+    while (list.size() < npoints)
+    {
+        if (countdown == 0)
+        {
+            list.push_back(glee.getState());
+            countdown = startcount;
+        }
+        else
+            --countdown;
+
+        glee.update(dt, 1);
+    }
+
+    printf("FountainInitBootstrap: found %u points\n", static_cast<unsigned>(list.size()));
+    if (FILE *outfile = fopen("t.cpp", "wt"))
+    {
+        for (const ChaoticOscillatorState& state : list)
+            fprintf(outfile, "{ %20.16f, %20.16f, %20.16f },\n", state.x, state.y, state.z);
+
+        fclose(outfile);
+    }
+    else
+        return Fail("FountainInitBootstrap", "Cannot open output file");
+
+    return Pass("FountainInitBootstrap");
+}
+
+
 static int ChaosFountainTest()
 {
     constexpr float speedKnob = 7;
@@ -725,7 +777,7 @@ static int ChaosFountainTest()
     constexpr unsigned nsamples = static_cast<unsigned>(sampleRateHz * simTimeSeconds);
 
     Sapphire::ChaosFountain<nsignals> fountain;
-    fountain.seed = 1775060954301140506;    // simulate restoring a seed for determinstic behavior
+    fountain.reset(1775060954301140506);    // simulate restoring a seed for determinstic behavior
 
     std::array<float, nsignals> minValue{};
     std::array<float, nsignals> maxValue{};

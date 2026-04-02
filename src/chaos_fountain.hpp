@@ -9,6 +9,10 @@
 
 namespace Sapphire
 {
+    extern const std::array<ChaoticOscillatorState, 256> InitialStateTable;
+    extern const std::array<float, 4> ChaosKnobChoices;
+
+
     template <unsigned nsignals>
     struct ChaosBatch
     {
@@ -92,22 +96,15 @@ namespace Sapphire
         {
             using namespace std;
 
-            static const std::array<float, 4> chaosKnobChoices
-            {
-                -0.42,
-                +0.10,
-                +0.50,
-                +0.82
-            };
-
             // Restart all chaotic oscillators deterministically based on the seed.
             assert(seed != 0);
 
             mt19937 gen(seed);
-            ChaoticOscillatorState state;
 
             uint32_t accum = 0;
             uint32_t bits = 0;
+
+            bool alreadyPicked[256]{};
 
             for (auto& osc : oscillators)
             {
@@ -123,7 +120,25 @@ namespace Sapphire
                 accum >>= 2;
                 bits -= 2;
 
-                osc.setKnob(chaosKnobChoices.at(r));
+                osc.setKnob(ChaosKnobChoices.at(r));
+
+                for (int loop = 0; true; ++loop)        // safety limit: prevent infinite loop
+                {
+                    if (bits < 8)
+                    {
+                        accum = gen();
+                        bits = 32;
+                    }
+                    uint32_t q = accum & 0xff;
+                    accum >>= 8;
+                    bits -= 8;
+                    if (!alreadyPicked[q] || loop==3)
+                    {
+                        alreadyPicked[q] = true;
+                        osc.setState(InitialStateTable.at(q));
+                        break;
+                    }
+                }
             }
         }
 

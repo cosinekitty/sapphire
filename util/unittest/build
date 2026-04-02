@@ -11,6 +11,7 @@ g++ -std=c++17 -Wall -Werror -o unittest ${OPTS} -D NO_RACK_DEPENDENCY -I../../s
     ../file_updater.cpp    \
     ../../src/sapphire_calcparser.cpp    \
     ../../src/sapphire_prog_chaos.cpp    \
+    ../../src/chaos_fountain.cpp    \
     airwindows/Galactic.cpp   \
     airwindows/GalacticProc.cpp   \
     || exit 1
