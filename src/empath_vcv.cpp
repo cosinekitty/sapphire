@@ -1190,6 +1190,10 @@ namespace Sapphire
 
         namespace EOutput
         {
+            constexpr unsigned nChaoticSignals = 2;
+            using fountain_t = ChaosFountain<nChaoticSignals>;
+            using batch_t = ChaosBatch<nChaoticSignals>;
+
             enum ParamId
             {
                 GLOBAL_MIX_PARAM,
@@ -1221,6 +1225,7 @@ namespace Sapphire
             struct OutputModule : EmpathModule
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
+                fountain_t fountain;
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -1231,7 +1236,7 @@ namespace Sapphire
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                 }
 
-                void initialize()
+                void OutputModule_initialize()
                 {
                     firstSoloFader.snapToFront();
                 }
@@ -1239,8 +1244,25 @@ namespace Sapphire
                 void onReset(const ResetEvent& e) override
                 {
                     EmpathModule::onReset(e);
-                    initialize();
+                    OutputModule_initialize();
+                    if (fountain.getSeed())
+                        fountain.reset();
                 }
+
+                json_t* dataToJson() override
+                {
+                    json_t* root = EmpathModule::dataToJson();
+                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
+                    return root;
+                }
+
+                void dataFromJson(json_t* root) override
+                {
+                    EmpathModule::dataFromJson(root);
+                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
+                        fountain.reset(json_integer_value(jseed));
+                }
+
 
                 void process(const ProcessArgs& args) override
                 {
@@ -1256,7 +1278,19 @@ namespace Sapphire
                     firstSoloFader.setTarget(message.soloCount > 0);
                     float solo = firstSoloFader.process(args.sampleRate, 0, 1);
 
-                    Frame audio = outputAudioFrame(message.dryAudio, message.wetAudio, message.soloAudio, solo);
+                    const batch_t batch = fountain.process(
+                        args.sampleRate,
+                        message.chaosSpeedKnob,
+                        message.chaosLevelKnob
+                    );
+
+                    Frame audio = outputAudioFrame(
+                        message.dryAudio,
+                        message.wetAudio,
+                        message.soloAudio,
+                        solo,
+                        batch
+                    );
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
 
                     sendBackwardMessage(backMessage);
@@ -1266,8 +1300,12 @@ namespace Sapphire
                     const Frame& dryAudio,
                     const Frame& wetAudio,
                     const Frame& soloAudio,
-                    float soloFactor)
+                    float soloFactor,
+                    const batch_t& chaosBatch)
                 {
+                    const float mixChaos   = chaosBatch.signal.at(0);
+                    const float levelChaos = chaosBatch.signal.at(1);
+
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
                     float cvLevel = 0;
@@ -1276,8 +1314,8 @@ namespace Sapphire
                     result.nchannels = nc;
                     for (int c = 0; c < nc; ++c)
                     {
-                        nextChannelInputVoltage(cvMix, GLOBAL_MIX_CV_INPUT, c);
-                        nextChannelInputVoltage(cvLevel, GLOBAL_LEVEL_CV_INPUT, c);
+                        nextVoltageOrChaosSignal(cvMix, GLOBAL_MIX_CV_INPUT, c, mixChaos);
+                        nextVoltageOrChaosSignal(cvLevel, GLOBAL_LEVEL_CV_INPUT, c, levelChaos);
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
                         float mix = filter_t::filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
                         float wet = LinearMix(soloFactor, wetAudio.sample[c], soloAudio.sample[c]);
