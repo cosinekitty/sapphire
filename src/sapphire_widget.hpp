@@ -136,36 +136,18 @@ namespace Sapphire
                 context->lowSensitivityMode = lowSensitivityMode;
         }
 
-        bool unipolarClampEnabled() const
+        bool isUnipolarMode() const
         {
             return context && context->unipolar;
         }
 
-        void setUnipolarClampEnabled(bool unipolar)
+        void setUnipolarMode(bool unipolar)
         {
             if (context)
                 context->unipolar = unipolar;
         }
 
-        void drawLayer(const DrawArgs& args, int layer) override
-        {
-            Trimpot::drawLayer(args, layer);
-
-            if (layer == 1)
-            {
-                if (isLowSensitive())
-                {
-                    // Draw a small dot on top of the knob to indicate that it is in low-sensitivity mode.
-                    nvgBeginPath(args.vg);
-                    nvgStrokeColor(args.vg, SCHEME_RED);
-                    nvgFillColor(args.vg, SCHEME_ORANGE);
-                    const float dotRadius = 3.5f;
-                    nvgCircle(args.vg, box.size.x / 2, box.size.y / 2, dotRadius);
-                    nvgStroke(args.vg);
-                    nvgFill(args.vg);
-                }
-            }
-        }
+        void drawLayer(const DrawArgs& args, int layer) override;
     };
 
 

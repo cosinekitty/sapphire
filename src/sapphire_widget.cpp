@@ -924,4 +924,34 @@ namespace Sapphire
             ));
         }
     }
+
+    void SapphireAttenuverterKnob::drawLayer(const DrawArgs& args, int layer)
+    {
+        Trimpot::drawLayer(args, layer);
+
+        if (layer == 1)
+        {
+            if (isLowSensitive())
+            {
+                // Draw a small dot on top of the knob to indicate that it is in low-sensitivity mode.
+                nvgBeginPath(args.vg);
+                nvgStrokeColor(args.vg, SCHEME_RED);
+                nvgFillColor(args.vg, SCHEME_ORANGE);
+                nvgCircle(args.vg, box.size.x/2, box.size.y/2, 3.5);
+                nvgStroke(args.vg);
+                nvgFill(args.vg);
+            }
+
+            if (isUnipolarMode())
+            {
+                // Draw something that looks like a little letter 'u' beneath the knob.
+                nvgBeginPath(args.vg);
+                nvgArc(args.vg, box.size.x/2, box.size.y/2 + 10.0, 2.0, NVG_PI, 0, NVG_CCW);
+                nvgStrokeWidth(args.vg, 1.0f);
+                nvgStrokeColor(args.vg, SCHEME_YELLOW);
+                nvgLineCap(args.vg, NVG_ROUND);
+                nvgStroke(args.vg);
+            }
+        }
+    }
 }
