@@ -434,6 +434,10 @@ namespace Sapphire
 
         namespace EInput
         {
+            constexpr unsigned nChaoticSignals = 1;
+            using fountain_t = ChaosFountain<nChaoticSignals>;
+            using batch_t = ChaosBatch<nChaoticSignals>;
+
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
@@ -483,6 +487,7 @@ namespace Sapphire
             {
                 bool autoCreateExpanders = true;
                 PortLabelMode inputLabels = PortLabelMode::Stereo;
+                fountain_t fountain;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -495,12 +500,26 @@ namespace Sapphire
                     configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
+                    InputModule_initialize();
+                }
+
+                void InputModule_initialize()
+                {
+                }
+
+                void onReset(const ResetEvent& e) override
+                {
+                    EmpathModule::onReset(e);
+                    InputModule_initialize();
+                    if (fountain.getSeed())
+                        fountain.reset();
                 }
 
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
                     jsonSetBool(root, "autoCreateExpanders", autoCreateExpanders);
+                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
                     return root;
                 }
 
@@ -508,6 +527,8 @@ namespace Sapphire
                 {
                     EmpathModule::dataFromJson(root);
                     jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
+                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
+                        fountain.reset(json_integer_value(jseed));
                 }
 
                 bool polyphonicMode()
@@ -515,14 +536,14 @@ namespace Sapphire
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
-                Frame readCascade(int nchannels)
+                Frame readCascade(int nchannels, float chaos)
                 {
                     Frame frame;
                     float cv = 0;
                     frame.nchannels = nchannels;
                     for (int c = 0; c < nchannels; ++c)
                     {
-                        nextChannelInputVoltage(cv, CASCADE_CV_INPUT, c);
+                        nextVoltageOrChaosSignal(cv, CASCADE_CV_INPUT, c, chaos);
                         frame.sample[c] = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cv, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
                     }
                     return frame;
@@ -536,9 +557,18 @@ namespace Sapphire
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
-                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels);
                     outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
+
+                    const batch_t batch = fountain.process(
+                        args.sampleRate,
+                        outMessage.chaosSpeedKnob,
+                        outMessage.chaosLevelKnob
+                    );
+
+                    const float cascadeChaos = batch.signal.at(0);
+                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels, cascadeChaos);
+
                     sendMessage(outMessage);
                 }
             };
