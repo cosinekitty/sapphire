@@ -1979,6 +1979,7 @@ namespace Sapphire
 
                 void EchoModule_initialize()
                 {
+                    params.at(REVERSE_BUTTON_PARAM).setValue(0);
                     routingSmoother.initialize();
                     interpolatorKind = InterpolatorKind::Linear;
                     freezeToggleGroup.initialize();
