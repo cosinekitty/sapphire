@@ -1711,12 +1711,11 @@ namespace Sapphire
                 return addSapphireOutput<EnvelopeOutputPort>(outputId, "env_output");
             }
 
-            InitTapButton* addInitTapButton(int buttonParamId)
+            void addInitTapButton(int buttonParamId)
             {
                 auto button = createParamCentered<InitTapButton>(Vec{}, module, buttonParamId);
                 button->loopWidget = this;
                 addSapphireParam(button, "init_tap_button");
-                return button;
             }
 
             void addMuteSoloButtons(int muteButtonId, int soloButtonId)
@@ -2709,26 +2708,6 @@ namespace Sapphire
         {
             if (loopWidget)
                 loopWidget->resetTapAction();
-        }
-
-        void InitChainAction::undo()
-        {
-            for (const InitChainNode& node : list)
-            {
-                Module* module = APP->engine->getModule(node.moduleId);
-                if (module)
-                    APP->engine->moduleFromJson(module, node.json);
-            }
-        }
-
-        void InitChainAction::redo()
-        {
-            for (const InitChainNode& node : list)
-            {
-                Module* module = APP->engine->getModule(node.moduleId);
-                if (module)
-                    APP->engine->resetModule(module);
-            }
         }
 
         void ToggleAllPolyphonicEnvelopeAction::undo()

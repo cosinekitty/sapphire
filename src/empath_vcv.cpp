@@ -448,6 +448,7 @@ namespace Sapphire
                 CHAOS_SPEED_ATTEN,
                 CHAOS_LEVEL_PARAM,
                 CHAOS_LEVEL_ATTEN,
+                INIT_CHAIN_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -483,6 +484,18 @@ namespace Sapphire
                 }
             };
 
+            struct InitChainButton : SapphireTinyActionButton
+            {
+                InputWidget* inputWidget{};
+
+                explicit InitChainButton()
+                {
+                    addTinyButtonFrames(this, "green");
+                }
+
+                void action() override;
+            };
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -500,6 +513,7 @@ namespace Sapphire
                     configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
+                    configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     InputModule_initialize();
                 }
 
@@ -589,6 +603,7 @@ namespace Sapphire
                     addSapphireControlGroup("cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT);
                     addSapphireFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
                     addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
+                    addInitChainButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -606,6 +621,13 @@ namespace Sapphire
                     auto button = createParamCentered<OutputChannelModeButton>(Vec{}, inputModule, OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
                     button->inputWidget = this;
                     addSapphireParam(button, "channel_mode_button");
+                }
+
+                void addInitChainButton()
+                {
+                    auto button = createParamCentered<InitChainButton>(Vec{}, inputModule, INIT_CHAIN_BUTTON_PARAM);
+                    button->inputWidget = this;
+                    addSapphireParam(button, "init_chain_button");
                 }
 
                 void draw(const DrawArgs& args) override
@@ -639,13 +661,47 @@ namespace Sapphire
                         inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
                     }
                 }
+
+                void initializeExpanderChain()
+                {
+                    if (inputModule)
+                    {
+                        // We need to create a history item for the undo/redo stack.
+                        // This item has to remember the json-serialized form of each module
+                        // before we reset it. We do not need to remember the reset state, because
+                        // we can always reset again!
+
+                        std::vector<InitChainNode> list;
+                        list.push_back(InitChainNode(inputModule));
+                        APP->engine->resetModule(inputModule);
+
+                        Module* module = inputModule->rightExpander.module;
+                        while (IsFilterReceiver(module))
+                        {
+                            list.push_back(InitChainNode(module));
+                            APP->engine->resetModule(module);
+                            module = module->rightExpander.module;
+                        }
+
+                        APP->history->push(new InitChainAction(list));
+                    }
+                }
             };
+
+
+            void InitChainButton::action()
+            {
+                if (inputWidget)
+                    inputWidget->initializeExpanderChain();
+            }
         };
 
         //----------------------------------------------------------------------------
 
         namespace Filter
         {
+            struct FilterWidget;
+
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
@@ -662,6 +718,7 @@ namespace Sapphire
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
+                INIT_FILTER_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -734,6 +791,19 @@ namespace Sapphire
             };
 
 
+            struct InitFilterButton : SapphireTinyActionButton
+            {
+                FilterWidget* filterWidget{};
+
+                explicit InitFilterButton()
+                {
+                    addTinyButtonFrames(this, "green");
+                }
+
+                void action() override;
+            };
+
+
             constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
@@ -776,7 +846,7 @@ namespace Sapphire
                     configButton(SOLO_BUTTON_PARAM);            // tooltip changed dynamically
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
-
+                    configButton(INIT_FILTER_BUTTON_PARAM, "Initialize this filter only");
                     FilterModule_initialize();
                 }
 
@@ -1037,6 +1107,7 @@ namespace Sapphire
                     addEnvelopeFollowerLabels();
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
+                    addInitFilterButton();
                     addModeToggleGroup();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
@@ -1084,6 +1155,13 @@ namespace Sapphire
                     auto button = createParamCentered<RemoveButton>(Vec{}, filterModule, paramId);
                     button->empathWidget = this;
                     addSapphireParam(button, "remove_button");
+                }
+
+                void addInitFilterButton()
+                {
+                    auto button = createParamCentered<InitFilterButton>(Vec{}, filterModule, INIT_FILTER_BUTTON_PARAM);
+                    button->filterWidget = this;
+                    addSapphireParam(button, "init_filter_button");
                 }
 
                 bool isConnectedOnLeft() const override
@@ -1184,6 +1262,13 @@ namespace Sapphire
                     }
                 }
             };
+
+
+            void InitFilterButton::action()
+            {
+                if (filterWidget)
+                    filterWidget->resetAction();
+            }
         }
 
         //----------------------------------------------------------------------------

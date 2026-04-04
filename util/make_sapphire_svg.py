@@ -2472,6 +2472,7 @@ EMPATH_AUDIO_PORTS_Y1 = 93.0
 EMPATH_DX_SEND_RETURN = 7.0
 EMPATH_BIG_KNOBS_Y1 = 26.325
 EMPATH_BIG_KNOBS_Y2 = 60.250
+EMPATH_INIT_BUTTON_Y = 112.0
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2547,6 +2548,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
 
         AddFlatControlGroup(pl, controls, xmid, yChaosLevel, 'clevel')
         pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
+        controls.append(Component('init_chain_button', xmid, EMPATH_INIT_BUTTON_Y))
     return Save(panel, svgFileName)
 
 
@@ -2666,6 +2669,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, EMPATH_AUDIO_PORTS_Y1)
 
         AddEnvDetectorGroup(controls, xmid)
+
         controls.append(Component('label_env_duck', xmid, MULTIMAP_ENV_PORTS_Y1))
         if (
             SaveRectangleCaption(SvgFileName('empath_filter_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
@@ -2673,6 +2677,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
             SaveRectangleCaption(SvgFileName('empath_filter_dck',     Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('empath_filter_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
+
+        controls.append(Component('init_filter_button', xmid, yBottomButtons))
 
     return Save(panel, svgFileName)
 

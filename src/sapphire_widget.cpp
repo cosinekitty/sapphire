@@ -954,4 +954,18 @@ namespace Sapphire
             }
         }
     }
+
+    void InitChainAction::undo()
+    {
+        for (const InitChainNode& node : list)
+            if (Module* module = APP->engine->getModule(node.moduleId))
+                APP->engine->moduleFromJson(module, node.json);
+    }
+
+    void InitChainAction::redo()
+    {
+        for (const InitChainNode& node : list)
+            if (Module* module = APP->engine->getModule(node.moduleId))
+                APP->engine->resetModule(module);
+    }
 }
