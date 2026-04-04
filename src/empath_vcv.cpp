@@ -1217,6 +1217,9 @@ namespace Sapphire
                     {
                         if (!filterModule->neonMode)
                             drawChainIndex(args.vg, filterModule->chainIndex, nvgRGB(0x66, 0x06, 0x5c));
+
+                        if (!filterModule->isAudible())
+                            drawMuteIndicator(args.vg);
                     }
                 }
 
@@ -1228,6 +1231,15 @@ namespace Sapphire
                         if (filterModule->neonMode)
                             drawChainIndex(args.vg, filterModule->chainIndex, getNeonColor());
                     }
+                }
+
+                void drawMuteIndicator(NVGcontext* vg)
+                {
+                    NVGcolor color = nvgRGBA(0x20, 0x20, 0x20, 0x40);
+                    nvgBeginPath(vg);
+                    nvgRect(vg, 0, 0, box.size.x, box.size.y);
+                    nvgFillColor(vg, color);
+                    nvgFill(vg);
                 }
 
                 Vec getChainIndexCenterPos() const
