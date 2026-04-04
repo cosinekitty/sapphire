@@ -121,6 +121,7 @@ namespace Sapphire
 
     struct SapphireAttenuverterKnob : Trimpot
     {
+        Vec unipolarIndicatorDelta{};
         SapphireAttenuverterContext* context{};
 
         void appendContextMenu(Menu* menu) override;
@@ -807,12 +808,16 @@ namespace Sapphire
         }
 
         template <typename knob_t = SapphireAttenuverterKnob>
-        knob_t *addSapphireAttenuverter(int attenId, const std::string& label)
+        knob_t *addSapphireAttenuverter(
+            int attenId,
+            const std::string& label,
+            float dxUnipolar = -4.0,
+            float dyUnipolar = -2.0)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, attenId);
-            SapphireModule* sapphireModule = getSapphireModule();
+            knob->unipolarIndicatorDelta = mm2px(Vec{dxUnipolar, dyUnipolar});
 
-            if (sapphireModule)
+            if (SapphireModule* sapphireModule = getSapphireModule())
             {
                 // Restore the persisted sensitivity state we loaded from JSON (or false if none).
                 knob->context = sapphireModule->getAttenuverterContext(attenId);
@@ -826,18 +831,30 @@ namespace Sapphire
             return knob;
         }
 
-        void addSapphireControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        void addSapphireControlGroup(
+            const std::string& prefix,
+            int knobId,
+            int attenId,
+            int cvInputId,
+            float dxUnipolar = +4.75,
+            float dyUnipolar = -3.0)
         {
             addKnob(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten");
+            addSapphireAttenuverter(attenId, prefix + "_atten", dxUnipolar, dyUnipolar);
             addSapphireInput(cvInputId, prefix + "_cv");
         }
 
         template <typename knob_t = RoundSmallBlackKnob>
-        knob_t* addSapphireFlatControlGroup(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        knob_t* addSapphireFlatControlGroup(
+            const std::string& prefix,
+            int knobId,
+            int attenId,
+            int cvInputId,
+            float dxUnipolar = -4.0,
+            float dyUnipolar = -2.0)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten");
+            addSapphireAttenuverter(attenId, prefix + "_atten", dxUnipolar, dyUnipolar);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }

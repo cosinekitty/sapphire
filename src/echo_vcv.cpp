@@ -2212,7 +2212,7 @@ namespace Sapphire
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
-                    addSapphireFlatControlGroup("drive", DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT);
+                    addSapphireFlatControlGroup("drive", DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT, 3.0, 3.5);
                     addFreezeToggleGroup();
                     addClearTriggerGroup();
                     addSapphireInput(CLOCK_INPUT, "clock_input");

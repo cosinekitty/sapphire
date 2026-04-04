@@ -946,7 +946,15 @@ namespace Sapphire
             {
                 // Draw something that looks like a little letter 'u' near the knob.
                 nvgBeginPath(args.vg);
-                nvgArc(args.vg, box.size.x/2 - 12.0, box.size.y/2 - 5.5, 2.5, NVG_PI, 0, NVG_CCW);
+                nvgArc(
+                    args.vg,
+                    box.size.x/2 + unipolarIndicatorDelta.x,
+                    box.size.y/2 + unipolarIndicatorDelta.y,
+                    2.5,
+                    NVG_PI,
+                    0,
+                    NVG_CCW
+                );
                 nvgStrokeWidth(args.vg, 1.0f);
                 nvgStrokeColor(args.vg, SCHEME_YELLOW);
                 nvgLineCap(args.vg, NVG_ROUND);
