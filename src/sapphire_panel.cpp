@@ -200,6 +200,8 @@ namespace Sapphire
             {"sendreturn_label_left",  {  15.240,   93.000}},
             {"sendreturn_label_right", {  15.240,  103.000}},
             {"solo_button",            {  19.240,   79.000}},
+            {"spectrum_lower_right",   {  25.480,   24.000}},
+            {"spectrum_upper_left",    {   5.000,   10.000}},
             }},
         { "empath_input", {
             {"_panel",                 {  40.640,  128.500}},

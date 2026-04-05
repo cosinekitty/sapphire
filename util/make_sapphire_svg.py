@@ -2591,6 +2591,11 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xMode = 3.0
     yMode = 13.0
 
+    xSpectrumLeft = 5.0
+    xSpectrumRight = panel.mmWidth - xSpectrumLeft
+    ySpectrumTop = 10.0
+    ySpectrumBottom = ySpectrumTop + 14.0
+
     y1_controlGradient = yFreq - 10.0
     y2_controlGradient = yLevel + dyGrad
 
@@ -2610,6 +2615,9 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+
+        controls.append(Component('spectrum_upper_left',  xSpectrumLeft,  ySpectrumTop))
+        controls.append(Component('spectrum_lower_right', xSpectrumRight, ySpectrumBottom))
 
         toggleGradientColor = "#188B31"
         defs.append(Gradient(y1_toggleGradient, y2_toggleGradient, toggleGradientColor, SAPPHIRE_PANEL_COLOR, 'gradient_toggles'))

@@ -700,6 +700,7 @@ namespace Sapphire
 
         namespace Filter
         {
+            struct FilterModule;
             struct FilterWidget;
 
             enum ParamId
@@ -813,6 +814,40 @@ namespace Sapphire
             };
 
 
+            struct SpectrumWidget : OpaqueWidget
+            {
+                FilterModule* filterModule{};
+
+                explicit SpectrumWidget(FilterModule* _filterModule)
+                    : filterModule(_filterModule)
+                {
+                    ComponentLocation upperLeft  = FindComponent("empath_filter", "spectrum_upper_left");
+                    ComponentLocation lowerRight = FindComponent("empath_filter", "spectrum_lower_right");
+                    box.pos.x = mm2px(upperLeft.cx);
+                    box.pos.y = mm2px(upperLeft.cy);
+                    box.size.x = mm2px(lowerRight.cx - upperLeft.cx);
+                    box.size.y = mm2px(lowerRight.cy - upperLeft.cy);
+                    initialize();
+                }
+
+                void onRemove(const RemoveEvent&) override;
+
+                void initialize()
+                {
+                }
+
+                void draw(const DrawArgs& args) override
+                {
+                    math::Rect r = box.zeroPos();
+                    nvgBeginPath(args.vg);
+                    nvgRect(args.vg, RECT_ARGS(r));
+                    nvgFillColor(args.vg, SCHEME_BLACK);
+                    nvgFill(args.vg);
+                    OpaqueWidget::draw(args);
+                }
+            };
+
+
             constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
@@ -826,6 +861,7 @@ namespace Sapphire
                 Crossfader soloFader;       // front=normal,   back=solo
                 int totalSoloCount = 0;     // the total number of solo-enabled filters in this chain
                 fountain_t fountain;
+                SpectrumWidget* spectrum{};
 
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -1099,6 +1135,7 @@ namespace Sapphire
                 }
             };
 
+
             struct FilterWidget : EmpathWidget
             {
                 FilterModule* filterModule{};
@@ -1126,6 +1163,15 @@ namespace Sapphire
                     addMuteSoloButtons();
                     addSapphireOutput<EnvelopeOutputPort>(ENV_OUTPUT, "env_output");
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
+                    addSpectrumWidget();
+                }
+
+                void addSpectrumWidget()
+                {
+                    auto spectrum = new SpectrumWidget(filterModule);
+                    if (filterModule)
+                        filterModule->spectrum = spectrum;
+                    addChild(spectrum);
                 }
 
                 void addResMorphLabels()
@@ -1275,6 +1321,17 @@ namespace Sapphire
             {
                 if (filterWidget)
                     filterWidget->resetAction();
+            }
+
+
+            void SpectrumWidget::onRemove(const RemoveEvent &e)
+            {
+                if (filterModule)
+                {
+                    filterModule->spectrum = nullptr;
+                    filterModule = nullptr;
+                }
+                OpaqueWidget::onRemove(e);
             }
         }
 
