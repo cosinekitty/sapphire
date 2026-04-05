@@ -804,6 +804,15 @@ namespace Sapphire
             };
 
 
+            struct FilterModeButton : SapphireTinyToggleButton
+            {
+                explicit FilterModeButton()
+                {
+                    addTinyButtonFrames(this, "yellow");
+                }
+            };
+
+
             constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
@@ -1094,7 +1103,6 @@ namespace Sapphire
             {
                 FilterModule* filterModule{};
                 const std::string chainFontPath = asset::system("res/fonts/DejaVuSans.ttf");
-                SapphireCaptionButton* modeToggleButton{};
                 SvgOverlay* resLabel{};
                 SvgOverlay* morphLabel{};
 
@@ -1108,7 +1116,7 @@ namespace Sapphire
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addExpanderRemoveButton(REMOVE_BUTTON_PARAM);
                     addInitFilterButton();
-                    addModeToggleGroup();
+                    addFilterModeButton();
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
@@ -1135,20 +1143,13 @@ namespace Sapphire
                     addSapphireParam(soloButton, "solo_button");
                 }
 
-                void addModeToggleGroup()
+
+                void addFilterModeButton()
                 {
-                    modeToggleButton = createLightParamCentered<SapphireCaptionButton>(
-                        Vec{},
-                        filterModule,
-                        MODE_BUTTON_PARAM,
-                        MODE_BUTTON_LIGHT
-                    );
-
-                    modeToggleButton->initBaseColor(SCHEME_ORANGE);
-                    modeToggleButton->momentary = false;
-
-                    addSapphireParam(modeToggleButton, "mode_button");
+                    auto button = createParamCentered<FilterModeButton>(Vec{}, module, MODE_BUTTON_PARAM);
+                    addSapphireParam(button, "mode_button");
                 }
+
 
                 void addExpanderRemoveButton(int paramId)
                 {
@@ -1194,12 +1195,6 @@ namespace Sapphire
 
                         filterModule->paramQuantities.at(MODE_BUTTON_PARAM)->name =
                             std::string("Mode: ") + (isBandpass ? "BANDPASS" : "NOTCH");
-
-                        if (modeToggleButton)
-                        {
-                            modeToggleButton->setCaption(isBandpass ? 'B' : 'N');
-                            modeToggleButton->dxText = (isBandpass ? 8.0f : 9.0f);
-                        }
                     }
                 }
 

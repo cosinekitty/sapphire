@@ -2572,7 +2572,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
     yToggleFence = FencePost(18.0, 30.0, 2)
     ySource = yToggleFence.value(0)
-    yMode   = ySource
 
     yControlFence = EmpathFencePost()
     yFreq   = yControlFence.value(0)
@@ -2587,7 +2586,10 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     x2_gradient = xmid + dxGradient
 
     y1_toggleGradient = ySource - 7.5
-    y2_toggleGradient = yMode + dyGrad
+    y2_toggleGradient = ySource + dyGrad
+
+    xMode = 3.0
+    yMode = 13.0
 
     y1_controlGradient = yFreq - 10.0
     y2_controlGradient = yLevel + dyGrad
@@ -2648,7 +2650,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddEnvDetectGradient(panel, defs, pl, xmid, 'empath')
 
-        controls.append(Component('mode_button', xmid, yMode))
+        controls.append(Component('mode_button', xMode, yMode))
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))

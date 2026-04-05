@@ -184,7 +184,7 @@ namespace Sapphire
             {"level_atten",            {  15.240,   75.000}},
             {"level_cv",               {   6.240,   75.000}},
             {"level_knob",             {  24.240,   75.000}},
-            {"mode_button",            {  15.240,   18.000}},
+            {"mode_button",            {   3.000,   13.000}},
             {"mute_button",            {  11.240,   79.000}},
             {"pan_atten",              {  15.240,   61.667}},
             {"pan_cv",                 {   6.240,   61.667}},
