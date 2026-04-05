@@ -2570,9 +2570,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
     yBottomButtons = panel.mmHeight - 5.0
 
-    yToggleFence = FencePost(18.0, 30.0, 2)
-    ySource = yToggleFence.value(0)
-
     yControlFence = EmpathFencePost()
     yFreq   = yControlFence.value(0)
     yRes    = yControlFence.value(1)
@@ -2585,16 +2582,13 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     x1_gradient = xmid - dxGradient
     x2_gradient = xmid + dxGradient
 
-    y1_toggleGradient = ySource - 7.5
-    y2_toggleGradient = ySource + dyGrad
+    xMode = xmid - DX_FLAT_CONTROL_GROUP
+    yMode = yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL
 
-    xMode = 3.0
-    yMode = 13.0
-
-    xSpectrumLeft = 5.0
+    xSpectrumLeft = 2.0
     xSpectrumRight = panel.mmWidth - xSpectrumLeft
-    ySpectrumTop = 10.0
-    ySpectrumBottom = ySpectrumTop + 14.0
+    ySpectrumTop = 9.0
+    ySpectrumBottom = ySpectrumTop + 14.5
 
     y1_controlGradient = yFreq - 10.0
     y2_controlGradient = yLevel + dyGrad
@@ -2618,19 +2612,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         controls.append(Component('spectrum_upper_left',  xSpectrumLeft,  ySpectrumTop))
         controls.append(Component('spectrum_lower_right', xSpectrumRight, ySpectrumBottom))
-
-        toggleGradientColor = "#188B31"
-        defs.append(Gradient(y1_toggleGradient, y2_toggleGradient, toggleGradientColor, SAPPHIRE_PANEL_COLOR, 'gradient_toggles'))
-        pl.append(ControlGroupArt(
-            name,
-            'toggles_art',
-            panel,
-            y1_toggleGradient,
-            y2_toggleGradient,
-            'gradient_toggles',
-            x1_gradient,
-            x2_gradient
-        ))
 
         defs.append(Gradient(y1_controlGradient, y2_controlGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(
