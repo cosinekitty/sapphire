@@ -814,9 +814,19 @@ namespace Sapphire
             };
 
 
+            constexpr unsigned SpectrumBits = 9;
+            constexpr unsigned SpectrumLength = 1 << SpectrumBits;
+            using fft_delay_line_t = DelayLine<float, SpectrumLength>;
+
+
             struct SpectrumWidget : OpaqueWidget
             {
                 FilterModule* filterModule{};
+                unsigned nchannels{};
+                std::array<fft_delay_line_t, PORT_MAX_CHANNELS> fftDelayLines;
+                std::vector<float> fftBufferIn;
+                std::vector<float> fftBufferOut;
+                rack::dsp::RealFFT fftEngine{SpectrumLength};
 
                 explicit SpectrumWidget(FilterModule* _filterModule)
                     : filterModule(_filterModule)
@@ -827,6 +837,8 @@ namespace Sapphire
                     box.pos.y = mm2px(upperLeft.cy);
                     box.size.x = mm2px(lowerRight.cx - upperLeft.cx);
                     box.size.y = mm2px(lowerRight.cy - upperLeft.cy);
+                    fftBufferIn.resize(SpectrumLength);
+                    fftBufferOut.resize(SpectrumLength);
                     initialize();
                 }
 
@@ -834,16 +846,41 @@ namespace Sapphire
 
                 void initialize()
                 {
+                    for (fft_delay_line_t& delayLine : fftDelayLines)
+                        delayLine.clear();
                 }
 
                 void draw(const DrawArgs& args) override
                 {
+                    // Start the graphics with a black rectangle.
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
                     nvgFillColor(args.vg, SCHEME_BLACK);
                     nvgFill(args.vg);
-                    OpaqueWidget::draw(args);
+
+                    if (filterModule)
+                        for (unsigned c = 0; c < nchannels; ++c)
+                            graphSpectrum(args, c);
+
+                    OpaqueWidget::draw(args);   // in case we ever have children to draw on top
+                }
+
+                void graphSpectrum(const DrawArgs& args, unsigned c)
+                {
+                    // The filter module's delay line is a circular buffer.
+                    // Copy and re-align the data to start at fftBuffer[0].
+                    // Multiply by a Hann window function to eliminate frequency spikes
+                    // from edge discontinuities.
+
+                    float factor = M_PI / (SpectrumLength-1);
+                    for (unsigned offset = 0; offset < SpectrumLength; ++offset)
+                    {
+                        float w = Square(std::sin(factor * offset));
+                        fftBufferIn[offset] = w * fftDelayLines[c].readForward(offset);
+                    }
+
+                    fftEngine.rfft(fftBufferIn.data(), fftBufferOut.data());
                 }
             };
 
@@ -905,6 +942,9 @@ namespace Sapphire
                     soloFader.snapToFront();
                     totalSoloCount = 0;
                     envelopeFollower.initialize();
+
+                    if (spectrum)
+                        spectrum->initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -1044,6 +1084,9 @@ namespace Sapphire
                     Frame sendFrame;
                     Frame envelopeFrame;
 
+                    if (spectrum)
+                        spectrum->nchannels = 0;    // blank the graph unless we find data below
+
                     if (inMessage.valid)
                     {
                         Frame levelFrame;
@@ -1052,6 +1095,8 @@ namespace Sapphire
                         sendFrame.nchannels = nc;
                         levelFrame.nchannels = nc;
                         envelopeFrame.nchannels = nc;
+                        if (spectrum)
+                            spectrum->nchannels = nc;
 
                         float cvFreq = 0;
                         float cvRes = 0;
@@ -1079,7 +1124,9 @@ namespace Sapphire
                                 modeMix
                             );
 
-                            // Mix this stage's output into the running sum going left-to-right through the chain.
+                            if (spectrum)
+                                spectrum->fftDelayLines[c].write(sendFrame.sample[c]);
+
                             envelopeFrame.sample[c] = readSample(
                                 sendFrame.sample[c],
                                 AUDIO_LEFT_INPUT,
