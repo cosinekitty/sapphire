@@ -852,18 +852,19 @@ namespace Sapphire
 
                 void draw(const DrawArgs& args) override
                 {
-                    // Start the graphics with a black rectangle.
+                    drawBlackRectangle(args);
+                    OpaqueWidget::draw(args);   // in case we ever have children to draw on top
+                }
+
+                void drawLayer(const DrawArgs& args, int layer) override;
+
+                void drawBlackRectangle(const DrawArgs& args)
+                {
                     math::Rect r = box.zeroPos();
                     nvgBeginPath(args.vg);
                     nvgRect(args.vg, RECT_ARGS(r));
                     nvgFillColor(args.vg, SCHEME_BLACK);
                     nvgFill(args.vg);
-
-                    if (filterModule)
-                        for (unsigned c = 0; c < nchannels; ++c)
-                            graphSpectrum(args, c);
-
-                    OpaqueWidget::draw(args);   // in case we ever have children to draw on top
                 }
 
                 void graphSpectrum(const DrawArgs& args, unsigned c)
@@ -880,7 +881,53 @@ namespace Sapphire
                         fftBufferIn[offset] = w * fftDelayLines[c].readForward(offset);
                     }
 
+                    // Take the real-valued Fast Fourier Transform.
                     fftEngine.rfft(fftBufferIn.data(), fftBufferOut.data());
+
+                    // Graph the data in fftBufferOut.
+                    // horizontal axis = linear frequency
+                    // vertical axis = dB power
+                    // Each channel of 1..16 possible channels needs an equal amount
+                    // of vertical space.
+                    float dyPerChannel = box.size.y / nchannels;
+                    float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
+                    float yMiddle = yBase - dyPerChannel/2;
+                    float dxPerFreqBin = box.size.x / SpectrumLength;
+
+                    static float dbMin = +9999;
+                    static float dbMax = -9999;
+                    static float prevMin = 0;
+                    static float prevMax = 0;
+
+                    constexpr float strokeWidthPx = 0.5;
+                    for (unsigned f = 0; f+1 < SpectrumLength; f += 2)
+                    {
+                        float x = dxPerFreqBin * f;
+                        float power = std::hypotf(fftBufferOut.at(f), fftBufferOut.at(f+1));
+                        if (power > 0)
+                        {
+                            float db = std::log(power);
+                            dbMin = std::min(dbMin, db);
+                            dbMax = std::min(dbMax, db);
+                            float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
+                            float yTop = yMiddle - dyPowerPx;
+
+                            nvgBeginPath(args.vg);
+                            nvgLineCap(args.vg, NVG_BUTT);
+                            nvgStrokeWidth(args.vg, strokeWidthPx);
+                            nvgStrokeColor(args.vg, nvgRGB(0xf5, 0xbc, 0x42));
+                            nvgMoveTo(args.vg, x, yBase);
+                            nvgLineTo(args.vg, x, yTop);
+                            nvgStroke(args.vg);
+                        }
+                    }
+
+                    if (dbMin != prevMin || dbMax != prevMax)
+                    {
+                        INFO("dbMin=%g, dbMax=%g", dbMin, dbMax);
+                        prevMin = dbMin;
+                        prevMax = dbMax;
+                    }
                 }
             };
 
@@ -1379,6 +1426,13 @@ namespace Sapphire
                     filterModule = nullptr;
                 }
                 OpaqueWidget::onRemove(e);
+            }
+
+            void SpectrumWidget::drawLayer(const DrawArgs &args, int layer)
+            {
+                if (layer==1 && filterModule && nchannels>0 && nchannels<=PORT_MAX_CHANNELS)
+                    for (unsigned c = 0; c < nchannels; ++c)
+                        graphSpectrum(args, c);
             }
         }
 
