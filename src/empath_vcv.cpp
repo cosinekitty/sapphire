@@ -814,7 +814,7 @@ namespace Sapphire
             };
 
 
-            constexpr unsigned SpectrumBits = 9;
+            constexpr unsigned SpectrumBits = 12;
             constexpr unsigned SpectrumLength = 1 << SpectrumBits;
             using fft_delay_line_t = DelayLine<float, SpectrumLength>;
 
@@ -870,7 +870,7 @@ namespace Sapphire
                 void graphSpectrum(const DrawArgs& args, unsigned c)
                 {
                     // The filter module's delay line is a circular buffer.
-                    // Copy and re-align the data to start at fftBuffer[0].
+                    // Copy and re-align the data to start at fftBufferIn[0].
                     // Multiply by a Hann window function to eliminate frequency spikes
                     // from edge discontinuities.
 
@@ -892,23 +892,25 @@ namespace Sapphire
                     float dyPerChannel = box.size.y / nchannels;
                     float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
                     float yMiddle = yBase - dyPerChannel/2;
-                    float dxPerFreqBin = box.size.x / SpectrumLength;
 
-                    static float dbMin = +9999;
-                    static float dbMax = -9999;
-                    static float prevMin = 0;
-                    static float prevMax = 0;
+                    constexpr float dbShift = -3;
+                    constexpr float dbScale = 1.5;
 
-                    constexpr float strokeWidthPx = 0.5;
-                    for (unsigned f = 0; f+1 < SpectrumLength; f += 2)
+                    constexpr unsigned fdenom = 4;
+                    constexpr unsigned niter = SpectrumLength / fdenom;
+                    constexpr float strokeWidthPx = fdenom / 8.0;
+
+                    static_assert(niter > 0);
+
+                    float dxPerFreqBin = box.size.x / niter;
+
+                    for (unsigned f=0; f+1 < niter; f+=2)
                     {
                         float x = dxPerFreqBin * f;
-                        float power = std::hypotf(fftBufferOut.at(f), fftBufferOut.at(f+1));
+                        float power = Square(fftBufferOut.at(f)) + Square(fftBufferOut.at(f+1));
                         if (power > 0)
                         {
-                            float db = std::log(power);
-                            dbMin = std::min(dbMin, db);
-                            dbMax = std::min(dbMax, db);
+                            float db = dbScale*(std::log10(power) + dbShift);
                             float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
                             float yTop = yMiddle - dyPowerPx;
 
@@ -920,13 +922,6 @@ namespace Sapphire
                             nvgLineTo(args.vg, x, yTop);
                             nvgStroke(args.vg);
                         }
-                    }
-
-                    if (dbMin != prevMin || dbMax != prevMax)
-                    {
-                        INFO("dbMin=%g, dbMax=%g", dbMin, dbMax);
-                        prevMin = dbMin;
-                        prevMax = dbMax;
                     }
                 }
             };
