@@ -905,22 +905,40 @@ namespace Sapphire
 
                 void graphSpectrum(const DrawArgs& args, unsigned c, unsigned nc)
                 {
+                    // Safety preconditions begin.
+
+                    if (nc == 0)
+                        return;     // There is nothing to draw. Prevent division by zero.
+
+                    if (nc > PORT_MAX_CHANNELS)
+                        return;     // Invalid number of channels; would cause bad memory access.
+
+                    if (c >= nc)
+                        return;     // Ignore any out-of-bounds channel, also for memory safety.
+
+                    // Safety preconditions end.
+
                     // The filter module's delay line is a circular buffer.
                     // Copy and re-align the data to start at fftBufferIn[0].
                     // Multiply by a Hann window function to eliminate frequency spikes
                     // from edge discontinuities.
 
-                    float factor = M_PI / (SpectrumLength-1);
+                    constexpr float factor = M_PI / (SpectrumLength-1);
                     for (unsigned offset = 0; offset < SpectrumLength; ++offset)
                     {
-                        fftBufferIn[offset] = fftDelayLines[c].readForward(offset);
+                        float& y = fftBufferIn[offset];
                         if (displayMode == SpectrumDisplayMode::Monophonic)
                         {
-                            // Sum the signals from all other channels into the first channel.
-                            assert(c == 0);
-                            assert(nc == 1);
-                            for (unsigned k=1; k < nchannels; ++k)
-                                fftBufferIn[offset] += fftDelayLines[k].readForward(offset);
+                            // Produce a monophonic voltage from the average of all channel voltages.
+                            y = 0;
+                            for (unsigned k=0; k < nchannels; ++k)
+                                y += fftDelayLines[k].readForward(offset);
+                            y /= nc;
+                        }
+                        else
+                        {
+                            // Produce a polyphonic voltage from each individual channel.
+                            y = fftDelayLines[c].readForward(offset);
                         }
                         fftBufferIn[offset] *= Square(std::sin(factor * offset));   // Hann window function
                     }
