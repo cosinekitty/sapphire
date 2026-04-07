@@ -2473,6 +2473,8 @@ EMPATH_DX_SEND_RETURN = 7.0
 EMPATH_BIG_KNOBS_Y1 = 26.325
 EMPATH_BIG_KNOBS_Y2 = 60.250
 EMPATH_INIT_BUTTON_Y = 112.0
+EMPATH_SPECTRUM_BOX_Y1 = 9.0
+EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2500,6 +2502,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xChaosBoxTextLeft  = xmid - dxChaosText
     xChaosBoxTextRight = xmid + dxChaosText
     arcRadius = 4.0
+    xSpectrumButton = xInsertButton
+    ySpectrumButton = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2
 
     def LineArtPath(path:str, id:str) -> Path:
         lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
@@ -2550,6 +2554,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         controls.append(Component('init_chain_button', xmid, EMPATH_INIT_BUTTON_Y))
+        controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
     return Save(panel, svgFileName)
 
 
@@ -2587,8 +2592,6 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
     xSpectrumLeft = 2.0
     xSpectrumRight = panel.mmWidth - xSpectrumLeft
-    ySpectrumTop = 9.0
-    ySpectrumBottom = ySpectrumTop + 14.5
 
     y1_controlGradient = yFreq - 10.0
     y2_controlGradient = yLevel + dyGrad
@@ -2610,8 +2613,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
 
-        controls.append(Component('spectrum_upper_left',  xSpectrumLeft,  ySpectrumTop))
-        controls.append(Component('spectrum_lower_right', xSpectrumRight, ySpectrumBottom))
+        controls.append(Component('spectrum_upper_left',  xSpectrumLeft,  EMPATH_SPECTRUM_BOX_Y1))
+        controls.append(Component('spectrum_lower_right', xSpectrumRight, EMPATH_SPECTRUM_BOX_Y2))
 
         defs.append(Gradient(y1_controlGradient, y2_controlGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(

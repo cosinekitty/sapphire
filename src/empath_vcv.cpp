@@ -20,6 +20,12 @@ namespace Sapphire
             float sample[PORT_MAX_CHANNELS]{};
         };
 
+        enum class SpectrumDisplayMode
+        {
+            Monophonic = 0,     // mix of all channels displayed with a single spectrum graph
+            Polyphonic = 1,     // each channel gets its own spectrum graph
+        };
+
         struct ForwardMessage
         {
             bool valid = false;
@@ -33,6 +39,7 @@ namespace Sapphire
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
             float chaosSpeedKnob{};
             float chaosLevelKnob{};
+            SpectrumDisplayMode spectrumDisplayMode = SpectrumDisplayMode::Monophonic;
         };
 
         struct BackwardMessage
@@ -449,6 +456,7 @@ namespace Sapphire
                 CHAOS_LEVEL_PARAM,
                 CHAOS_LEVEL_ATTEN,
                 INIT_CHAIN_BUTTON_PARAM,
+                TOGGLE_SPECTRUM_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -496,6 +504,14 @@ namespace Sapphire
                 void action() override;
             };
 
+            struct ToggleSpectrumButton : SapphireTinyToggleButton
+            {
+                explicit ToggleSpectrumButton()
+                {
+                    addTinyButtonFrames(this, "yellow");
+                }
+            };
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -514,6 +530,7 @@ namespace Sapphire
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
+                    configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");
                     InputModule_initialize();
                 }
 
@@ -550,6 +567,12 @@ namespace Sapphire
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
+                SpectrumDisplayMode getSpectrumDisplayMode()
+                {
+                    float v = getParamQuantity(TOGGLE_SPECTRUM_BUTTON_PARAM)->getValue();
+                    return (v > 0.5f) ? SpectrumDisplayMode::Polyphonic : SpectrumDisplayMode::Monophonic;
+                }
+
                 Frame readCascade(int nchannels, float chaos)
                 {
                     Frame frame;
@@ -573,6 +596,7 @@ namespace Sapphire
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
+                    outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
@@ -604,6 +628,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
                     addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
                     addInitChainButton();
+                    addToggleSpectrumButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -628,6 +653,12 @@ namespace Sapphire
                     auto button = createParamCentered<InitChainButton>(Vec{}, inputModule, INIT_CHAIN_BUTTON_PARAM);
                     button->inputWidget = this;
                     addSapphireParam(button, "init_chain_button");
+                }
+
+                void addToggleSpectrumButton()
+                {
+                    auto button = createParamCentered<ToggleSpectrumButton>(Vec{}, inputModule, TOGGLE_SPECTRUM_BUTTON_PARAM);
+                    addSapphireParam(button, "toggle_spectrum_button");
                 }
 
                 void draw(const DrawArgs& args) override
@@ -827,6 +858,7 @@ namespace Sapphire
                 std::vector<float> fftBufferIn;
                 std::vector<float> fftBufferOut;
                 rack::dsp::RealFFT fftEngine{SpectrumLength};
+                SpectrumDisplayMode displayMode = SpectrumDisplayMode::Monophonic;
 
                 explicit SpectrumWidget(FilterModule* _filterModule)
                     : filterModule(_filterModule)
@@ -846,6 +878,8 @@ namespace Sapphire
 
                 void initialize()
                 {
+                    displayMode = SpectrumDisplayMode::Monophonic;
+
                     for (fft_delay_line_t& delayLine : fftDelayLines)
                         delayLine.clear();
                 }
@@ -869,7 +903,7 @@ namespace Sapphire
 
                 NVGcolor barColor(float mix) const;
 
-                void graphSpectrum(const DrawArgs& args, unsigned c)
+                void graphSpectrum(const DrawArgs& args, unsigned c, unsigned nc)
                 {
                     // The filter module's delay line is a circular buffer.
                     // Copy and re-align the data to start at fftBufferIn[0].
@@ -879,8 +913,16 @@ namespace Sapphire
                     float factor = M_PI / (SpectrumLength-1);
                     for (unsigned offset = 0; offset < SpectrumLength; ++offset)
                     {
-                        float w = Square(std::sin(factor * offset));
-                        fftBufferIn[offset] = w * fftDelayLines[c].readForward(offset);
+                        fftBufferIn[offset] = fftDelayLines[c].readForward(offset);
+                        if (displayMode == SpectrumDisplayMode::Monophonic)
+                        {
+                            // Sum the signals from all other channels into the first channel.
+                            assert(c == 0);
+                            assert(nc == 1);
+                            for (unsigned k=1; k < nchannels; ++k)
+                                fftBufferIn[offset] += fftDelayLines[k].readForward(offset);
+                        }
+                        fftBufferIn[offset] *= Square(std::sin(factor * offset));   // Hann window function
                     }
 
                     // Take the real-valued Fast Fourier Transform.
@@ -891,7 +933,7 @@ namespace Sapphire
                     // vertical axis = dB power
                     // Each channel of 1..16 possible channels needs an equal amount
                     // of vertical space.
-                    float dyPerChannel = box.size.y / nchannels;
+                    float dyPerChannel = box.size.y / nc;
                     float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
                     float yMiddle = yBase - dyPerChannel/2;
 
@@ -1139,7 +1181,10 @@ namespace Sapphire
                         levelFrame.nchannels = nc;
                         envelopeFrame.nchannels = nc;
                         if (spectrum)
+                        {
                             spectrum->nchannels = nc;
+                            spectrum->displayMode = inMessage.spectrumDisplayMode;
+                        }
 
                         float cvFreq = 0;
                         float cvRes = 0;
@@ -1427,8 +1472,17 @@ namespace Sapphire
             void SpectrumWidget::drawLayer(const DrawArgs &args, int layer)
             {
                 if (layer==1 && filterModule && nchannels>0 && nchannels<=PORT_MAX_CHANNELS)
-                    for (unsigned c = 0; c < nchannels; ++c)
-                        graphSpectrum(args, c);
+                {
+                    if (displayMode == SpectrumDisplayMode::Monophonic)
+                    {
+                        graphSpectrum(args, 0, 1);
+                    }
+                    else
+                    {
+                        for (unsigned c = 0; c < nchannels; ++c)
+                            graphSpectrum(args, c, nchannels);
+                    }
+                }
             }
 
             NVGcolor SpectrumWidget::barColor(float mix) const

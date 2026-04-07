@@ -221,6 +221,7 @@ namespace Sapphire
             {"input_label_left",       {  13.820,   93.000}},
             {"input_label_right",      {  13.820,  103.000}},
             {"insert_button",          {  37.640,    4.500}},
+            {"toggle_spectrum_button", {  37.640,   16.250}},
             }},
         { "empath_output", {
             {"_panel",                 {  20.320,  128.500}},
