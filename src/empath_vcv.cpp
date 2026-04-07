@@ -1437,7 +1437,7 @@ namespace Sapphire
                 if (filterModule && !filterModule->isAudible())
                     return mutedColor;
 
-                constexpr unsigned nGuideColors = 6;
+                constexpr unsigned nGuideColors = 5;
 
                 // These RGB color values were derived using the online calculator at:
                 // https://colornamer.robertcooper.me/
@@ -1448,8 +1448,8 @@ namespace Sapphire
                     nvgRGB(0xff, 0xa5, 0x00),   // 1 "orange"
                     nvgRGB(0xff, 0xff, 0x00),   // 2 "yellow"
                     nvgRGB(0x00, 0x80, 0x00),   // 3 "green"
-                    nvgRGB(0x00, 0x00, 0xff),   // 4 "blue"
-                    nvgRGB(0x4b, 0x00, 0x82),   // 5 "indigo"
+                    nvgRGB(0x00, 0x10, 0xff),   // 4 "blue"
+                    // I don't have indigo or violet because they don't look like a real rainbow.
                 };
 
                 const float hue = mix * (nGuideColors-1);
