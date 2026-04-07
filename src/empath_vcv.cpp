@@ -960,8 +960,8 @@ namespace Sapphire
                     float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
                     float yMiddle = yBase - dyPerChannel/2;
 
-                    constexpr float dbShift = -3;
-                    constexpr float dbScale = 1.5;
+                    constexpr float dbShift = -3.3;
+                    constexpr float dbScale = +1.4;
 
                     constexpr unsigned fdenom = 4;
                     constexpr unsigned niter = SpectrumLength / fdenom;
