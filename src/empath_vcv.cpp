@@ -905,18 +905,14 @@ namespace Sapphire
 
                 void graphSpectrum(const DrawArgs& args, unsigned c, unsigned nc)
                 {
-                    // Safety preconditions begin.
-
                     if (nc == 0)
                         return;     // There is nothing to draw. Prevent division by zero.
 
                     if (nc > PORT_MAX_CHANNELS)
-                        return;     // Invalid number of channels; would cause bad memory access.
+                        return;     // Invalid number of channels. Prevent bad memory access.
 
                     if (c >= nc)
-                        return;     // Ignore any out-of-bounds channel, also for memory safety.
-
-                    // Safety preconditions end.
+                        return;     // Ignore any out-of-bounds channel. Prevent bad memory access.
 
                     // The filter module's delay line is a circular buffer.
                     // Copy and re-align the data to start at fftBufferIn[0].
@@ -946,11 +942,20 @@ namespace Sapphire
                     // Take the real-valued Fast Fourier Transform.
                     fftEngine.rfft(fftBufferIn.data(), fftBufferOut.data());
 
+                    // Eliminate the nyquist-frequency value at index 1,
+                    // because we don't want to include it in the
+                    // DC power value at index 0.
+                    // See rack::dsp::RealFFT::rfft() documentation for
+                    // explanation of the frequency bin representation.
+                    fftBufferOut.at(1) = 0;
+
                     // Graph the data in fftBufferOut.
                     // horizontal axis = linear frequency
-                    // vertical axis = dB power
-                    // Each channel of 1..16 possible channels needs an equal amount
+                    // vertical axis = dB power, with tanh compression on top of that.
+                    // Each channel of nc=1..16 possible channels needs an equal amount
                     // of vertical space.
+                    // In mono mode, nc==1, but nchannels can be any value 1..16.
+                    // So we divide by nc to indicate how many bands to split vertical space into.
                     float dyPerChannel = box.size.y / nc;
                     float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
                     float yMiddle = yBase - dyPerChannel/2;
