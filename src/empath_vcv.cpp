@@ -867,6 +867,8 @@ namespace Sapphire
                     nvgFill(args.vg);
                 }
 
+                NVGcolor barColor(float mix) const;
+
                 void graphSpectrum(const DrawArgs& args, unsigned c)
                 {
                     // The filter module's delay line is a circular buffer.
@@ -898,9 +900,9 @@ namespace Sapphire
 
                     constexpr unsigned fdenom = 4;
                     constexpr unsigned niter = SpectrumLength / fdenom;
-                    constexpr float strokeWidthPx = fdenom / 8.0;
-
                     static_assert(niter > 0);
+                    constexpr float nf = niter;
+                    constexpr float strokeWidthPx = fdenom / 8.0;
 
                     float dxPerFreqBin = box.size.x / niter;
 
@@ -913,11 +915,10 @@ namespace Sapphire
                             float db = dbScale*(std::log10(power) + dbShift);
                             float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
                             float yTop = yMiddle - dyPowerPx;
-
                             nvgBeginPath(args.vg);
                             nvgLineCap(args.vg, NVG_BUTT);
                             nvgStrokeWidth(args.vg, strokeWidthPx);
-                            nvgStrokeColor(args.vg, nvgRGB(0xf5, 0xbc, 0x42));
+                            nvgStrokeColor(args.vg, barColor(f/nf));
                             nvgMoveTo(args.vg, x, yBase);
                             nvgLineTo(args.vg, x, yTop);
                             nvgStroke(args.vg);
@@ -1428,6 +1429,33 @@ namespace Sapphire
                 if (layer==1 && filterModule && nchannels>0 && nchannels<=PORT_MAX_CHANNELS)
                     for (unsigned c = 0; c < nchannels; ++c)
                         graphSpectrum(args, c);
+            }
+
+            NVGcolor SpectrumWidget::barColor(float mix) const
+            {
+                NVGcolor mutedColor = nvgRGB(0x20, 0x40, 0x50);
+                if (filterModule && !filterModule->isAudible())
+                    return mutedColor;
+
+                constexpr unsigned nGuideColors = 6;
+
+                // These RGB color values were derived using the online calculator at:
+                // https://colornamer.robertcooper.me/
+
+                const std::array<NVGcolor,nGuideColors> rainbow
+                {
+                    nvgRGB(0xff, 0x00, 0x00),   // 0 "red"
+                    nvgRGB(0xff, 0xa5, 0x00),   // 1 "orange"
+                    nvgRGB(0xff, 0xff, 0x00),   // 2 "yellow"
+                    nvgRGB(0x00, 0x80, 0x00),   // 3 "green"
+                    nvgRGB(0x00, 0x00, 0xff),   // 4 "blue"
+                    nvgRGB(0x4b, 0x00, 0x82),   // 5 "indigo"
+                };
+
+                const float hue = mix * (nGuideColors-1);
+                const unsigned namedColor = std::clamp<unsigned>(hue, 0, nGuideColors-2);
+                const float residue = hue - namedColor;
+                return FadeColor(residue, 1, rainbow.at(namedColor), rainbow.at(namedColor+1));
             }
         }
 

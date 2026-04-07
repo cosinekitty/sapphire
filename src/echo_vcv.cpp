@@ -1148,17 +1148,6 @@ namespace Sapphire
         }
 
 
-        NVGcolor FadeColor(float fade, float intensity, NVGcolor c0, NVGcolor c1)
-        {
-            NVGcolor cm;
-            cm.a = 1;
-            cm.r = intensity * ((1-fade)*c0.r + fade*c1.r);
-            cm.g = intensity * ((1-fade)*c0.g + fade*c1.g);
-            cm.b = intensity * ((1-fade)*c0.b + fade*c1.b);
-            return cm;
-        }
-
-
         void GraphWidget::drawLayer(const DrawArgs& args, int layer)
         {
             const NVGcolor mutedColor = nvgRGB(0x20, 0x40, 0x50);
