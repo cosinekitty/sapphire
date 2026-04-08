@@ -389,6 +389,11 @@ namespace Sapphire
             virtual bool isConnectedOnLeft()  const = 0;
             virtual bool isConnectedOnRight() const = 0;
 
+            bool isFilterOnRight() const
+            {
+                return module && IsFilter(module->rightExpander.module);
+            }
+
             void updateBorderVisibility()
             {
                 if (auto emod = dynamic_cast<EmpathModule*>(module))
@@ -661,6 +666,24 @@ namespace Sapphire
                     addSapphireParam(button, "toggle_spectrum_button");
                 }
 
+                void drawSpectrumConnectorLine(NVGcontext* vg)
+                {
+                    if (isFilterOnRight())
+                    {
+                        constexpr float buttonRadius = 4.5;
+                        ComponentLocation mmpos = FindComponent(modcode, "toggle_spectrum_button");
+                        float bx = mm2px(mmpos.cx);
+                        float by = mm2px(mmpos.cy);
+
+                        nvgBeginPath(vg);
+                        nvgStrokeColor(vg, SCHEME_BLACK);
+                        nvgStrokeWidth(vg, 0.75);
+                        nvgMoveTo(vg, bx + buttonRadius, by);
+                        nvgLineTo(vg, box.size.x, by);
+                        nvgStroke(vg);
+                    }
+                }
+
                 void draw(const DrawArgs& args) override
                 {
                     EmpathWidget::draw(args);
@@ -668,6 +691,7 @@ namespace Sapphire
                     ComponentLocation L = FindComponent(modcode, "input_label_left");
                     ComponentLocation R = FindComponent(modcode, "input_label_right");
                     drawAudioPortLabels(args.vg, label, L.cx, L.cy, R.cx, R.cy);
+                    drawSpectrumConnectorLine(args.vg);
                 }
 
                 void step() override
@@ -1419,6 +1443,8 @@ namespace Sapphire
 
                         if (!filterModule->isAudible())
                             drawMuteIndicator(args.vg);
+
+                        drawSpectrumConnectorLine(args.vg);
                     }
                 }
 
@@ -1439,6 +1465,36 @@ namespace Sapphire
                     nvgRect(vg, 0, 0, box.size.x, box.size.y);
                     nvgFillColor(vg, color);
                     nvgFill(vg);
+                }
+
+                void drawSpectrumConnectorLine(NVGcontext* vg)
+                {
+                    if (filterModule && filterModule->spectrum)
+                    {
+                        bool left  = isConnectedOnLeft();
+                        bool right = isFilterOnRight();
+                        if (left || right)
+                        {
+                            const Vec& pos  = filterModule->spectrum->box.pos;
+                            const Vec& size = filterModule->spectrum->box.size;
+                            float y = pos.y + size.y/2;
+
+                            nvgBeginPath(vg);
+                            if (left)
+                            {
+                                nvgMoveTo(vg, 0, y);
+                                nvgLineTo(vg, pos.x, y);
+                            }
+                            if (right)
+                            {
+                                nvgMoveTo(vg, pos.x + size.x, y);
+                                nvgLineTo(vg, box.size.x, y);
+                            }
+                            nvgStrokeColor(vg, SCHEME_BLACK);
+                            nvgStrokeWidth(vg, 0.75);
+                            nvgStroke(vg);
+                        }
+                    }
                 }
 
                 Vec getChainIndexCenterPos() const
