@@ -1649,7 +1649,7 @@ namespace Sapphire
 
         namespace EOutput
         {
-            constexpr unsigned nChaoticSignals = 2;
+            constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -1747,6 +1747,7 @@ namespace Sapphire
                         message.dryAudio,
                         message.wetAudio,
                         message.soloAudio,
+                        message.chaosStereoCrossfade,
                         solo,
                         batch
                     );
@@ -1759,11 +1760,14 @@ namespace Sapphire
                     const Frame& dryAudio,
                     const Frame& wetAudio,
                     const Frame& soloAudio,
+                    float chaosStereoCrossfade,
                     float soloFactor,
                     const batch_t& chaosBatch)
                 {
-                    const float mixChaos   = chaosBatch.signal.at(0);
-                    const float levelChaos = chaosBatch.signal.at(1);
+                    const float mixChaosL   = chaosBatch.signal.at(0);
+                    const float mixChaosR   = chaosBatch.signal.at(1);
+                    const float levelChaosL = chaosBatch.signal.at(2);
+                    const float levelChaosR = chaosBatch.signal.at(3);
 
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;
@@ -1773,6 +1777,8 @@ namespace Sapphire
                     result.nchannels = nc;
                     for (int c = 0; c < nc; ++c)
                     {
+                        float mixChaos = ChaosControlVoltage(c, chaosStereoCrossfade, mixChaosL, mixChaosR);
+                        float levelChaos = ChaosControlVoltage(c, chaosStereoCrossfade, levelChaosL, levelChaosR);
                         nextVoltageOrChaosSignal(cvMix, GLOBAL_MIX_CV_INPUT, c, mixChaos);
                         nextVoltageOrChaosSignal(cvLevel, GLOBAL_LEVEL_CV_INPUT, c, levelChaos);
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
