@@ -1422,7 +1422,7 @@ namespace Sapphire
                         const bool isBandpass = filterModule->modeFader.atFront();
 
                         filterModule->paramQuantities.at(MODE_BUTTON_PARAM)->name =
-                            std::string("Mode: ") + (isBandpass ? "BANDPASS" : "NOTCH");
+                            std::string("Mode: ") + (isBandpass ? "BANDPASS" : "NOTCH/COMB");
                     }
                 }
 
