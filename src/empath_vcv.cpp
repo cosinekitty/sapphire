@@ -39,6 +39,7 @@ namespace Sapphire
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
             float chaosSpeedKnob{};
             float chaosLevelKnob{};
+            float chaosStereoCrossfade{};       // 0 = mono chaotic CV, 1 = stereo chaotic CV
             SpectrumDisplayMode spectrumDisplayMode = SpectrumDisplayMode::Monophonic;
         };
 
@@ -74,6 +75,23 @@ namespace Sapphire
         }
 
         constexpr int OctaveRange = 5;
+
+
+        inline float ChaosControlVoltage(unsigned channel, float stereoCrossfade, float leftCv, float rightCv)
+        {
+            if (channel & 1)
+            {
+                // All odd channels 1, 3, 5, ... 15 are considered "right" channels.
+                // So the output can crossfade between left and right on a right channel,
+                // whenever the user toggles the chaos mono/stereo button.
+                return LinearMix(stereoCrossfade, leftCv, rightCv);
+            }
+
+            // Otherwise, we have an even-index channel 0, 2, 4, ... 14.
+            // These are all considered "left" channels, which always receive the left output.
+            return leftCv;
+        }
+
 
         struct EmpathModule : SapphireModule
         {
@@ -462,6 +480,7 @@ namespace Sapphire
                 CHAOS_LEVEL_ATTEN,
                 INIT_CHAIN_BUTTON_PARAM,
                 TOGGLE_SPECTRUM_BUTTON_PARAM,
+                CHAOS_STEREO_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -517,11 +536,20 @@ namespace Sapphire
                 }
             };
 
+            struct ChaosStereoButton : SapphireTinyToggleButton
+            {
+                explicit ChaosStereoButton()
+                {
+                    addTinyButtonFrames(this, "green");
+                }
+            };
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
                 PortLabelMode inputLabels = PortLabelMode::Stereo;
                 fountain_t fountain;
+                Crossfader chaosStereoCrossfader;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -536,11 +564,14 @@ namespace Sapphire
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");
+                    configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");
                     InputModule_initialize();
                 }
 
                 void InputModule_initialize()
                 {
+                    chaosStereoCrossfader.setCrossfadeDuration(0.1);
+                    chaosStereoCrossfader.snapToFront();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -591,6 +622,13 @@ namespace Sapphire
                     return frame;
                 }
 
+                float updateStereoCrossfade(float sampleRateHz)
+                {
+                    float value = getParamQuantity(CHAOS_STEREO_BUTTON_PARAM)->getValue();
+                    chaosStereoCrossfader.setTarget(value);
+                    return chaosStereoCrossfader.process(sampleRateHz, 0, 1);
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     ForwardMessage outMessage;
@@ -601,6 +639,7 @@ namespace Sapphire
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
+                    outMessage.chaosStereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
 
                     const batch_t batch = fountain.process(
@@ -634,6 +673,7 @@ namespace Sapphire
                     addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
                     addInitChainButton();
                     addToggleSpectrumButton();
+                    addChaosStereoButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -664,6 +704,12 @@ namespace Sapphire
                 {
                     auto button = createParamCentered<ToggleSpectrumButton>(Vec{}, inputModule, TOGGLE_SPECTRUM_BUTTON_PARAM);
                     addSapphireParam(button, "toggle_spectrum_button");
+                }
+
+                void addChaosStereoButton()
+                {
+                    auto button = createParamCentered<ChaosStereoButton>(Vec{}, inputModule, CHAOS_STEREO_BUTTON_PARAM);
+                    addSapphireParam(button, "chaos_stereo_button");
                 }
 
                 void drawSpectrumConnectorLine(NVGcontext* vg)
@@ -1017,7 +1063,7 @@ namespace Sapphire
             };
 
 
-            constexpr unsigned nChaoticSignals = 4;
+            constexpr unsigned nChaoticSignals = 7;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -1208,10 +1254,13 @@ namespace Sapphire
                         inMessage.chaosLevelKnob
                     );
 
-                    const float freqChaos  = batch.signal.at(0);
-                    const float resChaos   = batch.signal.at(1);
-                    const float levelChaos = batch.signal.at(2);
-                    const float panChaos   = batch.signal.at(3);
+                    const float freqChaosL  = batch.signal.at(0);
+                    const float freqChaosR  = batch.signal.at(1);
+                    const float resChaosL   = batch.signal.at(2);
+                    const float resChaosR   = batch.signal.at(3);
+                    const float levelChaosL = batch.signal.at(4);
+                    const float levelChaosR = batch.signal.at(5);
+                    const float panChaos    = batch.signal.at(6);
 
                     Frame sendFrame;
                     Frame envelopeFrame;
@@ -1240,6 +1289,10 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
+
+                            float freqChaos  = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, freqChaosL, freqChaosR);
+                            float resChaos   = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, resChaosL, resChaosR);
+                            float levelChaos = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, levelChaosL, levelChaosR);
 
                             nextVoltageOrChaosSignal(cvFreq, FREQ_CV_INPUT, c, freqChaos);
                             nextVoltageOrChaosSignal(cvRes, RES_CV_INPUT, c, resChaos);

@@ -2502,6 +2502,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xChaosBoxTextLeft  = xmid - dxChaosText
     xChaosBoxTextRight = xmid + dxChaosText
     arcRadius = 4.0
+    xChaosStereoButton = xChaosBoxRight - 3.0
+    yChaosStereoButton = yChaosBoxTop + 3.0
     xSpectrumButton = xInsertButton
     ySpectrumButton = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2
 
@@ -2546,6 +2548,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
 
         pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
         pl.append(BoxArt())
+        controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
 
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
         pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
