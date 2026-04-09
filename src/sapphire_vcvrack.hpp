@@ -1712,11 +1712,25 @@ namespace Sapphire
                 lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
         }
 
-        void updateToggleButtonTooltip(int buttonId, const char* offText, const char *onText)
+        void updateParamTooltip(int paramId, const std::string& text)
         {
-            if (buttonId >= 0 && buttonId < static_cast<int>(params.size()))
-                if (ParamQuantity* qty = getParamQuantity(buttonId))
+            if (paramId >= 0 && paramId < static_cast<int>(params.size()))
+                if (ParamQuantity* qty = getParamQuantity(paramId))
+                    qty->name = text;
+        }
+
+        void updateToggleButtonTooltip(int paramId, const char* offText, const char *onText)
+        {
+            if (paramId >= 0 && paramId < static_cast<int>(params.size()))
+                if (ParamQuantity* qty = getParamQuantity(paramId))
                     qty->name = (qty->getValue() < 0.5f) ? offText : onText;
+        }
+
+        void updateInputTooltip(int inputId, const std::string& text)
+        {
+            if (inputId >= 0 && inputId < static_cast<int>(inputInfos.size()))
+                if (PortInfo* info = inputInfos.at(inputId))
+                    info->name = text;
         }
 
         float readSample(float normal, Input& inLeft, Input& inRight, int c)

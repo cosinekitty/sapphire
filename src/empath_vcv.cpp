@@ -1225,10 +1225,15 @@ namespace Sapphire
                     return pannedAudio;
                 }
 
-                void updateMuteSoloControls()
+                void updateTooltips()
                 {
                     updateToggleButtonTooltip(MUTE_BUTTON_PARAM, "Mute: OFF", "Mute: ON");
                     updateToggleButtonTooltip(SOLO_BUTTON_PARAM, "Solo: OFF", "Solo: ON");
+
+                    const std::string name = isModeNotch() ? "Morph" : "Resonance";
+                    updateParamTooltip(RES_PARAM, name);
+                    updateParamTooltip(RES_ATTEN, name + " attenuverter");
+                    updateInputTooltip(RES_CV_INPUT, name + " CV");
                 }
 
                 int updateSolo(Frame& soloFrame, const Frame& inFrame, float sampleRateHz)
@@ -1494,7 +1499,7 @@ namespace Sapphire
                     updateEnvDuck();
                     if (filterModule)
                     {
-                        filterModule->updateMuteSoloControls();
+                        filterModule->updateTooltips();
                     }
                 }
 
