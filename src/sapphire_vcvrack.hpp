@@ -1708,27 +1708,27 @@ namespace Sapphire
 
         void setLightBrightness(int lightId, bool lit)
         {
-            if (lightId >= 0)
+            if (IsSafeAccess(lights, lightId))
                 lights.at(lightId).setBrightness(lit ? 1.0f : 0.06f);
         }
 
         void updateParamTooltip(int paramId, const std::string& text)
         {
-            if (paramId >= 0 && paramId < static_cast<int>(params.size()))
+            if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
                     qty->name = text;
         }
 
         void updateToggleButtonTooltip(int paramId, const char* offText, const char *onText)
         {
-            if (paramId >= 0 && paramId < static_cast<int>(params.size()))
+            if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
                     qty->name = (qty->getValue() < 0.5f) ? offText : onText;
         }
 
         void updateInputTooltip(int inputId, const std::string& text)
         {
-            if (inputId >= 0 && inputId < static_cast<int>(inputInfos.size()))
+            if (IsSafeAccess(inputInfos, inputId))
                 if (PortInfo* info = inputInfos.at(inputId))
                     info->name = text;
         }

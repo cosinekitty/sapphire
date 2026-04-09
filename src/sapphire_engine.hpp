@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
+#include <type_traits>
 
 #include "sapphire_simd.hpp"
 
@@ -816,4 +817,22 @@ namespace Sapphire
     }
 
     //-----------------------------------------------------------------------------------------
+
+    template <typename index_t, typename length_t>
+    bool IsValidIndex(index_t index, length_t length)
+    {
+        static_assert(std::is_integral_v<index_t>);
+        using u = std::make_unsigned_t<index_t>;
+
+        static_assert(std::is_integral_v<length_t>);
+        static_assert(std::is_unsigned_v<length_t>);
+
+        return static_cast<u>(index) < length;
+    }
+
+    template <typename container_t, typename index_t>
+    bool IsSafeAccess(const container_t& container, index_t index)
+    {
+        return IsValidIndex(index, container.size());
+    }
 }
