@@ -922,11 +922,17 @@ namespace Sapphire
 
             struct SpectrumWidget : OpaqueWidget
             {
+                static constexpr unsigned fdenom = 4;
+                static constexpr unsigned niter = SpectrumLength / fdenom;
+                static_assert(niter > 0);
+
                 FilterModule* filterModule{};
                 unsigned nchannels{};
                 std::array<fft_delay_line_t, PORT_MAX_CHANNELS> fftDelayLines;
                 std::vector<float> fftBufferIn;
                 std::vector<float> fftBufferOut;
+                std::array<std::vector<float>, PORT_MAX_CHANNELS> vuMeter;
+                bool vuReset{};
                 rack::dsp::RealFFT fftEngine{SpectrumLength};
                 SpectrumDisplayMode displayMode = SpectrumDisplayMode::Monophonic;
 
@@ -941,6 +947,8 @@ namespace Sapphire
                     box.size.y = mm2px(lowerRight.cy - upperLeft.cy);
                     fftBufferIn.resize(SpectrumLength);
                     fftBufferOut.resize(SpectrumLength);
+                    for (auto& v : vuMeter)
+                        v.resize(niter);
                     initialize();
                 }
 
@@ -949,6 +957,7 @@ namespace Sapphire
                 void initialize()
                 {
                     displayMode = SpectrumDisplayMode::Monophonic;
+                    vuReset = true;
 
                     for (fft_delay_line_t& delayLine : fftDelayLines)
                         delayLine.clear();
@@ -1032,32 +1041,53 @@ namespace Sapphire
 
                     constexpr float dbShift = -3.3;
                     constexpr float dbScale = +1.4;
+                    constexpr float vuSettle = 0.15;
 
-                    constexpr unsigned fdenom = 4;
-                    constexpr unsigned niter = SpectrumLength / fdenom;
-                    static_assert(niter > 0);
                     constexpr float nf = niter;
                     constexpr float strokeWidthPx = fdenom / 8.0;
+                    const float dxPerFreqBin = box.size.x / niter;
 
-                    float dxPerFreqBin = box.size.x / niter;
-
+                    unsigned col = 0;
+                    float vuPrev{};
                     for (unsigned f=0; f+1 < niter; f+=2)
                     {
                         float x = dxPerFreqBin * f;
-                        float power = Square(fftBufferOut.at(f)) + Square(fftBufferOut.at(f+1));
-                        if (power > 0)
+                        float power = std::max(1.0e-6f, Square(fftBufferOut.at(f)) + Square(fftBufferOut.at(f+1)));
+                        float& vu = vuMeter[c][col];
+                        float db = dbScale*(std::log10(power) + dbShift);
+                        float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
+                        float yTop = yMiddle - dyPowerPx;   // array of these values for each column. quick rise, slow fade.
+
+                        if (vuReset)
+                            vu = yBase;
+                        else if (yTop < vu)
+                            vu = yTop;
+                        else
+                            vu = LinearMix(vuSettle, vu, yTop);
+
+                        NVGcolor riserColor = barColor(f/nf);
+                        NVGcolor segmentColor = FadeColor(0.25, 1, riserColor, SCHEME_WHITE);
+
+                        nvgBeginPath(args.vg);
+                        nvgLineCap(args.vg, NVG_BUTT);
+                        nvgStrokeWidth(args.vg, strokeWidthPx);
+                        nvgStrokeColor(args.vg, riserColor);
+                        nvgMoveTo(args.vg, x, yBase);
+                        nvgLineTo(args.vg, x, yTop);
+                        nvgStroke(args.vg);
+
+                        if (f > 0)
                         {
-                            float db = dbScale*(std::log10(power) + dbShift);
-                            float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
-                            float yTop = yMiddle - dyPowerPx;
                             nvgBeginPath(args.vg);
-                            nvgLineCap(args.vg, NVG_BUTT);
-                            nvgStrokeWidth(args.vg, strokeWidthPx);
-                            nvgStrokeColor(args.vg, barColor(f/nf));
-                            nvgMoveTo(args.vg, x, yBase);
-                            nvgLineTo(args.vg, x, yTop);
+                            nvgStrokeWidth(args.vg, 0.4);
+                            nvgStrokeColor(args.vg, segmentColor);
+                            nvgMoveTo(args.vg, x - 2*dxPerFreqBin, vuPrev);
+                            nvgLineTo(args.vg, x, vu);
                             nvgStroke(args.vg);
                         }
+
+                        vuPrev = vu;
+                        ++col;
                     }
                 }
             };
@@ -1614,6 +1644,7 @@ namespace Sapphire
                         for (unsigned c = 0; c < nchannels; ++c)
                             graphSpectrum(args, c, nchannels);
                     }
+                    vuReset = false;
                 }
             }
 
