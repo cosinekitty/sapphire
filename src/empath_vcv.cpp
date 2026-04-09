@@ -1006,7 +1006,7 @@ namespace Sapphire
                             // Produce a polyphonic voltage from each individual channel.
                             y = fftDelayLines[c].readForward(offset);
                         }
-                        fftBufferIn[offset] *= Square(std::sin(factor * offset));   // Hann window function
+                        y *= Square(std::sin(factor * offset));   // Hann window function
                     }
 
                     // Take the real-valued Fast Fourier Transform.
