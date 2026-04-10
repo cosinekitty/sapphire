@@ -648,9 +648,9 @@ namespace Sapphire
                 // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
                 // if the attenuverter were set to 100%. We want to bring the ratio down
                 // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
-                addSnapVoctAttenuverter(SPEED_ATTEN, "speed_atten", 5.0f / (2*ChaosOctaveRange));
+                addSnapVoctAttenuverter(SPEED_ATTEN, "speed_atten", 5.0f / (2*ChaosOctaveRange), DX_UNIPOLAR_B, DY_UNIPOLAR_B);
 
-                addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten");
+                addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
                 addInsertTricorderButton(ADD_TRICORDER_BUTTON_PARAM);
