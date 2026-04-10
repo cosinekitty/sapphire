@@ -20,11 +20,12 @@ namespace Sapphire
     };
 
 
-    template <unsigned nsignals>
+    template <unsigned nsignals, typename rand_t = std::mt19937>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
     private:
         std::uint64_t seed = 0;
+        std::array<unsigned, nsignals> permutation{};
 
     public:
         // We produce any number of one-channel signals by using the equivalent
@@ -87,14 +88,9 @@ namespace Sapphire
                 const double y = osc.ypos();
                 const double z = osc.zpos();
 
-                if (n < nsignals)
-                    batch.signal[n++] = (x + y + z)*r;
-
-                if (n < nsignals)
-                    batch.signal[n++] = x*w + y*u - z*r;
-
-                if (n < nsignals)
-                    batch.signal[n++] = x*u + y*w - z*r;
+                append(n, batch, (x + y + z)*r);
+                append(n, batch, x*w + y*u - z*r);
+                append(n, batch, x*u + y*w - z*r);
             }
 
             assert(n == nsignals);
@@ -107,13 +103,34 @@ namespace Sapphire
 
         void reset()
         {
-            using namespace std;
+            if (seed != 0)
+            {
+                // Restart all chaotic oscillators deterministically based on the seed.
+                rand_t gen(seed);
+                randomizeChaoticOscillators(gen);
+                shuffleSignalMapping(gen);
+            }
+        }
 
-            // Restart all chaotic oscillators deterministically based on the seed.
-            assert(seed != 0);
+        void reset(uint64_t newSeed)
+        {
+            seed = newSeed;
+            reset();
+        }
 
-            mt19937 gen(seed);
+    private:
+        void shuffleSignalMapping(rand_t& gen)
+        {
+            for (unsigned i = 0; i < nsignals; ++i)
+                permutation[i] = i;
 
+            for (unsigned i=1; i<nsignals; ++i)
+                if (unsigned r = gen()%(i+1); r<i)
+                    std::swap(permutation[r], permutation[i]);
+        }
+
+        void randomizeChaoticOscillators(rand_t& gen)
+        {
             uint32_t accum = 0;
             uint32_t bits = 0;
 
@@ -155,10 +172,10 @@ namespace Sapphire
             }
         }
 
-        void reset(uint64_t newSeed)
+        void append(unsigned& n, batch_t& batch, float signal)
         {
-            seed = newSeed;
-            reset();
+            if (n < nsignals)
+                batch.signal.at(permutation[n++]) = signal;
         }
     };
 }
