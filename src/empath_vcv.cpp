@@ -464,7 +464,7 @@ namespace Sapphire
 
         namespace EInput
         {
-            constexpr unsigned nChaoticSignals = 1;
+            constexpr unsigned nChaoticSignals = 2;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -550,6 +550,7 @@ namespace Sapphire
                 PortLabelMode inputLabels = PortLabelMode::Stereo;
                 fountain_t fountain;
                 Crossfader chaosStereoCrossfader;
+                float speedChaos{};
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -572,6 +573,7 @@ namespace Sapphire
                 {
                     chaosStereoCrossfader.setCrossfadeDuration(0.1);
                     chaosStereoCrossfader.snapToFront();
+                    speedChaos = 0;
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -616,6 +618,7 @@ namespace Sapphire
                     frame.nchannels = nchannels;
                     for (int c = 0; c < nchannels; ++c)
                     {
+                        // FIXFIXFIX - chaos needs to be stereo-aware
                         nextVoltageOrChaosSignal(cv, CASCADE_CV_INPUT, c, chaos);
                         frame.sample[c] = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cv, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
                     }
@@ -637,7 +640,7 @@ namespace Sapphire
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
-                    outMessage.chaosSpeedKnob = getControlValue(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
+                    outMessage.chaosSpeedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaosStereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
@@ -647,10 +650,10 @@ namespace Sapphire
                         outMessage.chaosSpeedKnob,
                         outMessage.chaosLevelKnob
                     );
-
                     const float cascadeChaos = batch.signal.at(0);
-                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels, cascadeChaos);
+                    speedChaos = batch.signal.at(1);
 
+                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels, cascadeChaos);
                     sendMessage(outMessage);
                 }
             };
