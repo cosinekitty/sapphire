@@ -371,6 +371,24 @@ namespace Sapphire
 
                     Vec portCenter = knobCenter.plus(mm2px(Vec(-10.0*xdir, +4.0)));
                     addInput(createInputCentered<SapphirePort>(portCenter, tubeUnitModule, cg.inputId));
+
+                    // Tube Unit has two different orientation of control group in the hex grid.
+                    constexpr float unipolarHorizontalShift = 4.0;
+                    if (attenCenter.x < knobCenter.x)
+                    {
+                        // If the attenuverter is to the left of the big knob,
+                        // then the unipolar symbol should go to the left of the attenuverter.
+                        knob->unipolarIndicatorDelta.x = mm2px(-unipolarHorizontalShift);
+                    }
+                    else
+                    {
+                        // Otherwise, the unipolar symbol should go to the right of the attenuverter.
+                        knob->unipolarIndicatorDelta.x = mm2px(+unipolarHorizontalShift);
+                    }
+
+                    // In either case, the vertical position should match the big knob's center.
+                    constexpr float unipolarVerticalAdjustment = -0.5;
+                    knob->unipolarIndicatorDelta.y = (knobCenter.y - attenCenter.y) + mm2px(unipolarVerticalAdjustment);
                 }
 
                 addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");
