@@ -413,11 +413,11 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
 
-                addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten");
-                addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten");
-                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten");
-                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten");
-                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten");
+                addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
+                addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
+                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
+                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
+                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten", DX_UNIPOLAR_B, DY_UNIPOLAR_B);
 
                 auto audioModeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addSapphireParam(audioModeButton, "audio_mode_button");
