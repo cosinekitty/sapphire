@@ -403,14 +403,20 @@ namespace Sapphire
                 addSlider(CURL_SLIDER_PARAM, CURL_LIGHT, "curl_slider");
                 addSlider(MASS_SLIDER_PARAM, MASS_LIGHT, "mass_slider");
 
-                // Attenuverters
-                addSapphireAttenuverter(FRICTION_ATTEN_PARAM, "fric_atten");
-                addSapphireAttenuverter(STIFFNESS_ATTEN_PARAM, "stif_atten");
-                addSapphireAttenuverter(SPAN_ATTEN_PARAM, "span_atten");
-                addSapphireAttenuverter(CURL_ATTEN_PARAM, "curl_atten");
-                addSapphireAttenuverter(MASS_ATTEN_PARAM, "mass_atten");
-                addSapphireAttenuverter(INPUT_TILT_ATTEN_PARAM, "input_tilt_atten");
-                addSapphireAttenuverter(OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten");
+                // Slider attenuverters
+                constexpr float dxUnipolarSlider =  0.0;
+                constexpr float dyUnipolarSlider = +4.125;
+                addSapphireAttenuverter(FRICTION_ATTEN_PARAM, "fric_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(STIFFNESS_ATTEN_PARAM, "stif_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(SPAN_ATTEN_PARAM, "span_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(CURL_ATTEN_PARAM, "curl_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(MASS_ATTEN_PARAM, "mass_atten", dxUnipolarSlider, dyUnipolarSlider);
+
+                // Tilt attenuverters (mirror image arrangement)
+                constexpr float dxUnipolarTilt =  3.0;
+                constexpr float dyUnipolarTilt = +4.5;
+                addSapphireAttenuverter(INPUT_TILT_ATTEN_PARAM, "input_tilt_atten",   +dxUnipolarTilt, dyUnipolarTilt);
+                addSapphireAttenuverter(OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten", -dxUnipolarTilt, dyUnipolarTilt);
 
                 // Drive and Level knobs
                 addKnob(DRIVE_KNOB_PARAM, "drive_knob");
