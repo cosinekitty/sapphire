@@ -208,13 +208,7 @@ namespace Sapphire
 
     void SapphireWidget::draw(const DrawArgs& args)
     {
-        DrawArgs newDrawArgs = args;
-
-        // Eliminate the hairline gap between adjacent modules.
-        // A trick borrowed from the MindMeld plugin:
-        // tweak the clip box so we are allowed to draw 0.3 mm to the right of our own panel.
-        newDrawArgs.clipBox.size.x += mm2px(DxRemoveGap);
-        ModuleWidget::draw(newDrawArgs);
+        ModuleWidget::draw(args);
         DrawOpaqueBorders(args.vg, box, isNeonModeActive(), isLeftBorderHidden(), isRightBorderHidden());
     }
 
