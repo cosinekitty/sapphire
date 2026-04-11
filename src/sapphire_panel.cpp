@@ -211,6 +211,7 @@ namespace Sapphire
             {"cascade_cv",             {  25.320,   37.325}},
             {"cascade_knob",           {  20.320,   26.325}},
             {"channel_mode_button",    {  13.820,   98.000}},
+            {"chaos_random_button",    {   6.820,   51.250}},
             {"chaos_stereo_button",    {  33.820,   51.250}},
             {"clevel_atten",           {  20.320,   74.250}},
             {"clevel_cv",              {  11.320,   74.250}},

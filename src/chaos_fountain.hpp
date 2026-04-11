@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include "chaos.hpp"
 
 namespace Sapphire
@@ -18,6 +19,9 @@ namespace Sapphire
     {
         std::array<float, nsignals> signal{};
     };
+
+
+    using seed_generator_t = std::function<uint64_t()>;
 
 
     template <unsigned nsignals, typename rand_t = std::mt19937>
@@ -40,29 +44,14 @@ namespace Sapphire
         std::uint64_t getSeed() const { return seed; }
         void forgetSeed() { seed = 0; }
 
-        void commitSeed()
-        {
-            using namespace std;
-
-            if (seed != 0)
-                return;     // we already picked a seed, and once picked, we don't change it.
-
-            // Generate a high-precision timestamp as a pseudorandom seed.
-            const auto now = chrono::high_resolution_clock::now();
-            seed = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
-            assert(seed != 0);
-
-            // The seed is now valid for use to generate a series of
-            // determinsitic and pseudorandon numbers.
-            reset();
-        }
-
         batch_t process(
             float sampleRateHz,
             float speedKnob,        // relative time-flow rate in octaves
-            float levelKnob)        // how intense the chaos is across all attenuverters
+            float levelKnob,        // how intense the chaos is across all attenuverters
+            seed_generator_t gen)
         {
-            commitSeed();
+            if (seed == 0)
+                reset(gen());
 
             batch_t batch;
 

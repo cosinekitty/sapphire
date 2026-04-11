@@ -50,6 +50,36 @@ namespace Sapphire
             int soloCount = 0;      // the correct solo count, being reported back from the end of the chain
         };
 
+
+        struct ChaosFountainRestoreInfo
+        {
+            int64_t moduleId;
+            uint64_t seed;
+
+            explicit ChaosFountainRestoreInfo(int64_t chaosModuleId, uint64_t chaosFountainSeed)
+                : moduleId(chaosModuleId)
+                , seed(chaosFountainSeed)
+                {}
+        };
+
+
+        struct RandomizeChaosAction : history::Action
+        {
+            using list_t = std::vector<ChaosFountainRestoreInfo>;
+
+            list_t list;
+
+            explicit RandomizeChaosAction(const list_t& _list)
+                : list(_list)
+            {
+                name = "randomize chaos generators";
+            }
+
+            void undo() override;
+            void redo() override;
+        };
+
+
         inline bool IsInput(const Module* module)
         {
             return IsModelType(module, modelSapphireEmpathInput);
@@ -233,7 +263,27 @@ namespace Sapphire
                     audioRightOutput.setVoltage(0, 0);
                 }
             }
+
+            virtual uint64_t getSeed() const = 0;
+            virtual void resetSeed(uint64_t seed) = 0;
+            virtual void randomizeChaosFountain() = 0;
         };
+
+
+        void RandomizeChaosAction::redo()
+        {
+            for (const ChaosFountainRestoreInfo& node : list)
+                if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
+                    empathModule->randomizeChaosFountain();
+        }
+
+
+        void RandomizeChaosAction::undo()
+        {
+            for (const ChaosFountainRestoreInfo& node : list)
+                if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
+                    empathModule->resetSeed(node.seed);
+        }
 
 
         struct EmpathWidget : SapphireWidget
@@ -482,6 +532,7 @@ namespace Sapphire
                 INIT_CHAIN_BUTTON_PARAM,
                 TOGGLE_SPECTRUM_BUTTON_PARAM,
                 CHAOS_STEREO_BUTTON_PARAM,
+                CHAOS_RANDOMIZE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -545,6 +596,18 @@ namespace Sapphire
                 }
             };
 
+            struct ChaosRandomButton : SapphireTinyActionButton
+            {
+                InputWidget* inputWidget{};
+
+                explicit ChaosRandomButton()
+                {
+                    addTinyButtonFrames(this, "red");
+                }
+
+                void action() override;
+            };
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -568,6 +631,7 @@ namespace Sapphire
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");
                     configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");
+                    configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize choatic CV");
                     InputModule_initialize();
                 }
 
@@ -653,13 +717,41 @@ namespace Sapphire
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         outMessage.chaosSpeedKnob,
-                        outMessage.chaosLevelKnob
+                        outMessage.chaosLevelKnob,
+                        rack::random::u64
                     );
                     const float cascadeChaos = batch.signal.at(0);
                     speedChaos = batch.signal.at(1);
 
                     outMessage.cascade = readCascade(outMessage.dryAudio.nchannels, cascadeChaos);
                     sendMessage(outMessage);
+                }
+
+                uint64_t getSeed() const override
+                {
+                    return fountain.getSeed();
+                }
+
+                void randomizeChaosFountain() override
+                {
+                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
+                }
+
+                void resetSeed(uint64_t seed) override
+                {
+                    fountain.reset(seed);
+                }
+
+                void randomizeChaos()
+                {
+                    std::vector<ChaosFountainRestoreInfo> list;
+                    const EmpathModule* empathModule = this;
+                    while (empathModule)
+                    {
+                        list.push_back(ChaosFountainRestoreInfo(empathModule->id, empathModule->getSeed()));
+                        empathModule = dynamic_cast<EmpathModule*>(empathModule->rightExpander.module);
+                    }
+                    InvokeAction(new RandomizeChaosAction(list));
                 }
             };
 
@@ -682,6 +774,7 @@ namespace Sapphire
                     addInitChainButton();
                     addToggleSpectrumButton();
                     addChaosStereoButton();
+                    addChaosRandomButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -718,6 +811,13 @@ namespace Sapphire
                 {
                     auto button = createParamCentered<ChaosStereoButton>(Vec{}, inputModule, CHAOS_STEREO_BUTTON_PARAM);
                     addSapphireParam(button, "chaos_stereo_button");
+                }
+
+                void addChaosRandomButton()
+                {
+                    auto button = createParamCentered<ChaosRandomButton>(Vec{}, inputModule, CHAOS_RANDOMIZE_BUTTON_PARAM);
+                    button->inputWidget = this;
+                    addSapphireParam(button, "chaos_random_button");
                 }
 
                 void drawSpectrumConnectorLine(NVGcontext* vg)
@@ -814,6 +914,11 @@ namespace Sapphire
                     }
                 }
 
+                void randomizeChaos()
+                {
+                    if (inputModule)
+                        inputModule->randomizeChaos();
+                }
             };
 
 
@@ -821,6 +926,13 @@ namespace Sapphire
             {
                 if (inputWidget)
                     inputWidget->initializeExpanderChain();
+            }
+
+
+            void ChaosRandomButton::action()
+            {
+                if (inputWidget)
+                    inputWidget->randomizeChaos();
             }
         };
 
@@ -1292,6 +1404,21 @@ namespace Sapphire
                     fountain.forgetSeed();
                 }
 
+                uint64_t getSeed() const override
+                {
+                    return fountain.getSeed();
+                }
+
+                void randomizeChaosFountain() override
+                {
+                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
+                }
+
+                void resetSeed(uint64_t seed) override
+                {
+                    fountain.reset(seed);
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const ForwardMessage inMessage = receiveMessageOrDefault();
@@ -1313,7 +1440,8 @@ namespace Sapphire
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         inMessage.chaosSpeedKnob,
-                        inMessage.chaosLevelKnob
+                        inMessage.chaosLevelKnob,
+                        rack::random::u64
                     );
 
                     const float freqChaosL  = batch.signal.at(0);
@@ -1777,6 +1905,20 @@ namespace Sapphire
                         fountain.reset(json_integer_value(jseed));
                 }
 
+                uint64_t getSeed() const override
+                {
+                    return fountain.getSeed();
+                }
+
+                void randomizeChaosFountain() override
+                {
+                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
+                }
+
+                void resetSeed(uint64_t seed) override
+                {
+                    fountain.reset(seed);
+                }
 
                 void process(const ProcessArgs& args) override
                 {
@@ -1795,7 +1937,8 @@ namespace Sapphire
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         message.chaosSpeedKnob,
-                        message.chaosLevelKnob
+                        message.chaosLevelKnob,
+                        rack::random::u64
                     );
 
                     Frame audio = outputAudioFrame(
