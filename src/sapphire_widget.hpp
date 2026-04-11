@@ -602,6 +602,8 @@ namespace Sapphire
         SapphireTooltip* envDuckTooltip{};
         Vec envDuckLabelPos{};
 
+        float xMuteLeft = 0;
+
         const std::string portLabelFontPath = asset::system("res/fonts/DejaVuSans.ttf");
 
         explicit SapphireWidget(const std::string& moduleCode, const std::string& panelSvgFileName)
@@ -1031,6 +1033,15 @@ namespace Sapphire
 
         bool shouldOfferChaops();
         void addChaopsExpander();
+
+        void drawMuteIndicator(NVGcontext* vg)
+        {
+            NVGcolor color = nvgRGBA(0x20, 0x20, 0x20, 0x40);
+            nvgBeginPath(vg);
+            nvgRect(vg, xMuteLeft, 0, box.size.x - xMuteLeft, box.size.y);
+            nvgFillColor(vg, color);
+            nvgFill(vg);
+        }
 
         void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
         {

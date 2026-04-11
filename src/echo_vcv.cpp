@@ -1657,6 +1657,9 @@ namespace Sapphire
                     drawAudioPortLabels(args.vg, loopModule->sendReturnPortLabels, L.cx, L.cy, R.cx, R.cy);
                     NVGcolor color = isMouseInsideRevFlipGateTriggerToggle ? mouseHoverColor : SCHEME_BLACK;
                     drawTriggerGateSymbol(args.vg, flpRevLabelPos, loopModule->reverseToggleGroup, color);
+
+                    if (!loopModule->isAudible())
+                        drawMuteIndicator(args.vg);
                 }
             }
 
@@ -2194,6 +2197,7 @@ namespace Sapphire
                     , echoModule(module)
                 {
                     splash.x1 = 6 * HP_MM;
+                    xMuteLeft = mm2px(6 * HP_MM);
                     setModule(module);
                     addExpanderInsertButton(INSERT_BUTTON_PARAM);
                     addLabelOverlays();

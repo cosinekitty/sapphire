@@ -1549,15 +1549,6 @@ namespace Sapphire
                     }
                 }
 
-                void drawMuteIndicator(NVGcontext* vg)
-                {
-                    NVGcolor color = nvgRGBA(0x20, 0x20, 0x20, 0x40);
-                    nvgBeginPath(vg);
-                    nvgRect(vg, 0, 0, box.size.x, box.size.y);
-                    nvgFillColor(vg, color);
-                    nvgFill(vg);
-                }
-
                 void drawSpectrumConnectorLine(NVGcontext* vg)
                 {
                     if (filterModule && filterModule->spectrum)
