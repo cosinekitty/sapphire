@@ -41,6 +41,7 @@ namespace Sapphire
             float chaosLevelKnob{};
             float chaosStereoCrossfade{};       // 0 = mono chaotic CV, 1 = stereo chaotic CV
             SpectrumDisplayMode spectrumDisplayMode = SpectrumDisplayMode::Monophonic;
+            InterpolatorKind interpolatorKind = InterpolatorKind::Default;
         };
 
         struct BackwardMessage
@@ -551,6 +552,7 @@ namespace Sapphire
                 fountain_t fountain;
                 Crossfader chaosStereoCrossfader;
                 float speedChaos{};
+                InterpolatorKind interpolatorKind = InterpolatorKind::Default;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -588,6 +590,7 @@ namespace Sapphire
                 {
                     json_t* root = EmpathModule::dataToJson();
                     jsonSetBool(root, "autoCreateExpanders", autoCreateExpanders);
+                    jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
                     return root;
                 }
@@ -596,6 +599,7 @@ namespace Sapphire
                 {
                     EmpathModule::dataFromJson(root);
                     jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
+                    jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
                         fountain.reset(json_integer_value(jseed));
                 }
@@ -644,6 +648,7 @@ namespace Sapphire
                     outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaosStereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
+                    outMessage.interpolatorKind = interpolatorKind;
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
@@ -766,6 +771,24 @@ namespace Sapphire
                     }
                 }
 
+                void appendContextMenu(Menu* menu) override
+                {
+                    EmpathWidget::appendContextMenu(menu);
+                    if (inputModule)
+                    {
+                        menu->addChild(new MenuSeparator);
+                        menu->addChild(CreateChangeEnumMenuItem(
+                            "Interpolator",
+                            {
+                                "Linear (uses less CPU)",
+                                "Sinc (cleaner audio)"
+                            },
+                            "change interpolator",
+                            inputModule->interpolatorKind
+                        ));
+                    }
+                }
+
                 void initializeExpanderChain()
                 {
                     if (inputModule)
@@ -790,6 +813,7 @@ namespace Sapphire
                         APP->history->push(new InitChainAction(list));
                     }
                 }
+
             };
 
 
@@ -1342,6 +1366,7 @@ namespace Sapphire
 
                             q.filter.setFrequency(freqKnob);
                             q.filter.setResonance(resKnob);
+                            q.filter.setInterpolator(inMessage.interpolatorKind);
 
                             sendFrame.sample[c] = q.filter.process(
                                 args.sampleRate,

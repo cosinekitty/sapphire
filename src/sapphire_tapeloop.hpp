@@ -73,14 +73,6 @@ namespace Sapphire
     };
 
 
-    enum class InterpolatorKind
-    {
-        Linear,
-        Sinc,
-        LEN
-    };
-
-
     class TapeLoop
     {
     private:

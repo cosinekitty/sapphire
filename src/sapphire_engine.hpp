@@ -346,6 +346,16 @@ namespace Sapphire
     };
 
 
+    enum class InterpolatorKind
+    {
+        Linear,
+        Sinc,
+        LEN,
+
+        Default = Linear
+    };
+
+
     class AutomaticGainLimiter      // dynamically adjusts gain to keep a signal from getting too hot
     {
     private:

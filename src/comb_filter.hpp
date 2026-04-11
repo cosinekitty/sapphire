@@ -29,7 +29,7 @@ namespace Sapphire
     public:
         float centerFrequencyHz = C4_FREQUENCY_HZ;
 
-        bool highQuality = false;
+        InterpolatorKind interp = InterpolatorKind::Default;
 
         void initialize()
         {
@@ -58,7 +58,7 @@ namespace Sapphire
             float delaySamples = sampleRateHz / frequencyHz;
 
             value_t oldSample;
-            if (highQuality)
+            if (interp == InterpolatorKind::Sinc)
             {
                 // Slower sinc-resampler with (theoretically) better audio.
                 std::size_t centerSample = static_cast<std::size_t>(std::round(delaySamples));

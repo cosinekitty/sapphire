@@ -108,6 +108,12 @@ namespace Sapphire
                     m.combFilter.setResonance(combScale * resonanceKnob);        // FIXFIXFIX: also allow negative resonance
                 }
             }
+
+            void setInterpolator(InterpolatorKind interp)
+            {
+                for (MultiFilter& m : multi)
+                    m.combFilter.interp = interp;
+            }
         };
     }
 }
