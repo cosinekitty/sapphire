@@ -9,7 +9,7 @@
 
 namespace Sapphire
 {
-    extern const std::array<ChaoticOscillatorState, 256> InitialStateTable;
+    extern const std::array<ChaoticOscillatorState, 256> ChaosInitialStateTable;
     extern const std::array<float, 4> ChaosKnobChoices;
 
 
@@ -119,6 +119,12 @@ namespace Sapphire
         }
 
     private:
+        void append(unsigned& n, batch_t& batch, float signal)
+        {
+            if (n < nsignals)
+                batch.signal.at(permutation[n++]) = signal;
+        }
+
         void shuffleSignalMapping(rand_t& gen)
         {
             for (unsigned i = 0; i < nsignals; ++i)
@@ -165,17 +171,11 @@ namespace Sapphire
                     if (!alreadyPicked[q] || loop==3)
                     {
                         alreadyPicked[q] = true;
-                        osc.setState(InitialStateTable.at(q));
+                        osc.setState(ChaosInitialStateTable.at(q));
                         break;
                     }
                 }
             }
-        }
-
-        void append(unsigned& n, batch_t& batch, float signal)
-        {
-            if (n < nsignals)
-                batch.signal.at(permutation[n++]) = signal;
         }
     };
 }

@@ -11,7 +11,7 @@ namespace Sapphire
     };
 
 
-    const std::array<ChaoticOscillatorState, 256> InitialStateTable
+    const std::array<ChaoticOscillatorState, 256> ChaosInitialStateTable
     {
         ChaoticOscillatorState {   0.1153590026074885,   0.2237800591646375,   0.1565142247425325 },
         ChaoticOscillatorState {  -0.2213269513723907,  -0.0947407846300372,  -0.3711463658233178 },
