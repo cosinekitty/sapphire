@@ -29,6 +29,8 @@ namespace Sapphire
     public:
         float centerFrequencyHz = C4_FREQUENCY_HZ;
 
+        bool highQuality = false;
+
         void initialize()
         {
             delay.clear();
@@ -54,15 +56,28 @@ namespace Sapphire
 
             float frequencyHz = TwoToPower(frequencyVoct) * centerFrequencyHz;
             float delaySamples = sampleRateHz / frequencyHz;
-            std::size_t centerSample = static_cast<std::size_t>(std::round(delaySamples));
 
-            interpolator_t interp;
-            for (int w = -windowSize; w <= +windowSize; ++w)
+            value_t oldSample;
+            if (highQuality)
             {
-                value_t pastSample = delay.readBackward(centerSample + w);
-                interp.write(w, pastSample);
+                // Slower sinc-resampler with (theoretically) better audio.
+                std::size_t centerSample = static_cast<std::size_t>(std::round(delaySamples));
+                interpolator_t interp;
+                for (int w = -windowSize; w <= +windowSize; ++w)
+                {
+                    value_t pastSample = delay.readBackward(centerSample + w);
+                    interp.write(w, pastSample);
+                }
+                oldSample = interp.read(delaySamples - centerSample);
             }
-            value_t oldSample = interp.read(delaySamples - centerSample);
+            else
+            {
+                // Faster linear resampler. Sounds fine to me.
+                std::size_t t = static_cast<std::size_t>(std::floor(delaySamples));
+                value_t s1 = delay.readBackward(t);
+                value_t s2 = delay.readBackward(t+1);
+                oldSample = LinearMix(delaySamples-t, s1, s2);
+            }
             value_t feedbackSample = Compress(filtSample + resonance*oldSample);
             delay.write(feedbackSample);
             return feedbackSample;
