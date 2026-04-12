@@ -1195,7 +1195,7 @@ namespace Sapphire
 
                     constexpr float dbShift = -3.3;
                     constexpr float dbScale = +1.4;
-                    constexpr float vuSettle = 0.15;
+                    constexpr float vuSettle = 0.11;
 
                     constexpr float nf = niter;
                     constexpr float strokeWidthPx = fdenom / 8.0;
