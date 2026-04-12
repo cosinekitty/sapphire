@@ -109,10 +109,10 @@ namespace Sapphire
                 }
             }
 
-            void setInterpolator(InterpolatorKind interp)
+            void setInterpolator(InterpolatorKind interpKind)
             {
                 for (MultiFilter& m : multi)
-                    m.combFilter.interp = interp;
+                    m.combFilter.interpKind = interpKind;
             }
         };
     }
