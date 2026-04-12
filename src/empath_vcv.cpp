@@ -1,3 +1,4 @@
+#include <array>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_crossfader.hpp"
@@ -18,7 +19,13 @@ namespace Sapphire
         struct Frame
         {
             int nchannels = 0;
-            float sample[PORT_MAX_CHANNELS]{};
+            std::array<float, PORT_MAX_CHANNELS> sample{};
+
+            void multiply(float factor)
+            {
+                for (int c = 0; c < nchannels; ++c)
+                    sample.at(c) *= factor;
+            }
         };
 
         enum class SpectrumDisplayMode
@@ -640,7 +647,7 @@ namespace Sapphire
                 Crossfader chaosStereoCrossfader;
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
-                Smoother chaosAntiClickSmoother;
+                Smoother chaosAntiClickSmoother{0.025};
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -739,9 +746,11 @@ namespace Sapphire
                     outMessage.chaos.speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
-                    outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
-                    outMessage.chaos.reset = chaosAntiClickSmoother.isDelayedActionReady();
 
+                    outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
+                    outMessage.dryAudio.multiply(outMessage.chaos.antiClick);
+
+                    outMessage.chaos.reset = chaosAntiClickSmoother.isDelayedActionReady();
                     if (outMessage.chaos.reset && seedToRestore)
                     {
                         fountain.reset(seedToRestore);
@@ -1525,7 +1534,7 @@ namespace Sapphire
                             q.filter.setResonance(resKnob);
                             q.filter.setInterpolator(inMessage.interpolatorKind);
 
-                            sendFrame.sample[c] = q.filter.process(
+                            sendFrame.sample[c] = inMessage.chaos.antiClick * q.filter.process(
                                 args.sampleRate,
                                 inMessage.dryAudio.sample[c],
                                 inMessage.cascade.sample[c],
@@ -1541,7 +1550,7 @@ namespace Sapphire
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
-                            levelFrame.sample[c] = levelKnob * muteFactor * envelopeFrame.sample[c];
+                            levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
                         }
 
                         Frame outputFrame = panFrame(levelFrame, panChaos);
@@ -1551,7 +1560,7 @@ namespace Sapphire
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, envelopeFrame.nchannels, envelopeFrame.sample);
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, envelopeFrame.nchannels, envelopeFrame.sample.data());
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
@@ -1976,6 +1985,7 @@ namespace Sapphire
                         message.wetAudio,
                         message.soloAudio,
                         message.chaos.stereoCrossfade,
+                        message.chaos.antiClick,
                         solo,
                         batch
                     );
@@ -1989,6 +1999,7 @@ namespace Sapphire
                     const Frame& wetAudio,
                     const Frame& soloAudio,
                     float chaosStereoCrossfade,
+                    float chaosAntiClick,
                     float soloFactor,
                     const batch_t& chaosBatch)
                 {
@@ -2012,7 +2023,7 @@ namespace Sapphire
                         float level = Cube(cvGetVoltPerOctave(GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, cvLevel * gainSensitivity, 0, 2));
                         float mix = filter_t::filter_t::MixFactor(cvGetControlValue(GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, cvMix, 0, 1));
                         float wet = LinearMix(soloFactor, wetAudio.sample[c], soloAudio.sample[c]);
-                        result.sample[c] = level * LinearMix(mix, dryAudio.sample[c], wet);
+                        result.sample[c] = chaosAntiClick * level * LinearMix(mix, dryAudio.sample[c], wet);
                     }
                     return result;
                 }
