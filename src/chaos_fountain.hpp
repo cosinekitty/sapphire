@@ -21,9 +21,6 @@ namespace Sapphire
     };
 
 
-    using seed_generator_t = std::function<uint64_t()>;
-
-
     template <unsigned nsignals, typename rand_t = std::mt19937>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
@@ -47,12 +44,8 @@ namespace Sapphire
         batch_t process(
             float sampleRateHz,
             float speedKnob,        // relative time-flow rate in octaves
-            float levelKnob,        // how intense the chaos is across all attenuverters
-            seed_generator_t gen)
+            float levelKnob)        // how intense the chaos is across all attenuverters
         {
-            if (seed == 0)
-                reset(gen());
-
             batch_t batch;
 
             const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;

@@ -32,8 +32,8 @@ namespace Sapphire
             float speedKnob{};
             float levelKnob{};
             float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
-            float antiClick{};        // multiply by any audio output that could cause clicks when chaos is randomized
-            bool  resetAllFlag{};     // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
+            float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
+            bool  reset{};            // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
         };
 
         struct ForwardMessage
@@ -141,6 +141,7 @@ namespace Sapphire
             BackwardMessage backwardMessageBuffer[2];
             PortLabelMode outputLabels = PortLabelMode::Stereo;
             bool requestSeedSplash = false;
+            uint64_t seedToRestore = 0;
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -274,8 +275,7 @@ namespace Sapphire
             }
 
             virtual uint64_t getSeed() const = 0;
-            virtual void resetSeed(uint64_t seed) = 0;
-            virtual void randomizeChaosFountain() = 0;
+            virtual void beginSeedChangeAntiClick(uint64_t seed) = 0;
         };
 
 
@@ -283,7 +283,7 @@ namespace Sapphire
         {
             for (const ChaosFountainRestoreInfo& node : list)
                 if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->randomizeChaosFountain();
+                    empathModule->beginSeedChangeAntiClick(rack::random::u64());
         }
 
 
@@ -291,7 +291,7 @@ namespace Sapphire
         {
             for (const ChaosFountainRestoreInfo& node : list)
                 if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->resetSeed(node.seed);
+                    empathModule->beginSeedChangeAntiClick(node.seed);
         }
 
 
@@ -652,8 +652,8 @@ namespace Sapphire
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
-                    configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");
-                    configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");
+                    configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");     // FIXFIXFIX: update hovertext to include state: "MONO", "STEREO"
+                    configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");   // FIXFIXFIX: update hovertext to include state: "MONO", "STEREO"
                     configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                     InputModule_initialize();
                 }
@@ -738,12 +738,18 @@ namespace Sapphire
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
+                    outMessage.chaos.reset = chaosAntiClickSmoother.isDelayedActionReady();
+
+                    if (outMessage.chaos.reset && seedToRestore)
+                    {
+                        fountain.reset(seedToRestore);
+                        seedToRestore = 0;
+                    }
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         outMessage.chaos.speedKnob,
-                        outMessage.chaos.levelKnob,
-                        rack::random::u64
+                        outMessage.chaos.levelKnob
                     );
                     const float cascadeChaos = batch.signal.at(0);
                     speedChaos = batch.signal.at(1);
@@ -757,19 +763,16 @@ namespace Sapphire
                     return fountain.getSeed();
                 }
 
-                void randomizeChaosFountain() override
+                void beginSeedChangeAntiClick(uint64_t seed) override
                 {
+                    seedToRestore = seed;
                     requestSeedSplash = true;
-                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
-                }
-
-                void resetSeed(uint64_t seed) override
-                {
-                    fountain.reset(seed);
+                    chaosAntiClickSmoother.begin();
                 }
 
                 void randomizeChaos()
                 {
+                    // Make a list of (module_id, seed) pairs so later "undo" can restore all the seeds.
                     std::vector<ChaosFountainRestoreInfo> list;
                     const EmpathModule* empathModule = this;
                     while (empathModule)
@@ -777,6 +780,7 @@ namespace Sapphire
                         list.push_back(ChaosFountainRestoreInfo(empathModule->id, empathModule->getSeed()));
                         empathModule = dynamic_cast<EmpathModule*>(empathModule->rightExpander.module);
                     }
+
                     InvokeAction(new RandomizeChaosAction(list));
                 }
             };
@@ -1423,11 +1427,7 @@ namespace Sapphire
 
                 void postCloneHook() override
                 {
-                    // After cloning one FilterModule to create another (using json),
-                    // we have also copied over the seed value. We want each FilterModule
-                    // to have its own seed. Invalidate the seed to force the cloned module
-                    // to pick a new seed and regenerate the chaotic oscillators.
-                    fountain.forgetSeed();
+                    fountain.reset(rack::random::u64());
                 }
 
                 uint64_t getSeed() const override
@@ -1435,15 +1435,10 @@ namespace Sapphire
                     return fountain.getSeed();
                 }
 
-                void randomizeChaosFountain() override
+                void beginSeedChangeAntiClick(uint64_t seed) override
                 {
+                    seedToRestore = seed;
                     requestSeedSplash = true;
-                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
-                }
-
-                void resetSeed(uint64_t seed) override
-                {
-                    fountain.reset(seed);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -1464,11 +1459,16 @@ namespace Sapphire
                     const float modeMix = modeFader.process(args.sampleRate, 0, 1);     // 0=bandpass, 1=notch
                     const float muteFactor = updateMuteState(args.sampleRate);
 
+                    if (inMessage.chaos.reset && seedToRestore)
+                    {
+                        fountain.reset(seedToRestore);
+                        seedToRestore = 0;
+                    }
+
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         inMessage.chaos.speedKnob,
-                        inMessage.chaos.levelKnob,
-                        rack::random::u64
+                        inMessage.chaos.levelKnob
                     );
 
                     const float freqChaosL  = batch.signal.at(0);
@@ -1932,20 +1932,15 @@ namespace Sapphire
                         fountain.reset(json_integer_value(jseed));
                 }
 
+                void beginSeedChangeAntiClick(uint64_t seed) override
+                {
+                    seedToRestore = seed;
+                    requestSeedSplash = true;
+                }
+
                 uint64_t getSeed() const override
                 {
                     return fountain.getSeed();
-                }
-
-                void randomizeChaosFountain() override
-                {
-                    requestSeedSplash = true;
-                    fountain.forgetSeed();  // will cause re-randomization on the next process() call.
-                }
-
-                void resetSeed(uint64_t seed) override
-                {
-                    fountain.reset(seed);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -1962,11 +1957,16 @@ namespace Sapphire
                     firstSoloFader.setTarget(message.soloCount > 0);
                     float solo = firstSoloFader.process(args.sampleRate, 0, 1);
 
+                    if (message.chaos.reset && seedToRestore)
+                    {
+                        fountain.reset(seedToRestore);
+                        seedToRestore = 0;
+                    }
+
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         message.chaos.speedKnob,
-                        message.chaos.levelKnob,
-                        rack::random::u64
+                        message.chaos.levelKnob
                     );
 
                     Frame audio = outputAudioFrame(
