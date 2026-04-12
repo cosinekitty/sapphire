@@ -661,8 +661,8 @@ namespace Sapphire
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
-                    configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");     // FIXFIXFIX: update hovertext to include state: "MONO", "STEREO"
-                    configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");   // FIXFIXFIX: update hovertext to include state: "MONO", "STEREO"
+                    configButton(TOGGLE_SPECTRUM_BUTTON_PARAM);
+                    configButton(CHAOS_STEREO_BUTTON_PARAM);
                     configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                     InputModule_initialize();
                 }
@@ -909,6 +909,8 @@ namespace Sapphire
 
                         // Keep the button's hovertext in sync with its actual state.
                         inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
+                        inputModule->updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
+                        inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
                     }
                 }
 
