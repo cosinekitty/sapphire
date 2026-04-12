@@ -62,11 +62,13 @@ namespace Sapphire
         struct ChaosFountainRestoreInfo
         {
             int64_t moduleId;
-            uint64_t seed;
+            uint64_t oldSeed;
+            uint64_t newSeed;
 
             explicit ChaosFountainRestoreInfo(int64_t fountainModuleId, uint64_t fountainSeed)
                 : moduleId(fountainModuleId)
-                , seed(fountainSeed)
+                , oldSeed(fountainSeed)
+                , newSeed(rack::random::u64())
                 {}
         };
 
@@ -283,7 +285,7 @@ namespace Sapphire
         {
             for (const ChaosFountainRestoreInfo& node : list)
                 if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->beginSeedChangeAntiClick(rack::random::u64());
+                    empathModule->beginSeedChangeAntiClick(node.newSeed);
         }
 
 
@@ -291,7 +293,7 @@ namespace Sapphire
         {
             for (const ChaosFountainRestoreInfo& node : list)
                 if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->beginSeedChangeAntiClick(node.seed);
+                    empathModule->beginSeedChangeAntiClick(node.oldSeed);
         }
 
 
