@@ -1,6 +1,7 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_crossfader.hpp"
+#include "sapphire_smoother.hpp"
 #include "cascade_filter.hpp"
 #include "chaos_fountain.hpp"
 
@@ -26,6 +27,15 @@ namespace Sapphire
             Polyphonic = 1,     // each channel gets its own spectrum graph
         };
 
+        struct ChaosFountainInfo
+        {
+            float speedKnob{};
+            float levelKnob{};
+            float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
+            float antiClick{};        // multiply by any audio output that could cause clicks when chaos is randomized
+            bool  resetAllFlag{};     // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
+        };
+
         struct ForwardMessage
         {
             bool valid = false;
@@ -37,11 +47,9 @@ namespace Sapphire
             Frame cascade;
             int soloCount = 0;      // how many taps have solo enabled
             Frame soloAudio;        // the sum of all output audio for taps with solo enabled
-            float chaosSpeedKnob{};
-            float chaosLevelKnob{};
-            float chaosStereoCrossfade{};       // 0 = mono chaotic CV, 1 = stereo chaotic CV
             SpectrumDisplayMode spectrumDisplayMode = SpectrumDisplayMode::Monophonic;
             InterpolatorKind interpolatorKind = InterpolatorKind::Default;
+            ChaosFountainInfo chaos;
         };
 
         struct BackwardMessage
@@ -630,6 +638,7 @@ namespace Sapphire
                 Crossfader chaosStereoCrossfader;
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
+                Smoother chaosAntiClickSmoother;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -645,7 +654,7 @@ namespace Sapphire
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(TOGGLE_SPECTRUM_BUTTON_PARAM, "Toggle spectrum graphs mono/poly");
                     configButton(CHAOS_STEREO_BUTTON_PARAM, "Select mono/stereo chaotic CV");
-                    configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize choatic CV");
+                    configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                     InputModule_initialize();
                 }
 
@@ -654,6 +663,7 @@ namespace Sapphire
                     chaosStereoCrossfader.setCrossfadeDuration(0.1);
                     chaosStereoCrossfader.snapToFront();
                     speedChaos = 0;
+                    chaosAntiClickSmoother.initialize();
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -722,16 +732,17 @@ namespace Sapphire
                     outMessage.polyphonic = polyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
-                    outMessage.chaosSpeedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
-                    outMessage.chaosLevelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
-                    outMessage.chaosStereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
                     outMessage.interpolatorKind = interpolatorKind;
+                    outMessage.chaos.speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
+                    outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
+                    outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
+                    outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
-                        outMessage.chaosSpeedKnob,
-                        outMessage.chaosLevelKnob,
+                        outMessage.chaos.speedKnob,
+                        outMessage.chaos.levelKnob,
                         rack::random::u64
                     );
                     const float cascadeChaos = batch.signal.at(0);
@@ -1455,8 +1466,8 @@ namespace Sapphire
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
-                        inMessage.chaosSpeedKnob,
-                        inMessage.chaosLevelKnob,
+                        inMessage.chaos.speedKnob,
+                        inMessage.chaos.levelKnob,
                         rack::random::u64
                     );
 
@@ -1496,16 +1507,16 @@ namespace Sapphire
                         {
                             auto& q = channel[c];
 
-                            float freqChaos  = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, freqChaosL, freqChaosR);
-                            float resChaos   = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, resChaosL, resChaosR);
-                            float levelChaos = ChaosControlVoltage(c, inMessage.chaosStereoCrossfade, levelChaosL, levelChaosR);
+                            float freqChaos  = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, freqChaosL,  freqChaosR);
+                            float resChaos   = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, resChaosL,   resChaosR);
+                            float levelChaos = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, levelChaosL, levelChaosR);
 
                             nextVoltageOrChaosSignal(cvFreq, FREQ_CV_INPUT, c, freqChaos);
                             nextVoltageOrChaosSignal(cvRes, RES_CV_INPUT, c, resChaos);
                             nextVoltageOrChaosSignal(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
 
-                            float freqKnob = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
-                            float resKnob = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
+                            float freqKnob  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
+                            float resKnob   = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
                             float levelKnob = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 1);
 
                             q.filter.setFrequency(freqKnob);
@@ -1953,8 +1964,8 @@ namespace Sapphire
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
-                        message.chaosSpeedKnob,
-                        message.chaosLevelKnob,
+                        message.chaos.speedKnob,
+                        message.chaos.levelKnob,
                         rack::random::u64
                     );
 
@@ -1962,7 +1973,7 @@ namespace Sapphire
                         message.dryAudio,
                         message.wetAudio,
                         message.soloAudio,
-                        message.chaosStereoCrossfade,
+                        message.chaos.stereoCrossfade,
                         solo,
                         batch
                     );
