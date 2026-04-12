@@ -56,9 +56,9 @@ namespace Sapphire
             int64_t moduleId;
             uint64_t seed;
 
-            explicit ChaosFountainRestoreInfo(int64_t chaosModuleId, uint64_t chaosFountainSeed)
-                : moduleId(chaosModuleId)
-                , seed(chaosFountainSeed)
+            explicit ChaosFountainRestoreInfo(int64_t fountainModuleId, uint64_t fountainSeed)
+                : moduleId(fountainModuleId)
+                , seed(fountainSeed)
                 {}
         };
 
@@ -132,6 +132,7 @@ namespace Sapphire
             ForwardMessage forwardMessageBuffer[2];
             BackwardMessage backwardMessageBuffer[2];
             PortLabelMode outputLabels = PortLabelMode::Stereo;
+            bool requestSeedSplash = false;
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -382,6 +383,19 @@ namespace Sapphire
                 SapphireWidget::step();
                 pullFromRightWhenNeeded();
                 updateBorderVisibility();
+                checkSplash();
+            }
+
+            void checkSplash()
+            {
+                if (auto emod = dynamic_cast<EmpathModule*>(module))
+                {
+                    if (emod->requestSeedSplash)
+                    {
+                        emod->requestSeedSplash = false;
+                        splash.begin(0x80, 0x40, 0x80, 0.1, 0.25);
+                    }
+                }
             }
 
             void pullFromRightWhenNeeded()
@@ -734,6 +748,7 @@ namespace Sapphire
 
                 void randomizeChaosFountain() override
                 {
+                    requestSeedSplash = true;
                     fountain.forgetSeed();  // will cause re-randomization on the next process() call.
                 }
 
@@ -1411,6 +1426,7 @@ namespace Sapphire
 
                 void randomizeChaosFountain() override
                 {
+                    requestSeedSplash = true;
                     fountain.forgetSeed();  // will cause re-randomization on the next process() call.
                 }
 
@@ -1912,6 +1928,7 @@ namespace Sapphire
 
                 void randomizeChaosFountain() override
                 {
+                    requestSeedSplash = true;
                     fountain.forgetSeed();  // will cause re-randomization on the next process() call.
                 }
 
