@@ -2472,7 +2472,7 @@ EMPATH_AUDIO_PORTS_Y1 = 93.0
 EMPATH_DX_SEND_RETURN = 7.0
 EMPATH_BIG_KNOBS_Y1 = 26.325
 EMPATH_BIG_KNOBS_Y2 = 60.250
-EMPATH_INIT_BUTTON_Y = 112.0
+EMPATH_INIT_BUTTON_Y = (PANEL_HEIGHT_MM - 5.0)
 EMPATH_SPECTRUM_BOX_Y1 = 9.0
 EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
 
@@ -2560,7 +2560,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddFlatControlGroup(pl, controls, xmid, yChaosLevel, 'clevel')
         pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
-        controls.append(Component('init_chain_button', xmid, EMPATH_INIT_BUTTON_Y))
+        controls.append(Component('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y))
         controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
     return Save(panel, svgFileName)
 

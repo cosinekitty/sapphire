@@ -219,7 +219,7 @@ namespace Sapphire
             {"cspeed_atten",           {  20.320,   60.250}},
             {"cspeed_cv",              {  11.320,   60.250}},
             {"cspeed_knob",            {  29.320,   60.250}},
-            {"init_chain_button",      {  20.320,  112.000}},
+            {"init_chain_button",      {   5.000,  123.500}},
             {"input_label_left",       {  13.820,   93.000}},
             {"input_label_right",      {  13.820,  103.000}},
             {"insert_button",          {  37.640,    4.500}},
