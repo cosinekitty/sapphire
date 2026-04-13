@@ -49,6 +49,8 @@ namespace Sapphire
         {
             batch_t batch;
 
+            assert(seed != 0);      // must initialize the seed before generating random numbers
+
             const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;
             static const double r = 1.0 / std::sqrt(3.0);
             static const double w = (r+1)/2;

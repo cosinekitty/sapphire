@@ -679,8 +679,7 @@ namespace Sapphire
                 {
                     EmpathModule::onReset(e);
                     InputModule_initialize();
-                    if (fountain.getSeed())
-                        fountain.reset();
+                    fountain.reset();
                 }
 
                 json_t* dataToJson() override
@@ -688,7 +687,7 @@ namespace Sapphire
                     json_t* root = EmpathModule::dataToJson();
                     jsonSetBool(root, "autoCreateExpanders", autoCreateExpanders);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
-                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
+                    jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
                     return root;
                 }
 
@@ -697,8 +696,8 @@ namespace Sapphire
                     EmpathModule::dataFromJson(root);
                     jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
-                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
-                        fountain.reset(json_integer_value(jseed));
+                    if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
+                        fountain.reset(seed);
                 }
 
                 bool polyphonicMode()
@@ -1348,15 +1347,15 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
+                    jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
-                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
-                        fountain.reset(json_integer_value(jseed));
+                    if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
+                        fountain.reset(seed);
                 }
 
                 bool isAudible() const
@@ -1927,22 +1926,21 @@ namespace Sapphire
                 {
                     EmpathModule::onReset(e);
                     OutputModule_initialize();
-                    if (fountain.getSeed())
-                        fountain.reset();
+                    fountain.reset();
                 }
 
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    json_object_set_new(root, "chaosFountainSeed", json_integer(fountain.getSeed()));
+                    jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
                     return root;
                 }
 
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
-                    if (json_t* jseed = json_object_get(root, "chaosFountainSeed"); json_is_integer(jseed))
-                        fountain.reset(json_integer_value(jseed));
+                    if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
+                        fountain.reset(seed);
                 }
 
                 void beginSeedChangeAntiClick(uint64_t seed) override
