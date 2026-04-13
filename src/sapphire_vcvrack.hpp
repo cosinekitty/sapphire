@@ -1211,6 +1211,68 @@ namespace Sapphire
             return vectorReceiver.isVectorSenderConnectedOnLeft();
         }
 
+        static char* formatHex64(char text[17], uint64_t value)
+        {
+            uint64_t accum = value;
+            for (unsigned i = 0; i < 16; ++i)
+            {
+                unsigned d = accum & 0x0f;
+                accum >>= 4;
+                text[15-i] = (d >= 10) ? (d - 10 + 'a') : (d + '0');
+            }
+            text[16] = '\0';
+            return text;
+        }
+
+        static uint64_t parseHex64(const char *text, uint64_t fallback)
+        {
+            if (text)
+            {
+                uint64_t value = 0;
+                for (unsigned i = 0; i < 16; ++i)
+                {
+                    value <<= 4;
+                    char c = text[i];
+                    if (c >= 'a' && c <= 'f')
+                        value |= (c - 'a' + 10);
+                    else if (c >= '0' && c <= '9')
+                        value |= (c - '0');
+                    else
+                        return fallback;
+                }
+                if (text[16] == '\0')
+                    return value;
+            }
+            return fallback;
+        }
+
+        static void jsonSaveSeed(json_t* root, const char* key, uint64_t value)
+        {
+            // The numeric values in json are 64-bit floating point,
+            // which is only precise enough to represent 53-bit integers.
+            // Sapphire needs to save/restore unsigned 64-bit integers
+            // for pseudorandom seeds. We will represent 64-bit integers
+            // as strings written in hexadecimal.
+            char text[17];    // 2 hex characters per byte, plus null terminator
+            formatHex64(text, value);
+            json_object_set_new(root, key, json_string(text));
+        }
+
+        static uint64_t jsonLoadHex64(json_t* root, const char* key, uint64_t fallback)
+        {
+            if (json_t* jhex = json_object_get(root, key); json_is_string(jhex))
+                if (const char *hex = json_string_value(jhex))
+                    return parseHex64(hex, fallback);
+
+            return fallback;
+        }
+
+        static uint64_t jsonLoadOrGenerateSeed(json_t* root, const char* key)
+        {
+            uint64_t seed = jsonLoadHex64(root, key, 0);
+            return seed ? seed : rack::random::u64();
+        }
+
         json_t* dataToJson() override
         {
             json_t* root = json_object();

@@ -62,6 +62,7 @@ namespace Sapphire
 
             void initialize()
             {
+                rand.initialize();
                 channelCountQuantity->initialize();
             }
 
@@ -75,19 +76,20 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "channels", json_integer(dimensions()));
+                jsonSaveSeed(root, "seed", rand.getSeed());
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                json_t* channels = json_object_get(root, "channels");
-                if (json_is_integer(channels))
-                {
-                    json_int_t n = json_integer_value(channels);
-                    if (n >= 1 && n <= 16)
-                        channelCountQuantity->value = static_cast<float>(n);
-                }
+
+                if (json_t* jChannels = json_object_get(root, "channels"); json_is_integer(jChannels))
+                    if (json_int_t channels = json_integer_value(jChannels); channels >= 1 && channels <= 16)
+                        channelCountQuantity->value = static_cast<float>(channels);
+
+                uint64_t seed = jsonLoadOrGenerateSeed(root, "seed");
+                rand.setSeed(seed);
             }
 
             void process(const ProcessArgs& args) override
