@@ -643,7 +643,7 @@ namespace Sapphire
             {
                 bool autoCreateExpanders = true;
                 PortLabelMode inputLabels = PortLabelMode::Stereo;
-                fountain_t fountain;
+                fountain_t fountain{rack::random::u64()};
                 Crossfader chaosStereoCrossfader;
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
@@ -1286,7 +1286,7 @@ namespace Sapphire
                 Crossfader muteFader;       // front=normal,   back=muted
                 Crossfader soloFader;       // front=normal,   back=solo
                 int totalSoloCount = 0;     // the total number of solo-enabled filters in this chain
-                fountain_t fountain;
+                fountain_t fountain{rack::random::u64()};
                 SpectrumWidget* spectrum{};
 
                 explicit FilterModule()
@@ -1906,7 +1906,7 @@ namespace Sapphire
             struct OutputModule : EmpathModule
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
-                fountain_t fountain;
+                fountain_t fountain{rack::random::u64()};
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)

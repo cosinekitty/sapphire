@@ -14,22 +14,36 @@ namespace Sapphire
     extern const std::array<ChaoticOscillatorState, 256> ChaosInitialStateTable;
     extern const std::array<float, 4> ChaosKnobChoices;
 
-
     template <unsigned nsignals>
     struct ChaosBatch
     {
         std::array<float, nsignals> signal{};
     };
 
+    constexpr uint64_t ChaosFountainDefaultSeed = 0x5361707068697265;   // ASCII "Sapphire"
+
+    constexpr uint64_t FilterSeed(uint64_t seed)
+    {
+        return seed ? seed : ChaosFountainDefaultSeed;
+    }
+
+    // Compile-time unit tests with zero runtime overhead.
+    static_assert(FilterSeed(0) == ChaosFountainDefaultSeed);
+    static_assert(FilterSeed(0xa8a78dac6de3725e) == 0xa8a78dac6de3725e);
 
     template <unsigned nsignals, typename rand_t = std::mt19937_64>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
     private:
-        std::uint64_t seed = 0;
+        std::uint64_t seed{};
         std::array<unsigned, nsignals> permutation{};
 
     public:
+        explicit ChaosFountain(uint64_t initSeed)
+        {
+            reset(initSeed);
+        }
+
         // We produce any number of one-channel signals by using the equivalent
         // of several Sapphire Glee modules (Aizawa).
         // Calculate how many Aizawa triplet-generators we need by rounding up.
@@ -40,7 +54,6 @@ namespace Sapphire
         using batch_t = ChaosBatch<nsignals>;
 
         std::uint64_t getSeed() const { return seed; }
-        void forgetSeed() { seed = 0; }
 
         batch_t process(
             float sampleRateHz,
@@ -48,8 +61,6 @@ namespace Sapphire
             float levelKnob)        // how intense the chaos is across all attenuverters
         {
             batch_t batch;
-
-            assert(seed != 0);      // must initialize the seed before generating random numbers
 
             const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;
             static const double r = 1.0 / std::sqrt(3.0);
@@ -88,18 +99,14 @@ namespace Sapphire
 
         void reset()
         {
-            if (seed != 0)
-            {
-                // Restart all chaotic oscillators deterministically based on the seed.
-                rand_t gen(seed);
-                randomizeChaoticOscillators(gen);
-                shuffleSignalMapping(gen);
-            }
+            rand_t gen(seed);
+            randomizeChaoticOscillators(gen);
+            shuffleSignalMapping(gen);
         }
 
         void reset(uint64_t newSeed)
         {
-            seed = newSeed;
+            seed = FilterSeed(newSeed);
             reset();
         }
 
@@ -123,35 +130,35 @@ namespace Sapphire
         void randomizeChaoticOscillators(rand_t& gen)
         {
             uint64_t accum = 0;
-            unsigned bits = 0;
+            unsigned nbits = 0;
 
             bool alreadyPicked[256]{};
 
             for (auto& osc : oscillators)
             {
-                if (bits < 2)
-                {
-                    accum = gen();
-                    bits = 64;
-                }
                 osc.initialize();
                 osc.setMode(0);     // Glee: Apple
 
+                if (nbits < 2)
+                {
+                    accum = gen();
+                    nbits = 64;
+                }
                 unsigned r = accum & 3;
                 accum >>= 2;
-                bits -= 2;
+                nbits -= 2;
                 osc.setKnob(ChaosKnobChoices.at(r));
 
                 for (int loop = 0; true; ++loop)        // safety limit: prevent infinite loop
                 {
-                    if (bits < 8)
+                    if (nbits < 8)
                     {
                         accum = gen();
-                        bits = 64;
+                        nbits = 64;
                     }
                     r = accum & 0xff;
                     accum >>= 8;
-                    bits -= 8;
+                    nbits -= 8;
                     if (!alreadyPicked[r] || loop==3)
                     {
                         alreadyPicked[r] = true;
