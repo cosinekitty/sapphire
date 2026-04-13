@@ -2472,7 +2472,7 @@ EMPATH_AUDIO_PORTS_Y1 = 93.0
 EMPATH_DX_SEND_RETURN = 7.0
 EMPATH_BIG_KNOBS_Y1 = 26.325
 EMPATH_BIG_KNOBS_Y2 = 60.250
-EMPATH_INIT_BUTTON_Y = (PANEL_HEIGHT_MM - 5.0)
+EMPATH_INIT_BUTTON_Y = PANEL_HEIGHT_MM - 5.0
 EMPATH_SPECTRUM_BOX_Y1 = 9.0
 EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
 
@@ -2580,7 +2580,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     xRemoveButton = MULTITAP_INSERT_BUTTON_INSET
-    yBottomButtons = panel.mmHeight - 5.0
+    yBottomButtons = EMPATH_INIT_BUTTON_Y
 
     yControlFence = EmpathFencePost()
     yFreq   = yControlFence.value(0)
