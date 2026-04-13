@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <utility>
 #include "chaos.hpp"
 
 namespace Sapphire
@@ -112,15 +113,15 @@ namespace Sapphire
             for (unsigned i = 0; i < nsignals; ++i)
                 permutation[i] = i;
 
-            for (unsigned i=1; i<nsignals; ++i)
-                if (unsigned r = gen()%(i+1); r<i)
+            for (unsigned i = 1; i < nsignals; ++i)
+                if (unsigned r = gen()%(i+1); r < i)
                     std::swap(permutation[r], permutation[i]);
         }
 
         void randomizeChaoticOscillators(rand_t& gen)
         {
             uint64_t accum = 0;
-            uint64_t bits = 0;
+            unsigned bits = 0;
 
             bool alreadyPicked[256]{};
 
@@ -134,10 +135,9 @@ namespace Sapphire
                 osc.initialize();
                 osc.setMode(0);     // Glee: Apple
 
-                uint32_t r = accum & 3;
+                unsigned r = accum & 3;
                 accum >>= 2;
                 bits -= 2;
-
                 osc.setKnob(ChaosKnobChoices.at(r));
 
                 for (int loop = 0; true; ++loop)        // safety limit: prevent infinite loop
@@ -147,13 +147,13 @@ namespace Sapphire
                         accum = gen();
                         bits = 64;
                     }
-                    uint32_t q = accum & 0xff;
+                    r = accum & 0xff;
                     accum >>= 8;
                     bits -= 8;
-                    if (!alreadyPicked[q] || loop==3)
+                    if (!alreadyPicked[r] || loop==3)
                     {
-                        alreadyPicked[q] = true;
-                        osc.setState(ChaosInitialStateTable.at(q));
+                        alreadyPicked[r] = true;
+                        osc.setState(ChaosInitialStateTable.at(r));
                         break;
                     }
                 }
