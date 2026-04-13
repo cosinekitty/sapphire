@@ -43,6 +43,7 @@ namespace Sapphire
 
             HissModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
+                , rand(rack::random::u64())
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

@@ -171,7 +171,7 @@ namespace Sapphire
             double chaos = DEFAULT_POP_CHAOS;
             bool isFiringTrigger = false;
             bool needReset = true;
-            std::mt19937 gen;
+            std::mt19937_64 gen;
             std::uniform_real_distribution<double> dis{0.001, 1.0};
         };
     }

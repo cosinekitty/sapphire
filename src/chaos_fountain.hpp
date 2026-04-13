@@ -21,7 +21,7 @@ namespace Sapphire
     };
 
 
-    template <unsigned nsignals, typename rand_t = std::mt19937>
+    template <unsigned nsignals, typename rand_t = std::mt19937_64>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
     private:
@@ -119,8 +119,8 @@ namespace Sapphire
 
         void randomizeChaoticOscillators(rand_t& gen)
         {
-            uint32_t accum = 0;
-            uint32_t bits = 0;
+            uint64_t accum = 0;
+            uint64_t bits = 0;
 
             bool alreadyPicked[256]{};
 
@@ -129,7 +129,7 @@ namespace Sapphire
                 if (bits < 2)
                 {
                     accum = gen();
-                    bits = 32;
+                    bits = 64;
                 }
                 osc.initialize();
                 osc.setMode(0);     // Glee: Apple
@@ -145,7 +145,7 @@ namespace Sapphire
                     if (bits < 8)
                     {
                         accum = gen();
-                        bits = 32;
+                        bits = 64;
                     }
                     uint32_t q = accum & 0xff;
                     accum >>= 8;

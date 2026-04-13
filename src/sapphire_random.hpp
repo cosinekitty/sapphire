@@ -6,8 +6,12 @@ namespace Sapphire
     class RandomVectorGenerator     // helps generate vectors in an N-dimensional space with unbiased directions
     {
     public:
-        std::mt19937 rand;
+        std::mt19937_64 rand;
         std::normal_distribution<float> dist {0.0f, 1.0f};
+
+        explicit RandomVectorGenerator(uint64_t seed)
+            : rand(seed)
+            {}
 
         float next()
         {
