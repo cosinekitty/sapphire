@@ -337,9 +337,9 @@ namespace Sapphire
                 // Search all modules in the Rack for anything to the right of this module.
                 // Pick the module closest to this one, but only if it is within the width
                 // we need for the hypothetical filter module we are about to insert.
-                const int hpEchoTap = hpDistance(PanelWidth("empath_filter"));
-                assert(hpEchoTap > 0);
-                if (ModuleWidget* closestWidget = FindWidgetClosestOnRight(this, hpEchoTap))
+                const int hpEmpathFilter = hpDistance(PanelWidth("empath_filter"));
+                assert(hpEmpathFilter > 0);
+                if (ModuleWidget* closestWidget = FindWidgetClosestOnRight(this, hpEmpathFilter))
                     if (IsFilterReceiver(closestWidget->module))
                         return dynamic_cast<EmpathModule*>(closestWidget->module);
 
@@ -785,12 +785,13 @@ namespace Sapphire
                     // Make a list of (module_id, seed) pairs so later "undo" can restore all the seeds.
                     std::vector<ChaosFountainRestoreInfo> list;
                     const EmpathModule* empathModule = this;
-                    while (empathModule)
+                    for(;;)
                     {
                         list.push_back(ChaosFountainRestoreInfo(empathModule->id, empathModule->getSeed()));
-                        empathModule = dynamic_cast<EmpathModule*>(empathModule->rightExpander.module);
+                        empathModule = dynamic_cast<const EmpathModule*>(empathModule->rightExpander.module);
+                        if (!IsFilterReceiver(empathModule))
+                            break;
                     }
-
                     InvokeAction(new RandomizeChaosAction(list));
                 }
             };
