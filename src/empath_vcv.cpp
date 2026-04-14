@@ -1118,6 +1118,7 @@ namespace Sapphire
 
                 FilterModule* filterModule{};
                 unsigned nchannels{};
+                unsigned prev_nchannels{};
                 std::array<fft_delay_line_t, PORT_MAX_CHANNELS> fftDelayLines;
                 std::vector<float> fftBufferIn;
                 std::vector<float> fftBufferOut;
@@ -1125,6 +1126,7 @@ namespace Sapphire
                 bool vuReset{};
                 rack::dsp::RealFFT fftEngine{SpectrumLength};
                 SpectrumDisplayMode displayMode = SpectrumDisplayMode::Monophonic;
+                SpectrumDisplayMode prevDisplayMode = SpectrumDisplayMode::Monophonic;
 
                 explicit SpectrumWidget(FilterModule* _filterModule)
                     : filterModule(_filterModule)
@@ -1146,7 +1148,8 @@ namespace Sapphire
 
                 void initialize()
                 {
-                    displayMode = SpectrumDisplayMode::Monophonic;
+                    displayMode = prevDisplayMode = SpectrumDisplayMode::Monophonic;
+                    prev_nchannels = 0;
                     vuReset = true;
 
                     for (fft_delay_line_t& delayLine : fftDelayLines)
@@ -1836,6 +1839,13 @@ namespace Sapphire
             {
                 if (layer==1 && filterModule && nchannels>0 && nchannels<=PORT_MAX_CHANNELS)
                 {
+                    if (prev_nchannels != nchannels || prevDisplayMode != displayMode)
+                    {
+                        prev_nchannels = nchannels;
+                        prevDisplayMode = displayMode;
+                        vuReset = true;
+                    }
+
                     if (displayMode == SpectrumDisplayMode::Monophonic)
                     {
                         graphSpectrum(args, 0, 1);
