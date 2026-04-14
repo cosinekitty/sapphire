@@ -1226,7 +1226,8 @@ namespace Sapphire
                     // In mono mode, nc==1, but nchannels can be any value 1..16.
                     // So we divide by nc to indicate how many bands to split vertical space into.
                     float dyPerChannel = box.size.y / nc;
-                    float yBase = box.size.y - c*dyPerChannel;     // subtract to make channels go upward from the bottom
+                    const unsigned cflip = (nc-1) - c;                 // hack to reverse channel order: 0 at top, not bottom
+                    float yBase = box.size.y - cflip*dyPerChannel;
                     float yMiddle = yBase - dyPerChannel/2;
 
                     constexpr float dbShift = -3.3;
