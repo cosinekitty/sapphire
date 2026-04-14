@@ -999,7 +999,7 @@ static int PopSpeed(double speed, double sampleRate = 48000)
 {
     const int pulseLimit = 1000;
 
-    Sapphire::Pop::Engine engine;
+    Sapphire::Pop::Engine engine{8675309};
     engine.setSpeed(speed);
     engine.setChaos(0);
 
@@ -1070,7 +1070,7 @@ static int PopHistogram(double chaos)
     const double sampleRate = 48000;
     const double dt = 1 / sampleRate;
 
-    Sapphire::Pop::Engine engine;
+    Sapphire::Pop::Engine engine{8675309};
     engine.setSpeed(0.0f);
     engine.setChaos(chaos);
 

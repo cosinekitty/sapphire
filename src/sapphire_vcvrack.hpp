@@ -1246,7 +1246,7 @@ namespace Sapphire
             return fallback;
         }
 
-        static void jsonSaveSeed(json_t* root, const char* key, uint64_t value)
+        static json_t* jsonSeedValue(uint64_t value)
         {
             // The numeric values in json are 64-bit floating point,
             // which is only precise enough to represent 53-bit integers.
@@ -1255,7 +1255,13 @@ namespace Sapphire
             // as strings written in hexadecimal.
             char text[17];    // 2 hex characters per byte, plus null terminator
             formatHex64(text, value);
-            json_object_set_new(root, key, json_string(text));
+            return json_string(text);
+        }
+
+        static void jsonSaveSeed(json_t* root, const char* key, uint64_t value)
+        {
+            json_t* jseed = jsonSeedValue(value);
+            json_object_set_new(root, key, jseed);
         }
 
         static uint64_t jsonLoadHex64(json_t* root, const char* key, uint64_t fallback)

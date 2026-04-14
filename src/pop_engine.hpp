@@ -32,7 +32,8 @@ namespace Sapphire
         public:
             bool sendTriggerOnReset = false;
 
-            Engine()
+            explicit Engine(uint64_t initSeed)
+                : seed(initSeed)
             {
                 updatePower();
                 initialize();
@@ -46,9 +47,15 @@ namespace Sapphire
                 pulseSamplesRemaining = 0;
             }
 
-            void setRandomSeed(unsigned rs)
+            uint64_t getRandomSeed() const
             {
-                randomSeed = rs;
+                return seed;
+            }
+
+            void setRandomSeed(uint64_t newSeed)
+            {
+                seed = newSeed;
+                needReset = true;
             }
 
             double setSpeed(double knob)
@@ -87,7 +94,7 @@ namespace Sapphire
                 if (needReset)
                 {
                     needReset = false;
-                    gen.seed(randomSeed);
+                    gen.seed(seed);
                     if (sendTriggerOnReset)
                     {
                         startFiringTrigger = true;
@@ -162,7 +169,7 @@ namespace Sapphire
 
             OutputMode outputMode = OutputMode::Trigger;
             int gateVoltage = 0;
-            unsigned randomSeed = 8675309;
+            uint64_t seed{};
             double prevSpeed = 99;
             double speed = DEFAULT_POP_SPEED;
             double power{};

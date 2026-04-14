@@ -45,7 +45,25 @@ namespace Sapphire
         struct PopModule : SapphireModule
         {
             int nPolyChannels = 1;      // current number of output channels (how many of `engine` array to use)
-            Engine engine[PORT_MAX_CHANNELS];
+            Engine engine[PORT_MAX_CHANNELS]
+            {
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64()),
+                Engine(rack::random::u64())
+            };
             bool isSyncPending = false;
             GateTriggerReceiver syncReceiver[PORT_MAX_CHANNELS];
             ChannelCountQuantity *channelCountQuantity{};
@@ -88,9 +106,9 @@ namespace Sapphire
                 {
                     engine[c].sendTriggerOnReset = false;
                     engine[c].initialize();
-                    engine[c].setRandomSeed(c*0x100001 + 0xbeef0);
                     syncReceiver[c].initialize();
                 }
+
                 sendTriggerOnReset = false;
                 prevTriggerOnReset = false;
                 prevWait = false;
@@ -109,6 +127,11 @@ namespace Sapphire
                 json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
                 json_object_set_new(root, "outputMode", json_integer(getOutputMode()));
                 json_object_set_new(root, "triggerOnReset", json_boolean(sendTriggerOnReset));
+                json_t* seedList = json_array();
+                for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    json_array_append(seedList, jsonSeedValue(engine[c].getRandomSeed()));
+                json_object_set_new(root, "seedList", seedList);
+
                 return root;
             }
 
@@ -128,6 +151,22 @@ namespace Sapphire
                 {
                     size_t index = json_integer_value(outputMode);
                     setOutputMode(index);
+                }
+
+                if (json_t* seedList = json_object_get(root, "seedList"); json_is_array(seedList))
+                {
+                    if (json_array_size(seedList) == PORT_MAX_CHANNELS)
+                    {
+                        for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
+                        {
+                            if (json_t* jhex = json_array_get(seedList, c); json_is_string(jhex))
+                            {
+                                const char *hex = json_string_value(jhex);
+                                uint64_t seed = parseHex64(hex, engine[c].getRandomSeed());
+                                engine[c].setRandomSeed(seed);
+                            }
+                        }
+                    }
                 }
 
                 sendTriggerOnReset = json_is_true(json_object_get(root, "triggerOnReset"));
