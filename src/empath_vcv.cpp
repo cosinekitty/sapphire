@@ -546,7 +546,7 @@ namespace Sapphire
 
         namespace EInput
         {
-            constexpr unsigned nChaoticSignals = 2;
+            constexpr unsigned nChaoticSignals = 3;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -711,15 +711,14 @@ namespace Sapphire
                     return (v > 0.5f) ? SpectrumDisplayMode::Polyphonic : SpectrumDisplayMode::Monophonic;
                 }
 
-                Frame readCascade(int nchannels, float chaos)
+                Frame readCascade(int nchannels, float chaosLeft, float chaosRight)
                 {
                     Frame frame;
                     float cv = 0;
                     frame.nchannels = nchannels;
                     for (int c = 0; c < nchannels; ++c)
                     {
-                        // FIXFIXFIX - chaos needs to be stereo-aware
-                        nextVoltageOrChaosSignal(cv, CASCADE_CV_INPUT, c, chaos);
+                        nextVoltageOrChaosSignal(cv, CASCADE_CV_INPUT, c, (c&1)?chaosRight:chaosLeft);
                         frame.sample[c] = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cv, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
                     }
                     return frame;
@@ -761,10 +760,19 @@ namespace Sapphire
                         outMessage.chaos.speedKnob,
                         outMessage.chaos.levelKnob
                     );
-                    const float cascadeChaos = batch.signal.at(0);
-                    speedChaos = batch.signal.at(1);
-
-                    outMessage.cascade = readCascade(outMessage.dryAudio.nchannels, cascadeChaos);
+                    const float cascadeChaosL = batch.signal.at(0);
+                    const float cascadeChaosR = batch.signal.at(1);
+                    speedChaos = batch.signal.at(2);
+                    const float smoothChaosR = LinearMix(
+                        outMessage.chaos.stereoCrossfade,
+                        cascadeChaosL,
+                        cascadeChaosR
+                    );
+                    outMessage.cascade = readCascade(
+                        outMessage.dryAudio.nchannels,
+                        cascadeChaosL,
+                        smoothChaosR
+                    );
                     sendMessage(outMessage);
                 }
 
