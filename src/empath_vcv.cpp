@@ -1564,6 +1564,7 @@ namespace Sapphire
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
+
                             levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
                         }
 

@@ -67,6 +67,38 @@ namespace Sapphire
                 std::array<iter_t, 1+MAX_FILTER_STAGES> iter;
                 iter[0].setDrySample(inSample);
 
+                unsigned k = static_cast<unsigned>(std::floor(c));
+                float m = c - k;
+
+                // CPU optimization: most of the time we are operating in
+                // pure bandpass mode (modeMix == 0) or pure notch/comb mode (modeMix == 1).
+                // Because changing modes is manual only, and there is a brief crossfade period,
+                // I'm assuming that we don't have to worry about transient effects caused by
+                // turning unused filters on/off.
+                if (modeMix == 0)
+                {
+                    // While operating in a steady bandpass mode, only calculate the bandpass cascade.
+                    for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                        iter[i+1].bandpass = multi[i].bandpassFilter.process(sampleRateHz, iter[i].bandpass).bandpass;
+
+                    return LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
+                }
+
+                if (modeMix == 1)
+                {
+                    // In a pure notch/comb mode, only calculate the notch and comb filters.
+                    for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
+                    {
+                        iter[i+1].notch = multi[i].notchFilter.process(sampleRateHz, iter[i].notch).notch;
+                        iter[i+1].comb = multi[i].combFilter.process(sampleRateHz, iter[i].comb);
+                    }
+
+                    float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
+                    float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
+                    return LinearMix(resonanceKnob, yn, yc);
+                }
+
+                // While in transition, we have to calculate all filters and fade between them.
                 for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
                 {
                     iter[i+1].bandpass = multi[i].bandpassFilter.process(sampleRateHz, iter[i].bandpass).bandpass;
@@ -75,8 +107,6 @@ namespace Sapphire
                 }
 
                 // Return the linear interpolation between the outputs of the adjacent stages.
-                unsigned k = static_cast<unsigned>(std::floor(c));
-                float m = c - k;
                 float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
                 float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
                 float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
@@ -105,7 +135,7 @@ namespace Sapphire
                 {
                     m.bandpassFilter.setResonance(bandScale * resonanceKnob);
                     m.notchFilter.setResonance(notchScale * resonanceKnob);
-                    m.combFilter.setResonance(combScale * resonanceKnob);        // FIXFIXFIX: also allow negative resonance
+                    m.combFilter.setResonance(combScale * resonanceKnob);
                 }
             }
 
