@@ -1443,7 +1443,7 @@ namespace Sapphire
         {
         }
 
-        virtual void postCloneHook()
+        virtual void postInsertFilterHook()
         {
         }
 

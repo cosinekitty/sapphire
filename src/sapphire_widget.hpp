@@ -40,6 +40,22 @@ namespace Sapphire
     }
 
 
+    inline bool IsShiftKeyPressed()
+    {
+        return
+            glfwGetKey(APP->window->win, GLFW_KEY_LEFT_SHIFT ) == GLFW_PRESS ||
+            glfwGetKey(APP->window->win, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+    }
+
+
+    inline bool IsControlKeyPressed()
+    {
+        return
+            glfwGetKey(APP->window->win, GLFW_KEY_LEFT_CONTROL ) == GLFW_PRESS ||
+            glfwGetKey(APP->window->win, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+    }
+
+
     struct BoolToggleAction : history::Action
     {
         bool& flag;

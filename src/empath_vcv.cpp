@@ -283,8 +283,32 @@ namespace Sapphire
                 }
             }
 
+            void updateInsertButtonTooltip(int insertButtonParamId)
+            {
+                std::string text = "Add filter\n";
+
+                if (IsFilter(this))
+                {
+                    if (IsShiftKeyPressed())
+                        text += "SHIFT: default settings\n";
+                    else
+                        text += "SHIFT: copy settings\n";
+                }
+
+                if (IsControlKeyPressed())
+                    text += "CTRL: silent output level";
+                else
+                    text += "CTRL: normal output level";
+
+                updateParamTooltip(insertButtonParamId, text);
+            }
+
             virtual uint64_t getSeed() const = 0;
             virtual void beginSeedChangeAntiClick(uint64_t seed) = 0;
+
+            virtual void safeLevelHook()
+            {
+            }
         };
 
 
@@ -366,7 +390,10 @@ namespace Sapphire
                         em->chainIndex = -1;
 
                 // Create the expander module.
-                AddExpander(model, this, ExpanderDirection::Right, true);
+                bool clone = IsFilter(module) && !IsShiftKeyPressed();
+                if (auto em = dynamic_cast<EmpathModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                    if (IsControlKeyPressed())
+                        em->safeLevelHook();
             }
 
             void removeExpander()
@@ -654,8 +681,8 @@ namespace Sapphire
                 {
                     chainIndex = 0;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                    configButton(INSERT_BUTTON_PARAM, "Add filter");
-                    configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);     // dynamic tooltip / hovertext
+                    configButton(INSERT_BUTTON_PARAM);
+                    configButton(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
@@ -919,6 +946,7 @@ namespace Sapphire
                         inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
                         inputModule->updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
                         inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
+                        inputModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                     }
                 }
 
@@ -1428,6 +1456,8 @@ namespace Sapphire
                     updateParamTooltip(RES_PARAM, name);
                     updateParamTooltip(RES_ATTEN, name + " attenuverter");
                     updateInputTooltip(RES_CV_INPUT, name + " CV");
+
+                    updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                 }
 
                 int updateSolo(Frame& soloFrame, const Frame& inFrame, float sampleRateHz)
@@ -1450,10 +1480,17 @@ namespace Sapphire
                     return muteFader.process(sampleRateHz, 1, 0);
                 }
 
-                void postCloneHook() override
+                void postInsertFilterHook() override
                 {
                     fountain.reset(rack::random::u64());
                 }
+
+
+                void safeLevelHook() override
+                {
+                    params.at(LEVEL_PARAM).setValue(0);
+                }
+
 
                 uint64_t getSeed() const override
                 {
