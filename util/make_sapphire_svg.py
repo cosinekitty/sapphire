@@ -2385,8 +2385,6 @@ def GenerateEchoOutPanel(cdict: ControlDict) -> int:
     panel = Panel(PANEL_WIDTH)
     cdict[name] = controls = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
-    defs = Element('defs')      # FIXFIXFIX: does not appear to be used - consider deletion
-    pl.append(defs)
     panel.append(pl)
     xmid = panel.mmWidth / 2
     xOutputPorts = xmid
