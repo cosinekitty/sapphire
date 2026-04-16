@@ -306,7 +306,7 @@ namespace Sapphire
             virtual uint64_t getSeed() const = 0;
             virtual void beginSeedChangeAntiClick(uint64_t seed) = 0;
 
-            virtual void safeLevelHook()
+            virtual void silentLevelHook()
             {
             }
         };
@@ -393,7 +393,7 @@ namespace Sapphire
                 bool clone = IsFilter(module) && !IsShiftKeyPressed();
                 if (auto em = dynamic_cast<EmpathModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
                     if (IsControlKeyPressed())
-                        em->safeLevelHook();
+                        em->silentLevelHook();
             }
 
             void removeExpander()
@@ -1335,7 +1335,7 @@ namespace Sapphire
                 {
                     enableEnvelopeFollower();
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-                    configButton(INSERT_BUTTON_PARAM, "Add filter");
+                    configButton(INSERT_BUTTON_PARAM);
                     configButton(REMOVE_BUTTON_PARAM, "Remove filter");
                     configControlGroup(
                         "Frequency",
@@ -1486,7 +1486,7 @@ namespace Sapphire
                 }
 
 
-                void safeLevelHook() override
+                void silentLevelHook() override
                 {
                     params.at(LEVEL_PARAM).setValue(0);
                 }

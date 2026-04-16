@@ -1106,6 +1106,27 @@ namespace Sapphire
                 configParam(paramId, 0, 1, 1, name, " dB", -10, 20);
                 configAttenCv(attenId, cvInputId, name);
             }
+
+            void updateInsertButtonTooltip(int insertButtonParamId)
+            {
+                std::string text = "Add tap\n";
+
+                if (IsShiftKeyPressed())
+                    text += "SHIFT: default settings\n";
+                else
+                    text += "SHIFT: copy settings\n";
+
+                if (IsControlKeyPressed())
+                    text += "CTRL: silent output level";
+                else
+                    text += "CTRL: normal output level";
+
+                updateParamTooltip(insertButtonParamId, text);
+            }
+
+            virtual void silentLevelHook()
+            {
+            }
         };
 
 
@@ -1364,7 +1385,10 @@ namespace Sapphire
                         lmod->chainIndex = -1;
 
                 // Create the expander module.
-                AddExpander(model, this, ExpanderDirection::Right, true);
+                bool clone = !IsShiftKeyPressed();
+                if (auto em = dynamic_cast<LoopModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                    if (IsControlKeyPressed())
+                        em->silentLevelHook();
             }
 
             void removeExpander()
@@ -1940,7 +1964,7 @@ namespace Sapphire
                     chainIndex = 1;
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     defineControls();
-                    configButton(INSERT_BUTTON_PARAM, "Add tap");
+                    configButton(INSERT_BUTTON_PARAM);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     configOutput(ENV_OUTPUT, "Envelope follower");
@@ -2162,6 +2186,11 @@ namespace Sapphire
                     const std::string name = "Input gain";
                     configParam(DRIVE_PARAM, 0, 2, 1, name, " dB", -10, 20*3);
                     configAttenCv(DRIVE_ATTEN, DRIVE_CV_INPUT, name);
+                }
+
+                void silentLevelHook() override
+                {
+                    params.at(GAIN_PARAM).setValue(0);
                 }
             };
 
@@ -2495,6 +2524,8 @@ namespace Sapphire
                         updateFreezePortTooltip();
                         updateFreezeGateTriggerTooltip();
 
+                        echoModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
+
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
@@ -2783,7 +2814,7 @@ namespace Sapphire
                     configStereoOutputs(SEND_LEFT_OUTPUT, SEND_RIGHT_OUTPUT, "send");
                     configStereoInputs(RETURN_LEFT_INPUT, RETURN_RIGHT_INPUT, "return");
                     configOutput(ENV_OUTPUT, "Envelope follower");
-                    configButton(INSERT_BUTTON_PARAM, "Add tap");
+                    configButton(INSERT_BUTTON_PARAM);
                     configButton(REMOVE_BUTTON_PARAM, "Remove tap");
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
@@ -2853,6 +2884,11 @@ namespace Sapphire
                         copyParamFrom(emod, MUTE_BUTTON_PARAM, Echo::MUTE_BUTTON_PARAM);
                         copyParamFrom(emod, SOLO_BUTTON_PARAM, Echo::SOLO_BUTTON_PARAM);
                     }
+                }
+
+                void silentLevelHook() override
+                {
+                    params.at(GAIN_PARAM).setValue(0);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2950,6 +2986,14 @@ namespace Sapphire
                 void resetTapAction() override
                 {
                     resetAction();
+                }
+
+                void step() override
+                {
+                    LoopWidget::step();
+
+                    if (echoTapModule)
+                        echoTapModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                 }
             };
         }
