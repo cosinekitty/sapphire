@@ -377,7 +377,7 @@ namespace Sapphire
             }
         };
 
-        using SliderType = VCVLightSlider<YellowLight>;
+        using slider_t = VCVLightSlider<YellowLight>;
 
         struct ElastikaWidget : SapphireWidget
         {
@@ -455,7 +455,7 @@ namespace Sapphire
 
             void addSlider(ParamId paramId, LightId lightId, const char *label)
             {
-                SliderType *slider = createLightParamCentered<SliderType>(Vec{}, module, paramId, lightId);
+                slider_t *slider = createLightParamCentered<slider_t>(Vec{}, module, paramId, lightId);
                 addSapphireParam(slider, label);
             }
 

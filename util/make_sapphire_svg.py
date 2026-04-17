@@ -2473,6 +2473,7 @@ EMPATH_BIG_KNOBS_Y2 = 60.250
 EMPATH_INIT_BUTTON_Y = PANEL_HEIGHT_MM - 5.0
 EMPATH_SPECTRUM_BOX_Y1 = 9.0
 EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
+EMPATH_SPECTRUM_BOX_YC = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2.0
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
@@ -2506,7 +2507,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xChaosRandomizeButton = xChaosBoxLeft + buttonInset
     yChaosRandomizeButton = yChaosBoxTop + buttonInset
     xSpectrumButton = xInsertButton
-    ySpectrumButton = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2
+    ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
 
     def LineArtPath(path:str, id:str) -> Path:
         lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
@@ -2700,12 +2701,19 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     xmid = panel.mmWidth / 2
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+
+    xSpectrumVerScale = 3.5
+    ySpectrumVerScale = EMPATH_SPECTRUM_BOX_YC
+    yMix = 35.0
+    yLevel = 65.0
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
         AddVerticalStereoPorts(font, pl, controls, xmid, EMPATH_AUDIO_PORTS_Y1, 'audio_left_output', 'audio_right_output', 'OUT')
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
-        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, EMPATH_BIG_KNOBS_Y1)
-        AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, EMPATH_BIG_KNOBS_Y2)
+        AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yMix)
+        AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yLevel)
+        controls.append(Component('spectrum_vertical_scale', xSpectrumVerScale, ySpectrumVerScale))
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 

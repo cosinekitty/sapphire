@@ -63,6 +63,7 @@ namespace Sapphire
         {
             bool valid = false;
             int soloCount = 0;      // the correct solo count, being reported back from the end of the chain
+            float spectrumPowerScale = 1;
         };
 
 
@@ -1155,6 +1156,7 @@ namespace Sapphire
                 rack::dsp::RealFFT fftEngine{SpectrumLength};
                 SpectrumDisplayMode displayMode = SpectrumDisplayMode::Monophonic;
                 SpectrumDisplayMode prevDisplayMode = SpectrumDisplayMode::Monophonic;
+                float powerScale = 1;
 
                 explicit SpectrumWidget(FilterModule* _filterModule)
                     : filterModule(_filterModule)
@@ -1261,8 +1263,7 @@ namespace Sapphire
                     float yBase = box.size.y - cflip*dyPerChannel;
                     float yMiddle = yBase - dyPerChannel/2;
 
-                    constexpr float dbShift = -3.3;
-                    constexpr float dbScale = +1.4;
+                    constexpr float dbShift = -3.2;
                     constexpr float vuSettle = 0.11;
 
                     constexpr float nf = niter;
@@ -1276,7 +1277,7 @@ namespace Sapphire
                         float x = dxPerFreqBin * f;
                         float power = std::max(1.0e-6f, Square(fftBufferOut.at(f)) + Square(fftBufferOut.at(f+1)));
                         float& vu = vuMeter[c][col];
-                        float db = dbScale*(std::log10(power) + dbShift);
+                        float db = powerScale*(std::log10(power) + dbShift);
                         float dyPowerPx = (dyPerChannel/2) * std::tanh(db);
                         float yTop = yMiddle - dyPowerPx;   // array of these values for each column. quick rise, slow fade.
 
@@ -1559,6 +1560,7 @@ namespace Sapphire
                         {
                             spectrum->nchannels = nc;
                             spectrum->displayMode = inMessage.spectrumDisplayMode;
+                            spectrum->powerScale = inBackMessage.spectrumPowerScale;
                         }
 
                         float cvFreq = 0;
@@ -1797,7 +1799,7 @@ namespace Sapphire
                     if (filterModule && filterModule->spectrum)
                     {
                         bool left  = isConnectedOnLeft();
-                        bool right = isFilterOnRight();
+                        bool right = isConnectedOnRight();
                         if (left || right)
                         {
                             const Vec& pos  = filterModule->spectrum->box.pos;
@@ -1939,6 +1941,7 @@ namespace Sapphire
                 GLOBAL_MIX_ATTEN,
                 GLOBAL_LEVEL_PARAM,
                 GLOBAL_LEVEL_ATTEN,
+                SPECTRUM_VERTICAL_SCALE_PARAM,
                 PARAMS_LEN
             };
 
@@ -1973,6 +1976,7 @@ namespace Sapphire
                     configStereoOutputs(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "audio");
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
+                    configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
                 }
 
                 void OutputModule_initialize()
@@ -2012,12 +2016,19 @@ namespace Sapphire
                     return fountain.getSeed();
                 }
 
+                float spectrumPower()
+                {
+                    float knob = params.at(SPECTRUM_VERTICAL_SCALE_PARAM).getValue();
+                    return TenToPower<float>(0.65 * knob);
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     BackwardMessage backMessage;
                     const ForwardMessage message = receiveMessageOrDefault();
                     chainIndex = message.chainIndex;
                     backMessage.soloCount = message.soloCount;
+                    backMessage.spectrumPowerScale = spectrumPower();
 
                     includeNeonModeMenuItem = !message.valid;
                     if (message.valid)
@@ -2100,6 +2111,7 @@ namespace Sapphire
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                     addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
                     addSapphireControlGroup("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
+                    addKnob<Trimpot>(SPECTRUM_VERTICAL_SCALE_PARAM, "spectrum_vertical_scale");
                 }
 
                 bool isConnectedOnLeft() const override
