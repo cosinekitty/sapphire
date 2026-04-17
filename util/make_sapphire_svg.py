@@ -2702,8 +2702,8 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
 
-    xSpectrumVerScale = 3.5
-    ySpectrumVerScale = EMPATH_SPECTRUM_BOX_YC
+    xSpectrumVerScaleButton = 5.0
+    ySpectrumVerScaleButton = EMPATH_SPECTRUM_BOX_YC
     yMix = 35.0
     yLevel = 65.0
 
@@ -2713,7 +2713,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yMix)
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yLevel)
-        controls.append(Component('spectrum_vertical_scale', xSpectrumVerScale, ySpectrumVerScale))
+        controls.append(Component('spectrum_vertical_scale', xSpectrumVerScaleButton, ySpectrumVerScaleButton))
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 

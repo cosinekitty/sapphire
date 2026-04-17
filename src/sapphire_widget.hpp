@@ -546,8 +546,6 @@ namespace Sapphire
     };
 
 
-    constexpr float DxRemoveGap = 0.3f;
-
     inline SvgOverlay* MakeSapphirePanel(const std::string& panelSvgFileName)
     {
         return new SvgOverlay(window::Svg::load(panelSvgFileName));

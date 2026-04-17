@@ -237,7 +237,7 @@ namespace Sapphire
             {"global_mix_knob",        {  10.160,   35.000}},
             {"output_label_left",      {  16.660,   93.000}},
             {"output_label_right",     {  16.660,  103.000}},
-            {"spectrum_vertical_scale", {   3.500,   16.250}},
+            {"spectrum_vertical_scale", {   5.000,   16.250}},
             }},
         { "env", {
             {"_panel",                 {  30.480,  128.500}},

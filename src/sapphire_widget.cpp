@@ -150,7 +150,7 @@ namespace Sapphire
             DrawBorder(vg, panelColor, 0, margin, margin, vertical);
 
         if (hideRight)
-            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin + DxRemoveGap, vertical);
+            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin, vertical);
 
         if (!neon)
         {

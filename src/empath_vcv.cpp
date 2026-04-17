@@ -2123,6 +2123,38 @@ namespace Sapphire
                 {
                     return false;
                 }
+
+                void draw(const DrawArgs& args) override
+                {
+                    EmpathWidget::draw(args);
+                    drawSpectrumConnectorLine(args.vg);
+                }
+
+                void drawSpectrumConnectorLine(NVGcontext* vg)
+                {
+                    if (outputModule)
+                    {
+                        if (auto leftModule = dynamic_cast<Filter::FilterModule*>(outputModule->leftExpander.module))
+                        {
+                            if (leftModule->spectrum)
+                            {
+                                const Vec& pos  = leftModule->spectrum->box.pos;
+                                const Vec& size = leftModule->spectrum->box.size;
+                                const float y = pos.y + size.y/2;
+                                const float x1 = mm2px(0.0);
+                                const float x2 = mm2px(2.0);
+
+                                nvgBeginPath(vg);
+                                nvgMoveTo(vg, x1, y);
+                                nvgLineTo(vg, x2, y);
+                                nvgStrokeColor(vg, SCHEME_BLACK);
+                                nvgStrokeWidth(vg, 0.75);
+                                nvgLineCap(vg, NVG_BUTT);
+                                nvgStroke(vg);
+                            }
+                        }
+                    }
+                }
             };
         }
 
