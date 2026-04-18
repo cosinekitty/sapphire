@@ -1007,6 +1007,7 @@ namespace Sapphire
         bool includeNeonModeMenuItem = true;
         DcRejectQuantity *dcRejectQuantity = nullptr;
         AgcLevelQuantity *agcLevelQuantity = nullptr;
+        bool enableLimiterMenuItems = true;     // default for older modules; newer modules add menu items to knobs only
         std::vector<RemovalSubscriber*> removalSubscriberList;
         EnvelopeFollowerFeature envelopeFollower;
 

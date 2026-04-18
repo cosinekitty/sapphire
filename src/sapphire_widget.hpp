@@ -109,10 +109,7 @@ namespace Sapphire
         {
             base_knob_t::appendContextMenu(menu);
             if (sapphireModule)
-            {
-                menu->addChild(new MenuSeparator);
-                menu->addChild(sapphireModule->createLimiterWarningLightMenuItem());
-            }
+                sapphireModule->addLimiterMenuItems(menu);
         }
 
         void disconnect() override
@@ -851,7 +848,8 @@ namespace Sapphire
             return knob;
         }
 
-        void addSapphireControlGroup(
+        template <typename knob_t = RoundLargeBlackKnob>
+        knob_t* addSapphireControlGroup(
             const std::string& prefix,
             int knobId,
             int attenId,
@@ -859,9 +857,10 @@ namespace Sapphire
             float dxUnipolar = DX_UNIPOLAR_B,
             float dyUnipolar = DY_UNIPOLAR_B)
         {
-            addKnob(knobId, prefix + "_knob");
+            knob_t* knob = addKnob<knob_t>(knobId, prefix + "_knob");
             addSapphireAttenuverter(attenId, prefix + "_atten", dxUnipolar, dyUnipolar);
             addSapphireInput(cvInputId, prefix + "_cv");
+            return knob;
         }
 
         template <typename knob_t = RoundSmallBlackKnob>
@@ -891,6 +890,14 @@ namespace Sapphire
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
             addSnapVoctAttenuverter(attenId, prefix + "_atten", 1, dxUnipolar, dyUnipolar);
             addSapphireInput(cvInputId, prefix + "_cv");
+            return knob;
+        }
+
+        template <typename knob_t = OutputLimiterLargeKnob>
+        knob_t* addSapphireControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        {
+            knob_t* knob = addSapphireControlGroup<knob_t>(prefix, knobId, attenId, cvInputId);
+            installWarningLight(knob);
             return knob;
         }
 

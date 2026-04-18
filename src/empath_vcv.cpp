@@ -1,3 +1,6 @@
+// Sapphire Empath for VCV Rack, by Don Cross <cosinekitty@gmail.com>
+// https://github.com/cosinekitty/sapphire
+
 #include <array>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
@@ -156,6 +159,8 @@ namespace Sapphire
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
             {
+                enableLimiterMenuItems = false;     // Newer style: menu items on knobs only, not panel.
+
                 rightExpander.producerMessage = &forwardMessageBuffer[0];
                 rightExpander.consumerMessage = &forwardMessageBuffer[1];
 
@@ -1942,6 +1947,7 @@ namespace Sapphire
                 GLOBAL_LEVEL_PARAM,
                 GLOBAL_LEVEL_ATTEN,
                 SPECTRUM_VERTICAL_SCALE_PARAM,
+                AGC_PARAM,
                 PARAMS_LEN
             };
 
@@ -1968,6 +1974,8 @@ namespace Sapphire
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
                 fountain_t fountain{rack::random::u64()};
+                AutomaticGainLimiter agc;
+                bool enableAgc = true;
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -1977,11 +1985,14 @@ namespace Sapphire
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
+                    addAgcLevelQuantity(AGC_PARAM, 1, 6);
                 }
 
                 void OutputModule_initialize()
                 {
                     firstSoloFader.snapToFront();
+                    agc.initialize();
+                    enableAgc = true;
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -2022,6 +2033,42 @@ namespace Sapphire
                     return TenToPower<float>(0.65 * knob);
                 }
 
+                bool setAgcEnabled(bool enable)
+                {
+                    if (enable && !enableAgc)
+                    {
+                        // If the AGC isn't enabled, and caller wants to enable it,
+                        // re-initialize the AGC so it forgets any previous level it had settled on.
+                        agc.initialize();
+                    }
+                    enableAgc = enable;
+                    return enable;
+                }
+
+                void setAgcLevel(float level)
+                {
+                    // Convert VCV voltages to unit dimensionless quantities.
+                    constexpr float audioLevelVolts = 5;
+                    float ceiling = level / audioLevelVolts;
+                    agc.setCeiling(ceiling);
+                }
+
+                double getAgcDistortion() override
+                {
+                    return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+                }
+
+                void reflectAgcSlider()
+                {
+                    // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+                    if (agcLevelQuantity && agcLevelQuantity->changed)
+                    {
+                        agcLevelQuantity->changed = false;
+                        if (setAgcEnabled(agcLevelQuantity->isAgcEnabled()))
+                            setAgcLevel(agcLevelQuantity->clampedAgc());
+                    }
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     BackwardMessage backMessage;
@@ -2058,6 +2105,11 @@ namespace Sapphire
                         solo,
                         batch
                     );
+
+                    reflectAgcSlider();
+                    if (enableAgc)
+                        agc.process(args.sampleRate, audio.nchannels, audio.sample.data());
+
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
 
                     sendBackwardMessage(backMessage);
@@ -2098,6 +2150,7 @@ namespace Sapphire
                 }
             };
 
+
             struct OutputWidget : EmpathWidget
             {
                 OutputModule* outputModule{};
@@ -2110,7 +2163,7 @@ namespace Sapphire
                     addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                     addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                     addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
-                    addSapphireControlGroup("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
+                    addSapphireControlGroupWithWarningLight("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
                     addKnob<Trimpot>(SPECTRUM_VERTICAL_SCALE_PARAM, "spectrum_vertical_scale");
                 }
 

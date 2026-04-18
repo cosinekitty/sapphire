@@ -503,7 +503,8 @@ namespace Sapphire
             if (sm->dcRejectQuantity)
                 menu->addChild(new DcRejectSlider(sm->dcRejectQuantity));
 
-            sm->addLimiterMenuItems(menu);
+            if (sm->enableLimiterMenuItems)
+                sm->addLimiterMenuItems(menu);
 
             if (shouldOfferTricorder())
             {
