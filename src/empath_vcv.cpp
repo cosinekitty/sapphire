@@ -746,18 +746,13 @@ namespace Sapphire
 
                 Frame readCascade(int nchannels, float chaosLeft, float chaosRight)
                 {
-                    checkfloat(chaosLeft);
-                    checkfloat(chaosRight);
-
                     Frame frame;
                     float cv = 0;
                     frame.nchannels = nchannels;
                     for (int c = 0; c < nchannels; ++c)
                     {
                         nextVoltageOrChaosSignal(cv, CASCADE_CV_INPUT, c, (c&1)?chaosRight:chaosLeft);
-                        checkfloat(cv);
                         frame.sample[c] = cvGetControlValue(CASCADE_PARAM, CASCADE_ATTEN, cv, MIN_FILTER_STAGES, MAX_FILTER_STAGES);
-                        checkfloat(frame.sample[c]);
                     }
                     return frame;
                 }
@@ -1599,12 +1594,10 @@ namespace Sapphire
 
                             sendFrame.sample[c] = inMessage.chaos.antiClick * q.filter.process(
                                 args.sampleRate,
-                                checkfloat(inMessage.dryAudio.sample[c]),
-                                checkfloat(inMessage.cascade.sample[c]),
+                                inMessage.dryAudio.sample[c],
+                                inMessage.cascade.sample[c],
                                 modeMix
                             );
-
-                            checkfloat(sendFrame.sample[c]);
 
                             if (spectrum)
                                 spectrum->fftDelayLines[c].write(sendFrame.sample[c]);
@@ -1615,8 +1608,6 @@ namespace Sapphire
                                 AUDIO_RIGHT_INPUT,
                                 c
                             );
-
-                            checkfloat(envelopeFrame.sample[c]);
 
                             levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
                         }

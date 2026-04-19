@@ -48,7 +48,14 @@ namespace Sapphire
 
             float process(float sampleRateHz, float inSample, float cascade, float modeMix)
             {
-                const float c = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
+                const float cascadeClamp = std::clamp<float>(cascade, 0, MAX_FILTER_STAGES);
+                unsigned k = static_cast<unsigned>(std::floor(cascadeClamp));
+                float fraction = cascadeClamp - k;
+                if (k >= MAX_FILTER_STAGES)
+                {
+                    k = MAX_FILTER_STAGES - 1;
+                    fraction = 1;
+                }
 
                 struct iter_t
                 {
@@ -67,8 +74,8 @@ namespace Sapphire
                 std::array<iter_t, 1+MAX_FILTER_STAGES> iter;
                 iter[0].setDrySample(inSample);
 
-                unsigned k = static_cast<unsigned>(std::floor(c));
-                float m = c - k;
+                const iter_t& ik0 = iter.at(k+0);
+                const iter_t& ik1 = iter.at(k+1);
 
                 // CPU optimization: most of the time we are operating in
                 // pure bandpass mode (modeMix == 0) or pure notch/comb mode (modeMix == 1).
@@ -81,7 +88,7 @@ namespace Sapphire
                     for (unsigned i = 0; i < MAX_FILTER_STAGES; ++i)
                         iter[i+1].bandpass = multi[i].bandpassFilter.process(sampleRateHz, iter[i].bandpass).bandpass;
 
-                    return LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
+                    return LinearMix(fraction, ik0.bandpass, ik1.bandpass);
                 }
 
                 if (modeMix == 1)
@@ -93,8 +100,8 @@ namespace Sapphire
                         iter[i+1].comb = multi[i].combFilter.process(sampleRateHz, iter[i].comb);
                     }
 
-                    float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
-                    float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
+                    float yn = LinearMix(fraction, ik0.notch, ik1.notch);
+                    float yc = LinearMix(fraction, ik0.comb, ik1.comb);
                     return LinearMix(resonanceKnob, yn, yc);
                 }
 
@@ -107,9 +114,9 @@ namespace Sapphire
                 }
 
                 // Return the linear interpolation between the outputs of the adjacent stages.
-                float yb = LinearMix(m, iter[k].bandpass, iter[k+1].bandpass);
-                float yn = LinearMix(m, iter[k].notch, iter[k+1].notch);
-                float yc = LinearMix(m, iter[k].comb, iter[k+1].comb);
+                float yb = LinearMix(fraction, ik0.bandpass, ik1.bandpass);
+                float yn = LinearMix(fraction, ik0.notch, ik1.notch);
+                float yc = LinearMix(fraction, ik0.comb, ik1.comb);
                 float ync = LinearMix(resonanceKnob, yn, yc);
                 return LinearMix(modeMix, yb, ync);
             }
