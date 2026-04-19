@@ -23,7 +23,7 @@ namespace Sapphire
         return static_cast<int>(std::round(mm / PANEL_HEIGHT_MM));
     }
 
-    inline float px2mm(float px)
+    constexpr float px2mm(float px)
     {
         constexpr float factor = 25.4 / 75;
         return px * factor;
@@ -33,6 +33,7 @@ namespace Sapphire
     {
         return Vec(mm2px(loc.cx), mm2px(loc.cy));
     }
+
 
     inline bool OneShotCountdown(int& counter)
     {

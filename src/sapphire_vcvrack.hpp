@@ -5,6 +5,7 @@
 #include "sapphire_crossfader.hpp"
 #include "sapphire_engine.hpp"
 #include "sapphire_attenuverter_context.hpp"
+#include "sapphire_checkfloat.hpp"
 
 namespace Sapphire
 {
@@ -911,6 +912,8 @@ namespace Sapphire
 
         float update(float signal, int sampleRate)
         {
+            checkfloat(signal);
+
             // Based on Surge XT Tree Monster's envelope follower:
             // https://github.com/surge-synthesizer/sst-effects/blob/main/include/sst/effects-shared/TreemonsterCore.h
             if (sampleRate != prevSampleRate)
@@ -1851,14 +1854,17 @@ namespace Sapphire
             {
                 const int nc = VcvSafeChannelCount(nchannels);
                 const float gain = FourthPower(params.at(envGainParamId).getValue());
+                checkfloat(gain);
 
                 if (envelopeFollower.polyphonicOutput)
                 {
                     envOutput.setChannels(nc);
                     for (int c = 0; c < nc; ++c)
                     {
-                        float v = gain * envelopeFollower.follower[c].update(sample[c], sampleRateHz);
-                        float s = envelopeFollower.scaleEnvelope(v, sampleRateHz);
+                        checkfloat(sample[c]);
+                        float e = checkfloat(envelopeFollower.follower[c].update(sample[c], sampleRateHz));
+                        float v = checkfloat(gain * e);
+                        float s = checkfloat(envelopeFollower.scaleEnvelope(v, sampleRateHz));
                         envOutput.setVoltage(s, c);
                     }
                 }
@@ -1866,10 +1872,11 @@ namespace Sapphire
                 {
                     float sum = 0;
                     for (int c = 0; c < nc; ++c)
-                        sum += sample[c];
+                        sum += checkfloat(sample[c]);
 
-                    float v = gain * envelopeFollower.follower[0].update(sum, sampleRateHz);
-                    float s = envelopeFollower.scaleEnvelope(v, sampleRateHz);
+                    float e = checkfloat(envelopeFollower.follower[0].update(sum, sampleRateHz));
+                    float v = checkfloat(gain * e);
+                    float s = checkfloat(envelopeFollower.scaleEnvelope(v, sampleRateHz));
                     envOutput.setChannels(1);
                     envOutput.setVoltage(s, 0);
                 }

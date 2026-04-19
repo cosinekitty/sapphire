@@ -1,3 +1,4 @@
+#include <cmath>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_engine.hpp"
@@ -5,6 +6,37 @@
 namespace Sapphire
 {
     std::vector<SapphireModule*> SapphireModule::All;
+
+
+    float ValidateNumber(
+        float value,
+        const char *sourceFileName,
+        int sourceLineNumber,
+        const char *functionName,
+        const char *expression)
+    {
+        static constexpr unsigned logLimit = 100;
+        static unsigned logCount = 0;
+
+        if (!std::isfinite(value))
+        {
+            if (logCount < logLimit)
+            {
+                ++logCount;
+                WARN("(%u/%u) Nonfinite value %g encountered at: %s [%d] %s --> '%s'",
+                    logCount,
+                    logLimit,
+                    value,
+                    sourceFileName,
+                    sourceLineNumber,
+                    functionName,
+                    expression
+                );
+            }
+        }
+        return value;
+    }
+
 
     struct NeonBorderState
     {
