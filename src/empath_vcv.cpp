@@ -129,7 +129,7 @@ namespace Sapphire
         constexpr int OctaveRange = 5;
 
 
-        inline float ChaosControlVoltage(unsigned channel, float stereoCrossfade, float leftCv, float rightCv)
+        constexpr float ChaosControlVoltage(unsigned channel, float stereoCrossfade, float leftCv, float rightCv)
         {
             if (channel & 1)
             {
@@ -140,7 +140,7 @@ namespace Sapphire
             }
 
             // Otherwise, we have an even-index channel 0, 2, 4, ... 14.
-            // These are all considered "left" channels, which always receive the left output.
+            // These are all considered "left" channels.
             return leftCv;
         }
 

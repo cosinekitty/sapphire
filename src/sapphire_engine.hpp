@@ -23,19 +23,19 @@ namespace Sapphire
     }
 
     template <typename value_t>
-    inline value_t Square(value_t x)
+    constexpr value_t Square(value_t x)
     {
         return x * x;
     }
 
     template <typename value_t>
-    inline value_t Cube(value_t x)
+    constexpr value_t Cube(value_t x)
     {
         return x * x * x;
     }
 
     template <typename value_t>
-    inline value_t FourthPower(value_t x)
+    constexpr value_t FourthPower(value_t x)
     {
         value_t s = x * x;
         return s * s;
@@ -61,19 +61,19 @@ namespace Sapphire
         return std::exp(static_cast<value_t>(L*x));
     }
 
-    inline float CubicMix(float mix, float dry, float wet)
+    constexpr float CubicMix(float mix, float dry, float wet)
     {
         const float k = Cube(1-mix);
         return k*dry + (1-k)*wet;
     }
 
-    inline float LinearMix(float mix, float dry, float wet)
+    constexpr float LinearMix(float mix, float dry, float wet)
     {
         return (1-mix)*dry + mix*wet;
     }
 
     template <typename real_t>
-    real_t BicubicLimiter(real_t x, real_t yLimit)
+    constexpr real_t BicubicLimiter(real_t x, real_t yLimit)
     {
         real_t xLimit = (3*yLimit)/2;
 
@@ -120,6 +120,7 @@ namespace Sapphire
         const int next = MOD(value + increment, length);
         return static_cast<enum_t>(next);
     }
+
 
     class Slewer
     {
