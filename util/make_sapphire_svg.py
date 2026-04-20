@@ -2483,11 +2483,12 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+    xGlobalCenter = 3 * HP_WIDTH_MM
     xmid = panel.mmWidth / 2.0
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
-    xInputPorts = xmid
+    xInputPorts = xGlobalCenter - 4.0
     xInputLabels = xInputPorts - 6.5
     yChaosSpeed = EMPATH_BIG_KNOBS_Y2
     dyChaos = 14.0
@@ -2508,6 +2509,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     yChaosRandomizeButton = yChaosBoxTop + buttonInset
     xSpectrumButton = xInsertButton
     ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
+    xInputGainControl = panel.mmWidth - xInputPorts
+    yInputGainControl = MULTIMAP_AUDIO_PORTS_Y1 + DY_FLAT_CONTROL_GROUP
 
     def LineArtPath(path:str, id:str) -> Path:
         lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
@@ -2543,9 +2546,13 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'empath'))
+
+        AddVerticalControlGroup(pl, controls, xInputGainControl, yInputGainControl, 'input_gain')
+        pl.append(CenteredControlTextPath(font, 'GAIN', xInputGainControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
+
         controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
-        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
+        AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
 
         pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
@@ -2654,8 +2661,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))
 
         AddFlatControlGroup(pl, controls, xmid, yRes, 'res')
-        # Caption 'RES' / 'MORPH' loaded from separate svg.
-        # print('yResMorphLabel = {:0.3g}'.format(yRes - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        # Caption 'RES' / 'MORPH' loaded from separate svg, so not generated here.
 
         AddFlatControlGroup(pl, controls, xmid, yPan, 'pan')
         pl.append(CenteredControlTextPath(font, 'PAN', xmid, yPan - MULTITAP_DY_CONTROL_LOOP_LABEL))

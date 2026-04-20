@@ -579,7 +579,7 @@ namespace Sapphire
 
         namespace EInput
         {
-            constexpr unsigned nChaoticSignals = 3;
+            constexpr unsigned nChaoticSignals = 5;
             using fountain_t = ChaosFountain<nChaoticSignals>;
             using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -597,6 +597,8 @@ namespace Sapphire
                 TOGGLE_SPECTRUM_BUTTON_PARAM,
                 CHAOS_STEREO_BUTTON_PARAM,
                 CHAOS_RANDOMIZE_BUTTON_PARAM,
+                INPUT_GAIN_PARAM,
+                INPUT_GAIN_ATTEN,
                 PARAMS_LEN
             };
 
@@ -607,6 +609,7 @@ namespace Sapphire
                 CASCADE_CV_INPUT,
                 CHAOS_SPEED_CV_INPUT,
                 CHAOS_LEVEL_CV_INPUT,
+                INPUT_GAIN_CV_INPUT,
                 INPUTS_LEN
             };
 
@@ -672,6 +675,7 @@ namespace Sapphire
                 void action() override;
             };
 
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -692,6 +696,7 @@ namespace Sapphire
                     configControlGroup("Cascade", CASCADE_PARAM, CASCADE_ATTEN, CASCADE_CV_INPUT, MIN_FILTER_STAGES, MAX_FILTER_STAGES, DEFAULT_FILTER_STAGES);
                     configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                     configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
+                    configControlGroup("Input gain", INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configStereoInputs(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(TOGGLE_SPECTRUM_BUTTON_PARAM);
@@ -764,6 +769,19 @@ namespace Sapphire
                     return chaosStereoCrossfader.process(sampleRateHz, 0, 1);
                 }
 
+                void applyInputGain(Frame& audio, float stereoCrossfade, float chaosL, float chaosR)
+                {
+                    const int nc = audio.nchannels;
+                    float cvInputGain = 0;
+                    for (int c = 0; c < nc; ++c)
+                    {
+                        const float chaos = ChaosControlVoltage(c, stereoCrossfade, chaosL, chaosR);
+                        nextVoltageOrChaosSignal(cvInputGain, INPUT_GAIN_CV_INPUT, c, chaos);
+                        const float gain = Cube(cvGetControlValue(INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, cvInputGain, 0, 2));
+                        audio.sample[c] *= gain;
+                    }
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     ForwardMessage outMessage;
@@ -793,19 +811,32 @@ namespace Sapphire
                         outMessage.chaos.speedKnob,
                         outMessage.chaos.levelKnob
                     );
+
                     const float cascadeChaosL = batch.signal.at(0);
                     const float cascadeChaosR = batch.signal.at(1);
                     speedChaos = batch.signal.at(2);
+                    const float inputGainChaosL = batch.signal.at(3);
+                    const float inputGainChaosR = batch.signal.at(4);
+
                     const float smoothChaosR = LinearMix(
                         outMessage.chaos.stereoCrossfade,
                         cascadeChaosL,
                         cascadeChaosR
                     );
+
                     outMessage.cascade = readCascade(
                         outMessage.dryAudio.nchannels,
                         cascadeChaosL,
                         smoothChaosR
                     );
+
+                    applyInputGain(
+                        outMessage.dryAudio,
+                        outMessage.chaos.stereoCrossfade,
+                        inputGainChaosL,
+                        inputGainChaosR
+                    );
+
                     sendMessage(outMessage);
                 }
 
@@ -857,6 +888,7 @@ namespace Sapphire
                     addToggleSpectrumButton();
                     addChaosStereoButton();
                     addChaosRandomButton();
+                    addSapphireFlatControlGroup("input_gain", INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, 3.0, 3.5);
                 }
 
                 bool isConnectedOnLeft() const override

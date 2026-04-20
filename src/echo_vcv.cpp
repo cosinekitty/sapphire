@@ -1973,7 +1973,7 @@ namespace Sapphire
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     configGainControls(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
-                    configDriveControls();
+                    configInputGainControls();
                     reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "");
                     freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
                     configToggleGroup(CLEAR_INPUT, CLEAR_BUTTON_PARAM, "Clear", "Clear trigger");
@@ -2099,13 +2099,13 @@ namespace Sapphire
                 {
                     Frame audio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, polyphonic, mode);
                     const int nc = audio.safeChannelCount();
-                    float cvDrive = 0;
+                    float cvInputGain = 0;
                     for (int c = 0; c < nc; ++c)
                     {
-                        nextChannelInputVoltage(cvDrive, INPUT_GAIN_CV_INPUT, c);
-                        float drive = Cube(cvGetControlValue(INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, cvDrive, 0, 2));
+                        nextChannelInputVoltage(cvInputGain, INPUT_GAIN_CV_INPUT, c);
+                        float gain = Cube(cvGetControlValue(INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, cvInputGain, 0, 2));
                         inputFilter[c].SetCutoffFrequency(dcRejectQuantity->value);
-                        audio.sample[c] = drive * inputFilter[c].UpdateHiPass(audio.sample[c], sampleRateHz);
+                        audio.sample[c] = gain * inputFilter[c].UpdateHiPass(audio.sample[c], sampleRateHz);
                     }
                     return audio;
                 }
@@ -2181,7 +2181,7 @@ namespace Sapphire
                     InvokeAction(new BumpEnumAction<TapInputRouting>(routingSmoother, "signal routing change"));
                 }
 
-                void configDriveControls()
+                void configInputGainControls()
                 {
                     const std::string name = "Input gain";
                     configParam(INPUT_GAIN_PARAM, 0, 2, 1, name, " dB", -10, 20*3);
