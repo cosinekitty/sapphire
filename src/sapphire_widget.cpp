@@ -178,11 +178,13 @@ namespace Sapphire
         const NVGcolor panelColor  = nvgRGB(0x4f, 0x8d, 0xf2);
         const NVGcolor borderColor = nvgRGB(0x5d, 0x43, 0xa3);
 
+        static constexpr float dxRemoveGap = 0.3;
+
         if (hideLeft)
             DrawBorder(vg, panelColor, 0, margin, margin, vertical);
 
         if (hideRight)
-            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin, vertical);
+            DrawBorder(vg, panelColor, box.size.x - margin, margin, margin + dxRemoveGap, vertical);
 
         if (!neon)
         {
