@@ -1882,8 +1882,8 @@ namespace Sapphire
                 PAN_ATTEN,
                 DC_REJECT_PARAM,
                 INTERVAL_BUTTON_PARAM,
-                GAIN_PARAM,
-                GAIN_ATTEN,
+                LEVEL_PARAM,
+                LEVEL_ATTEN,
                 REVERSE_BUTTON_PARAM,
                 FREEZE_BUTTON_PARAM,
                 CLEAR_BUTTON_PARAM,
@@ -1896,8 +1896,8 @@ namespace Sapphire
                 MUTE_BUTTON_PARAM,
                 SOLO_BUTTON_PARAM,
                 TAPE_SLEW_PARAM,
-                DRIVE_PARAM,
-                DRIVE_ATTEN,
+                INPUT_GAIN_PARAM,
+                INPUT_GAIN_ATTEN,
                 PARAMS_LEN
             };
 
@@ -1908,8 +1908,8 @@ namespace Sapphire
                 TIME_CV_INPUT,
                 FEEDBACK_CV_INPUT,
                 PAN_CV_INPUT,
-                DRIVE_CV_INPUT,
-                GAIN_CV_INPUT,
+                INPUT_GAIN_CV_INPUT,
+                LEVEL_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
                 REVERSE_INPUT,
@@ -1972,7 +1972,7 @@ namespace Sapphire
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configFeedbackControls(FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    configGainControls(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     configDriveControls();
                     reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "");
                     freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
@@ -2025,8 +2025,8 @@ namespace Sapphire
                     params.at(TIME_ATTEN).setValue(0);
                     params.at(PAN_PARAM).setValue(0);
                     params.at(PAN_ATTEN).setValue(0);
-                    params.at(GAIN_PARAM).setValue(1);
-                    params.at(GAIN_ATTEN).setValue(0);
+                    params.at(LEVEL_PARAM).setValue(1);
+                    params.at(LEVEL_ATTEN).setValue(0);
                     params.at(REVERSE_BUTTON_PARAM).setValue(0);
                     params.at(ENV_GAIN_PARAM).setValue(1);
                     params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
@@ -2034,7 +2034,7 @@ namespace Sapphire
                     params.at(SOLO_BUTTON_PARAM).setValue(0);
                     setLowSensitive(TIME_ATTEN, false);
                     setLowSensitive(PAN_ATTEN, false);
-                    setLowSensitive(GAIN_ATTEN, false);
+                    setLowSensitive(LEVEL_ATTEN, false);
                 }
 
                 void initialize() override
@@ -2046,7 +2046,7 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    controls.gain = ControlGroupIds(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
@@ -2102,8 +2102,8 @@ namespace Sapphire
                     float cvDrive = 0;
                     for (int c = 0; c < nc; ++c)
                     {
-                        nextChannelInputVoltage(cvDrive, DRIVE_CV_INPUT, c);
-                        float drive = Cube(cvGetControlValue(DRIVE_PARAM, DRIVE_ATTEN, cvDrive, 0, 2));
+                        nextChannelInputVoltage(cvDrive, INPUT_GAIN_CV_INPUT, c);
+                        float drive = Cube(cvGetControlValue(INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, cvDrive, 0, 2));
                         inputFilter[c].SetCutoffFrequency(dcRejectQuantity->value);
                         audio.sample[c] = drive * inputFilter[c].UpdateHiPass(audio.sample[c], sampleRateHz);
                     }
@@ -2184,13 +2184,13 @@ namespace Sapphire
                 void configDriveControls()
                 {
                     const std::string name = "Input gain";
-                    configParam(DRIVE_PARAM, 0, 2, 1, name, " dB", -10, 20*3);
-                    configAttenCv(DRIVE_ATTEN, DRIVE_CV_INPUT, name);
+                    configParam(INPUT_GAIN_PARAM, 0, 2, 1, name, " dB", -10, 20*3);
+                    configAttenCv(INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, name);
                 }
 
                 void silentLevelHook() override
                 {
-                    params.at(GAIN_PARAM).setValue(0);
+                    params.at(LEVEL_PARAM).setValue(0);
                 }
             };
 
@@ -2234,7 +2234,7 @@ namespace Sapphire
                     // Global controls/ports
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "audio");
                     addSapphireControlGroup("feedback", FEEDBACK_PARAM, FEEDBACK_ATTEN, FEEDBACK_CV_INPUT);
-                    addSapphireFlatControlGroup("drive", DRIVE_PARAM, DRIVE_ATTEN, DRIVE_CV_INPUT, 3.0, 3.5);
+                    addSapphireFlatControlGroup("drive", INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, 3.0, 3.5);
                     addFreezeToggleGroup();
                     addClearTriggerGroup();
                     addSapphireInput(CLOCK_INPUT, "clock_input");
@@ -2250,7 +2250,7 @@ namespace Sapphire
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    addSapphireFlatControlGroup("gain", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
@@ -2767,8 +2767,8 @@ namespace Sapphire
                 PAN_ATTEN,
                 SEND_RETURN_BUTTON_PARAM,
                 REMOVE_BUTTON_PARAM,
-                GAIN_PARAM,
-                GAIN_ATTEN,
+                LEVEL_PARAM,
+                LEVEL_ATTEN,
                 REVERSE_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
                 INIT_CHAIN_BUTTON_PARAM,
@@ -2783,7 +2783,7 @@ namespace Sapphire
                 TIME_CV_INPUT,
                 PAN_CV_INPUT,
                 _OBSOLETE_INPUT,
-                GAIN_CV_INPUT,
+                LEVEL_CV_INPUT,
                 RETURN_LEFT_INPUT,
                 RETURN_RIGHT_INPUT,
                 REVERSE_INPUT,
@@ -2819,7 +2819,7 @@ namespace Sapphire
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configTimeControls(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     configPanControls(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    configGainControls(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    configGainControls(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     reverseToggleGroup.config(this, "Reverse/flip", "reverseToggleGroup", REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, "Reverse", "Reverse gate");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
@@ -2844,7 +2844,7 @@ namespace Sapphire
                 void defineControls()
                 {
                     controls.delayTime = ControlGroupIds(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
-                    controls.gain = ControlGroupIds(GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    controls.gain = ControlGroupIds(LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     controls.pan = ControlGroupIds(PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                     controls.sendLeftOutputId   = SEND_LEFT_OUTPUT;
                     controls.sendRightOutputId  = SEND_RIGHT_OUTPUT;
@@ -2877,8 +2877,8 @@ namespace Sapphire
                         copyParamFrom(emod, PAN_PARAM, Echo::PAN_PARAM);
                         copyParamFrom(emod, PAN_ATTEN, Echo::PAN_ATTEN);
                         copyParamFrom(emod, SEND_RETURN_BUTTON_PARAM, Echo::SEND_RETURN_BUTTON_PARAM);
-                        copyParamFrom(emod, GAIN_PARAM, Echo::GAIN_PARAM);
-                        copyParamFrom(emod, GAIN_ATTEN, Echo::GAIN_ATTEN);
+                        copyParamFrom(emod, LEVEL_PARAM, Echo::LEVEL_PARAM);
+                        copyParamFrom(emod, LEVEL_ATTEN, Echo::LEVEL_ATTEN);
                         copyParamFrom(emod, REVERSE_BUTTON_PARAM, Echo::REVERSE_BUTTON_PARAM);
                         copyParamFrom(emod, ENV_GAIN_PARAM, Echo::ENV_GAIN_PARAM);
                         copyParamFrom(emod, MUTE_BUTTON_PARAM, Echo::MUTE_BUTTON_PARAM);
@@ -2888,7 +2888,7 @@ namespace Sapphire
 
                 void silentLevelHook() override
                 {
-                    params.at(GAIN_PARAM).setValue(0);
+                    params.at(LEVEL_PARAM).setValue(0);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2971,7 +2971,7 @@ namespace Sapphire
                     addTimeControlGroup(TIME_PARAM, TIME_ATTEN, TIME_CV_INPUT);
                     addReverseToggleGroup(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    addSapphireFlatControlGroup("gain", GAIN_PARAM, GAIN_ATTEN, GAIN_CV_INPUT);
+                    addSapphireFlatControlGroup("gain", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     addEnvelopeOutput(ENV_OUTPUT);
                     addSmallKnob(ENV_GAIN_PARAM, "env_gain_knob");
                     addInitTapButton(INIT_TAP_BUTTON_PARAM);
