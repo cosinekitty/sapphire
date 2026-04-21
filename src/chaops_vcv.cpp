@@ -93,6 +93,19 @@ namespace Sapphire
                 initialize();
             }
 
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                freezeToggleGroup.jsonSave(root);
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                freezeToggleGroup.jsonLoad(root);
+            }
+
             int getMemoryIndex()
             {
                 using namespace std;

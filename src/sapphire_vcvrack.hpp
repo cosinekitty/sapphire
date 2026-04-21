@@ -1945,16 +1945,16 @@ namespace Sapphire
             json_t* child = json_object();
             json_object_set_new(root, jsonKey, child);
 
-            // For now, the mode is the only thing we need.
             jsonSetEnum(child, "mode", mode);
+            jsonSetBool(child, "active", portActive);
         }
 
         void jsonLoad(json_t* root)
         {
-            json_t* child = json_object_get(root, jsonKey);
-            if (json_is_object(child))
+            if (json_t* child = json_object_get(root, jsonKey); json_is_object(child))
             {
                 jsonLoadEnum(child, "mode", mode);
+                jsonLoadBool(child, "active", portActive);
             }
         }
 

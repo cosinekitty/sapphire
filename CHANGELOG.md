@@ -20,6 +20,7 @@
         <li>Multiple <a href="doc/Hiss.md">Hiss</a> modules in a patch were generating the same sequence. Now initialize with 64-bits of entropy so they are all different. Save the seed in the patch for repeatable behavior on patch reset.</li>
         <li>There was a similar problem in <a href="doc/Pop.md">Pop</a>. Each of Pop's 16 channels now starts with 64-bits of entropy, all of which are saved/loaded in the patch for repeatable behavior.</li>
         <li>Added option "Follow input channel count" to <a href="doc/SplitAddMerge.md">Split/Add/Merge</a>, allowing the output cable's channel count automatically match the input cables.</li>
+        <li><a href="doc/Chaops.md">Chaops</a> was not saving the state of the FREEZE control to the patch. This has been fixed.</li>
     </ul>
 </td>
 </tr>
