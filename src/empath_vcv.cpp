@@ -2077,14 +2077,6 @@ namespace Sapphire
                     return enable;
                 }
 
-                void setAgcLevel(float level)
-                {
-                    // Convert VCV voltages to unit dimensionless quantities.
-                    constexpr float audioLevelVolts = 5;
-                    float ceiling = level / audioLevelVolts;
-                    agc.setCeiling(ceiling);
-                }
-
                 double getAgcDistortion() override
                 {
                     return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
@@ -2097,7 +2089,7 @@ namespace Sapphire
                     {
                         agcLevelQuantity->changed = false;
                         if (setAgcEnabled(agcLevelQuantity->isAgcEnabled()))
-                            setAgcLevel(agcLevelQuantity->clampedAgc());
+                            agc.setCeiling(agcLevelQuantity->clampedAgc());
                     }
                 }
 
