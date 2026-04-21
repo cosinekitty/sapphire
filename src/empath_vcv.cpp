@@ -947,7 +947,7 @@ namespace Sapphire
                         nvgStrokeColor(vg, SCHEME_BLACK);
                         nvgStrokeWidth(vg, 0.75);
                         nvgMoveTo(vg, bx + buttonRadius, by);
-                        nvgLineTo(vg, box.size.x, by);
+                        nvgLineTo(vg, box.size.x + DX_REMOVE_GAP, by);
                         nvgStroke(vg);
                     }
                 }
@@ -1846,13 +1846,13 @@ namespace Sapphire
                             nvgBeginPath(vg);
                             if (left)
                             {
-                                nvgMoveTo(vg, 0, y);
+                                nvgMoveTo(vg, -DX_REMOVE_GAP, y);
                                 nvgLineTo(vg, pos.x, y);
                             }
                             if (right)
                             {
                                 nvgMoveTo(vg, pos.x + size.x, y);
-                                nvgLineTo(vg, box.size.x, y);
+                                nvgLineTo(vg, box.size.x + DX_REMOVE_GAP, y);
                             }
                             nvgStrokeColor(vg, SCHEME_BLACK);
                             nvgStrokeWidth(vg, 0.75);
@@ -2218,7 +2218,7 @@ namespace Sapphire
                                 const Vec& pos  = leftModule->spectrum->box.pos;
                                 const Vec& size = leftModule->spectrum->box.size;
                                 const float y = pos.y + size.y/2;
-                                const float x1 = mm2px(0.0);
+                                const float x1 = mm2px(0.0) - DX_REMOVE_GAP;
                                 const float x2 = mm2px(2.0);
 
                                 nvgBeginPath(vg);

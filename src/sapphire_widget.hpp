@@ -13,6 +13,8 @@ namespace Sapphire
     constexpr float HP_MM = 5.08;
     constexpr float PANEL_HEIGHT_MM = 128.5;
 
+    constexpr float DX_REMOVE_GAP = 0.3;    // fractional pixels to eliminate hairline gaps between adjacent expander modules
+
     inline int hpDistance(float mm)
     {
         return static_cast<int>(std::round(mm / HP_MM));
