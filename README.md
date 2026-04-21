@@ -45,6 +45,17 @@ hexagonal mesh of balls and springs.
 
 ---
 
+## Empath
+
+An expandable array of parallel bandpass, notch, and comb filters.
+Features internal chaotic modulation options.
+
+<a href="doc/Empath.md">Sapphire Empath documentation</a>
+
+<a href="doc/Empath.md"><img src="doc/images/empath.png" /></a>
+
+---
+
 ## Env
 
 A polyphonic envelope follower and pitch detector.
