@@ -224,7 +224,7 @@ namespace Sapphire
 
             Frame readFrame(int leftInputId, int rightInputId, bool polyphonic, PortLabelMode& mode)
             {
-                mode = PortLabelMode::Stereo;
+                bool changed = false;   // avoid multi-thread UI label flickering: minimize changes to this->mode.
 
                 Input& inLeft  = inputs.at(leftInputId);
                 Input& inRight = inputs.at(rightInputId);
@@ -244,6 +244,7 @@ namespace Sapphire
                             // Mono input, so send the same signal to both stereo output channels.
                             frame.sample[1] = frame.sample[0];
                             mode = PortLabelMode::Mono;
+                            changed = true;
                         }
                         else if (ncLeft == 2 || polyphonic)
                         {
@@ -252,9 +253,22 @@ namespace Sapphire
                             for (int c = 0; c < frame.nchannels; ++c)
                                 frame.sample[c] = inLeft.getVoltage(c);
                             mode = static_cast<PortLabelMode>(ncLeft);
+                            changed = true;
                         }
                     }
                 }
+
+                // Wait until we know we haven't changed the mode to set
+                // it to its default value (stereo).
+                // I used to do this at the top of the function, and
+                // I didn't have a `changed` flag.
+                // I kept seeing "2" flickering briefly to "L R" in a particular patch.
+                // This makes me believe that the module's call to this function can
+                // be pre-empted by a graphics frame update in while mode==stereo.
+                // Now the idea is we don't actually change the value in memory until
+                // we know for sure that's the value it should have.
+                if (!changed)
+                    mode = PortLabelMode::Stereo;
 
                 return frame;
             }
