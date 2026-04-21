@@ -17,11 +17,19 @@ and are larger than I need.
 
 ## Channel Count
 
-Split/Add/Merge has an adjustable channel count 1..16. Right-click on the panel and slide the horizontal bar labeled "Output channels". This slider controls the number of channels on the polyphonic output port, which is the port at the bottom of the panel.
+The number of channels of polyphonic output can be manually controlled or automatic.
+
+For manual control, Split/Add/Merge has an adjustable channel count 1..16. Right-click on the panel and slide the horizontal bar labeled "Output channels". This slider controls the number of channels on the polyphonic output port, which is the port at the bottom of the panel.
 
 ![Split/Add/Merge channel count control](images/split_channel_count.png)
 
 Any channels beyond the selected channel count are discarded. Any extra channels created by the slider are set to 0 volts.
+
+For automatic control, use the option "Follow input channel count" in the right-click menu. When enabled, Split/Add/Merge checks both the input monophonic ports (X, Y, Z) and the polyphonic input port (P).
+
+If a cable is connected to the P input, the output will have at least as many channels as the P input cable.
+
+If there is a cable connected to the Z input, the output will have at least 3 channels. If there is a cable attached to the Y input, there will be at least 2 output channels. There is always at least 1 channel of output whether or not X is connected.
 
 ## Input Ports
 

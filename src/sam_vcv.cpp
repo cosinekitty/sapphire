@@ -44,6 +44,7 @@ namespace Sapphire
         struct SplitAddMergeModule : SapphireModule
         {
             ChannelCountQuantity *channelCountQuantity{};
+            bool followInputChannelCount{};
 
             SplitAddMergeModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -70,6 +71,7 @@ namespace Sapphire
             void initialize()
             {
                 channelCountQuantity->initialize();
+                followInputChannelCount = false;
             }
 
             void onReset(const ResetEvent& e) override
@@ -78,8 +80,28 @@ namespace Sapphire
                 initialize();
             }
 
-            int desiredChannelCount() const
+            int desiredChannelCount()
             {
+                if (followInputChannelCount)
+                {
+                    int nc = 1;     // always output at least 1 channel
+
+                    // Expand channel count to hold all the channels of any polyphonic input cable.
+                    nc = std::max<int>(nc, inputs.at(POLY_INPUT).getChannels());
+
+                    // If any of the monophonic ports (X, Y, Z) are connected,
+                    // expand the channel count as needed to include their signal(s).
+                    // No need to actually check X because we always output at least 1 channel anyway.
+
+                    if (nc<3 && inputs.at(Z_INPUT).isConnected())
+                        nc = 3;
+
+                    if (nc<2 && inputs.at(Y_INPUT).isConnected())
+                        nc = 2;
+
+                    return nc;
+                }
+
                 return channelCountQuantity->getDesiredChannelCount();
             }
 
@@ -87,19 +109,19 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 json_object_set_new(root, "channels", json_integer(desiredChannelCount()));
+                jsonSetBool(root, "followInputChannelCount", followInputChannelCount);
                 return root;
             }
 
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
-                json_t* channels = json_object_get(root, "channels");
-                if (json_is_integer(channels))
-                {
-                    json_int_t n = json_integer_value(channels);
-                    if (n >= 1 && n <= PORT_MAX_CHANNELS)
+
+                if (json_t* jChannels = json_object_get(root, "channels"); json_is_integer(jChannels))
+                    if (json_int_t n = json_integer_value(jChannels); n >= 1 && n <= PORT_MAX_CHANNELS)
                         channelCountQuantity->value = static_cast<float>(n);
-                }
+
+                jsonLoadBool(root, "followInputChannelCount", followInputChannelCount);
             }
 
             void process(const ProcessArgs& args) override
@@ -170,6 +192,13 @@ namespace Sapphire
                 if (splitAddMergeModule)
                 {
                     menu->addChild(new ChannelCountSlider(splitAddMergeModule->channelCountQuantity));
+
+                    BoolToggleAction::AddMenuItem(
+                        menu,
+                        splitAddMergeModule->followInputChannelCount,
+                        "Follow input channel count",
+                        "channel count mode"
+                    );
                 }
             }
         };

@@ -9,16 +9,17 @@
 </tr>
 
 <tr valign="top">
-<td align="center">13 Apr 2026</td>
+<td align="center">21 Apr 2026</td>
 <td align="center">2.6.004</td>
 <td align="left">
     <ul>
-        <li>Added new module: <a href="doc/Empath.md">Empath</a>.</li>
+        <li>Added new module: <a href="doc/Empath.md">Empath</a>. This is a multi-path expander chain of parallel filters.</li>
         <li>Now when you right-click on any Sapphire attenuverter knob, there is a new menu option "Unipolar mode". Enabling unipolar mode adds 5 volts to the CV input. If the result is still negative, the unipolar option converts it to zero volts. The idea is to allow CV to act more like a unipolar signal. A symbol `U` appears near the attenuverter when unipolar mode is active.</li>
         <li>The following modules have speed/frequency attenuverter knobs with a new option "Snap to V/OCT": <a href="doc/Pop.md">Pop</a>, <a href="doc/Gravy.md">Gravy</a>, <a href="doc/Sauce.md">Sauce</a>. This action sets the attenuverter to the correct setting for V/OCT behavior on the input port. The <a href="doc/SapphireChaosModules.md">chaos modules</a> already had "Snap to V/OCT" on the SPEED attenuverter, but in their case for a different value (5/14 = 35.714%). These changes provide a uniform way to select V/OCT behavior.</li>
         <li>Fixed a bug when <a href="doc/Echo.md">Echo</a> is given monophonic input to the L input port only. Echo was incorrectly dividing the voltage by 2 before sending to the left and right channels. This does not match the documented behavior of sending the monophonic input equally to both channels (or "normalling"). This has been fixed, but it means older patches may have to adjust levels. There is no issue in other cases like stereo input or polyphonic input; they all work correctly and have not been changed.</li>
         <li>Multiple <a href="doc/Hiss.md">Hiss</a> modules in a patch were generating the same sequence. Now initialize with 64-bits of entropy so they are all different. Save the seed in the patch for repeatable behavior on patch reset.</li>
         <li>There was a similar problem in <a href="doc/Pop.md">Pop</a>. Each of Pop's 16 channels now starts with 64-bits of entropy, all of which are saved/loaded in the patch for repeatable behavior.</li>
+        <li>Added option "Follow input channel count" to <a href="doc/SplitAddMerge.md">Split/Add/Merge</a>, allowing the output cable's channel count automatically match the input cables.</li>
     </ul>
 </td>
 </tr>
