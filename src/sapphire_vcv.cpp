@@ -6,6 +6,7 @@
 namespace Sapphire
 {
     std::vector<SapphireModule*> SapphireModule::All;
+    ModelInfo *ModelInfo::front;
 
 
     float ValidateNumber(
