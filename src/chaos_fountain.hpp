@@ -55,7 +55,7 @@ namespace Sapphire
 
         std::uint64_t getSeed() const { return seed; }
 
-        void update(float dt)
+        void update(double dt)
         {
             for (auto& osc : oscillators)
                 osc.update(dt, 1);
