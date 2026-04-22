@@ -787,7 +787,7 @@ static int ChaosFountainTest()
     printf("ChaosFountainTest: Running the fountain for %u iterations...\n", nsamples);
     for (unsigned s = 0; s < nsamples; ++s)
     {
-        Sapphire::ChaosBatch<nsignals> batch = fountain.process(sampleRateHz, speedKnob, 1);
+        Sapphire::ChaosBatch<nsignals> batch = fountain.process(sampleRateHz, speedKnob, 1, false);
         if (s == 0)
         {
             for (unsigned i = 0; i < nsignals; ++i)

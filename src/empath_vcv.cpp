@@ -44,6 +44,7 @@ namespace Sapphire
             float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
             float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
             bool  reset{};            // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
+            bool  frozen{};           // when true, completely turns off all chaos fountains to reduce CPU usage
         };
 
         struct ForwardMessage
@@ -809,7 +810,10 @@ namespace Sapphire
                     outMessage.chaos.speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
-
+                    outMessage.chaos.frozen = (
+                        (params.at(CHAOS_LEVEL_PARAM).getValue() == 0) &&
+                        (params.at(CHAOS_LEVEL_ATTEN).getValue() == 0)
+                    );
                     outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
                     outMessage.dryAudio.multiply(outMessage.chaos.antiClick);
 
@@ -823,7 +827,8 @@ namespace Sapphire
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         outMessage.chaos.speedKnob,
-                        outMessage.chaos.levelKnob
+                        outMessage.chaos.levelKnob,
+                        outMessage.chaos.frozen
                     );
 
                     const float cascadeChaosL = batch.signal.at(0);
@@ -1582,7 +1587,8 @@ namespace Sapphire
                     const batch_t batch = fountain.process(
                         args.sampleRate,
                         inMessage.chaos.speedKnob,
-                        inMessage.chaos.levelKnob
+                        inMessage.chaos.levelKnob,
+                        inMessage.chaos.frozen
                     );
 
                     const float freqChaosL  = batch.signal.at(0);
@@ -2110,19 +2116,19 @@ namespace Sapphire
                 void process(const ProcessArgs& args) override
                 {
                     BackwardMessage backMessage;
-                    const ForwardMessage message = receiveMessageOrDefault();
-                    chainIndex = message.chainIndex;
-                    backMessage.soloCount = message.soloCount;
+                    const ForwardMessage inMessage = receiveMessageOrDefault();
+                    chainIndex = inMessage.chainIndex;
+                    backMessage.soloCount = inMessage.soloCount;
                     backMessage.spectrumPowerScale = spectrumPower();
 
-                    includeNeonModeMenuItem = !message.valid;
-                    if (message.valid)
-                        neonMode = message.neonMode;
+                    includeNeonModeMenuItem = !inMessage.valid;
+                    if (inMessage.valid)
+                        neonMode = inMessage.neonMode;
 
-                    firstSoloFader.setTarget(message.soloCount > 0);
+                    firstSoloFader.setTarget(inMessage.soloCount > 0);
                     float solo = firstSoloFader.process(args.sampleRate, 0, 1);
 
-                    if (message.chaos.reset && seedToRestore)
+                    if (inMessage.chaos.reset && seedToRestore)
                     {
                         fountain.reset(seedToRestore);
                         seedToRestore = 0;
@@ -2130,16 +2136,17 @@ namespace Sapphire
 
                     const batch_t batch = fountain.process(
                         args.sampleRate,
-                        message.chaos.speedKnob,
-                        message.chaos.levelKnob
+                        inMessage.chaos.speedKnob,
+                        inMessage.chaos.levelKnob,
+                        inMessage.chaos.frozen
                     );
 
                     Frame audio = outputAudioFrame(
-                        message.dryAudio,
-                        message.wetAudio,
-                        message.soloAudio,
-                        message.chaos.stereoCrossfade,
-                        message.chaos.antiClick,
+                        inMessage.dryAudio,
+                        inMessage.wetAudio,
+                        inMessage.soloAudio,
+                        inMessage.chaos.stereoCrossfade,
+                        inMessage.chaos.antiClick,
                         solo,
                         batch
                     );
@@ -2148,7 +2155,7 @@ namespace Sapphire
                     if (enableAgc)
                         agc.process(args.sampleRate, audio.nchannels, audio.sample.data());
 
-                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, message.polyphonic);
+                    writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, inMessage.polyphonic);
 
                     sendBackwardMessage(backMessage);
                 }

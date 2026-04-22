@@ -58,11 +58,12 @@ namespace Sapphire
         batch_t process(
             float sampleRateHz,
             float speedKnob,        // relative time-flow rate in octaves
-            float levelKnob)        // how intense the chaos is across all attenuverters
+            float levelKnob,        // how intense the chaos is across all attenuverters
+            bool frozen)            // true freezes the fountain state and reduces CPU usage
         {
             batch_t batch;
 
-            const double dt = std::pow<double>(2.0, speedKnob) / sampleRateHz;
+            const double dt = frozen ? 0.0 : (std::pow<double>(2.0, speedKnob) / sampleRateHz);
             static const double r = 1.0 / std::sqrt(3.0);
             static const double w = (r+1)/2;
             static const double u = (r-1)/2;
@@ -71,7 +72,8 @@ namespace Sapphire
 
             for (auto& osc : oscillators)
             {
-                osc.update(dt, 1);
+                if (!frozen)
+                    osc.update(dt, 1);
 
                 // The Aizawa attractor has a different average orbital period
                 // for its z-component than for the x- and y-components.
