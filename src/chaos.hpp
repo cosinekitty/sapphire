@@ -133,18 +133,6 @@ namespace Sapphire
         double y1{};
         double z1{};
 
-        void step(double dt)
-        {
-            // Fourth-order Runge-Kutta (RK4) extrapolation.
-            SlopeVector k1 = vel(x1, y1, z1);
-            SlopeVector k2 = vel(x1 + (dt/2)*k1.mx, y1 + (dt/2)*k1.my, z1 + (dt/2)*k1.mz);
-            SlopeVector k3 = vel(x1 + (dt/2)*k2.mx, y1 + (dt/2)*k2.my, z1 + (dt/2)*k2.mz);
-            SlopeVector k4 = vel(x1 + dt*k3.mx, y1 + dt*k3.my, z1 + dt*k3.mz);
-            x1 += (dt/6)*(k1.mx + 2*k2.mx + 2*k3.mx + k4.mx);
-            y1 += (dt/6)*(k1.my + 2*k2.my + 2*k3.my + k4.my);
-            z1 += (dt/6)*(k1.mz + 2*k2.mz + 2*k3.mz + k4.mz);
-        }
-
     public:
         virtual ~ChaoticOscillator() {}
 
@@ -307,6 +295,18 @@ namespace Sapphire
             const double et = dt / n;
             for (int i = 0; i < n; ++i)
                 step(et);
+        }
+
+        void step(double dt)
+        {
+            // Fourth-order Runge-Kutta (RK4) extrapolation.
+            SlopeVector k1 = vel(x1, y1, z1);
+            SlopeVector k2 = vel(x1 + (dt/2)*k1.mx, y1 + (dt/2)*k1.my, z1 + (dt/2)*k1.mz);
+            SlopeVector k3 = vel(x1 + (dt/2)*k2.mx, y1 + (dt/2)*k2.my, z1 + (dt/2)*k2.mz);
+            SlopeVector k4 = vel(x1 + dt*k3.mx, y1 + dt*k3.my, z1 + dt*k3.mz);
+            x1 += (dt/6)*(k1.mx + 2*k2.mx + 2*k3.mx + k4.mx);
+            y1 += (dt/6)*(k1.my + 2*k2.my + 2*k3.my + k4.my);
+            z1 += (dt/6)*(k1.mz + 2*k2.mz + 2*k3.mz + k4.mz);
         }
 
         ChaoticOscillatorState getState() const

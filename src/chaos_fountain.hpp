@@ -58,7 +58,7 @@ namespace Sapphire
         void update(double dt)
         {
             for (auto& osc : oscillators)
-                osc.update(dt, 1);
+                osc.step(dt);
         }
 
         batch_t getBatch(float levelKnob) const
@@ -111,6 +111,8 @@ namespace Sapphire
     private:
         void append(unsigned& n, batch_t& batch, float signal) const
         {
+            // After we fill the batch, there will still be 0, 1, or 2 leftover values.
+            // Silently discard these for the convenience of the caller.
             if (n < nsignals)
                 batch.signal.at(permutation[n++]) = signal;
         }
