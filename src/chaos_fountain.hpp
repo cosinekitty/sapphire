@@ -55,26 +55,22 @@ namespace Sapphire
 
         std::uint64_t getSeed() const { return seed; }
 
-        batch_t process(
-            float sampleRateHz,
-            float speedKnob,        // relative time-flow rate in octaves
-            float levelKnob,        // how intense the chaos is across all attenuverters
-            bool frozen)            // true freezes the fountain state and reduces CPU usage
+        void update(float dt)
+        {
+            for (auto& osc : oscillators)
+                osc.update(dt, 1);
+        }
+
+        batch_t getBatch(float levelKnob) const
         {
             batch_t batch;
+            unsigned n = 0;     // how many signals have been generated
 
-            const double dt = frozen ? 0.0 : (std::pow<double>(2.0, speedKnob) / sampleRateHz);
             static const double r = 1.0 / std::sqrt(3.0);
             static const double w = (r+1)/2;
             static const double u = (r-1)/2;
-
-            unsigned n = 0;     // how many signals have been generated
-
-            for (auto& osc : oscillators)
+            for (const auto& osc : oscillators)
             {
-                if (!frozen)
-                    osc.update(dt, 1);
-
                 // The Aizawa attractor has a different average orbital period
                 // for its z-component than for the x- and y-components.
                 // The z value orbit takes about 4 times as long as x and y.
@@ -113,7 +109,7 @@ namespace Sapphire
         }
 
     private:
-        void append(unsigned& n, batch_t& batch, float signal)
+        void append(unsigned& n, batch_t& batch, float signal) const
         {
             if (n < nsignals)
                 batch.signal.at(permutation[n++]) = signal;

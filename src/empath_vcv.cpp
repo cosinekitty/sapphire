@@ -39,7 +39,7 @@ namespace Sapphire
 
         struct ChaosFountainInfo
         {
-            float speedKnob{};
+            double dt{};              // time increment in seconds, calculated from speed knob
             float levelKnob{};
             float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
             float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
@@ -807,7 +807,8 @@ namespace Sapphire
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
                     outMessage.interpolatorKind = interpolatorKind;
-                    outMessage.chaos.speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
+                    const double speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
+                    outMessage.chaos.dt = SimulationTimeIncrement(args.sampleRate, speedKnob);
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
                     outMessage.chaos.frozen = (
@@ -824,12 +825,10 @@ namespace Sapphire
                         seedToRestore = 0;
                     }
 
-                    const batch_t batch = fountain.process(
-                        args.sampleRate,
-                        outMessage.chaos.speedKnob,
-                        outMessage.chaos.levelKnob,
-                        outMessage.chaos.frozen
-                    );
+                    if (!outMessage.chaos.frozen)
+                        fountain.update(outMessage.chaos.dt);
+
+                    const batch_t batch = fountain.getBatch(outMessage.chaos.levelKnob);
 
                     const float cascadeChaosL = batch.signal.at(0);
                     const float cascadeChaosR = batch.signal.at(1);
@@ -1584,12 +1583,10 @@ namespace Sapphire
                         seedToRestore = 0;
                     }
 
-                    const batch_t batch = fountain.process(
-                        args.sampleRate,
-                        inMessage.chaos.speedKnob,
-                        inMessage.chaos.levelKnob,
-                        inMessage.chaos.frozen
-                    );
+                    if (!inMessage.chaos.frozen)
+                        fountain.update(inMessage.chaos.dt);
+
+                    const batch_t batch = fountain.getBatch(inMessage.chaos.levelKnob);
 
                     const float freqChaosL  = batch.signal.at(0);
                     const float freqChaosR  = batch.signal.at(1);
@@ -2134,12 +2131,10 @@ namespace Sapphire
                         seedToRestore = 0;
                     }
 
-                    const batch_t batch = fountain.process(
-                        args.sampleRate,
-                        inMessage.chaos.speedKnob,
-                        inMessage.chaos.levelKnob,
-                        inMessage.chaos.frozen
-                    );
+                    if (!inMessage.chaos.frozen)
+                        fountain.update(inMessage.chaos.dt);
+
+                    const batch_t batch = fountain.getBatch(inMessage.chaos.levelKnob);
 
                     Frame audio = outputAudioFrame(
                         inMessage.dryAudio,

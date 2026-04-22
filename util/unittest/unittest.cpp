@@ -776,6 +776,8 @@ static int ChaosFountainTest()
     constexpr float simTimeSeconds = 900;
     constexpr unsigned nsamples = static_cast<unsigned>(sampleRateHz * simTimeSeconds);
 
+    const double dt = Sapphire::SimulationTimeIncrement(sampleRateHz, speedKnob);
+
     // Simulate restoring a seed for determinstic behavior.
     Sapphire::ChaosFountain<nsignals> fountain(1775060954301140506);
 
@@ -787,7 +789,8 @@ static int ChaosFountainTest()
     printf("ChaosFountainTest: Running the fountain for %u iterations...\n", nsamples);
     for (unsigned s = 0; s < nsamples; ++s)
     {
-        Sapphire::ChaosBatch<nsignals> batch = fountain.process(sampleRateHz, speedKnob, 1, false);
+        fountain.update(dt);
+        Sapphire::ChaosBatch<nsignals> batch = fountain.getBatch(1);
         if (s == 0)
         {
             for (unsigned i = 0; i < nsignals; ++i)
