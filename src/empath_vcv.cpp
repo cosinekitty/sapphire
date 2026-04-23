@@ -29,6 +29,18 @@ namespace Sapphire
                 for (int c = 0; c < nchannels; ++c)
                     sample.at(c) *= factor;
             }
+
+            void invalidate()
+            {
+                for (float& x : sample)
+                    x = NAN;
+            }
+
+            void clear()
+            {
+                for (float& x : sample)
+                    x = 0;
+            }
         };
 
         enum class SpectrumDisplayMode
@@ -1420,6 +1432,7 @@ namespace Sapphire
                 explicit FilterModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
                 {
+                    shouldOfferFireDrill = true;
                     enableEnvelopeFollower();
                     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
                     configButton(INSERT_BUTTON_PARAM);
@@ -1451,15 +1464,11 @@ namespace Sapphire
 
                 void FilterModule_initialize()
                 {
-                    for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
-                        channel[c].initialize();
-
+                    clearAudio();
                     modeFader.snapToFront();
                     muteFader.snapToFront();
                     soloFader.snapToFront();
                     totalSoloCount = 0;
-                    envelopeFollower.initialize();
-
                     if (spectrum)
                         spectrum->initialize();
                 }
@@ -1470,6 +1479,18 @@ namespace Sapphire
                     FilterModule_initialize();
                     if (fountain.getSeed())
                         fountain.reset();
+                }
+
+                void clearAudio()
+                {
+                    envelopeFollower.initialize();
+                    for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
+                        channel[c].initialize();
+                }
+
+                bool isBadOutput(const Frame& frame) const
+                {
+                    return SapphireModule::isBadOutput(frame.sample.data(), frame.nchannels);
                 }
 
                 json_t* dataToJson() override
@@ -1655,47 +1676,71 @@ namespace Sapphire
                         for (int c = 0; c < nc; ++c)
                         {
                             auto& q = channel[c];
+                            if (limiterRecoveryCountdown > 0)
+                            {
+                                sendFrame.sample[c] = 0;
+                                envelopeFrame.sample[c] = 0;
+                                levelFrame.sample[c] = 0;
+                            }
+                            else
+                            {
+                                float freqChaos  = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, freqChaosL,  freqChaosR);
+                                float resChaos   = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, resChaosL,   resChaosR);
+                                float levelChaos = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, levelChaosL, levelChaosR);
 
-                            float freqChaos  = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, freqChaosL,  freqChaosR);
-                            float resChaos   = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, resChaosL,   resChaosR);
-                            float levelChaos = ChaosControlVoltage(c, inMessage.chaos.stereoCrossfade, levelChaosL, levelChaosR);
+                                nextVoltageOrChaosSignal(cvFreq, FREQ_CV_INPUT, c, freqChaos);
+                                nextVoltageOrChaosSignal(cvRes, RES_CV_INPUT, c, resChaos);
+                                nextVoltageOrChaosSignal(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
 
-                            nextVoltageOrChaosSignal(cvFreq, FREQ_CV_INPUT, c, freqChaos);
-                            nextVoltageOrChaosSignal(cvRes, RES_CV_INPUT, c, resChaos);
-                            nextVoltageOrChaosSignal(cvLevel, LEVEL_CV_INPUT, c, levelChaos);
+                                float freqKnob  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
+                                float resKnob   = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
+                                float levelKnob = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 1);
 
-                            float freqKnob  = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, cvFreq, -OctaveRange, +OctaveRange);
-                            float resKnob   = cvGetControlValue(RES_PARAM, RES_ATTEN, cvRes);
-                            float levelKnob = cvGetControlValue(LEVEL_PARAM, LEVEL_ATTEN, cvLevel, 0, 1);
+                                q.filter.setFrequency(freqKnob);
+                                q.filter.setResonance(resKnob);
+                                q.filter.setInterpolator(inMessage.interpolatorKind);
 
-                            q.filter.setFrequency(freqKnob);
-                            q.filter.setResonance(resKnob);
-                            q.filter.setInterpolator(inMessage.interpolatorKind);
+                                sendFrame.sample[c] = inMessage.chaos.antiClick * q.filter.process(
+                                    args.sampleRate,
+                                    inMessage.dryAudio.sample[c],
+                                    inMessage.cascade.sample[c],
+                                    modeMix
+                                );
 
-                            sendFrame.sample[c] = inMessage.chaos.antiClick * q.filter.process(
-                                args.sampleRate,
-                                inMessage.dryAudio.sample[c],
-                                inMessage.cascade.sample[c],
-                                modeMix
-                            );
+                                envelopeFrame.sample[c] = readSample(
+                                    sendFrame.sample[c],
+                                    AUDIO_LEFT_INPUT,
+                                    AUDIO_RIGHT_INPUT,
+                                    c
+                                );
+
+                                levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
+                            }
 
                             if (spectrum)
                                 spectrum->fftDelayLines[c].write(sendFrame.sample[c]);
-
-                            envelopeFrame.sample[c] = readSample(
-                                sendFrame.sample[c],
-                                AUDIO_LEFT_INPUT,
-                                AUDIO_RIGHT_INPUT,
-                                c
-                            );
-
-                            levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
                         }
 
                         Frame outputFrame = panFrame(levelFrame, panChaos);
                         outMessage.soloCount += updateSolo(outMessage.soloAudio, outputFrame, args.sampleRate);
                         for (int c = 0; c < outMessage.wetAudio.nchannels; ++c)
                             outMessage.wetAudio.sample[c] += outputFrame.sample[c];
+                    }
+
+                    if (isFireDrillOneShot())
+                    {
+                        // Simulate that something in the filter got messed up and all the math went to NAN.
+                        // This helps test the filter module's reaction to an actual math failure.
+                        sendFrame.invalidate();
+                        envelopeFrame.invalidate();
+                    }
+
+                    if (isBadOutput(sendFrame) || isBadOutput(envelopeFrame))
+                    {
+                        sendFrame.clear();
+                        envelopeFrame.clear();
+                        clearAudio();
+                        beginRecovery(args.sampleRate);
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
@@ -1722,6 +1767,11 @@ namespace Sapphire
 
                     sendMessage(outMessage);
                     sendBackwardMessage(outBackMessage);
+
+                    if (limiterRecoveryCountdown > 0)
+                    {
+                        --limiterRecoveryCountdown;
+                    }
                 }
 
                 static float blend(const float* stageSample, float cascade)

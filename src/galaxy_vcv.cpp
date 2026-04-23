@@ -145,8 +145,12 @@ namespace Sapphire
                     output[0] *= clearSmoother.getGain();
                     output[1] *= clearSmoother.getGain();
 
-                    if (checkOutputs(args.sampleRate, output, 2))
+                    if (isBadOutput(output, 2))
+                    {
+                        output[0] = output[1] = 0;
                         engine.initialize();
+                        beginRecovery(args.sampleRate);
+                    }
                 }
                 writeStereoOutputs(output[0], output[1], AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT);
             }

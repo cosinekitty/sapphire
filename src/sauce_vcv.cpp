@@ -63,6 +63,7 @@ namespace Sapphire
 
                 provideStereoSplitter = true;
                 provideStereoMerge = true;
+                shouldOfferFireDrill = true;
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -209,6 +210,12 @@ namespace Sapphire
                         hpOutput[c] = result.highpass;
                     }
 
+                    if (isFireDrillOneShot())
+                    {
+                        for (int k = 0; k < nc; ++k)
+                            lpOutput[k] = bpOutput[k] = hpOutput[k] = NAN;
+                    }
+
                     if (enableAgc)
                     {
                         agcLow .process(args.sampleRate, nc, lpOutput);
@@ -216,12 +223,16 @@ namespace Sapphire
                         agcHigh.process(args.sampleRate, nc, hpOutput);
                     }
 
-                    if (checkOutputs(args.sampleRate, lpOutput, nc) ||
-                        checkOutputs(args.sampleRate, bpOutput, nc) ||
-                        checkOutputs(args.sampleRate, hpOutput, nc))
+                    if (isBadOutput(lpOutput, nc) || isBadOutput(bpOutput, nc) || isBadOutput(hpOutput, nc))
                     {
+                        clearOutput(lpOutput, PORT_MAX_CHANNELS);
+                        clearOutput(bpOutput, PORT_MAX_CHANNELS);
+                        clearOutput(hpOutput, PORT_MAX_CHANNELS);
+
                         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                             engine[c].initialize();
+
+                        beginRecovery(args.sampleRate);
                     }
                 }
 

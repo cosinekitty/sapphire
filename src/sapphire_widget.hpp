@@ -1032,6 +1032,17 @@ namespace Sapphire
                 inputStereoLabelL2->setVisible(mode == InputStereoMode::Left2);
                 inputStereoLabelR2->setVisible(mode == InputStereoMode::Right2);
             }
+
+            animateRedAlert();
+        }
+
+        void animateRedAlert()
+        {
+            if (SapphireModule* smod = getSapphireModule(); smod && smod->redAlert)
+            {
+                smod->redAlert = false;
+                splash.begin(0xb0, 0x10, 0x00);
+            }
         }
 
         bool isRightBorderHidden() const

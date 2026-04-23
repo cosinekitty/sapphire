@@ -1011,6 +1011,9 @@ namespace Sapphire
         bool enableLimiterMenuItems = true;     // default for older modules; newer modules add menu items to knobs only
         std::vector<RemovalSubscriber*> removalSubscriberList;
         EnvelopeFollowerFeature envelopeFollower;
+        bool redAlert = false;      // one-shot trigger for widget to start a "red alert" splash
+        bool shouldOfferFireDrill = false;      // derived module can opt in to add internal testing menu item
+        bool fireDrillTrigger = false;
 
         explicit SapphireModule(std::size_t nParams, std::size_t nOutputPorts)
             : vectorSender(*this)
@@ -1025,6 +1028,16 @@ namespace Sapphire
             // This assert should only fail if somebody destructs a SapphireModule without calling
             // its onRemove() method first.
             assert(removalSubscriberList.empty());
+        }
+
+        bool isFireDrillOneShot()
+        {
+            if (fireDrillTrigger)
+            {
+                fireDrillTrigger = false;
+                return true;
+            }
+            return false;
         }
 
         bool isEnvelopeFollowerEnabled() const
@@ -1647,25 +1660,25 @@ namespace Sapphire
             return !std::isfinite(output) || std::abs(output) > autoResetVoltageThreshold;
         }
 
-        bool checkOutputs(float sampleRateHz, float outputArray[], int arrayLength)
+        bool isBadOutput(const float outputArray[], int arrayLength) const
         {
-            // Is the output getting out of control? Or even NAN?
-            bool bad = false;
             for (int i = 0; i < arrayLength; ++i)
                 if (isBadOutput(outputArray[i]))
-                    bad = true;
+                    return true;
 
-            if (bad)
-            {
-                // Silence the output for one second.
-                limiterRecoveryCountdown = static_cast<int>(sampleRateHz);
+            return false;
+        }
 
-                // Start the silence on this sample.
-                for (int i = 0; i < arrayLength; ++i)
-                    outputArray[i] = 0;
-            }
+        void beginRecovery(float sampleRateHz)
+        {
+            redAlert = true;
+            limiterRecoveryCountdown = static_cast<int>(sampleRateHz/2);
+        }
 
-            return bad;
+        static void clearOutput(float outputArray[], int arrayLength)
+        {
+            for (int c = 0; c < arrayLength; ++c)
+                outputArray[c] = 0;
         }
 
         virtual double getAgcDistortion()

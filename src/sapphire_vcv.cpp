@@ -556,6 +556,19 @@ namespace Sapphire
                     [this]{ addChaopsExpander(); }
                 ));
             }
+
+            if (IsShiftKeyPressed())
+            {
+                // Offer advanced / internal development tools to any Sapphire modules that opt in.
+                if (sm->shouldOfferFireDrill && !sm->fireDrillTrigger)
+                {
+                    menu->addChild(createMenuItem(
+                        "[TEST] Simulate NAN output (one shot)",
+                        "",
+                        [sm](){ sm->fireDrillTrigger = true; }
+                    ));
+                }
+            }
         }
     }
 
