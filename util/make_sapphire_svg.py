@@ -2448,10 +2448,12 @@ def GenerateTinyButton(name:str, step:int, fillColor1:str, fillColor2:str, strok
     panel.append(Circle(xc, yc, r1, strokeColor1, 0.06, fillColor1))
     return Save(panel, svgFileName)
 
-def GenerateMultiTapButtons() -> int:
+def GenerateTinyButtonImages() -> int:
     return (
         GenerateLeftExtenderButton() or
         GenerateRightExtenderButton() or
+        GenerateTinyButton('blue',   0, "#070779", '#353535', '#434343', '#353535') or
+        GenerateTinyButton('blue',   1, "#8ec0f8", "#242b4b", "#354762", '#353535') or
         GenerateTinyButton('green',  0, '#585858', '#353535', '#434343', '#353535') or
         GenerateTinyButton('green',  1, '#4df04d', '#4d904d', '#356235', '#353535') or
         GenerateTinyButton('yellow', 0, '#585858', '#353535', '#434343', '#353535') or
@@ -2468,8 +2470,6 @@ EMPATH_FILTER_HP_WIDTH = 6
 EMPATH_OUTPUT_HP_WIDTH = 4
 EMPATH_AUDIO_PORTS_Y1 = 93.0
 EMPATH_DX_SEND_RETURN = 7.0
-EMPATH_BIG_KNOBS_Y1 = 26.325
-EMPATH_BIG_KNOBS_Y2 = 60.250
 EMPATH_INIT_BUTTON_Y = PANEL_HEIGHT_MM - 5.0
 EMPATH_SPECTRUM_BOX_Y1 = 9.0
 EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
@@ -2490,11 +2490,11 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     xInputPorts = xGlobalCenter - 4.0
     xInputLabels = xInputPorts - 6.5
-    yChaosSpeed = EMPATH_BIG_KNOBS_Y2
+    yChaosSpeed = 58.0
     dyChaos = 14.0
     yChaosLevel = yChaosSpeed + dyChaos
     yChaosBoxTop = yChaosSpeed - 12.0
-    yChaosBoxBottom = yChaosLevel + 8.0
+    yChaosBoxBottom = yChaosLevel + 9.0
     dxChaosBox = 16.5
     xChaosBoxLeft  = xmid - dxChaosBox
     xChaosBoxRight = xmid + dxChaosBox
@@ -2503,10 +2503,13 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xChaosBoxTextRight = xmid + dxChaosText
     arcRadius = 4.0
     buttonInset = 3.0
+    yCascade = 26.325
     xChaosStereoButton = xChaosBoxRight - buttonInset
     yChaosStereoButton = yChaosBoxTop + buttonInset
     xChaosRandomizeButton = xChaosBoxLeft + buttonInset
     yChaosRandomizeButton = yChaosBoxTop + buttonInset
+    xChaosFreezeButton = xChaosBoxRight - buttonInset
+    yChaosFreezeButton = yChaosBoxBottom - buttonInset
     xSpectrumButton = xInsertButton
     ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
     xInputGainControl = panel.mmWidth - xInputPorts
@@ -2553,12 +2556,10 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
-        AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, EMPATH_BIG_KNOBS_Y1)
+        AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, yCascade)
 
-        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
         pl.append(BoxArt())
-        controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
-        controls.append(Component('chaos_random_button', xChaosRandomizeButton, yChaosRandomizeButton))
+        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
 
         AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
         pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2568,6 +2569,9 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
 
         controls.append(Component('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y))
         controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
+        controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
+        controls.append(Component('chaos_random_button', xChaosRandomizeButton, yChaosRandomizeButton))
+        controls.append(Component('chaos_freeze_button', xChaosFreezeButton, yChaosFreezeButton))
     return Save(panel, svgFileName)
 
 
@@ -2740,7 +2744,7 @@ def GenerateEmpathPanels(cdict: ControlDict) -> int:
 if __name__ == '__main__':
     cdict:ControlDict = {}
     sys.exit(
-        GenerateMultiTapButtons() or
+        GenerateTinyButtonImages() or
         GenerateMultiTapPanels(cdict) or
         GenerateEmpathPanels(cdict) or
         GenerateChaosPanel(cdict, 'frolic') or

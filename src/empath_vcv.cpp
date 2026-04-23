@@ -614,6 +614,7 @@ namespace Sapphire
                 CHAOS_RANDOMIZE_BUTTON_PARAM,
                 INPUT_GAIN_PARAM,
                 INPUT_GAIN_ATTEN,
+                CHAOS_FREEZE_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -691,6 +692,15 @@ namespace Sapphire
             };
 
 
+            struct ChaosFreezeButton : SapphireTinyToggleButton
+            {
+                explicit ChaosFreezeButton()
+                {
+                    addTinyButtonFrames(this, "blue");
+                }
+            };
+
+
             struct InputModule : EmpathModule
             {
                 bool autoCreateExpanders = true;
@@ -717,6 +727,7 @@ namespace Sapphire
                     configButton(TOGGLE_SPECTRUM_BUTTON_PARAM);
                     configButton(CHAOS_STEREO_BUTTON_PARAM);
                     configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
+                    configButton(CHAOS_FREEZE_BUTTON_PARAM);
                     InputModule_initialize();
                 }
 
@@ -799,6 +810,22 @@ namespace Sapphire
 
                 void process(const ProcessArgs& args) override
                 {
+                    const double speedKnob = getControlValueChaos(
+                        CHAOS_SPEED_PARAM,
+                        CHAOS_SPEED_ATTEN,
+                        CHAOS_SPEED_CV_INPUT,
+                        speedChaos,
+                        -ChaosOctaveRange,
+                        +ChaosOctaveRange
+                    );
+
+                    const bool isChaosLevelZero =
+                        (params.at(CHAOS_LEVEL_PARAM).getValue() == 0) &&
+                        (params.at(CHAOS_LEVEL_ATTEN).getValue() == 0);
+
+                    const bool isChaosFreezeButtonPressed =
+                        (params.at(CHAOS_FREEZE_BUTTON_PARAM).getValue() == 1);
+
                     ForwardMessage outMessage;
                     outMessage.chainIndex = 1;
                     outMessage.neonMode = neonMode;
@@ -807,14 +834,10 @@ namespace Sapphire
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
                     outMessage.interpolatorKind = interpolatorKind;
-                    const double speedKnob = getControlValueChaos(CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, speedChaos, -ChaosOctaveRange, +ChaosOctaveRange);
                     outMessage.chaos.dt = SimulationTimeIncrement(args.sampleRate, speedKnob);
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
-                    outMessage.chaos.frozen = (
-                        (params.at(CHAOS_LEVEL_PARAM).getValue() == 0) &&
-                        (params.at(CHAOS_LEVEL_ATTEN).getValue() == 0)
-                    );
+                    outMessage.chaos.frozen = isChaosLevelZero || isChaosFreezeButtonPressed;
                     outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
                     outMessage.dryAudio.multiply(outMessage.chaos.antiClick);
 
@@ -906,6 +929,7 @@ namespace Sapphire
                     addToggleSpectrumButton();
                     addChaosStereoButton();
                     addChaosRandomButton();
+                    addChaosFreezeButton();
                     addSapphireFlatControlGroup("input_gain", INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, 3.0, 3.5);
                 }
 
@@ -950,6 +974,12 @@ namespace Sapphire
                     auto button = createParamCentered<ChaosRandomButton>(Vec{}, inputModule, CHAOS_RANDOMIZE_BUTTON_PARAM);
                     button->inputWidget = this;
                     addSapphireParam(button, "chaos_random_button");
+                }
+
+                void addChaosFreezeButton()
+                {
+                    auto button = createParamCentered<ChaosFreezeButton>(Vec{}, inputModule, CHAOS_FREEZE_BUTTON_PARAM);
+                    addSapphireParam(button, "chaos_freeze_button");
                 }
 
                 void drawSpectrumConnectorLine(NVGcontext* vg)
@@ -1001,6 +1031,7 @@ namespace Sapphire
                         // Keep the button's hovertext in sync with its actual state.
                         inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
                         inputModule->updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
+                        inputModule->updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: FROZEN");
                         inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
                         inputModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                     }
