@@ -177,6 +177,7 @@ namespace Sapphire
         Param* atten{};
         SapphireAttenuverterKnob* knob{};
         const bool prevLowSensitive;
+        const bool prevUnipolar;
         const float prevAttenValue;
         const float voctSetting;
 
@@ -184,6 +185,7 @@ namespace Sapphire
             : atten(_atten)
             , knob(_knob)
             , prevLowSensitive(_knob && _knob->isLowSensitive())
+            , prevUnipolar(_knob && _knob->isUnipolarMode())
             , prevAttenValue(_atten ? _atten->getValue() : 0.0f)
             , voctSetting(_voctSetting)
         {
@@ -195,6 +197,7 @@ namespace Sapphire
             if (atten && knob)
             {
                 atten->setValue(prevAttenValue);
+                knob->setUnipolarMode(prevUnipolar);
                 knob->setLowSensitive(prevLowSensitive);
             }
         }
@@ -205,6 +208,7 @@ namespace Sapphire
             {
                 // Disable low sensitivity if set, in order to get the correct percentage.
                 knob->setLowSensitive(false);
+                knob->setUnipolarMode(false);
                 atten->setValue(voctSetting);
             }
         }
