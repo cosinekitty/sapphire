@@ -1030,31 +1030,6 @@ namespace Sapphire
             assert(removalSubscriberList.empty());
         }
 
-        bool isFireDrillOneShot()
-        {
-            if (fireDrillTrigger)
-            {
-                fireDrillTrigger = false;
-                return true;
-            }
-            return false;
-        }
-
-        bool isEnvelopeFollowerEnabled() const
-        {
-            return envelopeFollower.enabled;
-        }
-
-        void enableEnvelopeFollower()
-        {
-            envelopeFollower.enabled = true;
-        }
-
-        bool duck() const
-        {
-            return envelopeFollower.duck;
-        }
-
         void onReset(const ResetEvent& e) override
         {
             Module::onReset(e);
@@ -1089,6 +1064,30 @@ namespace Sapphire
             envelopeFollower.initialize();
         }
 
+        bool isFireDrillOneShot()
+        {
+            if (fireDrillTrigger)
+            {
+                fireDrillTrigger = false;
+                return true;
+            }
+            return false;
+        }
+
+        bool isEnvelopeFollowerEnabled() const
+        {
+            return envelopeFollower.enabled;
+        }
+
+        void enableEnvelopeFollower()
+        {
+            envelopeFollower.enabled = true;
+        }
+
+        bool duck() const
+        {
+            return envelopeFollower.duck;
+        }
 
         float cvGetControlValue(int paramId, int attenId, float cv, float minValue = 0, float maxValue = 1)
         {
@@ -1702,14 +1701,8 @@ namespace Sapphire
             if (distortion <= 0.0)
                 return nvgRGBA(0, 0, 0, 0);     // no warning light
 
-            double decibels = 20.0 * std::log10(1.0 + distortion);
-            // On Cardinal builds, one of the environments uses a compiler
-            // option to convert `double` constants to `float`.
-            // This causes a compiler error calling std::clamp()
-            // unless we "lock in" the types.
-            const double minScale = 0;
-            const double maxScale = 1;
-            double scale = std::clamp(decibels / 24.0, minScale, maxScale);
+            double decibels = 20 * std::log10(1.0 + distortion);
+            double scale = std::clamp<double>(decibels/24, 0, 1);
 
             int red   = limiterColorComponent(scale, 0x90, 0xff);
             int green = limiterColorComponent(scale, 0x20, 0x50);
@@ -1830,8 +1823,7 @@ namespace Sapphire
                     return 0;
                 }
 
-                const int ncLeft = inLeft.getChannels();
-                if (ncLeft > 1)
+                if (int ncLeft = inLeft.getChannels(); ncLeft > 1)
                 {
                     // Polyphonic input
                     if (0 <= c && c < ncLeft)

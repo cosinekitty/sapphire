@@ -357,6 +357,18 @@ namespace Sapphire
     };
 
 
+    inline float ExtremeValue(unsigned length, const float data[], float carry)
+    {
+        using namespace std;
+
+        float extreme = carry;
+        for (unsigned i = 0; i < length; ++i)
+            extreme = max(extreme, abs(data[i]));
+        return extreme;
+    }
+
+
+
     class AutomaticGainLimiter      // dynamically adjusts gain to keep a signal from getting too hot
     {
     private:
@@ -369,12 +381,18 @@ namespace Sapphire
         double cachedSampleRate = 0.0;
         const int PERIODS_PER_SECOND = 4;
         int countdown = 0;
-        float prevmax = 0.0f;
-        float currmax = 0.0f;
+        float prevmax = 0.0;
+        float currmax = 0.0;
 
-        void update(double sampleRate, float input)
+    public:
+        void update(double sampleRate, float extreme)
         {
             using namespace std;
+
+            // Prevent pollution of AGC internal state.
+            // Ignore non-finite numbers (pretend they are zero).
+            if (!std::isfinite(extreme))
+                extreme = 0;
 
             if (sampleRate != cachedSampleRate)
             {
@@ -387,31 +405,42 @@ namespace Sapphire
             {
                 countdown = static_cast<int>(round(sampleRate / PERIODS_PER_SECOND));
                 prevmax = currmax;
-                currmax = input;
+                currmax = extreme;
             }
             else
             {
                 --countdown;
-                currmax = max(currmax, input);
+                currmax = max(currmax, extreme);
             }
 
             double ratio = max(prevmax, currmax) / ceiling;
             double factor = (ratio >= follower) ? attackFactor : decayFactor;
-            follower = max(1.0, follower*factor + ratio*(1-factor));
+            follower = max<double>(1, follower*factor + ratio*(1-factor));
         }
 
         static double VerifyPositive(double x)
         {
+            if (!std::isfinite(x))
+                throw std::range_error("AGC coefficient is NAN/INF.");
             if (x <= 0.0)
                 throw std::range_error("AGC coefficient must be positive.");
             return x;
         }
 
-    public:
         void initialize()
         {
             follower = 1.0;
-            prevmax = currmax = 0.0f;
+            prevmax = currmax = 0.0;
+        }
+
+        double getFollower() const
+        {
+            return follower;
+        }
+
+        float getCeiling() const
+        {
+            return ceiling;
         }
 
         void setCeiling(float _ceiling)
@@ -419,21 +448,17 @@ namespace Sapphire
             ceiling = VerifyPositive(_ceiling);
         }
 
+        void attenuate(unsigned length, float data[])
+        {
+            for (unsigned i = 0; i < length; ++i)
+                data[i] /= follower;
+        }
+
         void process(double sampleRate, unsigned nchannels, float frame[])
         {
-            using namespace std;
-
-            // Find maximum absolute value for all the input data.
-            float input = 0;
-            for (unsigned c = 0; c < nchannels; ++c)
-                input = max(input, abs(frame[c]));
-
-            // Update the limiter state using the maximum value we just found.
+            float input = ExtremeValue(nchannels, frame, 0);
             update(sampleRate, input);
-
-            // Scale the data based on the limiter state.
-            for (unsigned c = 0; c < nchannels; ++c)
-                frame[c] /= follower;
+            attenuate(nchannels, frame);
         }
 
         void process(double sampleRate, float& left, float& right)      // used for modules with stereo output
@@ -449,11 +474,6 @@ namespace Sapphire
         void process(double sampleRate, std::vector<float>& buffer)     // used for modules with any number of outputs
         {
             process(sampleRate, buffer.size(), buffer.data());
-        }
-
-        double getFollower() const
-        {
-            return follower;
         }
     };
 

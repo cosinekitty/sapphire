@@ -13,6 +13,8 @@ namespace Sapphire
 {
     namespace Empath
     {
+        constexpr float DefaultLimiterVoltage = 6;
+
         constexpr int MIN_FILTER_STAGES = 1;
         constexpr int MAX_FILTER_STAGES = 3;
         constexpr int DEFAULT_FILTER_STAGES = 1;
@@ -168,17 +170,62 @@ namespace Sapphire
             PortLabelMode outputLabels = PortLabelMode::Stereo;
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
+            AutomaticGainLimiter agc;
+            bool enableAgc{};
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
             {
-                enableLimiterMenuItems = false;     // Newer style: menu items on knobs only, not panel.
+                enableLimiterMenuItems = false;        // Newer style: menu items on knobs only, not panel.
+                autoResetVoltageThreshold = 1.0e+6;    // lower values caused too many resets that AGC can handle
 
                 rightExpander.producerMessage = &forwardMessageBuffer[0];
                 rightExpander.consumerMessage = &forwardMessageBuffer[1];
 
                 leftExpander.producerMessage = &backwardMessageBuffer[0];
                 leftExpander.consumerMessage = &backwardMessageBuffer[1];
+
+                EmpathModule_initialize();
+            }
+
+            void onReset(const ResetEvent& e) override
+            {
+                SapphireModule::onReset(e);
+                EmpathModule_initialize();
+            }
+
+            void EmpathModule_initialize()
+            {
+                agc.initialize();
+                enableAgc = true;
+            }
+
+            double getAgcDistortion() override
+            {
+                return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
+            }
+
+            bool setAgcEnabled(bool enable)
+            {
+                if (enable && !enableAgc)
+                {
+                    // If the AGC isn't enabled, and caller wants to enable it,
+                    // re-initialize the AGC so it forgets any previous level it had settled on.
+                    agc.initialize();
+                }
+                enableAgc = enable;
+                return enable;
+            }
+
+            void reflectAgcSlider()
+            {
+                // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
+                if (agcLevelQuantity && agcLevelQuantity->changed)
+                {
+                    agcLevelQuantity->changed = false;
+                    if (setAgcEnabled(agcLevelQuantity->isAgcEnabled()))
+                        agc.setCeiling(agcLevelQuantity->clampedAgc());
+                }
             }
 
             ForwardMessage& rightMessageBuffer()
@@ -1138,6 +1185,7 @@ namespace Sapphire
                 SOLO_BUTTON_PARAM,
                 ENV_GAIN_PARAM,
                 INIT_FILTER_BUTTON_PARAM,
+                AGC_PARAM,
                 PARAMS_LEN
             };
 
@@ -1459,6 +1507,7 @@ namespace Sapphire
                     configOutput(ENV_OUTPUT, "Envelope follower");
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_FILTER_BUTTON_PARAM, "Initialize this filter only");
+                    addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
                     FilterModule_initialize();
                 }
 
@@ -1648,8 +1697,8 @@ namespace Sapphire
                     const float levelChaosR = batch.signal.at(5);
                     const float panChaos    = batch.signal.at(6);
 
-                    Frame sendFrame;
-                    Frame envelopeFrame;
+                    Frame sendFrame;    // audio sent to the SEND ports
+                    Frame returnFrame;  // audio received back from the RTRN ports or normalled from sendFrame
 
                     if (spectrum)
                         spectrum->nchannels = 0;    // blank the graph unless we find data below
@@ -1661,7 +1710,7 @@ namespace Sapphire
                         const int nc = inMessage.dryAudio.nchannels;
                         sendFrame.nchannels = nc;
                         levelFrame.nchannels = nc;
-                        envelopeFrame.nchannels = nc;
+                        returnFrame.nchannels = nc;
                         if (spectrum)
                         {
                             spectrum->nchannels = nc;
@@ -1679,7 +1728,7 @@ namespace Sapphire
                             if (limiterRecoveryCountdown > 0)
                             {
                                 sendFrame.sample[c] = 0;
-                                envelopeFrame.sample[c] = 0;
+                                returnFrame.sample[c] = 0;
                                 levelFrame.sample[c] = 0;
                             }
                             else
@@ -1707,14 +1756,18 @@ namespace Sapphire
                                     modeMix
                                 );
 
-                                envelopeFrame.sample[c] = readSample(
+                                returnFrame.sample[c] = readSample(
                                     sendFrame.sample[c],
                                     AUDIO_LEFT_INPUT,
                                     AUDIO_RIGHT_INPUT,
                                     c
                                 );
 
-                                levelFrame.sample[c] = inMessage.chaos.antiClick * levelKnob * muteFactor * envelopeFrame.sample[c];
+                                levelFrame.sample[c] =
+                                    inMessage.chaos.antiClick *
+                                    levelKnob *
+                                    muteFactor *
+                                    returnFrame.sample[c];
                             }
 
                             if (spectrum)
@@ -1722,6 +1775,11 @@ namespace Sapphire
                         }
 
                         Frame outputFrame = panFrame(levelFrame, panChaos);
+
+                        reflectAgcSlider();
+                        if (enableAgc)
+                            agc.process(args.sampleRate, outputFrame.nchannels, outputFrame.sample.data());
+
                         outMessage.soloCount += updateSolo(outMessage.soloAudio, outputFrame, args.sampleRate);
                         for (int c = 0; c < outMessage.wetAudio.nchannels; ++c)
                             outMessage.wetAudio.sample[c] += outputFrame.sample[c];
@@ -1732,19 +1790,19 @@ namespace Sapphire
                         // Simulate that something in the filter got messed up and all the math went to NAN.
                         // This helps test the filter module's reaction to an actual math failure.
                         sendFrame.invalidate();
-                        envelopeFrame.invalidate();
                     }
 
-                    if (isBadOutput(sendFrame) || isBadOutput(envelopeFrame))
+                    if (isBadOutput(sendFrame) || isBadOutput(returnFrame) || isBadOutput(outMessage.wetAudio))
                     {
                         sendFrame.clear();
-                        envelopeFrame.clear();
+                        returnFrame.clear();
+                        outMessage.wetAudio.clear();
                         clearAudio();
                         beginRecovery(args.sampleRate);
                     }
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, sendFrame, inMessage.polyphonic);
-                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, envelopeFrame.nchannels, envelopeFrame.sample.data());
+                    updateEnvelope(ENV_OUTPUT, ENV_GAIN_PARAM, args.sampleRate, returnFrame.nchannels, returnFrame.sample.data());
 
                     // Keep 'neon mode' unified along the entire expander chain.
                     includeNeonModeMenuItem = !inMessage.valid;
@@ -1769,9 +1827,7 @@ namespace Sapphire
                     sendBackwardMessage(outBackMessage);
 
                     if (limiterRecoveryCountdown > 0)
-                    {
-                        --limiterRecoveryCountdown;
-                    }
+                        --limiterRecoveryCountdown;     // one less sample of silence before filter comes back online
                 }
 
                 static float blend(const float* stageSample, float cascade)
@@ -1810,7 +1866,7 @@ namespace Sapphire
                     addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                     addSapphireFlatControlGroup("res", RES_PARAM, RES_ATTEN, RES_CV_INPUT);
                     addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
-                    addSapphireFlatControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
+                    addSapphireFlatControlGroupWithWarningLight("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
                     addStereoInputPorts(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, "return");
                     addStereoOutputPorts(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, "send");
                     addMuteSoloButtons();
@@ -2104,8 +2160,6 @@ namespace Sapphire
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
                 fountain_t fountain{rack::random::u64()};
-                AutomaticGainLimiter agc;
-                bool enableAgc = true;
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -2115,14 +2169,12 @@ namespace Sapphire
                     configControlGroup("Output mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT, 0, 1, 1, "%", 0, 100);
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
-                    addAgcLevelQuantity(AGC_PARAM, 1, 6);
+                    addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
                 }
 
                 void OutputModule_initialize()
                 {
                     firstSoloFader.snapToFront();
-                    agc.initialize();
-                    enableAgc = true;
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -2161,34 +2213,6 @@ namespace Sapphire
                 {
                     float knob = params.at(SPECTRUM_VERTICAL_SCALE_PARAM).getValue();
                     return TenToPower<float>(0.65 * knob);
-                }
-
-                bool setAgcEnabled(bool enable)
-                {
-                    if (enable && !enableAgc)
-                    {
-                        // If the AGC isn't enabled, and caller wants to enable it,
-                        // re-initialize the AGC so it forgets any previous level it had settled on.
-                        agc.initialize();
-                    }
-                    enableAgc = enable;
-                    return enable;
-                }
-
-                double getAgcDistortion() override
-                {
-                    return enableAgc ? (agc.getFollower() - 1.0) : 0.0;
-                }
-
-                void reflectAgcSlider()
-                {
-                    // Check for changes to the automatic gain control: its level, and whether enabled/disabled.
-                    if (agcLevelQuantity && agcLevelQuantity->changed)
-                    {
-                        agcLevelQuantity->changed = false;
-                        if (setAgcEnabled(agcLevelQuantity->isAgcEnabled()))
-                            agc.setCeiling(agcLevelQuantity->clampedAgc());
-                    }
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2232,7 +2256,6 @@ namespace Sapphire
                         agc.process(args.sampleRate, audio.nchannels, audio.sample.data());
 
                     writeFrame(AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, audio, inMessage.polyphonic);
-
                     sendBackwardMessage(backMessage);
                 }
 
