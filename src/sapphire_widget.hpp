@@ -200,7 +200,7 @@ namespace Sapphire
             , prevAttenValue(_atten ? _atten->getValue() : 0.0f)
             , voctSetting(_voctSetting)
         {
-            name = "snap attenuverter to V/OCT";
+            name = "configure attenuverter for V/OCT";
         }
 
         void undo() override
@@ -239,7 +239,7 @@ namespace Sapphire
             if (atten)
             {
                 menu->addChild(createMenuItem(
-                    "Snap to V/OCT",
+                    "Configure for V/OCT",
                     "",
                     [=]()
                     {
