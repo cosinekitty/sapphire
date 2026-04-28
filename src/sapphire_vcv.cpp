@@ -989,8 +989,8 @@ namespace Sapphire
                 nvgBeginPath(args.vg);
                 nvgArc(
                     args.vg,
-                    box.size.x/2 + unipolarIndicatorDelta.x,
-                    box.size.y/2 + unipolarIndicatorDelta.y,
+                    xSatellite(),
+                    ySatellite(),
                     2.5,
                     NVG_PI,
                     0,
@@ -999,6 +999,38 @@ namespace Sapphire
                 nvgStrokeWidth(args.vg, 1.0f);
                 nvgStrokeColor(args.vg, SCHEME_YELLOW);
                 nvgLineCap(args.vg, NVG_ROUND);
+                nvgStroke(args.vg);
+            }
+        }
+    }
+
+    void SnapVoctAttenuverterKnob::drawLayer(const DrawArgs& args, int layer)
+    {
+        SapphireAttenuverterKnob::drawLayer(args, layer);
+
+        if (layer == 1)
+        {
+            if (isVoct())
+            {
+                // Draw a glowing 'V' at the unipolar offset (we already know it will look good).
+                // V/OCT requires unipolar mode be disabled, so there is no possible conflict.
+                const float xc = xSatellite();
+                const float yc = ySatellite();
+                const float dx = 2.0;
+                const float dy = 2.5;
+                const float x1 = xc - dx;
+                const float x2 = xc;
+                const float x3 = xc + dx;
+                const float yTop = yc - dy;
+                const float yBottom = yc + dy;
+
+                nvgBeginPath(args.vg);
+                nvgStrokeWidth(args.vg, 1.0f);
+                nvgStrokeColor(args.vg, SCHEME_CYAN);
+                nvgLineCap(args.vg, NVG_ROUND);
+                nvgMoveTo(args.vg, x1, yTop);
+                nvgLineTo(args.vg, x2, yBottom);
+                nvgLineTo(args.vg, x3, yTop);
                 nvgStroke(args.vg);
             }
         }

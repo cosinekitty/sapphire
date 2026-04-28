@@ -378,17 +378,17 @@ namespace Sapphire
                     {
                         // If the attenuverter is to the left of the big knob,
                         // then the unipolar symbol should go to the left of the attenuverter.
-                        knob->unipolarIndicatorDelta.x = mm2px(-unipolarHorizontalShift);
+                        knob->satelliteDelta.x = mm2px(-unipolarHorizontalShift);
                     }
                     else
                     {
                         // Otherwise, the unipolar symbol should go to the right of the attenuverter.
-                        knob->unipolarIndicatorDelta.x = mm2px(+unipolarHorizontalShift);
+                        knob->satelliteDelta.x = mm2px(+unipolarHorizontalShift);
                     }
 
                     // In either case, the vertical position should match the big knob's center.
                     constexpr float unipolarVerticalAdjustment = -0.5;
-                    knob->unipolarIndicatorDelta.y = (knobCenter.y - attenCenter.y) + mm2px(unipolarVerticalAdjustment);
+                    knob->satelliteDelta.y = (knobCenter.y - attenCenter.y) + mm2px(unipolarVerticalAdjustment);
                 }
 
                 addOutputLimiterKnob<OutputLimiterLargeKnob>(LEVEL_KNOB_PARAM, "level_knob");

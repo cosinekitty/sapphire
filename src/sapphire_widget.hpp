@@ -141,7 +141,7 @@ namespace Sapphire
 
     struct SapphireAttenuverterKnob : Trimpot
     {
-        Vec unipolarIndicatorDelta{};
+        Vec satelliteDelta{};
         SapphireAttenuverterContext* context{};
 
         void appendContextMenu(Menu* menu) override;
@@ -169,6 +169,17 @@ namespace Sapphire
         }
 
         void drawLayer(const DrawArgs& args, int layer) override;
+
+    protected:
+        float xSatellite() const
+        {
+            return box.size.x/2 + satelliteDelta.x;
+        }
+
+        float ySatellite() const
+        {
+            return box.size.y/2 + satelliteDelta.y;
+        }
     };
 
 
@@ -220,6 +231,8 @@ namespace Sapphire
         Param* atten = nullptr;
         float voctSetting = 1;
 
+        void drawLayer(const DrawArgs& args, int layer) override;
+
         void appendContextMenu(Menu* menu) override
         {
             SapphireAttenuverterKnob::appendContextMenu(menu);
@@ -234,6 +247,16 @@ namespace Sapphire
                     }
                 ));
             }
+        }
+
+        bool isVoct() const
+        {
+            return
+                context &&
+                !context->unipolar &&
+                !context->lowSensitivityMode &&
+                atten &&
+                atten->value == voctSetting;
         }
     };
 
@@ -839,7 +862,7 @@ namespace Sapphire
             float dyUnipolar = DY_UNIPOLAR_A)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, attenId);
-            knob->unipolarIndicatorDelta = mm2px(Vec{dxUnipolar, dyUnipolar});
+            knob->satelliteDelta = mm2px(Vec{dxUnipolar, dyUnipolar});
 
             if (SapphireModule* sapphireModule = getSapphireModule())
             {
