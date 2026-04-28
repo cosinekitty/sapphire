@@ -1012,8 +1012,8 @@ namespace Sapphire
         {
             if (isVoct())
             {
-                // Draw a glowing 'V' at the unipolar offset (we already know it will look good).
-                // V/OCT requires unipolar mode be disabled, so there is no possible conflict.
+                // Draw a glowing 'V' at the satellite offset.
+                // V/OCT requires unipolar mode be disabled, so there is no possible conflict with 'U'.
                 const float xc = xSatellite();
                 const float yc = ySatellite();
                 const float dx = 2.0;

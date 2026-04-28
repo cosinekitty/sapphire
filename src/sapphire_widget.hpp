@@ -134,10 +134,10 @@ namespace Sapphire
     using OutputLimiterLargeKnob = OutputLimiterKnob<RoundLargeBlackKnob>;
     using OutputLimiterSmallKnob = OutputLimiterKnob<RoundSmallBlackKnob>;
 
-    constexpr float DX_UNIPOLAR_A = -4.0;
-    constexpr float DY_UNIPOLAR_A = -2.0;
-    constexpr float DX_UNIPOLAR_B = +4.75;
-    constexpr float DY_UNIPOLAR_B = -3.0;
+    constexpr float DX_SATELLITE_A = -4.0;
+    constexpr float DY_SATELLITE_A = -2.0;
+    constexpr float DX_SATELLITE_B = +4.75;
+    constexpr float DY_SATELLITE_B = -3.0;
 
     struct SapphireAttenuverterKnob : Trimpot
     {
@@ -858,11 +858,11 @@ namespace Sapphire
         knob_t *addSapphireAttenuverter(
             int attenId,
             const std::string& label,
-            float dxUnipolar = DX_UNIPOLAR_A,
-            float dyUnipolar = DY_UNIPOLAR_A)
+            float dxSatellite = DX_SATELLITE_A,
+            float dySatellite = DY_SATELLITE_A)
         {
             knob_t *knob = createParamCentered<knob_t>(Vec{}, module, attenId);
-            knob->satelliteDelta = mm2px(Vec{dxUnipolar, dyUnipolar});
+            knob->satelliteDelta = mm2px(Vec{dxSatellite, dySatellite});
 
             if (SapphireModule* sapphireModule = getSapphireModule())
             {
@@ -884,11 +884,11 @@ namespace Sapphire
             int knobId,
             int attenId,
             int cvInputId,
-            float dxUnipolar = DX_UNIPOLAR_B,
-            float dyUnipolar = DY_UNIPOLAR_B)
+            float dxSatellite = DX_SATELLITE_B,
+            float dySatellite = DY_SATELLITE_B)
         {
             knob_t* knob = addKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxUnipolar, dyUnipolar);
+            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -899,11 +899,11 @@ namespace Sapphire
             int knobId,
             int attenId,
             int cvInputId,
-            float dxUnipolar = DX_UNIPOLAR_A,
-            float dyUnipolar = DY_UNIPOLAR_A)
+            float dxSatellite = DX_SATELLITE_A,
+            float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxUnipolar, dyUnipolar);
+            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -914,17 +914,21 @@ namespace Sapphire
             int knobId,
             int attenId,
             int cvInputId,
-            float dxUnipolar = DX_UNIPOLAR_A,
-            float dyUnipolar = DY_UNIPOLAR_A)
+            float dxSatellite = DX_SATELLITE_A,
+            float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSnapVoctAttenuverter(attenId, prefix + "_atten", 1, dxUnipolar, dyUnipolar);
+            addSnapVoctAttenuverter(attenId, prefix + "_atten", 1, dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
 
         template <typename knob_t = OutputLimiterLargeKnob>
-        knob_t* addSapphireControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        knob_t* addSapphireControlGroupWithWarningLight(
+            const std::string& prefix,
+            int knobId,
+            int attenId,
+            int cvInputId)
         {
             knob_t* knob = addSapphireControlGroup<knob_t>(prefix, knobId, attenId, cvInputId);
             installWarningLight(knob);
@@ -932,7 +936,11 @@ namespace Sapphire
         }
 
         template <typename knob_t = OutputLimiterSmallKnob>
-        knob_t* addSapphireFlatControlGroupWithWarningLight(const std::string& prefix, int knobId, int attenId, int cvInputId)
+        knob_t* addSapphireFlatControlGroupWithWarningLight(
+            const std::string& prefix,
+            int knobId,
+            int attenId,
+            int cvInputId)
         {
             knob_t* knob = addSapphireFlatControlGroup<knob_t>(prefix, knobId, attenId, cvInputId);
             installWarningLight(knob);
@@ -992,9 +1000,9 @@ namespace Sapphire
             return tg.port;
         }
 
-        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting, float dxUnipolar, float dyUnipolar)
+        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting, float dxSatellite, float dySatellite)
         {
-            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, label, dxUnipolar, dyUnipolar);
+            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, label, dxSatellite, dySatellite);
             knob->atten = module ? &module->getParam(attenId) : nullptr;
             knob->voctSetting = voctSetting;
             return knob;
