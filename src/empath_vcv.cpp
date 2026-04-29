@@ -755,7 +755,7 @@ namespace Sapphire
             {
                 explicit ChaosFreezeButton()
                 {
-                    addTinyButtonFrames(this, "blue");
+                    addTinyButtonFrames(this, "xyellow");   // inverted colors: 0=yellow, 1=dark
                 }
             };
 
@@ -1090,7 +1090,7 @@ namespace Sapphire
                         // Keep the button's hovertext in sync with its actual state.
                         inputModule->updateToggleButtonTooltip(OUTPUT_CHANNEL_MODE_BUTTON_PARAM, "Stereo mode", "Polyphonic mode");
                         inputModule->updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
-                        inputModule->updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: FROZEN");
+                        inputModule->updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                         inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
                         inputModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                     }

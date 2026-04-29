@@ -2452,14 +2452,14 @@ def GenerateTinyButtonImages() -> int:
     return (
         GenerateLeftExtenderButton() or
         GenerateRightExtenderButton() or
-        GenerateTinyButton('blue',   0, "#070779", '#353535', '#434343', '#353535') or
-        GenerateTinyButton('blue',   1, "#8ec0f8", "#242b4b", "#354762", '#353535') or
-        GenerateTinyButton('green',  0, '#585858', '#353535', '#434343', '#353535') or
-        GenerateTinyButton('green',  1, '#4df04d', '#4d904d', '#356235', '#353535') or
-        GenerateTinyButton('yellow', 0, '#585858', '#353535', '#434343', '#353535') or
-        GenerateTinyButton('yellow', 1, '#edce1c', '#b59d14', '#356235', '#353535') or
-        GenerateTinyButton('red',    0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
-        GenerateTinyButton('red',    1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
+        GenerateTinyButton('green',   0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateTinyButton('green',   1, '#4df04d', '#4d904d', '#356235', '#353535') or
+        GenerateTinyButton('yellow',  0, '#585858', '#353535', '#434343', '#353535') or
+        GenerateTinyButton('yellow',  1, '#edce1c', '#b59d14', '#356235', '#353535') or
+        GenerateTinyButton('xyellow', 0, '#edce1c', '#b59d14', '#356235', '#353535') or
+        GenerateTinyButton('xyellow', 1, '#585858', '#353535', '#434343', '#353535') or
+        GenerateTinyButton('red',     0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
+        GenerateTinyButton('red',     1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
         GenerateMultiTapRemoveButton()
     )
 
