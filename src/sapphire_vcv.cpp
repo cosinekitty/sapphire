@@ -985,18 +985,19 @@ namespace Sapphire
 
             if (isUnipolarMode())
             {
+                constexpr float radiusPx = 2.25;
+                constexpr float stemHeightPx = 3.0;
+
+                const float xc = xSatellite();
+                const float yc = ySatellite();
+
                 // Draw something that looks like a little letter 'u' near the knob.
                 nvgBeginPath(args.vg);
-                nvgArc(
-                    args.vg,
-                    xSatellite(),
-                    ySatellite(),
-                    2.5,
-                    NVG_PI,
-                    0,
-                    NVG_CCW
-                );
-                nvgStrokeWidth(args.vg, 1.0f);
+                nvgMoveTo(args.vg, xc-radiusPx, yc-stemHeightPx);
+                nvgLineTo(args.vg, xc-radiusPx, yc);
+                nvgArc(args.vg, xc, yc, radiusPx, NVG_PI, 0, NVG_CCW);
+                nvgLineTo(args.vg, xc+radiusPx, yc-stemHeightPx);
+                nvgStrokeWidth(args.vg, 1.25);
                 nvgStrokeColor(args.vg, SCHEME_YELLOW);
                 nvgLineCap(args.vg, NVG_ROUND);
                 nvgStroke(args.vg);
@@ -1025,7 +1026,7 @@ namespace Sapphire
                 const float yBottom = yc + dy;
 
                 nvgBeginPath(args.vg);
-                nvgStrokeWidth(args.vg, 1.0f);
+                nvgStrokeWidth(args.vg, 1.25);
                 nvgStrokeColor(args.vg, SCHEME_CYAN);
                 nvgLineCap(args.vg, NVG_ROUND);
                 nvgMoveTo(args.vg, x1, yTop);
