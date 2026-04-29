@@ -50,6 +50,7 @@ namespace Sapphire
         static constexpr unsigned nTriplets = (nsignals + 2) / 3;
 
         std::array<Aizawa, nTriplets> oscillators{};
+        std::array<double, nTriplets> rateFactor{};
 
         using batch_t = ChaosBatch<nsignals>;
 
@@ -57,8 +58,8 @@ namespace Sapphire
 
         void update(double dt)
         {
-            for (auto& osc : oscillators)
-                osc.step(dt);
+            for (unsigned i = 0; i < nTriplets; ++i)
+                oscillators[i].step(dt * rateFactor[i]);
         }
 
         batch_t getBatch(float levelKnob) const
@@ -100,6 +101,7 @@ namespace Sapphire
             rand_t gen(seed);
             randomizeChaoticOscillators(gen);
             shuffleSignalMapping(gen);
+            randomizeRates(gen);
         }
 
         void reset(uint64_t newSeed)
@@ -167,6 +169,21 @@ namespace Sapphire
                     }
                 }
             }
+        }
+
+        void randomizeRates(rand_t& gen)
+        {
+            // Pick a number near 1, but allowed to randomly
+            // stray from 1 to form a normal distribution,
+            // but whose bell curve is clamped on the ends to
+            // prevent straying more than one octave up or down.
+
+            constexpr double mean = 1.0;
+            constexpr double dev = 0.2;
+            std::normal_distribution<double> dist(mean, dev);
+
+            for (double& rate : rateFactor)
+                rate = std::clamp<double>(dist(gen), 0.5,  2.0);
         }
     };
 }

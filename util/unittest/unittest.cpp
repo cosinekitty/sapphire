@@ -779,7 +779,12 @@ static int ChaosFountainTest()
     const double dt = Sapphire::SimulationTimeIncrement(sampleRateHz, speedKnob);
 
     // Simulate restoring a seed for determinstic behavior.
-    Sapphire::ChaosFountain<nsignals> fountain(1775060954301140506);
+    using fountain_t = Sapphire::ChaosFountain<nsignals>;
+    fountain_t fountain(1775060954301140506);
+
+    printf("Chaos fountain has %u signals ==> %u oscillators.\n", nsignals, fountain_t::nTriplets);
+    for (unsigned i = 0; i < fountain_t::nTriplets; ++i)
+        printf("    rate[%u] = %0.6f\n", i, fountain.rateFactor[i]);
 
     std::array<float, nsignals> minValue{};
     std::array<float, nsignals> maxValue{};
@@ -827,7 +832,7 @@ static int ChaosFountainTest()
         if (maxValue[i] < 5.0 || maxValue[i] > 5.4)
             return Fail("ChaosFountaintest", "Maximum value is out of bounds.");
 
-        if (freq < 19.0 || freq > 40.0)
+        if (freq < 18.0 || freq > 40.0)
             return Fail("ChaosFountainTest", "Frequency is out of bounds.");
     }
 
