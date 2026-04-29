@@ -22,13 +22,13 @@ There’s a dedicated CV input and attenuverter (±5V) for modulating cascade, s
 
 There’s a toggle button between the input ports to switch between stereo mode and polyphonic mode: In stereo mode, mono or stereo signals are processed normally. If you send polyphonic signals to either or both ports, they will be summed and treated as mono to each port.
 
-In polyphonic mode, the left input accepts a polyphonic signal and the left output port on Empath Out provides polyphonic audio output. The Send/Return paths will also operate in polyphonic mode, enabling deeper per-voice processing.
+In polyphonic mode, the left input accepts a polyphonic signal and the right input is not used. In this configuration, the left output port on Empath Out provides polyphonic audio output. The Send/Return paths will also operate in polyphonic mode, enabling deeper per-voice processing. The right output and send ports always provide a single channel of 0V silence when in polyphonic mode.
 
-**CHAOS:** this box contains controls for a built-in chaotic modulation source that is internally routed throughout the Empath chain. The controls inside the CHAOS box allow you to manage the behavior of the chaos generator. Chaotic modulation is available for every control with an attenuverter, except for the LEVEL control inside the CHAOS box.
+**CHAOS:** This box contains controls for a built-in chaotic modulation source that is internally routed throughout the Empath chain. These controls allow you to manage the behavior of the chaos generator. Chaotic modulation is available for every control with an attenuverter, except for the LEVEL control inside the CHAOS box itself.
 
-By adjusting the a parameter's attenuverter knob, you can adjust the modulation amount. You can break this internal connection by simply connecting a different modulation source to the CV input. Any cable connection will override the internal chaos and replace it with whatever voltage signals that cable is carrying.
+By adjusting the a parameter's attenuverter knob, you can adjust the modulation amount. You can break this internal connection by simply connecting a different modulation source to the CV input. Any cable connection will override the internal chaos and replace it with whatever voltage signals that cable is carrying. You can use chaos (without cable) or voltage (with cable), but not both.
 
-* **SPEED**: This control will dictate the rate of the chaotic source. It has a CV input port and an attenuverter knob (±5V). (Tip: the chaotic source is also internally routed to the Speed control).
+* **SPEED**: This control adjusts the rate of the chaotic source's movement. It has a CV input port and an attenuverter knob (±5V). (Tip: the chaotic source is also internally routed to the Speed control, so you can make the speed itself vary chaotically).
 * **LEVEL**: This will control the global level of the chaotic source. It has a dedicated CV input and attenuverter (±5V). Usually you can leave LEVEL at its default setting of 0&nbsp;dB, and adjust it a little up or down to globally increase or decrease how much chaotic signals are affecting all the controls whose attenuverter is not set to zero. Setting LEVEL to zero essentially removes chaos from the entire patch.
 
 Three corners in the CHAOS box have buttons:
