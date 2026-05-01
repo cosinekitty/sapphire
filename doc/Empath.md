@@ -54,73 +54,70 @@ You can combine both modifiers to add filter expanders that have default setting
 
 With the spectrum graph, you can visually see the effect of the filter you’re using, per expander.
 
-Mode: You can change the channels of the graph with the button on the left between Mono, and Polyphonic. When using a stereo signal, Polyphonic mode will show you the left and right separately.
+**Graph mode button**: You can change the channels of the graph with the button on the left between Mono, and Polyphonic. When using a stereo signal, Polyphonic mode will show you the left and right separately.
 Vertical Scale: With this control, you can change the scale of the graph lines.
 
+**FREQ**:
+This control sets the center frequency of the filter. It has a dedicated CV input and attenuverter (±5V).
 
-FREQ
-This sets the frequency of the filter, set by Herz. It has a dedicated CV input and attenuverter (±5V).
-Mode: With this button, you can change the filter between a band-pass and a notch/comb.
+**Filter mode button**: With this button, you can change the filter between a band-pass and a notch/comb.
 
-RESONANCE / MORPH
+**RESONANCE / MORPH**:
 By default, this sets the resonance of the filter. When set to notch/comb, the Resonance control turns into a Morph control that allows you to morph between a notch filter and a comb filter. All the way left, it’s a notch, and all the way right, it’s a comb filter. This control has a dedicated CV input and attenuverter (±5V).
-PAN
+
+**PAN**:
 This controls the stereo placement of the filter’s output. PAN has its own CV input and attenuverter (±5V), great for spatial modulation.
 
-
-LEVEL
+**LEVEL**:
 Sets the volume of the individual filter. Level also has a CV input and attenuverter (±5V), making it easy to animate dynamically.
 
-
-MUTE and SOLO
+**MUTE and SOLO**:
 These buttons are especially helpful when dialing in or tweaking a specific filter.
 MUTE silences that filter.
 SOLO mutes all other filters so you can focus on one filter’s behavior or processing.
 
-
-SEND / RTRN (Send and Return)
+**SEND / RTRN (Send and Return) ports**:
 Every filter has its own send and return ports, which open the door to powerful per-filter processing chains—reverb, filtering, distortion, whatever you want. You can even send filter into one another or into external FX chains.
 Want to process a filter externally without routing the result back into the filter setup? Just plug a dummy cable into the RTRN port to keep the signal from re-entering.
-ENV / DCK (Envelope Follower and Ducking)
+
+**ENV / DCK (Envelope Follower and Ducking)**:
 Each filter has an envelope follower output that tracks the signal's amplitude. Use it to modulate VCAs, filters, or effects elsewhere in your patch.
 You can adjust the envelope level using the gain knob next to the output jack.
 By default, this output is monophonic, but you can switch to polyphonic envelope output in the context menu.
-
 
 Clicking the ENV label toggles it to DCK (Ducking) mode.
 In this mode, the envelope is inverted: loud audio produces a lower voltage.
 This is useful for classic ducking effects—automatically lowering the volume of another signal when this filter plays, for instance, using a VCA.
 
+**Initialize this filter only**:
+Clicking this button at the bottom of a filter resets just that filter to its default settings, leaving the others untouched.
 
-Initialize this filter only
-Resets just the selected filter to its default settings, leaving the others untouched.
-Remove filter
-Once you have more than one filter, an arrow will appear in the lower-left corner of each. Use this to remove a filter—any modules to the right will shift left automatically to close the gap.
+**Remove filter**
+In the lower-left corner of each filter is a button with a red <code>&lt;</code> symbol on it. Click this button to remove the filter. Empath modules to the right will shift left automatically to close the gap.
 
 ---
 
 ## Empath Out (Expander Module)
 Empath Out is always added automatically when you place the Empath module in your patch. Just make sure it stays to the right of the last Empath Filter module. If you add or remove filters, Empath Out will automatically shift to the correct position.
-Mix
+
+**MIX**:
 Sets the overall wet/dry balance.
 All the way left = dry signal only.
 All the way right = fully processed signal only.
 
-
 Mix has its own CV input and attenuverter (±5V), so you can automate the wet/dry blend, create dynamic swells, or modulate it based on performance gestures.
-Level
-Controls the overall output volume of Empath—both dry and wet combined.
+
+**LEVEL**:
+Controls the overall output volume of Empath, both dry and wet combined.
 This helps you dial in the right gain staging, and can also act as a global VCA.
 Great for fading in/out the entire effect.
-Level has a CV input and attenuverter (±5V).
-There is a built-in compressor/limiter on the output level to prevent the signal to be too loud at the output. When it’s active, the Level knob will turn red. By default, it’s set to 6V, but you can change this by right-clicking the Level knob, and even turn it completely off. You can also just turn off the warning light.
 
+LEVEL has a CV input and attenuverter (±5V).
+There is a built-in compressor/limiter on the output level to prevent the signal to be too loud at the output. When it’s active, the LEVEL knob will turn red. By default, it’s set to 6V, but you can change this by right-clicking the LEVEL knob, and even turn it completely off. You can also just turn off the warning light.
 
-Out
+**OUT**:
 Stereo output of the entire Empath chain. In Polyphonic mode, only the left output will carry the polyphonic signal.
 
 
-
-Context Menu Options
+**Context Menu Options**:
 Interpolator: Adjusts audio quality. Higher settings sound better but use more CPU.
-
