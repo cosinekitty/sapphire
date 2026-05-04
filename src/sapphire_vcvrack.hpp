@@ -750,14 +750,14 @@ namespace Sapphire
     };
 
 
-    constexpr float FlashDurationSeconds = 0.05;
+    constexpr double FlashDurationSeconds = 0.05;
 
 
     class AnimatedTriggerReceiver
     {
     private:
         GateTriggerReceiver tr;
-        float flashSecondsRemaining = 0;
+        double flashSecondsRemaining = 0;
 
     public:
         void initialize()
@@ -771,13 +771,13 @@ namespace Sapphire
             return tr.isTriggerActive();
         }
 
-        void update(float voltage, float sampleRateHz)
+        void update(float voltage, double sampleRateHz)
         {
             tr.update(voltage);
             if (tr.isTriggerActive())
                 flashSecondsRemaining = FlashDurationSeconds;
             else if (flashSecondsRemaining > 0)
-                flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
+                flashSecondsRemaining = std::max<double>(0, flashSecondsRemaining - 1/sampleRateHz);
         }
 
         bool lit() const
