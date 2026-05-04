@@ -952,7 +952,8 @@ namespace Sapphire
                         if (clockSignalFormat == ClockSignalFormat::Pulses)
                         {
                             float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
-                            if (q.clockReceiver.updateTrigger(vClock))
+                            q.clockReceiver.update(vClock);
+                            if (q.clockReceiver.isTriggerActive())
                             {
                                 q.samplesSinceClockTrigger = 0;
                                 if (!q.isReceivingTriggers)

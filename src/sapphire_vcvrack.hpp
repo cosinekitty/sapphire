@@ -747,12 +747,6 @@ namespace Sapphire
 
             prevVoltage = voltage;
         }
-
-        bool updateTrigger(float voltage)
-        {
-            update(voltage);
-            return trigger;
-        }
     };
 
 
@@ -772,16 +766,18 @@ namespace Sapphire
             flashSecondsRemaining = 0;
         }
 
-        bool updateTrigger(float voltage, float sampleRateHz)
+        bool isTriggerActive() const
         {
-            bool trigger = tr.updateTrigger(voltage);
+            return tr.isTriggerActive();
+        }
 
-            if (trigger)
+        void update(float voltage, float sampleRateHz)
+        {
+            tr.update(voltage);
+            if (tr.isTriggerActive())
                 flashSecondsRemaining = FlashDurationSeconds;
             else if (flashSecondsRemaining > 0)
                 flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
-
-            return trigger;
         }
 
         bool lit() const
@@ -1778,9 +1774,9 @@ namespace Sapphire
             if (button.getValue() > 0)
                 inputVoltage = 10;
 
-            bool trigger = receiver.updateTrigger(inputVoltage, sampleRateHz);
+            receiver.update(inputVoltage, sampleRateHz);
             setLightBrightness(buttonLightId, receiver.lit());
-            return trigger;
+            return receiver.isTriggerActive();
         }
 
         void setLightBrightness(int lightId, bool lit)

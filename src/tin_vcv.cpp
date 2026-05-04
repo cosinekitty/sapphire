@@ -97,8 +97,8 @@ namespace Sapphire
                 y *= gain;
                 z *= gain;
 
-                bool reset = resetTrigger.updateTrigger(inputs.at(CLEAR_TRIGGER_INPUT).getVoltageSum());
-                sendVector(x, y, z, delay || reset);
+                resetTrigger.update(inputs.at(CLEAR_TRIGGER_INPUT).getVoltageSum());
+                sendVector(x, y, z, delay || resetTrigger.isTriggerActive());
                 if (delay)
                     --delay;
             }

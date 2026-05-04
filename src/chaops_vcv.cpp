@@ -130,8 +130,8 @@ namespace Sapphire
                 bool isButtonDown = (params.at(STORE_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !storeButtonPressed;
                 storeButtonPressed = isButtonDown;
-                bool triggerFired = storeReceiver.updateTrigger(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
-                return buttonJustPressed || triggerFired;
+                storeReceiver.update(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
+                return buttonJustPressed || storeReceiver.isTriggerActive();
             }
 
             bool getRecallTrigger()
@@ -139,8 +139,8 @@ namespace Sapphire
                 bool isButtonDown = (params.at(RECALL_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !recallButtonPressed;
                 recallButtonPressed = isButtonDown;
-                bool triggerFired = recallReceiver.updateTrigger(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());
-                return buttonJustPressed || triggerFired;
+                recallReceiver.update(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());
+                return buttonJustPressed || recallReceiver.isTriggerActive();
             }
 
             static int flashDurationSamples(float sampleRate)

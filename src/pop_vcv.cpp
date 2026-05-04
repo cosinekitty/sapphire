@@ -198,7 +198,9 @@ namespace Sapphire
                     nextChannelInputVoltage(cvChaos, CHAOS_CV_INPUT, c);
                     nextChannelInputVoltage(vSync, SYNC_TRIGGER_INPUT, c);
 
-                    bool isSyncTrigger = syncReceiver[c].updateTrigger(vSync);
+                    syncReceiver[c].update(vSync);
+                    const bool isSyncTrigger = syncReceiver[c].isTriggerActive();
+
                     float speed = cvGetVoltPerOctave(SPEED_PARAM, SPEED_ATTEN, cvSpeed, MIN_POP_SPEED, MAX_POP_SPEED);
                     float chaos = cvGetControlValue(CHAOS_PARAM, CHAOS_ATTEN, cvChaos, MIN_POP_CHAOS, MAX_POP_CHAOS);
 
