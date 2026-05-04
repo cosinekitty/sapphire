@@ -111,7 +111,7 @@ namespace Sapphire
                 outputs.at(POLY_OUTPUT).setVoltage(y, 1);
                 outputs.at(POLY_OUTPUT).setVoltage(z, 2);
 
-                float triggerVoltage = triggerSender.process(args.sampleTime, clear);
+                float triggerVoltage = triggerSender.process(args.sampleRate, clear);
                 outputs.at(CLEAR_TRIGGER_OUTPUT).setVoltage(triggerVoltage);
 
                 // Mirror the level-adjusted input to any module on the right.

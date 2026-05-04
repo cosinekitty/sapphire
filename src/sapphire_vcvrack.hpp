@@ -790,8 +790,7 @@ namespace Sapphire
     class TriggerSender
     {
     private:
-        const float duration = 0.001f;  // a trigger should last at least one millisecond
-        float elapsed = 0;
+        double elapsed = 0;
         bool isFiring = false;
 
     public:
@@ -801,7 +800,7 @@ namespace Sapphire
             isFiring = false;
         }
 
-        float process(float dt, bool fire)
+        float process(double sampleRateHz, bool fire)
         {
             if (fire)
             {
@@ -810,12 +809,12 @@ namespace Sapphire
             }
             if (isFiring)
             {
-                if (elapsed >= duration)
+                if (elapsed >= 0.001)   // hold the gate high for at least 1 millisecond.
                     isFiring = false;
-                elapsed += dt;
-                return 10;
+                elapsed += 1/sampleRateHz;
+                return 10;  // high gate voltage
             }
-            return 0;
+            return 0;   // low gate voltage
         }
     };
 
