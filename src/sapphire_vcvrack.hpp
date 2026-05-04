@@ -748,12 +748,6 @@ namespace Sapphire
             prevVoltage = voltage;
         }
 
-        bool updateGate(float voltage)
-        {
-            update(voltage);
-            return gate;
-        }
-
         bool updateTrigger(float voltage)
         {
             update(voltage);
