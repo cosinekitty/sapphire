@@ -40,6 +40,7 @@ namespace Sapphire
             {"drive_knob",             {  22.240,   93.000}},
             {"env_gain_knob",          {  36.720,  115.000}},
             {"env_output",             {  54.720,  115.000}},
+            {"fader_button",           {   5.240,   73.975}},
             {"feedback_atten",         {  10.240,   37.325}},
             {"feedback_cv",            {  20.240,   37.325}},
             {"feedback_knob",          {  15.240,   26.325}},

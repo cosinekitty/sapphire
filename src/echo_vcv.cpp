@@ -216,6 +216,15 @@ namespace Sapphire
         };
 
 
+        struct FaderButton : SapphireTinyToggleButton
+        {
+            explicit FaderButton()
+            {
+                addTinyButtonFrames(this, "red");
+            }
+        };
+
+
         struct InitChainButton : SapphireTinyActionButton
         {
             Echo::EchoWidget* echoWidget{};
@@ -1885,6 +1894,8 @@ namespace Sapphire
 
         namespace Echo
         {
+            constexpr float FaderParamDefault = 0;  // disabled by default, for backward compatibility
+
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
@@ -1912,6 +1923,7 @@ namespace Sapphire
                 TAPE_SLEW_PARAM,
                 INPUT_GAIN_PARAM,
                 INPUT_GAIN_ATTEN,
+                FADER_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -1994,6 +2006,7 @@ namespace Sapphire
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
                     configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
+                    configButton(FADER_BUTTON_PARAM);           // tooltip changed dynamically
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
@@ -2046,6 +2059,7 @@ namespace Sapphire
                     params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
                     params.at(MUTE_BUTTON_PARAM).setValue(0);
                     params.at(SOLO_BUTTON_PARAM).setValue(0);
+                    params.at(FADER_BUTTON_PARAM).setValue(FaderParamDefault);
                     setLowSensitive(TIME_ATTEN, false);
                     setLowSensitive(PAN_ATTEN, false);
                     setLowSensitive(LEVEL_ATTEN, false);
@@ -2206,6 +2220,18 @@ namespace Sapphire
                 {
                     params.at(LEVEL_PARAM).setValue(0);
                 }
+
+                bool isFaderEnabled()
+                {
+                    return params.at(FADER_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
+                void updateFaderButtonTooltip()
+                {
+                    std::string text = "Fader: ";
+                    text += isFaderEnabled() ? "ENABLED" : "DISABLED";
+                    updateParamTooltip(FADER_BUTTON_PARAM, text);
+                }
             };
 
 
@@ -2254,6 +2280,7 @@ namespace Sapphire
                     addSapphireInput(CLOCK_INPUT, "clock_input");
                     addClockButton();
                     addIntervalButton();
+                    addFaderButton();
                     addInitChainButton();
                     addOutputChannelModeButton();
 
@@ -2353,6 +2380,12 @@ namespace Sapphire
                 {
                     auto button = createParamCentered<IntervalButton>(Vec{}, echoModule, INTERVAL_BUTTON_PARAM);
                     addSapphireParam(button, "interval_button");
+                }
+
+                void addFaderButton()
+                {
+                    auto button = createParamCentered<FaderButton>(Vec{}, echoModule, FADER_BUTTON_PARAM);
+                    addSapphireParam(button, "fader_button");
                 }
 
                 void addInitChainButton()
@@ -2539,6 +2572,8 @@ namespace Sapphire
                         updateFreezeGateTriggerTooltip();
 
                         echoModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
+
+                        echoModule->updateFaderButtonTooltip();
 
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise

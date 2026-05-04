@@ -2186,6 +2186,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
     dyClockButtons = 2.5
     yClockButton    = yClockControls - dyClockButtons
     yIntervalButton = yClockControls + dyClockButtons
+    yFaderButton    = yClockControls - dyClockButtons
 
     # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2201,7 +2202,8 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
     xSendReturnButton = (xSendPorts + xReturnPorts)/2
     ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
     xClockInput = xGlobalCenter
-    xClockButtons = xClockInput + 10.0
+    xClockButtonsLeft = xClockInput - 10.0
+    xClockButtonsRight = xClockInput + 10.0
     yInitChainButton = MULTIMAP_ENV_PORTS_Y1 - 3.0
     yBottomButtons = panel.mmHeight - 5.0
     xInputPorts = xGlobalCenter - 4.0
@@ -2242,8 +2244,9 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
         controls.append(Component('clock_input', xClockInput, yClockControls))
-        controls.append(Component('clock_button', xClockButtons, yClockButton))
-        controls.append(Component('interval_button', xClockButtons, yIntervalButton))
+        controls.append(Component('fader_button', xClockButtonsLeft, yFaderButton))
+        controls.append(Component('clock_button', xClockButtonsRight, yClockButton))
+        controls.append(Component('interval_button', xClockButtonsRight, yIntervalButton))
 
         yClockLabel = yClockControls - 7.0
         if (
