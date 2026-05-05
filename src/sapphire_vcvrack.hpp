@@ -771,6 +771,11 @@ namespace Sapphire
             return tr.isTriggerActive();
         }
 
+        bool isFallingEdge() const
+        {
+            return tr.isFallingEdge();
+        }
+
         void update(float voltage, double sampleRateHz)
         {
             tr.update(voltage);
@@ -1757,7 +1762,7 @@ namespace Sapphire
             agcLevelQuantity->disableMin = disableMin;
         }
 
-        bool updateTriggerGroup(
+        void updateTriggerGroup(
             float sampleRateHz,
             AnimatedTriggerReceiver& receiver,
             int inputId,
@@ -1775,7 +1780,6 @@ namespace Sapphire
 
             receiver.update(inputVoltage, sampleRateHz);
             setLightBrightness(buttonLightId, receiver.lit());
-            return receiver.isTriggerActive();
         }
 
         void setLightBrightness(int lightId, bool lit)

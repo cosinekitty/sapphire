@@ -157,7 +157,7 @@ namespace Sapphire
 
             void updateClearState(float sampleRateHz)
             {
-                const bool clearRequested = updateTriggerGroup(
+                updateTriggerGroup(
                     sampleRateHz,
                     clearReceiver,
                     CLEAR_INPUT,
@@ -165,10 +165,11 @@ namespace Sapphire
                     CLEAR_BUTTON_LIGHT
                 );
 
-                if (clearRequested)
+                if (clearReceiver.isTriggerActive())
                     clearSmoother.begin();
 
                 clearSmoother.process(sampleRateHz);
+
                 if (clearSmoother.isDelayedActionReady())
                     engine.initialize();
             }
