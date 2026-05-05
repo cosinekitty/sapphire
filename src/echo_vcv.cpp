@@ -698,6 +698,8 @@ namespace Sapphire
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
             Smoother clearSmoother;
+            unsigned recordSilenceCountdown = 0;    // anti-sliding phase 1: after reset/CLR, how many frames to record silence.
+            Crossfader recordingFader;              // anti-sliding phase 2: fade in audio from front = 0 (silence) to back = 1 (full volume).
             ReverseComboSmoother reverseComboSmoother;
             bool flip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
@@ -743,6 +745,8 @@ namespace Sapphire
                     info[c].initialize();
                 recordingLevelOverflow = false;
                 clearSmoother.initialize();
+                recordingFader.snapToBack();        // front=0 (silence), back=1 (normal recording level)
+                recordSilenceCountdown = 0;
                 sendReturnLocationSmoother.initialize();
                 flip = false;
                 muteFader.snapToFront();
@@ -930,6 +934,36 @@ namespace Sapphire
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
                 const bool clocked = isActivelyClocked();
 
+                // After clearing, the tape motor is likely to change speed rapidly due to incoming clock/rate signals.
+                // This can cause audio recorded to the tape to be later played back at a different tape speed,
+                // causing unwanted pitch shift effects.
+                // The fader option allows the user to reduce unwanted pitch shift by
+                // silencing the audio written to the tape loop for a configurable amount of time,
+                // followed by ramping the gain from 0 to 1 over another configurable amount of time.
+                float fade = 1;
+                if (message.fader.enabled)
+                {
+                    if (clearSmoother.isDelayedActionReady())
+                        recordSilenceCountdown = static_cast<unsigned>(message.fader.silenceSeconds * sampleRateHz);
+
+                    if (recordSilenceCountdown > 0)
+                    {
+                        fade = 0;
+                        if (--recordSilenceCountdown == 0)
+                        {
+                            // We ran out of silent time (phase 1).
+                            // Begin phase 2: ramp up from 0 to 1 over a configurable amount of time.
+                            recordingFader.setCrossfadeDuration(message.fader.rampSeconds);
+                            recordingFader.snapToFront();       // start at front = 0 = silence.
+                            recordingFader.setTarget(true);     // head toward back = 1 = normal volume.
+                        }
+                    }
+                    else
+                    {
+                        fade = recordingFader.process(sampleRateHz, 0, 1);
+                    }
+                }
+
                 float feedbackSample = 0;
                 int numDeadClocks = 0;
                 int numReceivingTriggers = 0;
@@ -961,7 +995,7 @@ namespace Sapphire
                                 else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
                                     q.isReceivingTriggers = false;
                                 else
-                                    q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                                    q.clockSyncTime = std::clamp<float>(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                             }
                             else
                             {
@@ -1000,12 +1034,18 @@ namespace Sapphire
                     q.loop.setSlewRate(message.tapeSlewRate);
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
+
                     if (clearSmoother.isDelayedActionReady())
                     {
+                        // clearSmoother just told us this is the right time to
+                        // perform any discontinuous operation that would ordinarily
+                        // cause a click/pop in the output audio.
+                        // In our case, we are clearing out the tape loops.
                         q.loop.clear();
                         if (graph)
                             graph->initialize();
                     }
+
                     float forward = q.loop.readForward() * clearSmoother.getGain();
                     float reverse = 0;
                     if (reverseComboSmoother.isReverseNeeded())
@@ -1060,7 +1100,7 @@ namespace Sapphire
                     }
                     delayLineInput = smooth * LinearMix(message.freezeMix, delayLineInput, forward);
 
-                    if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
+                    if (!q.loop.write(delayLineInput, fade * clearSmoother.getGain()))
                         ++unhappyCount;
                 }
 
@@ -2106,6 +2146,9 @@ namespace Sapphire
                     outMessage.freezeMix = updateFreezeState(args.sampleRate);
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
+                    outMessage.fader.enabled = isFaderEnabled();
+                    outMessage.fader.silenceSeconds = 1;  // FIXFIXFIX: read fader ramp time from a slider.
+                    outMessage.fader.rampSeconds = 1;     // FIXFIXFIX: read fader silence time from a slider.
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate, outMessage.polyphonic, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
@@ -2191,7 +2234,7 @@ namespace Sapphire
 
                 bool updateClearState(float sampleRateHz)
                 {
-                    const bool clearRequested = updateTriggerGroup(
+                    updateTriggerGroup(
                         sampleRateHz,
                         clearReceiver,
                         CLEAR_INPUT,
@@ -2199,9 +2242,9 @@ namespace Sapphire
                         CLEAR_BUTTON_LIGHT
                     );
 
+                    const bool clearRequested = clearReceiver.isTriggerActive();
                     if (clearRequested)
                         clearSmoother.begin();
-
                     return clearRequested;
                 }
 
