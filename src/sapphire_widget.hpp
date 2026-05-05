@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include <type_traits>
 #include "plugin.hpp"
 #include "sapphire_panel.hpp"
 #include "sapphire_attenuverter_context.hpp"
@@ -36,9 +37,10 @@ namespace Sapphire
         return Vec(mm2px(loc.cx), mm2px(loc.cy));
     }
 
-
-    inline bool OneShotCountdown(int& counter)
+    template <typename value_t>
+    inline bool OneShotCountdown(value_t& counter)
     {
+        static_assert(std::is_integral_v<value_t>);
         return (counter > 0) && (--counter == 0);
     }
 
