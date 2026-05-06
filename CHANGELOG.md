@@ -9,6 +9,16 @@
 </tr>
 
 <tr valign="top">
+    <td align="center">6 May 2026</td>
+    <td align="center">2.6.005</td>
+    <td align="left">
+        <ul>
+            <li>Added a fader button to <a href="doc/Echo.md">Echo</a> to reduce the pitch-shifting distortion after a clear or reset occurs.</li>
+        </ul>
+    </td>
+</tr>
+
+<tr valign="top">
 <td align="center">30 Apr 2026</td>
 <td align="center">2.6.004</td>
 <td align="left">
