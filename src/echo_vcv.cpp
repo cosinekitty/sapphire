@@ -14,6 +14,40 @@ namespace Sapphire
         }
 
 
+        struct DurationSlider : Slider
+        {
+            explicit DurationSlider(SapphireQuantity* _quantity)
+            {
+                quantity = _quantity;
+                box.size.x = 200;
+            }
+        };
+
+
+        struct DurationQuantity : SapphireQuantity
+        {
+            void setDisplayValue(float displayValue) override
+            {
+                float v = std::log10(displayValue);
+                setValue(v);
+            }
+
+            float getDisplayValue() override
+            {
+                // The quantity's raw range is x = [-1, +1].
+                // The represented time in seconds is 10^x.
+                const float v = getValue();
+                return TenToPower<float>(v);
+            }
+
+            std::string getDisplayValueString() override
+            {
+                float timeInSeconds = getDisplayValue();
+                return rack::string::f("%0.3f seconds", timeInSeconds);
+            }
+        };
+
+
         struct TimeKnobInfo
         {
             TimeMode timeMode = TimeMode::Default;
@@ -1967,6 +2001,8 @@ namespace Sapphire
                 INPUT_GAIN_PARAM,
                 INPUT_GAIN_ATTEN,
                 FADER_BUTTON_PARAM,
+                SILENT_TIME_PARAM,
+                RAMP_TIME_PARAM,
                 PARAMS_LEN
             };
 
@@ -2012,6 +2048,7 @@ namespace Sapphire
                     {}
             };
 
+
             struct EchoModule : LoopModule
             {
                 // Global controls
@@ -2023,6 +2060,8 @@ namespace Sapphire
                 PortLabelMode inputLabels{};
                 bool autoCreateOutputModule = true;
                 SapphireQuantity* tapeSlewQuantity{};
+                DurationQuantity* silentTimeQuantity{};
+                DurationQuantity* rampTimeQuantity{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -2059,6 +2098,8 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     addTapeSpeedQuantity();
+                    addSilentTimeQuantity();
+                    addRampTimeQuantity();
                     EchoModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2072,7 +2113,39 @@ namespace Sapphire
                     clearReceiver.initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                     tapeSlewQuantity->initialize();
+                    silentTimeQuantity->initialize();
+                    rampTimeQuantity->initialize();
                 }
+
+                void addSilentTimeQuantity()
+                {
+                    silentTimeQuantity = configParam<DurationQuantity>(
+                        SILENT_TIME_PARAM,
+                        -1,
+                        +1,
+                        0,
+                        "Post-reset silence time"
+                    );
+
+                    silentTimeQuantity->value = 0;
+                    silentTimeQuantity->changed = true;
+                }
+
+
+                void addRampTimeQuantity()
+                {
+                    rampTimeQuantity = configParam<DurationQuantity>(
+                        RAMP_TIME_PARAM,
+                        -1,
+                        +1,
+                        0,
+                        "Post-reset ramp time"
+                    );
+
+                    rampTimeQuantity->value = 0;
+                    rampTimeQuantity->changed = true;
+                }
+
 
                 void addTapeSpeedQuantity()
                 {
@@ -2149,8 +2222,8 @@ namespace Sapphire
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
                     outMessage.fader.enabled = isFaderEnabled();
-                    outMessage.fader.silenceSeconds = 1;  // FIXFIXFIX: read fader ramp time from a slider.
-                    outMessage.fader.rampSeconds = 1;     // FIXFIXFIX: read fader silence time from a slider.
+                    outMessage.fader.silenceSeconds = silentTimeQuantity->getDisplayValue();
+                    outMessage.fader.rampSeconds = rampTimeQuantity->getDisplayValue();
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate, outMessage.polyphonic, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
@@ -2193,6 +2266,8 @@ namespace Sapphire
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->save(root, "tapeSlewRate");
+                    silentTimeQuantity->save(root, "silentTime");
+                    rampTimeQuantity->save(root, "rampTime");
                     return root;
                 }
 
@@ -2205,6 +2280,8 @@ namespace Sapphire
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->load(root, "tapeSlewRate");
+                    silentTimeQuantity->load(root, "silentTime");
+                    rampTimeQuantity->load(root, "rampTime");
                 }
 
                 Frame getFeedbackPoly()
@@ -2678,6 +2755,9 @@ namespace Sapphire
                             "change interpolator",
                             echoModule->interpolatorKind
                         ));
+
+                        menu->addChild(new DurationSlider(echoModule->silentTimeQuantity));
+                        menu->addChild(new DurationSlider(echoModule->rampTimeQuantity));
 
                         menu->addChild(createMenuItem(
                             "Toggle all clock sync",
