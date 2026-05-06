@@ -697,6 +697,7 @@ namespace Sapphire
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
+            bool clearRequested{};
             Smoother clearSmoother;
             unsigned recordSilenceCountdown = 0;    // anti-sliding phase 1: after reset/CLR, how many frames to record silence.
             Crossfader recordingFader;              // anti-sliding phase 2: fade in audio from front = 0 (silence) to back = 1 (full volume).
@@ -745,6 +746,7 @@ namespace Sapphire
                     info[c].initialize();
                 recordingLevelOverflow = false;
                 clearSmoother.initialize();
+                clearRequested = true;
                 recordingFader.snapToBack();        // front=0 (silence), back=1 (normal recording level)
                 recordSilenceCountdown = 0;
                 sendReturnLocationSmoother.initialize();
@@ -2242,10 +2244,14 @@ namespace Sapphire
                         CLEAR_BUTTON_LIGHT
                     );
 
-                    const bool clearRequested = clearReceiver.isTriggerActive();
-                    if (clearRequested)
+                    if (clearRequested || clearReceiver.isTriggerActive())
+                    {
+                        clearRequested = false;
                         clearSmoother.begin();
-                    return clearRequested;
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 void bumpTapInputRouting() override
