@@ -2486,12 +2486,16 @@ namespace Sapphire
                     ComponentLocation clock = FindComponent(modcode, "clock_input");
                     ComponentLocation syncButton = FindComponent(modcode, "clock_button");
                     ComponentLocation intervalButton = FindComponent(modcode, "interval_button");
+                    ComponentLocation faderButton = FindComponent(modcode, "fader_button");
                     static constexpr float MULTITAP_CLOCK_BUTTON_RADIUS = 1.5;
                     float bx = mm2px(syncButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
                     float by = mm2px(syncButton.cy);
 
                     float cx = mm2px(intervalButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
                     float cy = mm2px(intervalButton.cy);
+
+                    float fx = mm2px(faderButton.cx + MULTITAP_CLOCK_BUTTON_RADIUS);
+                    float fy = mm2px(faderButton.cy);
 
                     float dx = 6.0;
                     float dy = 4.5;
@@ -2517,6 +2521,10 @@ namespace Sapphire
                     // Draw another connector line to the interval button.
                     nvgMoveTo(vg, x2, cy);
                     nvgLineTo(vg, cx, cy);
+
+                    // Draw a connector line to the fader button, this time on the left.
+                    nvgMoveTo(vg, x1, fy);
+                    nvgLineTo(vg, fx, fy);
 
                     nvgStrokeWidth(vg, strokeWidth);
                     nvgStroke(vg);
