@@ -239,6 +239,7 @@ namespace Sapphire
             {"global_mix_atten",       {   5.160,   46.000}},
             {"global_mix_cv",          {  15.160,   46.000}},
             {"global_mix_knob",        {  10.160,   35.000}},
+            {"insert_empath_button",   {  17.320,    4.500}},
             {"output_label_left",      {  16.660,   93.000}},
             {"output_label_right",     {  16.660,  103.000}},
             {"spectrum_vertical_scale", {   5.000,   16.250}},

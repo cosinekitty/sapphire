@@ -2449,6 +2449,7 @@ def GenerateTinyButton(name:str, step:int, fillColor1:str, fillColor2:str, strok
     return Save(panel, svgFileName)
 
 def GenerateTinyButtonImages() -> int:
+    # xyellow = yellow with 0,1 swapped
     return (
         GenerateLeftExtenderButton() or
         GenerateRightExtenderButton() or
@@ -2716,6 +2717,8 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     ySpectrumVerScaleButton = EMPATH_SPECTRUM_BOX_YC
     yMix = 35.0
     yLevel = 65.0
+    xAddEmpathButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yAddEmpathButton = MULTITAP_INSERT_BUTTON_Y1
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
@@ -2724,6 +2727,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yMix)
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yLevel)
         controls.append(Component('spectrum_vertical_scale', xSpectrumVerScaleButton, ySpectrumVerScaleButton))
+        controls.append(Component('insert_empath_button', xAddEmpathButton, yAddEmpathButton))
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 

@@ -627,6 +627,27 @@ namespace Sapphire
         };
 
 
+        namespace EOutput
+        {
+            struct OutputWidget;
+        }
+
+
+        using insert_empath_button_base_t = app::SvgSwitch;
+        struct InsertAnotherEmpathButton : insert_empath_button_base_t
+        {
+            EOutput::OutputWidget* outputWidget{};
+
+            explicit InsertAnotherEmpathButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/right_extender_button.svg")));
+            }
+
+            void onButton(const event::Button& e) override;
+        };
+
+
         using remove_button_base_t = app::SvgSwitch;
         struct RemoveButton : remove_button_base_t
         {
@@ -2134,6 +2155,7 @@ namespace Sapphire
                 GLOBAL_LEVEL_ATTEN,
                 SPECTRUM_VERTICAL_SCALE_PARAM,
                 AGC_PARAM,
+                INSERT_EMPATH_BUTTON,  // Button to add another Empath expander chain in series with this one.
                 PARAMS_LEN
             };
 
@@ -2170,6 +2192,7 @@ namespace Sapphire
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
                     addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
+                    configButton(INSERT_EMPATH_BUTTON);
                 }
 
                 void OutputModule_initialize()
@@ -2309,6 +2332,7 @@ namespace Sapphire
                     addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
                     addSapphireControlGroupWithWarningLight("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
                     addKnob<Trimpot>(SPECTRUM_VERTICAL_SCALE_PARAM, "spectrum_vertical_scale");
+                    addInsertAnotherEmpathButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -2352,6 +2376,24 @@ namespace Sapphire
                         }
                     }
                 }
+
+                void addInsertAnotherEmpathButton();
+
+                void insertAnotherEmpath()
+                {
+                    if (outputModule == nullptr)
+                        return;
+
+                    // FIXFIXFIX: if the module to the right is Empath Input, re-cable to put new Empath *between* them.
+                    // For now, don't do anything if the module to the right is Empath (Input, Filter, or Ouptput).
+                    if (Module* right = outputModule->rightExpander.module)
+                        if (IsInput(right) || IsFilter(right) || IsOutput(right))
+                            return;
+
+                    // Create an Empath filter module to the right.
+                    // FIXFIXFIX: create cables once the new Empath chain has settled down.
+                    AddExpander(modelSapphireEmpathInput, this, ExpanderDirection::Right, false);
+                }
             };
         }
 
@@ -2376,11 +2418,31 @@ namespace Sapphire
             }
         }
 
+        void InsertAnotherEmpathButton::onButton(const event::Button &e)
+        {
+            insert_empath_button_base_t::onButton(e);
+            if (outputWidget)
+            {
+                if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
+                    outputWidget->insertAnotherEmpath();
+            }
+        }
+
         void EmpathWidget::addExpanderInsertButton(int paramId)
         {
             auto button = createParamCentered<InsertButton>(Vec{}, module, paramId);
             button->empathWidget = this;
             addSapphireParam(button, "insert_button");
+        }
+
+        namespace EOutput
+        {
+            void OutputWidget::addInsertAnotherEmpathButton()
+            {
+                auto button = createParamCentered<InsertAnotherEmpathButton>(Vec{}, module, INSERT_EMPATH_BUTTON);
+                button->outputWidget = this;
+                addSapphireParam(button, "insert_empath_button");
+            }
         }
     }
 }
