@@ -2386,7 +2386,7 @@ namespace Sapphire
 
                     // FIXFIXFIX: if the module to the right is Empath Input, re-cable to put new Empath *between* them.
                     // For now, don't do anything if the module to the right is Empath (Input, Filter, or Ouptput).
-                    if (Module* right = outputModule->rightExpander.module)
+                    if (const Module* right = outputModule->rightExpander.module)
                         if (IsInput(right) || IsFilter(right) || IsOutput(right))
                             return;
 
