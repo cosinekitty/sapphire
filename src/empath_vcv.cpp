@@ -627,7 +627,7 @@ namespace Sapphire
         };
 
 
-        namespace EOutput
+        namespace OutputStage
         {
             struct OutputWidget;
         }
@@ -636,7 +636,7 @@ namespace Sapphire
         using insert_empath_button_base_t = app::SvgSwitch;
         struct InsertAnotherEmpathButton : insert_empath_button_base_t
         {
-            EOutput::OutputWidget* outputWidget{};
+            OutputStage::OutputWidget* outputWidget{};
 
             explicit InsertAnotherEmpathButton()
             {
@@ -672,7 +672,7 @@ namespace Sapphire
         };
 
 
-        namespace EInput
+        namespace InputStage
         {
             constexpr unsigned nChaoticSignals = 5;
             using fountain_t = ChaosFountain<nChaoticSignals>;
@@ -1184,7 +1184,7 @@ namespace Sapphire
 
         //----------------------------------------------------------------------------
 
-        namespace Filter
+        namespace FilterStage
         {
             struct FilterModule;
             struct FilterWidget;
@@ -2141,7 +2141,7 @@ namespace Sapphire
 
         //----------------------------------------------------------------------------
 
-        namespace EOutput
+        namespace OutputStage
         {
             constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
@@ -2355,7 +2355,7 @@ namespace Sapphire
                 {
                     if (outputModule)
                     {
-                        if (auto leftModule = dynamic_cast<Filter::FilterModule*>(outputModule->leftExpander.module))
+                        if (auto leftModule = dynamic_cast<FilterStage::FilterModule*>(outputModule->leftExpander.module))
                         {
                             if (leftModule->spectrum)
                             {
@@ -2435,7 +2435,7 @@ namespace Sapphire
             addSapphireParam(button, "insert_button");
         }
 
-        namespace EOutput
+        namespace OutputStage
         {
             void OutputWidget::addInsertAnotherEmpathButton()
             {
@@ -2447,17 +2447,17 @@ namespace Sapphire
     }
 }
 
-Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::EInput::InputModule, Sapphire::Empath::EInput::InputWidget>(
+Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::InputStage::InputModule, Sapphire::Empath::InputStage::InputWidget>(
     "Empath",
     Sapphire::ExpanderRole::Empath
 );
 
-Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::Filter::FilterModule, Sapphire::Empath::Filter::FilterWidget>(
+Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::FilterStage::FilterModule, Sapphire::Empath::FilterStage::FilterWidget>(
     "EmpathFilter",
     Sapphire::ExpanderRole::Empath
 );
 
-Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::EOutput::OutputModule, Sapphire::Empath::EOutput::OutputWidget>(
+Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::OutputStage::OutputModule, Sapphire::Empath::OutputStage::OutputWidget>(
     "EmpathOutput",
     Sapphire::ExpanderRole::Empath
 );
