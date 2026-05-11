@@ -9,11 +9,12 @@
 </tr>
 
 <tr valign="top">
-    <td align="center">6 May 2026</td>
+    <td align="center">11 May 2026</td>
     <td align="center">2.6.005</td>
     <td align="left">
         <ul>
             <li>Added a fader button to <a href="doc/Echo.md">Echo</a> to reduce the pitch-shifting distortion after a clear or reset occurs.</li>
+            <li><a href="doc/Empath.md">Empath</a> now includes a button to create another Empath filter chain in series with the current chain.</li>
         </ul>
     </td>
 </tr>
