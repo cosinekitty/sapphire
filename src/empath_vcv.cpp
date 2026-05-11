@@ -13,6 +13,19 @@ namespace Sapphire
 {
     namespace Empath
     {
+        namespace OutputStage
+        {
+            // Usually we keep param/port enumerated types with each expander module.
+            // This was a special case because I need the InputStage to know output ports,
+            // in order to automatically create cables.
+            enum OutputId
+            {
+                AUDIO_LEFT_OUTPUT,
+                AUDIO_RIGHT_OUTPUT,
+                OUTPUTS_LEN
+            };
+        }
+
         constexpr float DefaultLimiterVoltage = 6;
 
         constexpr int MIN_FILTER_STAGES = 1;
@@ -471,9 +484,9 @@ namespace Sapphire
 
                 // Create the expander module.
                 bool clone = IsFilter(module) && !IsShiftKeyPressed();
-                if (auto em = dynamic_cast<EmpathModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                if (auto emod = AddExpanderModule<EmpathModule>(model, this, ExpanderDirection::Right, clone))
                     if (IsControlKeyPressed())
-                        em->silentLevelHook();
+                        emod->silentLevelHook();
             }
 
             void removeExpander()
@@ -627,6 +640,27 @@ namespace Sapphire
         };
 
 
+        namespace OutputStage
+        {
+            struct OutputWidget;
+        }
+
+
+        using insert_empath_button_base_t = app::SvgSwitch;
+        struct InsertAnotherEmpathButton : insert_empath_button_base_t
+        {
+            OutputStage::OutputWidget* outputWidget{};
+
+            explicit InsertAnotherEmpathButton()
+            {
+                momentary = true;
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/right_extender_button.svg")));
+            }
+
+            void onButton(const event::Button& e) override;
+        };
+
+
         using remove_button_base_t = app::SvgSwitch;
         struct RemoveButton : remove_button_base_t
         {
@@ -651,7 +685,7 @@ namespace Sapphire
         };
 
 
-        namespace EInput
+        namespace InputStage
         {
             constexpr unsigned nChaoticSignals = 5;
             using fountain_t = ChaosFountain<nChaoticSignals>;
@@ -769,6 +803,7 @@ namespace Sapphire
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
                 Smoother chaosAntiClickSmoother{0.025};
+                unsigned requestedCableCount = 0;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -823,9 +858,19 @@ namespace Sapphire
                         fountain.reset(seed);
                 }
 
-                bool polyphonicMode()
+                bool isPolyphonicMode()
                 {
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                }
+
+                void prepareAutoCableCreation(bool polyphonic)
+                {
+                    // This method is called to inform a new Empath input module that it is being created on behalf
+                    // of the existing Empath chain on the left, and to please connect cables in series.
+                    // If the existing Empath chain is in polyphonic mode, create a single cable and make sure
+                    // the new module is also in polyphonic mode. Otherwise, create a pair of stereo cables.
+                    params.at(OUTPUT_CHANNEL_MODE_BUTTON_PARAM).setValue(polyphonic ? 1 : 0);
+                    requestedCableCount = polyphonic ? 1 : 2;
                 }
 
                 SpectrumDisplayMode getSpectrumDisplayMode()
@@ -888,7 +933,7 @@ namespace Sapphire
                     ForwardMessage outMessage;
                     outMessage.chainIndex = 1;
                     outMessage.neonMode = neonMode;
-                    outMessage.polyphonic = polyphonicMode();
+                    outMessage.polyphonic = isPolyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
@@ -965,6 +1010,43 @@ namespace Sapphire
                             break;
                     }
                     InvokeAction(new RandomizeChaosAction(list));
+                }
+
+                void createSeriesCables()
+                {
+                    // Expect to find another Empath chain to the left.
+                    // The module to the immediate left should be an output module.
+                    // Bail out if not.
+                    if (!IsOutput(leftExpander.module))
+                        return;
+
+                    // Create new cables.
+                    if (requestedCableCount >= 1)
+                        createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
+
+                    if (requestedCableCount >= 2)
+                        createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+
+                    requestedCableCount = 0;
+                }
+
+                void createCable(int inputId, Module* outputModule, int outputId)
+                {
+                    auto cable = new Cable;
+                    cable->inputModule = this;
+                    cable->inputId = inputId;
+                    cable->outputModule = outputModule;
+                    cable->outputId = outputId;
+                    APP->engine->addCable(cable);
+
+                    auto cw = new CableWidget;
+                    cw->setCable(cable);
+                    cw->color = settings::cableColors.at(0);
+                    APP->scene->rack->addCable(cw);
+
+                    auto hist = new history::CableAdd;
+                    hist->setCable(cw);
+                    APP->history->push(hist);
                 }
             };
 
@@ -1084,6 +1166,7 @@ namespace Sapphire
                             {
                                 AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false);
                                 AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
+                                inputModule->createSeriesCables();
                             }
                         }
 
@@ -1163,7 +1246,7 @@ namespace Sapphire
 
         //----------------------------------------------------------------------------
 
-        namespace Filter
+        namespace FilterStage
         {
             struct FilterModule;
             struct FilterWidget;
@@ -2120,7 +2203,7 @@ namespace Sapphire
 
         //----------------------------------------------------------------------------
 
-        namespace EOutput
+        namespace OutputStage
         {
             constexpr unsigned nChaoticSignals = 4;
             using fountain_t = ChaosFountain<nChaoticSignals>;
@@ -2134,6 +2217,7 @@ namespace Sapphire
                 GLOBAL_LEVEL_ATTEN,
                 SPECTRUM_VERTICAL_SCALE_PARAM,
                 AGC_PARAM,
+                INSERT_EMPATH_BUTTON,  // Button to add another Empath expander chain in series with this one.
                 PARAMS_LEN
             };
 
@@ -2144,12 +2228,10 @@ namespace Sapphire
                 INPUTS_LEN
             };
 
-            enum OutputId
-            {
-                AUDIO_LEFT_OUTPUT,
-                AUDIO_RIGHT_OUTPUT,
-                OUTPUTS_LEN
-            };
+            // ****
+            // enum OutputId
+            // ... is toward top of file so it can be used to create cables from InputStage.
+            // ****
 
             enum LightId
             {
@@ -2160,6 +2242,7 @@ namespace Sapphire
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
                 fountain_t fountain{rack::random::u64()};
+                bool isPolyphonicPortMode{};
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -2170,6 +2253,7 @@ namespace Sapphire
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
                     addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
+                    configButton(INSERT_EMPATH_BUTTON, "Add another Empath chain in series");
                 }
 
                 void OutputModule_initialize()
@@ -2219,6 +2303,7 @@ namespace Sapphire
                 {
                     BackwardMessage backMessage;
                     const ForwardMessage inMessage = receiveMessageOrDefault();
+                    isPolyphonicPortMode = inMessage.polyphonic;
                     chainIndex = inMessage.chainIndex;
                     backMessage.soloCount = inMessage.soloCount;
                     backMessage.spectrumPowerScale = spectrumPower();
@@ -2309,6 +2394,7 @@ namespace Sapphire
                     addSapphireControlGroup("global_mix", GLOBAL_MIX_PARAM, GLOBAL_MIX_ATTEN, GLOBAL_MIX_CV_INPUT);
                     addSapphireControlGroupWithWarningLight("global_level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT);
                     addKnob<Trimpot>(SPECTRUM_VERTICAL_SCALE_PARAM, "spectrum_vertical_scale");
+                    addInsertAnotherEmpathButton();
                 }
 
                 bool isConnectedOnLeft() const override
@@ -2331,7 +2417,7 @@ namespace Sapphire
                 {
                     if (outputModule)
                     {
-                        if (auto leftModule = dynamic_cast<Filter::FilterModule*>(outputModule->leftExpander.module))
+                        if (auto leftModule = dynamic_cast<FilterStage::FilterModule*>(outputModule->leftExpander.module))
                         {
                             if (leftModule->spectrum)
                             {
@@ -2350,6 +2436,33 @@ namespace Sapphire
                                 nvgStroke(vg);
                             }
                         }
+                    }
+                }
+
+                void addInsertAnotherEmpathButton();
+
+                void insertAnotherEmpath()
+                {
+                    if (outputModule == nullptr)
+                        return;
+
+                    // FIXFIXFIX: if the module to the right is Empath Input, re-cable to put new Empath *between* them.
+                    // For now, don't do anything if the module to the right is Empath (Input, Filter, or Ouptput).
+                    if (const Module* right = outputModule->rightExpander.module)
+                        if (IsInput(right) || IsFilter(right) || IsOutput(right))
+                            return;
+
+                    // Create an Empath filter module to the right.
+                    if (auto* newEmpathInputModule = AddExpanderModule<InputStage::InputModule>(modelSapphireEmpathInput, this, ExpanderDirection::Right, false))
+                    {
+                        // If this output module's output audio ports are already connected to cables,
+                        // do not automatically create more cables.
+                        Output& outputLeft  = outputModule->outputs.at(AUDIO_LEFT_OUTPUT);
+                        Output& outputRight = outputModule->outputs.at(AUDIO_RIGHT_OUTPUT);
+                        if (outputLeft.isConnected() || outputRight.isConnected())
+                            return;
+
+                        newEmpathInputModule->prepareAutoCableCreation(outputModule->isPolyphonicPortMode);
                     }
                 }
             };
@@ -2376,26 +2489,46 @@ namespace Sapphire
             }
         }
 
+        void InsertAnotherEmpathButton::onButton(const event::Button &e)
+        {
+            insert_empath_button_base_t::onButton(e);
+            if (outputWidget)
+            {
+                if (e.action == GLFW_RELEASE && e.button == GLFW_MOUSE_BUTTON_LEFT)
+                    outputWidget->insertAnotherEmpath();
+            }
+        }
+
         void EmpathWidget::addExpanderInsertButton(int paramId)
         {
             auto button = createParamCentered<InsertButton>(Vec{}, module, paramId);
             button->empathWidget = this;
             addSapphireParam(button, "insert_button");
         }
+
+        namespace OutputStage
+        {
+            void OutputWidget::addInsertAnotherEmpathButton()
+            {
+                auto button = createParamCentered<InsertAnotherEmpathButton>(Vec{}, module, INSERT_EMPATH_BUTTON);
+                button->outputWidget = this;
+                addSapphireParam(button, "insert_empath_button");
+            }
+        }
     }
 }
 
-Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::EInput::InputModule, Sapphire::Empath::EInput::InputWidget>(
+Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::InputStage::InputModule, Sapphire::Empath::InputStage::InputWidget>(
     "Empath",
     Sapphire::ExpanderRole::Empath
 );
 
-Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::Filter::FilterModule, Sapphire::Empath::Filter::FilterWidget>(
+Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::FilterStage::FilterModule, Sapphire::Empath::FilterStage::FilterWidget>(
     "EmpathFilter",
     Sapphire::ExpanderRole::Empath
 );
 
-Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::EOutput::OutputModule, Sapphire::Empath::EOutput::OutputWidget>(
+Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::OutputStage::OutputModule, Sapphire::Empath::OutputStage::OutputWidget>(
     "EmpathOutput",
     Sapphire::ExpanderRole::Empath
 );

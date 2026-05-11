@@ -1486,9 +1486,9 @@ namespace Sapphire
 
                 // Create the expander module.
                 bool clone = !IsShiftKeyPressed();
-                if (auto em = dynamic_cast<LoopModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                if (LoopModule* lmod = AddExpanderModule<LoopModule>(model, this, ExpanderDirection::Right, clone))
                     if (IsControlKeyPressed())
-                        em->silentLevelHook();
+                        lmod->silentLevelHook();
             }
 
             void removeExpander()
