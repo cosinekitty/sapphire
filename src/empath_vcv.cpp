@@ -803,7 +803,7 @@ namespace Sapphire
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
                 Smoother chaosAntiClickSmoother{0.025};
-                bool requestSeriesCables = false;
+                unsigned requestedCableCount = 0;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -858,9 +858,19 @@ namespace Sapphire
                         fountain.reset(seed);
                 }
 
-                bool polyphonicMode()
+                bool isPolyphonicMode()
                 {
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                }
+
+                void prepareAutoCableCreation(bool polyphonic)
+                {
+                    // This method is called to inform a new Empath input module that it is being created on behalf
+                    // of the existing Empath chain on the left, and to please connect cables in series.
+                    // If the existing Empath chain is in polyphonic mode, create a single cable and make sure
+                    // the new module is also in polyphonic mode. Otherwise, create a pair of stereo cables.
+                    params.at(OUTPUT_CHANNEL_MODE_BUTTON_PARAM).setValue(polyphonic ? 1 : 0);
+                    requestedCableCount = polyphonic ? 1 : 2;
                 }
 
                 SpectrumDisplayMode getSpectrumDisplayMode()
@@ -923,7 +933,7 @@ namespace Sapphire
                     ForwardMessage outMessage;
                     outMessage.chainIndex = 1;
                     outMessage.neonMode = neonMode;
-                    outMessage.polyphonic = polyphonicMode();
+                    outMessage.polyphonic = isPolyphonicMode();
                     outMessage.dryAudio = readFrame(AUDIO_LEFT_INPUT, AUDIO_RIGHT_INPUT, outMessage.polyphonic, inputLabels);
                     outMessage.wetAudio.nchannels = outMessage.dryAudio.nchannels;
                     outMessage.spectrumDisplayMode = getSpectrumDisplayMode();
@@ -1011,8 +1021,13 @@ namespace Sapphire
                         return;
 
                     // Create new cables.
-                    createCable(AUDIO_LEFT_INPUT,  leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
-                    createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+                    if (requestedCableCount >= 1)
+                        createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
+
+                    if (requestedCableCount >= 2)
+                        createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+
+                    requestedCableCount = 0;
                 }
 
                 void createCable(int inputId, Module* outputModule, int outputId)
@@ -1151,11 +1166,7 @@ namespace Sapphire
                             {
                                 AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false);
                                 AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
-                                if (inputModule->requestSeriesCables)
-                                {
-                                    inputModule->requestSeriesCables = false;
-                                    inputModule->createSeriesCables();
-                                }
+                                inputModule->createSeriesCables();
                             }
                         }
 
@@ -2231,6 +2242,7 @@ namespace Sapphire
             {
                 Crossfader firstSoloFader;      // crossfades the treansition between muting everyone else or not
                 fountain_t fountain{rack::random::u64()};
+                bool isPolyphonicPortMode{};
 
                 explicit OutputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -2291,6 +2303,7 @@ namespace Sapphire
                 {
                     BackwardMessage backMessage;
                     const ForwardMessage inMessage = receiveMessageOrDefault();
+                    isPolyphonicPortMode = inMessage.polyphonic;
                     chainIndex = inMessage.chainIndex;
                     backMessage.soloCount = inMessage.soloCount;
                     backMessage.spectrumPowerScale = spectrumPower();
@@ -2449,9 +2462,7 @@ namespace Sapphire
                         if (outputLeft.isConnected() || outputRight.isConnected())
                             return;
 
-                        // Inform the new Empath input module that it is being created on behalf
-                        // of the existing Empath chain on the left, and to please connect cables in series.
-                        newEmpathInputModule->requestSeriesCables = true;
+                        newEmpathInputModule->prepareAutoCableCreation(outputModule->isPolyphonicPortMode);
                     }
                 }
             };
