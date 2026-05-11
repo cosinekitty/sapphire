@@ -13,6 +13,16 @@ namespace Sapphire
 {
     namespace Empath
     {
+        namespace OutputStage
+        {
+            enum OutputId
+            {
+                AUDIO_LEFT_OUTPUT,
+                AUDIO_RIGHT_OUTPUT,
+                OUTPUTS_LEN
+            };
+        }
+
         constexpr float DefaultLimiterVoltage = 6;
 
         constexpr int MIN_FILTER_STAGES = 1;
@@ -790,6 +800,7 @@ namespace Sapphire
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
                 Smoother chaosAntiClickSmoother{0.025};
+                bool requestSeriesCables = false;
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -987,6 +998,38 @@ namespace Sapphire
                     }
                     InvokeAction(new RandomizeChaosAction(list));
                 }
+
+                void createSeriesCables()
+                {
+                    // Expect to find another Empath chain to the left.
+                    // The module to the immediate left should be an output module.
+                    // Bail out if not.
+                    if (!IsOutput(leftExpander.module))
+                        return;
+
+                    // Create new cables.
+                    createCable(AUDIO_LEFT_INPUT,  leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
+                    createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+                }
+
+                void createCable(int inputId, Module* outputModule, int outputId)
+                {
+                    auto cable = new Cable;
+                    cable->inputModule = this;
+                    cable->inputId = inputId;
+                    cable->outputModule = outputModule;
+                    cable->outputId = outputId;
+                    APP->engine->addCable(cable);
+
+                    auto cw = new CableWidget;
+                    cw->setCable(cable);
+                    cw->color = settings::cableColors.at(0);
+                    APP->scene->rack->addCable(cw);
+
+                    auto hist = new history::CableAdd;
+                    hist->setCable(cw);
+                    APP->history->push(hist);
+                }
             };
 
             struct InputWidget : EmpathWidget
@@ -1105,6 +1148,11 @@ namespace Sapphire
                             {
                                 AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false);
                                 AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
+                                if (inputModule->requestSeriesCables)
+                                {
+                                    inputModule->requestSeriesCables = false;
+                                    inputModule->createSeriesCables();
+                                }
                             }
                         }
 
@@ -2166,12 +2214,10 @@ namespace Sapphire
                 INPUTS_LEN
             };
 
-            enum OutputId
-            {
-                AUDIO_LEFT_OUTPUT,
-                AUDIO_RIGHT_OUTPUT,
-                OUTPUTS_LEN
-            };
+            // ****
+            // enum OutputId
+            // ... is toward top of file so it can be used to create cables from InputStage.
+            // ****
 
             enum LightId
             {
@@ -2391,8 +2437,19 @@ namespace Sapphire
                             return;
 
                     // Create an Empath filter module to the right.
-                    // FIXFIXFIX: create cables once the new Empath chain has settled down.
-                    AddExpander(modelSapphireEmpathInput, this, ExpanderDirection::Right, false);
+                    if (auto* newEmpathInputModule = AddExpanderModule<InputStage::InputModule>(modelSapphireEmpathInput, this, ExpanderDirection::Right, false))
+                    {
+                        // If this output module's output audio ports are already connected to cables,
+                        // do not automatically create more cables.
+                        Output& outputLeft  = outputModule->outputs.at(AUDIO_LEFT_OUTPUT);
+                        Output& outputRight = outputModule->outputs.at(AUDIO_RIGHT_OUTPUT);
+                        if (outputLeft.isConnected() || outputRight.isConnected())
+                            return;
+
+                        // Inform the new Empath input module that it is being created on behalf
+                        // of the existing Empath chain on the left, and to please connect cables in series.
+                        newEmpathInputModule->requestSeriesCables = true;
+                    }
                 }
             };
         }

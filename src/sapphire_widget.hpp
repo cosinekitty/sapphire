@@ -1233,6 +1233,13 @@ namespace Sapphire
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone);
+
+    template <typename module_t>
+    module_t* AddExpanderModule(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone)
+    {
+        return dynamic_cast<module_t*>(AddExpander(model, parentModWidget, dir, clone));
+    }
+
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
     void AppendFactoryPresets(ui::Menu *menu, WeakPtr<ModuleWidget> moduleWidget, std::string presetDir);
     const Model* PeekAdjacentModel(const ModuleWidget* origin, ExpanderDirection dir);
