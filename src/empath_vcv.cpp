@@ -2241,7 +2241,7 @@ namespace Sapphire
                     configControlGroup("Output level", GLOBAL_LEVEL_PARAM, GLOBAL_LEVEL_ATTEN, GLOBAL_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
                     addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
-                    configButton(INSERT_EMPATH_BUTTON);
+                    configButton(INSERT_EMPATH_BUTTON, "Add another Empath chain in series");
                 }
 
                 void OutputModule_initialize()
