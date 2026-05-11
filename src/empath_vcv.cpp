@@ -15,6 +15,9 @@ namespace Sapphire
     {
         namespace OutputStage
         {
+            // Usually we keep param/port enumerated types with each expander module.
+            // This was a special case because I need the InputStage to know output ports,
+            // in order to automatically create cables.
             enum OutputId
             {
                 AUDIO_LEFT_OUTPUT,
@@ -481,9 +484,9 @@ namespace Sapphire
 
                 // Create the expander module.
                 bool clone = IsFilter(module) && !IsShiftKeyPressed();
-                if (auto em = dynamic_cast<EmpathModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                if (auto emod = AddExpanderModule<EmpathModule>(model, this, ExpanderDirection::Right, clone))
                     if (IsControlKeyPressed())
-                        em->silentLevelHook();
+                        emod->silentLevelHook();
             }
 
             void removeExpander()
