@@ -822,6 +822,9 @@ namespace Sapphire
                     configButton(CHAOS_STEREO_BUTTON_PARAM);
                     configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                     configButton(CHAOS_FREEZE_BUTTON_PARAM);
+                    attenuverterChaosOptIn(CASCADE_ATTEN);
+                    attenuverterChaosOptIn(CHAOS_SPEED_ATTEN);
+                    attenuverterChaosOptIn(INPUT_GAIN_ATTEN);
                     InputModule_initialize();
                 }
 
@@ -1591,6 +1594,10 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     configButton(INIT_FILTER_BUTTON_PARAM, "Initialize this filter only");
                     addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
+                    attenuverterChaosOptIn(FREQ_ATTEN);
+                    attenuverterChaosOptIn(RES_ATTEN);
+                    attenuverterChaosOptIn(LEVEL_ATTEN);
+                    attenuverterChaosOptIn(PAN_ATTEN);
                     FilterModule_initialize();
                 }
 
@@ -2254,6 +2261,9 @@ namespace Sapphire
                     configParam(SPECTRUM_VERTICAL_SCALE_PARAM, -1, +1, 0, "Vertical scale");
                     addAgcLevelQuantity(AGC_PARAM, 1, DefaultLimiterVoltage);
                     configButton(INSERT_EMPATH_BUTTON, "Add another Empath chain in series");
+                    attenuverterChaosOptIn(GLOBAL_MIX_ATTEN);
+                    attenuverterChaosOptIn(GLOBAL_LEVEL_ATTEN);
+                    OutputModule_initialize();
                 }
 
                 void OutputModule_initialize()

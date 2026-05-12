@@ -12,6 +12,8 @@ namespace Sapphire
     struct SapphireModule;
     struct SapphireWidget;
 
+    NVGcolor VoltageColor(float voltage);
+
     inline void InvokeAction(history::Action* action)
     {
         if (action)
@@ -1161,11 +1163,19 @@ namespace Sapphire
             return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
-        void defineAttenuverterId(int attenId)
+        void defineAttenuverterId(int attenId, int cvInputId)
         {
             // We need to know which parameter IDs are actually for attenuverter knobs.
             // This is a hook for passing in that information.
-            paramInfo.at(attenId).isAttenuverter = true;
+            SapphireParamInfo& info = paramInfo.at(attenId);
+            info.isAttenuverter = true;
+            info.context.inputPortId = cvInputId;
+        }
+
+        void attenuverterChaosOptIn(int attenId)
+        {
+            SapphireParamInfo& info = paramInfo.at(attenId);
+            info.context.supportsChaos = true;
         }
 
         bool isAttenuverter(int paramId) const

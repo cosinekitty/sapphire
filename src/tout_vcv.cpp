@@ -131,7 +131,7 @@ namespace Sapphire
                 addSapphireOutput(POLY_OUTPUT, "p_output");
                 addSapphireOutput(CLEAR_TRIGGER_OUTPUT, "clear_trigger_output");
                 addKnob(LEVEL_PARAM, "level_knob");
-                addSapphireAttenuverter(LEVEL_ATTEN, "level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(LEVEL_ATTEN, LEVEL_INPUT, "level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
                 addSapphireInput(LEVEL_INPUT, "level_cv");
                 addInsertTricorderButtonLeft(TRICORDER_BUTTON_PARAM);
             }

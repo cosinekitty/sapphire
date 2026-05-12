@@ -966,6 +966,24 @@ namespace Sapphire
         }
     }
 
+    bool SapphireAttenuverterKnob::isChaosModulated()
+    {
+        if (module && context && context->supportsChaos && (context->inputPortId >= 0))
+        {
+            const unsigned nInputs = module->inputs.size();
+            const unsigned portId = static_cast<unsigned>(context->inputPortId);
+            if (portId < nInputs)
+            {
+                Input& input = module->inputs.at(portId);
+                if (!input.isConnected())
+                    if (ParamQuantity* qty = getParamQuantity())
+                        return qty->getValue() != 0;
+            }
+        }
+        return false;
+    }
+
+
     void SapphireAttenuverterKnob::drawLayer(const DrawArgs& args, int layer)
     {
         Trimpot::drawLayer(args, layer);
@@ -1000,6 +1018,16 @@ namespace Sapphire
                 nvgStrokeWidth(args.vg, 1.25);
                 nvgStrokeColor(args.vg, SCHEME_YELLOW);
                 nvgLineCap(args.vg, NVG_ROUND);
+                nvgStroke(args.vg);
+            }
+
+            if (isChaosModulated())
+            {
+                // Draw a luminous ring around the knob.
+                nvgBeginPath(args.vg);
+                nvgStrokeColor(args.vg, nvgRGBA(0xe5, 0x2b, 0xf0, 0xb8));
+                nvgStrokeWidth(args.vg, 1.5);
+                nvgCircle(args.vg, box.size.x/2, box.size.y/2, 10.0);
                 nvgStroke(args.vg);
             }
         }
@@ -1049,5 +1077,15 @@ namespace Sapphire
         for (const InitChainNode& node : list)
             if (Module* module = APP->engine->getModule(node.moduleId))
                 APP->engine->resetModule(module);
+    }
+
+    NVGcolor VoltageColor(float voltage)
+    {
+        if (!std::isfinite(voltage))
+            return SCHEME_PURPLE;
+
+        const float brightness = std::clamp<float>(std::abs(voltage)/10, 0, 1);
+        const NVGcolor extreme = (voltage >= 0) ? SCHEME_GREEN : SCHEME_RED;
+        return color::lerp(SCHEME_BLACK, extreme, brightness);
     }
 }

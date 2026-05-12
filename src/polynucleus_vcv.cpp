@@ -413,11 +413,11 @@ namespace Sapphire
                 addSapphireInput(IN_DRIVE_CV_INPUT, "in_drive_cv");
                 addSapphireInput(OUT_LEVEL_CV_INPUT, "out_level_cv");
 
-                addSapphireAttenuverter(SPEED_ATTEN_PARAM, "speed_atten", DX_SATELLITE_B, DY_SATELLITE_B);
-                addSapphireAttenuverter(DECAY_ATTEN_PARAM, "decay_atten", DX_SATELLITE_B, DY_SATELLITE_B);
-                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, "magnet_atten", DX_SATELLITE_B, DY_SATELLITE_B);
-                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, "in_drive_atten", DX_SATELLITE_B, DY_SATELLITE_B);
-                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, "out_level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(SPEED_ATTEN_PARAM, SPEED_CV_INPUT, "speed_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(DECAY_ATTEN_PARAM, DECAY_CV_INPUT, "decay_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(MAGNET_ATTEN_PARAM, MAGNET_CV_INPUT, "magnet_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(IN_DRIVE_ATTEN_PARAM, IN_DRIVE_CV_INPUT, "in_drive_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(OUT_LEVEL_ATTEN_PARAM, OUT_LEVEL_CV_INPUT, "out_level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
 
                 auto audioModeButton = createLightParamCentered<VCVLightBezelLatch<>>(Vec{}, module, AUDIO_MODE_BUTTON_PARAM, AUDIO_MODE_BUTTON_LIGHT);
                 addSapphireParam(audioModeButton, "audio_mode_button");

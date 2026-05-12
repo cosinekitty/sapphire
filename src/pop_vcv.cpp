@@ -358,11 +358,11 @@ namespace Sapphire
                 addSapphireOutput(PULSE_OUTPUT, "pulse_output");
 
                 addKnob(SPEED_PARAM, "speed_knob");
-                addSnapVoctAttenuverter(SPEED_ATTEN, "speed_atten", 1, +4.75, -3.0);
+                addSnapVoctAttenuverter(SPEED_ATTEN, SPEED_CV_INPUT, "speed_atten", 1, +4.75, -3.0);
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
 
                 addKnob(CHAOS_PARAM, "chaos_knob");
-                addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten", +4.75, -3.0);
+                addSapphireAttenuverter(CHAOS_ATTEN, CHAOS_CV_INPUT, "chaos_atten", +4.75, -3.0);
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
 
                 addSapphireInput(SYNC_TRIGGER_INPUT, "sync_input");

@@ -406,17 +406,17 @@ namespace Sapphire
                 // Slider attenuverters
                 constexpr float dxUnipolarSlider =  0.0;
                 constexpr float dyUnipolarSlider = +4.125;
-                addSapphireAttenuverter(FRICTION_ATTEN_PARAM, "fric_atten", dxUnipolarSlider, dyUnipolarSlider);
-                addSapphireAttenuverter(STIFFNESS_ATTEN_PARAM, "stif_atten", dxUnipolarSlider, dyUnipolarSlider);
-                addSapphireAttenuverter(SPAN_ATTEN_PARAM, "span_atten", dxUnipolarSlider, dyUnipolarSlider);
-                addSapphireAttenuverter(CURL_ATTEN_PARAM, "curl_atten", dxUnipolarSlider, dyUnipolarSlider);
-                addSapphireAttenuverter(MASS_ATTEN_PARAM, "mass_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(FRICTION_ATTEN_PARAM, FRICTION_CV_INPUT, "fric_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(STIFFNESS_ATTEN_PARAM, STIFFNESS_CV_INPUT, "stif_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(SPAN_ATTEN_PARAM, SPAN_CV_INPUT, "span_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(CURL_ATTEN_PARAM, CURL_CV_INPUT, "curl_atten", dxUnipolarSlider, dyUnipolarSlider);
+                addSapphireAttenuverter(MASS_ATTEN_PARAM, MASS_CV_INPUT, "mass_atten", dxUnipolarSlider, dyUnipolarSlider);
 
                 // Tilt attenuverters (mirror image arrangement)
                 constexpr float dxUnipolarTilt =  3.0;
                 constexpr float dyUnipolarTilt = +4.5;
-                addSapphireAttenuverter(INPUT_TILT_ATTEN_PARAM, "input_tilt_atten",   +dxUnipolarTilt, dyUnipolarTilt);
-                addSapphireAttenuverter(OUTPUT_TILT_ATTEN_PARAM, "output_tilt_atten", -dxUnipolarTilt, dyUnipolarTilt);
+                addSapphireAttenuverter(INPUT_TILT_ATTEN_PARAM, INPUT_TILT_CV_INPUT, "input_tilt_atten",   +dxUnipolarTilt, dyUnipolarTilt);
+                addSapphireAttenuverter(OUTPUT_TILT_ATTEN_PARAM, OUTPUT_TILT_CV_INPUT, "output_tilt_atten", -dxUnipolarTilt, dyUnipolarTilt);
 
                 // Drive and Level knobs
                 addKnob(DRIVE_KNOB_PARAM, "drive_knob");

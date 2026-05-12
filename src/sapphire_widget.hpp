@@ -170,9 +170,12 @@ namespace Sapphire
                 context->unipolar = unipolar;
         }
 
+        bool isChaosModulated();
+
         void drawLayer(const DrawArgs& args, int layer) override;
 
     protected:
+
         float xSatellite() const
         {
             return box.size.x/2 + satelliteDelta.x;
@@ -859,6 +862,7 @@ namespace Sapphire
         template <typename knob_t = SapphireAttenuverterKnob>
         knob_t *addSapphireAttenuverter(
             int attenId,
+            int cvInputId,
             const std::string& label,
             float dxSatellite = DX_SATELLITE_A,
             float dySatellite = DY_SATELLITE_A)
@@ -872,7 +876,7 @@ namespace Sapphire
                 knob->context = sapphireModule->getAttenuverterContext(attenId);
 
                 // Let the sensitivity toggler know this ID belongs to an attenuverter knob.
-                sapphireModule->defineAttenuverterId(attenId);
+                sapphireModule->defineAttenuverterId(attenId, cvInputId);
             }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
@@ -890,7 +894,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_B)
         {
             knob_t* knob = addKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
+            addSapphireAttenuverter(attenId, cvInputId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -905,7 +909,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
+            addSapphireAttenuverter(attenId, cvInputId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -920,7 +924,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSnapVoctAttenuverter(attenId, prefix + "_atten", 1, dxSatellite, dySatellite);
+            addSnapVoctAttenuverter(attenId, cvInputId, prefix + "_atten", 1, dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -1002,9 +1006,15 @@ namespace Sapphire
             return tg.port;
         }
 
-        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting, float dxSatellite, float dySatellite)
+        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(
+            int attenId,
+            int cvInputId,
+            const std::string& label,
+            float voctSetting,
+            float dxSatellite,
+            float dySatellite)
         {
-            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, label, dxSatellite, dySatellite);
+            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, cvInputId, label, dxSatellite, dySatellite);
             knob->atten = module ? &module->getParam(attenId) : nullptr;
             knob->voctSetting = voctSetting;
             return knob;
