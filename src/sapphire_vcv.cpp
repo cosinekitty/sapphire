@@ -1025,9 +1025,9 @@ namespace Sapphire
             {
                 // Draw a luminous ring around the knob.
                 nvgBeginPath(args.vg);
-                nvgStrokeColor(args.vg, nvgRGBA(0xe5, 0x2b, 0xf0, 0xb8));
+                nvgStrokeColor(args.vg, nvgRGBA(0xf0, 0x30, 0xff, 0xa0));
                 nvgStrokeWidth(args.vg, 1.5);
-                nvgCircle(args.vg, box.size.x/2, box.size.y/2, 10.0);
+                nvgCircle(args.vg, box.size.x/2, box.size.y/2, 9.5);
                 nvgStroke(args.vg);
             }
         }

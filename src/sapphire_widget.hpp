@@ -137,7 +137,7 @@ namespace Sapphire
     using OutputLimiterSmallKnob = OutputLimiterKnob<RoundSmallBlackKnob>;
 
     constexpr float DX_SATELLITE_A = -4.0;
-    constexpr float DY_SATELLITE_A = -2.0;
+    constexpr float DY_SATELLITE_A = -2.5;
     constexpr float DX_SATELLITE_B = +4.75;
     constexpr float DY_SATELLITE_B = -3.0;
 
