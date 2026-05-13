@@ -1134,6 +1134,19 @@ namespace Sapphire
             return cvGetControlValue(ids.paramId, ids.attenId, cv, minValue, maxValue);
         }
 
+        void reportChaosMono(int attenId, float chaos)
+        {
+            SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+            context.chaosVoltage[0] = context.chaosVoltage[1] = chaos;
+        }
+
+        void reportChaosStereo(int attenId, float stereoCrossfade, float chaosLeft, float chaosRight)
+        {
+            SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+            context.chaosVoltage[0] = chaosLeft;
+            context.chaosVoltage[1] = LinearMix(stereoCrossfade, chaosLeft, chaosRight);
+        }
+
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
             float cv = inputs.at(inputId).getVoltageSum();

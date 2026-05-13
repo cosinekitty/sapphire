@@ -141,6 +141,14 @@ namespace Sapphire
     constexpr float DX_SATELLITE_B = +4.75;
     constexpr float DY_SATELLITE_B = -3.0;
 
+
+    struct ChaosModulationInfo
+    {
+        bool isActive = false;
+        float voltage[2]{};
+    };
+
+
     struct SapphireAttenuverterKnob : Trimpot
     {
         Vec satelliteDelta{};
@@ -170,7 +178,7 @@ namespace Sapphire
                 context->unipolar = unipolar;
         }
 
-        bool isChaosModulated();
+        ChaosModulationInfo getChaosModulationInfo();
 
         void drawLayer(const DrawArgs& args, int layer) override;
 

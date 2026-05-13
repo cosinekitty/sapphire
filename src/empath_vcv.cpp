@@ -966,6 +966,10 @@ namespace Sapphire
                     const float inputGainChaosL = batch.signal.at(3);
                     const float inputGainChaosR = batch.signal.at(4);
 
+                    reportChaosStereo(CASCADE_ATTEN, outMessage.chaos.stereoCrossfade, cascadeChaosL, cascadeChaosR);
+                    reportChaosMono(CHAOS_SPEED_ATTEN, speedChaos);
+                    reportChaosStereo(INPUT_GAIN_ATTEN, outMessage.chaos.stereoCrossfade, inputGainChaosL, inputGainChaosR);
+
                     const float smoothChaosR = LinearMix(
                         outMessage.chaos.stereoCrossfade,
                         cascadeChaosL,
@@ -1787,6 +1791,12 @@ namespace Sapphire
                     const float levelChaosR = batch.signal.at(5);
                     const float panChaos    = batch.signal.at(6);
 
+                    // The "report" calls are for updating voltage colors around the attenuverter knobs.
+                    reportChaosStereo(FREQ_ATTEN,  inMessage.chaos.stereoCrossfade, freqChaosL,  freqChaosR);
+                    reportChaosStereo(RES_ATTEN,   inMessage.chaos.stereoCrossfade, resChaosL,   resChaosR);
+                    reportChaosStereo(LEVEL_ATTEN, inMessage.chaos.stereoCrossfade, levelChaosL, levelChaosR);
+                    reportChaosMono(PAN_ATTEN, panChaos);
+
                     Frame sendFrame;    // audio sent to the SEND ports
                     Frame returnFrame;  // audio received back from the RTRN ports or normalled from sendFrame
 
@@ -2367,6 +2377,9 @@ namespace Sapphire
                     const float mixChaosR   = chaosBatch.signal.at(1);
                     const float levelChaosL = chaosBatch.signal.at(2);
                     const float levelChaosR = chaosBatch.signal.at(3);
+
+                    reportChaosStereo(GLOBAL_MIX_ATTEN, chaosStereoCrossfade, mixChaosL, mixChaosR);
+                    reportChaosStereo(GLOBAL_LEVEL_ATTEN, chaosStereoCrossfade, levelChaosL, levelChaosR);
 
                     constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                     float cvMix = 0;

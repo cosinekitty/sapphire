@@ -11,14 +11,16 @@ namespace Sapphire
         bool lowSensitivityMode{};
         bool unipolar{};
         float adjust = UnipolarAdjustVoltsDefault;
-        int inputPortId = -1;    // If set to a non-negative value, indicates port to check for cables, for chaos display color
+        unsigned inputPortId = -1;    // port to check for cables, for chaos display color
         bool supportsChaos = false;
+        float chaosVoltage[2]{};     // The most recent chaotic voltage (or stereo pair) if choas is active, otherwise 0.
 
         void initialize()
         {
             lowSensitivityMode = false;
             unipolar = false;
             adjust = UnipolarAdjustVoltsDefault;
+            chaosVoltage[0] = chaosVoltage[1] = 0;
         }
 
         float adjustVoltage(float v) const
