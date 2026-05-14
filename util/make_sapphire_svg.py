@@ -2514,6 +2514,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     yChaosRandomizeButton = yChaosBoxTop + buttonInset
     xChaosFreezeButton = xChaosBoxRight - buttonInset
     yChaosFreezeButton = yChaosBoxBottom - buttonInset
+    xChaosDisplayButton = xChaosBoxLeft + buttonInset
+    yChaosDisplayButton = yChaosBoxBottom - buttonInset
     xSpectrumButton = xInsertButton
     ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
     xInputGainControl = panel.mmWidth - xInputPorts
@@ -2576,6 +2578,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
         controls.append(Component('chaos_random_button', xChaosRandomizeButton, yChaosRandomizeButton))
         controls.append(Component('chaos_freeze_button', xChaosFreezeButton, yChaosFreezeButton))
+        controls.append(Component('chaos_display_button', xChaosDisplayButton, yChaosDisplayButton))
     return Save(panel, svgFileName)
 
 

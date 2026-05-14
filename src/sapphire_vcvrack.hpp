@@ -1906,6 +1906,11 @@ namespace Sapphire
                 }
             }
         }
+
+        virtual bool shouldDisplayChaosVoltages()
+        {
+            return false;
+        }
     };
 
 

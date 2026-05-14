@@ -969,15 +969,18 @@ namespace Sapphire
     ChaosModulationInfo SapphireAttenuverterKnob::getChaosModulationInfo()
     {
         ChaosModulationInfo info;
-        if (module && context && context->supportsChaos)
+        if (SapphireModule* smod = dynamic_cast<SapphireModule*>(module))
         {
-            info.voltage[0] = context->chaosVoltage[0];
-            info.voltage[1] = context->chaosVoltage[1];
+            if (context && context->supportsChaos && smod->shouldDisplayChaosVoltages())
+            {
+                info.voltage[0] = context->chaosVoltage[0];
+                info.voltage[1] = context->chaosVoltage[1];
 
-            if (context->inputPortId < module->inputs.size())
-                if (!module->inputs.at(context->inputPortId).isConnected())     // chaos works only when the CV input port has no cables
-                    if (ParamQuantity* qty = getParamQuantity())
-                        info.isActive = (qty->getValue() != 0);
+                if (context->inputPortId < smod->inputs.size())
+                    if (!smod->inputs.at(context->inputPortId).isConnected())     // chaos works only when the CV input port has no cables
+                        if (ParamQuantity* qty = getParamQuantity())
+                            info.isActive = (qty->getValue() != 0);
+            }
         }
         return info;
     }

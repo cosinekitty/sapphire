@@ -25,9 +25,7 @@ namespace Sapphire
 
         float adjustVoltage(float v) const
         {
-            if (unipolar)
-                return std::max<float>(0, v+adjust);
-            return v;
+            return unipolar ? std::max<float>(0, v+adjust) : v;
         }
     };
 }

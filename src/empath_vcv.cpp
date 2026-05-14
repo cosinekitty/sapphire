@@ -72,6 +72,7 @@ namespace Sapphire
             float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
             bool  reset{};            // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
             bool  frozen{};           // when true, completely turns off all chaos fountains to reduce CPU usage
+            bool  shouldDisplayVoltages{};  // whether or not to show red/green arcs around chaos-influenced attenuverter knobs
         };
 
         struct ForwardMessage
@@ -185,6 +186,7 @@ namespace Sapphire
             uint64_t seedToRestore = 0;
             AutomaticGainLimiter agc;
             bool enableAgc{};
+            bool displayChaosVoltagesFlag{};
 
             explicit EmpathModule(std::size_t nParams, std::size_t nOutputPorts)
                 : SapphireModule(nParams, nOutputPorts)
@@ -211,6 +213,7 @@ namespace Sapphire
             {
                 agc.initialize();
                 enableAgc = true;
+                displayChaosVoltagesFlag = false;
             }
 
             double getAgcDistortion() override
@@ -708,6 +711,7 @@ namespace Sapphire
                 INPUT_GAIN_PARAM,
                 INPUT_GAIN_ATTEN,
                 CHAOS_FREEZE_BUTTON_PARAM,
+                CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
                 PARAMS_LEN
             };
 
@@ -772,6 +776,14 @@ namespace Sapphire
                 }
             };
 
+            struct ChaosDisplayVoltagesButton : SapphireTinyToggleButton
+            {
+                explicit ChaosDisplayVoltagesButton()
+                {
+                    addTinyButtonFrames(this, "red");
+                }
+            };
+
             struct ChaosRandomButton : SapphireTinyActionButton
             {
                 InputWidget* inputWidget{};
@@ -822,6 +834,7 @@ namespace Sapphire
                     configButton(CHAOS_STEREO_BUTTON_PARAM);
                     configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                     configButton(CHAOS_FREEZE_BUTTON_PARAM);
+                    configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
                     attenuverterChaosOptIn(CASCADE_ATTEN);
                     attenuverterChaosOptIn(CHAOS_SPEED_ATTEN);
                     attenuverterChaosOptIn(INPUT_GAIN_ATTEN);
@@ -915,6 +928,11 @@ namespace Sapphire
                     }
                 }
 
+                bool shouldDisplayChaosVoltages() override
+                {
+                    return params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
                 void process(const ProcessArgs& args) override
                 {
                     const double speedKnob = getControlValueChaos(
@@ -944,9 +962,12 @@ namespace Sapphire
                     outMessage.chaos.dt = SimulationTimeIncrement(args.sampleRate, speedKnob);
                     outMessage.chaos.levelKnob = Cube(getControlValueVoltPerOctave(CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2));
                     outMessage.chaos.stereoCrossfade = updateStereoCrossfade(args.sampleRate);
+                    outMessage.chaos.shouldDisplayVoltages = shouldDisplayChaosVoltages();
                     outMessage.chaos.frozen = isChaosLevelZero || isChaosFreezeButtonPressed;
                     outMessage.chaos.antiClick = chaosAntiClickSmoother.process(args.sampleRate);
                     outMessage.dryAudio.multiply(outMessage.chaos.antiClick);
+
+                    displayChaosVoltagesFlag = outMessage.chaos.shouldDisplayVoltages;
 
                     outMessage.chaos.reset = chaosAntiClickSmoother.isDelayedActionReady();
                     if (outMessage.chaos.reset && seedToRestore)
@@ -1078,6 +1099,7 @@ namespace Sapphire
                     addChaosStereoButton();
                     addChaosRandomButton();
                     addChaosFreezeButton();
+                    addChaosDisplayVoltagesButton();
                     addSapphireFlatControlGroup("input_gain", INPUT_GAIN_PARAM, INPUT_GAIN_ATTEN, INPUT_GAIN_CV_INPUT, 3.0, 3.5);
                 }
 
@@ -1128,6 +1150,12 @@ namespace Sapphire
                 {
                     auto button = createParamCentered<ChaosFreezeButton>(Vec{}, inputModule, CHAOS_FREEZE_BUTTON_PARAM);
                     addSapphireParam(button, "chaos_freeze_button");
+                }
+
+                void addChaosDisplayVoltagesButton()
+                {
+                    auto button = createParamCentered<ChaosDisplayVoltagesButton>(Vec{}, inputModule, CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
+                    addSapphireParam(button, "chaos_display_button");
                 }
 
                 void drawSpectrumConnectorLine(NVGcontext* vg)
@@ -1182,6 +1210,7 @@ namespace Sapphire
                         inputModule->updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
                         inputModule->updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                         inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
+                        inputModule->updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
                         inputModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
                     }
                 }
@@ -1763,6 +1792,7 @@ namespace Sapphire
                     totalSoloCount = inBackMessage.soloCount;
 
                     chainIndex = inMessage.chainIndex;
+                    displayChaosVoltagesFlag = inMessage.chaos.shouldDisplayVoltages;
 
                     if (inMessage.chainIndex > 0)
                         outMessage.chainIndex = 1 + inMessage.chainIndex;
@@ -1941,6 +1971,11 @@ namespace Sapphire
                     unsigned index = std::floor(cascade);
                     float frac = cascade - index;
                     return (1-frac)*stageSample[index] + frac*stageSample[index+1];
+                }
+
+                bool shouldDisplayChaosVoltages() override
+                {
+                    return displayChaosVoltagesFlag;
                 }
             };
 
@@ -2325,6 +2360,7 @@ namespace Sapphire
                     const ForwardMessage inMessage = receiveMessageOrDefault();
                     isPolyphonicPortMode = inMessage.polyphonic;
                     chainIndex = inMessage.chainIndex;
+                    displayChaosVoltagesFlag = inMessage.chaos.shouldDisplayVoltages;
                     backMessage.soloCount = inMessage.soloCount;
                     backMessage.spectrumPowerScale = spectrumPower();
 
@@ -2399,6 +2435,11 @@ namespace Sapphire
                         result.sample[c] = chaosAntiClick * level * LinearMix(mix, dryAudio.sample[c], wet);
                     }
                     return result;
+                }
+
+                bool shouldDisplayChaosVoltages() override
+                {
+                    return displayChaosVoltagesFlag;
                 }
             };
 
