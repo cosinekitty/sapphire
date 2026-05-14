@@ -7,7 +7,7 @@ When you first add the Empath module from the module browser, a filter and outpu
 
 ---
 
-## Empath (Input Module)
+## Empath Input module
 
 The input module is on the left side of the Empath expander chain. It contains stereo input ports, an input GAIN control, a CASCADE control, and a group of CHAOS controls.
 
@@ -41,6 +41,8 @@ Three corners in the CHAOS box have buttons:
 ---
 
 ## Empath Filter (expander module)
+
+![Empath Filter module](images/empath_filter.png)
 
 Empath Filter is where you add and control individual filter. Each filter is identical in terms of features, and you can add as many as you want by clicking the small arrow in the upper right corner of the module.
 
@@ -98,6 +100,9 @@ In the lower-left corner of each filter is a button with a red <code>&lt;</code>
 ---
 
 ## Empath Out (Expander Module)
+
+![Empath Output](images/empath_output.png)
+
 Empath Out is always added automatically when you place the Empath module in your patch. Just make sure it stays to the right of the last Empath Filter module. If you add or remove filters, Empath Out will automatically shift to the correct position.
 
 **MIX**:
