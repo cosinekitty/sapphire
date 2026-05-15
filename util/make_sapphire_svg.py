@@ -1015,7 +1015,7 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
     xmid = panel.mmWidth / 2
 
     yRow = FencePost(22.0, 114.0, 7)
-    yInPort  = yRow.value(0)
+    yInputPort = yRow.value(0)
     dyOutPort = 14.0
     dxOutPort = 6.0
 
@@ -1024,10 +1024,16 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
     yOutHighPort  = yOutLowPort + dyOutPort
     yOutNotchPort = yOutLowPort + dyOutPort
 
-    xOutLowPort   = xmid - dxOutPort
-    xOutBandPort  = xmid + dxOutPort
-    xOutHighPort  = xmid - dxOutPort
-    xOutNotchPort = xmid + dxOutPort
+    x1 = xmid - dxOutPort
+    x2 = xmid + dxOutPort
+    xOutLowPort   = x1
+    xOutBandPort  = x2
+    xOutHighPort  = x1
+    xOutNotchPort = x2
+
+    xInputPort = x1
+    xCascadeKnob = x2
+    yCascadeKnob = yInputPort
 
     dyGrad = 6.0
     dyText = 6.5
@@ -1037,8 +1043,8 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        y1 = yInPort - 9.5
-        y2 = yInPort + dyGrad
+        y1 = yInputPort - 9.5
+        y2 = yInputPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
@@ -1052,9 +1058,12 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
+        pl.append(CenteredControlTextPath(font, 'IN', xInputPort, yInputPort-dyText))
+        controls.append(Component('audio_input', xInputPort, yInputPort ))
 
-        controls.append(Component('audio_input', xmid, yInPort ))
+        pl.append(CenteredControlTextPath(font, 'CASC', xCascadeKnob, yCascadeKnob-dyText))
+        controls.append(Component('cascade_knob', xCascadeKnob, yCascadeKnob))
+
         controls.append(Component('audio_lp_output',    xOutLowPort,  yOutLowPort))
         controls.append(Component('audio_bp_output',    xOutBandPort, yOutBandPort))
         controls.append(Component('audio_hp_output',    xOutHighPort, yOutHighPort))

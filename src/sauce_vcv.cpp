@@ -21,6 +21,7 @@ namespace Sapphire
             GAIN_PARAM,
             GAIN_ATTEN,
             AGC_LEVEL_PARAM,
+            CASCADE_KNOB_PARAM,
             PARAMS_LEN
         };
 
@@ -85,6 +86,8 @@ namespace Sapphire
                 configBypass(AUDIO_INPUT, AUDIO_BANDPASS_OUTPUT);
                 configBypass(AUDIO_INPUT, AUDIO_HIGHPASS_OUTPUT);
                 configBypass(AUDIO_INPUT, AUDIO_NOTCH_OUTPUT);
+
+                configParam(CASCADE_KNOB_PARAM, 1, 3, 1, "Cascade");
 
                 initialize();
             }
@@ -179,12 +182,7 @@ namespace Sapphire
                     --limiterRecoveryCountdown;
 
                     for (int c = 0; c < nc; ++c)
-                    {
-                        lpOutput[c] = 0;
-                        bpOutput[c] = 0;
-                        hpOutput[c] = 0;
-                        notchOutput[c] = 0;
-                    }
+                        lpOutput[c] = bpOutput[c] = hpOutput[c] = notchOutput[c] = 0;
                 }
                 else
                 {
@@ -275,12 +273,12 @@ namespace Sapphire
             {
                 setModule(module);
 
-                addSapphireInput(AUDIO_INPUT,  "audio_input");
+                addSapphireInput(AUDIO_INPUT, "audio_input");
                 addSapphireOutput(AUDIO_LOWPASS_OUTPUT,  "audio_lp_output");
                 addSapphireOutput(AUDIO_BANDPASS_OUTPUT, "audio_bp_output");
                 addSapphireOutput(AUDIO_HIGHPASS_OUTPUT, "audio_hp_output");
                 addSapphireOutput(AUDIO_NOTCH_OUTPUT,    "audio_notch_output");
-
+                addCascadeKnob();
                 addSnapVoctFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );
                 addSapphireFlatControlGroup("mix",       MIX_PARAM,   MIX_ATTEN,   MIX_CV_INPUT  );
@@ -294,6 +292,11 @@ namespace Sapphire
                 {
                     menu->addChild(sauceModule->createToggleAllSensitivityMenuItem());
                 }
+            }
+
+            void addCascadeKnob()
+            {
+                addSmallKnob<Trimpot>(CASCADE_KNOB_PARAM, "cascade_knob");
             }
         };
     }
