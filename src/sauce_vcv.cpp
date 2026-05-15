@@ -2,8 +2,7 @@
 #include "sapphire_widget.hpp"
 #include "sauce_engine.hpp"
 
-// Sapphire Gravy for VCV Rack by Don Cross <cosinekitty@gmail.com>.
-// A biquad filter implementation that supports tunable frequency and resonance.
+// Sapphire Sauce for VCV Rack by Don Cross <cosinekitty@gmail.com>.
 // Part of the Sapphire project at:
 // https://github.com/cosinekitty/sapphire
 
@@ -40,6 +39,7 @@ namespace Sapphire
             AUDIO_LOWPASS_OUTPUT,
             AUDIO_BANDPASS_OUTPUT,
             AUDIO_HIGHPASS_OUTPUT,
+            AUDIO_NOTCH_OUTPUT,
             OUTPUTS_LEN
         };
 
@@ -54,6 +54,7 @@ namespace Sapphire
             AutomaticGainLimiter agcLow;
             AutomaticGainLimiter agcBand;
             AutomaticGainLimiter agcHigh;
+            AutomaticGainLimiter agcNotch;
             bool enableAgc = false;
 
             SauceModule()
@@ -73,6 +74,7 @@ namespace Sapphire
                 configOutput(AUDIO_LOWPASS_OUTPUT,  "Lowpass");
                 configOutput(AUDIO_BANDPASS_OUTPUT, "Bandpass");
                 configOutput(AUDIO_HIGHPASS_OUTPUT, "Highpass");
+                configOutput(AUDIO_NOTCH_OUTPUT,    "Notch");
 
                 configControlGroup("Frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT,  -OctaveRange, +OctaveRange, DefaultFrequencyKnob);
                 configControlGroup("Resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT,   0, 1, DefaultResonanceKnob);
@@ -82,6 +84,7 @@ namespace Sapphire
                 configBypass(AUDIO_INPUT, AUDIO_LOWPASS_OUTPUT);
                 configBypass(AUDIO_INPUT, AUDIO_BANDPASS_OUTPUT);
                 configBypass(AUDIO_INPUT, AUDIO_HIGHPASS_OUTPUT);
+                configBypass(AUDIO_INPUT, AUDIO_NOTCH_OUTPUT);
 
                 initialize();
             }
@@ -110,6 +113,7 @@ namespace Sapphire
                     agcLow.initialize();
                     agcBand.initialize();
                     agcHigh.initialize();
+                    agcNotch.initialize();
                 }
                 enableAgc = enable;
             }
@@ -133,6 +137,9 @@ namespace Sapphire
                 if (outputs.at(AUDIO_HIGHPASS_OUTPUT).isConnected())
                     follower = std::max(follower, agcHigh.getFollower());
 
+                if (outputs.at(AUDIO_NOTCH_OUTPUT).isConnected())
+                    follower = std::max(follower, agcNotch.getFollower());
+
                 return follower - 1.0;
             }
 
@@ -148,6 +155,7 @@ namespace Sapphire
                         agcLow.setCeiling(ceiling);
                         agcBand.setCeiling(ceiling);
                         agcHigh.setCeiling(ceiling);
+                        agcNotch.setCeiling(ceiling);
                     }
                     setAgcEnabled(enabled);
                     agcLevelQuantity->changed = false;
@@ -161,6 +169,7 @@ namespace Sapphire
                 float lpOutput[PORT_MAX_CHANNELS];
                 float bpOutput[PORT_MAX_CHANNELS];
                 float hpOutput[PORT_MAX_CHANNELS];
+                float notchOutput[PORT_MAX_CHANNELS];
 
                 const int nc = numOutputChannels(INPUTS_LEN, 0);
 
@@ -174,6 +183,7 @@ namespace Sapphire
                         lpOutput[c] = 0;
                         bpOutput[c] = 0;
                         hpOutput[c] = 0;
+                        notchOutput[c] = 0;
                     }
                 }
                 else
@@ -208,26 +218,29 @@ namespace Sapphire
                         lpOutput[c] = result.lowpass;
                         bpOutput[c] = result.bandpass;
                         hpOutput[c] = result.highpass;
+                        notchOutput[c] = result.notch;
                     }
 
                     if (isFireDrillOneShot())
                     {
                         for (int k = 0; k < nc; ++k)
-                            lpOutput[k] = bpOutput[k] = hpOutput[k] = NAN;
+                            lpOutput[k] = bpOutput[k] = hpOutput[k] = notchOutput[k] = NAN;
                     }
 
                     if (enableAgc)
                     {
-                        agcLow .process(args.sampleRate, nc, lpOutput);
-                        agcBand.process(args.sampleRate, nc, bpOutput);
-                        agcHigh.process(args.sampleRate, nc, hpOutput);
+                        agcLow .process(args.sampleRate,  nc, lpOutput);
+                        agcBand.process(args.sampleRate,  nc, bpOutput);
+                        agcHigh.process(args.sampleRate,  nc, hpOutput);
+                        agcNotch.process(args.sampleRate, nc, notchOutput);
                     }
 
                     if (isBadOutput(lpOutput, nc) || isBadOutput(bpOutput, nc) || isBadOutput(hpOutput, nc))
                     {
-                        clearOutput(lpOutput, PORT_MAX_CHANNELS);
-                        clearOutput(bpOutput, PORT_MAX_CHANNELS);
-                        clearOutput(hpOutput, PORT_MAX_CHANNELS);
+                        clearOutput(lpOutput,    PORT_MAX_CHANNELS);
+                        clearOutput(bpOutput,    PORT_MAX_CHANNELS);
+                        clearOutput(hpOutput,    PORT_MAX_CHANNELS);
+                        clearOutput(notchOutput, PORT_MAX_CHANNELS);
 
                         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                             engine[c].initialize();
@@ -239,11 +252,14 @@ namespace Sapphire
                 outputs.at(AUDIO_LOWPASS_OUTPUT ).setChannels(nc);
                 outputs.at(AUDIO_BANDPASS_OUTPUT).setChannels(nc);
                 outputs.at(AUDIO_HIGHPASS_OUTPUT).setChannels(nc);
+                outputs.at(AUDIO_NOTCH_OUTPUT   ).setChannels(nc);
+
                 for (int c = 0; c < nc; ++c)
                 {
                     outputs.at(AUDIO_LOWPASS_OUTPUT ).setVoltage(lpOutput[c], c);
                     outputs.at(AUDIO_BANDPASS_OUTPUT).setVoltage(bpOutput[c], c);
                     outputs.at(AUDIO_HIGHPASS_OUTPUT).setVoltage(hpOutput[c], c);
+                    outputs.at(AUDIO_NOTCH_OUTPUT   ).setVoltage(notchOutput[c], c);
                 }
             }
         };
@@ -263,6 +279,7 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_LOWPASS_OUTPUT,  "audio_lp_output");
                 addSapphireOutput(AUDIO_BANDPASS_OUTPUT, "audio_bp_output");
                 addSapphireOutput(AUDIO_HIGHPASS_OUTPUT, "audio_hp_output");
+                addSapphireOutput(AUDIO_NOTCH_OUTPUT,    "audio_notch_output");
 
                 addSnapVoctFlatControlGroup("frequency", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT );
                 addSapphireFlatControlGroup("resonance", RES_PARAM,   RES_ATTEN,   RES_CV_INPUT  );

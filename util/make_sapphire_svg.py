@@ -1016,13 +1016,21 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
 
     yRow = FencePost(22.0, 114.0, 7)
     yInPort  = yRow.value(0)
-    dyOutPort = 10.0
-    yOutLowPort  = yRow.value(5) - 3.0
-    yOutBandPort = yOutLowPort + 1*dyOutPort
-    yOutHighPort = yOutLowPort + 2*dyOutPort
+    dyOutPort = 14.0
+    dxOutPort = 6.0
+
+    yOutLowPort   = yRow.value(5)
+    yOutBandPort  = yOutLowPort
+    yOutHighPort  = yOutLowPort + dyOutPort
+    yOutNotchPort = yOutLowPort + dyOutPort
+
+    xOutLowPort   = xmid - dxOutPort
+    xOutBandPort  = xmid + dxOutPort
+    xOutHighPort  = xmid - dxOutPort
+    xOutNotchPort = xmid + dxOutPort
+
     dyGrad = 6.0
     dyText = 6.5
-    dxOutPortText = 7.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
@@ -1039,21 +1047,23 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutLowPort - 6.0
-        y2 = yOutLowPort + dyGrad
+        y1 = yOutLowPort - 10.0
+        y2 = yOutHighPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
 
-        controls.append(Component('audio_input',  xmid, yInPort ))
-        controls.append(Component('audio_lp_output', xmid, yOutLowPort))
-        controls.append(Component('audio_bp_output', xmid, yOutBandPort))
-        controls.append(Component('audio_hp_output', xmid, yOutHighPort))
+        controls.append(Component('audio_input', xmid, yInPort ))
+        controls.append(Component('audio_lp_output',    xOutLowPort,  yOutLowPort))
+        controls.append(Component('audio_bp_output',    xOutBandPort, yOutBandPort))
+        controls.append(Component('audio_hp_output',    xOutHighPort, yOutHighPort))
+        controls.append(Component('audio_notch_output', xOutNotchPort, yOutNotchPort))
 
-        pl.append(CenteredControlTextPath(font, 'LP', xmid - dxOutPortText, yOutLowPort))
-        pl.append(CenteredControlTextPath(font, 'BP', xmid - dxOutPortText, yOutBandPort))
-        pl.append(CenteredControlTextPath(font, 'HP', xmid - dxOutPortText, yOutHighPort))
+        pl.append(CenteredControlTextPath(font, 'LP', xOutLowPort  , yOutLowPort  - dyText))
+        pl.append(CenteredControlTextPath(font, 'BP', xOutBandPort , yOutBandPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'HP', xOutHighPort , yOutHighPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'N',  xOutNotchPort, yOutHighPort - dyText))
 
         row = 1
         for (symbol, label) in table:
