@@ -838,17 +838,17 @@ namespace Sapphire
         std::array<filter_t, REMAINING_STAGES> lpStage;
         std::array<filter_t, REMAINING_STAGES> bpStage;
         std::array<filter_t, REMAINING_STAGES> hpStage;
-        std::array<filter_t, REMAINING_STAGES> notchStage;
+        std::array<filter_t, REMAINING_STAGES> nxStage;
 
     public:
         void initialize()
         {
             cascade = 1;
             firstStage.initialize();
-            for (filter_t& f : lpStage)     f.initialize();
-            for (filter_t& f : bpStage)     f.initialize();
-            for (filter_t& f : hpStage)     f.initialize();
-            for (filter_t& f : notchStage)  f.initialize();
+            for (filter_t& f : lpStage)  f.initialize();
+            for (filter_t& f : bpStage)  f.initialize();
+            for (filter_t& f : hpStage)  f.initialize();
+            for (filter_t& f : nxStage)  f.initialize();
         }
 
         void setCascade(const value_t& newCascade)
@@ -881,6 +881,8 @@ namespace Sapphire
             // to get (lowpass, bandpass, highpass, notch) all in parallel.
 
             iter[1] = firstStage.process(sampleRateHz, cornerFreqHz, resonance, input);
+            if (cascade == 1)
+                return iter[1];     // optimization to avoid needless calculation for classic-style Sauce behavior.
 
             // When cascade is above 1, we need extra filter calls, 4 per stage,
             // because we bandpass(bandpass(bandpass(...))),
@@ -890,6 +892,8 @@ namespace Sapphire
             unsigned s = 2;
             for (filter_t& f : lpStage)
             {
+                if (s > k+1)
+                    break;  // iter[k+1] is the highest filter index we need calculated
                 iter.at(s).lowpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).lowpass).lowpass;
                 ++s;
             }
@@ -897,6 +901,8 @@ namespace Sapphire
             s = 2;
             for (filter_t& f : bpStage)
             {
+                if (s > k+1)
+                    break;  // iter[k+1] is the highest filter index we need calculated
                 iter.at(s).bandpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).bandpass).bandpass;
                 ++s;
             }
@@ -904,13 +910,17 @@ namespace Sapphire
             s = 2;
             for (filter_t& f : hpStage)
             {
+                if (s > k+1)
+                    break;  // iter[k+1] is the highest filter index we need calculated
                 iter.at(s).highpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).highpass).highpass;
                 ++s;
             }
 
             s = 2;
-            for (filter_t& f : notchStage)
+            for (filter_t& f : nxStage)
             {
+                if (s > k+1)
+                    break;  // iter[k+1] is the highest filter index we need calculated
                 iter.at(s).notch = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).notch).notch;
                 ++s;
             }
