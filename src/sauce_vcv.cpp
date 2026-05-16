@@ -21,7 +21,7 @@ namespace Sapphire
             GAIN_PARAM,
             GAIN_ATTEN,
             AGC_LEVEL_PARAM,
-            CASCADE_KNOB_PARAM,
+            CASCADE_PARAM,
             PARAMS_LEN
         };
 
@@ -49,9 +49,15 @@ namespace Sapphire
             LIGHTS_LEN
         };
 
+        constexpr unsigned SauceFilterStages = 3;
+        using sauce_engine_t = Gravy::SingleChannelGravyEngine<
+            float,
+            CascadeStateVariableFilter<float, SauceFilterStages>
+        >;
+
         struct SauceModule : SapphireModule
         {
-            Gravy::SingleChannelGravyEngine<float> engine[PORT_MAX_CHANNELS];
+            sauce_engine_t engine[PORT_MAX_CHANNELS];
             AutomaticGainLimiter agcLow;
             AutomaticGainLimiter agcBand;
             AutomaticGainLimiter agcHigh;
@@ -87,7 +93,7 @@ namespace Sapphire
                 configBypass(AUDIO_INPUT, AUDIO_HIGHPASS_OUTPUT);
                 configBypass(AUDIO_INPUT, AUDIO_NOTCH_OUTPUT);
 
-                configParam(CASCADE_KNOB_PARAM, 1, 3, 1, "Cascade");
+                configParam(CASCADE_PARAM, 1, 3, 1, "Cascade");
 
                 initialize();
             }
@@ -194,8 +200,13 @@ namespace Sapphire
                     float cvMix = 0;
                     float cvGain = 0;
 
+                    // CASCADE is a manual knob only, not a control group. There is no CV input.
+                    const float cascade = params.at(CASCADE_PARAM).getValue();
+
                     for (int c = 0; c < nc; ++c)
                     {
+                        engine[c].filter.setCascade(cascade);
+
                         nextChannelInputVoltage(input,  AUDIO_INPUT,   c);
                         nextChannelInputVoltage(cvFreq, FREQ_CV_INPUT, c);
                         nextChannelInputVoltage(cvRes,  RES_CV_INPUT,  c);
@@ -296,7 +307,7 @@ namespace Sapphire
 
             void addCascadeKnob()
             {
-                addSmallKnob<Trimpot>(CASCADE_KNOB_PARAM, "cascade_knob");
+                addSmallKnob<Trimpot>(CASCADE_PARAM, "cascade_knob");
             }
         };
     }

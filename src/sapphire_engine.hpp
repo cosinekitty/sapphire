@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cassert>
@@ -61,13 +62,15 @@ namespace Sapphire
         return std::exp(static_cast<value_t>(L*x));
     }
 
-    constexpr float CubicMix(float mix, float dry, float wet)
+    template <typename value_t>
+    constexpr value_t CubicMix(value_t mix, value_t dry, value_t wet)
     {
-        const float k = Cube(1-mix);
+        const value_t k = Cube<value_t>(1-mix);
         return k*dry + (1-k)*wet;
     }
 
-    constexpr float LinearMix(float mix, float dry, float wet)
+    template <typename value_t>
+    constexpr value_t LinearMix(value_t mix, value_t dry, value_t wet)
     {
         return (1-mix)*dry + mix*wet;
     }
@@ -749,6 +752,18 @@ namespace Sapphire
             default:                    return 0;
             }
         }
+
+        static FilterResult<value_t> Interpolate(
+            value_t fraction,
+            const FilterResult<value_t>& a,
+            const FilterResult<value_t>& b)
+        {
+            return FilterResult<value_t>(
+                LinearMix<value_t>(fraction, a.lowpass,  b.lowpass),
+                LinearMix<value_t>(fraction, a.bandpass, b.bandpass),
+                LinearMix<value_t>(fraction, a.highpass, b.highpass)
+            );
+        }
     };
 
 
@@ -804,6 +819,103 @@ namespace Sapphire
             c2 = 2*lowpass - c2;
 
             return FilterResult<value_t>(lowpass, bandpass, input - k*bandpass - lowpass);
+        }
+    };
+
+    //-----------------------------------------------------------------------------------------
+
+    template <typename value_t, unsigned MAX_FILTER_STAGES>
+    class CascadeStateVariableFilter
+    {
+        static_assert(MAX_FILTER_STAGES >= 2);
+        static constexpr unsigned REMAINING_STAGES     = MAX_FILTER_STAGES - 1;
+        static constexpr unsigned STAGES_INCLUDING_DRY = MAX_FILTER_STAGES + 1;
+        using filter_t = StateVariableFilter<value_t>;
+
+    private:
+        value_t cascade = 1;
+        filter_t firstStage;
+        std::array<filter_t, REMAINING_STAGES> lpStage;
+        std::array<filter_t, REMAINING_STAGES> bpStage;
+        std::array<filter_t, REMAINING_STAGES> hpStage;
+        std::array<filter_t, REMAINING_STAGES> notchStage;
+
+    public:
+        void initialize()
+        {
+            cascade = 1;
+            firstStage.initialize();
+            for (filter_t& f : lpStage)     f.initialize();
+            for (filter_t& f : bpStage)     f.initialize();
+            for (filter_t& f : hpStage)     f.initialize();
+            for (filter_t& f : notchStage)  f.initialize();
+        }
+
+        void setCascade(const value_t& newCascade)
+        {
+            cascade = std::clamp<value_t>(newCascade, 1, MAX_FILTER_STAGES);
+        }
+
+        using result_t = FilterResult<value_t>;
+
+        result_t process(
+            float sampleRateHz,
+            value_t cornerFreqHz,
+            value_t resonance,
+            const value_t& input)
+        {
+            unsigned k = static_cast<unsigned>(std::floor(cascade));
+            float fraction = cascade - k;
+            if (k >= MAX_FILTER_STAGES)
+            {
+                assert(k == MAX_FILTER_STAGES);
+                k = MAX_FILTER_STAGES - 1;
+                fraction = 1;
+            }
+
+            std::array<result_t, STAGES_INCLUDING_DRY> iter;
+
+            iter[0] = result_t(input);      // start with dry input as "0 iterations" for LP, BP, HP, N.
+
+            // The first filter stage can be handled with a single call
+            // to get (lowpass, bandpass, highpass, notch) all in parallel.
+
+            iter[1] = firstStage.process(sampleRateHz, cornerFreqHz, resonance, input);
+
+            // When cascade is above 1, we need extra filter calls, 4 per stage,
+            // because we bandpass(bandpass(bandpass(...))),
+            // notch(notch(notch(...))),
+            // and so on.
+
+            unsigned s = 2;
+            for (filter_t& f : lpStage)
+            {
+                iter.at(s).lowpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).lowpass).lowpass;
+                ++s;
+            }
+
+            s = 2;
+            for (filter_t& f : bpStage)
+            {
+                iter.at(s).bandpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).bandpass).bandpass;
+                ++s;
+            }
+
+            s = 2;
+            for (filter_t& f : hpStage)
+            {
+                iter.at(s).highpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).highpass).highpass;
+                ++s;
+            }
+
+            s = 2;
+            for (filter_t& f : notchStage)
+            {
+                iter.at(s).notch = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).notch).notch;
+                ++s;
+            }
+
+            return result_t::Interpolate(fraction, iter.at(k), iter.at(k+1));
         }
     };
 
