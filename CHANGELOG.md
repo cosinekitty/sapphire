@@ -9,12 +9,14 @@
 </tr>
 
 <tr valign="top">
-    <td align="center">11 May 2026</td>
+    <td align="center">16 May 2026</td>
     <td align="center">2.6.005</td>
     <td align="left">
         <ul>
             <li>Added a fader button to <a href="doc/Echo.md">Echo</a> to reduce the pitch-shifting distortion after a clear or reset occurs.</li>
             <li><a href="doc/Empath.md">Empath</a> now includes a button to create another Empath filter chain in series with the current chain.</li>
+            <li><a href="doc/Sauce.md">Sauce</a> now has a notch filter output, along with the existing lowpass, bandpass, and highpass filters.</li>
+            <li>Sauce has another new feature: a CASCADE control that allows you to chain 1..3 filters in series.</li>
         </ul>
     </td>
 </tr>
