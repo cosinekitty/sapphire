@@ -198,11 +198,22 @@ namespace Sapphire
                     float cvMix = 0;
                     float cvGain = 0;
 
+                    // Reduce calculations for output ports that are not connected.
+                    unsigned mask = 0;
+                    if (outputs.at(AUDIO_LOWPASS_OUTPUT).isConnected())   mask |= NEED_LP;
+                    if (outputs.at(AUDIO_BANDPASS_OUTPUT).isConnected())  mask |= NEED_BP;
+                    if (outputs.at(AUDIO_HIGHPASS_OUTPUT).isConnected())  mask |= NEED_HP;
+                    if (outputs.at(AUDIO_NOTCH_OUTPUT).isConnected())     mask |= NEED_NX;
+
+                    if (mask == 0)
+                        return;     // no need to do anything when no cables are connected to any output port.
+
                     // CASCADE is a manual knob only, not a control group. There is no CV input.
                     const float cascade = params.at(CASCADE_PARAM).getValue();
 
                     for (int c = 0; c < nc; ++c)
                     {
+                        engine[c].filter.mask = mask;
                         engine[c].filter.setCascade(cascade);
 
                         nextChannelInputVoltage(input,  AUDIO_INPUT,   c);
@@ -244,9 +255,9 @@ namespace Sapphire
 
                     if (isBadOutput(lpOutput, nc) || isBadOutput(bpOutput, nc) || isBadOutput(hpOutput, nc))
                     {
-                        clearOutput(lpOutput,    PORT_MAX_CHANNELS);
-                        clearOutput(bpOutput,    PORT_MAX_CHANNELS);
-                        clearOutput(hpOutput,    PORT_MAX_CHANNELS);
+                        clearOutput(lpOutput, PORT_MAX_CHANNELS);
+                        clearOutput(bpOutput, PORT_MAX_CHANNELS);
+                        clearOutput(hpOutput, PORT_MAX_CHANNELS);
                         clearOutput(nxOutput, PORT_MAX_CHANNELS);
 
                         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)

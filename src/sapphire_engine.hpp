@@ -734,11 +734,11 @@ namespace Sapphire
         {
         }
 
-        explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp)
+        explicit FilterResult(const value_t& lp, const value_t& bp, const value_t& hp, const value_t& nx)
             : lowpass(lp)
             , bandpass(bp)
             , highpass(hp)
-            , notch(lp + hp)    // https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf : page 7
+            , notch(nx)
         {
         }
 
@@ -761,7 +761,8 @@ namespace Sapphire
             return FilterResult<value_t>(
                 LinearMix<value_t>(fraction, a.lowpass,  b.lowpass),
                 LinearMix<value_t>(fraction, a.bandpass, b.bandpass),
-                LinearMix<value_t>(fraction, a.highpass, b.highpass)
+                LinearMix<value_t>(fraction, a.highpass, b.highpass),
+                LinearMix<value_t>(fraction, a.notch,    b.notch)
             );
         }
     };
@@ -798,7 +799,7 @@ namespace Sapphire
         {
             // Based on: https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
 
-            float ratio = cornerFreqHz / sampleRateHz;
+            const float ratio = cornerFreqHz / sampleRateHz;
             if (ratio != prevFreqRatio || resonance != prevResonance)
             {
                 prevFreqRatio = ratio;
@@ -818,11 +819,18 @@ namespace Sapphire
             c1 = 2*bandpass - c1;
             c2 = 2*lowpass - c2;
 
-            return FilterResult<value_t>(lowpass, bandpass, input - k*bandpass - lowpass);
+            const value_t notch = input - k*bandpass;
+            return FilterResult<value_t>(lowpass, bandpass, notch - lowpass, notch);
         }
     };
 
     //-----------------------------------------------------------------------------------------
+
+    constexpr unsigned NEED_LP  = 1;
+    constexpr unsigned NEED_BP  = 2;
+    constexpr unsigned NEED_HP  = 4;
+    constexpr unsigned NEED_NX  = 8;
+    constexpr unsigned NEED_ALL = NEED_LP | NEED_BP | NEED_HP | NEED_NX;
 
     template <typename value_t, unsigned MAX_FILTER_STAGES>
     class CascadeStateVariableFilter
@@ -841,6 +849,8 @@ namespace Sapphire
         std::array<filter_t, REMAINING_STAGES> nxStage;
 
     public:
+        unsigned mask = NEED_ALL;
+
         void initialize()
         {
             cascade = 1;
@@ -849,6 +859,7 @@ namespace Sapphire
             for (filter_t& f : bpStage)  f.initialize();
             for (filter_t& f : hpStage)  f.initialize();
             for (filter_t& f : nxStage)  f.initialize();
+            mask = NEED_ALL;
         }
 
         void setCascade(const value_t& newCascade)
@@ -889,40 +900,52 @@ namespace Sapphire
             // notch(notch(notch(...))),
             // and so on.
 
-            unsigned s = 2;
-            for (filter_t& f : lpStage)
+            if (mask & NEED_LP)
             {
-                if (s > k+1)
-                    break;  // iter[k+1] is the highest filter index we need calculated
-                iter.at(s).lowpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).lowpass).lowpass;
-                ++s;
+                unsigned s = 2;
+                for (filter_t& f : lpStage)
+                {
+                    if (s > k+1)
+                        break;  // iter[k+1] is the highest filter index we need calculated
+                    iter.at(s).lowpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).lowpass).lowpass;
+                    ++s;
+                }
             }
 
-            s = 2;
-            for (filter_t& f : bpStage)
+            if (mask & NEED_BP)
             {
-                if (s > k+1)
-                    break;  // iter[k+1] is the highest filter index we need calculated
-                iter.at(s).bandpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).bandpass).bandpass;
-                ++s;
+                unsigned s = 2;
+                for (filter_t& f : bpStage)
+                {
+                    if (s > k+1)
+                        break;  // iter[k+1] is the highest filter index we need calculated
+                    iter.at(s).bandpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).bandpass).bandpass;
+                    ++s;
+                }
             }
 
-            s = 2;
-            for (filter_t& f : hpStage)
+            if (mask & NEED_HP)
             {
-                if (s > k+1)
-                    break;  // iter[k+1] is the highest filter index we need calculated
-                iter.at(s).highpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).highpass).highpass;
-                ++s;
+                unsigned s = 2;
+                for (filter_t& f : hpStage)
+                {
+                    if (s > k+1)
+                        break;  // iter[k+1] is the highest filter index we need calculated
+                    iter.at(s).highpass = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).highpass).highpass;
+                    ++s;
+                }
             }
 
-            s = 2;
-            for (filter_t& f : nxStage)
+            if (mask & NEED_NX)
             {
-                if (s > k+1)
-                    break;  // iter[k+1] is the highest filter index we need calculated
-                iter.at(s).notch = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).notch).notch;
-                ++s;
+                unsigned s = 2;
+                for (filter_t& f : nxStage)
+                {
+                    if (s > k+1)
+                        break;  // iter[k+1] is the highest filter index we need calculated
+                    iter.at(s).notch = f.process(sampleRateHz, cornerFreqHz, resonance, iter.at(s-1).notch).notch;
+                    ++s;
+                }
             }
 
             return result_t::Interpolate(fraction, iter.at(k), iter.at(k+1));
