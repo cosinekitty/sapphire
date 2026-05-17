@@ -7,6 +7,27 @@ Sauce is a polyphonic state-variable filter as described in the following paper 
 > https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
 
 Sauce is very similar to the stereo filter [Gravy](Gravy.md), but is optimized for general polyphonic use.
+Sauce also includes a notch filter, which Gravy lacks.
+
+### Input
+
+At the top of the panel is an input port labeled IN. This is a polyphonic audio input port, supporting 1..16 channels.
+
+The four outputs (LP, BP, HP, and N) will have the same number of polyphonic channels each.
+
+Each filter is applied independently to every channel of the polyphonic input.
+
+### Cascade (CASC)
+
+The CASC knob is a cascade control. Cascade is how many times to "repeat" the original style Sauce filter. The default value of the CASC knob is 1, for backward compatibility with patches that use Sauce before it had a CASC control.
+
+The highest value allowed is 3. You can choose integer values like 1, 2, 3, for a specified number of repeated filters. Or you can use intermediate values to interpolate between cascaded filter stages. For example, if you set the CASC knob to 2.1, it is 10% the way from 2 to 3. Therefore, you will get a mix of 90% of a 2-stage filter plus 10% of a 3-stage filter.
+
+CASC is intentionally **monophonic** and **manual only**. The main reason is to enable CPU optimizations that assume the value cannot change very quickly. Usually Sapphire modules prefer allowing CV control of almost everything. This is an exception to keep Sauce as efficient as possible.
+
+Note: Higher values of CASC use **more CPU time**.
+
+Also, they can cause **resonance overload** when the RES control is also set to a high value. Sauce will flash a bright color and reset itself if the output goes outside &plusmn;100 volts. There is also a built-in [output limiter](#output-limiter) that you can enable to not worry so much about output levels.
 
 ### Controls
 
