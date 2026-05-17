@@ -50,10 +50,8 @@ namespace Sapphire
         };
 
         constexpr unsigned SauceFilterStages = 3;
-        using sauce_engine_t = Gravy::SingleChannelGravyEngine<
-            float,
-            CascadeStateVariableFilter<float, SauceFilterStages>
-        >;
+        using cascade_filter_t = CascadeStateVariableFilter<float, SauceFilterStages>;
+        using sauce_engine_t = Gravy::SingleChannelGravyEngine<float, cascade_filter_t>;
 
         struct SauceModule : SapphireModule
         {
