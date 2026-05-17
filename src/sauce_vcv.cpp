@@ -178,7 +178,7 @@ namespace Sapphire
                 float lpOutput[PORT_MAX_CHANNELS];
                 float bpOutput[PORT_MAX_CHANNELS];
                 float hpOutput[PORT_MAX_CHANNELS];
-                float notchOutput[PORT_MAX_CHANNELS];
+                float nxOutput[PORT_MAX_CHANNELS];
 
                 const int nc = numOutputChannels(INPUTS_LEN, 0);
 
@@ -188,7 +188,7 @@ namespace Sapphire
                     --limiterRecoveryCountdown;
 
                     for (int c = 0; c < nc; ++c)
-                        lpOutput[c] = bpOutput[c] = hpOutput[c] = notchOutput[c] = 0;
+                        lpOutput[c] = bpOutput[c] = hpOutput[c] = nxOutput[c] = 0;
                 }
                 else
                 {
@@ -227,13 +227,13 @@ namespace Sapphire
                         lpOutput[c] = result.lowpass;
                         bpOutput[c] = result.bandpass;
                         hpOutput[c] = result.highpass;
-                        notchOutput[c] = result.notch;
+                        nxOutput[c] = result.notch;
                     }
 
                     if (isFireDrillOneShot())
                     {
                         for (int k = 0; k < nc; ++k)
-                            lpOutput[k] = bpOutput[k] = hpOutput[k] = notchOutput[k] = NAN;
+                            lpOutput[k] = bpOutput[k] = hpOutput[k] = nxOutput[k] = NAN;
                     }
 
                     if (enableAgc)
@@ -241,7 +241,7 @@ namespace Sapphire
                         agcLow .process(args.sampleRate,  nc, lpOutput);
                         agcBand.process(args.sampleRate,  nc, bpOutput);
                         agcHigh.process(args.sampleRate,  nc, hpOutput);
-                        agcNotch.process(args.sampleRate, nc, notchOutput);
+                        agcNotch.process(args.sampleRate, nc, nxOutput);
                     }
 
                     if (isBadOutput(lpOutput, nc) || isBadOutput(bpOutput, nc) || isBadOutput(hpOutput, nc))
@@ -249,7 +249,7 @@ namespace Sapphire
                         clearOutput(lpOutput,    PORT_MAX_CHANNELS);
                         clearOutput(bpOutput,    PORT_MAX_CHANNELS);
                         clearOutput(hpOutput,    PORT_MAX_CHANNELS);
-                        clearOutput(notchOutput, PORT_MAX_CHANNELS);
+                        clearOutput(nxOutput, PORT_MAX_CHANNELS);
 
                         for (int c = 0; c < PORT_MAX_CHANNELS; ++c)
                             engine[c].initialize();
@@ -268,7 +268,7 @@ namespace Sapphire
                     outputs.at(AUDIO_LOWPASS_OUTPUT ).setVoltage(lpOutput[c], c);
                     outputs.at(AUDIO_BANDPASS_OUTPUT).setVoltage(bpOutput[c], c);
                     outputs.at(AUDIO_HIGHPASS_OUTPUT).setVoltage(hpOutput[c], c);
-                    outputs.at(AUDIO_NOTCH_OUTPUT   ).setVoltage(notchOutput[c], c);
+                    outputs.at(AUDIO_NOTCH_OUTPUT   ).setVoltage(nxOutput[c], c);
                 }
             }
         };
