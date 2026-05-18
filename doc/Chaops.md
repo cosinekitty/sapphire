@@ -28,8 +28,12 @@ The chaos modules all produce 3D vectors. Without Chaops, these 3D vectors are a
 
 ### Freeze
 
-At the bottom of the panel is a section labeled FREEZE. To the right is a button labeled F. When you press this button, it toggles whether the chaos module to the right updates the simulation with time or not. To the left is a gate input.
+At the bottom of the panel is a section labeled FREEZE. To the right is a button labeled F. When you press the F button, it toggles whether the chaos module to the right updates the simulation with time or not.
 
-The button and gate input operate in combination with exclusive-or (XOR) logic. This means that if the freeze button is turned off, then the input gate must go high to freeze the module, or low to let it run. If the freeze button is turned on, then the input gate must go low to freeze the module, or high to let it run.
+To the left is an input port. Between the input port and the F button, there is a tiny button that toggles whether the input port is treated as a gate signal or a trigger signal. When the button is dark, the input is treated as a gate. When the button is bright yellow, the input is treated as a trigger.
+
+The default is to treat the input port as a gate. The button and gate input operate in combination with exclusive-or (XOR) logic. This means that if the freeze button is turned off, then the input gate must go high to freeze the module, or low to let it run. If the freeze button is turned on, then the input gate must go low to freeze the module, or high to let it run.
+
+But when in trigger mode, a trigger received on the input port toggles the current freeze state. In this configuration, the voltage trigger and the manual button both act as mutual toggles with XOR logic.
 
 Note that the FREEZE control does not hinder the MORPH control. Changes to the morph mix still take effect even when the chaos module is frozen. This is because FREEZE only stops the flow of simulated time, but does not block the mix ratio between position and velocity.

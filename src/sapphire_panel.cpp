@@ -12,6 +12,7 @@ namespace Sapphire
             {"_panel",                 {  30.480,  128.500}},
             {"freeze_button",          {  22.240,  115.000}},
             {"freeze_input",           {   8.240,  115.000}},
+            {"freeze_portmode",        {  15.240,  115.000}},
             {"memory_address_display", {  15.240,   33.000}},
             {"memsel_atten",           {  15.240,   24.000}},
             {"memsel_cv",              {   6.240,   24.000}},

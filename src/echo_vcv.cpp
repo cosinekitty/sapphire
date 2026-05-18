@@ -1416,6 +1416,7 @@ namespace Sapphire
                     inputId,
                     buttonParamId,
                     buttonLightId,
+                    -1,     // no port mode button
                     '\0',
                     7.0,
                     SCHEME_PURPLE
@@ -2532,6 +2533,7 @@ namespace Sapphire
                         FREEZE_INPUT,
                         FREEZE_BUTTON_PARAM,
                         FREEZE_BUTTON_LIGHT,
+                        -1,     // no port mode button
                         '\0',
                         0.0,
                         SCHEME_BLUE
@@ -2546,6 +2548,7 @@ namespace Sapphire
                         CLEAR_INPUT,
                         CLEAR_BUTTON_PARAM,
                         CLEAR_BUTTON_LIGHT,
+                        -1,     // no port mode button
                         '\0',
                         0.0,
                         SCHEME_GREEN,

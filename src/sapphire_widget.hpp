@@ -961,15 +961,25 @@ namespace Sapphire
             return knob;
         }
 
+        struct InputPortModeToggleButton : SapphireTinyToggleButton
+        {
+            explicit InputPortModeToggleButton()
+            {
+                addTinyButtonFrames(this, "yellow");
+            }
+        };
+
         template <typename button_t, typename port_t>
         struct ToggleGroupControls
         {
             button_t* button{};
             port_t* port{};
+            InputPortModeToggleButton* portModeButton{};
 
-            ToggleGroupControls(button_t* _button, port_t* _port)
+            ToggleGroupControls(button_t* _button, port_t* _port, InputPortModeToggleButton* _pmb)
                 : button(_button)
                 , port(_port)
+                , portModeButton(_pmb)
                 {}
         };
 
@@ -980,6 +990,7 @@ namespace Sapphire
             int inputId,
             int buttonId,
             int lightId,
+            int portModeButtonId,   // or -1 to skip
             char buttonLetter,
             float dxText,
             NVGcolor baseColor,
@@ -990,12 +1001,19 @@ namespace Sapphire
             button->dxText = dxText;
             button->setCaption(buttonLetter);
             button->initBaseColor(baseColor);
-
             addSapphireParam(button, prefix + "_button");
+
             input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
             port->group = group;
 
-            return {button, port};
+            InputPortModeToggleButton* pmb = nullptr;
+            if (portModeButtonId >= 0)     // optional button; allow caller to skip creating it by passing -1
+            {
+                pmb = createParamCentered<InputPortModeToggleButton>(Vec{}, module, portModeButtonId);
+                addSapphireParam(pmb, prefix + "_portmode");
+            }
+
+            return {button, port, pmb};
         }
 
         template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
@@ -1005,12 +1023,13 @@ namespace Sapphire
             int inputId,
             int buttonId,
             int lightId,
+            int portModeButtonId,   // or -1 to skip
             char buttonLetter,
             float dxText,
             NVGcolor baseColor,
             bool momentary = false)
         {
-            auto tg = addToggleGroup2(group, prefix, inputId, buttonId, lightId, buttonLetter, dxText, baseColor, momentary);
+            auto tg = addToggleGroup2(group, prefix, inputId, buttonId, lightId, portModeButtonId, buttonLetter, dxText, baseColor, momentary);
             return tg.port;
         }
 

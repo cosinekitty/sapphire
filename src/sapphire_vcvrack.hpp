@@ -1815,21 +1815,24 @@ namespace Sapphire
         {
             if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
-                    qty->name = text;
+                    if (qty->name != text)
+                        qty->name = text;
         }
 
         void updateToggleButtonTooltip(int paramId, const char* offText, const char *onText)
         {
             if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
-                    qty->name = (qty->getValue() < 0.5f) ? offText : onText;
+                    if (const char *text = (qty->getValue() < 0.5f) ? offText : onText; strcmp(text, qty->name.c_str()))
+                        qty->name = text;
         }
 
         void updateInputTooltip(int inputId, const std::string& text)
         {
             if (IsSafeAccess(inputInfos, inputId))
                 if (PortInfo* info = inputInfos.at(inputId))
-                    info->name = text;
+                    if (info->name != text)
+                        info->name = text;
         }
 
         float readSample(float normal, Input& inLeft, Input& inRight, int c)

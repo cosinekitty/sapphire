@@ -9,7 +9,7 @@
 </tr>
 
 <tr valign="top">
-    <td align="center">16 May 2026</td>
+    <td align="center">18 May 2026</td>
     <td align="center">2.6.005</td>
     <td align="left">
         <ul>
@@ -17,6 +17,7 @@
             <li><a href="doc/Empath.md">Empath</a> now includes a button to create another Empath filter chain in series with the current chain.</li>
             <li><a href="doc/Sauce.md">Sauce</a> now has a notch filter output, along with the existing lowpass, bandpass, and highpass filters.</li>
             <li>Sauce has another new feature: a CASCADE control that allows you to chain 1..3 filters in series.</li>
+            <li>The <a href="doc/Chaops.md">Chaops</a> FREEZE control now has a tiny button between the input port and the big FREEZE button that toggles whether the input is interpreted as a gate or a trigger.</li>
         </ul>
     </td>
 </tr>

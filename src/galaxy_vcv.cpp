@@ -212,6 +212,7 @@ namespace Sapphire
                     CLEAR_INPUT,
                     CLEAR_BUTTON_PARAM,
                     CLEAR_BUTTON_LIGHT,
+                    -1,     // no gate/trigger toggle button needed: input is always a trigger
                     '\0',
                     0.0,
                     SCHEME_GREEN,
