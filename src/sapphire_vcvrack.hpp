@@ -1941,6 +1941,7 @@ namespace Sapphire
 
     public:
         ToggleGroupMode mode = ToggleGroupMode::Default;
+        bool addPortMenuItems = true;
 
         ToggleGroup()
         {
@@ -2024,17 +2025,20 @@ namespace Sapphire
 
         void addMenuItems(Menu* menu)
         {
-            menu->addChild(createIndexSubmenuItem(
-                menuName + " input port mode",
-                { "Gate", "Trigger" },
-                [=]() { return static_cast<std::size_t>(mode); },
-                [=](size_t value)
-                {
-                    const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
-                    if (newMode != mode)
-                        InvokeAction(new ChangeEnumAction<ToggleGroupMode>(mode, newMode, "toggle gate/port input mode"));
-                }
-            ));
+            if (addPortMenuItems)
+            {
+                menu->addChild(createIndexSubmenuItem(
+                    menuName + " input port mode",
+                    { "Gate", "Trigger" },
+                    [=]() { return static_cast<std::size_t>(mode); },
+                    [=](size_t value)
+                    {
+                        const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
+                        if (newMode != mode)
+                            InvokeAction(new ChangeEnumAction<ToggleGroupMode>(mode, newMode, "toggle gate/port input mode"));
+                    }
+                ));
+            }
         }
     };
 

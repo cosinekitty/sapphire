@@ -74,6 +74,7 @@ namespace Sapphire
                 configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
                 freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
+                freezeToggleGroup.addPortMenuItems = false;
                 initialize();
             }
 
