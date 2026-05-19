@@ -965,7 +965,7 @@ namespace Sapphire
         {
             explicit InputPortModeToggleButton()
             {
-                addTinyButtonFrames(this, "yellow");
+                addTinyButtonFrames(this, "xyellow");
             }
         };
 

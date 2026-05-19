@@ -30,7 +30,7 @@ The chaos modules all produce 3D vectors. Without Chaops, these 3D vectors are a
 
 At the bottom of the panel is a section labeled FREEZE. To the right is a button labeled F. When you press the F button, it toggles whether the chaos module to the right updates the simulation with time or not.
 
-To the left is an input port. Between the input port and the F button, there is a tiny button that toggles whether the input port is treated as a gate signal or a trigger signal. When the button is dark, the input is treated as a gate. When the button is bright yellow, the input is treated as a trigger.
+To the left is an input port. Between the input port and the F button, there is a tiny button that toggles whether the input port is treated as a gate signal or a trigger signal. When the button is yellow, the input is treated as a gate. When the button is dark, the input is treated as a trigger.
 
 The default is to treat the input port as a gate. The button and gate input operate in combination with exclusive-or (XOR) logic. This means that if the freeze button is turned off, then the input gate must go high to freeze the module, or low to let it run. If the freeze button is turned on, then the input gate must go low to freeze the module, or high to let it run.
 
