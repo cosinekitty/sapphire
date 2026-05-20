@@ -24,6 +24,9 @@ namespace Sapphire
                 AUDIO_RIGHT_OUTPUT,
                 OUTPUTS_LEN
             };
+
+            struct OutputModule;
+            struct OutputWidget;
         }
 
         constexpr float DefaultLimiterVoltage = 6;
@@ -641,12 +644,6 @@ namespace Sapphire
 
             void onButton(const event::Button& e) override;
         };
-
-
-        namespace OutputStage
-        {
-            struct OutputWidget;
-        }
 
 
         using insert_empath_button_base_t = app::SvgSwitch;
