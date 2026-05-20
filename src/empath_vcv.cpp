@@ -876,7 +876,7 @@ namespace Sapphire
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
-                void prepareAutoCableCreation(bool polyphonic)
+                void beginCableCreation(bool polyphonic)
                 {
                     // This method is called to inform a new Empath input module that it is being created on behalf
                     // of the existing Empath chain on the left, and to please connect cables in series.
@@ -1027,13 +1027,13 @@ namespace Sapphire
                     // Make a list of (module_id, seed) pairs so later "undo" can restore all the seeds.
                     std::vector<ChaosFountainRestoreInfo> list;
                     const EmpathModule* empathModule = this;
-                    for(;;)
+                    do
                     {
                         list.push_back(ChaosFountainRestoreInfo(empathModule->id, empathModule->getSeed()));
                         empathModule = dynamic_cast<const EmpathModule*>(empathModule->rightExpander.module);
-                        if (!IsFilterReceiver(empathModule))
-                            break;
                     }
+                    while (IsFilterReceiver(empathModule));
+
                     InvokeAction(new RandomizeChaosAction(list));
                 }
 
@@ -1045,14 +1045,17 @@ namespace Sapphire
                     if (!IsOutput(leftExpander.module))
                         return;
 
-                    // Create new cables.
-                    if (requestedCableCount >= 1)
-                        createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
+                    if (requestedCableCount)
+                    {
+                        // Create new cables.
+                        if (requestedCableCount >= 1)
+                            createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
 
-                    if (requestedCableCount >= 2)
-                        createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+                        if (requestedCableCount >= 2)
+                            createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
 
-                    requestedCableCount = 0;
+                        requestedCableCount = 0;
+                    }
                 }
 
                 void createCable(int inputId, Module* outputModule, int outputId)
@@ -2523,7 +2526,7 @@ namespace Sapphire
                         if (outputLeft.isConnected() || outputRight.isConnected())
                             return;
 
-                        newEmpathInputModule->prepareAutoCableCreation(outputModule->isPolyphonicPortMode);
+                        newEmpathInputModule->beginCableCreation(outputModule->isPolyphonicPortMode);
                     }
                 }
             };
