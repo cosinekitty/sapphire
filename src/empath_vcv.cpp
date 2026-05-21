@@ -133,6 +133,49 @@ namespace Sapphire
         };
 
 
+        struct MoveOutputCablesAction : history::Action
+        {
+            const int64_t oldModuleId;
+            const int64_t newModuleId;
+            const int oldPortId;
+            const int newPortId;
+
+            explicit MoveOutputCablesAction(PortWidget* oldPort, PortWidget* newPort)
+                : oldModuleId(oldPort->module->id)
+                , newModuleId(newPort->module->id)
+                , oldPortId(oldPort->portId)
+                , newPortId(newPort->portId)
+            {
+                name = "move output cables";
+            }
+
+            void undo() override
+            {
+                moveAllCables(newModuleId, newPortId, oldModuleId, oldPortId);
+            }
+
+            void redo() override
+            {
+                moveAllCables(oldModuleId, oldPortId, newModuleId, newPortId);
+            }
+
+        private:
+            static PortWidget* findOutputPort(int64_t moduleId, int portId)
+            {
+                if (ModuleWidget* modWidget = APP->scene->rack->getModule(moduleId))
+                    return modWidget->getOutput(portId);
+                return nullptr;
+            }
+
+            static void moveAllCables(
+                int64_t sourceModuleId,
+                int     sourcePortId,
+                int64_t targetModuleId,
+                int     targetPortId
+            );
+        };
+
+
         inline bool IsInput(const Module* module)
         {
             return IsModelType(module, modelSapphireEmpathInput);
@@ -146,6 +189,11 @@ namespace Sapphire
         inline bool IsOutput(const Module* module)
         {
             return IsModelType(module, modelSapphireEmpathOutput);
+        }
+
+        inline bool IsOutput(const ModuleWidget* widget)
+        {
+            return widget && (widget->model == modelSapphireEmpathOutput);
         }
 
         inline bool IsFilterSender(const Module* module)
@@ -879,7 +927,7 @@ namespace Sapphire
                     return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
                 }
 
-                void beginCableCreation(bool polyphonic)
+                void beginCableUpdates(bool polyphonic)
                 {
                     // This method is called to inform a new Empath input module that it is being created on behalf
                     // of the existing Empath chain on the left, and to please connect cables in series.
@@ -887,7 +935,7 @@ namespace Sapphire
                     // the new module is also in polyphonic mode. Otherwise, create a pair of stereo cables.
                     params.at(OUTPUT_CHANNEL_MODE_BUTTON_PARAM).setValue(polyphonic ? 1 : 0);
 
-                    // We don't create the cables right now. Instead, we set a sentinel value
+                    // We don't create/move the cables right now. Instead, we set a sentinel value
                     // of 1 or 2 to indicate how many cables to create once expanderCountdown expires.
                     requestedCableCount.store(polyphonic ? 1 : 2);
                 }
@@ -1043,18 +1091,41 @@ namespace Sapphire
                     InvokeAction(new RandomizeChaosAction(list));
                 }
 
-                void createSeriesCables()
+                void updateCablesForSerialOperation(const SapphireModule* newOutputModule)
                 {
                     if (const unsigned count = requestedCableCount.exchange(0))
                     {
-                        if (IsOutput(leftExpander.module))
+                        if (IsOutput(newOutputModule))
                         {
-                            // Create new cable(s).
-                            createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
-                            if (count >= 2)
-                                createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+                            if (Module* oldOutputModule = leftExpander.module; IsOutput(oldOutputModule))
+                            {
+                                if (auto oldOutputWidget = FindWidgetForId(oldOutputModule->id); IsOutput(oldOutputWidget))
+                                {
+                                    if (auto newOutputWidget = FindWidgetForId(newOutputModule->id); IsOutput(newOutputWidget))
+                                    {
+                                        // Move all audio output cables from the old output module
+                                        // to the corresponding ports on the new output module.
+                                        moveExistingCables(oldOutputWidget, newOutputWidget, OutputStage::AUDIO_LEFT_OUTPUT);
+                                        moveExistingCables(oldOutputWidget, newOutputWidget, OutputStage::AUDIO_RIGHT_OUTPUT);
+
+                                        // Create one cable for mono/polyphonic operation, two for stereo.
+                                        createCable(AUDIO_LEFT_INPUT, oldOutputModule, OutputStage::AUDIO_LEFT_OUTPUT);
+                                        if (count >= 2)
+                                            createCable(AUDIO_RIGHT_INPUT, oldOutputModule, OutputStage::AUDIO_RIGHT_OUTPUT);
+                                    }
+                                }
+                            }
                         }
                     }
+                }
+
+            private:
+                void moveExistingCables(ModuleWidget* oldOutputWidget, ModuleWidget* newOutputWidget, int outputPortId)
+                {
+                    if (oldOutputWidget && newOutputWidget)
+                        if (PortWidget* oldPort = oldOutputWidget->getOutput(outputPortId))
+                            if (PortWidget* newPort = newOutputWidget->getOutput(outputPortId))
+                                InvokeAction(new MoveOutputCablesAction(oldPort, newPort));
                 }
 
                 void createCable(int inputId, Module* outputModule, int outputId)
@@ -1198,9 +1269,11 @@ namespace Sapphire
                             inputModule->autoCreateExpanders = false;   // prevent automatic creation when loading the patch
                             if (!IsFilterReceiver(module->rightExpander.module) && !APP->history->canRedo())
                             {
-                                AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false);
-                                AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
-                                inputModule->createSeriesCables();
+                                if (SapphireModule* newOutputModule = AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false))
+                                {
+                                    AddExpander(modelSapphireEmpathFilter, this, ExpanderDirection::Right, false);
+                                    inputModule->updateCablesForSerialOperation(newOutputModule);
+                                }
                             }
                         }
 
@@ -2506,27 +2579,9 @@ namespace Sapphire
 
                 void insertAnotherEmpath()
                 {
-                    if (outputModule == nullptr)
-                        return;
-
-                    // FIXFIXFIX: if the module to the right is Empath Input, re-cable to put new Empath *between* them.
-                    // For now, don't do anything if the module to the right is Empath (Input, Filter, or Ouptput).
-                    if (const Module* right = outputModule->rightExpander.module)
-                        if (IsInput(right) || IsFilter(right) || IsOutput(right))
-                            return;
-
-                    // Create an Empath filter module to the right.
-                    if (auto* newEmpathInputModule = AddExpanderModule<InputStage::InputModule>(modelSapphireEmpathInput, this, ExpanderDirection::Right, false))
-                    {
-                        // If this output module's output audio ports are already connected to cables,
-                        // do not automatically create more cables.
-                        Output& outputLeft  = outputModule->outputs.at(AUDIO_LEFT_OUTPUT);
-                        Output& outputRight = outputModule->outputs.at(AUDIO_RIGHT_OUTPUT);
-                        if (outputLeft.isConnected() || outputRight.isConnected())
-                            return;
-
-                        newEmpathInputModule->beginCableCreation(outputModule->isPolyphonicPortMode);
-                    }
+                    if (outputModule)
+                        if (auto newEmpathInputModule = AddExpanderModule<InputStage::InputModule>(modelSapphireEmpathInput, this, ExpanderDirection::Right, false))
+                            newEmpathInputModule->beginCableUpdates(outputModule->isPolyphonicPortMode);
                 }
             };
         }
@@ -2576,6 +2631,27 @@ namespace Sapphire
                 auto button = createParamCentered<InsertAnotherEmpathButton>(Vec{}, module, INSERT_EMPATH_BUTTON);
                 button->outputWidget = this;
                 addSapphireParam(button, "insert_empath_button");
+            }
+        }
+
+
+        void MoveOutputCablesAction::moveAllCables(
+            int64_t sourceModuleId,
+            int     sourcePortId,
+            int64_t targetModuleId,
+            int     targetPortId)
+        {
+            if (PortWidget* sourcePort = findOutputPort(sourceModuleId, sourcePortId))
+            {
+                if (PortWidget* targetPort = findOutputPort(targetModuleId, targetPortId))
+                {
+                    std::vector<CableWidget*> cableList = APP->scene->rack->getCablesOnPort(sourcePort);
+                    for (CableWidget* cable : cableList)
+                    {
+                        cable->outputPort = targetPort;
+                        cable->updateCable();
+                    }
+                }
             }
         }
     }

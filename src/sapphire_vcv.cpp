@@ -261,11 +261,9 @@ namespace Sapphire
     ModuleWidget* FindWidgetForId(int64_t moduleId)
     {
         for (Widget* w : APP->scene->rack->getModuleContainer()->children)
-        {
-            auto mw = dynamic_cast<ModuleWidget*>(w);
-            if (mw && mw->module && mw->module->id == moduleId)
-                return mw;
-        }
+            if (auto mw = dynamic_cast<ModuleWidget*>(w))
+                if (mw->module && mw->module->id == moduleId)
+                    return mw;
         return nullptr;
     }
 
