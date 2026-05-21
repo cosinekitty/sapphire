@@ -812,7 +812,9 @@ namespace Sapphire
                 float speedChaos{};
                 InterpolatorKind interpolatorKind = InterpolatorKind::Default;
                 Smoother chaosAntiClickSmoother{0.025};
-                unsigned requestedCableCount = 0;
+
+                static_assert(std::atomic<unsigned>::is_always_lock_free, "This platform does not support lock-free atomic access, which is required to avoid blocking the audio thread.");
+                std::atomic<unsigned> requestedCableCount{0};
 
                 explicit InputModule()
                     : EmpathModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -844,6 +846,7 @@ namespace Sapphire
                     chaosStereoCrossfader.snapToFront();
                     speedChaos = 0;
                     chaosAntiClickSmoother.initialize();
+                    requestedCableCount.store(0);
                 }
 
                 void onReset(const ResetEvent& e) override
@@ -883,7 +886,10 @@ namespace Sapphire
                     // If the existing Empath chain is in polyphonic mode, create a single cable and make sure
                     // the new module is also in polyphonic mode. Otherwise, create a pair of stereo cables.
                     params.at(OUTPUT_CHANNEL_MODE_BUTTON_PARAM).setValue(polyphonic ? 1 : 0);
-                    requestedCableCount = polyphonic ? 1 : 2;
+
+                    // We don't create the cables right now. Instead, we set a sentinel value
+                    // of 1 or 2 to indicate how many cables to create once expanderCountdown expires.
+                    requestedCableCount.store(polyphonic ? 1 : 2);
                 }
 
                 SpectrumDisplayMode getSpectrumDisplayMode()
@@ -1039,22 +1045,15 @@ namespace Sapphire
 
                 void createSeriesCables()
                 {
-                    // Expect to find another Empath chain to the left.
-                    // The module to the immediate left should be an output module.
-                    // Bail out if not.
-                    if (!IsOutput(leftExpander.module))
-                        return;
-
-                    if (requestedCableCount)
+                    if (const unsigned count = requestedCableCount.exchange(0))
                     {
-                        // Create new cables.
-                        if (requestedCableCount >= 1)
+                        if (IsOutput(leftExpander.module))
+                        {
+                            // Create new cable(s).
                             createCable(AUDIO_LEFT_INPUT, leftExpander.module, OutputStage::AUDIO_LEFT_OUTPUT);
-
-                        if (requestedCableCount >= 2)
-                            createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
-
-                        requestedCableCount = 0;
+                            if (count >= 2)
+                                createCable(AUDIO_RIGHT_INPUT, leftExpander.module, OutputStage::AUDIO_RIGHT_OUTPUT);
+                        }
                     }
                 }
 
