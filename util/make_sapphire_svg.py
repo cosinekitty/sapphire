@@ -1659,6 +1659,12 @@ def GenerateElastikaPanel(cdict:ControlDict, target:Target) -> int:
 
     return Save(panel, svgFileName)
 
+#---------------------------------------------------------------------------------------------
+
+TUBE_UNIT_PANEL_WIDTH = 12
+TUBE_UNIT_VENT_SEAL_X = 20.1
+TUBE_UNIT_VENT_SEAL_Y = 16.0
+
 
 def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
     if target == Target.VcvRack:
@@ -1718,6 +1724,7 @@ def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
         AddTubeUnitControl(controls, target, pl, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
         controls.append(Component('audio_input_left',   9.0, 114.5))
         controls.append(Component('audio_input_right', 23.0, 114.5))
+        controls.append(Component('vent_seal_label', TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y))
     elif target == Target.Lite:
         AddTubeUnitControl(controls, target, pl, 'mix_knob', 1, 4)
     else:
@@ -1732,8 +1739,6 @@ def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
     AddTubeUnitGroup(controls, target, pl, 'root',    0, 3)
     AddTubeUnitGroup(controls, target, pl, 'spring',  1, 3)
     return 0
-
-TUBE_UNIT_PANEL_WIDTH = 12
 
 
 def TubeUnitPentagonOrigin(x:float, y:float) -> Tuple[float,float]:
@@ -1926,7 +1931,7 @@ def GenerateTubeUnitVentLayer(name:str, hilight:bool) -> int:
         suffix = 'normal'
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         ti = TextItem(name, font, CONTROL_LABEL_POINTS)
-    tp = ti.toPath(20.1, 16.0, HorizontalAlignment.Center, VerticalAlignment.Middle, style)
+    tp = ti.toPath(TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y, HorizontalAlignment.Center, VerticalAlignment.Middle, style)
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
     panel.append(tp)
     return Save(panel, '../res/tubeunit_{}_{}.svg'.format(name.lower(), suffix))
@@ -1944,22 +1949,16 @@ def GenerateTubeUnitExportPanel(cdict:ControlDict, title:str, symbol:str) -> int
 
 
 def GenerateTubeUnit(cdict:ControlDict, title:str, symbol:str) -> int:
-    if (
+    return (
         GenerateTubeUnitMainPanel(cdict, title, symbol) or
-        GenerateTubeUnitExportPanel(cdict, title, symbol)
-    ): return 1
-
-    if title == 'tube unit':
-        if (
-            GenerateTubeUnitAudioPathLayer() or
-            GenerateTubeUnitLabelLayer() or
-            GenerateTubeUnitVentLayer('VENT', False) or
-            GenerateTubeUnitVentLayer('VENT', True ) or
-            GenerateTubeUnitVentLayer('SEAL', False) or
-            GenerateTubeUnitVentLayer('SEAL', True )
-        ): return 1
-
-    return 0
+        GenerateTubeUnitExportPanel(cdict, title, symbol) or
+        GenerateTubeUnitAudioPathLayer() or
+        GenerateTubeUnitLabelLayer() or
+        GenerateTubeUnitVentLayer('VENT', False) or
+        GenerateTubeUnitVentLayer('VENT', True ) or
+        GenerateTubeUnitVentLayer('SEAL', False) or
+        GenerateTubeUnitVentLayer('SEAL', True )
+    )
 
 
 def GenerateEnvPitchPanel(cdict:ControlDict, target:Target) -> int:

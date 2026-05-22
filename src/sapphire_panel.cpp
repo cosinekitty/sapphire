@@ -581,6 +581,7 @@ namespace Sapphire
             {"spring_atten",           {  50.500,   82.500}},
             {"spring_cv",              {  50.500,   90.500}},
             {"spring_knob",            {  40.500,   86.500}},
+            {"vent_seal_label",        {  20.100,   16.000}},
             {"vortex_atten",           {  50.500,   19.500}},
             {"vortex_cv",              {  50.500,   27.500}},
             {"vortex_knob",            {  40.500,   23.500}},
