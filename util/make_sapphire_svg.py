@@ -1917,13 +1917,19 @@ def GenerateTubeUnitLabelLayer() -> int:
     return Save(panel, '../res/tubeunit_labels.svg')
 
 
-def GenerateTubeUnitVentLayer(name:str) -> int:
+def GenerateTubeUnitVentLayer(name:str, hilight:bool) -> int:
+    if hilight:
+        style = HILIGHT_LABEL_STYLE
+        suffix = 'hilight'
+    else:
+        style = CONTROL_LABEL_STYLE
+        suffix = 'normal'
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         ti = TextItem(name, font, CONTROL_LABEL_POINTS)
-    tp = ti.toPath(20.1, 16.0, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE)
+    tp = ti.toPath(20.1, 16.0, HorizontalAlignment.Center, VerticalAlignment.Middle, style)
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
     panel.append(tp)
-    return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
+    return Save(panel, '../res/tubeunit_{}_{}.svg'.format(name.lower(), suffix))
 
 
 def GenerateTubeUnitExportPanel(cdict:ControlDict, title:str, symbol:str) -> int:
@@ -1947,8 +1953,10 @@ def GenerateTubeUnit(cdict:ControlDict, title:str, symbol:str) -> int:
         if (
             GenerateTubeUnitAudioPathLayer() or
             GenerateTubeUnitLabelLayer() or
-            GenerateTubeUnitVentLayer('VENT') or
-            GenerateTubeUnitVentLayer('SEAL')
+            GenerateTubeUnitVentLayer('VENT', False) or
+            GenerateTubeUnitVentLayer('VENT', True ) or
+            GenerateTubeUnitVentLayer('SEAL', False) or
+            GenerateTubeUnitVentLayer('SEAL', True )
         ): return 1
 
     return 0
