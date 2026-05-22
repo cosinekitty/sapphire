@@ -2659,15 +2659,15 @@ namespace Sapphire
 
 Model* modelSapphireEmpathInput = createSapphireModel<Sapphire::Empath::InputStage::InputModule, Sapphire::Empath::InputStage::InputWidget>(
     "Empath",
-    Sapphire::ExpanderRole::Empath
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEmpathFilter = createSapphireModel<Sapphire::Empath::FilterStage::FilterModule, Sapphire::Empath::FilterStage::FilterWidget>(
     "EmpathFilter",
-    Sapphire::ExpanderRole::Empath
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEmpathOutput = createSapphireModel<Sapphire::Empath::OutputStage::OutputModule, Sapphire::Empath::OutputStage::OutputWidget>(
     "EmpathOutput",
-    Sapphire::ExpanderRole::Empath
+    Sapphire::ExpanderRole::None
 );

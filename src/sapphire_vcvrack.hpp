@@ -49,9 +49,7 @@ namespace Sapphire
         VectorSender    = 0x01,
         VectorReceiver  = 0x02,
         ChaosOpSender   = 0x04,     // Chaops
-        ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark
-        MultiTap        = 0x10,     // Echo, EchoTap, EchoOut
-        Empath          = 0x20,     // EmpathInput, EmpathFilter, EmpathOutput
+        ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark, Zoo
     };
 
     inline constexpr ExpanderRole Both(ExpanderRole a, ExpanderRole b)

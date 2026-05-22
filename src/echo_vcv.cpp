@@ -3361,15 +3361,15 @@ namespace Sapphire
 
 Model* modelSapphireEcho = createSapphireModel<Sapphire::MultiTap::Echo::EchoModule, Sapphire::MultiTap::Echo::EchoWidget>(
     "Echo",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEchoTap = createSapphireModel<Sapphire::MultiTap::EchoTap::EchoTapModule, Sapphire::MultiTap::EchoTap::EchoTapWidget>(
     "EchoTap",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEchoOut = createSapphireModel<Sapphire::MultiTap::EchoOut::EchoOutModule, Sapphire::MultiTap::EchoOut::EchoOutWidget>(
     "EchoOut",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );
