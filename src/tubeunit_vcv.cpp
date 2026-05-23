@@ -316,22 +316,20 @@ namespace Sapphire
         struct TubeUnitWidget : SapphireWidget
         {
             TubeUnitModule *tubeUnitModule;
-            SvgOverlay *ventLabel = nullptr;
-            SvgOverlay *sealLabel = nullptr;
-            SvgOverlay *audioEmphasis = nullptr;
+            Vec ventSealLabelPos;
+            bool hilightVentSealLabel{};
+            SvgOverlay *ventLabel{};
+            SvgOverlay *ventSelLabel{};
+            SvgOverlay *sealLabel{};
+            SvgOverlay *sealSelLabel{};
+            SvgOverlay *audioEmphasis{};
 
             explicit TubeUnitWidget(TubeUnitModule* module)
                 : SapphireWidget("tubeunit", asset::plugin(pluginInstance, "res/tubeunit.svg"))
                 , tubeUnitModule(module)
             {
                 setModule(module);
-
-                ventLabel = SvgOverlay::Load("res/tubeunit_vent.svg");
-                addChild(ventLabel);
-
-                sealLabel = SvgOverlay::Load("res/tubeunit_seal.svg");
-                addChild(sealLabel);
-                sealLabel->hide();
+                addVentSealLabels();
 
                 audioEmphasis = SvgOverlay::Load("res/tubeunit_audio_path.svg");
                 addChild(audioEmphasis);
@@ -401,6 +399,26 @@ namespace Sapphire
                 addInput(createInputCentered<SapphirePort>(mm2px(Vec(23.0, 114.5)), module, AUDIO_RIGHT_INPUT));
             }
 
+            void addVentSealLabels()
+            {
+                ventSealLabelPos = mm_to_px(FindComponent(modcode, "vent_seal_label"));
+
+                ventLabel = SvgOverlay::Load("res/tubeunit_vent_normal.svg");
+                addChild(ventLabel);
+
+                ventSelLabel = SvgOverlay::Load("res/tubeunit_vent_hilight.svg");
+                addChild(ventSelLabel);
+                ventSelLabel->hide();
+
+                sealLabel = SvgOverlay::Load("res/tubeunit_seal_normal.svg");
+                addChild(sealLabel);
+                sealLabel->hide();
+
+                sealSelLabel = SvgOverlay::Load("res/tubeunit_seal_hilight.svg");
+                addChild(sealSelLabel);
+                sealSelLabel->hide();
+            }
+
             void appendContextMenu(Menu* menu) override
             {
                 SapphireWidget::appendContextMenu(menu);
@@ -414,18 +432,41 @@ namespace Sapphire
                 }
             }
 
+            bool isInsideVentSealLabel(Vec pos) const
+            {
+                const float dx = pos.x - ventSealLabelPos.x;
+                const float dy = pos.y - ventSealLabelPos.y;
+                const float width  = mm2px(12.0);
+                const float height = mm2px(4.0);
+                return (std::abs(dx) < width/2) && (std::abs(dy) < height/2);
+            }
+
+            void onHover(const HoverEvent& e) override
+            {
+                SapphireWidget::onHover(e);
+                hilightVentSealLabel = isInsideVentSealLabel(e.pos);
+            }
+
+            void onLeave(const LeaveEvent& e) override
+            {
+                SapphireWidget::onLeave(e);
+                hilightVentSealLabel = false;
+            }
+
             void step() override
             {
                 if (tubeUnitModule)
                 {
                     // Toggle between showing "SEAL" or "VENT" depending on the toggle state.
+                    // Independently toggle between showing normal or hilighted versions of each.
                     bool showSeal = tubeUnitModule->isInvertedVentPort;
-                    if (sealLabel->isVisible() != showSeal)
-                    {
-                        sealLabel->setVisible(showSeal);
-                        ventLabel->setVisible(!showSeal);
-                        tubeUnitModule->configInput(QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
-                    }
+
+                    sealLabel->setVisible(showSeal && !hilightVentSealLabel);
+                    sealSelLabel->setVisible(showSeal && hilightVentSealLabel);
+                    ventLabel->setVisible(!showSeal && !hilightVentSealLabel);
+                    ventSelLabel->setVisible(!showSeal && hilightVentSealLabel);
+
+                    tubeUnitModule->configInput(QUIET_GATE_INPUT, showSeal ? "Seal gate" : "Vent gate");
 
                     // Update the visibility state of the emphasized border around certain pentagons,
                     // depending on whether anything is connected to the audio input jacks.
