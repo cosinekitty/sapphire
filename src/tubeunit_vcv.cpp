@@ -453,6 +453,22 @@ namespace Sapphire
                 hilightVentSealLabel = false;
             }
 
+            void onButton(const ButtonEvent& e) override
+            {
+                if (tubeUnitModule)
+                {
+                    if (e.button == GLFW_MOUSE_BUTTON_LEFT)
+                    {
+                        if (e.action == GLFW_PRESS)
+                        {
+                            if (isInsideVentSealLabel(e.pos))
+                                InvokeAction(new BoolToggleAction(tubeUnitModule->isInvertedVentPort, "VENT/SEAL"));
+                        }
+                    }
+                }
+                SapphireWidget::onButton(e);
+            }
+
             void step() override
             {
                 if (tubeUnitModule)
