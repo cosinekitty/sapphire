@@ -95,7 +95,7 @@ harder to stretch, resulting in faster piston vibrations.
 This gate also cuts off any input audio supplied through the ports at the bottom left.
 The vent opens when the voltage exceeds +1.0V and stays open until the voltage decreases below +0.1V.
 This is known as *Schmitt trigger* logic, and prevents unwanted oscillations in the vent control
-due to slight variations in the input voltage. The VENT can be [toggled to an opposite SEAL mode](#vent_seal_toggle) by clicking on the label.
+due to slight variations in the input voltage. The VENT can be [toggled to an opposite SEAL mode](#vent_seal_toggle) by clicking on the word VENT.
 * **L** and **R** audio inputs: Although Tube Unit is primarily designed for synthesizing sounds,
 it is also possible to inject external audio signals directly into the resonant tube. These signals
 are mixed with pressure signals caused by air escaping from the piston/valve assembly. Because
