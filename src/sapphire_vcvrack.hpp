@@ -289,6 +289,7 @@ namespace Sapphire
             bool freeze = false;
             unsigned memoryIndex = 0;       // 0..(MemoryCount-1)
             float morph = 0;
+            float cruise = 0;
         };
 
         struct Sender

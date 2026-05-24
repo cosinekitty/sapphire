@@ -19,6 +19,8 @@ namespace Sapphire
             MORPH_PARAM,
             MORPH_ATTEN,
             FREEZE_PORTMODE_BUTTON_PARAM,
+            CRUISE_PARAM,
+            CRUISE_ATTEN,
             PARAMS_LEN
         };
 
@@ -29,6 +31,7 @@ namespace Sapphire
             RECALL_TRIGGER_INPUT,
             FREEZE_INPUT,
             MORPH_CV_INPUT,
+            CRUISE_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -73,6 +76,9 @@ namespace Sapphire
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
+                configParam(CRUISE_PARAM, 0, 1, 0, "Cruise");
+                configAtten(CRUISE_ATTEN, "Cruise");
+                configInput(CRUISE_CV_INPUT, "Cruise CV");
                 freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
                 freezeToggleGroup.addPortMenuItems = false;
                 initialize();
@@ -133,6 +139,11 @@ namespace Sapphire
                 return getControlValue(MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
             }
 
+            float getCruise()
+            {
+                return getControlValue(CRUISE_PARAM, CRUISE_ATTEN, CRUISE_CV_INPUT);
+            }
+
             bool getStoreTrigger()
             {
                 bool isButtonDown = (params.at(STORE_BUTTON_PARAM).getValue() > 0);
@@ -185,6 +196,7 @@ namespace Sapphire
                     message.recall = getRecallTrigger();
                     message.freeze = frozen;
                     message.morph = getMorph();
+                    message.cruise = getCruise();
                     sender.send(message);
 
                     // HACK: "currentChannelCount" is really the displayed memory address.
@@ -264,6 +276,7 @@ namespace Sapphire
                     SCHEME_BLUE
                 );
                 addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
+                addSapphireFlatControlGroup("cruise", CRUISE_PARAM, CRUISE_ATTEN, CRUISE_CV_INPUT);
                 addSapphireChannelDisplay("memory_address_display");
             }
 

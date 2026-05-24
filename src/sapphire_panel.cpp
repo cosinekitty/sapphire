@@ -10,6 +10,9 @@ namespace Sapphire
     {
         { "chaops", {
             {"_panel",                 {  30.480,  128.500}},
+            {"cruise_atten",           {  15.240,   98.000}},
+            {"cruise_cv",              {   6.240,   98.000}},
+            {"cruise_knob",            {  24.240,   98.000}},
             {"freeze_button",          {  22.240,  115.000}},
             {"freeze_input",           {   8.240,  115.000}},
             {"freeze_portmode",        {  15.240,  115.000}},
@@ -17,9 +20,9 @@ namespace Sapphire
             {"memsel_atten",           {  15.240,   24.000}},
             {"memsel_cv",              {   6.240,   24.000}},
             {"memsel_knob",            {  24.240,   24.000}},
-            {"morph_atten",            {  15.240,   95.000}},
-            {"morph_cv",               {   6.240,   95.000}},
-            {"morph_knob",             {  24.240,   95.000}},
+            {"morph_atten",            {  15.240,   81.000}},
+            {"morph_cv",               {   6.240,   81.000}},
+            {"morph_knob",             {  24.240,   81.000}},
             {"recall_button",          {  23.240,   42.000}},
             {"recall_trigger",         {  23.240,   53.000}},
             {"store_button",           {   7.240,   42.000}},
