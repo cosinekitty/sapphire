@@ -295,10 +295,10 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool shouldUpdateCircuit = true;
-                float morph = 0;        // 0 = position, 1 = velocity
+                float morph = 0;    // 0 = position, 1 = velocity
+                float cruise = 0;   // 0 = raw speed, 1 = uniform speed
 
-                const Message* message = receiver.inboundMessage();
-                if (message)
+                if (const Message* message = receiver.inboundMessage())
                 {
                     if (message->freeze)
                         shouldUpdateCircuit = false;
@@ -316,8 +316,10 @@ namespace Sapphire
                     }
 
                     morph = message->morph;
+                    cruise = message->cruise;
                 }
 
+                circuit.setCruise(cruise);
                 circuit.updateParameters();
 
                 if (shouldUpdateCircuit)
@@ -339,10 +341,9 @@ namespace Sapphire
                     // Intentionally bypass short-circuit || operation.
                     // I want all one-shots to happen and reset at the same time.
                     // Otherwise we could up with 3 consecutive updates when only 1 is needed.
-                    // In C++, bool converts to int: false==0, true==1.
-                    int xShot = xTranslateQuantity->isChangedOneShot();
-                    int yShot = yTranslateQuantity->isChangedOneShot();
-                    int zShot = zTranslateQuantity->isChangedOneShot();
+                    unsigned xShot = xTranslateQuantity->isChangedOneShot();
+                    unsigned yShot = yTranslateQuantity->isChangedOneShot();
+                    unsigned zShot = zTranslateQuantity->isChangedOneShot();
                     if (xShot + yShot + zShot)
                     {
                         circuit.setTranslate(SlopeVector(
