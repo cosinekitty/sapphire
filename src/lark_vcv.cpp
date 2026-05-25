@@ -5,7 +5,15 @@
 
 namespace Sapphire
 {
-    using LarkModule = Sapphire::Chaos::ChaosModule<DequanLi>;
+    using LarkModuleBase = Sapphire::Chaos::ChaosModule<DequanLi>;
+    struct LarkModule : LarkModuleBase
+    {
+        explicit LarkModule()
+        {
+            circuit.cruisingSpeed = 100.0;
+        }
+    };
+
     using LarkWidgetBase = Sapphire::Chaos::ChaosWidget<LarkModule>;
     struct LarkWidget : LarkWidgetBase
     {
