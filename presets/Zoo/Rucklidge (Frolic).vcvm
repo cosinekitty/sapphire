@@ -4,6 +4,7 @@
   "version": "2.6.001",
   "data": {
     "chaosMode": 0,
+    "cruisingSpeed": 25.0,
     "compressorLimit": 0.0,
     "xVoltageScale": 0.4921259843,
     "yVoltageScale": 0.8980691513,
