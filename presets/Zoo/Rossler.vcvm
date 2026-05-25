@@ -1,7 +1,7 @@
 {
   "plugin": "CosineKitty-Sapphire",
   "model": "Zoo",
-  "version": "2.6.001",
+  "version": "2.6.005",
   "data": {
     "chaosMode": 0,
     "compressorLimit": 10.0,
