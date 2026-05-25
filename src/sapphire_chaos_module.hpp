@@ -203,6 +203,7 @@ namespace Sapphire
             {
                 json_t *root = SapphireModule::dataToJson();
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
+                jsonSetDouble(root, "cruisingSpeed", circuit.cruisingSpeed);
                 jsonSetBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
                 jsonSetDouble(root, "compressorLimit", compressorLimit);
                 jsonSetDouble(root, "xVoltageScale", xVoltageScale);
@@ -229,6 +230,7 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+                jsonLoadDouble(root, "cruisingSpeed", circuit.cruisingSpeed);
                 jsonLoadBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
                 jsonLoadDouble(root, "compressorLimit", compressorLimit);
                 jsonLoadDouble(root, "xVoltageScale", xVoltageScale);
