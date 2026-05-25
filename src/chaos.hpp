@@ -98,15 +98,12 @@ namespace Sapphire
     };
 
 
-    constexpr double CruiseSpeedVoltsPerSecond = 25;     // how fast any particle should move when cruise=1
-
-
     class ChaoticOscillator
     {
     protected:
         double knob = 0.0;
         int mode = 0;
-        double cruise = 0;      // 0 = original variable speed, 1 = uniform speed
+        double cruise = 0;           // 0 = original variable speed, 1 = uniform cruising speed.
 
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
@@ -114,11 +111,11 @@ namespace Sapphire
         {
             SlopeVector v = slopes(x, y, z);
             // When cruise=0, leave `v` alone.
-            // When cruise=1, use the fixed speed CruiseSpeedVoltsPerSecond.
+            // When cruise=1, use the fixed speed cruisingSpeed.
             // Interpolate between the endpoints for intermediate values of `cruise`.
             // In every case, leave the vector `v` pointing in the same direction.
             constexpr double c0 = 1;
-            const     double c1 = CruiseSpeedVoltsPerSecond / v.magnitude();
+            const     double c1 = cruisingSpeed / v.magnitude();
             const     double cruiseFactor = (1-cruise)*c0 + cruise*c1;
             return (speedFactor * cruiseFactor) * v;
         }
@@ -178,6 +175,8 @@ namespace Sapphire
             ChaoticOscillator_initialize();
         }
 
+        double cruisingSpeed = 25;   // how fast any particle should move when cruise = 1.
+
         virtual void initialize()
         {
             ChaoticOscillator_initialize();
@@ -193,6 +192,7 @@ namespace Sapphire
             dilate = 1;
             xTranslate = yTranslate = zTranslate = 0;
             cruise = 0;
+            // Do NOT initialze cruisingSpeed here; it is developer config, not user adjustment.
         }
 
         void setKnob(double k)
