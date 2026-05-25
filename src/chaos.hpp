@@ -114,9 +114,21 @@ namespace Sapphire
             // When cruise=1, use the fixed speed cruisingSpeed.
             // Interpolate between the endpoints for intermediate values of `cruise`.
             // In every case, leave the vector `v` pointing in the same direction.
-            constexpr double c0 = 1;
-            const     double c1 = cruisingSpeed / v.magnitude();
-            const     double cruiseFactor = (1-cruise)*c0 + cruise*c1;
+            const double speed = v.magnitude();
+            double cruiseFactor;
+            if (speed < 1.0e-6)
+            {
+                // This speed is so close to zero that we don't want to divide by it.
+                // It's also not too important to change it.
+                // Just leave it virtually stationary.
+                cruiseFactor = 1;
+            }
+            else
+            {
+                constexpr double c0 = 1;
+                const double c1 = cruisingSpeed / speed;
+                cruiseFactor = (1-cruise)*c0 + cruise*c1;
+            }
             return (speedFactor * cruiseFactor) * v;
         }
 
