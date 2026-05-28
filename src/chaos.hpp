@@ -13,7 +13,7 @@ namespace Sapphire
 {
     inline double SimulationTimeIncrement(double sampleRateHz, double speedKnob)
     {
-        return std::pow<double>(2.0, speedKnob) / sampleRateHz;
+        return std::exp2(speedKnob) / sampleRateHz;
     }
 
     const double CHAOS_AMPLITUDE = 5.0;  // the intended peak amplitude of output voltage

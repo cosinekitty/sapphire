@@ -44,8 +44,7 @@ namespace Sapphire
     template <typename value_t>
     inline value_t TwoToPower(value_t x)
     {
-        static constexpr value_t L = 0.6931471805599453;    // ln(2)
-        return std::exp(static_cast<value_t>(L*x));
+        return std::exp2(x);
     }
 
     template <typename value_t>
