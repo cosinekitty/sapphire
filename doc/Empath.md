@@ -5,6 +5,12 @@
 Empath is a customizable bandpass/notch/comb filter module that lets you build your own unique filter chain. It’s made up of three modules: the main Empath module, the Empath Filter expander, and the Empath Out expander. While the filter and output modules are technically expanders, they connect seamlessly—just place them to the right of the main module, and they’ll automatically integrate into the system.
 When you first add the Empath module from the module browser, a filter and output modules are added automatically, so you’re ready to start using the chain right away without having to manually build it.
 
+### Demo video
+
+Here is Omri Cohen's video about Sapphire Empath. It is a great way to get started quickly.
+
+[![Build custom filter chains with Empath in VCV Rack](https://img.youtube.com/vi/viRqS1wt7QY/0.jpg)](https://www.youtube.com/watch?v=viRqS1wt7QY)
+
 ---
 
 ## Empath Input module
