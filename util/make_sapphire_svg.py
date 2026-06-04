@@ -147,19 +147,25 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
     yMemoryDisplay = 33.0
     yMemoryButton  = 42.0
     yMemoryTriggerPorts = 53.0
-    yMorph = 95.0
+    yMorph = 81.0
     yFreezeButton = 115.0
+    yCruise = (yMorph + yFreezeButton) / 2
     yRecallLine = 59.0
-    yStoreLine  = 68.0
+    yStoreLine  = 66.0
     dyButtonText = 7.0
     dyGradient = dyButtonText + 4.0
     y1MemoryGradient = yMemorySelect - dyGradient
     y2MemoryGradient = yMemoryButton + dyGradient
+
+    # Stack the remaining graidents bottom-up.
     y1FreezeGradient = yFreezeButton - dyGradient
     y2FreezeGradient = panel.mmHeight - 4.0
+    y1CruiseGradient  = yCruise - dyGradient
+    y2CruiseGradient  = y1FreezeGradient - 1.0
     y1MorphGradient  = yMorph - dyGradient
-    y2MorphGradient  = y1FreezeGradient - 1.0
+    y2MorphGradient  = y1CruiseGradient - 1.0
 
+    # parameters for drawing curved artwork for store/recall.
     smallArcRadius  = 1.5
     mediumArcRadius = 2.5
     bigArcRadius    = 7.0
@@ -209,14 +215,16 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         AddGradient(y1MemoryGradient, y2MemoryGradient, SAPPHIRE_AZURE_COLOR,   SAPPHIRE_PANEL_COLOR, 'memory')
-        AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,    SAPPHIRE_PANEL_COLOR, 'freeze')
         AddGradient(y1MorphGradient,  y2MorphGradient,  SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'morph')
+        AddGradient(y1CruiseGradient, y2CruiseGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'cruise')
+        AddGradient(y1FreezeGradient, y2FreezeGradient, SAPPHIRE_TEAL_COLOR,    SAPPHIRE_PANEL_COLOR, 'freeze')
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(StoreLineArt())
         pl.append(RecallLineArt())
         pl.append(CenteredControlTextPath(font, 'MEMORY', xmid, yMemorySelect - dyButtonText))
         pl.append(CenteredControlTextPath(font, 'MORPH',  xmid, yMorph - dyButtonText))
+        pl.append(CenteredControlTextPath(font, 'CRUISE',  xmid, yCruise - dyButtonText))
         pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
         controls.append(Component('store_button',   xStore,  yMemoryButton))
@@ -226,6 +234,7 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
         controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
         AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, dyButtonText, 'freeze_toggle_group')
         AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
+        AddFlatControlGroup(pl, controls, xmid, yCruise, 'cruise')
     return Save(panel, svgFileName)
 
 
@@ -1015,22 +1024,36 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
     xmid = panel.mmWidth / 2
 
     yRow = FencePost(22.0, 114.0, 7)
-    yInPort  = yRow.value(0)
-    dyOutPort = 10.0
-    yOutLowPort  = yRow.value(5) - 3.0
-    yOutBandPort = yOutLowPort + 1*dyOutPort
-    yOutHighPort = yOutLowPort + 2*dyOutPort
+    yInputPort = yRow.value(0)
+    dyOutPort = 14.0
+    dxOutPort = 6.0
+
+    yOutLowPort   = yRow.value(5)
+    yOutBandPort  = yOutLowPort
+    yOutHighPort  = yOutLowPort + dyOutPort
+    yOutNotchPort = yOutLowPort + dyOutPort
+
+    x1 = xmid - dxOutPort
+    x2 = xmid + dxOutPort
+    xOutLowPort   = x1
+    xOutBandPort  = x2
+    xOutHighPort  = x1
+    xOutNotchPort = x2
+
+    xInputPort = x1
+    xCascadeKnob = x2
+    yCascadeKnob = yInputPort
+
     dyGrad = 6.0
     dyText = 6.5
-    dxOutPortText = 7.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
 
-        y1 = yInPort - 9.5
-        y2 = yInPort + dyGrad
+        y1 = yInputPort - 9.5
+        y2 = yInputPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_MAGENTA_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_in'))
         pl.append(ControlGroupArt(name, 'in_art', panel, y1, y2, 'gradient_in'))
 
@@ -1039,21 +1062,26 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
         defs.append(Gradient(y1, y2, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(name, 'controls_art', panel, y1, y2, 'gradient_controls'))
 
-        y1 = yOutLowPort - 6.0
-        y2 = yOutLowPort + dyGrad
+        y1 = yOutLowPort - 10.0
+        y2 = yOutHighPort + dyGrad
         defs.append(Gradient(y1, y2, SAPPHIRE_EGGPLANT_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_out'))
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
-        pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
+        pl.append(CenteredControlTextPath(font, 'IN', xInputPort, yInputPort-dyText))
+        controls.append(Component('audio_input', xInputPort, yInputPort ))
 
-        controls.append(Component('audio_input',  xmid, yInPort ))
-        controls.append(Component('audio_lp_output', xmid, yOutLowPort))
-        controls.append(Component('audio_bp_output', xmid, yOutBandPort))
-        controls.append(Component('audio_hp_output', xmid, yOutHighPort))
+        pl.append(CenteredControlTextPath(font, 'CASC', xCascadeKnob, yCascadeKnob-dyText))
+        controls.append(Component('cascade_knob', xCascadeKnob, yCascadeKnob))
 
-        pl.append(CenteredControlTextPath(font, 'LP', xmid - dxOutPortText, yOutLowPort))
-        pl.append(CenteredControlTextPath(font, 'BP', xmid - dxOutPortText, yOutBandPort))
-        pl.append(CenteredControlTextPath(font, 'HP', xmid - dxOutPortText, yOutHighPort))
+        controls.append(Component('audio_lp_output',    xOutLowPort,  yOutLowPort))
+        controls.append(Component('audio_bp_output',    xOutBandPort, yOutBandPort))
+        controls.append(Component('audio_hp_output',    xOutHighPort, yOutHighPort))
+        controls.append(Component('audio_notch_output', xOutNotchPort, yOutNotchPort))
+
+        pl.append(CenteredControlTextPath(font, 'LP', xOutLowPort  , yOutLowPort  - dyText))
+        pl.append(CenteredControlTextPath(font, 'BP', xOutBandPort , yOutBandPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'HP', xOutHighPort , yOutHighPort - dyText))
+        pl.append(CenteredControlTextPath(font, 'N',  xOutNotchPort, yOutHighPort - dyText))
 
         row = 1
         for (symbol, label) in table:
@@ -1640,6 +1668,12 @@ def GenerateElastikaPanel(cdict:ControlDict, target:Target) -> int:
 
     return Save(panel, svgFileName)
 
+#---------------------------------------------------------------------------------------------
+
+TUBE_UNIT_PANEL_WIDTH = 12
+TUBE_UNIT_VENT_SEAL_X = 20.1
+TUBE_UNIT_VENT_SEAL_Y = 16.0
+
 
 def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
     if target == Target.VcvRack:
@@ -1699,6 +1733,7 @@ def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
         AddTubeUnitControl(controls, target, pl, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
         controls.append(Component('audio_input_left',   9.0, 114.5))
         controls.append(Component('audio_input_right', 23.0, 114.5))
+        controls.append(Component('vent_seal_label', TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y))
     elif target == Target.Lite:
         AddTubeUnitControl(controls, target, pl, 'mix_knob', 1, 4)
     else:
@@ -1713,8 +1748,6 @@ def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
     AddTubeUnitGroup(controls, target, pl, 'root',    0, 3)
     AddTubeUnitGroup(controls, target, pl, 'spring',  1, 3)
     return 0
-
-TUBE_UNIT_PANEL_WIDTH = 12
 
 
 def TubeUnitPentagonOrigin(x:float, y:float) -> Tuple[float,float]:
@@ -1898,13 +1931,19 @@ def GenerateTubeUnitLabelLayer() -> int:
     return Save(panel, '../res/tubeunit_labels.svg')
 
 
-def GenerateTubeUnitVentLayer(name:str) -> int:
+def GenerateTubeUnitVentLayer(name:str, hilight:bool) -> int:
+    if hilight:
+        style = HILIGHT_LABEL_STYLE
+        suffix = 'hilight'
+    else:
+        style = CONTROL_LABEL_STYLE
+        suffix = 'normal'
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         ti = TextItem(name, font, CONTROL_LABEL_POINTS)
-    tp = ti.toPath(20.1, 16.0, HorizontalAlignment.Center, VerticalAlignment.Middle, CONTROL_LABEL_STYLE)
+    tp = ti.toPath(TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y, HorizontalAlignment.Center, VerticalAlignment.Middle, style)
     panel = Panel(TUBE_UNIT_PANEL_WIDTH)
     panel.append(tp)
-    return Save(panel, '../res/tubeunit_{}.svg'.format(name.lower()))
+    return Save(panel, '../res/tubeunit_{}_{}.svg'.format(name.lower(), suffix))
 
 
 def GenerateTubeUnitExportPanel(cdict:ControlDict, title:str, symbol:str) -> int:
@@ -1919,20 +1958,16 @@ def GenerateTubeUnitExportPanel(cdict:ControlDict, title:str, symbol:str) -> int
 
 
 def GenerateTubeUnit(cdict:ControlDict, title:str, symbol:str) -> int:
-    if (
+    return (
         GenerateTubeUnitMainPanel(cdict, title, symbol) or
-        GenerateTubeUnitExportPanel(cdict, title, symbol)
-    ): return 1
-
-    if title == 'tube unit':
-        if (
-            GenerateTubeUnitAudioPathLayer() or
-            GenerateTubeUnitLabelLayer() or
-            GenerateTubeUnitVentLayer('VENT') or
-            GenerateTubeUnitVentLayer('SEAL')
-        ): return 1
-
-    return 0
+        GenerateTubeUnitExportPanel(cdict, title, symbol) or
+        GenerateTubeUnitAudioPathLayer() or
+        GenerateTubeUnitLabelLayer() or
+        GenerateTubeUnitVentLayer('VENT', False) or
+        GenerateTubeUnitVentLayer('VENT', True ) or
+        GenerateTubeUnitVentLayer('SEAL', False) or
+        GenerateTubeUnitVentLayer('SEAL', True )
+    )
 
 
 def GenerateEnvPitchPanel(cdict:ControlDict, target:Target) -> int:
@@ -2186,6 +2221,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
     dyClockButtons = 2.5
     yClockButton    = yClockControls - dyClockButtons
     yIntervalButton = yClockControls + dyClockButtons
+    yFaderButton    = yClockControls - dyClockButtons
 
     # Button to insert a new tap in the chain.
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
@@ -2201,7 +2237,8 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
     xSendReturnButton = (xSendPorts + xReturnPorts)/2
     ySendReturnButton = MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2
     xClockInput = xGlobalCenter
-    xClockButtons = xClockInput + 10.0
+    xClockButtonsLeft = xClockInput - 10.0
+    xClockButtonsRight = xClockInput + 10.0
     yInitChainButton = MULTIMAP_ENV_PORTS_Y1 - 3.0
     yBottomButtons = panel.mmHeight - 5.0
     xInputPorts = xGlobalCenter - 4.0
@@ -2242,8 +2279,9 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
 
         controls.append(Component('insert_button', xInsertButton, yInsertButton))
         controls.append(Component('clock_input', xClockInput, yClockControls))
-        controls.append(Component('clock_button', xClockButtons, yClockButton))
-        controls.append(Component('interval_button', xClockButtons, yIntervalButton))
+        controls.append(Component('fader_button', xClockButtonsLeft, yFaderButton))
+        controls.append(Component('clock_button', xClockButtonsRight, yClockButton))
+        controls.append(Component('interval_button', xClockButtonsRight, yIntervalButton))
 
         yClockLabel = yClockControls - 7.0
         if (
@@ -2449,6 +2487,7 @@ def GenerateTinyButton(name:str, step:int, fillColor1:str, fillColor2:str, strok
     return Save(panel, svgFileName)
 
 def GenerateTinyButtonImages() -> int:
+    # xyellow = yellow with 0,1 swapped
     return (
         GenerateLeftExtenderButton() or
         GenerateRightExtenderButton() or
@@ -2510,6 +2549,8 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     yChaosRandomizeButton = yChaosBoxTop + buttonInset
     xChaosFreezeButton = xChaosBoxRight - buttonInset
     yChaosFreezeButton = yChaosBoxBottom - buttonInset
+    xChaosDisplayButton = xChaosBoxLeft + buttonInset
+    yChaosDisplayButton = yChaosBoxBottom - buttonInset
     xSpectrumButton = xInsertButton
     ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
     xInputGainControl = panel.mmWidth - xInputPorts
@@ -2572,6 +2613,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
         controls.append(Component('chaos_random_button', xChaosRandomizeButton, yChaosRandomizeButton))
         controls.append(Component('chaos_freeze_button', xChaosFreezeButton, yChaosFreezeButton))
+        controls.append(Component('chaos_display_button', xChaosDisplayButton, yChaosDisplayButton))
     return Save(panel, svgFileName)
 
 
@@ -2716,6 +2758,8 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
     ySpectrumVerScaleButton = EMPATH_SPECTRUM_BOX_YC
     yMix = 35.0
     yLevel = 65.0
+    xAddEmpathButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
+    yAddEmpathButton = MULTITAP_INSERT_BUTTON_Y1
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_OUTPUT_HP_WIDTH))
@@ -2724,6 +2768,7 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yMix)
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yLevel)
         controls.append(Component('spectrum_vertical_scale', xSpectrumVerScaleButton, ySpectrumVerScaleButton))
+        controls.append(Component('insert_empath_button', xAddEmpathButton, yAddEmpathButton))
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 

@@ -12,6 +12,8 @@ namespace Sapphire
     struct SapphireModule;
     struct SapphireWidget;
 
+    NVGcolor VoltageColor(float voltage);
+
     inline void InvokeAction(history::Action* action)
     {
         if (action)
@@ -47,9 +49,7 @@ namespace Sapphire
         VectorSender    = 0x01,
         VectorReceiver  = 0x02,
         ChaosOpSender   = 0x04,     // Chaops
-        ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark
-        MultiTap        = 0x10,     // Echo, EchoTap, EchoOut
-        Empath          = 0x20,     // EmpathInput, EmpathFilter, EmpathOutput
+        ChaosOpReceiver = 0x08,     // Frolic, Glee, Lark, Zoo
     };
 
     inline constexpr ExpanderRole Both(ExpanderRole a, ExpanderRole b)
@@ -289,6 +289,7 @@ namespace Sapphire
             bool freeze = false;
             unsigned memoryIndex = 0;       // 0..(MemoryCount-1)
             float morph = 0;
+            float cruise = 0;
         };
 
         struct Sender
@@ -714,55 +715,50 @@ namespace Sapphire
         float prevVoltage{};
         bool gate{};
         bool trigger{};
+        bool fallingEdge{};
 
     public:
         bool isGateActive() const { return gate; }
         bool isTriggerActive() const { return trigger; }
+        bool isFallingEdge() const { return fallingEdge; }
 
         void initialize()
         {
             prevVoltage = 0;
             gate = false;
             trigger = false;
+            fallingEdge = false;
         }
 
         void update(float voltage)
         {
             trigger = false;
-            if (prevVoltage < 1.0f && voltage >= 1.0f)
+            fallingEdge = false;
+
+            if (prevVoltage < 1 && voltage >= 1)
             {
                 trigger = !gate;
                 gate = true;
             }
-            else if (prevVoltage >= 0.1f && voltage < 0.1f)
+            else if (prevVoltage >= 0.1 && voltage < 0.1)
             {
+                fallingEdge = gate;
                 gate = false;
             }
+
             prevVoltage = voltage;
-        }
-
-        bool updateGate(float voltage)
-        {
-            update(voltage);
-            return gate;
-        }
-
-        bool updateTrigger(float voltage)
-        {
-            update(voltage);
-            return trigger;
         }
     };
 
 
-    constexpr float FlashDurationSeconds = 0.05;
+    constexpr double FlashDurationSeconds = 0.05;
 
 
     class AnimatedTriggerReceiver
     {
     private:
         GateTriggerReceiver tr;
-        float flashSecondsRemaining = 0;
+        double flashSecondsRemaining = 0;
 
     public:
         void initialize()
@@ -771,16 +767,23 @@ namespace Sapphire
             flashSecondsRemaining = 0;
         }
 
-        bool updateTrigger(float voltage, float sampleRateHz)
+        bool isTriggerActive() const
         {
-            bool trigger = tr.updateTrigger(voltage);
+            return tr.isTriggerActive();
+        }
 
-            if (trigger)
+        bool isFallingEdge() const
+        {
+            return tr.isFallingEdge();
+        }
+
+        void update(float voltage, double sampleRateHz)
+        {
+            tr.update(voltage);
+            if (tr.isTriggerActive())
                 flashSecondsRemaining = FlashDurationSeconds;
             else if (flashSecondsRemaining > 0)
-                flashSecondsRemaining = std::max<float>(0, flashSecondsRemaining - 1/sampleRateHz);
-
-            return trigger;
+                flashSecondsRemaining = std::max<double>(0, flashSecondsRemaining - 1/sampleRateHz);
         }
 
         bool lit() const
@@ -793,8 +796,7 @@ namespace Sapphire
     class TriggerSender
     {
     private:
-        const float duration = 0.001f;  // a trigger should last at least one millisecond
-        float elapsed = 0;
+        double elapsed = 0;
         bool isFiring = false;
 
     public:
@@ -804,7 +806,7 @@ namespace Sapphire
             isFiring = false;
         }
 
-        float process(float dt, bool fire)
+        float process(double sampleRateHz, bool fire)
         {
             if (fire)
             {
@@ -813,12 +815,12 @@ namespace Sapphire
             }
             if (isFiring)
             {
-                if (elapsed >= duration)
+                if (elapsed >= 0.001)   // hold the gate high for at least 1 millisecond.
                     isFiring = false;
-                elapsed += dt;
-                return 10;
+                elapsed += 1/sampleRateHz;
+                return 10;  // high gate voltage
             }
-            return 0;
+            return 0;   // low gate voltage
         }
     };
 
@@ -1131,6 +1133,19 @@ namespace Sapphire
             return cvGetControlValue(ids.paramId, ids.attenId, cv, minValue, maxValue);
         }
 
+        void reportChaosMono(int attenId, float chaos)
+        {
+            SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+            context.chaosVoltage[0] = context.chaosVoltage[1] = chaos;
+        }
+
+        void reportChaosStereo(int attenId, float stereoCrossfade, float chaosLeft, float chaosRight)
+        {
+            SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+            context.chaosVoltage[0] = chaosLeft;
+            context.chaosVoltage[1] = LinearMix(stereoCrossfade, chaosLeft, chaosRight);
+        }
+
         float getControlValue(int paramId, int attenId, int inputId, float minValue = 0, float maxValue = 1)
         {
             float cv = inputs.at(inputId).getVoltageSum();
@@ -1160,11 +1175,19 @@ namespace Sapphire
             return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
-        void defineAttenuverterId(int attenId)
+        void defineAttenuverterId(int attenId, int cvInputId)
         {
             // We need to know which parameter IDs are actually for attenuverter knobs.
             // This is a hook for passing in that information.
-            paramInfo.at(attenId).isAttenuverter = true;
+            SapphireParamInfo& info = paramInfo.at(attenId);
+            info.isAttenuverter = true;
+            info.context.inputPortId = cvInputId;
+        }
+
+        void attenuverterChaosOptIn(int attenId)
+        {
+            SapphireParamInfo& info = paramInfo.at(attenId);
+            info.context.supportsChaos = true;
         }
 
         bool isAttenuverter(int paramId) const
@@ -1761,7 +1784,7 @@ namespace Sapphire
             agcLevelQuantity->disableMin = disableMin;
         }
 
-        bool updateTriggerGroup(
+        void updateTriggerGroup(
             float sampleRateHz,
             AnimatedTriggerReceiver& receiver,
             int inputId,
@@ -1777,9 +1800,8 @@ namespace Sapphire
             if (button.getValue() > 0)
                 inputVoltage = 10;
 
-            bool trigger = receiver.updateTrigger(inputVoltage, sampleRateHz);
+            receiver.update(inputVoltage, sampleRateHz);
             setLightBrightness(buttonLightId, receiver.lit());
-            return trigger;
         }
 
         void setLightBrightness(int lightId, bool lit)
@@ -1792,21 +1814,24 @@ namespace Sapphire
         {
             if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
-                    qty->name = text;
+                    if (qty->name != text)
+                        qty->name = text;
         }
 
         void updateToggleButtonTooltip(int paramId, const char* offText, const char *onText)
         {
             if (IsSafeAccess(params, paramId))
                 if (ParamQuantity* qty = getParamQuantity(paramId))
-                    qty->name = (qty->getValue() < 0.5f) ? offText : onText;
+                    if (const char *text = (qty->getValue() < 0.5f) ? offText : onText; strcmp(text, qty->name.c_str()))
+                        qty->name = text;
         }
 
         void updateInputTooltip(int inputId, const std::string& text)
         {
             if (IsSafeAccess(inputInfos, inputId))
                 if (PortInfo* info = inputInfos.at(inputId))
-                    info->name = text;
+                    if (info->name != text)
+                        info->name = text;
         }
 
         float readSample(float normal, Input& inLeft, Input& inRight, int c)
@@ -1883,6 +1908,11 @@ namespace Sapphire
                 }
             }
         }
+
+        virtual bool shouldDisplayChaosVoltages()
+        {
+            return false;
+        }
     };
 
 
@@ -1910,6 +1940,7 @@ namespace Sapphire
 
     public:
         ToggleGroupMode mode = ToggleGroupMode::Default;
+        bool addPortMenuItems = true;
 
         ToggleGroup()
         {
@@ -1993,17 +2024,20 @@ namespace Sapphire
 
         void addMenuItems(Menu* menu)
         {
-            menu->addChild(createIndexSubmenuItem(
-                menuName + " input port mode",
-                { "Gate", "Trigger" },
-                [=]() { return static_cast<std::size_t>(mode); },
-                [=](size_t value)
-                {
-                    const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
-                    if (newMode != mode)
-                        InvokeAction(new ChangeEnumAction<ToggleGroupMode>(mode, newMode, "toggle gate/port input mode"));
-                }
-            ));
+            if (addPortMenuItems)
+            {
+                menu->addChild(createIndexSubmenuItem(
+                    menuName + " input port mode",
+                    { "Gate", "Trigger" },
+                    [=]() { return static_cast<std::size_t>(mode); },
+                    [=](size_t value)
+                    {
+                        const ToggleGroupMode newMode = static_cast<ToggleGroupMode>(value);
+                        if (newMode != mode)
+                            InvokeAction(new ChangeEnumAction<ToggleGroupMode>(mode, newMode, "toggle gate/port input mode"));
+                    }
+                ));
+            }
         }
     };
 

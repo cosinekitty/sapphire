@@ -203,6 +203,7 @@ namespace Sapphire
             {
                 json_t *root = SapphireModule::dataToJson();
                 json_object_set_new(root, "chaosMode", json_integer(circuit.getMode()));
+                jsonSetDouble(root, "cruisingSpeed", circuit.cruisingSpeed);
                 jsonSetBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
                 jsonSetDouble(root, "compressorLimit", compressorLimit);
                 jsonSetDouble(root, "xVoltageScale", xVoltageScale);
@@ -229,6 +230,7 @@ namespace Sapphire
             void dataFromJson(json_t* root) override
             {
                 SapphireModule::dataFromJson(root);
+                jsonLoadDouble(root, "cruisingSpeed", circuit.cruisingSpeed);
                 jsonLoadBool(root, "flashPanelOnOverflow", flashPanelOnOverflow);
                 jsonLoadDouble(root, "compressorLimit", compressorLimit);
                 jsonLoadDouble(root, "xVoltageScale", xVoltageScale);
@@ -295,10 +297,10 @@ namespace Sapphire
                 using namespace Sapphire::ChaosOperators;
 
                 bool shouldUpdateCircuit = true;
-                float morph = 0;        // 0 = position, 1 = velocity
+                float morph = 0;    // 0 = position, 1 = velocity
+                float cruise = 0;   // 0 = raw speed, 1 = uniform speed
 
-                const Message* message = receiver.inboundMessage();
-                if (message)
+                if (const Message* message = receiver.inboundMessage())
                 {
                     if (message->freeze)
                         shouldUpdateCircuit = false;
@@ -316,8 +318,10 @@ namespace Sapphire
                     }
 
                     morph = message->morph;
+                    cruise = message->cruise;
                 }
 
+                circuit.setCruise(cruise);
                 circuit.updateParameters();
 
                 if (shouldUpdateCircuit)
@@ -339,10 +343,9 @@ namespace Sapphire
                     // Intentionally bypass short-circuit || operation.
                     // I want all one-shots to happen and reset at the same time.
                     // Otherwise we could up with 3 consecutive updates when only 1 is needed.
-                    // In C++, bool converts to int: false==0, true==1.
-                    int xShot = xTranslateQuantity->isChangedOneShot();
-                    int yShot = yTranslateQuantity->isChangedOneShot();
-                    int zShot = zTranslateQuantity->isChangedOneShot();
+                    unsigned xShot = xTranslateQuantity->isChangedOneShot();
+                    unsigned yShot = yTranslateQuantity->isChangedOneShot();
+                    unsigned zShot = zTranslateQuantity->isChangedOneShot();
                     if (xShot + yShot + zShot)
                     {
                         circuit.setTranslate(SlopeVector(
@@ -648,11 +651,10 @@ namespace Sapphire
                 // The attenuverter setting comes from CV of 5 volts swinging the speed by 14 octaves
                 // if the attenuverter were set to 100%. We want to bring the ratio down
                 // to 1 volt per octave by setting the attenuverter knob to the correct percentage.
-                addSnapVoctAttenuverter(SPEED_ATTEN, "speed_atten", 5.0f / (2*ChaosOctaveRange), DX_SATELLITE_B, DY_SATELLITE_B);
-
-                addSapphireAttenuverter(CHAOS_ATTEN, "chaos_atten", DX_SATELLITE_B, DY_SATELLITE_B);
                 addSapphireInput(SPEED_CV_INPUT, "speed_cv");
                 addSapphireInput(CHAOS_CV_INPUT, "chaos_cv");
+                addSnapVoctAttenuverter(SPEED_ATTEN, SPEED_CV_INPUT, "speed_atten", 5.0f / (2*ChaosOctaveRange), DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(CHAOS_ATTEN, CHAOS_CV_INPUT, "chaos_atten", DX_SATELLITE_B, DY_SATELLITE_B);
                 addInsertTricorderButton(ADD_TRICORDER_BUTTON_PARAM);
                 addInsertChaopsButton();
             }

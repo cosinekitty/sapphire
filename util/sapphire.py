@@ -234,6 +234,7 @@ def AddToggleGroup(
     pl.append(HorizontalLine(x1, x2, yControl, prefix + '_line_art'))
     controls.append(Component(prefix + '_input',  x1, yControl))
     controls.append(Component(prefix + '_button', x2, yControl))
+    controls.append(Component(prefix + '_portmode', (x1+x2)/2, yControl))
     return group
 
 

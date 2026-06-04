@@ -5,7 +5,15 @@
 
 namespace Sapphire
 {
-    using GleeModule = Sapphire::Chaos::ChaosModule<Aizawa>;
+    using GleeModuleBase = Sapphire::Chaos::ChaosModule<Aizawa>;
+    struct GleeModule : GleeModuleBase
+    {
+        explicit GleeModule()
+        {
+            circuit.cruisingSpeed = 1.8;        // must keep in sync with 'presets/Zoo/Aizawa (Glee).vcvm'
+        }
+    };
+
     using GleeWidgetBase = Sapphire::Chaos::ChaosWidget<GleeModule>;
     struct GleeWidget : GleeWidgetBase
     {

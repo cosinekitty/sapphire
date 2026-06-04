@@ -5,7 +5,15 @@
 
 namespace Sapphire
 {
-    using FrolicModule = Sapphire::Chaos::ChaosModule<Rucklidge>;
+    using FrolicModuleBase = Sapphire::Chaos::ChaosModule<Rucklidge>;
+    struct FrolicModule : FrolicModuleBase
+    {
+        explicit FrolicModule()
+        {
+            circuit.cruisingSpeed = 25.0;
+        }
+    };
+
     using FrolicWidgetBase = Sapphire::Chaos::ChaosWidget<FrolicModule>;
     struct FrolicWidget : FrolicWidgetBase
     {

@@ -14,6 +14,40 @@ namespace Sapphire
         }
 
 
+        struct DurationSlider : Slider
+        {
+            explicit DurationSlider(SapphireQuantity* _quantity)
+            {
+                quantity = _quantity;
+                box.size.x = 200;
+            }
+        };
+
+
+        struct DurationQuantity : SapphireQuantity
+        {
+            void setDisplayValue(float displayValue) override
+            {
+                float v = std::log10(displayValue);
+                setValue(v);
+            }
+
+            float getDisplayValue() override
+            {
+                // The quantity's raw range is x = [-1, +1].
+                // The represented time in seconds is 10^x.
+                const float v = getValue();
+                return TenToPower<float>(v);
+            }
+
+            std::string getDisplayValueString() override
+            {
+                float timeInSeconds = getDisplayValue();
+                return rack::string::f("%0.3f seconds", timeInSeconds);
+            }
+        };
+
+
         struct TimeKnobInfo
         {
             TimeMode timeMode = TimeMode::Default;
@@ -212,6 +246,15 @@ namespace Sapphire
             explicit IntervalButton()
             {
                 addTinyButtonFrames(this, "yellow");
+            }
+        };
+
+
+        struct FaderButton : SapphireTinyToggleButton
+        {
+            explicit FaderButton()
+            {
+                addTinyButtonFrames(this, "red");
             }
         };
 
@@ -688,7 +731,10 @@ namespace Sapphire
             ChannelInfo info[PORT_MAX_CHANNELS];
             PolyControls controls;
             TapInputRouting receivedInputRouting{};
+            bool clearRequested{};
             Smoother clearSmoother;
+            unsigned recordSilenceCountdown = 0;    // anti-sliding phase 1: after reset/CLR, how many frames to record silence.
+            Crossfader recordingFader;              // anti-sliding phase 2: fade in audio from front = 0 (silence) to back = 1 (full volume).
             ReverseComboSmoother reverseComboSmoother;
             bool flip{};
             bool controlsAreReady = false;      // prevents accessing invalid memory for uninitialized controls
@@ -734,6 +780,9 @@ namespace Sapphire
                     info[c].initialize();
                 recordingLevelOverflow = false;
                 clearSmoother.initialize();
+                clearRequested = true;
+                recordingFader.snapToBack();        // front=0 (silence), back=1 (normal recording level)
+                recordSilenceCountdown = 0;
                 sendReturnLocationSmoother.initialize();
                 flip = false;
                 muteFader.snapToFront();
@@ -921,6 +970,36 @@ namespace Sapphire
                 const bool loopback = isFirstTap && backMessage.valid && !parallelMode;
                 const bool clocked = isActivelyClocked();
 
+                // After clearing, the tape motor is likely to change speed rapidly due to incoming clock/rate signals.
+                // This can cause audio recorded to the tape to be later played back at a different tape speed,
+                // causing unwanted pitch shift effects.
+                // The fader option allows the user to reduce unwanted pitch shift by
+                // silencing the audio written to the tape loop for a configurable amount of time,
+                // followed by ramping the gain from 0 to 1 over another configurable amount of time.
+                float fade = 1;
+                if (message.fader.enabled)
+                {
+                    if (clearSmoother.isDelayedActionReady())
+                        recordSilenceCountdown = static_cast<unsigned>(message.fader.silenceSeconds * sampleRateHz);
+
+                    if (recordSilenceCountdown > 0)
+                    {
+                        fade = 0;
+                        if (--recordSilenceCountdown == 0)
+                        {
+                            // We ran out of silent time (phase 1).
+                            // Begin phase 2: ramp up from 0 to 1 over a configurable amount of time.
+                            recordingFader.setCrossfadeDuration(message.fader.rampSeconds);
+                            recordingFader.snapToFront();       // start at front = 0 = silence.
+                            recordingFader.setTarget(true);     // head toward back = 1 = normal volume.
+                        }
+                    }
+                    else
+                    {
+                        fade = recordingFader.process(sampleRateHz, 0, 1);
+                    }
+                }
+
                 float feedbackSample = 0;
                 int numDeadClocks = 0;
                 int numReceivingTriggers = 0;
@@ -943,7 +1022,8 @@ namespace Sapphire
                         if (clockSignalFormat == ClockSignalFormat::Pulses)
                         {
                             float elapsedSeconds = q.samplesSinceClockTrigger / sampleRateHz;
-                            if (q.clockReceiver.updateTrigger(vClock))
+                            q.clockReceiver.update(vClock);
+                            if (q.clockReceiver.isTriggerActive())
                             {
                                 q.samplesSinceClockTrigger = 0;
                                 if (!q.isReceivingTriggers)
@@ -951,7 +1031,7 @@ namespace Sapphire
                                 else if (elapsedSeconds > TAPELOOP_MAX_DELAY_SECONDS)
                                     q.isReceivingTriggers = false;
                                 else
-                                    q.clockSyncTime = std::clamp(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
+                                    q.clockSyncTime = std::clamp<float>(elapsedSeconds, TAPELOOP_MIN_DELAY_SECONDS, TAPELOOP_MAX_DELAY_SECONDS);
                             }
                             else
                             {
@@ -990,12 +1070,18 @@ namespace Sapphire
                     q.loop.setSlewRate(message.tapeSlewRate);
                     q.loop.setDelayTime(delayTime, sampleRateHz);
                     q.loop.setInterpolatorKind(message.interpolatorKind);
+
                     if (clearSmoother.isDelayedActionReady())
                     {
+                        // clearSmoother just told us this is the right time to
+                        // perform any discontinuous operation that would ordinarily
+                        // cause a click/pop in the output audio.
+                        // In our case, we are clearing out the tape loops.
                         q.loop.clear();
                         if (graph)
                             graph->initialize();
                     }
+
                     float forward = q.loop.readForward() * clearSmoother.getGain();
                     float reverse = 0;
                     if (reverseComboSmoother.isReverseNeeded())
@@ -1050,7 +1136,7 @@ namespace Sapphire
                     }
                     delayLineInput = smooth * LinearMix(message.freezeMix, delayLineInput, forward);
 
-                    if (!q.loop.write(delayLineInput, clearSmoother.getGain()))
+                    if (!q.loop.write(delayLineInput, fade * clearSmoother.getGain()))
                         ++unhappyCount;
                 }
 
@@ -1330,6 +1416,7 @@ namespace Sapphire
                     inputId,
                     buttonParamId,
                     buttonLightId,
+                    -1,     // no port mode button
                     '\0',
                     7.0,
                     SCHEME_PURPLE
@@ -1400,9 +1487,9 @@ namespace Sapphire
 
                 // Create the expander module.
                 bool clone = !IsShiftKeyPressed();
-                if (auto em = dynamic_cast<LoopModule*>(AddExpander(model, this, ExpanderDirection::Right, clone)))
+                if (LoopModule* lmod = AddExpanderModule<LoopModule>(model, this, ExpanderDirection::Right, clone))
                     if (IsControlKeyPressed())
-                        em->silentLevelHook();
+                        lmod->silentLevelHook();
             }
 
             void removeExpander()
@@ -1885,6 +1972,8 @@ namespace Sapphire
 
         namespace Echo
         {
+            constexpr float FaderParamDefault = 0;  // disabled by default, for backward compatibility
+
             enum ParamId
             {
                 INSERT_BUTTON_PARAM,
@@ -1912,6 +2001,9 @@ namespace Sapphire
                 TAPE_SLEW_PARAM,
                 INPUT_GAIN_PARAM,
                 INPUT_GAIN_ATTEN,
+                FADER_BUTTON_PARAM,
+                SILENT_TIME_PARAM,
+                RAMP_TIME_PARAM,
                 PARAMS_LEN
             };
 
@@ -1957,6 +2049,7 @@ namespace Sapphire
                     {}
             };
 
+
             struct EchoModule : LoopModule
             {
                 // Global controls
@@ -1968,6 +2061,8 @@ namespace Sapphire
                 PortLabelMode inputLabels{};
                 bool autoCreateOutputModule = true;
                 SapphireQuantity* tapeSlewQuantity{};
+                DurationQuantity* silentTimeQuantity{};
+                DurationQuantity* rampTimeQuantity{};
 
                 using dc_reject_t = StagedFilter<float, 3>;
                 dc_reject_t inputFilter[PORT_MAX_CHANNELS];
@@ -1994,6 +2089,7 @@ namespace Sapphire
                     configInput(CLOCK_INPUT, "Clock");
                     configButton(CLOCK_BUTTON_PARAM, "Toggle all clock sync");
                     configButton(INTERVAL_BUTTON_PARAM, "Snap to musical intervals");
+                    configButton(FADER_BUTTON_PARAM);           // tooltip changed dynamically
                     configButton(SEND_RETURN_BUTTON_PARAM);     // tooltip changed dynamically
                     configButton(INIT_CHAIN_BUTTON_PARAM, "Initialize entire chain");
                     configButton(INIT_TAP_BUTTON_PARAM, "Initialize this tap only");
@@ -2003,6 +2099,8 @@ namespace Sapphire
                     configParam(ENV_GAIN_PARAM, 0, 2, 1, "Envelope follower gain", " dB", -10, 20*4);
                     addDcRejectQuantity(DC_REJECT_PARAM, 20);
                     addTapeSpeedQuantity();
+                    addSilentTimeQuantity();
+                    addRampTimeQuantity();
                     EchoModule_initialize();
                     controlsAreReady = true;
                 }
@@ -2016,7 +2114,39 @@ namespace Sapphire
                     clearReceiver.initialize();
                     freezeFader.snapToFront();      // front=false=0, back=true=1
                     tapeSlewQuantity->initialize();
+                    silentTimeQuantity->initialize();
+                    rampTimeQuantity->initialize();
                 }
+
+                void addSilentTimeQuantity()
+                {
+                    silentTimeQuantity = configParam<DurationQuantity>(
+                        SILENT_TIME_PARAM,
+                        -1,
+                        +1,
+                        0,
+                        "Post-reset silence time"
+                    );
+
+                    silentTimeQuantity->value = 0;
+                    silentTimeQuantity->changed = true;
+                }
+
+
+                void addRampTimeQuantity()
+                {
+                    rampTimeQuantity = configParam<DurationQuantity>(
+                        RAMP_TIME_PARAM,
+                        -1,
+                        +1,
+                        0,
+                        "Post-reset ramp time"
+                    );
+
+                    rampTimeQuantity->value = 0;
+                    rampTimeQuantity->changed = true;
+                }
+
 
                 void addTapeSpeedQuantity()
                 {
@@ -2046,6 +2176,7 @@ namespace Sapphire
                     params.at(SEND_RETURN_BUTTON_PARAM).setValue(0);
                     params.at(MUTE_BUTTON_PARAM).setValue(0);
                     params.at(SOLO_BUTTON_PARAM).setValue(0);
+                    params.at(FADER_BUTTON_PARAM).setValue(FaderParamDefault);
                     setLowSensitive(TIME_ATTEN, false);
                     setLowSensitive(PAN_ATTEN, false);
                     setLowSensitive(LEVEL_ATTEN, false);
@@ -2091,6 +2222,9 @@ namespace Sapphire
                     outMessage.freezeMix = updateFreezeState(args.sampleRate);
                     updateReverseState(REVERSE_INPUT, REVERSE_BUTTON_PARAM, REVERSE_BUTTON_LIGHT, args.sampleRate);
                     outMessage.clear = updateClearState(args.sampleRate);
+                    outMessage.fader.enabled = isFaderEnabled();
+                    outMessage.fader.silenceSeconds = silentTimeQuantity->getDisplayValue();
+                    outMessage.fader.rampSeconds = rampTimeQuantity->getDisplayValue();
                     outMessage.chainIndex = 2;
                     outMessage.originalAudio = readOriginalAudio(args.sampleRate, outMessage.polyphonic, inputLabels);
                     outMessage.feedback = getFeedbackPoly();
@@ -2133,6 +2267,8 @@ namespace Sapphire
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->save(root, "tapeSlewRate");
+                    silentTimeQuantity->save(root, "silentTime");
+                    rampTimeQuantity->save(root, "rampTime");
                     return root;
                 }
 
@@ -2145,6 +2281,8 @@ namespace Sapphire
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
                     jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->load(root, "tapeSlewRate");
+                    silentTimeQuantity->load(root, "silentTime");
+                    rampTimeQuantity->load(root, "rampTime");
                 }
 
                 Frame getFeedbackPoly()
@@ -2176,7 +2314,7 @@ namespace Sapphire
 
                 bool updateClearState(float sampleRateHz)
                 {
-                    const bool clearRequested = updateTriggerGroup(
+                    updateTriggerGroup(
                         sampleRateHz,
                         clearReceiver,
                         CLEAR_INPUT,
@@ -2184,10 +2322,14 @@ namespace Sapphire
                         CLEAR_BUTTON_LIGHT
                     );
 
-                    if (clearRequested)
+                    if (clearRequested || clearReceiver.isTriggerActive())
+                    {
+                        clearRequested = false;
                         clearSmoother.begin();
+                        return true;
+                    }
 
-                    return clearRequested;
+                    return false;
                 }
 
                 void bumpTapInputRouting() override
@@ -2205,6 +2347,18 @@ namespace Sapphire
                 void silentLevelHook() override
                 {
                     params.at(LEVEL_PARAM).setValue(0);
+                }
+
+                bool isFaderEnabled()
+                {
+                    return params.at(FADER_BUTTON_PARAM).getValue() > 0.5f;
+                }
+
+                void updateFaderButtonTooltip()
+                {
+                    std::string text = "Fader: ";
+                    text += isFaderEnabled() ? "ENABLED" : "DISABLED";
+                    updateParamTooltip(FADER_BUTTON_PARAM, text);
                 }
             };
 
@@ -2254,6 +2408,7 @@ namespace Sapphire
                     addSapphireInput(CLOCK_INPUT, "clock_input");
                     addClockButton();
                     addIntervalButton();
+                    addFaderButton();
                     addInitChainButton();
                     addOutputChannelModeButton();
 
@@ -2355,6 +2510,12 @@ namespace Sapphire
                     addSapphireParam(button, "interval_button");
                 }
 
+                void addFaderButton()
+                {
+                    auto button = createParamCentered<FaderButton>(Vec{}, echoModule, FADER_BUTTON_PARAM);
+                    addSapphireParam(button, "fader_button");
+                }
+
                 void addInitChainButton()
                 {
                     auto button = createParamCentered<InitChainButton>(Vec{}, echoModule, INIT_CHAIN_BUTTON_PARAM);
@@ -2372,6 +2533,7 @@ namespace Sapphire
                         FREEZE_INPUT,
                         FREEZE_BUTTON_PARAM,
                         FREEZE_BUTTON_LIGHT,
+                        -1,     // no port mode button
                         '\0',
                         0.0,
                         SCHEME_BLUE
@@ -2386,6 +2548,7 @@ namespace Sapphire
                         CLEAR_INPUT,
                         CLEAR_BUTTON_PARAM,
                         CLEAR_BUTTON_LIGHT,
+                        -1,     // no port mode button
                         '\0',
                         0.0,
                         SCHEME_GREEN,
@@ -2403,12 +2566,16 @@ namespace Sapphire
                     ComponentLocation clock = FindComponent(modcode, "clock_input");
                     ComponentLocation syncButton = FindComponent(modcode, "clock_button");
                     ComponentLocation intervalButton = FindComponent(modcode, "interval_button");
+                    ComponentLocation faderButton = FindComponent(modcode, "fader_button");
                     static constexpr float MULTITAP_CLOCK_BUTTON_RADIUS = 1.5;
                     float bx = mm2px(syncButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
                     float by = mm2px(syncButton.cy);
 
                     float cx = mm2px(intervalButton.cx - MULTITAP_CLOCK_BUTTON_RADIUS);
                     float cy = mm2px(intervalButton.cy);
+
+                    float fx = mm2px(faderButton.cx + MULTITAP_CLOCK_BUTTON_RADIUS);
+                    float fy = mm2px(faderButton.cy);
 
                     float dx = 6.0;
                     float dy = 4.5;
@@ -2434,6 +2601,10 @@ namespace Sapphire
                     // Draw another connector line to the interval button.
                     nvgMoveTo(vg, x2, cy);
                     nvgLineTo(vg, cx, cy);
+
+                    // Draw a connector line to the fader button, this time on the left.
+                    nvgMoveTo(vg, x1, fy);
+                    nvgLineTo(vg, fx, fy);
 
                     nvgStrokeWidth(vg, strokeWidth);
                     nvgStroke(vg);
@@ -2540,6 +2711,8 @@ namespace Sapphire
 
                         echoModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
 
+                        echoModule->updateFaderButtonTooltip();
+
                         // Automatically add an EchoOut expander when we first insert Echo.
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
@@ -2585,6 +2758,9 @@ namespace Sapphire
                             "change interpolator",
                             echoModule->interpolatorKind
                         ));
+
+                        menu->addChild(new DurationSlider(echoModule->silentTimeQuantity));
+                        menu->addChild(new DurationSlider(echoModule->rampTimeQuantity));
 
                         menu->addChild(createMenuItem(
                             "Toggle all clock sync",
@@ -3185,15 +3361,15 @@ namespace Sapphire
 
 Model* modelSapphireEcho = createSapphireModel<Sapphire::MultiTap::Echo::EchoModule, Sapphire::MultiTap::Echo::EchoWidget>(
     "Echo",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEchoTap = createSapphireModel<Sapphire::MultiTap::EchoTap::EchoTapModule, Sapphire::MultiTap::EchoTap::EchoTapWidget>(
     "EchoTap",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );
 
 Model* modelSapphireEchoOut = createSapphireModel<Sapphire::MultiTap::EchoOut::EchoOutModule, Sapphire::MultiTap::EchoOut::EchoOutWidget>(
     "EchoOut",
-    Sapphire::ExpanderRole::MultiTap
+    Sapphire::ExpanderRole::None
 );

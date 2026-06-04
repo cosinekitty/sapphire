@@ -246,7 +246,7 @@ namespace Sapphire
         }
 
 
-        bool write(float sample, float clearSmootherGain)
+        bool write(float sample, float gain)
         {
             // Protect the tape loop from NAN/infinite/crazy voltages.
             float safe = 0;
@@ -267,7 +267,7 @@ namespace Sapphire
                     recoveryCountdown = 48000;
             }
 
-            buffer[recordIndex] = safe * clearSmootherGain;
+            buffer[recordIndex] = safe * gain;
             recordIndex = (recordIndex + 1) % bufferLength;
             return recoveryCountdown == 0;
         }

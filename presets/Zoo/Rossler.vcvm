@@ -1,9 +1,10 @@
 {
   "plugin": "CosineKitty-Sapphire",
   "model": "Zoo",
-  "version": "2.6.001",
+  "version": "2.6.005",
   "data": {
     "chaosMode": 0,
+    "cruisingSpeed": 12.5,
     "compressorLimit": 10.0,
     "xVoltageScale": 1.0,
     "yVoltageScale": 1.0,

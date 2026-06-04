@@ -202,6 +202,13 @@ namespace Sapphire
             Default = Pulses
         };
 
+        struct FaderInfo
+        {
+            bool enabled = false;    // whether or not silenceSeconds and rampSeconds are actually used.
+            float silenceSeconds{};  // how long to suppress all tape recording after CLR.
+            float rampSeconds{};     // how long after silenceSeconds to ramp from 0 to 1.
+        };
+
         struct Message      // data that flows through the expander chain left-to-right.
         {
             bool valid = false;
@@ -224,6 +231,7 @@ namespace Sapphire
             bool polyphonic = false;    // selects desired output format: false=stereo(L,R), true=polyphonic(L)
             bool musicalInterval = false;
             float tapeSlewRate = 0.5;
+            FaderInfo fader;
         };
 
         struct BackwardMessage      // data that flows through the expander chain right-to-left.

@@ -52,9 +52,10 @@ Useful for starting fresh or creatively replacing what’s currently in the dela
 CLR has a dedicated trigger input, allowing you to clear buffers rhythmically or based on another event in your patch.
 
 #### CLOCK
-You can sync your delay taps to an external clock using this input. There are two helpful buttons nearby:
+You can sync your delay taps to an external clock using this input. There are helpful buttons nearby. Hover the mouse over each button and read the resulting tooltip text. Here is more info about each one:
 * **Toggle all clock sync**: enables or disables sync for all taps at once.
 * **Snap to musical intervals**: lets you choose musical divisions like eighth notes, dotted eighths, triplets, and more for synced delay times. This makes it easier to stay in rhythm without dialing in values manually.
+* **Fader**: this button enables/disables an anti-pitch distortion feature. When the fader is enabled, after any clear (CLR button press for example) or patch reset, instead of immediately recording to the tape loops, there is a configurable period of silence time, followed by another configurable time to ramp up the recording level from 0 to 1. In the right-click menu for the Echo panel, there are two sliders for "Post-reset silence time" and "Post-reset ramp time". Both default to 1 second, but can be adjusted over the exponential range 0.1 seconds to 10 seconds.
 
 You can also click on the CLOCK label to toggle into [RATE mode](#toggling-clock--rate), which uses CV to continuously adjust the frequencies of all taps.
 

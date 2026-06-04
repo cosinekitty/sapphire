@@ -53,6 +53,11 @@ namespace Sapphire
         {
             return SlopeVector(mx/denom, my/denom, mz/denom);
         }
+
+        double magnitude() const
+        {
+            return std::sqrt(mx*mx + my*my + mz*mz);
+        }
     };
 
 
@@ -98,12 +103,33 @@ namespace Sapphire
     protected:
         double knob = 0.0;
         int mode = 0;
+        double cruise = 0;           // 0 = original variable speed, 1 = uniform cruising speed.
 
         virtual SlopeVector slopes(double x, double y, double z) const = 0;
 
-        inline SlopeVector vel(double x, double y, double z) const
+        SlopeVector vel(double x, double y, double z) const
         {
-            return speedFactor * slopes(x, y, z);
+            SlopeVector v = slopes(x, y, z);
+            // When cruise=0, leave `v` alone.
+            // When cruise=1, use the fixed speed cruisingSpeed.
+            // Interpolate between the endpoints for intermediate values of `cruise`.
+            // In every case, leave the vector `v` pointing in the same direction.
+            const double speed = v.magnitude();
+            double cruiseFactor;
+            if (speed < 1.0e-6)
+            {
+                // This speed is so close to zero that we don't want to divide by it.
+                // It's also not too important to change it.
+                // Just leave it virtually stationary.
+                cruiseFactor = 1;
+            }
+            else
+            {
+                constexpr double c0 = 1;
+                const double c1 = cruisingSpeed / speed;
+                cruiseFactor = (1-cruise)*c0 + cruise*c1;
+            }
+            return (speedFactor * cruiseFactor) * v;
         }
 
         const double max_dt;
@@ -161,6 +187,8 @@ namespace Sapphire
             ChaoticOscillator_initialize();
         }
 
+        double cruisingSpeed = 25;   // how fast any particle should move when cruise = 1.
+
         virtual void initialize()
         {
             ChaoticOscillator_initialize();
@@ -175,6 +203,8 @@ namespace Sapphire
             speedFactor = 1;
             dilate = 1;
             xTranslate = yTranslate = zTranslate = 0;
+            cruise = 0;
+            // Do NOT initialze cruisingSpeed here; it is developer config, not user adjustment.
         }
 
         void setKnob(double k)
@@ -265,6 +295,17 @@ namespace Sapphire
             xVelScale = mf.mx;
             yVelScale = mf.my;
             zVelScale = mf.mz;
+        }
+
+        double getCruise() const
+        {
+            return cruise;
+        }
+
+        void setCruise(double x)
+        {
+            if (std::isfinite(x))
+                cruise = std::clamp<double>(x, 0, 1);
         }
 
         // Scaled position values.

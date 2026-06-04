@@ -5,7 +5,7 @@ namespace Sapphire
 {
     namespace Gravy
     {
-        template <typename value_t>
+        template <typename value_t, typename unit_filter_t = StateVariableFilter<value_t>>
         class SingleChannelGravyEngine
         {
         private:
@@ -13,8 +13,6 @@ namespace Sapphire
             value_t resKnob   = DefaultResonanceKnob;
             value_t mixKnob   = DefaultMixKnob;
             value_t gainKnob  = DefaultGainKnob;
-
-            StateVariableFilter<value_t> filter;
 
             float setKnob(value_t &v, value_t k, int lo = 0, int hi = 1)
             {
@@ -26,6 +24,8 @@ namespace Sapphire
             }
 
         public:
+            unit_filter_t filter;
+
             float centerFrequencyHz = DefaultFrequencyHz;
             int minOctave = -OctaveRange;
             int maxOctave = +OctaveRange;
@@ -76,7 +76,7 @@ namespace Sapphire
                 result.lowpass  = gain * (mix*result.lowpass  + (1-mix)*inSample);
                 result.bandpass = gain * (mix*result.bandpass + (1-mix)*inSample);
                 result.highpass = gain * (mix*result.highpass + (1-mix)*inSample);
-                result.notch = result.lowpass + result.highpass;
+                result.notch    = gain * (mix*result.notch    + (1-mix)*inSample);
 
                 return result;
             }

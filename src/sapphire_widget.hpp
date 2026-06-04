@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include <type_traits>
 #include "plugin.hpp"
 #include "sapphire_panel.hpp"
 #include "sapphire_attenuverter_context.hpp"
@@ -36,9 +37,10 @@ namespace Sapphire
         return Vec(mm2px(loc.cx), mm2px(loc.cy));
     }
 
-
-    inline bool OneShotCountdown(int& counter)
+    template <typename value_t>
+    inline bool OneShotCountdown(value_t& counter)
     {
+        static_assert(std::is_integral_v<value_t>);
         return (counter > 0) && (--counter == 0);
     }
 
@@ -135,9 +137,17 @@ namespace Sapphire
     using OutputLimiterSmallKnob = OutputLimiterKnob<RoundSmallBlackKnob>;
 
     constexpr float DX_SATELLITE_A = -4.0;
-    constexpr float DY_SATELLITE_A = -2.0;
+    constexpr float DY_SATELLITE_A = -2.5;
     constexpr float DX_SATELLITE_B = +4.75;
     constexpr float DY_SATELLITE_B = -3.0;
+
+
+    struct ChaosModulationInfo
+    {
+        bool isActive = false;
+        float voltage[2]{};
+    };
+
 
     struct SapphireAttenuverterKnob : Trimpot
     {
@@ -168,9 +178,12 @@ namespace Sapphire
                 context->unipolar = unipolar;
         }
 
+        ChaosModulationInfo getChaosModulationInfo();
+
         void drawLayer(const DrawArgs& args, int layer) override;
 
     protected:
+
         float xSatellite() const
         {
             return box.size.x/2 + satelliteDelta.x;
@@ -857,6 +870,7 @@ namespace Sapphire
         template <typename knob_t = SapphireAttenuverterKnob>
         knob_t *addSapphireAttenuverter(
             int attenId,
+            int cvInputId,
             const std::string& label,
             float dxSatellite = DX_SATELLITE_A,
             float dySatellite = DY_SATELLITE_A)
@@ -870,7 +884,7 @@ namespace Sapphire
                 knob->context = sapphireModule->getAttenuverterContext(attenId);
 
                 // Let the sensitivity toggler know this ID belongs to an attenuverter knob.
-                sapphireModule->defineAttenuverterId(attenId);
+                sapphireModule->defineAttenuverterId(attenId, cvInputId);
             }
 
             // We need to put the knob on the screen whether this is a preview widget or a live module.
@@ -888,7 +902,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_B)
         {
             knob_t* knob = addKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
+            addSapphireAttenuverter(attenId, cvInputId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -903,7 +917,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSapphireAttenuverter(attenId, prefix + "_atten", dxSatellite, dySatellite);
+            addSapphireAttenuverter(attenId, cvInputId, prefix + "_atten", dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -918,7 +932,7 @@ namespace Sapphire
             float dySatellite = DY_SATELLITE_A)
         {
             knob_t* knob = addSmallKnob<knob_t>(knobId, prefix + "_knob");
-            addSnapVoctAttenuverter(attenId, prefix + "_atten", 1, dxSatellite, dySatellite);
+            addSnapVoctAttenuverter(attenId, cvInputId, prefix + "_atten", 1, dxSatellite, dySatellite);
             addSapphireInput(cvInputId, prefix + "_cv");
             return knob;
         }
@@ -947,15 +961,25 @@ namespace Sapphire
             return knob;
         }
 
+        struct InputPortModeToggleButton : SapphireTinyToggleButton
+        {
+            explicit InputPortModeToggleButton()
+            {
+                addTinyButtonFrames(this, "xyellow");
+            }
+        };
+
         template <typename button_t, typename port_t>
         struct ToggleGroupControls
         {
             button_t* button{};
             port_t* port{};
+            InputPortModeToggleButton* portModeButton{};
 
-            ToggleGroupControls(button_t* _button, port_t* _port)
+            ToggleGroupControls(button_t* _button, port_t* _port, InputPortModeToggleButton* _pmb)
                 : button(_button)
                 , port(_port)
+                , portModeButton(_pmb)
                 {}
         };
 
@@ -966,6 +990,7 @@ namespace Sapphire
             int inputId,
             int buttonId,
             int lightId,
+            int portModeButtonId,   // or -1 to skip
             char buttonLetter,
             float dxText,
             NVGcolor baseColor,
@@ -976,12 +1001,19 @@ namespace Sapphire
             button->dxText = dxText;
             button->setCaption(buttonLetter);
             button->initBaseColor(baseColor);
-
             addSapphireParam(button, prefix + "_button");
+
             input_port_t* port = addSapphireInput<input_port_t>(inputId, prefix + "_input");
             port->group = group;
 
-            return {button, port};
+            InputPortModeToggleButton* pmb = nullptr;
+            if (portModeButtonId >= 0)     // optional button; allow caller to skip creating it by passing -1
+            {
+                pmb = createParamCentered<InputPortModeToggleButton>(Vec{}, module, portModeButtonId);
+                addSapphireParam(pmb, prefix + "_portmode");
+            }
+
+            return {button, port, pmb};
         }
 
         template <typename caption_button_t = SapphireCaptionButton, typename input_port_t = ToggleGroupInputPort>
@@ -991,18 +1023,25 @@ namespace Sapphire
             int inputId,
             int buttonId,
             int lightId,
+            int portModeButtonId,   // or -1 to skip
             char buttonLetter,
             float dxText,
             NVGcolor baseColor,
             bool momentary = false)
         {
-            auto tg = addToggleGroup2(group, prefix, inputId, buttonId, lightId, buttonLetter, dxText, baseColor, momentary);
+            auto tg = addToggleGroup2(group, prefix, inputId, buttonId, lightId, portModeButtonId, buttonLetter, dxText, baseColor, momentary);
             return tg.port;
         }
 
-        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(int attenId, const std::string& label, float voctSetting, float dxSatellite, float dySatellite)
+        SnapVoctAttenuverterKnob* addSnapVoctAttenuverter(
+            int attenId,
+            int cvInputId,
+            const std::string& label,
+            float voctSetting,
+            float dxSatellite,
+            float dySatellite)
         {
-            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, label, dxSatellite, dySatellite);
+            auto knob = addSapphireAttenuverter<SnapVoctAttenuverterKnob>(attenId, cvInputId, label, dxSatellite, dySatellite);
             knob->atten = module ? &module->getParam(attenId) : nullptr;
             knob->voctSetting = voctSetting;
             return knob;
@@ -1233,6 +1272,13 @@ namespace Sapphire
     };
 
     SapphireModule* AddExpander(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone);
+
+    template <typename module_t>
+    module_t* AddExpanderModule(Model* model, ModuleWidget* parentModWidget, ExpanderDirection dir, bool clone)
+    {
+        return dynamic_cast<module_t*>(AddExpander(model, parentModWidget, dir, clone));
+    }
+
     ModuleWidget* FindWidgetClosestOnRight(const ModuleWidget* origin, int hpDistanceLimit);
     void AppendFactoryPresets(ui::Menu *menu, WeakPtr<ModuleWidget> moduleWidget, std::string presetDir);
     const Model* PeekAdjacentModel(const ModuleWidget* origin, ExpanderDirection dir);

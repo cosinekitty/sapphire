@@ -261,11 +261,9 @@ namespace Sapphire
     ModuleWidget* FindWidgetForId(int64_t moduleId)
     {
         for (Widget* w : APP->scene->rack->getModuleContainer()->children)
-        {
-            auto mw = dynamic_cast<ModuleWidget*>(w);
-            if (mw && mw->module && mw->module->id == moduleId)
-                return mw;
-        }
+            if (auto mw = dynamic_cast<ModuleWidget*>(w))
+                if (mw->module && mw->module->id == moduleId)
+                    return mw;
         return nullptr;
     }
 
@@ -966,6 +964,26 @@ namespace Sapphire
         }
     }
 
+    ChaosModulationInfo SapphireAttenuverterKnob::getChaosModulationInfo()
+    {
+        ChaosModulationInfo info;
+        if (SapphireModule* smod = dynamic_cast<SapphireModule*>(module))
+        {
+            if (context && context->supportsChaos && smod->shouldDisplayChaosVoltages())
+            {
+                info.voltage[0] = context->chaosVoltage[0];
+                info.voltage[1] = context->chaosVoltage[1];
+
+                if (context->inputPortId < smod->inputs.size())
+                    if (!smod->inputs.at(context->inputPortId).isConnected())     // chaos works only when the CV input port has no cables
+                        if (ParamQuantity* qty = getParamQuantity())
+                            info.isActive = (qty->getValue() != 0);
+            }
+        }
+        return info;
+    }
+
+
     void SapphireAttenuverterKnob::drawLayer(const DrawArgs& args, int layer)
     {
         Trimpot::drawLayer(args, layer);
@@ -1001,6 +1019,42 @@ namespace Sapphire
                 nvgStrokeColor(args.vg, SCHEME_YELLOW);
                 nvgLineCap(args.vg, NVG_ROUND);
                 nvgStroke(args.vg);
+            }
+
+            const ChaosModulationInfo chaos = getChaosModulationInfo();
+            if (chaos.isActive)
+            {
+                constexpr float radiusPx = 9.5;
+
+                nvgStrokeWidth(args.vg, 1.5);
+                nvgLineCap(args.vg, NVG_BUTT);
+
+                if (chaos.voltage[0] == chaos.voltage[1])
+                {
+                    // Draw a luminous ring around the knob using a single red/green color.
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[0]));
+                    nvgCircle(args.vg, box.size.x/2, box.size.y/2, radiusPx);
+                    nvgStroke(args.vg);
+                }
+                else
+                {
+                    // Split the luminous ring into a left semicircle and a right semicircle.
+                    // Now each half of the ring has its own color.
+                    // We use visible left/right to represent stereo left/right.
+
+                    // Left half-ring for the stereo left channel.
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[0]));
+                    nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, M_PI/2, 3*M_PI/2, NVG_CW);
+                    nvgStroke(args.vg);
+
+                    // Right half-ring for the stereo right channel.
+                    nvgBeginPath(args.vg);
+                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[1]));
+                    nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, M_PI/2, 3*M_PI/2, NVG_CCW);
+                    nvgStroke(args.vg);
+                }
             }
         }
     }
@@ -1049,5 +1103,17 @@ namespace Sapphire
         for (const InitChainNode& node : list)
             if (Module* module = APP->engine->getModule(node.moduleId))
                 APP->engine->resetModule(module);
+    }
+
+    NVGcolor VoltageColor(float voltage)
+    {
+        if (!std::isfinite(voltage))
+            return SCHEME_PURPLE;
+
+        float u = std::clamp<float>(std::abs(voltage)/10, 0, 1);
+        float k = 1 - Cube(1-u);
+        float r = (voltage > 0) ? 0 : k;
+        float g = (voltage > 0) ? k : 0;
+        return nvgRGBAf(r, g, 0, 0.9);
     }
 }

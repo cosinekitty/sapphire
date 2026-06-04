@@ -18,6 +18,9 @@ namespace Sapphire
             FREEZE_BUTTON_PARAM,
             MORPH_PARAM,
             MORPH_ATTEN,
+            FREEZE_PORTMODE_BUTTON_PARAM,
+            CRUISE_PARAM,
+            CRUISE_ATTEN,
             PARAMS_LEN
         };
 
@@ -28,6 +31,7 @@ namespace Sapphire
             RECALL_TRIGGER_INPUT,
             FREEZE_INPUT,
             MORPH_CV_INPUT,
+            CRUISE_CV_INPUT,
             INPUTS_LEN
         };
 
@@ -66,12 +70,17 @@ namespace Sapphire
                 configInput(MEMORY_SELECT_CV_INPUT, "Memory select CV");
                 configButton(STORE_BUTTON_PARAM, "Store");
                 configButton(RECALL_BUTTON_PARAM, "Recall");
+                configButton(FREEZE_PORTMODE_BUTTON_PARAM);
                 configInput(STORE_TRIGGER_INPUT, "Store trigger");
                 configInput(RECALL_TRIGGER_INPUT, "Recall trigger");
                 configParam(MORPH_PARAM, 0, 1, 0, "Morph position/velocity");
                 configAtten(MORPH_ATTEN, "Morph");
                 configInput(MORPH_CV_INPUT, "Morph CV");
-                freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "Freeze gate");
+                configParam(CRUISE_PARAM, 0, 1, 0, "Cruise");
+                configAtten(CRUISE_ATTEN, "Cruise");
+                configInput(CRUISE_CV_INPUT, "Cruise CV");
+                freezeToggleGroup.config(this, "Freeze", "freezeToggleGroup", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, "Freeze", "");
+                freezeToggleGroup.addPortMenuItems = false;
                 initialize();
             }
 
@@ -104,19 +113,24 @@ namespace Sapphire
             {
                 SapphireModule::dataFromJson(root);
                 freezeToggleGroup.jsonLoad(root);
+
+                // A little bit of a hack. Echo also uses ToggleGroup with a gate/trigger input mode toggle.
+                // I don't want to break Echo, but I want to replace the custom-json serialization
+                // with an ordinary button parameter in Chaops.
+                // Strategy: save/load json the same way, but at runtime, we use the button.
+                // That means I need to sync the button state with the custom json now.
+                params.at(FREEZE_PORTMODE_BUTTON_PARAM).setValue(static_cast<float>(freezeToggleGroup.mode));
             }
 
             int getMemoryIndex()
             {
-                using namespace std;
-
                 float cv = inputs.at(MEMORY_SELECT_CV_INPUT).getVoltageSum();
                 float slider = params.at(MEMORY_SELECT_PARAM).getValue();
                 float attenu = 2 * params.at(MEMORY_SELECT_ATTEN).getValue();
                 if (isLowSensitive(MEMORY_SELECT_ATTEN))
                     attenu /= AttenuverterLowSensitivityDenom;
                 slider += attenu * cv;
-                int index = max(0u, static_cast<unsigned>(round(slider)) % MemoryCount);
+                int index = std::max(0u, static_cast<unsigned>(std::round(slider)) % MemoryCount);
                 return index;
             }
 
@@ -125,13 +139,18 @@ namespace Sapphire
                 return getControlValue(MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
             }
 
+            float getCruise()
+            {
+                return getControlValue(CRUISE_PARAM, CRUISE_ATTEN, CRUISE_CV_INPUT);
+            }
+
             bool getStoreTrigger()
             {
                 bool isButtonDown = (params.at(STORE_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !storeButtonPressed;
                 storeButtonPressed = isButtonDown;
-                bool triggerFired = storeReceiver.updateTrigger(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
-                return buttonJustPressed || triggerFired;
+                storeReceiver.update(inputs.at(STORE_TRIGGER_INPUT).getVoltageSum());
+                return buttonJustPressed || storeReceiver.isTriggerActive();
             }
 
             bool getRecallTrigger()
@@ -139,8 +158,8 @@ namespace Sapphire
                 bool isButtonDown = (params.at(RECALL_BUTTON_PARAM).getValue() > 0);
                 bool buttonJustPressed = isButtonDown && !recallButtonPressed;
                 recallButtonPressed = isButtonDown;
-                bool triggerFired = recallReceiver.updateTrigger(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());
-                return buttonJustPressed || triggerFired;
+                recallReceiver.update(inputs.at(RECALL_TRIGGER_INPUT).getVoltageSum());
+                return buttonJustPressed || recallReceiver.isTriggerActive();
             }
 
             static int flashDurationSamples(float sampleRate)
@@ -148,9 +167,26 @@ namespace Sapphire
                 return static_cast<int>(FlashDurationSeconds * sampleRate);
             }
 
+            bool updateFreezeToggleGroup()
+            {
+                // Keep the gate/trigger option up to date from the toggle button.
+                // This is a hack for backward compatibility:
+                // Before the tiny toggle button existed, this was a menu option only
+                // and did not use a VCV parameter.
+                // To keep the file format the same, we let freezeToggleGroup's json
+                // be the single-source-of-truth, and keep copying the button state
+                // into freezeToggleGroup.mode.
+
+                freezeToggleGroup.mode = isFreezeInputTriggerMode()
+                    ? ToggleGroupMode::Trigger
+                    : ToggleGroupMode::Gate;
+
+                return freezeToggleGroup.process();
+            }
+
             void process(const ProcessArgs& args) override
             {
-                bool frozen = false;
+                bool frozen = updateFreezeToggleGroup();
 
                 if (sender.isReceiverConnectedOnRight())
                 {
@@ -158,8 +194,9 @@ namespace Sapphire
                     message.memoryIndex = getMemoryIndex();
                     message.store = getStoreTrigger();
                     message.recall = getRecallTrigger();
-                    message.freeze = frozen = freezeToggleGroup.process();
+                    message.freeze = frozen;
                     message.morph = getMorph();
+                    message.cruise = getCruise();
                     sender.send(message);
 
                     // HACK: "currentChannelCount" is really the displayed memory address.
@@ -186,6 +223,17 @@ namespace Sapphire
                 setLightBrightness(STORE_BUTTON_LIGHT, storeFlashCounter > 0);
                 setLightBrightness(RECALL_BUTTON_LIGHT, recallFlashCounter > 0);
                 setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
+            }
+
+            bool isFreezeInputTriggerMode() const
+            {
+                return params.at(FREEZE_PORTMODE_BUTTON_PARAM).value > 0.5f;
+            }
+
+            void updateTooltips()
+            {
+                updateToggleButtonTooltip(FREEZE_PORTMODE_BUTTON_PARAM, "CV input mode: GATE", "CV input mode: TRIGGER");
+                updateInputTooltip(FREEZE_INPUT, isFreezeInputTriggerMode() ? "Freeze trigger" : "Freeze gate");
             }
         };
 
@@ -216,16 +264,27 @@ namespace Sapphire
                 addSapphireInput(RECALL_TRIGGER_INPUT, "recall_trigger");
 
                 ToggleGroup* freezeGroup = module ? &(module->freezeToggleGroup) : nullptr;
-                addToggleGroup(freezeGroup, "freeze", FREEZE_INPUT, FREEZE_BUTTON_PARAM, FREEZE_BUTTON_LIGHT, 'F', 7.5, SCHEME_BLUE);
-
+                addToggleGroup(
+                    freezeGroup,
+                    "freeze",
+                    FREEZE_INPUT,
+                    FREEZE_BUTTON_PARAM,
+                    FREEZE_BUTTON_LIGHT,
+                    FREEZE_PORTMODE_BUTTON_PARAM,
+                    'F',
+                    7.5,
+                    SCHEME_BLUE
+                );
                 addSapphireFlatControlGroup("morph", MORPH_PARAM, MORPH_ATTEN, MORPH_CV_INPUT);
+                addSapphireFlatControlGroup("cruise", CRUISE_PARAM, CRUISE_ATTEN, CRUISE_CV_INPUT);
                 addSapphireChannelDisplay("memory_address_display");
             }
 
-            void appendContextMenu(Menu* menu) override
+            void step() override
             {
+                SapphireWidget::step();
                 if (chaopsModule)
-                    chaopsModule->freezeToggleGroup.addMenuItems(menu);
+                    chaopsModule->updateTooltips();
             }
         };
     }

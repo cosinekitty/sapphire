@@ -111,7 +111,7 @@ namespace Sapphire
                 outputs.at(POLY_OUTPUT).setVoltage(y, 1);
                 outputs.at(POLY_OUTPUT).setVoltage(z, 2);
 
-                float triggerVoltage = triggerSender.process(args.sampleTime, clear);
+                float triggerVoltage = triggerSender.process(args.sampleRate, clear);
                 outputs.at(CLEAR_TRIGGER_OUTPUT).setVoltage(triggerVoltage);
 
                 // Mirror the level-adjusted input to any module on the right.
@@ -131,7 +131,7 @@ namespace Sapphire
                 addSapphireOutput(POLY_OUTPUT, "p_output");
                 addSapphireOutput(CLEAR_TRIGGER_OUTPUT, "clear_trigger_output");
                 addKnob(LEVEL_PARAM, "level_knob");
-                addSapphireAttenuverter(LEVEL_ATTEN, "level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
+                addSapphireAttenuverter(LEVEL_ATTEN, LEVEL_INPUT, "level_atten", DX_SATELLITE_B, DY_SATELLITE_B);
                 addSapphireInput(LEVEL_INPUT, "level_cv");
                 addInsertTricorderButtonLeft(TRICORDER_BUTTON_PARAM);
             }

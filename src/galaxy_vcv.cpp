@@ -157,7 +157,7 @@ namespace Sapphire
 
             void updateClearState(float sampleRateHz)
             {
-                const bool clearRequested = updateTriggerGroup(
+                updateTriggerGroup(
                     sampleRateHz,
                     clearReceiver,
                     CLEAR_INPUT,
@@ -165,10 +165,11 @@ namespace Sapphire
                     CLEAR_BUTTON_LIGHT
                 );
 
-                if (clearRequested)
+                if (clearReceiver.isTriggerActive())
                     clearSmoother.begin();
 
                 clearSmoother.process(sampleRateHz);
+
                 if (clearSmoother.isDelayedActionReady())
                     engine.initialize();
             }
@@ -211,6 +212,7 @@ namespace Sapphire
                     CLEAR_INPUT,
                     CLEAR_BUTTON_PARAM,
                     CLEAR_BUTTON_LIGHT,
+                    -1,     // no gate/trigger toggle button needed: input is always a trigger
                     '\0',
                     0.0,
                     SCHEME_GREEN,
