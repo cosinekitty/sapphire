@@ -15,9 +15,12 @@
         <ul>
             <li>Added a fader button to <a href="doc/Echo.md">Echo</a> to reduce the pitch-shifting distortion after a clear or reset occurs.</li>
             <li><a href="doc/Empath.md">Empath</a> now includes a button to create another Empath filter chain in series with the current chain.</li>
+            <li>Empath also has a new button in the CHAOS box to toggle displaying colored rings around the attenuverters that are using chaos. The rings change color with the chaotic voltage, just like ports do with voltage: green is positive, red is negative, zero is black.</li>
             <li><a href="doc/Sauce.md">Sauce</a> now has a notch filter output, along with the existing lowpass, bandpass, and highpass filters.</li>
             <li>Sauce has another new feature: a CASCADE control that allows you to chain 1..3 filters in series.</li>
             <li>The <a href="doc/Chaops.md">Chaops</a> FREEZE control now has a tiny button between the input port and the big FREEZE button that toggles whether the input is interpreted as a gate or a trigger.</li>
+            <li>Also in Chaops I added a new CRUISE control group to help regulate how uniform the chaotic particle's speed is.</li>
+            <li><a href="doc/TubeUnit.md">Tube Unit</a> now allows you to click on the VENT label to toggle it to SEAL mode, and vice versa. Before this change, you had to right-click and use a menu option to toggle VENT/SEAL.</li>
         </ul>
     </td>
 </tr>
