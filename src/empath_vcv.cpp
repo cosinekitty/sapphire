@@ -853,7 +853,6 @@ namespace Sapphire
 
             struct InputModule : EmpathModule
             {
-                bool autoCreateExpanders = true;
                 PortLabelMode inputLabels = PortLabelMode::Stereo;
                 fountain_t fountain{rack::random::u64()};
                 Crossfader chaosStereoCrossfader;
@@ -907,7 +906,6 @@ namespace Sapphire
                 json_t* dataToJson() override
                 {
                     json_t* root = EmpathModule::dataToJson();
-                    jsonSetBool(root, "autoCreateExpanders", autoCreateExpanders);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
                     return root;
@@ -916,7 +914,6 @@ namespace Sapphire
                 void dataFromJson(json_t* root) override
                 {
                     EmpathModule::dataFromJson(root);
-                    jsonLoadBool(root, "autoCreateExpanders", autoCreateExpanders);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
                         fountain.reset(seed);
@@ -1264,9 +1261,8 @@ namespace Sapphire
                         // When we first add the input module, it needs to automatically create
                         // an output module, then insert a filter between.
                         // But prevent auto-creation when reloading the patch later.
-                        if (inputModule->autoCreateExpanders && OneShotCountdown(expanderCountdown))
+                        if (OneShotCountdown(expanderCountdown))
                         {
-                            inputModule->autoCreateExpanders = false;   // prevent automatic creation when loading the patch
                             if (!IsFilterReceiver(module->rightExpander.module) && !APP->history->canRedo())
                             {
                                 if (SapphireModule* newOutputModule = AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false))
