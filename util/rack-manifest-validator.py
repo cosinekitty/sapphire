@@ -131,13 +131,11 @@ def validate_license_id(valid_license_ids, license_id):
 
 
 def get_manifest_diff(repo_path, submodule_sha, head_sha):
-    cmd = "git diff --word-diff %s %s plugin.json" % (submodule_sha, head_sha)
-    return subprocess.check_output(cmd.split(" "), cwd=repo_path).decode("UTF-8")
+    return subprocess.check_output(["git", "diff", "--word-diff", submodule_sha, head_sha, "plugin.json"], cwd=repo_path).decode("UTF-8")
 
 
 def get_manifest_at_revision(repo_path, sha):
-    cmd = "git show %s:plugin.json" % (sha)
-    return subprocess.check_output(cmd.split(" "), cwd=repo_path).decode("UTF-8")
+    return subprocess.check_output(["git", "show", "%s:plugin.json" % sha], cwd=repo_path).decode("UTF-8")
 
 
 def check_for_plugin_slug_change(repo_path, submodule_sha, head_sha):
