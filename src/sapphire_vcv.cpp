@@ -353,24 +353,27 @@ namespace Sapphire
         assert(rawModule);
         SapphireModule* expanderModule = dynamic_cast<SapphireModule*>(rawModule);
         assert(expanderModule);
-        if (clone && parentModWidget->module)
+        if (clone)
         {
-            // The caller is asking us to copy settings from the parent module to the new module.
-            // We can do this generically if they are the same kind of module (if both have the same model)
-            // by serializing/deserializing JSON.
-            if (model == parentModWidget->model)
+            if (parentModWidget->module)
             {
-                json_t* js = parentModWidget->module->toJson();
-                expanderModule->fromJson(js);
-                json_decref(js);
-            }
-            else
-            {
-                // Fallback for copying settings from different kinds of modules.
-                // Example: Echo can create an EchoTap, and the tape loop settings are the same.
-                // The virtual method tryCopySettingsFrom exists as a hack just for this case.
-                if (auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module))
-                    expanderModule->tryCopySettingsFrom(parentModule);
+                // The caller is asking us to copy settings from the parent module to the new module.
+                // We can do this generically if they are the same kind of module (if both have the same model)
+                // by serializing/deserializing JSON.
+                if (model == parentModWidget->model)
+                {
+                    json_t* js = parentModWidget->module->toJson();
+                    expanderModule->fromJson(js);
+                    json_decref(js);
+                }
+                else
+                {
+                    // Fallback for copying settings from different kinds of modules.
+                    // Example: Echo can create an EchoTap, and the tape loop settings are the same.
+                    // The virtual method tryCopySettingsFrom exists as a hack just for this case.
+                    if (auto parentModule = dynamic_cast<SapphireModule*>(parentModWidget->module))
+                        expanderModule->tryCopySettingsFrom(parentModule);
+                }
             }
         }
         expanderModule->postInsertFilterHook();        // give a chance for cleanup, re-init, etc, after creating
@@ -379,6 +382,11 @@ namespace Sapphire
         assert(rawWidget);
         SapphireWidget* sapphireWidget = dynamic_cast<SapphireWidget*>(rawWidget);
         assert(sapphireWidget);
+
+        // When NOT cloning, honor the user's default settings!
+        // Without this code, we end up with factory defaults no matter what the user does.
+        if (!clone)         
+            sapphireWidget->loadTemplate();
 
         float dx;
         if (dir == ExpanderDirection::Left)
