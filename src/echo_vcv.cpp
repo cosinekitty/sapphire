@@ -2059,7 +2059,6 @@ namespace Sapphire
                 InterpolatorKind interpolatorKind{};
                 Crossfader freezeFader;
                 PortLabelMode inputLabels{};
-                bool autoCreateOutputModule = true;
                 SapphireQuantity* tapeSlewQuantity{};
                 DurationQuantity* silentTimeQuantity{};
                 DurationQuantity* rampTimeQuantity{};
@@ -2265,7 +2264,6 @@ namespace Sapphire
                     freezeToggleGroup.jsonSave(root);
                     jsonSetEnum(root, "interpolatorKind", interpolatorKind);
                     jsonSetEnum(root, "clockSignalFormat", clockSignalFormat);
-                    jsonSetBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->save(root, "tapeSlewRate");
                     silentTimeQuantity->save(root, "silentTime");
                     rampTimeQuantity->save(root, "rampTime");
@@ -2279,7 +2277,6 @@ namespace Sapphire
                     freezeToggleGroup.jsonLoad(root);
                     jsonLoadEnum(root, "interpolatorKind", interpolatorKind);
                     jsonLoadEnum(root, "clockSignalFormat", clockSignalFormat);
-                    jsonLoadBool(root, "autoCreateOutputModule", autoCreateOutputModule);
                     tapeSlewQuantity->load(root, "tapeSlewRate");
                     silentTimeQuantity->load(root, "silentTime");
                     rampTimeQuantity->load(root, "rampTime");
@@ -2717,9 +2714,8 @@ namespace Sapphire
                         // But we have to wait more than one step call, because otherwise
                         // it screws up the undo/redo history stack.
 
-                        if (echoModule->autoCreateOutputModule && OneShotCountdown(creationCountdown))
+                        if (OneShotCountdown(creationCountdown))
                         {
-                            echoModule->autoCreateOutputModule = false;     // prevent creating another EchoOut when patch is loaded again
                             if (!IsEchoReceiver(module->rightExpander.module) && !APP->history->canRedo())
                                 AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right, false);
                         }

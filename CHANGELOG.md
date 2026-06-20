@@ -9,7 +9,18 @@
 </tr>
 
 <tr valign="top">
-    <td align="center">18 May 2026</td>
+    <td align="center">9 Jun 2026</td>
+    <td align="center">2.6.006</td>
+    <td align="left">
+        <ul>
+            <li>Fixed an issue in Echo and Empath. If you created a default preset for either, they would no longer automatically create the expander modules. Now they do.<li>
+            <li>Buttons like "Insert Tricorder" that insert other Sapphire modules now honor your user default settings. Before now, the factory defaults were always used.</li>
+        </ul>
+    </td>
+</tr>
+
+<tr valign="top">
+    <td align="center">8 Jun 2026</td>
     <td align="center">2.6.005</td>
     <td align="left">
         <ul>
