@@ -1253,6 +1253,20 @@ namespace Sapphire
                     drawSpectrumConnectorLine(args.vg);
                 }
 
+                bool isFilterReceiverOnRight() const
+                {
+                    // Sometimes expander logic isn't working, which used to cause us to insert
+                    // a redundant Empath output module.
+
+                    // Short-cut: use expander logic when it is working (faster).
+                    if (module && module->rightExpander.module)
+                        return IsFilterReceiver(module->rightExpander.module);
+
+                    // Otherwise, search all widgets for one immediately to the right (slower).
+                    const Model* right = PeekAdjacentModel(this, ExpanderDirection::Right);
+                    return right == modelSapphireEmpathFilter || right == modelSapphireEmpathOutput;
+                }
+
                 void step() override
                 {
                     EmpathWidget::step();
@@ -1263,7 +1277,7 @@ namespace Sapphire
                         // But prevent auto-creation when reloading the patch later.
                         if (OneShotCountdown(expanderCountdown))
                         {
-                            if (!IsFilterReceiver(module->rightExpander.module) && !APP->history->canRedo())
+                            if (!isFilterReceiverOnRight() && !APP->history->canRedo())
                             {
                                 if (SapphireModule* newOutputModule = AddExpander(modelSapphireEmpathOutput, this, ExpanderDirection::Right, false))
                                 {

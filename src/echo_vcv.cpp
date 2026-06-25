@@ -2689,6 +2689,21 @@ namespace Sapphire
                     }
                 }
 
+                bool isEchoReceiverOnRight() const
+                {
+                    // Use this function when we absolutely must know if there is an Echo receiver module
+                    // on the right of this widget, even when expander logic isn't working!
+                    // This caused redundant insertions of modules before this fix.
+
+                    // Short-cut: use expander logic when it is working (faster).
+                    if (module && module->rightExpander.module)
+                        return IsEchoReceiver(module->rightExpander.module);
+
+                    // Otherwise, search all widgets for one immediately to the right (slower).
+                    const Model* right = PeekAdjacentModel(this, ExpanderDirection::Right);
+                    return right == modelSapphireEchoTap || right == modelSapphireEchoOut;
+                }
+
                 void step() override
                 {
                     LoopWidget::step();
@@ -2716,7 +2731,7 @@ namespace Sapphire
 
                         if (OneShotCountdown(creationCountdown))
                         {
-                            if (!IsEchoReceiver(module->rightExpander.module) && !APP->history->canRedo())
+                            if (!isEchoReceiverOnRight() && !APP->history->canRedo())
                                 AddExpander(modelSapphireEchoOut, this, ExpanderDirection::Right, false);
                         }
                     }
