@@ -14,6 +14,17 @@
   "changelogUrl": "https://github.com/cosinekitty/sapphire/blob/main/CHANGELOG.md",
   "modules": [
     {
+      "slug": "Belle",
+      "name": "Belle",
+      "description": "Modal resonator based on Mutable Instruments Rings.",
+      "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Belle.md",
+      "tags": [
+        "Oscillator",
+        "Polyphonic",
+        "Physical modeling"
+      ]
+    },
+    {
       "slug": "Chaops",
       "name": "Chaops",
       "description": "Left-expander to add extra controls to chaos modules Frolic, Glee, Lark.",

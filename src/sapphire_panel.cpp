@@ -8,6 +8,9 @@ namespace Sapphire
 
     static const ModuleMap TheModuleMap
     {
+        { "belle", {
+            {"_panel",                 {  60.960,  128.500}},
+            }},
         { "chaops", {
             {"_panel",                 {  30.480,  128.500}},
             {"cruise_atten",           {  15.240,   98.000}},

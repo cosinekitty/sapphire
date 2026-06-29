@@ -2786,9 +2786,28 @@ def GenerateEmpathPanels(cdict: ControlDict) -> int:
 
 #--------------------------------------------------------------------------------------------------
 
+
+def GenerateBellePanel(cdict: ControlDict) -> int:
+    name = 'belle'
+    target = Target.VcvRack
+    panelWidth = 12
+    svgFileName = SvgFileName(name, target)
+    panel = Panel(panelWidth)
+    cdict[name] = ControlLayer(panel)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+        pl.append(ModelNamePath(panel, font, name))
+    return Save(panel, svgFileName)
+
+
+#--------------------------------------------------------------------------------------------------
+
 if __name__ == '__main__':
     cdict:ControlDict = {}
     sys.exit(
+        GenerateBellePanel(cdict) or
         GenerateTinyButtonImages() or
         GenerateMultiTapPanels(cdict) or
         GenerateEmpathPanels(cdict) or
