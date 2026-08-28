@@ -15,11 +15,17 @@ namespace Sapphire
 
         enum InputId
         {
+            GATE_INPUT,
+            PITCH_INPUT,
+
             INPUTS_LEN
         };
 
         enum OutputId
         {
+            AUDIO_LEFT_OUTPUT,
+            AUDIO_RIGHT_OUTPUT,
+
             OUTPUTS_LEN
         };
 
@@ -36,7 +42,11 @@ namespace Sapphire
             {
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-                // FIXFIXFIX - configure inputs, outputs, parameters ...
+                configInput(GATE_INPUT, "Gate");
+                configInput(PITCH_INPUT, "Pitch (V/OCT)");
+
+                configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
+                configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
 
                 initialize();
             }
@@ -66,6 +76,10 @@ namespace Sapphire
                 , belleModule(module)
             {
                 setModule(module);
+                addSapphireInput(GATE_INPUT, "gate_input");
+                addSapphireInput(PITCH_INPUT, "pitch_input");
+                addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
+                addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
             }
         };
     }

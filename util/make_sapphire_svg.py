@@ -2793,12 +2793,23 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     panelWidth = 12
     svgFileName = SvgFileName(name, target)
     panel = Panel(panelWidth)
-    cdict[name] = ControlLayer(panel)
+    controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
+    xmid = panel.mmWidth / 2
+    dxPortFromCenter = 6.0
+
+    yFence = FencePost(20.0, 110.0, 5)
+    def y(itemIndex:float) -> float:
+        return yFence.value(itemIndex)
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
+        controls.append(Component("gate_input", xmid, y(0)))
+        controls.append(Component("pitch_input", xmid, y(1)))
+        controls.append(Component("audio_left_output",  xmid - dxPortFromCenter, y(4)))
+        controls.append(Component("audio_right_output", xmid + dxPortFromCenter, y(4)))
     return Save(panel, svgFileName)
 
 
