@@ -2797,7 +2797,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
+        pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
     return Save(panel, svgFileName)
 
