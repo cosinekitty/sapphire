@@ -9,6 +9,7 @@ using namespace rack;
 extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
+extern Model* modelSapphireBelle;
 extern Model* modelSapphireChaops;
 extern Model* modelSapphireEcho;
 extern Model* modelSapphireEchoOut;

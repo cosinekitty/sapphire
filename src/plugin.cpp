@@ -11,6 +11,7 @@ void init(Plugin* p)
 {
     pluginInstance = p;
 
+    p->addModel(modelSapphireBelle);
     p->addModel(modelSapphireChaops);
     p->addModel(modelSapphireEcho);
     p->addModel(modelSapphireEchoOut);
