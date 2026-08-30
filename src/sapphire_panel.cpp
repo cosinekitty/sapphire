@@ -13,7 +13,7 @@ namespace Sapphire
             {"audio_left_output",      {  24.480,  110.000}},
             {"audio_right_output",     {  36.480,  110.000}},
             {"gate_input",             {  30.480,   20.000}},
-            {"pitch_input",            {  30.480,   42.500}},
+            {"pitch_input",            {  30.480,   32.857}},
             }},
         { "chaops", {
             {"_panel",                 {  30.480,  128.500}},
