@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include "sapphire_gate_trigger.hpp"
 
 namespace Sapphire
 {
@@ -13,17 +14,30 @@ namespace Sapphire
     };
 
 
+    struct VoiceContext
+    {
+        float pitch{};      // V/OCT relative to C4 (261.63 Hz).
+        GateTriggerReceiver gateTriggerReceiver;
+
+        void initialize()
+        {
+            pitch = 0;
+            gateTriggerReceiver.initialize();
+        }
+    };
+
+
     struct VoiceEngine
     {
         virtual void initialize() = 0;
-        virtual StereoFrame process(float sampleRateHz) = 0;
+        virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
     };
 
 
     struct SineEngine : VoiceEngine
     {
         void initialize() override;
-        StereoFrame process(float sampleRateHz) override;
+        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
@@ -36,7 +50,14 @@ namespace Sapphire
 
     struct PolyVoiceEngineBase
     {
-        virtual void initialize() = 0;
+        std::array<VoiceContext, NPOLY> contextArray;
+
+        virtual void initialize()
+        {
+            for (VoiceContext& context : contextArray)
+                context.initialize();
+        }
+
         virtual PolyStereoFrame process(float sampleRateHz, unsigned nchannels) = 0;
     };
 
@@ -48,6 +69,7 @@ namespace Sapphire
 
         void initialize() override
         {
+            PolyVoiceEngineBase::initialize();
             for (engine_t& engine : engineArray)
                 engine.initialize();
         }
@@ -57,7 +79,7 @@ namespace Sapphire
             PolyStereoFrame poly;
             poly.nchannels = std::clamp<unsigned>(nchannels, 0, NPOLY);
             for (unsigned c = 0; c < poly.nchannels; ++c)
-                poly.poly[c] = engineArray[c].process(sampleRateHz);
+                poly.poly[c] = engineArray[c].process(sampleRateHz, contextArray[c]);
             return poly;
         }
     };

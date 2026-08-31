@@ -88,6 +88,18 @@ namespace Sapphire
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
                 {
                     PolyVoiceEngineBase& polyEngine = getCurrentEngine();
+
+                    float gateVoltage = 0;
+                    float pitchVoltage = 0;
+                    for (unsigned c = 0; c < nPolyChannels; ++c)
+                    {
+                        VoiceContext& context = polyEngine.contextArray[c];
+                        nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
+                        nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
+                        context.pitch = pitchVoltage;
+                        context.gateTriggerReceiver.update(gateVoltage);
+                    }
+
                     PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);
 
                     auto& left = outputs.at(AUDIO_LEFT_OUTPUT);

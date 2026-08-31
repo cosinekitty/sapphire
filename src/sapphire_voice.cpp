@@ -6,7 +6,7 @@ namespace Sapphire
     {
     }
 
-    StereoFrame SineEngine::process(float sampleRateHz)
+    StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         return StereoFrame();
     }
