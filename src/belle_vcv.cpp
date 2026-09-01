@@ -85,6 +85,8 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
+                auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
+                auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
                 {
                     PolyVoiceEngineBase& polyEngine = getCurrentEngine();
@@ -96,21 +98,27 @@ namespace Sapphire
                         VoiceContext& context = polyEngine.contextArray[c];
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
-                        context.pitch = pitchVoltage;
-                        context.gateTriggerReceiver.update(gateVoltage);
+                        context.setPitch(pitchVoltage);
+                        context.setGateVoltage(gateVoltage);
                     }
 
                     PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);
 
-                    auto& left = outputs.at(AUDIO_LEFT_OUTPUT);
                     left.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         left.setVoltage(frame.poly[c].sample[0], c);
 
-                    auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                     right.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         right.setVoltage(frame.poly[c].sample[1], c);
+                }
+                else
+                {
+                    left.setChannels(1);
+                    left.setVoltage(0, 0);
+
+                    right.setChannels(1);
+                    right.setVoltage(0, 0);
                 }
             }
         };
