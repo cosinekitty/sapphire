@@ -1,4 +1,4 @@
-# Sapphire Belle developement
+# Sapphire Belle development
 
 ### Overview
 
