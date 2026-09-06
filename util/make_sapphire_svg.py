@@ -2811,14 +2811,23 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     dyText = 5.8
     dyTextBigKnob = 10.0
 
+    dxModelWindow    = 10.0
     dxGraphicsWindow = 12.0
     dyGraphicsWindow = 18.0
 
+    # Rectangle coordinates for displaying the name of the current model/engine.
+    x1_mod = x(0) - dxModelWindow
+    x2_mod = x(0) + dxModelWindow
+    y1_mod = y(0) + 9.0
+    y2_mod = y1_mod + 8.0
+
+    # Rectangle coordinates for envelope display graph.
     x1_env = x(2) - dxGraphicsWindow
     x2_env = x(2) + dxGraphicsWindow
     y1_env = y(4)
     y2_env = y1_env + dyGraphicsWindow
 
+    # Rectangle coordinates for waveform/oscilloscope display graph.
     x1_wav = x(3) - dxGraphicsWindow
     x2_wav = x(3) + dxGraphicsWindow
     y1_wav = y1_env
@@ -2841,6 +2850,9 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.add('envelope_lower_right', x2_env, y2_env)
         controls.add('waveform_upper_left',  x1_wav, y1_wav)
         controls.add('waveform_lower_right', x2_wav, y2_wav)
+
+        controls.add('model_upper_left',  x1_mod, y1_mod)
+        controls.add('model_lower_right', x2_mod, y2_mod)
 
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))

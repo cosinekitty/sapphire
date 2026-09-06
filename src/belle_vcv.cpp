@@ -100,6 +100,20 @@ namespace Sapphire
         };
 
 
+        struct ModelGraphWidget : GraphWidget
+        {
+            explicit ModelGraphWidget(BelleModule* bmod)
+                : GraphWidget(bmod, "model")
+            {
+                initialize();
+            }
+
+            void initialize()
+            {
+            }
+        };
+
+
         struct EnvelopeGraphWidget : GraphWidget
         {
             explicit EnvelopeGraphWidget(BelleModule* bmod)
@@ -273,8 +287,15 @@ namespace Sapphire
                     );
                 }
 
+                addModelDisplayWidget();
                 addEnvelopeWidget();
                 addWaveformWidget();
+            }
+
+            void addModelDisplayWidget()
+            {
+                auto widget = new ModelGraphWidget(belleModule);
+                addChild(widget);
             }
 
             void addEnvelopeWidget()
