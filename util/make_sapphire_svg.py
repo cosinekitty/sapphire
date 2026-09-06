@@ -2809,6 +2809,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     panel.append(pl)
     dxPortFromCenter = 6.0
     dyText = 5.8
+    dyTextBigKnob = 10.0
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         def addLabel(col:int, row:int, text:str, dx:float = 0.0) -> None:
@@ -2827,6 +2828,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
         controls.append(Component('model_select', x(0), y(0)))
+        pl.append(CenteredControlTextPath(font, "MODEL", x(0), y(0) - dyTextBigKnob))
         addPort(0, 4, "gate_input", "GATE")
         addPort(0, 5, "pitch_input", "PITCH")
         addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
