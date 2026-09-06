@@ -2808,9 +2808,14 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     dxPortFromCenter = 6.0
-
+    dyText = 5.8
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
+        def addControlGroup(col:int, row:int, prefix:str, label:str) -> None:
+            AddFlatControlGroup(pl, controls, x(col), y(row), prefix)
+            if label:
+                pl.append(CenteredControlTextPath(font, label, x(col), y(row) - dyText))
+
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
@@ -2818,6 +2823,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.append(Component("pitch_input", x(0), y(1)))
         controls.append(Component("audio_left_output",  x(4) - dxPortFromCenter, y(4)))
         controls.append(Component("audio_right_output", x(4) + dxPortFromCenter, y(4)))
+
+        addControlGroup(1, 0, "freq", "FREQ")
     return Save(panel, svgFileName)
 
 

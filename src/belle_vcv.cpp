@@ -10,8 +10,12 @@ namespace Sapphire
 {
     namespace Belle
     {
+        constexpr int OctaveRange = 4;            // +/- octave range around default frequency
+
         enum ParamId
         {
+            FREQ_PARAM,
+            FREQ_ATTEN,
             PARAMS_LEN
         };
 
@@ -19,6 +23,7 @@ namespace Sapphire
         {
             GATE_INPUT,
             PITCH_INPUT,
+            FREQ_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -58,6 +63,8 @@ namespace Sapphire
 
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+
+                configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
 
                 initialize();
             }
@@ -137,6 +144,7 @@ namespace Sapphire
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSnapVoctFlatControlGroup("freq", FREQ_PARAM,  FREQ_ATTEN,  FREQ_CV_INPUT);
             }
         };
     }
