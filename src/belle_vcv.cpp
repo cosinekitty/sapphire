@@ -18,6 +18,18 @@ namespace Sapphire
             FREQ_ATTEN,
             OCT_PARAM,
             OCT_ATTEN,
+            ATTACK_PARAM,
+            ATTACK_ATTEN,
+            DECAY_PARAM,
+            DECAY_ATTEN,
+            SUSTAIN_PARAM,
+            SUSTAIN_ATTEN,
+            RELEASE_PARAM,
+            RELEASE_ATTEN,
+
+            ENUMS(MOD_PARAM_0, 4),
+            ENUMS(MOD_ATTEN_0, 4),
+
             PARAMS_LEN
         };
 
@@ -27,6 +39,12 @@ namespace Sapphire
             PITCH_INPUT,
             FREQ_CV_INPUT,
             OCT_CV_INPUT,
+            ATTACK_CV_INPUT,
+            DECAY_CV_INPUT,
+            SUSTAIN_CV_INPUT,
+            RELEASE_CV_INPUT,
+
+            ENUMS(MOD_CV_INPUT_0, 4),
 
             INPUTS_LEN
         };
@@ -70,6 +88,14 @@ namespace Sapphire
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
+
+                configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
+                configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
+                configControlGroup("Sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
+                configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+
+                for (int m = 0; m < 4; ++m)
+                    configControlGroup("", MOD_PARAM_0 + m, MOD_ATTEN_0 + m, MOD_CV_INPUT_0 + m);
 
                 initialize();
             }
@@ -151,6 +177,20 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
+                addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
+                addSapphireFlatControlGroup("sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
+                addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+
+                for (int m = 0; m < 4; ++m)
+                {
+                    addSapphireFlatControlGroup(
+                        "mod" + std::to_string(m),
+                        MOD_PARAM_0 + m,
+                        MOD_ATTEN_0 + m,
+                        MOD_CV_INPUT_0 + m
+                    );
+                }
             }
         };
     }

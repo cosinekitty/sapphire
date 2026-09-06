@@ -2825,6 +2825,12 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.append(Component("audio_right_output", x(4) + dxPortFromCenter, y(4)))
         addControlGroup(1, 0, "freq", "FREQ")
         addControlGroup(1, 1, "oct", "OCT")
+        addControlGroup(2, 0, "attack", "ATT");
+        addControlGroup(2, 1, "decay", "DEC");
+        addControlGroup(2, 2, "sustain", "SUS");
+        addControlGroup(2, 3, "release", "REL");
+        for m in range(4):
+            addControlGroup(3, m, "mod" + str(m), "")
     return Save(panel, svgFileName)
 
 
