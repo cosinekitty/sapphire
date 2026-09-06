@@ -9,11 +9,11 @@ namespace Sapphire
     static const ModuleMap TheModuleMap
     {
         { "belle", {
-            {"_panel",                 {  60.960,  128.500}},
-            {"audio_left_output",      {  24.480,  110.000}},
-            {"audio_right_output",     {  36.480,  110.000}},
-            {"gate_input",             {  30.480,   20.000}},
-            {"pitch_input",            {  30.480,   32.857}},
+            {"_panel",                 { 152.400,  128.500}},
+            {"audio_left_output",      { 131.160,  110.000}},
+            {"audio_right_output",     { 143.160,  110.000}},
+            {"gate_input",             {  15.240,   65.000}},
+            {"pitch_input",            {  15.240,   42.500}},
             }},
         { "chaops", {
             {"_panel",                 {  30.480,  128.500}},

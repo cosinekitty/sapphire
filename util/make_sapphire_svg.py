@@ -2790,27 +2790,34 @@ def GenerateEmpathPanels(cdict: ControlDict) -> int:
 def GenerateBellePanel(cdict: ControlDict) -> int:
     name = 'belle'
     target = Target.VcvRack
-    panelWidth = 12
+    hpColumnWidth = 6
+    nCols = 5
+    panelWidth = hpColumnWidth * nCols
+
+    def x(n:float) -> float:
+        return ((n + 0.5) * hpColumnWidth) * 5.08
+
+    nRows = 5
+    yFence = FencePost(20.0, 110.0, nRows)
+    def y(itemIndex:float) -> float:
+        return yFence.value(itemIndex)
+
     svgFileName = SvgFileName(name, target)
     panel = Panel(panelWidth)
     controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-    xmid = panel.mmWidth / 2
     dxPortFromCenter = 6.0
 
-    yFence = FencePost(20.0, 110.0, 8)
-    def y(itemIndex:float) -> float:
-        return yFence.value(itemIndex)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        controls.append(Component("gate_input", xmid, y(0)))
-        controls.append(Component("pitch_input", xmid, y(1)))
-        controls.append(Component("audio_left_output",  xmid - dxPortFromCenter, y(7)))
-        controls.append(Component("audio_right_output", xmid + dxPortFromCenter, y(7)))
+        controls.append(Component("gate_input", x(0), y(2)))
+        controls.append(Component("pitch_input", x(0), y(1)))
+        controls.append(Component("audio_left_output",  x(4) - dxPortFromCenter, y(4)))
+        controls.append(Component("audio_right_output", x(4) + dxPortFromCenter, y(4)))
     return Save(panel, svgFileName)
 
 

@@ -42,10 +42,10 @@ and overlapping note articulations:
 
 Belle is a polyphonic-stereo module.
 It produces up to 16 independent stereo (left, right) voices.
-There is left audio output port `L` and a right output audio port `R`.
+There is a left audio output port `L` and a right output audio port `R`.
 Each port can produce up to 16 polyphonic channels.
 
-For convenience, there will be a toggle button to "flatten" the output to simple stereo:
+For convenience, there is a toggle button to "flatten" the output to simple stereo:
 a single channel on the `L` output port, and a single channel on the `R`
 output port, with the original polyphonic channels summed together.
 
@@ -97,6 +97,29 @@ These will render as strings on the panel display.
 The engine **does not** need to know about VCV Rack knobs.
 It just needs to answer questions on behalf of a VCV Rack module,
 like "What text label should control group 3 have?"
+
+### Envelope ports
+
+The first 4 of the 8 generic ports are reserved for envelope controls.
+They are pre-assigned positions for attack, decay, sustain, and release,
+as shown in the middle column of control groups:
+
+```text
+
+
+                        |    FREQ      |   ATTACK     |    LABEL(4)
+    --- CHAOS ---       |   *--o--O    |   *--o--O    |    *--o--O
+    |           |       |              |              |
+    |           |       |     OCT      |   DECAY      |    LABEL(5)
+    |           |       |   *--o--O    |   *--o--O    |    *--o--O
+    |           |       |              |              |
+    |           |       |    GAIN      |   SUSTAIN    |    LABEL(6)
+    |           |       |   *--o--O    |   *--o--O    |    *--o--O
+    |           |       |              |              |
+    -------------       |    MODEL     |   RELEASE    |    LABEL(7)
+                        |     -O-      |   *--o--O    |    *--o--O
+
+```
 
 ### Fixed numeric range on parameter knobs
 
