@@ -43,7 +43,6 @@ namespace Sapphire
             DECAY_CV_INPUT,
             SUSTAIN_CV_INPUT,
             RELEASE_CV_INPUT,
-
             ENUMS(MOD_CV_INPUT_0, 4),
 
             INPUTS_LEN
@@ -130,8 +129,17 @@ namespace Sapphire
                 initialize();
             }
 
+            void updateSelectedEngine()
+            {
+                const float value = params.at(MODEL_SELECT_PARAM).getValue();
+                currentEngineIndex = static_cast<unsigned>(round(value));
+                if (currentEngineIndex >= engineCount())
+                    currentEngineIndex = 0;
+            }
+
             void process(const ProcessArgs& args) override
             {
+                updateSelectedEngine();
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
