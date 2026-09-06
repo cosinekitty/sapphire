@@ -26,9 +26,9 @@ namespace Sapphire
             SUSTAIN_ATTEN,
             RELEASE_PARAM,
             RELEASE_ATTEN,
-
             ENUMS(MOD_PARAM_0, 4),
             ENUMS(MOD_ATTEN_0, 4),
+            MODEL_SELECT_PARAM,
 
             PARAMS_LEN
         };
@@ -72,6 +72,11 @@ namespace Sapphire
             std::vector<PolyVoiceEngineBase*> polyEngineList;
             unsigned currentEngineIndex{};
 
+            unsigned engineCount() const
+            {
+                return polyEngineList.size();
+            }
+
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
@@ -96,6 +101,9 @@ namespace Sapphire
 
                 for (int m = 0; m < 4; ++m)
                     configControlGroup("", MOD_PARAM_0 + m, MOD_ATTEN_0 + m, MOD_CV_INPUT_0 + m);
+
+                configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, 0, "Model");
+                paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
                 initialize();
             }
@@ -171,6 +179,7 @@ namespace Sapphire
                 , belleModule(module)
             {
                 setModule(module);
+                addKnob(MODEL_SELECT_PARAM, "model_select");
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");

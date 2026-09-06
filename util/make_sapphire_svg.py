@@ -2826,6 +2826,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
+        controls.append(Component('model_select', x(0), y(0)))
         addPort(0, 4, "gate_input", "GATE")
         addPort(0, 5, "pitch_input", "PITCH")
         addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
