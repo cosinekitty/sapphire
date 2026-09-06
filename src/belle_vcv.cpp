@@ -69,18 +69,19 @@ namespace Sapphire
         struct BelleModule : SapphireModule
         {
             PolyVoiceEngine<SineEngine> polySine;
+            PolyVoiceEngine<TriangleEngine> polyTriangle;
+            PolyVoiceEngine<SawEngine> polySaw;
+            PolyVoiceEngine<SquareEngine> polySquare;
             std::vector<PolyVoiceEngineBase*> polyEngineList;
             unsigned currentEngineIndex{};
-
-            unsigned engineCount() const
-            {
-                return polyEngineList.size();
-            }
 
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
-                registerVoiceEngines();
+                polyEngineList.push_back(&polySine);
+                polyEngineList.push_back(&polyTriangle);
+                polyEngineList.push_back(&polySaw);
+                polyEngineList.push_back(&polySquare);
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -108,9 +109,9 @@ namespace Sapphire
                 initialize();
             }
 
-            void registerVoiceEngines()
+            unsigned engineCount() const
             {
-                polyEngineList.push_back(&polySine);
+                return polyEngineList.size();
             }
 
             void initialize()

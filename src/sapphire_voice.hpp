@@ -73,6 +73,30 @@ namespace Sapphire
     };
 
 
+    struct TriangleEngine : VoiceEngine
+    {
+        float phase = 0;
+        void initialize() override;
+        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+    };
+
+
+    struct SawEngine : VoiceEngine
+    {
+        float phase = 0;
+        void initialize() override;
+        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+    };
+
+
+    struct SquareEngine : VoiceEngine
+    {
+        float phase = 0;
+        void initialize() override;
+        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+    };
+
+
     struct PolyStereoFrame
     {
         unsigned nchannels{};

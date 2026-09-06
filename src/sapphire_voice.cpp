@@ -7,6 +7,7 @@ namespace Sapphire
         phase = 0;
     }
 
+
     StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         if (!context.gateTriggerReceiver.isGateActive())
@@ -24,5 +25,38 @@ namespace Sapphire
         const float s = std::sin(phase);
         static constexpr float amplitude = 0.95;
         return StereoFrame(amplitude*c, amplitude*s);
+    }
+
+
+    void SawEngine::initialize()
+    {
+    }
+
+
+    StereoFrame SawEngine::process(float sampleRateHz, const VoiceContext &context)
+    {
+        return StereoFrame();
+    }
+
+
+    void TriangleEngine::initialize()
+    {
+    }
+
+
+    StereoFrame TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
+    {
+        return StereoFrame();
+    }
+
+
+    void SquareEngine::initialize()
+    {
+    }
+
+
+    StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext &context)
+    {
+        return StereoFrame();
     }
 }
