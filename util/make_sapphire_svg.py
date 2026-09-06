@@ -2811,24 +2811,31 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     dyText = 5.8
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
+        def addLabel(col:int, row:int, text:str, dx:float = 0.0) -> None:
+            if text:
+                pl.append(CenteredControlTextPath(font, text, x(col) + dx, y(row) - dyText))
+
         def addControlGroup(col:int, row:int, prefix:str, label:str) -> None:
             AddFlatControlGroup(pl, controls, x(col), y(row), prefix)
-            if label:
-                pl.append(CenteredControlTextPath(font, label, x(col), y(row) - dyText))
+            addLabel(col, row, label)
+
+        def addPort(col:int, row:int, symbol:str, label:str, dx:float = 0.0) -> None:
+            controls.append(Component(symbol, x(col) + dx, y(row)))
+            addLabel(col, row, label, dx)
 
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        controls.append(Component("gate_input", x(0), y(2)))
-        controls.append(Component("pitch_input", x(0), y(1)))
-        controls.append(Component("audio_left_output",  x(4) - dxPortFromCenter, y(4)))
-        controls.append(Component("audio_right_output", x(4) + dxPortFromCenter, y(4)))
-        addControlGroup(1, 0, "freq", "FREQ")
-        addControlGroup(1, 1, "oct", "OCT")
-        addControlGroup(2, 0, "attack", "ATT");
-        addControlGroup(2, 1, "decay", "DEC");
-        addControlGroup(2, 2, "sustain", "SUS");
-        addControlGroup(2, 3, "release", "REL");
+        addPort(0, 1, "gate_input", "GATE")
+        addPort(0, 2, "pitch_input", "PITCH")
+        addPort(4, 4, "audio_left_output",  "L", -dxPortFromCenter)
+        addPort(4, 4, "audio_right_output", "R", +dxPortFromCenter)
+        addControlGroup(1, 0, "freq",    "FREQ")
+        addControlGroup(1, 1, "oct",     "OCT")
+        addControlGroup(2, 0, "attack",  "ATT")
+        addControlGroup(2, 1, "decay",   "DEC")
+        addControlGroup(2, 2, "sustain", "SUS")
+        addControlGroup(2, 3, "release", "REL")
         for m in range(4):
             addControlGroup(3, m, "mod" + str(m), "")
     return Save(panel, svgFileName)
