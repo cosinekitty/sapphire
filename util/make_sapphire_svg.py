@@ -2797,8 +2797,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     def x(n:float) -> float:
         return ((n + 0.5) * hpColumnWidth) * 5.08
 
-    nRows = 5
-    yFence = FencePost(20.0, 110.0, nRows)
+    nRows = 6
+    yFence = FencePost(20.0, 114.0, nRows)
     def y(itemIndex:float) -> float:
         return yFence.value(itemIndex)
 
@@ -2826,10 +2826,10 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        addPort(0, 1, "gate_input", "GATE")
-        addPort(0, 2, "pitch_input", "PITCH")
-        addPort(4, 4, "audio_left_output",  "L", -dxPortFromCenter)
-        addPort(4, 4, "audio_right_output", "R", +dxPortFromCenter)
+        addPort(0, 4, "gate_input", "GATE")
+        addPort(0, 5, "pitch_input", "PITCH")
+        addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
+        addPort(4, 5, "audio_right_output", "R", +dxPortFromCenter)
         addControlGroup(1, 0, "freq",    "FREQ")
         addControlGroup(1, 1, "oct",     "OCT")
         addControlGroup(2, 0, "attack",  "ATT")
