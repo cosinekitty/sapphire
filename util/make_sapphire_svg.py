@@ -2823,8 +2823,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.append(Component("pitch_input", x(0), y(1)))
         controls.append(Component("audio_left_output",  x(4) - dxPortFromCenter, y(4)))
         controls.append(Component("audio_right_output", x(4) + dxPortFromCenter, y(4)))
-
         addControlGroup(1, 0, "freq", "FREQ")
+        addControlGroup(1, 1, "oct", "OCT")
     return Save(panel, svgFileName)
 
 
