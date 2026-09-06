@@ -661,6 +661,9 @@ class ControlLayer:
     def append(self, comp:Component) -> None:
         self.componentList.append(comp)
 
+    def add(self, symbol:str, xCenter:float, yCenter:float) -> None:
+        self.append(Component(symbol, xCenter, yCenter))
+
 
 ControlDict = Dict[str, ControlLayer]
 

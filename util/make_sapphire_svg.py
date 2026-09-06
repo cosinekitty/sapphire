@@ -2811,6 +2811,19 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     dyText = 5.8
     dyTextBigKnob = 10.0
 
+    dxGraphicsWindow = 12.0
+    dyGraphicsWindow = 18.0
+
+    x1_env = x(2) - dxGraphicsWindow
+    x2_env = x(2) + dxGraphicsWindow
+    y1_env = y(4)
+    y2_env = y1_env + dyGraphicsWindow
+
+    x1_wav = x(3) - dxGraphicsWindow
+    x2_wav = x(3) + dxGraphicsWindow
+    y1_wav = y1_env
+    y2_wav = y2_env
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         def addLabel(col:int, row:int, text:str, dx:float = 0.0) -> None:
             if text:
@@ -2823,6 +2836,11 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         def addPort(col:int, row:int, symbol:str, label:str, dx:float = 0.0) -> None:
             controls.append(Component(symbol, x(col) + dx, y(row)))
             addLabel(col, row, label, dx)
+
+        controls.add('envelope_upper_left',  x1_env, y1_env)
+        controls.add('envelope_lower_right', x2_env, y2_env)
+        controls.add('waveform_upper_left',  x1_wav, y1_wav)
+        controls.add('waveform_lower_right', x2_wav, y2_wav)
 
         pl.append(MakeBorder(target, panelWidth))
         pl.append(ModelNamePath(panel, font, name))

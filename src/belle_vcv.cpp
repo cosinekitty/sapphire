@@ -2,6 +2,7 @@
 // https://github.com/cosinekitty/sapphire
 
 #include <cassert>
+#include <cstring>
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_voice.hpp"
@@ -10,6 +11,8 @@ namespace Sapphire
 {
     namespace Belle
     {
+        struct BelleModule;
+
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
         enum ParamId
@@ -63,6 +66,66 @@ namespace Sapphire
 
 
         constexpr unsigned DefaultEngineIndex = 0;
+
+
+        struct GraphWidget : OpaqueWidget
+        {
+            BelleModule* belleModule{};
+
+            explicit GraphWidget(BelleModule* bmod, const std::string& prefix)
+                : belleModule(bmod)
+            {
+                ComponentLocation upperLeft  = FindComponent("belle", prefix + "_upper_left");
+                ComponentLocation lowerRight = FindComponent("belle", prefix + "_lower_right");
+                box.pos.x = mm2px(upperLeft.cx);
+                box.pos.y = mm2px(upperLeft.cy);
+                box.size.x = mm2px(lowerRight.cx - upperLeft.cx);
+                box.size.y = mm2px(lowerRight.cy - upperLeft.cy);
+            }
+
+            void draw(const DrawArgs& args) override
+            {
+                drawBlackRectangle(args);
+                OpaqueWidget::draw(args);   // in case we ever have children to draw on top
+            }
+
+            void drawBlackRectangle(const DrawArgs& args)
+            {
+                math::Rect r = box.zeroPos();
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, RECT_ARGS(r));
+                nvgFillColor(args.vg, SCHEME_BLACK);
+                nvgFill(args.vg);
+            }
+        };
+
+
+        struct EnvelopeGraphWidget : GraphWidget
+        {
+            explicit EnvelopeGraphWidget(BelleModule* bmod)
+                : GraphWidget(bmod, "envelope")
+            {
+                initialize();
+            }
+
+            void initialize()
+            {
+            }
+        };
+
+
+        struct WaveformGraphWidget : GraphWidget
+        {
+            explicit WaveformGraphWidget(BelleModule* bmod)
+                : GraphWidget(bmod, "waveform")
+            {
+                initialize();
+            }
+
+            void initialize()
+            {
+            }
+        };
 
 
         struct BelleModule : SapphireModule
@@ -209,6 +272,21 @@ namespace Sapphire
                         MOD_CV_INPUT_0 + m
                     );
                 }
+
+                addEnvelopeWidget();
+                addWaveformWidget();
+            }
+
+            void addEnvelopeWidget()
+            {
+                auto widget = new EnvelopeGraphWidget(belleModule);
+                addChild(widget);
+            }
+
+            void addWaveformWidget()
+            {
+                auto widget = new WaveformGraphWidget(belleModule);
+                addChild(widget);
             }
         };
     }

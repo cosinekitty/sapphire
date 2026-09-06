@@ -18,6 +18,8 @@ namespace Sapphire
             {"decay_atten",            {  76.200,   38.800}},
             {"decay_cv",               {  67.200,   38.800}},
             {"decay_knob",             {  85.200,   38.800}},
+            {"envelope_lower_right",   {  88.200,  113.200}},
+            {"envelope_upper_left",    {  64.200,   95.200}},
             {"freq_atten",             {  45.720,   20.000}},
             {"freq_cv",                {  36.720,   20.000}},
             {"freq_knob",              {  54.720,   20.000}},
@@ -45,6 +47,8 @@ namespace Sapphire
             {"sustain_atten",          {  76.200,   57.600}},
             {"sustain_cv",             {  67.200,   57.600}},
             {"sustain_knob",           {  85.200,   57.600}},
+            {"waveform_lower_right",   { 118.680,  113.200}},
+            {"waveform_upper_left",    {  94.680,   95.200}},
             }},
         { "chaops", {
             {"_panel",                 {  30.480,  128.500}},
