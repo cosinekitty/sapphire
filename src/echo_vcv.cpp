@@ -1679,7 +1679,7 @@ namespace Sapphire
                 {
                     snprintf(text, sizeof(text), "%d", chainIndex);
                     Vec center = getChainIndexCenterPos();
-                    drawCenteredText(vg, center.x, center.y, text);
+                    DrawCenteredText(vg, center.x, center.y, text);
                 }
 
                 if (offerRoutingModeChange())
@@ -1687,7 +1687,7 @@ namespace Sapphire
                     text[0] = InputRoutingChar(routing);
                     text[1] = '\0';
                     Vec center = getTapInputRoutingPos();
-                    drawCenteredText(vg, center.x, center.y, text);
+                    DrawCenteredText(vg, center.x, center.y, text);
                     if (hilightInputRoutingButton)
                     {
                         const float mmAdjustY = 0.4;

@@ -334,7 +334,7 @@ namespace Sapphire
                         nvgFontSize(args.vg, 14);
                         nvgFontFaceId(args.vg, font->handle);
                         nvgFillColor(args.vg, SCHEME_YELLOW);
-                        SapphireWidget::drawCenteredText(args.vg, box.size.x/2, box.size.y/2, name.c_str());
+                        DrawCenteredText(args.vg, box.size.x/2, box.size.y/2, name.c_str());
                     }
                 }
             }

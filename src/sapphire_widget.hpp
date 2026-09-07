@@ -636,6 +636,18 @@ namespace Sapphire
     };
 
 
+    inline void DrawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
+    {
+        float bounds[4]{};
+        nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
+        // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
+        //                xmin       ymin       xmax      ymax
+        float width = bounds[2] - bounds[0];
+        float ascent = -bounds[1];
+        nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
+    }
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
@@ -1152,17 +1164,6 @@ namespace Sapphire
             nvgFill(vg);
         }
 
-        static void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
-        {
-            float bounds[4]{};
-            nvgTextBounds(vg, 0, 0, text, nullptr, bounds);
-            // "L" => bounds=[0.000000, -14.353189, 9.333333, 3.646812]
-            //                xmin       ymin       xmax      ymax
-            float width = bounds[2] - bounds[0];
-            float ascent = -bounds[1];
-            nvgText(vg, xCenter - width/2, yCenter + ascent/2, text, nullptr);
-        }
-
         void drawAudioPortLabels(
             NVGcontext* vg,
             PortLabelMode mode,
@@ -1217,10 +1218,10 @@ namespace Sapphire
             float yL = mm2px(yL_mm + yNudge);
             float yR = mm2px(yR_mm + yNudge);
 
-            drawCenteredText(vg, xL, yL, left);
+            DrawCenteredText(vg, xL, yL, left);
 
             if (right[0])
-                drawCenteredText(vg, xR, yR, right);
+                DrawCenteredText(vg, xR, yR, right);
         }
 
         void drawAudioPortLabels(

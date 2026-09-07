@@ -2259,7 +2259,7 @@ namespace Sapphire
                         {
                             snprintf(text, sizeof(text), "%d", chainIndex);
                             Vec center = getChainIndexCenterPos();
-                            drawCenteredText(vg, center.x, center.y, text);
+                            DrawCenteredText(vg, center.x, center.y, text);
                         }
                     }
                 }
