@@ -1664,39 +1664,38 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                std::shared_ptr<Font> font = APP->window->loadFont(chainFontPath);
-                if (!font)
-                    return;
-
-                char text[20];
-
-                nvgFontSize(vg, 18);
-                nvgFontFaceId(vg, font->handle);
-                nvgFillColor(vg, textColor);
-
-                const bool isDisconnectedEcho = IsEcho(module) && !IsEchoReceiver(module->rightExpander.module);
-                if ((chainIndex > 0) && !isDisconnectedEcho)
+                if (auto font = APP->window->loadFont(chainFontPath))
                 {
-                    snprintf(text, sizeof(text), "%d", chainIndex);
-                    Vec center = getChainIndexCenterPos();
-                    DrawCenteredText(vg, center.x, center.y, text);
-                }
+                    char text[20];
 
-                if (offerRoutingModeChange())
-                {
-                    text[0] = InputRoutingChar(routing);
-                    text[1] = '\0';
-                    Vec center = getTapInputRoutingPos();
-                    DrawCenteredText(vg, center.x, center.y, text);
-                    if (hilightInputRoutingButton)
+                    nvgFontSize(vg, 18);
+                    nvgFontFaceId(vg, font->handle);
+                    nvgFillColor(vg, textColor);
+
+                    const bool isDisconnectedEcho = IsEcho(module) && !IsEchoReceiver(module->rightExpander.module);
+                    if ((chainIndex > 0) && !isDisconnectedEcho)
                     {
-                        const float mmAdjustY = 0.4;
+                        snprintf(text, sizeof(text), "%d", chainIndex);
+                        Vec center = getChainIndexCenterPos();
+                        DrawCenteredText(vg, center.x, center.y, text);
+                    }
 
-                        nvgBeginPath(vg);
-                        nvgStrokeColor(vg, textColor);
-                        nvgStrokeWidth(vg, 1.0);
-                        nvgCircle(vg, center.x, center.y + mm2px(mmAdjustY), mm2px(mmModeButtonRadius));
-                        nvgStroke(vg);
+                    if (offerRoutingModeChange())
+                    {
+                        text[0] = InputRoutingChar(routing);
+                        text[1] = '\0';
+                        Vec center = getTapInputRoutingPos();
+                        DrawCenteredText(vg, center.x, center.y, text);
+                        if (hilightInputRoutingButton)
+                        {
+                            const float mmAdjustY = 0.4;
+
+                            nvgBeginPath(vg);
+                            nvgStrokeColor(vg, textColor);
+                            nvgStrokeWidth(vg, 1.0);
+                            nvgCircle(vg, center.x, center.y + mm2px(mmAdjustY), mm2px(mmModeButtonRadius));
+                            nvgStroke(vg);
+                        }
                     }
                 }
             }

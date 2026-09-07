@@ -1223,24 +1223,23 @@ namespace Sapphire
                 break;
             }
 
-            std::shared_ptr<Font> font = APP->window->loadFont(portLabelFontPath);
-            if (!font)
-                return;
+            if (auto font = APP->window->loadFont(portLabelFontPath))
+            {
+                nvgFontSize(vg, 12);
+                nvgFontFaceId(vg, font->handle);
+                nvgFillColor(vg, SCHEME_BLACK);
 
-            nvgFontSize(vg, 12);
-            nvgFontFaceId(vg, font->handle);
-            nvgFillColor(vg, SCHEME_BLACK);
+                float yNudge = -0.3;
+                float xL = mm2px(xL_mm);
+                float xR = mm2px(xR_mm);
+                float yL = mm2px(yL_mm + yNudge);
+                float yR = mm2px(yR_mm + yNudge);
 
-            float yNudge = -0.3;
-            float xL = mm2px(xL_mm);
-            float xR = mm2px(xR_mm);
-            float yL = mm2px(yL_mm + yNudge);
-            float yR = mm2px(yR_mm + yNudge);
+                DrawCenteredText(vg, xL, yL, left);
 
-            DrawCenteredText(vg, xL, yL, left);
-
-            if (right[0])
-                DrawCenteredText(vg, xR, yR, right);
+                if (right[0])
+                    DrawCenteredText(vg, xR, yR, right);
+            }
         }
 
         void drawAudioPortLabels(
