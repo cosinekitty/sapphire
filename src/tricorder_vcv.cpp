@@ -1360,8 +1360,7 @@ namespace Sapphire
                 if (module == nullptr)
                     return;
 
-                std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-                if (font)
+                if (std::shared_ptr<Font> font = APP->window->loadFont(fontPath))
                 {
                     nvgFontSize(vg, 14);
                     nvgFontFaceId(vg, font->handle);

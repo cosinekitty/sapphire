@@ -1152,7 +1152,7 @@ namespace Sapphire
             nvgFill(vg);
         }
 
-        void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
+        static void drawCenteredText(NVGcontext* vg, float xCenter, float yCenter, const char *text)
         {
             float bounds[4]{};
             nvgTextBounds(vg, 0, 0, text, nullptr, bounds);

@@ -62,11 +62,13 @@ namespace Sapphire
     {
         virtual void initialize() = 0;
         virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
+        virtual std::string getName() const = 0;
     };
 
 
     struct SineEngine : VoiceEngine
     {
+        std::string getName() const override { return "sine"; }
         float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
@@ -75,6 +77,7 @@ namespace Sapphire
 
     struct TriangleEngine : VoiceEngine
     {
+        std::string getName() const override { return "triangle"; }
         float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
@@ -83,6 +86,7 @@ namespace Sapphire
 
     struct SawEngine : VoiceEngine
     {
+        std::string getName() const override { return "saw"; }
         float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
@@ -91,6 +95,7 @@ namespace Sapphire
 
     struct SquareEngine : VoiceEngine
     {
+        std::string getName() const override { return "square"; }
         float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
@@ -114,6 +119,7 @@ namespace Sapphire
                 context.initialize();
         }
 
+        virtual std::string getName() const = 0;
         virtual PolyStereoFrame process(float sampleRateHz, unsigned nchannels) = 0;
     };
 
@@ -128,6 +134,11 @@ namespace Sapphire
             PolyVoiceEngineBase::initialize();
             for (engine_t& engine : engineArray)
                 engine.initialize();
+        }
+
+        std::string getName() const override
+        {
+            return engineArray.at(0).getName();
         }
 
         PolyStereoFrame process(float sampleRateHz, unsigned nchannels) override

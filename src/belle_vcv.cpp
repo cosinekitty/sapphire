@@ -102,8 +102,11 @@ namespace Sapphire
 
         struct ModelGraphWidget : GraphWidget
         {
+            const std::string fontPath;
+
             explicit ModelGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "model")
+                , fontPath(asset::system("res/fonts/ShareTechMono-Regular.ttf"))
             {
                 initialize();
             }
@@ -111,6 +114,8 @@ namespace Sapphire
             void initialize()
             {
             }
+
+            void drawLayer(const DrawArgs& args, int layer) override;
         };
 
 
@@ -195,9 +200,14 @@ namespace Sapphire
                 currentEngineIndex = DefaultEngineIndex;
             }
 
-            PolyVoiceEngineBase& getCurrentEngine()
+            PolyVoiceEngineBase& getCurrentEngine() const
             {
                 return *polyEngineList.at(currentEngineIndex);
+            }
+
+            std::string getCurrentEngineName() const
+            {
+                return getCurrentEngine().getName();
             }
 
             void onReset(const ResetEvent& e) override
@@ -310,6 +320,25 @@ namespace Sapphire
                 addChild(widget);
             }
         };
+
+
+        void ModelGraphWidget::drawLayer(const DrawArgs &args, int layer)
+        {
+            if (belleModule)
+            {
+                if (layer == 1)
+                {
+                    const std::string name = belleModule->getCurrentEngineName();
+                    if (auto font = APP->window->loadFont(fontPath))
+                    {
+                        nvgFontSize(args.vg, 14);
+                        nvgFontFaceId(args.vg, font->handle);
+                        nvgFillColor(args.vg, SCHEME_YELLOW);
+                        SapphireWidget::drawCenteredText(args.vg, box.size.x/2, box.size.y/2, name.c_str());
+                    }
+                }
+            }
+        }
     }
 }
 
