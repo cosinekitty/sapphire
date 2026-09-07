@@ -328,14 +328,15 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
-                    const std::string name = belleModule->getCurrentEngineName();
-                    if (auto font = APP->window->loadFont(fontPath))
-                    {
-                        nvgFontSize(args.vg, 14);
-                        nvgFontFaceId(args.vg, font->handle);
-                        nvgFillColor(args.vg, SCHEME_YELLOW);
-                        DrawCenteredText(args.vg, box.size.x/2, box.size.y/2, name.c_str());
-                    }
+                    DrawCenteredText(
+                        args.vg,
+                        fontPath,
+                        14,
+                        SCHEME_YELLOW,
+                        box.size.x / 2,
+                        box.size.y / 2,
+                        belleModule->getCurrentEngineName()
+                    );
                 }
             }
         }

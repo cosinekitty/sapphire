@@ -648,6 +648,25 @@ namespace Sapphire
     }
 
 
+    inline void DrawCenteredText(
+        NVGcontext* vg,
+        const std::string& fontPath,
+        float fontSize,
+        NVGcolor textColor,
+        float xCenter,
+        float yCenter,
+        const std::string& text)
+    {
+        if (auto font = APP->window->loadFont(fontPath))
+        {
+            nvgFontSize(vg, fontSize);
+            nvgFontFaceId(vg, font->handle);
+            nvgFillColor(vg, textColor);
+            DrawCenteredText(vg, xCenter, yCenter, text.c_str());
+        }
+    }
+
+
     struct SapphireWidget : ModuleWidget
     {
         const std::string modcode;
