@@ -10,6 +10,7 @@ namespace Sapphire
     constexpr unsigned NSTEREO = 2;
     constexpr unsigned NPOLY = 16;
     constexpr float VOICE_OCTAVE_SPAN = 4;       // +/- this many octaves from C4 center
+    constexpr float PEAK_VOLTS = 5;
 
     struct StereoFrame
     {

@@ -23,8 +23,7 @@ namespace Sapphire
 
         const float c = std::cos(phase);
         const float s = std::sin(phase);
-        static constexpr float amplitude = 4.9;
-        return StereoFrame(amplitude*c, amplitude*s);
+        return StereoFrame(PEAK_VOLTS*c, PEAK_VOLTS*s);
     }
 
 
