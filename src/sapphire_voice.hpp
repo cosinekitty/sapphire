@@ -31,6 +31,10 @@ namespace Sapphire
         float pitch{};      // V/OCT relative to C4 (261.63 Hz).
         float freq{};       // pitch converted to Hz for your voice engine's convenience
         GateTriggerReceiver gateTriggerReceiver;
+        float attack{};
+        float decay{};
+        float sustain{};
+        float release{};
 
         explicit VoiceContext()
         {
@@ -59,8 +63,113 @@ namespace Sapphire
     };
 
 
+    enum class AdsrState
+    {
+        Quiet,
+        Attack,
+        Sustain,
+        Release,
+    };
+
+
+    struct AdsrEnvelope
+    {
+        AdsrState state{};
+        double fraction{};      // 0 = beginning of Attack/Sustain/Release, 1 = End/Saturate
+
+        void initialize()
+        {
+            state = AdsrState::Quiet;
+            fraction = 0;
+        }
+
+        double rampTimeSeconds(double knob)
+        {
+            return std::pow(10.0, 2*knob - 1);
+        }
+
+        double process(float sampleRateHz, const VoiceContext &context)
+        {
+            double env = 0;
+            const bool gate = context.gateTriggerReceiver.isGateActive();
+
+            switch (state)
+            {
+                case AdsrState::Quiet:
+                default:    // treat any invalid states as identical to Quiet
+                {
+                    // On the rising edge of a gate, begin the attack phase.
+                    if (gate)
+                    {
+                        state = AdsrState::Attack;
+                        fraction = 0;
+                    }
+                }
+                break;
+
+                case AdsrState::Attack:
+                {
+                    // Gradually rise from 0 to 1.
+                    // For now, fraction and env are the same thing.
+                    // Later, env will be a function of fraction.
+                    double rampSamples = sampleRateHz * rampTimeSeconds(context.attack);
+                    fraction = std::clamp<double>(fraction + 1/rampSamples, 0, 1);
+                    env = fraction;
+
+                    if (gate)
+                    {
+                        if (fraction == 1)
+                            state = AdsrState::Sustain;
+                    }
+                    else
+                    {
+                        state = AdsrState::Release;
+                        fraction = 1;
+                    }
+                }
+                break;
+
+                case AdsrState::Sustain:
+                {
+                    // Keep envelope at full power until the gate goes away.
+                    // Later we will use the sustain control.
+                    env = 1;
+
+                    if (!gate)
+                    {
+                        state = AdsrState::Release;
+                        fraction = 1;
+                    }
+                }
+                break;
+
+                case AdsrState::Release:
+                {
+                    double rampSamples = sampleRateHz * rampTimeSeconds(context.release);
+                    fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
+                    env = fraction;
+
+                    if (gate)
+                    {
+                        state = AdsrState::Attack;
+                    }
+                    else
+                    {
+                        if (fraction == 0)
+                            state = AdsrState::Quiet;
+                    }
+                }
+                break;
+            }
+
+            return env;
+        }
+    };
+
+
     struct VoiceEngine
     {
+        AdsrEnvelope envelope;
         virtual void initialize() = 0;
         virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
         virtual std::string getName() const = 0;

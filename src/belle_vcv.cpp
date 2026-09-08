@@ -235,13 +235,25 @@ namespace Sapphire
 
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
+                    float attackVoltage = 0;
+                    float decayVoltage = 0;
+                    float sustainVoltage = 0;
+                    float releaseVoltage = 0;
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
                         VoiceContext& context = polyEngine.contextArray[c];
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
+                        nextChannelInputVoltage(attackVoltage, ATTACK_CV_INPUT, c);
+                        nextChannelInputVoltage(decayVoltage, DECAY_CV_INPUT, c);
+                        nextChannelInputVoltage(sustainVoltage, SUSTAIN_CV_INPUT, c);
+                        nextChannelInputVoltage(releaseVoltage, RELEASE_CV_INPUT, c);
                         context.setPitch(pitchVoltage);
                         context.setGateVoltage(gateVoltage);
+                        context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
+                        context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
+                        context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage, -1, +1);
+                        context.release = cvGetVoltPerOctave(RELEASE_PARAM, RELEASE_ATTEN, releaseVoltage, -1, +1);
                     }
 
                     PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);

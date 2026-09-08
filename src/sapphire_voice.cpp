@@ -5,13 +5,13 @@ namespace Sapphire
     void SineEngine::initialize()
     {
         phase = 0;
+        envelope.initialize();
     }
 
 
     StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        if (!context.gateTriggerReceiver.isGateActive())
-            return StereoFrame();
+        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
 
         static constexpr float twopi = 2 * M_PI;
 
@@ -23,7 +23,7 @@ namespace Sapphire
 
         const float c = std::cos(phase);
         const float s = std::sin(phase);
-        return StereoFrame(PEAK_VOLTS*c, PEAK_VOLTS*s);
+        return StereoFrame(env*c, env*s);
     }
 
 
