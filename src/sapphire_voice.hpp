@@ -85,73 +85,10 @@ namespace Sapphire
 
         double rampTimeSeconds(double knob)
         {
-            return std::pow(10.0, 2*knob - 1);
+            return TenToPower(2*knob - 1);
         }
 
-        double process(float sampleRateHz, const VoiceContext &context)
-        {
-            const bool gate = context.gateTriggerReceiver.isGateActive();
-
-            switch (state)
-            {
-                case AdsrState::Quiet:
-                default:    // treat any invalid states as identical to Quiet
-                {
-                    // On the rising edge of a gate, begin the attack phase.
-                    if (gate)
-                    {
-                        state = AdsrState::Attack;
-                        fraction = 0;
-                    }
-                }
-                break;
-
-                case AdsrState::Attack:
-                {
-                    // Gradually rise from 0 to 1.
-                    double rampSamples = sampleRateHz * rampTimeSeconds(context.attack);
-                    fraction = std::clamp<double>(fraction + 1/rampSamples, 0, 1);
-
-                    if (gate)
-                    {
-                        if (fraction == 1)
-                            state = AdsrState::Decay;
-                    }
-                    else
-                    {
-                        state = AdsrState::Release;
-                    }
-                }
-                break;
-
-                case AdsrState::Decay:
-                {
-                    // Keep envelope at full power until the gate goes away.
-                    // Later we will use the sustain control that fades to a DECAY percentage.
-                    if (!gate)
-                        state = AdsrState::Release;
-                }
-                break;
-
-                case AdsrState::Release:
-                {
-                    double rampSamples = sampleRateHz * rampTimeSeconds(context.release);
-                    fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
-                    if (gate)
-                    {
-                        state = AdsrState::Attack;
-                    }
-                    else
-                    {
-                        if (fraction == 0)
-                            state = AdsrState::Quiet;
-                    }
-                }
-                break;
-            }
-
-            return fraction;
-        }
+        double process(float sampleRateHz, const VoiceContext &context);
     };
 
 
