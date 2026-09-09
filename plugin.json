@@ -16,12 +16,11 @@
     {
       "slug": "Belle",
       "name": "Belle",
-      "description": "Modal resonator based on Mutable Instruments Rings.",
+      "description": "Complex oscillator with a variety of voice models.",
       "manualUrl": "https://github.com/cosinekitty/sapphire/blob/main/doc/Belle.md",
       "tags": [
         "Oscillator",
-        "Polyphonic",
-        "Physical modeling"
+        "Polyphonic"
       ]
     },
     {
