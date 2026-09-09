@@ -40,10 +40,24 @@ namespace Sapphire
 
             case AdsrState::Decay:
             {
-                // Keep envelope at full power until the gate goes away.
-                // Later we will use the sustain control that fades to a DECAY percentage.
-                if (!gate)
+                if (gate)
+                {
+                    // While the note is held, we want it to fade from fraction=1 to fraction=sustain.
+                    if (context.sustain >= 1)
+                    {
+                        // hold at current power forever - leave fraction alone
+                    }
+                    else
+                    {
+                        double descend = 1 - context.sustain;   // how far down we need to go
+                        double decaySamples = sampleRateHz * rampTimeSeconds(context.decay / descend);
+                        fraction = std::clamp<double>(fraction - 1/decaySamples, context.sustain, 1);
+                    }
+                }
+                else
+                {
                     state = AdsrState::Release;
+                }
             }
             break;
 
