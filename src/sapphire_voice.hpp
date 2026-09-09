@@ -9,7 +9,7 @@ namespace Sapphire
 {
     constexpr unsigned NSTEREO = 2;
     constexpr unsigned NPOLY = 16;
-    constexpr float VOICE_OCTAVE_SPAN = 4;       // +/- this many octaves from C4 center
+    constexpr float VOICE_OCTAVE_SPAN = 4.5;       // +/- this many octaves from C4 center (match VCV VCO range)
     constexpr float PEAK_VOLTS = 5;
 
     struct StereoFrame
@@ -52,7 +52,7 @@ namespace Sapphire
             if (!std::isfinite(voct))
                 voct = 0;
 
-            pitch = std::clamp<float>(voct, -VOICE_OCTAVE_SPAN, +VOICE_OCTAVE_SPAN);
+            pitch = voct;
             freq = std::exp2(pitch) * C4_FREQUENCY_HZ;
         }
 

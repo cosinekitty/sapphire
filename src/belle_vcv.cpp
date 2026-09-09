@@ -235,6 +235,8 @@ namespace Sapphire
 
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
+                    float freqVoltage = 0;
+                    float octaveVoltage = 0;
                     float attackVoltage = 0;
                     float decayVoltage = 0;
                     float sustainVoltage = 0;
@@ -244,11 +246,15 @@ namespace Sapphire
                         VoiceContext& context = polyEngine.contextArray[c];
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
+                        nextChannelInputVoltage(freqVoltage, FREQ_CV_INPUT, c);
+                        nextChannelInputVoltage(octaveVoltage, OCT_CV_INPUT, c);
                         nextChannelInputVoltage(attackVoltage, ATTACK_CV_INPUT, c);
                         nextChannelInputVoltage(decayVoltage, DECAY_CV_INPUT, c);
                         nextChannelInputVoltage(sustainVoltage, SUSTAIN_CV_INPUT, c);
                         nextChannelInputVoltage(releaseVoltage, RELEASE_CV_INPUT, c);
-                        context.setPitch(pitchVoltage);
+                        float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
+                        float oct  = cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange);
+                        context.setPitch(pitchVoltage + freq + oct);
                         context.setGateVoltage(gateVoltage);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
