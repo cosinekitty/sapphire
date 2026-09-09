@@ -90,7 +90,6 @@ namespace Sapphire
 
         double process(float sampleRateHz, const VoiceContext &context)
         {
-            double env = 0;
             const bool gate = context.gateTriggerReceiver.isGateActive();
 
             switch (state)
@@ -110,11 +109,8 @@ namespace Sapphire
                 case AdsrState::Attack:
                 {
                     // Gradually rise from 0 to 1.
-                    // For now, fraction and env are the same thing.
-                    // Later, env will be a function of fraction.
                     double rampSamples = sampleRateHz * rampTimeSeconds(context.attack);
                     fraction = std::clamp<double>(fraction + 1/rampSamples, 0, 1);
-                    env = fraction;
 
                     if (gate)
                     {
@@ -132,8 +128,6 @@ namespace Sapphire
                 {
                     // Keep envelope at full power until the gate goes away.
                     // Later we will use the sustain control that fades to a DECAY percentage.
-                    env = fraction;
-
                     if (!gate)
                         state = AdsrState::Release;
                 }
@@ -143,8 +137,6 @@ namespace Sapphire
                 {
                     double rampSamples = sampleRateHz * rampTimeSeconds(context.release);
                     fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
-                    env = fraction;
-
                     if (gate)
                     {
                         state = AdsrState::Attack;
@@ -158,7 +150,7 @@ namespace Sapphire
                 break;
             }
 
-            return env;
+            return fraction;
         }
     };
 
