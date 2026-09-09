@@ -67,7 +67,7 @@ namespace Sapphire
     {
         Quiet,
         Attack,
-        Sustain,
+        Decay,
         Release,
     };
 
@@ -75,7 +75,7 @@ namespace Sapphire
     struct AdsrEnvelope
     {
         AdsrState state{};
-        double fraction{};      // 0 = beginning of Attack/Sustain/Release, 1 = End/Saturate
+        double fraction{};      // 0 = silence, 1 = full power envelope; linear scale
 
         void initialize()
         {
@@ -119,27 +119,23 @@ namespace Sapphire
                     if (gate)
                     {
                         if (fraction == 1)
-                            state = AdsrState::Sustain;
+                            state = AdsrState::Decay;
                     }
                     else
                     {
                         state = AdsrState::Release;
-                        fraction = 1;
                     }
                 }
                 break;
 
-                case AdsrState::Sustain:
+                case AdsrState::Decay:
                 {
                     // Keep envelope at full power until the gate goes away.
-                    // Later we will use the sustain control.
-                    env = 1;
+                    // Later we will use the sustain control that fades to a DECAY percentage.
+                    env = fraction;
 
                     if (!gate)
-                    {
                         state = AdsrState::Release;
-                        fraction = 1;
-                    }
                 }
                 break;
 
