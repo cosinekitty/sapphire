@@ -81,7 +81,7 @@ namespace Sapphire
         return fraction;
     }
 
-
+    //--------------------------------------------------------------------------------------------------
 
     void SineEngine::initialize()
     {
@@ -96,17 +96,17 @@ namespace Sapphire
 
         static constexpr float twopi = 2 * M_PI;
 
-        phase += twopi * (context.freq / sampleRateHz);
-        if (phase <= -twopi)
-            phase += twopi;
-        if (phase >= +twopi)
-            phase -= twopi;
+        phase = FMOD(
+            phase + twopi*(context.freq / sampleRateHz),
+            twopi
+        );
 
         const float c = std::cos(phase);
         const float s = std::sin(phase);
         return StereoFrame(env*c, env*s);
     }
 
+    //--------------------------------------------------------------------------------------------------
 
     void SawEngine::initialize()
     {
@@ -118,6 +118,7 @@ namespace Sapphire
         return StereoFrame();
     }
 
+    //--------------------------------------------------------------------------------------------------
 
     void TriangleEngine::initialize()
     {
@@ -129,6 +130,7 @@ namespace Sapphire
         return StereoFrame();
     }
 
+    //--------------------------------------------------------------------------------------------------
 
     void SquareEngine::initialize()
     {
@@ -139,4 +141,6 @@ namespace Sapphire
     {
         return StereoFrame();
     }
+
+    //--------------------------------------------------------------------------------------------------
 }
