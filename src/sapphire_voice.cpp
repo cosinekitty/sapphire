@@ -93,14 +93,7 @@ namespace Sapphire
     StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-
-        static constexpr float twopi = 2 * M_PI;
-
-        phase = FMOD(
-            phase + twopi*(context.freq / sampleRateHz),
-            twopi
-        );
-
+        updatePhase(sampleRateHz, context.freq);
         const float c = std::cos(phase);
         const float s = std::sin(phase);
         return StereoFrame(env*c, env*s);

@@ -94,7 +94,19 @@ namespace Sapphire
 
     struct VoiceEngine
     {
+        float phase = 0;
         AdsrEnvelope envelope;
+
+        void updatePhase(float sampleRateHz, float freqHz)
+        {
+            static constexpr float twopi = 2*M_PI;
+
+            phase = FMOD(
+                phase + twopi*(freqHz / sampleRateHz),
+                twopi
+            );
+        }
+
         virtual void initialize() = 0;
         virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
         virtual std::string getName() const = 0;
@@ -104,7 +116,6 @@ namespace Sapphire
     struct SineEngine : VoiceEngine
     {
         std::string getName() const override { return "sine"; }
-        float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
     };
@@ -113,7 +124,6 @@ namespace Sapphire
     struct TriangleEngine : VoiceEngine
     {
         std::string getName() const override { return "triangle"; }
-        float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
     };
@@ -122,7 +132,6 @@ namespace Sapphire
     struct SawEngine : VoiceEngine
     {
         std::string getName() const override { return "saw"; }
-        float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
     };
@@ -131,7 +140,6 @@ namespace Sapphire
     struct SquareEngine : VoiceEngine
     {
         std::string getName() const override { return "square"; }
-        float phase = 0;
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
     };
