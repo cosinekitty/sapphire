@@ -122,6 +122,7 @@ namespace Sapphire
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         updatePhase(sampleRateHz, context.freq);
         const float bipolar = 2*phase - 1;
+        // FIXFIXFIX - add rack::dsp::MinBlepGenerator correction for anti-aliasing.
         return StereoFrame(env*bipolar, env*bipolar);
     }
 
@@ -129,12 +130,37 @@ namespace Sapphire
 
     void TriangleEngine::initialize()
     {
+        phase = 0;
+        envelope.initialize();
     }
 
 
     StereoFrame TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        return StereoFrame();
+        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
+        updatePhase(sampleRateHz, context.freq);
+
+        float fraction;
+
+        if (phase < 0.25)
+        {
+            // Rise from 0 to 1   :  0.00 <= phase < 0.25
+            fraction = 4*phase;
+        }
+        else if (phase < 0.75)
+        {
+            // Sink from 1 to -1  :  0.25 <= phase < 0.75
+            fraction = 2 - 4*phase;
+        }
+        else
+        {
+            // Rise from -1 to 0  :  0.75 <= phase < 1.00
+            fraction = 4*phase - 4;
+        }
+
+        // FIXFIXFIX - add rack::dsp::MinBlepGenerator correction for anti-aliasing.
+
+        return StereoFrame(env*fraction, env*fraction);
     }
 
     //--------------------------------------------------------------------------------------------------
