@@ -94,13 +94,17 @@ namespace Sapphire
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         updatePhase(sampleRateHz, context.freq);
+
         // FIXFIXFIX : Here we calculate a fixed 90° phase angle between left and right.
         // FIXFIXFIX : Consider defaulting to 0° with ±180° adjustment via one of the MOD controls.
         // One interesting idea would be push/pull where half the adjustment is added to the right
         // channel, and half is subtracted from the left channel. That way, audio rate modulation
         // applies equally to both channels.
-        const float c = std::cos(phase);
-        const float s = std::sin(phase);
+
+        static constexpr float twopi = 2*M_PI;
+        const float radians = twopi * phase;
+        const float c = std::cos(radians);
+        const float s = std::sin(radians);
         return StereoFrame(env*c, env*s);
     }
 
@@ -108,12 +112,17 @@ namespace Sapphire
 
     void SawEngine::initialize()
     {
+        phase = 0;
+        envelope.initialize();
     }
 
 
     StereoFrame SawEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        return StereoFrame();
+        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
+        updatePhase(sampleRateHz, context.freq);
+        float saw = 0;
+        return StereoFrame(env*saw, env*saw);
     }
 
     //--------------------------------------------------------------------------------------------------

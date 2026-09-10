@@ -94,17 +94,12 @@ namespace Sapphire
 
     struct VoiceEngine
     {
-        float phase = 0;
+        float phase = 0;         //  0 <= phase < 1
         AdsrEnvelope envelope;
 
         void updatePhase(float sampleRateHz, float freqHz)
         {
-            static constexpr float twopi = 2*M_PI;
-
-            phase = FMOD(
-                phase + twopi*(freqHz / sampleRateHz),
-                twopi
-            );
+            phase = FMOD<float>(phase + (freqHz / sampleRateHz), 1);
         }
 
         virtual void initialize() = 0;
