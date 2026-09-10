@@ -121,8 +121,8 @@ namespace Sapphire
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         updatePhase(sampleRateHz, context.freq);
-        float saw = 0;
-        return StereoFrame(env*saw, env*saw);
+        const float bipolar = 2*phase - 1;
+        return StereoFrame(env*bipolar, env*bipolar);
     }
 
     //--------------------------------------------------------------------------------------------------
