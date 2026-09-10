@@ -167,12 +167,17 @@ namespace Sapphire
 
     void SquareEngine::initialize()
     {
+        phase = 0;
+        envelope.initialize();
     }
 
 
     StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        return StereoFrame();
+        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
+        updatePhase(sampleRateHz, context.freq);
+        const float fraction = (phase < context.duty) ? +1 : -1;
+        return StereoFrame(env*fraction, env*fraction);
     }
 
     //--------------------------------------------------------------------------------------------------

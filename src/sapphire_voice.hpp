@@ -26,6 +26,13 @@ namespace Sapphire
     };
 
 
+    template <typename real_t>
+    real_t HealNumber(real_t value, real_t fallback)
+    {
+        return std::isfinite(value) ? value : fallback;
+    }
+
+
     struct VoiceContext
     {
         float pitch{};      // V/OCT relative to C4 (261.63 Hz).
@@ -35,6 +42,7 @@ namespace Sapphire
         float decay{};
         float sustain{};
         float release{};
+        float duty{};       // also known as "pulse width modulation", the fraction of time a square wave is high
 
         explicit VoiceContext()
         {
@@ -45,15 +53,22 @@ namespace Sapphire
         {
             setPitch(0);
             gateTriggerReceiver.initialize();
+            duty = 0.5;
         }
 
         void setPitch(float voct)
         {
-            if (!std::isfinite(voct))
-                voct = 0;
-
-            pitch = voct;
+            pitch = HealNumber<float>(voct, 0);
             freq = std::exp2(pitch) * C4_FREQUENCY_HZ;
+        }
+
+        void setDutyCycle(float pwm)
+        {
+            // Limit the duty cycle from 1% to 99%, so that the output cannot be silent.
+            duty = HealNumber<float>(
+                std::clamp<float>(pwm, 0.01, 0.99),
+                0.5
+            );
         }
 
         void setGateVoltage(float gateVoltage)
