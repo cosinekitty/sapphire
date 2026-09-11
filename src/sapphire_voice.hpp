@@ -119,7 +119,7 @@ namespace Sapphire
         blep_t blep;                // for anti-aliasing discontinuities between samples
 
         virtual void initialize() = 0;
-        virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
+        virtual float process(float sampleRateHz, const VoiceContext& context) = 0;
         virtual std::string getName() const = 0;
         void blepSquare(float sampleRateHz, const VoiceContext& context);
     };
@@ -129,7 +129,7 @@ namespace Sapphire
     {
         std::string getName() const override { return "sine"; }
         void initialize() override;
-        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
@@ -139,7 +139,7 @@ namespace Sapphire
 
         std::string getName() const override { return "triangle"; }
         void initialize() override;
-        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
@@ -147,7 +147,7 @@ namespace Sapphire
     {
         std::string getName() const override { return "saw"; }
         void initialize() override;
-        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
@@ -155,7 +155,7 @@ namespace Sapphire
     {
         std::string getName() const override { return "square"; }
         void initialize() override;
-        StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
@@ -184,18 +184,29 @@ namespace Sapphire
     template <typename engine_t>
     struct PolyVoiceEngine : PolyVoiceEngineBase
     {
-        std::array<engine_t, NPOLY> engineArray;
+        struct stereo_pair_t
+        {
+            std::array<engine_t, NSTEREO> engine;
+
+            void initialize()
+            {
+                engine[0].initialize();
+                engine[1].initialize();
+            }
+        };
+
+        std::array<stereo_pair_t, NPOLY> stereoPairArray;
 
         void initialize() override
         {
             PolyVoiceEngineBase::initialize();
-            for (engine_t& engine : engineArray)
-                engine.initialize();
+            for (stereo_pair_t& pair : stereoPairArray)
+                pair.initialize();
         }
 
         std::string getName() const override
         {
-            return engineArray.at(0).getName();
+            return stereoPairArray[0].engine[0].getName();
         }
 
         PolyStereoFrame process(float sampleRateHz, unsigned nchannels) override
@@ -203,7 +214,10 @@ namespace Sapphire
             PolyStereoFrame poly;
             poly.nchannels = std::clamp<unsigned>(nchannels, 0, NPOLY);
             for (unsigned c = 0; c < poly.nchannels; ++c)
-                poly.poly[c] = engineArray[c].process(sampleRateHz, contextArray[c]);
+            {
+                poly.poly[c].sample[0] = stereoPairArray[c].engine[0].process(sampleRateHz, contextArray[c]);
+                poly.poly[c].sample[1] = stereoPairArray[c].engine[1].process(sampleRateHz, contextArray[c]);
+            }
             return poly;
         }
     };

@@ -132,22 +132,12 @@ namespace Sapphire
     }
 
 
-    StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
+    float SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         phase = FMOD<float>(phase + (context.freq / sampleRateHz), 1);
-
-        // FIXFIXFIX : Here we calculate a fixed 90° phase angle between left and right.
-        // FIXFIXFIX : Consider defaulting to 0° with ±180° adjustment via one of the MOD controls.
-        // One interesting idea would be push/pull where half the adjustment is added to the right
-        // channel, and half is subtracted from the left channel. That way, audio rate modulation
-        // applies equally to both channels.
-
         static constexpr float twopi = 2*M_PI;
-        const float radians = twopi * phase;
-        const float c = std::cos(radians);
-        const float s = std::sin(radians);
-        return StereoFrame(env*c, env*s);
+        return env * std::sin(twopi * phase);
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -159,7 +149,7 @@ namespace Sapphire
     }
 
 
-    StereoFrame SawEngine::process(float sampleRateHz, const VoiceContext &context)
+    float SawEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         const float delta = context.freq / sampleRateHz;    // cycles/sample
@@ -171,10 +161,7 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, -2);
         }
 
-        const float bipolar = 2*phase - 1;
-        const float correction = blep.process();
-        const float signal = env * (bipolar + correction);
-        return StereoFrame(signal, signal);
+        return env * ((2*phase - 1) + blep.process());
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -188,7 +175,7 @@ namespace Sapphire
     }
 
 
-    StereoFrame TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
+    float TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         const float delta = context.freq / sampleRateHz;    // cycles/sample
@@ -202,7 +189,7 @@ namespace Sapphire
         // Apply a super-simple DC blocker to prevent DC drift in the output.
         triangle -= 0.0001f * triangle;     // gently push toward zero
 
-        return StereoFrame(env*triangle, env*triangle);
+        return env * triangle;
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -216,11 +203,11 @@ namespace Sapphire
     }
 
 
-    StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext& context)
+    float SquareEngine::process(float sampleRateHz, const VoiceContext& context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         blepSquare(sampleRateHz, context);
-        return StereoFrame(env*square, env*square);
+        return env * square;
     }
 
     //--------------------------------------------------------------------------------------------------
