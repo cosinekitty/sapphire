@@ -120,10 +120,19 @@ namespace Sapphire
     StereoFrame SawEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-        updatePhase(sampleRateHz, context.freq);
+        const float delta = context.freq / sampleRateHz;    // cycles/sample
+
+        phase += delta;
+        if (phase >= 1)
+        {
+            phase -= 1;
+            blep.insertDiscontinuity(-phase/delta, -2);
+        }
+
         const float bipolar = 2*phase - 1;
-        // FIXFIXFIX - add rack::dsp::MinBlepGenerator correction for anti-aliasing.
-        return StereoFrame(env*bipolar, env*bipolar);
+        const float correction = blep.process();
+        const float signal = env * (bipolar + correction);
+        return StereoFrame(signal, signal);
     }
 
     //--------------------------------------------------------------------------------------------------

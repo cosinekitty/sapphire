@@ -107,10 +107,14 @@ namespace Sapphire
     };
 
 
+    using blep_t = rack::dsp::MinBlepGenerator<16, 16, float>;
+
+
     struct VoiceEngine
     {
-        float phase = 0;         //  0 <= phase < 1
+        float phase = 0;            // 0 <= phase < 1
         AdsrEnvelope envelope;
+        blep_t blep;                // for anti-aliasing discontinuities between samples
 
         void updatePhase(float sampleRateHz, float freqHz)
         {
