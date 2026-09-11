@@ -149,10 +149,11 @@ namespace Sapphire
 
         struct BelleModule : SapphireModule
         {
-            PolyVoiceEngine<SineEngine> polySine;
-            PolyVoiceEngine<TriangleEngine> polyTriangle;
-            PolyVoiceEngine<SawEngine> polySaw;
-            PolyVoiceEngine<SquareEngine> polySquare;
+            AdsrVoiceEngine<SineEngine> polySine{"sine"};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle"};
+            AdsrVoiceEngine<SawEngine> polySaw{"saw"};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square"};
+
             std::vector<PolyVoiceEngineBase*> polyEngineList;
             unsigned currentEngineIndex{};
 
@@ -207,7 +208,7 @@ namespace Sapphire
 
             std::string getCurrentEngineName() const
             {
-                return getCurrentEngine().getName();
+                return getCurrentEngine().name;
             }
 
             void onReset(const ResetEvent& e) override
