@@ -113,17 +113,15 @@ namespace Sapphire
     struct VoiceEngine
     {
         float phase = 0;            // 0 <= phase < 1
+        float square = 0;           // pure signal at ±1, not scaled for 5 volts.
+        bool prevState = false;
         AdsrEnvelope envelope;
         blep_t blep;                // for anti-aliasing discontinuities between samples
-
-        void updatePhase(float sampleRateHz, float freqHz)
-        {
-            phase = FMOD<float>(phase + (freqHz / sampleRateHz), 1);
-        }
 
         virtual void initialize() = 0;
         virtual StereoFrame process(float sampleRateHz, const VoiceContext& context) = 0;
         virtual std::string getName() const = 0;
+        void blepSquare(float sampleRateHz, const VoiceContext& context);
     };
 
 
@@ -137,6 +135,8 @@ namespace Sapphire
 
     struct TriangleEngine : VoiceEngine
     {
+        float triangle = 0;    // integral of BLEP-ed square
+
         std::string getName() const override { return "triangle"; }
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;
@@ -153,7 +153,6 @@ namespace Sapphire
 
     struct SquareEngine : VoiceEngine
     {
-        bool prevState{};
         std::string getName() const override { return "square"; }
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;

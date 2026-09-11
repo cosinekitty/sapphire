@@ -83,6 +83,48 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
+    void VoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context)
+    {
+        // IMPORTANT: This function is used directly for square waves,
+        // and integrated with respect to time for triangle waves.
+        //
+        // The square wave has an adjustable duty cycle.
+        //
+        //      0 <= phase < duty   -->   voltage = +5V
+        //      duty <= phase < 1   -->   voltage = -5V
+        //
+        // There are 2 discontinuities in the above function:
+        // 1. when the low cycle ends at phase=0.       +10V jump
+        // 2. when the duty cycle ends at phase=duty.   -10V drop
+
+        const float delta = context.freq / sampleRateHz;    // cycles/sample
+
+        phase += delta;
+        if (phase >= 1)
+        {
+            phase -= 1;
+            blep.insertDiscontinuity(-phase/delta, +2);
+        }
+
+        if (phase < context.duty)
+        {
+            square = +1;
+            prevState = true;
+        }
+        else
+        {
+            if (prevState)
+                blep.insertDiscontinuity((context.duty - phase)/delta, -2);
+
+            square = -1;
+            prevState = false;
+        }
+
+        square += blep.process();
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
     void SineEngine::initialize()
     {
         phase = 0;
@@ -93,7 +135,7 @@ namespace Sapphire
     StereoFrame SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-        updatePhase(sampleRateHz, context.freq);
+        phase = FMOD<float>(phase + (context.freq / sampleRateHz), 1);
 
         // FIXFIXFIX : Here we calculate a fixed 90° phase angle between left and right.
         // FIXFIXFIX : Consider defaulting to 0° with ±180° adjustment via one of the MOD controls.
@@ -140,6 +182,8 @@ namespace Sapphire
     void TriangleEngine::initialize()
     {
         phase = 0;
+        square = triangle = 0;
+        prevState = false;
         envelope.initialize();
     }
 
@@ -147,29 +191,18 @@ namespace Sapphire
     StereoFrame TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
     {
         const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-        updatePhase(sampleRateHz, context.freq);
+        const float delta = context.freq / sampleRateHz;    // cycles/sample
 
-        float fraction;
+        blepSquare(sampleRateHz, context);
 
-        if (phase < 0.25)
-        {
-            // Rise from 0 to 1   :  0.00 <= phase < 0.25
-            fraction = 4*phase;
-        }
-        else if (phase < 0.75)
-        {
-            // Sink from 1 to -1  :  0.25 <= phase < 0.75
-            fraction = 2 - 4*phase;
-        }
-        else
-        {
-            // Rise from -1 to 0  :  0.75 <= phase < 1.00
-            fraction = 4*phase - 4;
-        }
+        // Now the square wave signal is up to date.
+        // Integrate it to obtain the triangle wave signal.
+        triangle += 4 * delta * square;     // need slope=4 for ±1 peak amplitudes.
 
-        // FIXFIXFIX - add rack::dsp::MinBlepGenerator correction for anti-aliasing.
+        // Apply a super-simple DC blocker to prevent DC drift in the output.
+        triangle -= 0.0001f * triangle;     // gently push toward zero
 
-        return StereoFrame(env*fraction, env*fraction);
+        return StereoFrame(env*triangle, env*triangle);
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -177,6 +210,7 @@ namespace Sapphire
     void SquareEngine::initialize()
     {
         phase = 0;
+        square = 0;
         envelope.initialize();
         prevState = false;
     }
@@ -184,42 +218,9 @@ namespace Sapphire
 
     StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext& context)
     {
-        // The square wave has an adjustable duty cycle.
-        //
-        //      0 <= phase < duty   -->   voltage = +5V
-        //      duty <= phase < 1   -->   voltage = -5V
-        //
-        // There are 2 discontinuities in the above function:
-        // 1. when the low cycle ends at phase=0.       +10V jump
-        // 2. when the duty cycle ends at phase=duty.   -10V drop
-
-        const float env = envelope.process(sampleRateHz, context);
-        const float delta = context.freq / sampleRateHz;    // cycles/sample
-
-        phase += delta;
-        if (phase >= 1)
-        {
-            phase -= 1;
-            blep.insertDiscontinuity(-phase/delta, +2);
-        }
-
-        float voltage;
-        if (phase < context.duty)
-        {
-            voltage = +PEAK_VOLTS;
-            prevState = true;
-        }
-        else
-        {
-            if (prevState)
-                blep.insertDiscontinuity((context.duty - phase)/delta, -2);
-
-            voltage = -PEAK_VOLTS;
-            prevState = false;
-        }
-
-        voltage += PEAK_VOLTS * blep.process();
-        return StereoFrame(env*voltage, env*voltage);
+        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
+        blepSquare(sampleRateHz, context);
+        return StereoFrame(env*square, env*square);
     }
 
     //--------------------------------------------------------------------------------------------------
