@@ -153,6 +153,7 @@ namespace Sapphire
 
     struct SquareEngine : VoiceEngine
     {
+        bool prevState{};
         std::string getName() const override { return "square"; }
         void initialize() override;
         StereoFrame process(float sampleRateHz, const VoiceContext& context) override;

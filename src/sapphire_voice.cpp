@@ -178,15 +178,48 @@ namespace Sapphire
     {
         phase = 0;
         envelope.initialize();
+        prevState = false;
     }
 
 
-    StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext &context)
+    StereoFrame SquareEngine::process(float sampleRateHz, const VoiceContext& context)
     {
-        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-        updatePhase(sampleRateHz, context.freq);
-        const float fraction = (phase < context.duty) ? +1 : -1;
-        return StereoFrame(env*fraction, env*fraction);
+        // The square wave has an adjustable duty cycle.
+        //
+        //      0 <= phase < duty   -->   voltage = +5V
+        //      duty <= phase < 1   -->   voltage = -5V
+        //
+        // There are 2 discontinuities in the above function:
+        // 1. when the low cycle ends at phase=0.       +10V jump
+        // 2. when the duty cycle ends at phase=duty.   -10V drop
+
+        const float env = envelope.process(sampleRateHz, context);
+        const float delta = context.freq / sampleRateHz;    // cycles/sample
+
+        phase += delta;
+        if (phase >= 1)
+        {
+            phase -= 1;
+            blep.insertDiscontinuity(-phase/delta, +2);
+        }
+
+        float voltage;
+        if (phase < context.duty)
+        {
+            voltage = +PEAK_VOLTS;
+            prevState = true;
+        }
+        else
+        {
+            if (prevState)
+                blep.insertDiscontinuity((context.duty - phase)/delta, -2);
+
+            voltage = -PEAK_VOLTS;
+            prevState = false;
+        }
+
+        voltage += PEAK_VOLTS * blep.process();
+        return StereoFrame(env*voltage, env*voltage);
     }
 
     //--------------------------------------------------------------------------------------------------
