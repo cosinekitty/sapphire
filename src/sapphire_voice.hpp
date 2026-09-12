@@ -184,22 +184,23 @@ namespace Sapphire
     {
         struct stereo_pair_t
         {
-            std::array<mono_engine_t, NSTEREO> mono;
+            mono_engine_t left;
+            mono_engine_t right;
             AdsrEnvelope envelope;
 
             void initialize()
             {
-                mono[0].initialize();
-                mono[1].initialize();
+                left.initialize();
+                right.initialize();
                 envelope.initialize();
             }
 
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
                 const float env = envelope.process(sampleRateHz, context);
-                const float left  = mono[0].process(sampleRateHz, context);
-                const float right = mono[1].process(sampleRateHz, context);
-                return StereoFrame(env * left, env * right);
+                const float L = left .process(sampleRateHz, context);
+                const float R = right.process(sampleRateHz, context);
+                return StereoFrame(env*L, env*R);
             }
         };
 
