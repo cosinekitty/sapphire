@@ -154,7 +154,7 @@ namespace Sapphire
             AdsrVoiceEngine<SawEngine> polySaw{"saw"};
             AdsrVoiceEngine<SquareEngine> polySquare{"square"};
 
-            std::vector<PolyVoiceEngineBase*> polyEngineList;
+            std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
 
             BelleModule()
@@ -201,7 +201,7 @@ namespace Sapphire
                 currentEngineIndex = DefaultEngineIndex;
             }
 
-            PolyVoiceEngineBase& getCurrentEngine() const
+            PolyStereoVoice& getCurrentEngine() const
             {
                 return *polyEngineList.at(currentEngineIndex);
             }
@@ -232,7 +232,7 @@ namespace Sapphire
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
                 {
-                    PolyVoiceEngineBase& polyEngine = getCurrentEngine();
+                    PolyStereoVoice& polyEngine = getCurrentEngine();
 
                     float gateVoltage = 0;
                     float pitchVoltage = 0;

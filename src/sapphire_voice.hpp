@@ -160,12 +160,12 @@ namespace Sapphire
     };
 
 
-    struct PolyVoiceEngineBase
+    struct PolyStereoVoice
     {
         std::string name;
         std::array<VoiceContext, NPOLY> contextArray;
 
-        explicit PolyVoiceEngineBase(const char *_name)
+        explicit PolyStereoVoice(const char *_name)
             : name(_name)
             {}
 
@@ -180,7 +180,7 @@ namespace Sapphire
 
 
     template <typename mono_engine_t>
-    struct AdsrVoiceEngine : PolyVoiceEngineBase
+    struct AdsrVoiceEngine : PolyStereoVoice
     {
         struct stereo_pair_t
         {
@@ -207,12 +207,12 @@ namespace Sapphire
         std::array<stereo_pair_t, NPOLY> stereoPairArray;
 
         explicit AdsrVoiceEngine(const char *_name)
-            : PolyVoiceEngineBase(_name)
+            : PolyStereoVoice(_name)
             {}
 
         void initialize() override
         {
-            PolyVoiceEngineBase::initialize();
+            PolyStereoVoice::initialize();
             for (stereo_pair_t& pair : stereoPairArray)
                 pair.initialize();
         }
