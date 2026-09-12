@@ -149,10 +149,10 @@ namespace Sapphire
 
         struct BelleModule : SapphireModule
         {
-            AdsrVoiceEngine<SineEngine> polySine{"sine"};
-            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle"};
-            AdsrVoiceEngine<SawEngine> polySaw{"saw"};
-            AdsrVoiceEngine<SquareEngine> polySquare{"square"};
+            AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Sin1", "Sin2", "Sin3"};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
+            AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "Sqr1", "Sqr2", "Sqr3"};
 
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
@@ -277,6 +277,22 @@ namespace Sapphire
                     right.setVoltage(0, 0);
                 }
             }
+
+            void updateControls()
+            {
+                PolyStereoVoice& engine = getCurrentEngine();
+                updateDynamicControlGroup(MOD_PARAM_0+0, MOD_ATTEN_0+0, MOD_CV_INPUT_0+0, engine.mod0);
+                updateDynamicControlGroup(MOD_PARAM_0+1, MOD_ATTEN_0+1, MOD_CV_INPUT_0+1, engine.mod1);
+                updateDynamicControlGroup(MOD_PARAM_0+2, MOD_ATTEN_0+2, MOD_CV_INPUT_0+2, engine.mod2);
+                updateDynamicControlGroup(MOD_PARAM_0+3, MOD_ATTEN_0+3, MOD_CV_INPUT_0+3, engine.mod3);
+            }
+
+            void updateDynamicControlGroup(int paramId, int attenId, int inputId, const std::string& name)
+            {
+                getParamQuantity(paramId)->name = name;
+                getParamQuantity(attenId)->name = name + " attenuverter";
+                getInputInfo(inputId)->name = name + " CV";
+            }
         };
 
 
@@ -338,6 +354,8 @@ namespace Sapphire
                     const std::string& currentEngineName = belleModule->getCurrentEngine().name;
                     for (const BelleOverlayInfo& info : labelOverlayList)
                         info.layer->setVisible(info.engineName == currentEngineName);
+
+                    belleModule->updateControls();
                 }
             }
 

@@ -162,11 +162,21 @@ namespace Sapphire
 
     struct PolyStereoVoice
     {
-        std::string name;
+        using string = std::string;
+
+        string name;
+        string mod0;
+        string mod1;
+        string mod2;
+        string mod3;
         std::array<VoiceContext, NPOLY> contextArray;
 
-        explicit PolyStereoVoice(const std::string& _name)
+        explicit PolyStereoVoice(const string& _name, const string& m0, const string& m1, const string& m2, const string& m3)
             : name(_name)
+            , mod0(m0)
+            , mod1(m1)
+            , mod2(m2)
+            , mod3(m3)
             {}
 
         virtual void initialize()
@@ -206,8 +216,8 @@ namespace Sapphire
 
         std::array<stereo_pair_t, NPOLY> stereoPairArray;
 
-        explicit AdsrVoiceEngine(const char *_name)
-            : PolyStereoVoice(_name)
+        explicit AdsrVoiceEngine(const char *_name, const char *m0, const char *m1, const char *m2, const char *m3)
+            : PolyStereoVoice(_name, m0, m1, m2, m3)
             {}
 
         void initialize() override
