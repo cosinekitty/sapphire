@@ -180,7 +180,7 @@ namespace Sapphire
         triangle += 4 * delta * square;     // need slope=4 for ±1 peak amplitudes.
 
         // Apply a super-simple DC blocker to prevent DC drift in the output.
-        triangle -= 0.0001f * triangle;     // gently push toward zero
+        triangle *= 0.9999;
 
         return PEAK_VOLTS * triangle;
     }
