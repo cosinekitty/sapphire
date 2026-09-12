@@ -237,6 +237,7 @@ namespace Sapphire
                     float decayVoltage = 0;
                     float sustainVoltage = 0;
                     float releaseVoltage = 0;
+                    float modVoltage[NUM_DYNAMIC_PARAMS]{};
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
                         VoiceContext& context = polyEngine.contextArray[c];
@@ -248,6 +249,9 @@ namespace Sapphire
                         nextChannelInputVoltage(decayVoltage, DECAY_CV_INPUT, c);
                         nextChannelInputVoltage(sustainVoltage, SUSTAIN_CV_INPUT, c);
                         nextChannelInputVoltage(releaseVoltage, RELEASE_CV_INPUT, c);
+                        for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
+                            nextChannelInputVoltage(modVoltage[m], MOD_CV_INPUT_0+m, c);
+
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct  = cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange);
                         context.setPitch(pitchVoltage + freq + oct);
@@ -256,6 +260,8 @@ namespace Sapphire
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
                         context.release = cvGetVoltPerOctave(RELEASE_PARAM, RELEASE_ATTEN, releaseVoltage, -1, +1);
+                        for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
+                            context.mod[m] = cvGetVoltPerOctave(MOD_PARAM_0+m, MOD_ATTEN_0+m, modVoltage[m], -1, +1);
                     }
 
                     PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);

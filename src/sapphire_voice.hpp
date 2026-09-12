@@ -33,6 +33,9 @@ namespace Sapphire
     }
 
 
+    constexpr unsigned NUM_DYNAMIC_PARAMS = 4;
+
+
     struct VoiceContext
     {
         float pitch{};      // V/OCT relative to C4 (261.63 Hz).
@@ -42,7 +45,8 @@ namespace Sapphire
         float decay{};
         float sustain{};
         float release{};
-        float duty{};       // also known as "pulse width modulation", the fraction of time a square wave is high
+        float duty = 0.5;    // also known as "pulse width modulation", the fraction of time a square wave is high
+        float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
 
         explicit VoiceContext()
         {
@@ -51,9 +55,7 @@ namespace Sapphire
 
         void initialize()
         {
-            setPitch(0);
             gateTriggerReceiver.initialize();
-            duty = 0.5;
         }
 
         void setPitch(float voct)
