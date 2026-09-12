@@ -2786,29 +2786,31 @@ def GenerateEmpathPanels(cdict: ControlDict) -> int:
 
 #--------------------------------------------------------------------------------------------------
 
+BELLE_HP_COLUMN_WIDTH = 6
+BELLE_NCOLS = 5
+BELLE_PANEL_WIDTH = BELLE_HP_COLUMN_WIDTH * BELLE_NCOLS
+BELLE_CONTROL_LABEL_DY = 5.8
+
+def xBelleColumn(n:float) -> float:
+    return ((n + 0.5) * BELLE_HP_COLUMN_WIDTH) * 5.08
+
+def yBelleRow(itemIndex:float) -> float:
+    yFence = FencePost(20.0, 114.0, 6)
+    return yFence.value(itemIndex)
+
+def yBelleControlLabel(itemIndex:float) -> float:
+    return yBelleRow(itemIndex) - BELLE_CONTROL_LABEL_DY
+
 
 def GenerateBellePanel(cdict: ControlDict) -> int:
     name = 'belle'
     target = Target.VcvRack
-    hpColumnWidth = 6
-    nCols = 5
-    panelWidth = hpColumnWidth * nCols
-
-    def x(n:float) -> float:
-        return ((n + 0.5) * hpColumnWidth) * 5.08
-
-    nRows = 6
-    yFence = FencePost(20.0, 114.0, nRows)
-    def y(itemIndex:float) -> float:
-        return yFence.value(itemIndex)
-
     svgFileName = SvgFileName(name, target)
-    panel = Panel(panelWidth)
+    panel = Panel(BELLE_PANEL_WIDTH)
     controls = cdict[name] = ControlLayer(panel)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     dxPortFromCenter = 6.0
-    dyText = 5.8
     dyTextBigKnob = 10.0
 
     dxModelWindow    = 10.0
@@ -2816,34 +2818,34 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     dyGraphicsWindow = 18.0
 
     # Rectangle coordinates for displaying the name of the current model/engine.
-    x1_mod = x(0) - dxModelWindow
-    x2_mod = x(0) + dxModelWindow
-    y1_mod = y(0) + 9.0
+    x1_mod = xBelleColumn(0) - dxModelWindow
+    x2_mod = xBelleColumn(0) + dxModelWindow
+    y1_mod = yBelleRow(0) + 9.0
     y2_mod = y1_mod + 8.0
 
     # Rectangle coordinates for envelope display graph.
-    x1_env = x(2) - dxGraphicsWindow
-    x2_env = x(2) + dxGraphicsWindow
-    y1_env = y(4)
+    x1_env = xBelleColumn(2) - dxGraphicsWindow
+    x2_env = xBelleColumn(2) + dxGraphicsWindow
+    y1_env = yBelleRow(4)
     y2_env = y1_env + dyGraphicsWindow
 
     # Rectangle coordinates for waveform/oscilloscope display graph.
-    x1_wav = x(3) - dxGraphicsWindow
-    x2_wav = x(3) + dxGraphicsWindow
+    x1_wav = xBelleColumn(3) - dxGraphicsWindow
+    x2_wav = xBelleColumn(3) + dxGraphicsWindow
     y1_wav = y1_env
     y2_wav = y2_env
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         def addLabel(col:int, row:int, text:str, dx:float = 0.0) -> None:
             if text:
-                pl.append(CenteredControlTextPath(font, text, x(col) + dx, y(row) - dyText))
+                pl.append(CenteredControlTextPath(font, text, xBelleColumn(col) + dx, yBelleRow(row) - BELLE_CONTROL_LABEL_DY))
 
         def addControlGroup(col:int, row:int, prefix:str, label:str) -> None:
-            AddFlatControlGroup(pl, controls, x(col), y(row), prefix)
+            AddFlatControlGroup(pl, controls, xBelleColumn(col), yBelleRow(row), prefix)
             addLabel(col, row, label)
 
         def addPort(col:int, row:int, symbol:str, label:str, dx:float = 0.0) -> None:
-            controls.append(Component(symbol, x(col) + dx, y(row)))
+            controls.append(Component(symbol, xBelleColumn(col) + dx, yBelleRow(row)))
             addLabel(col, row, label, dx)
 
         controls.add('envelope_upper_left',  x1_env, y1_env)
@@ -2854,11 +2856,11 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.add('model_upper_left',  x1_mod, y1_mod)
         controls.add('model_lower_right', x2_mod, y2_mod)
 
-        pl.append(MakeBorder(target, panelWidth))
+        pl.append(MakeBorder(target, BELLE_PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        controls.append(Component('model_select', x(0), y(0)))
-        pl.append(CenteredControlTextPath(font, "MODEL", x(0), y(0) - dyTextBigKnob))
+        controls.append(Component('model_select', xBelleColumn(0), yBelleRow(0)))
+        pl.append(CenteredControlTextPath(font, "MODEL", xBelleColumn(0), yBelleRow(0) - dyTextBigKnob))
         addPort(0, 4, "gate_input", "GATE")
         addPort(0, 5, "pitch_input", "PITCH")
         addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
@@ -2874,12 +2876,36 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     return Save(panel, svgFileName)
 
 
+def GenerateBelleOverlay(engineName:str, m0:str, m1:str, m2:str, m3:str) -> int:
+    svgFileName = '../res/belle_overlay_{}.svg'.format(engineName)
+    panel = Panel(BELLE_PANEL_WIDTH)
+    pl = Element('g', 'PanelLayer')
+    panel.append(pl)
+
+    with Font(SAPPHIRE_FONT_FILENAME) as font:
+        xCenter = xBelleColumn(3)
+        pl.append(CenteredControlTextPath(font, m0, xCenter, yBelleControlLabel(0)))
+        pl.append(CenteredControlTextPath(font, m1, xCenter, yBelleControlLabel(1)))
+        pl.append(CenteredControlTextPath(font, m2, xCenter, yBelleControlLabel(2)))
+        pl.append(CenteredControlTextPath(font, m3, xCenter, yBelleControlLabel(3)))
+    return Save(panel, svgFileName)
+
+
+def GenerateBelleEngineOverlays() -> int:
+    return (
+        GenerateBelleOverlay('sine',     'DETUNE', 'SIN1', 'SIN2', 'SIN3') or
+        GenerateBelleOverlay('triangle', 'DETUNE', 'TRI1', 'TRI2', 'TRI3') or
+        GenerateBelleOverlay('saw',      'DETUNE', 'SAW1', 'SAW2', 'SAW3') or
+        GenerateBelleOverlay('square',   'DETUNE', 'SQR1', 'SQR2', 'SQR3')
+    )
+
 #--------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     cdict:ControlDict = {}
     sys.exit(
         GenerateBellePanel(cdict) or
+        GenerateBelleEngineOverlays() or
         GenerateTinyButtonImages() or
         GenerateMultiTapPanels(cdict) or
         GenerateEmpathPanels(cdict) or

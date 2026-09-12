@@ -206,11 +206,6 @@ namespace Sapphire
                 return *polyEngineList.at(currentEngineIndex);
             }
 
-            std::string getCurrentEngineName() const
-            {
-                return getCurrentEngine().name;
-            }
-
             void onReset(const ResetEvent& e) override
             {
                 SapphireModule::onReset(e);
@@ -285,9 +280,22 @@ namespace Sapphire
         };
 
 
+        struct BelleOverlayInfo
+        {
+            std::string engineName;
+            SvgOverlay* layer{};
+
+            explicit BelleOverlayInfo(const std::string &_engineName, SvgOverlay* _layer)
+                : engineName(_engineName)
+                , layer(_layer)
+                {}
+        };
+
+
         struct BelleWidget : SapphireWidget
         {
             BelleModule* belleModule{};
+            std::vector<BelleOverlayInfo> labelOverlayList;
 
             explicit BelleWidget(BelleModule* module)
                 : SapphireWidget("belle", asset::plugin(pluginInstance, "res/belle.svg"))
@@ -319,6 +327,18 @@ namespace Sapphire
                 addModelDisplayWidget();
                 addEnvelopeWidget();
                 addWaveformWidget();
+                addOverlays();
+            }
+
+            void step() override
+            {
+                SapphireWidget::step();
+                if (belleModule)
+                {
+                    const std::string& currentEngineName = belleModule->getCurrentEngine().name;
+                    for (const BelleOverlayInfo& info : labelOverlayList)
+                        info.layer->setVisible(info.engineName == currentEngineName);
+                }
             }
 
             void addModelDisplayWidget()
@@ -338,6 +358,25 @@ namespace Sapphire
                 auto widget = new WaveformGraphWidget(belleModule);
                 addChild(widget);
             }
+
+            void addOverlays()
+            {
+                const std::vector<std::string> engineNameList
+                {
+                    "sine",
+                    "triangle",
+                    "saw",
+                    "square",
+                };
+
+                for (const std::string& engine : engineNameList)
+                {
+                    SvgOverlay* layer = SvgOverlay::Load("res/belle_overlay_" + engine + ".svg");
+                    addChild(layer);
+                    layer->hide();
+                    labelOverlayList.push_back(BelleOverlayInfo(engine, layer));
+                }
+            }
         };
 
 
@@ -354,7 +393,7 @@ namespace Sapphire
                         SCHEME_YELLOW,
                         box.size.x / 2,
                         box.size.y / 2,
-                        belleModule->getCurrentEngineName()
+                        belleModule->getCurrentEngine().name
                     );
                 }
             }
