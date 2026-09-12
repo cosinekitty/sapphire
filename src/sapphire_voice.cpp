@@ -83,7 +83,7 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void VoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context)
+    void MonoVoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context)
     {
         // IMPORTANT: This function is used directly for square waves,
         // and integrated with respect to time for triangle waves.
@@ -128,16 +128,14 @@ namespace Sapphire
     void SineEngine::initialize()
     {
         phase = 0;
-        envelope.initialize();
     }
 
 
     float SineEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         phase = FMOD<float>(phase + (context.freq / sampleRateHz), 1);
         static constexpr float twopi = 2*M_PI;
-        return env * std::sin(twopi * phase);
+        return PEAK_VOLTS * std::sin(twopi * phase);
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -145,15 +143,12 @@ namespace Sapphire
     void SawEngine::initialize()
     {
         phase = 0;
-        envelope.initialize();
     }
 
 
     float SawEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         const float delta = context.freq / sampleRateHz;    // cycles/sample
-
         phase += delta;
         if (phase >= 1)
         {
@@ -161,7 +156,7 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, -2);
         }
 
-        return env * ((2*phase - 1) + blep.process());
+        return PEAK_VOLTS * ((2*phase - 1) + blep.process());
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -171,16 +166,14 @@ namespace Sapphire
         phase = 0;
         square = triangle = 0;
         prevState = false;
-        envelope.initialize();
     }
 
 
     float TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
     {
-        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
-        const float delta = context.freq / sampleRateHz;    // cycles/sample
-
         blepSquare(sampleRateHz, context);
+
+        const float delta = context.freq / sampleRateHz;    // cycles/sample
 
         // Now the square wave signal is up to date.
         // Integrate it to obtain the triangle wave signal.
@@ -189,7 +182,7 @@ namespace Sapphire
         // Apply a super-simple DC blocker to prevent DC drift in the output.
         triangle -= 0.0001f * triangle;     // gently push toward zero
 
-        return env * triangle;
+        return PEAK_VOLTS * triangle;
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -198,16 +191,14 @@ namespace Sapphire
     {
         phase = 0;
         square = 0;
-        envelope.initialize();
         prevState = false;
     }
 
 
     float SquareEngine::process(float sampleRateHz, const VoiceContext& context)
     {
-        const float env = PEAK_VOLTS * envelope.process(sampleRateHz, context);
         blepSquare(sampleRateHz, context);
-        return env * square;
+        return PEAK_VOLTS * square;
     }
 
     //--------------------------------------------------------------------------------------------------

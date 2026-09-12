@@ -110,12 +110,11 @@ namespace Sapphire
     using blep_t = rack::dsp::MinBlepGenerator<16, 16, float>;
 
 
-    struct VoiceEngine
+    struct MonoVoiceEngine
     {
         float phase = 0;            // 0 <= phase < 1
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
         bool prevState = false;
-        AdsrEnvelope envelope;
         blep_t blep;                // for anti-aliasing discontinuities between samples
 
         virtual void initialize() = 0;
@@ -124,14 +123,14 @@ namespace Sapphire
     };
 
 
-    struct SineEngine : VoiceEngine
+    struct SineEngine : MonoVoiceEngine
     {
         void initialize() override;
         float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
-    struct TriangleEngine : VoiceEngine
+    struct TriangleEngine : MonoVoiceEngine
     {
         float triangle = 0;    // integral of BLEP-ed square
 
@@ -140,14 +139,14 @@ namespace Sapphire
     };
 
 
-    struct SawEngine : VoiceEngine
+    struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
         float process(float sampleRateHz, const VoiceContext& context) override;
     };
 
 
-    struct SquareEngine : VoiceEngine
+    struct SquareEngine : MonoVoiceEngine
     {
         void initialize() override;
         float process(float sampleRateHz, const VoiceContext& context) override;
@@ -186,18 +185,21 @@ namespace Sapphire
         struct stereo_pair_t
         {
             std::array<mono_engine_t, NSTEREO> mono;
+            AdsrEnvelope envelope;
 
             void initialize()
             {
                 mono[0].initialize();
                 mono[1].initialize();
+                envelope.initialize();
             }
 
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
+                const float env = envelope.process(sampleRateHz, context);
                 const float left  = mono[0].process(sampleRateHz, context);
                 const float right = mono[1].process(sampleRateHz, context);
-                return StereoFrame(left, right);
+                return StereoFrame(env * left, env * right);
             }
         };
 
