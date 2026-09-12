@@ -165,7 +165,7 @@ namespace Sapphire
         std::string name;
         std::array<VoiceContext, NPOLY> contextArray;
 
-        explicit PolyStereoVoice(const char *_name)
+        explicit PolyStereoVoice(const std::string& _name)
             : name(_name)
             {}
 
