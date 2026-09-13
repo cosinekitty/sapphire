@@ -286,7 +286,7 @@ namespace Sapphire
 
             void updateControls()
             {
-                PolyStereoVoice& engine = getCurrentEngine();
+                const PolyStereoVoice& engine = getCurrentEngine();
                 updateDynamicControlGroup(MOD_PARAM_0+0, MOD_ATTEN_0+0, MOD_CV_INPUT_0+0, engine.mod0);
                 updateDynamicControlGroup(MOD_PARAM_0+1, MOD_ATTEN_0+1, MOD_CV_INPUT_0+1, engine.mod1);
                 updateDynamicControlGroup(MOD_PARAM_0+2, MOD_ATTEN_0+2, MOD_CV_INPUT_0+2, engine.mod2);
