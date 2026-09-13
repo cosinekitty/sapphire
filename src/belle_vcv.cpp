@@ -65,7 +65,7 @@ namespace Sapphire
         };
 
 
-        constexpr unsigned DefaultEngineIndex = 0;
+        constexpr unsigned DefaultEngineIndex = 2;
 
 
         struct GraphWidget : OpaqueWidget
@@ -185,7 +185,7 @@ namespace Sapphire
                 for (int m = 0; m < 4; ++m)
                     configControlGroup("", MOD_PARAM_0 + m, MOD_ATTEN_0 + m, MOD_CV_INPUT_0 + m);
 
-                configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, 0, "Model");
+                configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
                 initialize();
@@ -198,7 +198,6 @@ namespace Sapphire
 
             void initialize()
             {
-                currentEngineIndex = DefaultEngineIndex;
             }
 
             PolyStereoVoice& getCurrentEngine() const
