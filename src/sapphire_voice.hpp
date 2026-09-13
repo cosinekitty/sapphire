@@ -112,6 +112,19 @@ namespace Sapphire
     using blep_t = rack::dsp::MinBlepGenerator<16, 16, float>;
 
 
+    struct MonoSideInfo         // any parameters that differ from left/right sides
+    {
+        float detuneFactor{};
+    };
+
+
+    inline float DeltaPhase(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
+    {
+        // Return change in 0 <= phase <= 1 over expressed in fractional periods/sample.
+        return (context.freq * side.detuneFactor) / sampleRateHz;
+    }
+
+
     struct MonoVoiceEngine
     {
         float phase = 0;            // 0 <= phase < 1
@@ -120,15 +133,15 @@ namespace Sapphire
         blep_t blep;                // for anti-aliasing discontinuities between samples
 
         virtual void initialize() = 0;
-        virtual float process(float sampleRateHz, const VoiceContext& context) = 0;
-        void blepSquare(float sampleRateHz, const VoiceContext& context);
+        virtual float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) = 0;
+        float blepSquare(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side);
     };
 
 
     struct SineEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -137,21 +150,21 @@ namespace Sapphire
         float triangle = 0;    // integral of BLEP-ed square
 
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SquareEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context) override;
+        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -209,9 +222,18 @@ namespace Sapphire
 
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
+                // Calculate detune.
+                float dial = Cube(context.mod[0] + 1) / 8;
+
+                MonoSideInfo leftSide;
+                leftSide.detuneFactor = std::exp2(dial / 60);
+
+                MonoSideInfo rightSide;
+                rightSide.detuneFactor = 1 / leftSide.detuneFactor;
+
                 const float env = envelope.process(sampleRateHz, context);
-                const float L = left .process(sampleRateHz, context);
-                const float R = right.process(sampleRateHz, context);
+                const float L = left .process(sampleRateHz, context, leftSide);
+                const float R = right.process(sampleRateHz, context, rightSide);
                 return StereoFrame(env*L, env*R);
             }
         };

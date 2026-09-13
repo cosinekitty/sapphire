@@ -83,7 +83,7 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void MonoVoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context)
+    float MonoVoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
     {
         // IMPORTANT: This function is used directly for square waves,
         // and integrated with respect to time for triangle waves.
@@ -97,7 +97,7 @@ namespace Sapphire
         // 1. when the low cycle ends at phase=0.       +10V jump
         // 2. when the duty cycle ends at phase=duty.   -10V drop
 
-        const float delta = context.freq / sampleRateHz;    // cycles/sample
+        const float delta = DeltaPhase(sampleRateHz, context, side);
 
         phase += delta;
         if (phase >= 1)
@@ -121,6 +121,8 @@ namespace Sapphire
         }
 
         square += blep.process();
+
+        return delta;   // for convenience of triangle caller
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -131,9 +133,12 @@ namespace Sapphire
     }
 
 
-    float SineEngine::process(float sampleRateHz, const VoiceContext &context)
+    float SineEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
     {
-        phase = FMOD<float>(phase + (context.freq / sampleRateHz), 1);
+        phase += DeltaPhase(sampleRateHz, context, side);
+        if (phase >= 1)
+            phase -= 1;
+
         static constexpr float twopi = 2*M_PI;
         return PEAK_VOLTS * std::sin(twopi * phase);
     }
@@ -146,9 +151,9 @@ namespace Sapphire
     }
 
 
-    float SawEngine::process(float sampleRateHz, const VoiceContext &context)
+    float SawEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
     {
-        const float delta = context.freq / sampleRateHz;    // cycles/sample
+        const float delta = DeltaPhase(sampleRateHz, context, side);
         phase += delta;
         if (phase >= 1)
         {
@@ -169,11 +174,9 @@ namespace Sapphire
     }
 
 
-    float TriangleEngine::process(float sampleRateHz, const VoiceContext &context)
+    float TriangleEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
     {
-        blepSquare(sampleRateHz, context);
-
-        const float delta = context.freq / sampleRateHz;    // cycles/sample
+        const float delta = blepSquare(sampleRateHz, context, side);
 
         // Now the square wave signal is up to date.
         // Integrate it to obtain the triangle wave signal.
@@ -195,9 +198,9 @@ namespace Sapphire
     }
 
 
-    float SquareEngine::process(float sampleRateHz, const VoiceContext& context)
+    float SquareEngine::process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
     {
-        blepSquare(sampleRateHz, context);
+        blepSquare(sampleRateHz, context, side);
         return PEAK_VOLTS * square;
     }
 
