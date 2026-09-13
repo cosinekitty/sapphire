@@ -2895,7 +2895,7 @@ def GenerateBelleEngineOverlays() -> int:
     return (
         #                     engine       mod[0]       mod[1]      mod[2]     mod[3]
         GenerateBelleOverlay('sine'     , 'DETUNE'  ,  'SIN1'   ,  'SIN2'  ,  'SIN3'  ) or
-        GenerateBelleOverlay('triangle' , 'DETUNE'  ,  'PWM'    ,  'TRI2'  ,  'TRI3'  ) or
+        GenerateBelleOverlay('triangle' , 'DETUNE'  ,  'TRI1'   ,  'TRI2'  ,  'TRI3'  ) or
         GenerateBelleOverlay('saw'      , 'DETUNE'  ,  'SAW1'   ,  'SAW2'  ,  'SAW3'  ) or
         GenerateBelleOverlay('square'   , 'DETUNE'  ,  'PWM'    ,  'SQR2'  ,  'SQR3'  )
     )

@@ -135,6 +135,7 @@ namespace Sapphire
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
         bool prevState = false;
         blep_t blep;                // for anti-aliasing discontinuities between samples
+        bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
 
         virtual void initialize() = 0;
         virtual float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) = 0;
@@ -152,6 +153,11 @@ namespace Sapphire
     struct TriangleEngine : MonoVoiceEngine
     {
         float triangle = 0;    // integral of BLEP-ed square
+
+        TriangleEngine()
+        {
+            pwmOverrideFiftyPercent = true;
+        }
 
         void initialize() override;
         float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;

@@ -106,7 +106,12 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, +2);
         }
 
-        const float duty = MapKnob(context.mod[1], 0.01, 0.99);
+        // I tried to make PWM work for triangle waves, but I kept having
+        // problems with DC accumulation. When I tried to fix those problems,
+        // I ran into issues with aliasing.
+        // I have many things to do, so I don't want to get bogged down on this right now.
+        // As a hack, when running as triangle, use fixed 50% duty cycle.
+        const float duty = pwmOverrideFiftyPercent ? 0.5f : MapKnob(context.mod[1], 0.01, 0.99);
         if (phase < duty)
         {
             square = +1;
