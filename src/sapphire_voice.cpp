@@ -111,7 +111,8 @@ namespace Sapphire
         // I ran into issues with aliasing.
         // I have many things to do, so I don't want to get bogged down on this right now.
         // As a hack, when running as triangle, use fixed 50% duty cycle.
-        const float duty = pwmOverrideFiftyPercent ? 0.5f : MapKnob(context.mod[1], 0.01, 0.99);
+        static constexpr float pwmMargin = 0.05;
+        const float duty = pwmOverrideFiftyPercent ? 0.5f : MapKnob(context.mod[1], pwmMargin, 1-pwmMargin);
         if (phase < duty)
         {
             square = +1;
