@@ -12,6 +12,20 @@ namespace Sapphire
     constexpr float VOICE_OCTAVE_SPAN = 4.5;       // +/- this many octaves from C4 center (match VCV VCO range)
     constexpr float PEAK_VOLTS = 5;
 
+
+    inline float MapParameter(float value, float oldMin, float oldMax, float newMin, float newMax)
+    {
+        const float u = std::clamp<float>((value - oldMin) / (oldMax - oldMin), 0, 1);
+        return newMin + u*(newMax - newMin);
+    }
+
+
+    inline float MapKnob(float knob, float newMin, float newMax)
+    {
+        return MapParameter(knob, -1, +1, newMin, newMax);
+    }
+
+
     struct StereoFrame
     {
         std::array<float, NSTEREO> sample{};
@@ -45,7 +59,6 @@ namespace Sapphire
         float decay{};
         float sustain{};
         float release{};
-        float duty = 0.5;    // also known as "pulse width modulation", the fraction of time a square wave is high
         float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
 
         explicit VoiceContext()
@@ -62,15 +75,6 @@ namespace Sapphire
         {
             pitch = HealNumber<float>(voct, 0);
             freq = std::exp2(pitch) * C4_FREQUENCY_HZ;
-        }
-
-        void setDutyCycle(float pwm)
-        {
-            // Limit the duty cycle from 1% to 99%, so that the output cannot be silent.
-            duty = HealNumber<float>(
-                std::clamp<float>(pwm, 0.01, 0.99),
-                0.5
-            );
         }
 
         void setGateVoltage(float gateVoltage)

@@ -150,9 +150,9 @@ namespace Sapphire
         struct BelleModule : SapphireModule
         {
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Sin1", "Sin2", "Sin3"};
-            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "PWM", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
-            AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "Sqr1", "Sqr2", "Sqr3"};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
 
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};

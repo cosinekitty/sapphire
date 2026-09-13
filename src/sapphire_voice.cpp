@@ -106,7 +106,8 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, +2);
         }
 
-        if (phase < context.duty)
+        const float duty = MapKnob(context.mod[1], 0.01, 0.99);
+        if (phase < duty)
         {
             square = +1;
             prevState = true;
@@ -114,7 +115,7 @@ namespace Sapphire
         else
         {
             if (prevState)
-                blep.insertDiscontinuity((context.duty - phase)/delta, -2);
+                blep.insertDiscontinuity((duty - phase)/delta, -2);
 
             square = -1;
             prevState = false;
