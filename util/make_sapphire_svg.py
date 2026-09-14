@@ -2514,6 +2514,75 @@ EMPATH_SPECTRUM_BOX_Y1 = 9.0
 EMPATH_SPECTRUM_BOX_Y2 = EMPATH_SPECTRUM_BOX_Y1 + 14.5
 EMPATH_SPECTRUM_BOX_YC = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2.0
 
+
+class ChaosBox:
+    def __init__(self, xmid:float) -> None:
+        self.xmid = xmid
+        self.yChaosSpeed = 58.0
+        self.dyChaos = 14.0
+        self.yChaosLevel = self.yChaosSpeed + self.dyChaos
+        self.yChaosBoxTop = self.yChaosSpeed - 12.0
+        self.yChaosBoxBottom = self.yChaosLevel + 9.0
+        self.dxChaosBox = 16.5
+        self.xChaosBoxLeft  = xmid - self.dxChaosBox
+        self.xChaosBoxRight = xmid + self.dxChaosBox
+        self.dxChaosText = 7.5
+        self.xChaosBoxTextLeft  = xmid - self.dxChaosText
+        self.xChaosBoxTextRight = xmid + self.dxChaosText
+        self.arcRadius = 4.0
+        self.buttonInset = 3.0
+        self.xChaosStereoButton    = self.xChaosBoxRight  - self.buttonInset
+        self.yChaosStereoButton    = self.yChaosBoxTop    + self.buttonInset
+        self.xChaosRandomizeButton = self.xChaosBoxLeft   + self.buttonInset
+        self.yChaosRandomizeButton = self.yChaosBoxTop    + self.buttonInset
+        self.xChaosFreezeButton    = self.xChaosBoxRight  - self.buttonInset
+        self.yChaosFreezeButton    = self.yChaosBoxBottom - self.buttonInset
+        self.xChaosDisplayButton   = self.xChaosBoxLeft   + self.buttonInset
+        self.yChaosDisplayButton   = self.yChaosBoxBottom - self.buttonInset
+
+    def _lineArtPath(self, path:str, id:str) -> Path:
+        lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
+        return Path(path, lineStyle, id, 'none')
+
+    def _upperLeftArc(self) -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(self.arcRadius, self.xChaosBoxLeft, self.yChaosBoxTop + self.arcRadius)
+
+    def _upperRightArc(self) -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(self.arcRadius, self.xChaosBoxRight - self.arcRadius, self.yChaosBoxTop)
+
+    def _lowerLeftArc(self) -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(self.arcRadius, self.xChaosBoxLeft + self.arcRadius, self.yChaosBoxBottom)
+
+    def _lowerRightArc(self) -> str:
+        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(self.arcRadius, self.xChaosBoxRight, self.yChaosBoxBottom - self.arcRadius)
+
+    def artworkPath(self) -> Path:
+        path = ''
+        path += Move(self.xChaosBoxTextLeft, self.yChaosBoxTop)
+        path += Line(self.xChaosBoxLeft + self.arcRadius, self.yChaosBoxTop)
+        path += self._upperLeftArc()
+        path += Line(self.xChaosBoxLeft, self.yChaosBoxBottom - self.arcRadius)
+        path += self._lowerLeftArc()
+        path += Line(self.xChaosBoxRight - self.arcRadius, self.yChaosBoxBottom)
+        path += self._lowerRightArc()
+        path += Line(self.xChaosBoxRight, self.yChaosBoxTop + self.arcRadius)
+        path += self._upperRightArc()
+        path += Line(self.xChaosBoxTextRight, self.yChaosBoxTop)
+        return self._lineArtPath(path, 'chaos_box_art')
+
+    def generate(self, pl:Element, controls:ControlLayer, font:Font) -> None:
+        pl.append(self.artworkPath())
+        pl.append(CenteredControlTextPath(font, 'CHAOS', self.xmid, self.yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
+        AddFlatControlGroup(pl, controls, self.xmid, self.yChaosSpeed, 'cspeed')
+        pl.append(CenteredControlTextPath(font, 'SPEED', self.xmid, self.yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        AddFlatControlGroup(pl, controls, self.xmid, self.yChaosLevel, 'clevel')
+        pl.append(CenteredControlTextPath(font, 'LEVEL', self.xmid, self.yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        controls.append(Component('chaos_stereo_button', self.xChaosStereoButton, self.yChaosStereoButton))
+        controls.append(Component('chaos_random_button', self.xChaosRandomizeButton, self.yChaosRandomizeButton))
+        controls.append(Component('chaos_freeze_button', self.xChaosFreezeButton, self.yChaosFreezeButton))
+        controls.append(Component('chaos_display_button', self.xChaosDisplayButton, self.yChaosDisplayButton))
+
+
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     name = 'empath_input'
     target = Target.VcvRack
@@ -2529,91 +2598,25 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     controls.append(Component('insert_button', xInsertButton, yInsertButton))
     xInputPorts = xGlobalCenter - 4.0
     xInputLabels = xInputPorts - 6.5
-    yChaosSpeed = 58.0
-    dyChaos = 14.0
-    yChaosLevel = yChaosSpeed + dyChaos
-    yChaosBoxTop = yChaosSpeed - 12.0
-    yChaosBoxBottom = yChaosLevel + 9.0
-    dxChaosBox = 16.5
-    xChaosBoxLeft  = xmid - dxChaosBox
-    xChaosBoxRight = xmid + dxChaosBox
-    dxChaosText = 7.5
-    xChaosBoxTextLeft  = xmid - dxChaosText
-    xChaosBoxTextRight = xmid + dxChaosText
-    arcRadius = 4.0
-    buttonInset = 3.0
-    yCascade = 26.325
-    xChaosStereoButton = xChaosBoxRight - buttonInset
-    yChaosStereoButton = yChaosBoxTop + buttonInset
-    xChaosRandomizeButton = xChaosBoxLeft + buttonInset
-    yChaosRandomizeButton = yChaosBoxTop + buttonInset
-    xChaosFreezeButton = xChaosBoxRight - buttonInset
-    yChaosFreezeButton = yChaosBoxBottom - buttonInset
-    xChaosDisplayButton = xChaosBoxLeft + buttonInset
-    yChaosDisplayButton = yChaosBoxBottom - buttonInset
     xSpectrumButton = xInsertButton
     ySpectrumButton = EMPATH_SPECTRUM_BOX_YC
     xInputGainControl = panel.mmWidth - xInputPorts
     yInputGainControl = MULTIMAP_AUDIO_PORTS_Y1 + DY_FLAT_CONTROL_GROUP
-
-    def LineArtPath(path:str, id:str) -> Path:
-        lineStyle = 'stroke:' + SAPPHIRE_CHAOS_BOX_COLOR + ';stroke-width:0.25;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none'
-        return Path(path, lineStyle, id, 'none')
-
-    def UpperLeftArc() -> str:
-        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxLeft, yChaosBoxTop + arcRadius)
-
-    def UpperRightArc() -> str:
-        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxRight - arcRadius, yChaosBoxTop)
-
-    def LowerLeftArc() -> str:
-        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxLeft + arcRadius, yChaosBoxBottom)
-
-    def LowerRightArc() -> str:
-        return 'A {0:g} {0:g} 0 0 0 {1:g} {2:g} '.format(arcRadius, xChaosBoxRight, yChaosBoxBottom - arcRadius)
-
-    def BoxArt() -> Path:
-        path = ''
-        path += Move(xChaosBoxTextLeft, yChaosBoxTop)
-        path += Line(xChaosBoxLeft + arcRadius, yChaosBoxTop)
-        path += UpperLeftArc()
-        path += Line(xChaosBoxLeft, yChaosBoxBottom - arcRadius)
-        path += LowerLeftArc()
-        path += Line(xChaosBoxRight - arcRadius, yChaosBoxBottom)
-        path += LowerRightArc()
-        path += Line(xChaosBoxRight, yChaosBoxTop + arcRadius)
-        path += UpperRightArc()
-        path += Line(xChaosBoxTextRight, yChaosBoxTop)
-        return LineArtPath(path, 'chaos_box_art')
+    yCascade = 26.325
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_INPUT_HP_WIDTH))
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, 'empath'))
-
         AddVerticalControlGroup(pl, controls, xInputGainControl, yInputGainControl, 'input_gain')
         pl.append(CenteredControlTextPath(font, 'GAIN', xInputGainControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
-
         controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, yCascade)
-
-        pl.append(BoxArt())
-        pl.append(CenteredControlTextPath(font, 'CHAOS', xmid, yChaosBoxTop, style=CHAOS_BOX_LABEL_STYLE))
-
-        AddFlatControlGroup(pl, controls, xmid, yChaosSpeed, 'cspeed')
-        pl.append(CenteredControlTextPath(font, 'SPEED', xmid, yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
-        AddFlatControlGroup(pl, controls, xmid, yChaosLevel, 'clevel')
-        pl.append(CenteredControlTextPath(font, 'LEVEL', xmid, yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
-
+        ChaosBox(xmid).generate(pl, controls, font)
         controls.append(Component('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y))
         controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
-        controls.append(Component('chaos_stereo_button', xChaosStereoButton, yChaosStereoButton))
-        controls.append(Component('chaos_random_button', xChaosRandomizeButton, yChaosRandomizeButton))
-        controls.append(Component('chaos_freeze_button', xChaosFreezeButton, yChaosFreezeButton))
-        controls.append(Component('chaos_display_button', xChaosDisplayButton, yChaosDisplayButton))
     return Save(panel, svgFileName)
 
 
