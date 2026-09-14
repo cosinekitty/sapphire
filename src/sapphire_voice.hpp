@@ -233,10 +233,11 @@ namespace Sapphire
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
                 // Calculate detune.
-                float dial = Cube<float>(context.mod[0] + 1) / 8;
+                float m = (context.mod[0] + 1) / 2;     // convert range [-1,+1] to [0,+1].  m=0.5 at default setting.
+                float a = FourthPower(m);       // a : [0, 1/16, 1]
 
                 MonoSideInfo leftSide;
-                leftSide.detuneFactor = 1 + dial*0.007;
+                leftSide.detuneFactor = 1 + a*0.014;
 
                 MonoSideInfo rightSide;
                 rightSide.detuneFactor = 1 / leftSide.detuneFactor;
