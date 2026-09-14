@@ -221,7 +221,7 @@ namespace Sapphire
         {
             mono_engine_t left;
             mono_engine_t right;
-            AdsrEnvelope envelope;
+            AdsrEnvelope  envelope;
 
             void initialize()
             {
@@ -233,14 +233,20 @@ namespace Sapphire
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
                 // Calculate detune.
-                float m = (context.mod[0] + 1) / 2;     // convert range [-1,+1] to [0,+1].  m=0.5 at default setting.
-                float a = FourthPower(m);       // a : [0, 1/16, 1]
+                const float m = context.mod[0];
+                const float a = 0.014 * FourthPower(m);
 
-                MonoSideInfo leftSide;
-                leftSide.detuneFactor = 1 + a*0.014;
-
-                MonoSideInfo rightSide;
-                rightSide.detuneFactor = 1 / leftSide.detuneFactor;
+                MonoSideInfo leftSide, rightSide;
+                if (m < 0)
+                {
+                    leftSide.detuneFactor  = 1-a;
+                    rightSide.detuneFactor = 1+a;
+                }
+                else
+                {
+                    leftSide.detuneFactor  = 1+a;
+                    rightSide.detuneFactor = 1-a;
+                }
 
                 const float env = envelope.process(sampleRateHz, context);
                 const float L = left .process(sampleRateHz, context, leftSide);
