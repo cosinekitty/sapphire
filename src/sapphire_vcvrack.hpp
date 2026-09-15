@@ -1443,6 +1443,10 @@ namespace Sapphire
         {
         }
 
+        virtual void beginSeedChangeAntiClick(uint64_t seed)
+        {
+        }
+
         void loadStereoInputs(float& inLeft, float& inRight, int leftPortIndex, int rightPortIndex)
         {
             const int ncl = inputs.at(leftPortIndex ).channels;

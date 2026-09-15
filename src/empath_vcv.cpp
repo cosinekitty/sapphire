@@ -91,37 +91,6 @@ namespace Sapphire
         };
 
 
-        struct ChaosFountainRestoreInfo
-        {
-            int64_t moduleId;
-            uint64_t oldSeed;
-            uint64_t newSeed;
-
-            explicit ChaosFountainRestoreInfo(int64_t fountainModuleId, uint64_t fountainSeed)
-                : moduleId(fountainModuleId)
-                , oldSeed(fountainSeed)
-                , newSeed(rack::random::u64())
-                {}
-        };
-
-
-        struct RandomizeChaosAction : history::Action
-        {
-            using list_t = std::vector<ChaosFountainRestoreInfo>;
-
-            list_t list;
-
-            explicit RandomizeChaosAction(const list_t& _list)
-                : list(_list)
-            {
-                name = "randomize chaos generators";
-            }
-
-            void undo() override;
-            void redo() override;
-        };
-
-
         struct MoveOutputCablesAction : history::Action
         {
             const int64_t oldModuleId;
@@ -440,28 +409,12 @@ namespace Sapphire
             }
 
             virtual uint64_t getSeed() const = 0;
-            virtual void beginSeedChangeAntiClick(uint64_t seed) = 0;
 
             virtual void silentLevelHook()
             {
             }
         };
 
-
-        void RandomizeChaosAction::redo()
-        {
-            for (const ChaosFountainRestoreInfo& node : list)
-                if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->beginSeedChangeAntiClick(node.newSeed);
-        }
-
-
-        void RandomizeChaosAction::undo()
-        {
-            for (const ChaosFountainRestoreInfo& node : list)
-                if (EmpathModule* empathModule = FindSapphireModule<EmpathModule>(node.moduleId))
-                    empathModule->beginSeedChangeAntiClick(node.oldSeed);
-        }
 
 
         struct EmpathWidget : SapphireWidget

@@ -1471,4 +1471,34 @@ namespace Sapphire
         bool  frozen{};           // when true, completely turns off all chaos fountains to reduce CPU usage
         bool  shouldDisplayVoltages{};  // whether or not to show red/green arcs around chaos-influenced attenuverter knobs
     };
+
+    struct ChaosFountainRestoreInfo
+    {
+        int64_t moduleId;
+        uint64_t oldSeed;
+        uint64_t newSeed;
+
+        explicit ChaosFountainRestoreInfo(int64_t fountainModuleId, uint64_t fountainSeed)
+            : moduleId(fountainModuleId)
+            , oldSeed(fountainSeed)
+            , newSeed(rack::random::u64())
+            {}
+    };
+
+
+    struct RandomizeChaosAction : history::Action
+    {
+        using list_t = std::vector<ChaosFountainRestoreInfo>;
+
+        list_t list;
+
+        explicit RandomizeChaosAction(const list_t& _list)
+            : list(_list)
+        {
+            name = "randomize chaos generators";
+        }
+
+        void undo() override;
+        void redo() override;
+    };
 }

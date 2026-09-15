@@ -1124,4 +1124,20 @@ namespace Sapphire
         float g = (voltage > 0) ? k : 0;
         return nvgRGBAf(r, g, 0, 0.9);
     }
+
+
+    void RandomizeChaosAction::redo()
+    {
+        for (const ChaosFountainRestoreInfo& node : list)
+            if (SapphireModule* smod = FindSapphireModule(node.moduleId))
+                smod->beginSeedChangeAntiClick(node.newSeed);
+    }
+
+
+    void RandomizeChaosAction::undo()
+    {
+        for (const ChaosFountainRestoreInfo& node : list)
+            if (SapphireModule* smod = FindSapphireModule(node.moduleId))
+                smod->beginSeedChangeAntiClick(node.oldSeed);
+    }
 }

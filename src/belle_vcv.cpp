@@ -16,6 +16,10 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
+        constexpr unsigned nChaoticSignals = 11;
+        using fountain_t = ChaosFountain<nChaoticSignals>;
+        using batch_t = ChaosBatch<nChaoticSignals>;
+
         enum ParamId
         {
             FREQ_PARAM,
@@ -160,6 +164,9 @@ namespace Sapphire
 
         struct BelleModule : SapphireModule
         {
+            fountain_t fountain{rack::random::u64()};
+            float speedChaos{};
+
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Sin1", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
@@ -212,6 +219,23 @@ namespace Sapphire
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
+
+                attenuverterChaosOptIn(FREQ_ATTEN);
+                attenuverterChaosOptIn(OCT_ATTEN);
+                attenuverterChaosOptIn(ATTACK_ATTEN);
+                attenuverterChaosOptIn(DECAY_ATTEN);
+                attenuverterChaosOptIn(SUSTAIN_ATTEN);
+                attenuverterChaosOptIn(RELEASE_ATTEN);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 0);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 1);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 2);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 3);
+                attenuverterChaosOptIn(CHAOS_SPEED_ATTEN);
+            }
+
+            bool shouldDisplayChaosVoltages() override
+            {
+                return params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).getValue() > 0.5f;
             }
 
             unsigned engineCount() const
@@ -221,6 +245,8 @@ namespace Sapphire
 
             void initialize()
             {
+                fountain.reset();
+                speedChaos = 0;
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -234,6 +260,20 @@ namespace Sapphire
                 initialize();
             }
 
+            json_t* dataToJson() override
+            {
+                json_t* root = SapphireModule::dataToJson();
+                jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
+                return root;
+            }
+
+            void dataFromJson(json_t* root) override
+            {
+                SapphireModule::dataFromJson(root);
+                if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
+                    fountain.reset(seed);
+            }
+
             void updateSelectedEngine()
             {
                 const float value = params.at(MODEL_SELECT_PARAM).getValue();
@@ -242,14 +282,63 @@ namespace Sapphire
                     currentEngineIndex = 0;
             }
 
+            void updateChaos(float dtSeconds)
+            {
+                const float speedKnob = getControlValueChaos(
+                    CHAOS_SPEED_PARAM,
+                    CHAOS_SPEED_ATTEN,
+                    CHAOS_SPEED_CV_INPUT,
+                    speedChaos,
+                    -ChaosOctaveRange,
+                    +ChaosOctaveRange
+                );
+
+                const bool isChaosLevelZero =
+                    (params.at(CHAOS_LEVEL_PARAM).getValue() == 0) &&
+                    (params.at(CHAOS_LEVEL_ATTEN).getValue() == 0);
+
+                const bool isChaosFreezeButtonPressed =
+                    (params.at(CHAOS_FREEZE_BUTTON_PARAM).getValue() == 1);
+
+                const bool isChaosFrozen = isChaosLevelZero || isChaosFreezeButtonPressed;
+
+                const float levelKnob = Cube(getControlValueVoltPerOctave(
+                    CHAOS_LEVEL_PARAM,
+                    CHAOS_LEVEL_ATTEN,
+                    CHAOS_LEVEL_CV_INPUT,
+                    0,
+                    2
+                ));
+
+                if (!isChaosFrozen)
+                    fountain.update(dtSeconds * speedKnob);
+
+                const batch_t batch = fountain.getBatch(levelKnob);
+                reportChaosMono(FREQ_ATTEN,    batch.signal.at(0));
+                reportChaosMono(OCT_ATTEN,     batch.signal.at(1));
+                reportChaosMono(ATTACK_ATTEN,  batch.signal.at(2));
+                reportChaosMono(DECAY_ATTEN,   batch.signal.at(3));
+                reportChaosMono(SUSTAIN_ATTEN, batch.signal.at(4));
+                reportChaosMono(RELEASE_ATTEN, batch.signal.at(5));
+                reportChaosMono(MOD_ATTEN_0+0, batch.signal.at(6));
+                reportChaosMono(MOD_ATTEN_0+1, batch.signal.at(7));
+                reportChaosMono(MOD_ATTEN_0+2, batch.signal.at(8));
+                reportChaosMono(MOD_ATTEN_0+3, batch.signal.at(9));
+                speedChaos = batch.signal.at(10);
+                reportChaosMono(CHAOS_SPEED_ATTEN, speedChaos);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 updateSelectedEngine();
+
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
+
+                    updateChaos(args.sampleTime);
 
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
