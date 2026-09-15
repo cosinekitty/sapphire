@@ -2516,12 +2516,12 @@ EMPATH_SPECTRUM_BOX_YC = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2.0
 
 
 class ChaosBox:
-    def __init__(self, xmid:float) -> None:
+    def __init__(self, xmid:float, yTop:float) -> None:
         self.xmid = xmid
-        self.yChaosSpeed = 58.0
+        self.yChaosBoxTop = yTop
+        self.yChaosSpeed = self.yChaosBoxTop + 12.0
         self.dyChaos = 14.0
         self.yChaosLevel = self.yChaosSpeed + self.dyChaos
-        self.yChaosBoxTop = self.yChaosSpeed - 12.0
         self.yChaosBoxBottom = self.yChaosLevel + 9.0
         self.dxChaosBox = 16.5
         self.xChaosBoxLeft  = xmid - self.dxChaosBox
@@ -2614,7 +2614,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, yCascade)
-        ChaosBox(xmid).generate(pl, controls, font)
+        ChaosBox(xmid, 46.0).generate(pl, controls, font)
         controls.append(Component('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y))
         controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
     return Save(panel, svgFileName)
@@ -2789,17 +2789,24 @@ def GenerateEmpathPanels(cdict: ControlDict) -> int:
 
 #--------------------------------------------------------------------------------------------------
 
+BELLE_HP_LEFT_MARGIN = 1
+BELLE_HP_INSIDE_MARGIN = 1
 BELLE_HP_COLUMN_WIDTH = 6
 BELLE_NCOLS = 5
-BELLE_PANEL_WIDTH = BELLE_HP_COLUMN_WIDTH * BELLE_NCOLS
+BELLE_PANEL_WIDTH = (BELLE_HP_COLUMN_WIDTH * BELLE_NCOLS) + BELLE_HP_LEFT_MARGIN + BELLE_HP_INSIDE_MARGIN
 BELLE_CONTROL_LABEL_DY = 5.8
 
 def xBelleColumn(n:float) -> float:
-    return ((n + 0.5) * BELLE_HP_COLUMN_WIDTH) * 5.08
+    hp = (n + 0.5)*BELLE_HP_COLUMN_WIDTH + BELLE_HP_LEFT_MARGIN
+    if n >= 1:
+        hp += BELLE_HP_INSIDE_MARGIN
+    return hp * 5.08
+
 
 def yBelleRow(itemIndex:float) -> float:
     yFence = FencePost(20.0, 114.0, 6)
     return yFence.value(itemIndex)
+
 
 def yBelleControlLabel(itemIndex:float) -> float:
     return yBelleRow(itemIndex) - BELLE_CONTROL_LABEL_DY
@@ -2838,8 +2845,10 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     y1_wav = y1_env
     y2_wav = y2_env
 
+    xmidChaosBox = xBelleColumn(0)
+
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        def addLabel(col:int, row:int, text:str, dx:float = 0.0) -> None:
+        def addLabel(col:float, row:float, text:str, dx:float = 0.0) -> None:
             if text:
                 pl.append(CenteredControlTextPath(font, text, xBelleColumn(col) + dx, yBelleRow(row) - BELLE_CONTROL_LABEL_DY))
 
@@ -2847,7 +2856,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             AddFlatControlGroup(pl, controls, xBelleColumn(col), yBelleRow(row), prefix)
             addLabel(col, row, label)
 
-        def addPort(col:int, row:int, symbol:str, label:str, dx:float = 0.0) -> None:
+        def addPort(col:float, row:float, symbol:str, label:str, dx:float = 0.0) -> None:
             controls.append(Component(symbol, xBelleColumn(col) + dx, yBelleRow(row)))
             addLabel(col, row, label, dx)
 
@@ -2864,7 +2873,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(SapphireInsignia(panel, font))
         controls.append(Component('model_select', xBelleColumn(0), yBelleRow(0)))
         pl.append(CenteredControlTextPath(font, "MODEL", xBelleColumn(0), yBelleRow(0) - dyTextBigKnob))
-        addPort(0, 4, "gate_input", "GATE")
+        addPort(0, 4.25, "gate_input", "GATE")
         addPort(0, 5, "pitch_input", "PITCH")
         addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
         addPort(4, 5, "audio_right_output", "R", +dxPortFromCenter)
@@ -2876,6 +2885,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addControlGroup(2, 3, "release", "REL")
         for m in range(4):
             addControlGroup(3, m, "mod" + str(m), "")
+
+        ChaosBox(xmidChaosBox, 48.0).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
 
