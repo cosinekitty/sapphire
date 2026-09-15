@@ -67,17 +67,6 @@ namespace Sapphire
             Polyphonic = 1,     // each channel gets its own spectrum graph
         };
 
-        struct ChaosFountainInfo
-        {
-            double dt{};              // time increment in seconds, calculated from speed knob
-            float levelKnob{};
-            float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
-            float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
-            bool  reset{};            // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
-            bool  frozen{};           // when true, completely turns off all chaos fountains to reduce CPU usage
-            bool  shouldDisplayVoltages{};  // whether or not to show red/green arcs around chaos-influenced attenuverter knobs
-        };
-
         struct ForwardMessage
         {
             bool valid = false;
@@ -813,43 +802,6 @@ namespace Sapphire
                 }
             };
 
-            struct ChaosStereoButton : SapphireTinyToggleButton
-            {
-                explicit ChaosStereoButton()
-                {
-                    addTinyButtonFrames(this, "green");
-                }
-            };
-
-            struct ChaosDisplayVoltagesButton : SapphireTinyToggleButton
-            {
-                explicit ChaosDisplayVoltagesButton()
-                {
-                    addTinyButtonFrames(this, "red");
-                }
-            };
-
-            struct ChaosRandomButton : SapphireTinyActionButton
-            {
-                InputWidget* inputWidget{};
-
-                explicit ChaosRandomButton()
-                {
-                    addTinyButtonFrames(this, "red");
-                }
-
-                void action() override;
-            };
-
-
-            struct ChaosFreezeButton : SapphireTinyToggleButton
-            {
-                explicit ChaosFreezeButton()
-                {
-                    addTinyButtonFrames(this, "xyellow");   // inverted colors: 0=yellow, 1=dark
-                }
-            };
-
 
             struct InputModule : EmpathModule
             {
@@ -1209,7 +1161,7 @@ namespace Sapphire
                 void addChaosRandomButton()
                 {
                     auto button = createParamCentered<ChaosRandomButton>(Vec{}, inputModule, CHAOS_RANDOMIZE_BUTTON_PARAM);
-                    button->inputWidget = this;
+                    button->parentWidget = this;
                     addSapphireParam(button, "chaos_random_button");
                 }
 
@@ -1340,7 +1292,7 @@ namespace Sapphire
                     }
                 }
 
-                void randomizeChaos()
+                void randomizeChaos() override
                 {
                     if (inputModule)
                         inputModule->randomizeChaos();
@@ -1352,13 +1304,6 @@ namespace Sapphire
             {
                 if (inputWidget)
                     inputWidget->initializeExpanderChain();
-            }
-
-
-            void ChaosRandomButton::action()
-            {
-                if (inputWidget)
-                    inputWidget->randomizeChaos();
             }
         };
 

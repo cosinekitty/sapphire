@@ -1113,6 +1113,8 @@ namespace Sapphire
             return sapphireModule->inputStereoMode;
         }
 
+        virtual void randomizeChaos() {}     // hook for modules that have a chaos fountain
+
         void drawSplash(NVGcontext* vg, float x1);
         void drawLayer(const DrawArgs& args, int layer) override;
 
@@ -1416,5 +1418,57 @@ namespace Sapphire
 
         void undo() override;
         void redo() override;
+    };
+
+    struct ChaosStereoButton : SapphireTinyToggleButton
+    {
+        explicit ChaosStereoButton()
+        {
+            addTinyButtonFrames(this, "green");
+        }
+    };
+
+    struct ChaosDisplayVoltagesButton : SapphireTinyToggleButton
+    {
+        explicit ChaosDisplayVoltagesButton()
+        {
+            addTinyButtonFrames(this, "red");
+        }
+    };
+
+    struct ChaosRandomButton : SapphireTinyActionButton
+    {
+        SapphireWidget* parentWidget{};
+
+        explicit ChaosRandomButton()
+        {
+            addTinyButtonFrames(this, "red");
+        }
+
+        void action() override
+        {
+            if (parentWidget)
+                parentWidget->randomizeChaos();
+        }
+    };
+
+
+    struct ChaosFreezeButton : SapphireTinyToggleButton
+    {
+        explicit ChaosFreezeButton()
+        {
+            addTinyButtonFrames(this, "xyellow");   // inverted colors: 0=yellow, 1=dark
+        }
+    };
+
+    struct ChaosFountainInfo
+    {
+        double dt{};              // time increment in seconds, calculated from speed knob
+        float levelKnob{};
+        float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
+        float antiClick{};        // 1 most of the time, but ramps down to 0 before, and back up to 1 after changing all chaotic seeds
+        bool  reset{};            // set to true only on the specific process() call where all chaos fountains should pick a new random 64-bit chaos seed and regenerate from that new starting position.
+        bool  frozen{};           // when true, completely turns off all chaos fountains to reduce CPU usage
+        bool  shouldDisplayVoltages{};  // whether or not to show red/green arcs around chaos-influenced attenuverter knobs
     };
 }

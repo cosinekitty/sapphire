@@ -6,6 +6,7 @@
 #include "sapphire_vcvrack.hpp"
 #include "sapphire_widget.hpp"
 #include "sapphire_voice.hpp"
+#include "chaos_fountain.hpp"
 
 namespace Sapphire
 {
@@ -32,6 +33,14 @@ namespace Sapphire
             ENUMS(MOD_PARAM_0, 4),
             ENUMS(MOD_ATTEN_0, 4),
             MODEL_SELECT_PARAM,
+            CHAOS_SPEED_PARAM,
+            CHAOS_SPEED_ATTEN,
+            CHAOS_LEVEL_PARAM,
+            CHAOS_LEVEL_ATTEN,
+            CHAOS_STEREO_BUTTON_PARAM,
+            CHAOS_RANDOMIZE_BUTTON_PARAM,
+            CHAOS_FREEZE_BUTTON_PARAM,
+            CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -47,6 +56,8 @@ namespace Sapphire
             SUSTAIN_CV_INPUT,
             RELEASE_CV_INPUT,
             ENUMS(MOD_CV_INPUT_0, 4),
+            CHAOS_SPEED_CV_INPUT,
+            CHAOS_LEVEL_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -188,7 +199,19 @@ namespace Sapphire
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
+                configChaosBox();
+
                 initialize();
+            }
+
+            void configChaosBox()
+            {
+                configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
+                configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
+                configButton(CHAOS_STEREO_BUTTON_PARAM);
+                configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
+                configButton(CHAOS_FREEZE_BUTTON_PARAM);
+                configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
             }
 
             unsigned engineCount() const
@@ -290,6 +313,10 @@ namespace Sapphire
                 updateDynamicControlGroup(MOD_PARAM_0+1, MOD_ATTEN_0+1, MOD_CV_INPUT_0+1, engine.mod1);
                 updateDynamicControlGroup(MOD_PARAM_0+2, MOD_ATTEN_0+2, MOD_CV_INPUT_0+2, engine.mod2);
                 updateDynamicControlGroup(MOD_PARAM_0+3, MOD_ATTEN_0+3, MOD_CV_INPUT_0+3, engine.mod3);
+
+                updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
+                updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
+                updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
             }
 
             void updateDynamicControlGroup(int paramId, int attenId, int inputId, const std::string& name)
@@ -348,7 +375,43 @@ namespace Sapphire
                 addModelDisplayWidget();
                 addEnvelopeWidget();
                 addWaveformWidget();
+                addChaosBox();
                 addOverlays();
+            }
+
+            void addChaosBox()
+            {
+                addSnapVoctFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
+                addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
+                addChaosStereoButton();
+                addChaosRandomButton();
+                addChaosFreezeButton();
+                addChaosDisplayVoltagesButton();
+            }
+
+            void addChaosStereoButton()
+            {
+                auto button = createParamCentered<ChaosStereoButton>(Vec{}, belleModule, CHAOS_STEREO_BUTTON_PARAM);
+                addSapphireParam(button, "chaos_stereo_button");
+            }
+
+            void addChaosRandomButton()
+            {
+                auto button = createParamCentered<ChaosRandomButton>(Vec{}, belleModule, CHAOS_RANDOMIZE_BUTTON_PARAM);
+                button->parentWidget = this;
+                addSapphireParam(button, "chaos_random_button");
+            }
+
+            void addChaosFreezeButton()
+            {
+                auto button = createParamCentered<ChaosFreezeButton>(Vec{}, belleModule, CHAOS_FREEZE_BUTTON_PARAM);
+                addSapphireParam(button, "chaos_freeze_button");
+            }
+
+            void addChaosDisplayVoltagesButton()
+            {
+                auto button = createParamCentered<ChaosDisplayVoltagesButton>(Vec{}, belleModule, CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
+                addSapphireParam(button, "chaos_display_button");
             }
 
             void step() override

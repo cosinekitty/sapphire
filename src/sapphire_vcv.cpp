@@ -385,7 +385,7 @@ namespace Sapphire
 
         // When NOT cloning, honor the user's default settings!
         // Without this code, we end up with factory defaults no matter what the user does.
-        if (!clone)         
+        if (!clone)
             sapphireWidget->loadTemplate();
 
         float dx;
