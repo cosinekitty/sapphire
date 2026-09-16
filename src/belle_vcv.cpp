@@ -16,7 +16,7 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 11;
+        constexpr unsigned nChaoticSignals = 21;
         using fountain_t = ChaosFountain<nChaoticSignals>;
         using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -166,6 +166,8 @@ namespace Sapphire
         {
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
+            Crossfader chaosStereoCrossfader;
+            float stereoCrossfade{};  // 0 = mono chaotic CV, 1 = stereo chaotic CV
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Sin1", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -247,6 +249,9 @@ namespace Sapphire
             {
                 fountain.reset();
                 speedChaos = 0;
+                chaosStereoCrossfader.setCrossfadeDuration(0.1);
+                chaosStereoCrossfader.snapToFront();
+                stereoCrossfade = 0;
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -284,6 +289,8 @@ namespace Sapphire
 
             void updateChaos(float sampleRateHz, batch_t& batch)
             {
+                stereoCrossfade = updateStereoCrossfade(sampleRateHz);
+
                 const float speedKnob = getControlValueChaos(
                     CHAOS_SPEED_PARAM,
                     CHAOS_SPEED_ATTEN,
@@ -317,17 +324,19 @@ namespace Sapphire
                 }
 
                 batch = fountain.getBatch(levelKnob);
-                reportChaosMono(FREQ_ATTEN,         batch( 0));
-                reportChaosMono(OCT_ATTEN,          batch( 1));
-                reportChaosMono(ATTACK_ATTEN,       batch( 2));
-                reportChaosMono(DECAY_ATTEN,        batch( 3));
-                reportChaosMono(SUSTAIN_ATTEN,      batch( 4));
-                reportChaosMono(RELEASE_ATTEN,      batch( 5));
-                reportChaosMono(MOD_ATTEN_0+0,      batch( 6));
-                reportChaosMono(MOD_ATTEN_0+1,      batch( 7));
-                reportChaosMono(MOD_ATTEN_0+2,      batch( 8));
-                reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
-                reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
+
+                reportChaosStereo(FREQ_ATTEN,       stereoCrossfade, batch( 0), batch( 1));
+                reportChaosStereo(OCT_ATTEN,        stereoCrossfade, batch( 2), batch( 3));
+                reportChaosStereo(ATTACK_ATTEN,     stereoCrossfade, batch( 4), batch( 5));
+                reportChaosStereo(DECAY_ATTEN,      stereoCrossfade, batch( 6), batch( 7));
+                reportChaosStereo(SUSTAIN_ATTEN,    stereoCrossfade, batch( 8), batch( 9));
+                reportChaosStereo(RELEASE_ATTEN,    stereoCrossfade, batch(10), batch(11));
+                reportChaosStereo(MOD_ATTEN_0+0,    stereoCrossfade, batch(12), batch(13));
+                reportChaosStereo(MOD_ATTEN_0+1,    stereoCrossfade, batch(14), batch(15));
+                reportChaosStereo(MOD_ATTEN_0+2,    stereoCrossfade, batch(16), batch(17));
+                reportChaosStereo(MOD_ATTEN_0+3,    stereoCrossfade, batch(18), batch(19));
+
+                reportChaosMono(CHAOS_SPEED_ATTEN, batch(20));
             }
 
             void process(const ProcessArgs& args) override
@@ -417,6 +426,13 @@ namespace Sapphire
                 getParamQuantity(paramId)->name = name;
                 getParamQuantity(attenId)->name = name + " attenuverter";
                 getInputInfo(inputId)->name = name + " CV";
+            }
+
+            float updateStereoCrossfade(float sampleRateHz)
+            {
+                float value = getParamQuantity(CHAOS_STEREO_BUTTON_PARAM)->getValue();
+                chaosStereoCrossfader.setTarget(value);
+                return chaosStereoCrossfader.process(sampleRateHz, 0, 1);
             }
         };
 
