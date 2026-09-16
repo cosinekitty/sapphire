@@ -282,7 +282,7 @@ namespace Sapphire
                     currentEngineIndex = 0;
             }
 
-            void updateChaos(float dtSeconds)
+            void updateChaos(float sampleRateHz, batch_t& batch)
             {
                 const float speedKnob = getControlValueChaos(
                     CHAOS_SPEED_PARAM,
@@ -311,21 +311,23 @@ namespace Sapphire
                 ));
 
                 if (!isChaosFrozen)
-                    fountain.update(dtSeconds * speedKnob);
+                {
+                    const float dt = SimulationTimeIncrement(sampleRateHz, speedKnob);
+                    fountain.update(dt);
+                }
 
-                const batch_t batch = fountain.getBatch(levelKnob);
-                reportChaosMono(FREQ_ATTEN,    batch.signal.at(0));
-                reportChaosMono(OCT_ATTEN,     batch.signal.at(1));
-                reportChaosMono(ATTACK_ATTEN,  batch.signal.at(2));
-                reportChaosMono(DECAY_ATTEN,   batch.signal.at(3));
-                reportChaosMono(SUSTAIN_ATTEN, batch.signal.at(4));
-                reportChaosMono(RELEASE_ATTEN, batch.signal.at(5));
-                reportChaosMono(MOD_ATTEN_0+0, batch.signal.at(6));
-                reportChaosMono(MOD_ATTEN_0+1, batch.signal.at(7));
-                reportChaosMono(MOD_ATTEN_0+2, batch.signal.at(8));
-                reportChaosMono(MOD_ATTEN_0+3, batch.signal.at(9));
-                speedChaos = batch.signal.at(10);
-                reportChaosMono(CHAOS_SPEED_ATTEN, speedChaos);
+                batch = fountain.getBatch(levelKnob);
+                reportChaosMono(FREQ_ATTEN,         batch( 0));
+                reportChaosMono(OCT_ATTEN,          batch( 1));
+                reportChaosMono(ATTACK_ATTEN,       batch( 2));
+                reportChaosMono(DECAY_ATTEN,        batch( 3));
+                reportChaosMono(SUSTAIN_ATTEN,      batch( 4));
+                reportChaosMono(RELEASE_ATTEN,      batch( 5));
+                reportChaosMono(MOD_ATTEN_0+0,      batch( 6));
+                reportChaosMono(MOD_ATTEN_0+1,      batch( 7));
+                reportChaosMono(MOD_ATTEN_0+2,      batch( 8));
+                reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
+                reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
             }
 
             void process(const ProcessArgs& args) override
@@ -338,7 +340,9 @@ namespace Sapphire
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
 
-                    updateChaos(args.sampleTime);
+                    batch_t batch;
+                    updateChaos(args.sampleRate, batch);
+                    speedChaos = batch(10);
 
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
@@ -354,14 +358,14 @@ namespace Sapphire
                         VoiceContext& context = polyEngine.contextArray[c];
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
-                        nextChannelInputVoltage(freqVoltage, FREQ_CV_INPUT, c);
-                        nextChannelInputVoltage(octaveVoltage, OCT_CV_INPUT, c);
-                        nextChannelInputVoltage(attackVoltage, ATTACK_CV_INPUT, c);
-                        nextChannelInputVoltage(decayVoltage, DECAY_CV_INPUT, c);
-                        nextChannelInputVoltage(sustainVoltage, SUSTAIN_CV_INPUT, c);
-                        nextChannelInputVoltage(releaseVoltage, RELEASE_CV_INPUT, c);
+                        nextVoltageOrChaosSignal(freqVoltage, FREQ_CV_INPUT, c,       batch(0));
+                        nextVoltageOrChaosSignal(octaveVoltage, OCT_CV_INPUT, c,      batch(1));
+                        nextVoltageOrChaosSignal(attackVoltage, ATTACK_CV_INPUT, c,   batch(2));
+                        nextVoltageOrChaosSignal(decayVoltage, DECAY_CV_INPUT, c,     batch(3));
+                        nextVoltageOrChaosSignal(sustainVoltage, SUSTAIN_CV_INPUT, c, batch(4));
+                        nextVoltageOrChaosSignal(releaseVoltage, RELEASE_CV_INPUT, c, batch(5));
                         for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
-                            nextChannelInputVoltage(modVoltage[m], MOD_CV_INPUT_0+m, c);
+                            nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
 
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct  = cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange);

@@ -18,6 +18,11 @@ namespace Sapphire
     struct ChaosBatch
     {
         std::array<float, nsignals> signal{};
+
+        float operator() (unsigned index) const
+        {
+            return signal.at(index);
+        }
     };
 
     constexpr uint64_t ChaosFountainDefaultSeed = 0x5361707068697265;   // ASCII "Sapphire"

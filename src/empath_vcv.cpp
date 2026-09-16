@@ -934,11 +934,11 @@ namespace Sapphire
 
                     const batch_t batch = fountain.getBatch(outMessage.chaos.levelKnob);
 
-                    const float cascadeChaosL = batch.signal.at(0);
-                    const float cascadeChaosR = batch.signal.at(1);
-                    speedChaos = batch.signal.at(2);
-                    const float inputGainChaosL = batch.signal.at(3);
-                    const float inputGainChaosR = batch.signal.at(4);
+                    const float cascadeChaosL = batch(0);
+                    const float cascadeChaosR = batch(1);
+                    speedChaos = batch(2);
+                    const float inputGainChaosL = batch(3);
+                    const float inputGainChaosR = batch(4);
 
                     reportChaosStereo(CASCADE_ATTEN, outMessage.chaos.stereoCrossfade, cascadeChaosL, cascadeChaosR);
                     reportChaosMono(CHAOS_SPEED_ATTEN, speedChaos);
@@ -1793,13 +1793,13 @@ namespace Sapphire
 
                     const batch_t batch = fountain.getBatch(inMessage.chaos.levelKnob);
 
-                    const float freqChaosL  = batch.signal.at(0);
-                    const float freqChaosR  = batch.signal.at(1);
-                    const float resChaosL   = batch.signal.at(2);
-                    const float resChaosR   = batch.signal.at(3);
-                    const float levelChaosL = batch.signal.at(4);
-                    const float levelChaosR = batch.signal.at(5);
-                    const float panChaos    = batch.signal.at(6);
+                    const float freqChaosL  = batch(0);
+                    const float freqChaosR  = batch(1);
+                    const float resChaosL   = batch(2);
+                    const float resChaosR   = batch(3);
+                    const float levelChaosL = batch(4);
+                    const float levelChaosR = batch(5);
+                    const float panChaos    = batch(6);
 
                     // The "report" calls are for updating voltage colors around the attenuverter knobs.
                     reportChaosStereo(FREQ_ATTEN,  inMessage.chaos.stereoCrossfade, freqChaosL,  freqChaosR);
