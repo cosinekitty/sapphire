@@ -370,7 +370,7 @@ namespace Sapphire
                             nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
 
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
-                        float oct  = cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange);
+                        float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
                         context.setPitch(pitchVoltage + freq + oct);
                         context.setGateVoltage(gateVoltage);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
