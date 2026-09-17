@@ -41,11 +41,10 @@ namespace Sapphire
             CHAOS_SPEED_ATTEN,
             CHAOS_LEVEL_PARAM,
             CHAOS_LEVEL_ATTEN,
-            CHAOS_STEREO_BUTTON_PARAM,
+            SAMPLE_HOLD_BUTTON_PARAM,
             CHAOS_RANDOMIZE_BUTTON_PARAM,
             CHAOS_FREEZE_BUTTON_PARAM,
             CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
-            SAMPLE_HOLD_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -217,9 +216,6 @@ namespace Sapphire
             {
                 configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
                 configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
-#ifdef ENABLE_CHAOS_STEREO_BUTTON
-                configButton(CHAOS_STEREO_BUTTON_PARAM);
-#endif
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
@@ -412,12 +408,9 @@ namespace Sapphire
                 updateDynamicControlGroup(MOD_PARAM_0+2, MOD_ATTEN_0+2, MOD_CV_INPUT_0+2, engine.mod2);
                 updateDynamicControlGroup(MOD_PARAM_0+3, MOD_ATTEN_0+3, MOD_CV_INPUT_0+3, engine.mod3);
 
-#ifdef ENABLE_CHAOS_STEREO_BUTTON
-                updateToggleButtonTooltip(CHAOS_STEREO_BUTTON_PARAM, "Chaos CV: MONO", "Chaos CV: STEREO");
-#endif
-
                 updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                 updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
+                updateToggleButtonTooltip(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold: OFF", "Sample and hold: ON");
             }
 
             void updateDynamicControlGroup(int paramId, int attenId, int inputId, const std::string& name)
@@ -500,18 +493,9 @@ namespace Sapphire
             {
                 addSnapVoctFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
                 addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
-                addChaosStereoButton();
                 addChaosRandomButton();
                 addChaosFreezeButton();
                 addChaosDisplayVoltagesButton();
-            }
-
-            void addChaosStereoButton()
-            {
-#ifdef ENABLE_CHAOS_STEREO_BUTTON
-                auto button = createParamCentered<ChaosStereoButton>(Vec{}, belleModule, CHAOS_STEREO_BUTTON_PARAM);
-                addSapphireParam(button, "chaos_stereo_button");
-#endif
             }
 
             void addChaosRandomButton()
