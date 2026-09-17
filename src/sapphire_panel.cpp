@@ -56,6 +56,7 @@ namespace Sapphire
             {"release_atten",          {  86.360,   76.400}},
             {"release_cv",             {  77.360,   76.400}},
             {"release_knob",           {  95.360,   76.400}},
+            {"sample_hold_button",     {  20.320,  120.500}},
             {"sustain_atten",          {  86.360,   57.600}},
             {"sustain_cv",             {  77.360,   57.600}},
             {"sustain_knob",           {  95.360,   57.600}},

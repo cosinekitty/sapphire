@@ -50,10 +50,56 @@ namespace Sapphire
     constexpr unsigned NUM_DYNAMIC_PARAMS = 4;
 
 
+    struct PitchSampler
+    {
+        float pitch{};          // V/OCT relative to C4 (261.63 Hz).
+        float freq{};           // pitch converted to Hz for your voice engine's convenience
+        unsigned counter = 0;   // remaining frames before latch occurs
+        unsigned limit = 48;    // roughly 1 ms at 48 kHz, but caller is free to calculate more precisely
+        bool latched = false;
+
+        void initialize()
+        {
+            latched = false;
+            counter = 0;
+
+            // Leave 'freq' and 'pitch' alone; they are calculated and supplied at audio rate, not owned here.
+        }
+
+        void update(const GateTriggerReceiver& receiver, float pitchVoltage, bool isSampleHoldEnabled)
+        {
+            if (isSampleHoldEnabled)
+            {
+                if (receiver.isTriggerActive())
+                {
+                    latched = false;
+                    counter = 0;
+                }
+                else if (!latched && receiver.isGateActive())
+                {
+                    if (counter < limit)
+                        ++counter;
+                    else
+                        latched = true;
+                }
+            }
+            else
+            {
+                latched = false;
+            }
+
+            if (!latched)
+            {
+                pitch = HealNumber<float>(pitchVoltage, 0);
+                freq = std::exp2(pitch) * C4_FREQUENCY_HZ;
+            }
+        }
+    };
+
+
     struct VoiceContext
     {
-        float pitch{};      // V/OCT relative to C4 (261.63 Hz).
-        float freq{};       // pitch converted to Hz for your voice engine's convenience
+        PitchSampler pitchSampler;
         GateTriggerReceiver gateTriggerReceiver;
         float attack{};
         float decay{};
@@ -69,17 +115,13 @@ namespace Sapphire
         void initialize()
         {
             gateTriggerReceiver.initialize();
+            pitchSampler.initialize();
         }
 
-        void setPitch(float voct)
-        {
-            pitch = HealNumber<float>(voct, 0);
-            freq = std::exp2(pitch) * C4_FREQUENCY_HZ;
-        }
-
-        void setGateVoltage(float gateVoltage)
+        void updateGatePitch(float gateVoltage, float pitchVoltage, bool isSampleHoldEnabled)
         {
             gateTriggerReceiver.update(gateVoltage);
+            pitchSampler.update(gateTriggerReceiver, pitchVoltage, isSampleHoldEnabled);
         }
     };
 
@@ -125,7 +167,7 @@ namespace Sapphire
     inline float DeltaPhase(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
     {
         // Return change in 0 <= phase <= 1 over expressed in fractional periods/sample.
-        return (context.freq * side.detuneFactor) / sampleRateHz;
+        return (context.pitchSampler.freq * side.detuneFactor) / sampleRateHz;
     }
 
 

@@ -45,6 +45,7 @@ namespace Sapphire
             CHAOS_RANDOMIZE_BUTTON_PARAM,
             CHAOS_FREEZE_BUTTON_PARAM,
             CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
+            SAMPLE_HOLD_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -190,6 +191,7 @@ namespace Sapphire
 
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
+                configButton(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold");
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -346,6 +348,8 @@ namespace Sapphire
                     updateChaos(args.sampleRate, batch);
                     speedChaos = batch(10);
 
+                    const bool isSampleHoldEnabled = (params.at(SAMPLE_HOLD_BUTTON_PARAM).getValue() > 0.5f);
+
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
                     float freqVoltage = 0;
@@ -371,8 +375,7 @@ namespace Sapphire
 
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
-                        context.setPitch(pitchVoltage + freq + oct);
-                        context.setGateVoltage(gateVoltage);
+                        context.updateGatePitch(gateVoltage, pitchVoltage + freq + oct, isSampleHoldEnabled);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
@@ -438,6 +441,15 @@ namespace Sapphire
         };
 
 
+        struct SampleHoldButton : SapphireTinyToggleButton
+        {
+            explicit SampleHoldButton()
+            {
+                addTinyButtonFrames(this, "red");
+            }
+        };
+
+
         struct BelleWidget : SapphireWidget
         {
             BelleModule* belleModule{};
@@ -453,6 +465,7 @@ namespace Sapphire
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSampleHoldButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
                 addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
@@ -475,6 +488,12 @@ namespace Sapphire
                 addWaveformWidget();
                 addChaosBox();
                 addOverlays();
+            }
+
+            void addSampleHoldButton()
+            {
+                auto button = createParamCentered<SampleHoldButton>(Vec{}, belleModule, SAMPLE_HOLD_BUTTON_PARAM);
+                addSapphireParam(button, "sample_hold_button");
             }
 
             void addChaosBox()
