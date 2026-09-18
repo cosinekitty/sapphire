@@ -7,6 +7,7 @@
 #include "sapphire_widget.hpp"
 #include "sapphire_voice.hpp"
 #include "chaos_fountain.hpp"
+#include "sapphire_smoother.hpp"
 
 namespace Sapphire
 {
@@ -169,12 +170,15 @@ namespace Sapphire
         {
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
+            Smoother chaosAntiClickSmoother{0.025};
+            bool requestSeedSplash = false;
+            uint64_t seedToRestore = 0;
+            float antiClick{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Sin1", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
-
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
 
@@ -252,6 +256,7 @@ namespace Sapphire
             {
                 fountain.reset();
                 speedChaos = 0;
+                chaosAntiClickSmoother.initialize();
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -334,6 +339,13 @@ namespace Sapphire
                 reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
                 reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
                 reportChaosMono(PAN_ATTEN,          batch(11));
+
+                antiClick = chaosAntiClickSmoother.process(sampleRateHz);
+                if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
+                {
+                    fountain.reset(seedToRestore);
+                    seedToRestore = 0;
+                }
             }
 
             void process(const ProcessArgs& args) override
@@ -393,11 +405,11 @@ namespace Sapphire
 
                     left.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
-                        left.setVoltage(frame.poly[c].sample[0], c);
+                        left.setVoltage(frame.poly[c].sample[0] * antiClick, c);
 
                     right.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
-                        right.setVoltage(frame.poly[c].sample[1], c);
+                        right.setVoltage(frame.poly[c].sample[1] * antiClick, c);
                 }
                 else
                 {
@@ -427,6 +439,20 @@ namespace Sapphire
                 getParamQuantity(paramId)->name = name;
                 getParamQuantity(attenId)->name = name + " attenuverter";
                 getInputInfo(inputId)->name = name + " CV";
+            }
+
+            void beginSeedChangeAntiClick(uint64_t seed) override
+            {
+                seedToRestore = seed;
+                requestSeedSplash = true;
+                chaosAntiClickSmoother.begin();
+            }
+
+            void randomizeChaos()
+            {
+                InvokeAction(new RandomizeChaosAction({
+                    ChaosFountainRestoreInfo(id, fountain.getSeed())
+                }));
             }
         };
 
@@ -493,6 +519,12 @@ namespace Sapphire
                 addOverlays();
             }
 
+            void randomizeChaos() override
+            {
+                if (belleModule)
+                    belleModule->randomizeChaos();
+            }
+
             void addSampleHoldButton()
             {
                 auto button = createParamCentered<SampleHoldButton>(Vec{}, belleModule, SAMPLE_HOLD_BUTTON_PARAM);
@@ -537,6 +569,11 @@ namespace Sapphire
                         info.layer->setVisible(info.engineName == currentEngineName);
 
                     belleModule->updateControls();
+                    if (belleModule->requestSeedSplash)
+                    {
+                        belleModule->requestSeedSplash = false;
+                        splash.begin(0x80, 0x40, 0x80, 0.1, 0.25);
+                    }
                 }
             }
 
