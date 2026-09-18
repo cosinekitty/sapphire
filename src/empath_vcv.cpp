@@ -1199,6 +1199,7 @@ namespace Sapphire
                         inputModule->updateToggleButtonTooltip(TOGGLE_SPECTRUM_BUTTON_PARAM, "Spectrum graph: MONO", "Spectrum graph: POLYPHONIC");
                         inputModule->updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
                         inputModule->updateInsertButtonTooltip(INSERT_BUTTON_PARAM);
+                        inputModule->updateParamTooltip(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV\nseed = " + SapphireModule::SeedString(inputModule->getSeed()));
                     }
                 }
 

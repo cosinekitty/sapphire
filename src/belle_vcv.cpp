@@ -432,6 +432,11 @@ namespace Sapphire
                 updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                 updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
                 updateToggleButtonTooltip(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold: OFF", "Sample and hold: ON");
+
+                updateParamTooltip(
+                    CHAOS_RANDOMIZE_BUTTON_PARAM,
+                    "Randomize chaotic CV\nseed = " + SeedString(fountain.getSeed())
+                );
             }
 
             void updateDynamicControlGroup(int paramId, int attenId, int inputId, const std::string& name)

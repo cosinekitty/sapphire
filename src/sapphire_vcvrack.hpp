@@ -1254,6 +1254,13 @@ namespace Sapphire
             return json_string(text);
         }
 
+        static std::string SeedString(uint64_t value)
+        {
+            char text[17];    // 2 hex characters per byte, plus null terminator
+            formatHex64(text, value);
+            return std::string(text);
+        }
+
         static void jsonSaveSeed(json_t* root, const char* key, uint64_t value)
         {
             json_t* jseed = jsonSeedValue(value);
