@@ -2880,11 +2880,12 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addPort(4, 5, "audio_left_output",  "L", -dxPortFromCenter)
         addPort(4, 5, "audio_right_output", "R", +dxPortFromCenter)
         addControlGroup(1, 0, "freq",    "FREQ")
-        addControlGroup(1, 1, "oct",     "OCT")
-        addControlGroup(2, 0, "attack",  "ATT")
-        addControlGroup(2, 1, "decay",   "DEC")
-        addControlGroup(2, 2, "sustain", "SUS")
-        addControlGroup(2, 3, "release", "REL")
+        addControlGroup(1, 1, "oct",     "OCT" )
+        addControlGroup(1, 2, "pan",     "PAN" )
+        addControlGroup(2, 0, "attack",  "ATT" )
+        addControlGroup(2, 1, "decay",   "DEC" )
+        addControlGroup(2, 2, "sustain", "SUS" )
+        addControlGroup(2, 3, "release", "REL" )
         for m in range(4):
             addControlGroup(3, m, "mod" + str(m), "")
 

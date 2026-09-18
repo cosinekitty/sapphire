@@ -106,6 +106,7 @@ namespace Sapphire
         float sustain{};
         float release{};
         float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
+        float pan{};        // -1 .. +1
 
         explicit VoiceContext()
         {
@@ -279,6 +280,7 @@ namespace Sapphire
                 const float a = 0.014 * FourthPower(m);
 
                 MonoSideInfo leftSide, rightSide;
+
                 if (m < 0)
                 {
                     leftSide.detuneFactor  = 1-a;
@@ -293,7 +295,8 @@ namespace Sapphire
                 const float env = envelope.process(sampleRateHz, context);
                 const float L = left .process(sampleRateHz, context, leftSide);
                 const float R = right.process(sampleRateHz, context, rightSide);
-                return StereoFrame(env*L, env*R);
+                const PanningFactors pf = Panning(context.pan);
+                return StereoFrame(env*pf.left*L, env*pf.right*R);
             }
         };
 

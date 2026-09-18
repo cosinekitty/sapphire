@@ -16,7 +16,7 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 11;
+        constexpr unsigned nChaoticSignals = 12;
         using fountain_t = ChaosFountain<nChaoticSignals>;
         using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -45,6 +45,8 @@ namespace Sapphire
             CHAOS_RANDOMIZE_BUTTON_PARAM,
             CHAOS_FREEZE_BUTTON_PARAM,
             CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
+            PAN_PARAM,
+            PAN_ATTEN,
 
             PARAMS_LEN
         };
@@ -62,6 +64,7 @@ namespace Sapphire
             ENUMS(MOD_CV_INPUT_0, 4),
             CHAOS_SPEED_CV_INPUT,
             CHAOS_LEVEL_CV_INPUT,
+            PAN_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -196,6 +199,7 @@ namespace Sapphire
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
 
+                configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
                 configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 configControlGroup("Sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, 0, 1, 0.5, "%", 0, 100);
@@ -206,6 +210,18 @@ namespace Sapphire
 
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
+
+                attenuverterChaosOptIn(FREQ_ATTEN);
+                attenuverterChaosOptIn(OCT_ATTEN);
+                attenuverterChaosOptIn(PAN_ATTEN);
+                attenuverterChaosOptIn(ATTACK_ATTEN);
+                attenuverterChaosOptIn(DECAY_ATTEN);
+                attenuverterChaosOptIn(SUSTAIN_ATTEN);
+                attenuverterChaosOptIn(RELEASE_ATTEN);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 0);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 1);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 2);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 3);
 
                 configChaosBox();
 
@@ -219,17 +235,6 @@ namespace Sapphire
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
-
-                attenuverterChaosOptIn(FREQ_ATTEN);
-                attenuverterChaosOptIn(OCT_ATTEN);
-                attenuverterChaosOptIn(ATTACK_ATTEN);
-                attenuverterChaosOptIn(DECAY_ATTEN);
-                attenuverterChaosOptIn(SUSTAIN_ATTEN);
-                attenuverterChaosOptIn(RELEASE_ATTEN);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 0);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 1);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 2);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 3);
                 attenuverterChaosOptIn(CHAOS_SPEED_ATTEN);
             }
 
@@ -328,6 +333,7 @@ namespace Sapphire
                 reportChaosMono(MOD_ATTEN_0+2,      batch( 8));
                 reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
                 reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
+                reportChaosMono(PAN_ATTEN,          batch(11));
             }
 
             void process(const ProcessArgs& args) override
@@ -350,6 +356,7 @@ namespace Sapphire
                     float pitchVoltage = 0;
                     float freqVoltage = 0;
                     float octaveVoltage = 0;
+                    float panVoltage = 0;
                     float attackVoltage = 0;
                     float decayVoltage = 0;
                     float sustainVoltage = 0;
@@ -368,9 +375,11 @@ namespace Sapphire
                         nextVoltageOrChaosSignal(releaseVoltage, RELEASE_CV_INPUT, c, batch(5));
                         for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
                             nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
+                        nextVoltageOrChaosSignal(panVoltage, PAN_CV_INPUT, c,         batch(11));
 
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
+                        context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
                         context.updateGatePitch(gateVoltage, pitchVoltage + freq + oct, isSampleHoldEnabled);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
@@ -461,6 +470,7 @@ namespace Sapphire
                 addSampleHoldButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSnapVoctFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
