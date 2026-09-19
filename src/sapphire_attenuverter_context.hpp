@@ -14,6 +14,7 @@ namespace Sapphire
         unsigned inputPortId = -1;    // port to check for cables, for chaos display color
         bool supportsChaos = false;
         float chaosVoltage[2]{};     // The most recent chaotic voltage (or stereo pair) if choas is active, otherwise 0.
+        float sensitivity = 1;
 
         void initialize()
         {
@@ -25,7 +26,7 @@ namespace Sapphire
 
         float adjustVoltage(float v) const
         {
-            return unipolar ? std::max<float>(0, v+adjust) : v;
+            return unipolar ? std::max<float>(0, (v*sensitivity) + adjust) : (v*sensitivity);
         }
     };
 }

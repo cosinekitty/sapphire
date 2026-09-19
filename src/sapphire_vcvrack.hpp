@@ -1143,10 +1143,11 @@ namespace Sapphire
             info.context.inputPortId = cvInputId;
         }
 
-        void attenuverterChaosOptIn(int attenId)
+        void attenuverterChaosOptIn(int attenId, float sensitivity = 1)
         {
             SapphireParamInfo& info = paramInfo.at(attenId);
             info.context.supportsChaos = true;
+            info.context.sensitivity = sensitivity;
         }
 
         bool isAttenuverter(int paramId) const

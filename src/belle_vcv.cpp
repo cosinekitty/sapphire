@@ -182,6 +182,7 @@ namespace Sapphire
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
+            float mildSensitivityLevel = 0.2;
 
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -217,17 +218,17 @@ namespace Sapphire
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
-                attenuverterChaosOptIn(FREQ_ATTEN);
-                attenuverterChaosOptIn(OCT_ATTEN);
-                attenuverterChaosOptIn(PAN_ATTEN);
-                attenuverterChaosOptIn(ATTACK_ATTEN);
-                attenuverterChaosOptIn(DECAY_ATTEN);
-                attenuverterChaosOptIn(SUSTAIN_ATTEN);
-                attenuverterChaosOptIn(RELEASE_ATTEN);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 0);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 1);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 2);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 3);
+                attenuverterChaosOptIn(FREQ_ATTEN,      1);
+                attenuverterChaosOptIn(OCT_ATTEN,       1);
+                attenuverterChaosOptIn(PAN_ATTEN,       mildSensitivityLevel);
+                attenuverterChaosOptIn(ATTACK_ATTEN,    mildSensitivityLevel);
+                attenuverterChaosOptIn(DECAY_ATTEN,     mildSensitivityLevel);
+                attenuverterChaosOptIn(SUSTAIN_ATTEN,   mildSensitivityLevel);
+                attenuverterChaosOptIn(RELEASE_ATTEN,   mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 0, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 1, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 2, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 3, mildSensitivityLevel);
 
                 configChaosBox();
 
@@ -541,7 +542,7 @@ namespace Sapphire
                 addSampleHoldButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
-                addSnapVoctFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
+                addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
