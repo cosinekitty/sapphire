@@ -48,6 +48,7 @@ namespace Sapphire
             CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
             PAN_PARAM,
             PAN_ATTEN,
+            OUTPUT_MODE_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -198,6 +199,7 @@ namespace Sapphire
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold");
+                configButton(OUTPUT_MODE_BUTTON_PARAM, "Output mode");
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -257,6 +259,7 @@ namespace Sapphire
                 fountain.reset();
                 speedChaos = 0;
                 chaosAntiClickSmoother.initialize();
+                params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -403,22 +406,43 @@ namespace Sapphire
 
                     PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);
 
-                    left.setChannels(nPolyChannels);
-                    for (unsigned c = 0; c < nPolyChannels; ++c)
-                        left.setVoltage(frame.poly[c].sample[0] * antiClick, c);
-
-                    right.setChannels(nPolyChannels);
-                    for (unsigned c = 0; c < nPolyChannels; ++c)
-                        right.setVoltage(frame.poly[c].sample[1] * antiClick, c);
+                    if (isOutputModePolyphonic())
+                    {
+                        left .setChannels(nPolyChannels);
+                        right.setChannels(nPolyChannels);
+                        for (unsigned c = 0; c < nPolyChannels; ++c)
+                        {
+                            left .setVoltage(frame.poly[c].sample[0] * antiClick, c);
+                            right.setVoltage(frame.poly[c].sample[1] * antiClick, c);
+                        }
+                    }
+                    else
+                    {
+                        left .setChannels(1);
+                        right.setChannels(1);
+                        float sumL = 0;
+                        float sumR = 0;
+                        for (unsigned c = 0; c < nPolyChannels; ++c)
+                        {
+                            sumL += frame.poly[c].sample[0];
+                            sumR += frame.poly[c].sample[1];
+                        }
+                        left .setVoltage(sumL * antiClick, 0);
+                        right.setVoltage(sumR * antiClick, 0);
+                    }
                 }
                 else
                 {
-                    left.setChannels(1);
-                    left.setVoltage(0, 0);
-
+                    left .setChannels(1);
                     right.setChannels(1);
+                    left .setVoltage(0, 0);
                     right.setVoltage(0, 0);
                 }
+            }
+
+            bool isOutputModePolyphonic()
+            {
+                return params.at(OUTPUT_MODE_BUTTON_PARAM).getValue() > 0.5f;
             }
 
             void updateControls()
@@ -436,6 +460,12 @@ namespace Sapphire
                 updateParamTooltip(
                     CHAOS_RANDOMIZE_BUTTON_PARAM,
                     "Randomize chaotic CV\nseed = " + SeedString(fountain.getSeed())
+                );
+
+                updateToggleButtonTooltip(
+                    OUTPUT_MODE_BUTTON_PARAM,
+                    "Output format: (L monophonic, R monophonic)",
+                    "Output format: (L polyphonic, R polyphonic)"
                 );
             }
 
@@ -483,6 +513,15 @@ namespace Sapphire
         };
 
 
+        struct OutputModeButton : SapphireTinyToggleButton
+        {
+            explicit OutputModeButton()
+            {
+                addTinyButtonFrames(this, "green");
+            }
+        };
+
+
         struct BelleWidget : SapphireWidget
         {
             BelleModule* belleModule{};
@@ -498,6 +537,7 @@ namespace Sapphire
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addOutputModeButton();
                 addSampleHoldButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
@@ -522,6 +562,12 @@ namespace Sapphire
                 addWaveformWidget();
                 addChaosBox();
                 addOverlays();
+            }
+
+            void addOutputModeButton()
+            {
+                auto button = createParamCentered<OutputModeButton>(Vec{}, belleModule, OUTPUT_MODE_BUTTON_PARAM);
+                addSapphireParam(button, "output_mode_button");
             }
 
             void randomizeChaos() override

@@ -2879,6 +2879,12 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.append(Component('sample_hold_button', xBelleColumn(0), ySampleHold))
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
+
+        xPortCenter = xBelleColumn(4)
+        yPortCenter = yBelleRow(5)
+        pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
+        controls.add('output_mode_button', xPortCenter, yPortCenter)
+
         addControlGroup(1, 0, 'freq',    'FREQ')
         addControlGroup(1, 1, 'oct',     'OCT' )
         addControlGroup(1, 2, 'pan',     'PAN' )
