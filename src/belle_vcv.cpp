@@ -261,6 +261,7 @@ namespace Sapphire
                 speedChaos = 0;
                 chaosAntiClickSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
+                params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
             }
 
             PolyStereoVoice& getCurrentEngine() const
