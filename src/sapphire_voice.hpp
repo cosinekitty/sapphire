@@ -281,20 +281,21 @@ namespace Sapphire
             float distortion(float v, float d)
             {
                 static constexpr float margin = 0.001;
+                static constexpr float fade = 0.1;
                 float x = v / PEAK_VOLTS;
                 float y = x;
                 if (left.supportsDistortion)
                 {
+                    const float dabs = std::abs(d);
+                    const float dilate = 1 + 15*dabs;
                     if (d < -margin)
-                    {
-                        const float dilate = 1 - 15*d;
                         y = std::tanh(x*dilate);
-                    }
                     else if (d > +margin)
-                    {
-                        const float dilate = 1 + 15*d;
                         y = BicubicLimiter<float>(x*dilate, 1);
-                    }
+
+                    const float u = (dabs - margin) / (fade - margin);
+                    if (u >= 0 && u <= 1)
+                        y = LinearMix<float>(u, x, y);
                 }
                 return y * PEAK_VOLTS;
             }
