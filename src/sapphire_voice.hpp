@@ -179,6 +179,7 @@ namespace Sapphire
         bool prevState = false;
         blep_t blep;                // for anti-aliasing discontinuities between samples
         bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
+        bool supportsDistortion = false;
 
         virtual void initialize() = 0;
         virtual float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) = 0;
@@ -188,6 +189,10 @@ namespace Sapphire
 
     struct SineEngine : MonoVoiceEngine
     {
+        explicit SineEngine()
+        {
+            supportsDistortion = true;
+        }
         void initialize() override;
         float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
     };
@@ -273,6 +278,27 @@ namespace Sapphire
                 envelope.initialize();
             }
 
+            float distortion(float v, float d)
+            {
+                static constexpr float margin = 0.001;
+                float x = v / PEAK_VOLTS;
+                float y = x;
+                if (left.supportsDistortion)
+                {
+                    if (d < -margin)
+                    {
+                        const float dilate = 1 - 15*d;
+                        y = std::tanh(x*dilate);
+                    }
+                    else if (d > +margin)
+                    {
+                        const float dilate = 1 + 15*d;
+                        y = BicubicLimiter<float>(x*dilate, 1);
+                    }
+                }
+                return y * PEAK_VOLTS;
+            }
+
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
             {
                 // Calculate detune.
@@ -293,10 +319,12 @@ namespace Sapphire
                 }
 
                 const float env = envelope.process(sampleRateHz, context);
-                const float L = left .process(sampleRateHz, context, leftSide);
-                const float R = right.process(sampleRateHz, context, rightSide);
+                float L = env * left .process(sampleRateHz, context, leftSide);
+                float R = env * right.process(sampleRateHz, context, rightSide);
+                L = distortion(L, context.mod[1]);
+                R = distortion(R, context.mod[1]);
                 const PanningFactors pf = Panning(context.pan);
-                return StereoFrame(env*pf.left*L, env*pf.right*R);
+                return StereoFrame(pf.left*L, pf.right*R);
             }
         };
 
