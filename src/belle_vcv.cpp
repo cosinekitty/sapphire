@@ -49,6 +49,8 @@ namespace Sapphire
             PAN_PARAM,
             PAN_ATTEN,
             OUTPUT_MODE_BUTTON_PARAM,
+            GLISS_PARAM,
+            GLISS_ATTEN,
 
             PARAMS_LEN
         };
@@ -67,6 +69,7 @@ namespace Sapphire
             CHAOS_SPEED_CV_INPUT,
             CHAOS_LEVEL_CV_INPUT,
             PAN_CV_INPUT,
+            GLISS_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -206,6 +209,7 @@ namespace Sapphire
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
 
+                configControlGroup("Glissando", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT, -1, +1, 0);
                 configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
                 configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
@@ -220,6 +224,7 @@ namespace Sapphire
 
                 attenuverterChaosOptIn(FREQ_ATTEN,      1);
                 attenuverterChaosOptIn(OCT_ATTEN,       1);
+                attenuverterChaosOptIn(GLISS_ATTEN,     mildSensitivityLevel);
                 attenuverterChaosOptIn(PAN_ATTEN,       mildSensitivityLevel);
                 attenuverterChaosOptIn(ATTACK_ATTEN,    mildSensitivityLevel);
                 attenuverterChaosOptIn(DECAY_ATTEN,     mildSensitivityLevel);
@@ -543,6 +548,7 @@ namespace Sapphire
                 addSampleHoldButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
+                addSapphireFlatControlGroup("gliss", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT);
                 addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);

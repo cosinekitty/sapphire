@@ -2885,13 +2885,14 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
         controls.add('output_mode_button', xPortCenter, yPortCenter)
 
-        addControlGroup(1, 0, 'freq',    'FREQ')
-        addControlGroup(1, 1, 'oct',     'OCT' )
-        addControlGroup(1, 2, 'pan',     'PAN' )
-        addControlGroup(2, 0, 'attack',  'ATT' )
-        addControlGroup(2, 1, 'decay',   'DEC' )
-        addControlGroup(2, 2, 'sustain', 'SUS' )
-        addControlGroup(2, 3, 'release', 'REL' )
+        addControlGroup(1, 0, 'freq',    'FREQ' )
+        addControlGroup(1, 1, 'oct',     'OCT'  )
+        addControlGroup(1, 2, 'gliss',   'GLISS')
+        addControlGroup(1, 3, 'pan',     'PAN'  )
+        addControlGroup(2, 0, 'attack',  'ATT'  )
+        addControlGroup(2, 1, 'decay',   'DEC'  )
+        addControlGroup(2, 2, 'sustain', 'SUS'  )
+        addControlGroup(2, 3, 'release', 'REL'  )
         for m in range(4):
             addControlGroup(3, m, 'mod' + str(m), '')
 
