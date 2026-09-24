@@ -320,6 +320,9 @@ namespace Sapphire
                 }
 
                 const float env = envelope.process(sampleRateHz, context);
+                if (env == 0)
+                    return StereoFrame(0, 0);   // don't burn CPU updating the voice models on silent samples
+
                 float L = env * left .process(sampleRateHz, context, leftSide);
                 float R = env * right.process(sampleRateHz, context, rightSide);
                 L = distortion(L, context.mod[1]);
