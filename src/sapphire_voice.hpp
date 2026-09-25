@@ -282,12 +282,13 @@ namespace Sapphire
             {
                 static constexpr float margin = 0.001;
                 static constexpr float fade = 0.1;
-                float x = v / PEAK_VOLTS;
+                static constexpr float headroom = PEAK_VOLTS * 1.05;
+                float x = v / headroom;
                 float y = x;
                 if (left.supportsDistortion)
                 {
                     const float dabs = std::abs(d);
-                    const float dilate = 1 + 15*dabs;
+                    const float dilate = 1 + 5*dabs;
                     if (d < -margin)
                         y = std::tanh(x*dilate);
                     else if (d > +margin)
@@ -297,7 +298,7 @@ namespace Sapphire
                     if (u >= 0 && u <= 1)
                         y = LinearMix<float>(u, x, y);
                 }
-                return y * PEAK_VOLTS;
+                return y * headroom;
             }
 
             StereoFrame process(float sampleRateHz, const VoiceContext& context)
