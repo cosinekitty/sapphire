@@ -168,7 +168,8 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, -2);
         }
 
-        return PEAK_VOLTS * ((2*phase - 1) + blep.process());
+        static constexpr float amplitude = PEAK_VOLTS / 1.18;    // empirical DECREASE of volume to match sine p/p
+        return amplitude * ((2*phase - 1) + blep.process());
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -192,7 +193,8 @@ namespace Sapphire
         // Apply a super-simple DC blocker to prevent DC drift in the output.
         triangle *= 0.9999;
 
-        return PEAK_VOLTS * triangle;
+        static constexpr float amplitude = PEAK_VOLTS / 0.992;    // empirical INCREASE of volume to match sine p/p
+        return amplitude * triangle;
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -208,7 +210,8 @@ namespace Sapphire
     float SquareEngine::process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
     {
         blepSquare(sampleRateHz, context, side);
-        return PEAK_VOLTS * square;
+        static constexpr float amplitude = PEAK_VOLTS / 1.4;    // empirical DECREASE of volume to match sine p/p
+        return amplitude * square;
     }
 
     //--------------------------------------------------------------------------------------------------
