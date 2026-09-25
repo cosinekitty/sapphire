@@ -17,7 +17,7 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 12;
+        constexpr unsigned nChaoticSignals = 13;
         using fountain_t = ChaosFountain<nChaoticSignals>;
         using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -51,6 +51,8 @@ namespace Sapphire
             OUTPUT_MODE_BUTTON_PARAM,
             GLISS_PARAM,
             GLISS_ATTEN,
+            LEVEL_PARAM,
+            LEVEL_ATTEN,
 
             PARAMS_LEN
         };
@@ -70,6 +72,7 @@ namespace Sapphire
             CHAOS_LEVEL_CV_INPUT,
             PAN_CV_INPUT,
             GLISS_CV_INPUT,
+            LEVEL_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -215,6 +218,7 @@ namespace Sapphire
                 configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 configControlGroup("Sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, 0, 1, 0.5, "%", 0, 100);
                 configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+                configControlGroup("Output level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
 
                 for (int m = 0; m < 4; ++m)
                     configControlGroup("", MOD_PARAM_0 + m, MOD_ATTEN_0 + m, MOD_CV_INPUT_0 + m);
@@ -349,6 +353,7 @@ namespace Sapphire
                 reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
                 reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
                 reportChaosMono(PAN_ATTEN,          batch(11));
+                reportChaosMono(LEVEL_ATTEN,        batch(12));
 
                 antiClick = chaosAntiClickSmoother.process(sampleRateHz);
                 if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
@@ -374,6 +379,7 @@ namespace Sapphire
 
                     const bool isSampleHoldEnabled = (params.at(SAMPLE_HOLD_BUTTON_PARAM).getValue() > 0.5f);
 
+                    float levelVoltage = 0;
                     float gateVoltage = 0;
                     float pitchVoltage = 0;
                     float freqVoltage = 0;
@@ -384,6 +390,7 @@ namespace Sapphire
                     float sustainVoltage = 0;
                     float releaseVoltage = 0;
                     float modVoltage[NUM_DYNAMIC_PARAMS]{};
+                    float gain[PORT_MAX_CHANNELS]{};
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
                         VoiceContext& context = polyEngine.contextArray[c];
@@ -398,7 +405,10 @@ namespace Sapphire
                         for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
                             nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
                         nextVoltageOrChaosSignal(panVoltage, PAN_CV_INPUT, c,         batch(11));
+                        nextVoltageOrChaosSignal(levelVoltage, LEVEL_CV_INPUT, c,     batch(12));
 
+                        static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
+                        gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
                         context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
@@ -419,8 +429,8 @@ namespace Sapphire
                         right.setChannels(nPolyChannels);
                         for (unsigned c = 0; c < nPolyChannels; ++c)
                         {
-                            left .setVoltage(frame.poly[c].sample[0] * antiClick, c);
-                            right.setVoltage(frame.poly[c].sample[1] * antiClick, c);
+                            left .setVoltage(frame.poly[c].sample[0] * antiClick * gain[c], c);
+                            right.setVoltage(frame.poly[c].sample[1] * antiClick * gain[c], c);
                         }
                     }
                     else
@@ -431,8 +441,8 @@ namespace Sapphire
                         float sumR = 0;
                         for (unsigned c = 0; c < nPolyChannels; ++c)
                         {
-                            sumL += frame.poly[c].sample[0];
-                            sumR += frame.poly[c].sample[1];
+                            sumL += frame.poly[c].sample[0] * gain[c];
+                            sumR += frame.poly[c].sample[1] * gain[c];
                         }
                         left .setVoltage(sumL * antiClick, 0);
                         right.setVoltage(sumR * antiClick, 0);
@@ -554,6 +564,7 @@ namespace Sapphire
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
                 addSapphireFlatControlGroup("sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+                addSapphireControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
 
                 for (int m = 0; m < 4; ++m)
                 {
