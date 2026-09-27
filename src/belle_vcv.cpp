@@ -532,6 +532,15 @@ namespace Sapphire
         };
 
 
+        struct GlissButton : SapphireTinyToggleButton
+        {
+            explicit GlissButton()
+            {
+                addTinyButtonFrames(this, "green");
+            }
+        };
+
+
         struct OutputModeButton : SapphireTinyToggleButton
         {
             explicit OutputModeButton()
@@ -558,6 +567,7 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addOutputModeButton();
                 addSampleHoldButton();
+                addGlissPitchButton();
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
                 addSapphireFlatControlGroup("gliss", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT);
@@ -601,6 +611,12 @@ namespace Sapphire
             {
                 auto button = createParamCentered<SampleHoldButton>(Vec{}, belleModule, SAMPLE_HOLD_BUTTON_PARAM);
                 addSapphireParam(button, "sample_hold_button");
+            }
+
+            void addGlissPitchButton()
+            {
+                auto button = createParamCentered<GlissButton>(Vec{}, belleModule, GLISS_PITCH_BUTTON_PARAM);
+                addSapphireParam(button, "gliss_pitch_button");
             }
 
             void addChaosBox()
