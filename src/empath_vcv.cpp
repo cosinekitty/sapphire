@@ -826,7 +826,7 @@ namespace Sapphire
 
                 bool isPolyphonicMode()
                 {
-                    return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                    return isButtonEnabled(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
                 }
 
                 void beginCableUpdates(bool polyphonic)
@@ -844,8 +844,10 @@ namespace Sapphire
 
                 SpectrumDisplayMode getSpectrumDisplayMode()
                 {
-                    float v = getParamQuantity(TOGGLE_SPECTRUM_BUTTON_PARAM)->getValue();
-                    return (v > 0.5f) ? SpectrumDisplayMode::Polyphonic : SpectrumDisplayMode::Monophonic;
+                    return
+                        isButtonEnabled(TOGGLE_SPECTRUM_BUTTON_PARAM)
+                        ? SpectrumDisplayMode::Polyphonic
+                        : SpectrumDisplayMode::Monophonic;
                 }
 
                 Frame readCascade(int nchannels, float chaosLeft, float chaosRight)
@@ -883,7 +885,7 @@ namespace Sapphire
 
                 bool shouldDisplayChaosVoltages() override
                 {
-                    return params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).getValue() > 0.5f;
+                    return isButtonEnabled(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -1672,12 +1674,12 @@ namespace Sapphire
 
                 bool isModeNotch()
                 {
-                    return params.at(MODE_BUTTON_PARAM).getValue() > 0.5f;
+                    return isButtonEnabled(MODE_BUTTON_PARAM);
                 }
 
                 bool isSoloEnabled()
                 {
-                    return params.at(SOLO_BUTTON_PARAM).getValue() > 0.5f;
+                    return isButtonEnabled(SOLO_BUTTON_PARAM);
                 }
 
                 FilterMode updateFilterMode()
@@ -1737,7 +1739,7 @@ namespace Sapphire
 
                 float updateMuteState(float sampleRateHz)
                 {
-                    muteFader.setTarget(params.at(MUTE_BUTTON_PARAM).getValue() > 0.5f);
+                    muteFader.setTarget(isButtonEnabled(MUTE_BUTTON_PARAM));
                     return muteFader.process(sampleRateHz, 1, 0);
                 }
 

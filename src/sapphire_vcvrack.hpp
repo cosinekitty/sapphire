@@ -1134,6 +1134,11 @@ namespace Sapphire
             return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
+        bool isButtonEnabled(int buttonParamId)
+        {
+            return params.at(buttonParamId).getValue() > 0.5f;
+        }
+
         void defineAttenuverterId(int attenId, int cvInputId)
         {
             // We need to know which parameter IDs are actually for attenuverter knobs.

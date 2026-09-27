@@ -877,7 +877,7 @@ namespace Sapphire
 
             int updateSolo(Frame& soloAudio, const Frame& rawAudio, int soloButtonParamId, float sampleRateHz)
             {
-                soloFader.setTarget(params.at(soloButtonParamId).getValue() > 0.5f);
+                soloFader.setTarget(isButtonEnabled(soloButtonParamId));
                 float factor = soloFader.process(sampleRateHz, 0, 1);
                 if (factor > 0)
                 {
@@ -889,7 +889,7 @@ namespace Sapphire
 
             float updateMuteState(float sampleRateHz, int muteButtonId)
             {
-                muteFader.setTarget(params.at(muteButtonId).getValue() > 0.5f);
+                muteFader.setTarget(isButtonEnabled(muteButtonId));
                 return muteFader.process(sampleRateHz, 1, 0);
             }
 
@@ -2205,7 +2205,7 @@ namespace Sapphire
 
                 bool polyphonicMode()
                 {
-                    return getParamQuantity(OUTPUT_CHANNEL_MODE_BUTTON_PARAM)->getValue() > 0.5f;
+                    return isButtonEnabled(OUTPUT_CHANNEL_MODE_BUTTON_PARAM);
                 }
 
                 void process(const ProcessArgs& args) override
@@ -2347,7 +2347,7 @@ namespace Sapphire
 
                 bool isFaderEnabled()
                 {
-                    return params.at(FADER_BUTTON_PARAM).getValue() > 0.5f;
+                    return isButtonEnabled(FADER_BUTTON_PARAM);
                 }
 
                 void updateFaderButtonTooltip()

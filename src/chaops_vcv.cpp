@@ -225,9 +225,9 @@ namespace Sapphire
                 setLightBrightness(FREEZE_BUTTON_LIGHT, frozen);
             }
 
-            bool isFreezeInputTriggerMode() const
+            bool isFreezeInputTriggerMode()
             {
-                return params.at(FREEZE_PORTMODE_BUTTON_PARAM).value > 0.5f;
+                return isButtonEnabled(FREEZE_PORTMODE_BUTTON_PARAM);
             }
 
             void updateTooltips()

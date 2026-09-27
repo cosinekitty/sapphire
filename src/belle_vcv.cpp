@@ -53,6 +53,7 @@ namespace Sapphire
             GLISS_ATTEN,
             LEVEL_PARAM,
             LEVEL_ATTEN,
+            GLISS_PITCH_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -207,6 +208,7 @@ namespace Sapphire
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold");
                 configButton(OUTPUT_MODE_BUTTON_PARAM, "Output mode");
+                configButton(GLISS_PITCH_BUTTON_PARAM, "Pitch glissando");
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -256,7 +258,7 @@ namespace Sapphire
 
             bool shouldDisplayChaosVoltages() override
             {
-                return params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).getValue() > 0.5f;
+                return isButtonEnabled(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
             }
 
             unsigned engineCount() const
@@ -377,7 +379,7 @@ namespace Sapphire
                     updateChaos(args.sampleRate, batch);
                     speedChaos = batch(10);
 
-                    const bool isSampleHoldEnabled = (params.at(SAMPLE_HOLD_BUTTON_PARAM).getValue() > 0.5f);
+                    const bool isSampleHoldEnabled = isButtonEnabled(SAMPLE_HOLD_BUTTON_PARAM);
 
                     float levelVoltage = 0;
                     float gateVoltage = 0;
@@ -459,7 +461,7 @@ namespace Sapphire
 
             bool isOutputModePolyphonic()
             {
-                return params.at(OUTPUT_MODE_BUTTON_PARAM).getValue() > 0.5f;
+                return isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM);
             }
 
             void updateControls()

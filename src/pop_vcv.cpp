@@ -181,7 +181,7 @@ namespace Sapphire
                         engine[c].sendTriggerOnReset = sendTriggerOnReset;
                 }
 
-                const bool wait = (params.at(WAIT_BUTTON_PARAM).getValue() > 0.5f);
+                const bool wait = isButtonEnabled(WAIT_BUTTON_PARAM);
                 const bool waitTrigger = (wait && !prevWait);
                 prevWait = wait;
 

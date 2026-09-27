@@ -205,9 +205,9 @@ namespace Sapphire
                 }
             }
 
-            bool isEnabledAudioMode() const
+            bool isEnabledAudioMode()
             {
-                return params.at(AUDIO_MODE_BUTTON_PARAM).value > 0.5f;
+                return isButtonEnabled(AUDIO_MODE_BUTTON_PARAM);
             }
 
             void onReset(const ResetEvent& e) override
