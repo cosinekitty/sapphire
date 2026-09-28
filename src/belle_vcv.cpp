@@ -17,7 +17,7 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 13;
+        constexpr unsigned nChaoticSignals = 14;
         using fountain_t = ChaosFountain<nChaoticSignals>;
         using batch_t = ChaosBatch<nChaoticSignals>;
 
@@ -216,7 +216,7 @@ namespace Sapphire
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
 
-                configControlGroup("Glissando", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT, -1, +1, 0);
+                configControlGroup("Glissando", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT, -2, +1, -1, " sec/oct", 10);
                 configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
                 configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
@@ -363,6 +363,7 @@ namespace Sapphire
                 reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
                 reportChaosMono(PAN_ATTEN,          batch(11));
                 reportChaosMono(LEVEL_ATTEN,        batch(12));
+                reportChaosMono(GLISS_ATTEN,        batch(13));
 
                 antiClick = chaosAntiClickSmoother.process(sampleRateHz);
                 if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
@@ -402,6 +403,7 @@ namespace Sapphire
                     float pitchVoltage = 0;
                     float freqVoltage = 0;
                     float octaveVoltage = 0;
+                    float glissVoltage = 0;
                     float panVoltage = 0;
                     float attackVoltage = 0;
                     float decayVoltage = 0;
@@ -428,13 +430,16 @@ namespace Sapphire
                             nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
                         nextVoltageOrChaosSignal(panVoltage, PAN_CV_INPUT, c,         batch(11));
                         nextVoltageOrChaosSignal(levelVoltage, LEVEL_CV_INPUT, c,     batch(12));
+                        nextVoltageOrChaosSignal(glissVoltage, GLISS_CV_INPUT, c,     batch(13));
 
                         static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                         gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
                         context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
-                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct);
+                        const float glissKnob = cvGetVoltPerOctave(GLISS_PARAM, GLISS_ATTEN, glissVoltage, -2, +1);
+                        const float glissSamples = TenToPower<float>(glissKnob) * args.sampleRate;
+                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct, 1/glissSamples);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
