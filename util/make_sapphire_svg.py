@@ -2846,6 +2846,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     y2_wav = y2_env
 
     xmidChaosBox = xBelleColumn(0)
+    dyPortModeButton = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         def addLabel(col:float, row:float, text:str, dx:float = 0.0) -> None:
@@ -2859,6 +2860,13 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         def addPort(col:float, row:float, symbol:str, label:str, dx:float = 0.0) -> None:
             controls.append(Component(symbol, xBelleColumn(col) + dx, yBelleRow(row)))
             addLabel(col, row, label, dx)
+
+        def addPitchModeButton(col:int, row:int, label:str, dx:float) -> None:
+            x = xBelleColumn(col) - dx
+            y1 = yBelleRow(row)
+            y2 = y1 + dyPortModeButton
+            pl.append(VerticalLine(x, y1, y2))
+            controls.add(label, x, y2)
 
         controls.add('envelope_upper_left',  x1_env, y1_env)
         controls.add('envelope_lower_right', x2_env, y2_env)
@@ -2875,10 +2883,6 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelleColumn(0), yBelleRow(0) - dyTextBigKnob))
         addPort(0, 4.25, 'gate_input', 'GATE')
         addPort(0, 5, 'pitch_input', 'PITCH')
-        pl.append(VerticalLine(xBelleColumn(0), yBelleRow(5), yPitchGliss := yBelleRow(5) + 6.5))
-        pl.append(HorizontalLine(xBelleColumn(0), xSampleHold := xBelleColumn(0) + 6.5, yBelleRow(5)))
-        controls.append(Component('gliss_pitch_button', xBelleColumn(0), yPitchGliss))
-        controls.append(Component('sample_hold_button', xSampleHold, yBelleRow(5)))
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
 
@@ -2886,6 +2890,10 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         yPortCenter = yBelleRow(5)
         pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
         controls.add('output_mode_button', xPortCenter, yPortCenter)
+
+        addPitchModeButton(0, 5, 'pitch_mode_button', 0.0)
+        addPitchModeButton(1, 0, 'freq_mode_button', DX_FLAT_CONTROL_GROUP)
+        addPitchModeButton(1, 1, 'oct_mode_button', DX_FLAT_CONTROL_GROUP)
 
         addControlGroup(1, 0, 'freq',    'FREQ' )
         addControlGroup(1, 1, 'oct',     'OCT'  )

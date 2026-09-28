@@ -42,7 +42,7 @@ namespace Sapphire
             CHAOS_SPEED_ATTEN,
             CHAOS_LEVEL_PARAM,
             CHAOS_LEVEL_ATTEN,
-            SAMPLE_HOLD_BUTTON_PARAM,
+            PITCH_MODE_BUTTON_PARAM,
             CHAOS_RANDOMIZE_BUTTON_PARAM,
             CHAOS_FREEZE_BUTTON_PARAM,
             CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM,
@@ -53,7 +53,8 @@ namespace Sapphire
             GLISS_ATTEN,
             LEVEL_PARAM,
             LEVEL_ATTEN,
-            GLISS_PITCH_BUTTON_PARAM,
+            FREQ_MODE_BUTTON_PARAM,
+            OCT_MODE_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -206,9 +207,10 @@ namespace Sapphire
 
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
-                configButton(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold");
-                configButton(OUTPUT_MODE_BUTTON_PARAM, "Output mode");
-                configButton(GLISS_PITCH_BUTTON_PARAM, "Pitch glissando");
+                configButton(OUTPUT_MODE_BUTTON_PARAM);
+                configPitchModeButton(PITCH_MODE_BUTTON_PARAM, "Pitch tracker");
+                configPitchModeButton(FREQ_MODE_BUTTON_PARAM,  "Frequency tracker");
+                configPitchModeButton(OCT_MODE_BUTTON_PARAM,   "Octave tracker");
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -244,6 +246,11 @@ namespace Sapphire
                 configChaosBox();
 
                 initialize();
+            }
+
+            void configPitchModeButton(int buttonParamId, const std::string& name)
+            {
+                configSwitch(buttonParamId, 0, 2, 0, name, {"FOLLOW", "SAMPLE & HOLD", "GLISSANDO"});
             }
 
             void configChaosBox()
@@ -365,6 +372,13 @@ namespace Sapphire
                 }
             }
 
+            PitchMode getPitchMode(int buttonParamId)
+            {
+                float v = params.at(buttonParamId).getValue();
+                int n = static_cast<int>(std::round(v));
+                return static_cast<PitchMode>(n);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 updateSelectedEngine();
@@ -379,7 +393,9 @@ namespace Sapphire
                     updateChaos(args.sampleRate, batch);
                     speedChaos = batch(10);
 
-                    const bool isSampleHoldEnabled = isButtonEnabled(SAMPLE_HOLD_BUTTON_PARAM);
+                    const PitchMode pitchMode = getPitchMode(PITCH_MODE_BUTTON_PARAM);
+                    const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
+                    const PitchMode octMode   = getPitchMode(OCT_MODE_BUTTON_PARAM);
 
                     float levelVoltage = 0;
                     float gateVoltage = 0;
@@ -396,6 +412,10 @@ namespace Sapphire
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
                         VoiceContext& context = polyEngine.contextArray[c];
+                        context.trackerPitch.mode = pitchMode;
+                        context.trackerFreq.mode = freqMode;
+                        context.trackerOct.mode = octMode;
+
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
                         nextVoltageOrChaosSignal(freqVoltage, FREQ_CV_INPUT, c,       batch(0));
@@ -414,7 +434,7 @@ namespace Sapphire
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
                         context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
-                        context.updateGatePitch(gateVoltage, pitchVoltage + freq + oct, isSampleHoldEnabled);
+                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
@@ -474,7 +494,6 @@ namespace Sapphire
 
                 updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                 updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
-                updateToggleButtonTooltip(SAMPLE_HOLD_BUTTON_PARAM, "Sample and hold: OFF", "Sample and hold: ON");
 
                 updateParamTooltip(
                     CHAOS_RANDOMIZE_BUTTON_PARAM,
@@ -532,11 +551,13 @@ namespace Sapphire
         };
 
 
-        struct GlissButton : SapphireTinyToggleButton
+        struct PitchModeButton : SapphireTinyToggleButton
         {
-            explicit GlissButton()
+            explicit PitchModeButton()
             {
-                addTinyButtonFrames(this, "green");
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/yellow_button_0.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/red_button_1.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/green_button_1.svg")));
             }
         };
 
@@ -566,8 +587,9 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addOutputModeButton();
-                addSampleHoldButton();
-                addGlissPitchButton();
+                addPitchModeButton(PITCH_MODE_BUTTON_PARAM, "pitch_mode_button");
+                addPitchModeButton(FREQ_MODE_BUTTON_PARAM, "freq_mode_button");
+                addPitchModeButton(OCT_MODE_BUTTON_PARAM, "oct_mode_button");
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
                 addSapphireFlatControlGroup("gliss", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT);
@@ -607,16 +629,10 @@ namespace Sapphire
                     belleModule->randomizeChaos();
             }
 
-            void addSampleHoldButton()
+            void addPitchModeButton(int buttonParamId, const std::string& label)
             {
-                auto button = createParamCentered<SampleHoldButton>(Vec{}, belleModule, SAMPLE_HOLD_BUTTON_PARAM);
-                addSapphireParam(button, "sample_hold_button");
-            }
-
-            void addGlissPitchButton()
-            {
-                auto button = createParamCentered<GlissButton>(Vec{}, belleModule, GLISS_PITCH_BUTTON_PARAM);
-                addSapphireParam(button, "gliss_pitch_button");
+                auto button = createParamCentered<PitchModeButton>(Vec{}, belleModule, buttonParamId);
+                addSapphireParam(button, label);
             }
 
             void addChaosBox()

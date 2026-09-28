@@ -49,7 +49,7 @@ namespace Sapphire
 
     constexpr unsigned NUM_DYNAMIC_PARAMS = 4;
 
-
+/*
     struct PitchSampler
     {
         float pitch{};          // V/OCT relative to C4 (261.63 Hz).
@@ -95,11 +95,55 @@ namespace Sapphire
             }
         }
     };
+*/
+
+    enum class PitchMode
+    {
+        Follow,
+        SampleHold,
+        Gliss,
+    };
+
+
+    struct PitchTracker
+    {
+        PitchMode mode{};
+        float pitch{};       // V/OCT relative to C4 (261.63 Hz).
+        float glissOctavesPerSample{};
+
+        void initialize()
+        {
+        }
+
+        void update(const GateTriggerReceiver& receiver, float voct)
+        {
+            switch (mode)
+            {
+                case PitchMode::Follow:
+                default:
+                {
+
+                }
+                break;
+
+                case PitchMode::SampleHold:
+                {
+
+                }
+                break;
+
+                case PitchMode::Gliss:
+                {
+
+                }
+                break;
+            }
+        }
+    };
 
 
     struct VoiceContext
     {
-        PitchSampler pitchSampler;
         GateTriggerReceiver gateTriggerReceiver;
         float attack{};
         float decay{};
@@ -107,6 +151,9 @@ namespace Sapphire
         float release{};
         float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
         float pan{};        // -1 .. +1
+        PitchTracker trackerPitch;
+        PitchTracker trackerFreq;
+        PitchTracker trackerOct;
 
         explicit VoiceContext()
         {
@@ -116,13 +163,24 @@ namespace Sapphire
         void initialize()
         {
             gateTriggerReceiver.initialize();
-            pitchSampler.initialize();
+            trackerPitch.initialize();
+            trackerFreq.initialize();
+            trackerOct.initialize();
         }
 
-        void updateGatePitch(float gateVoltage, float pitchVoltage, bool isSampleHoldEnabled)
+        void updateGatePitch(float gateVoltage, float pitch, float freq, float oct)
         {
             gateTriggerReceiver.update(gateVoltage);
-            pitchSampler.update(gateTriggerReceiver, pitchVoltage, isSampleHoldEnabled);
+            trackerPitch.update(gateTriggerReceiver, pitch);
+            trackerFreq.update(gateTriggerReceiver, freq);
+            trackerOct.update(gateTriggerReceiver, oct);
+        }
+
+        float getFrequency() const
+        {
+            // add pitches, calculate frequency.
+            const float pitch = trackerPitch.pitch + trackerFreq.pitch + trackerOct.pitch;
+            return std::exp2(pitch) * C4_FREQUENCY_HZ;
         }
     };
 
@@ -168,7 +226,7 @@ namespace Sapphire
     inline float DeltaPhase(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
     {
         // Return change in 0 <= phase <= 1 over expressed in fractional periods/sample.
-        return (context.pitchSampler.freq * side.detuneFactor) / sampleRateHz;
+        return (context.getFrequency() * side.detuneFactor) / sampleRateHz;
     }
 
 
