@@ -180,10 +180,9 @@ namespace Sapphire
         {
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
-            Smoother chaosAntiClickSmoother{0.025};
+            Smoother chaosSeedSmoother{0.025};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
-            float antiClick{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -191,6 +190,7 @@ namespace Sapphire
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
+            unsigned targetEngineIndex{};
             float mildSensitivityLevel = 0.2;
 
             BelleModule()
@@ -280,7 +280,7 @@ namespace Sapphire
             {
                 fountain.reset();
                 speedChaos = 0;
-                chaosAntiClickSmoother.initialize();
+                chaosSeedSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
             }
@@ -368,8 +368,8 @@ namespace Sapphire
                 reportChaosMono(LEVEL_ATTEN,        batch(12));
                 reportChaosMono(GLIDE_ATTEN,        batch(13));
 
-                antiClick = chaosAntiClickSmoother.process(sampleRateHz);
-                if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
+                chaosSeedSmoother.process(sampleRateHz);
+                if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
                 {
                     fountain.reset(seedToRestore);
                     seedToRestore = 0;
@@ -455,6 +455,8 @@ namespace Sapphire
 
                     PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
 
+                    const float antiClick = chaosSeedSmoother.getGain();
+
                     env.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         env.setVoltage(10 * result.env.poly[c] * antiClick, c);
@@ -536,7 +538,7 @@ namespace Sapphire
             {
                 seedToRestore = seed;
                 requestSeedSplash = true;
-                chaosAntiClickSmoother.begin();
+                chaosSeedSmoother.begin();
             }
 
             void randomizeChaos()
