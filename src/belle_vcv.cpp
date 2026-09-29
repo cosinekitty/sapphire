@@ -181,6 +181,7 @@ namespace Sapphire
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
             Smoother chaosSeedSmoother{0.025};
+            Smoother modelChangeSmoother{0.025};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
 
@@ -190,7 +191,6 @@ namespace Sapphire
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
-            unsigned targetEngineIndex{};
             float mildSensitivityLevel = 0.2;
 
             BelleModule()
@@ -281,6 +281,7 @@ namespace Sapphire
                 fountain.reset();
                 speedChaos = 0;
                 chaosSeedSmoother.initialize();
+                modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
             }
@@ -310,12 +311,23 @@ namespace Sapphire
                     fountain.reset(seed);
             }
 
-            void updateSelectedEngine()
+            void updateSelectedEngine(float sampleRateHz)
             {
-                const float value = params.at(MODEL_SELECT_PARAM).getValue();
-                currentEngineIndex = static_cast<unsigned>(round(value));
-                if (currentEngineIndex >= engineCount())
-                    currentEngineIndex = 0;
+                const unsigned targetEngineIndex = static_cast<unsigned>(params.at(MODEL_SELECT_PARAM).getValue());
+
+                if (modelChangeSmoother.isStable() && (targetEngineIndex != currentEngineIndex))
+                    modelChangeSmoother.begin();
+
+                modelChangeSmoother.process(sampleRateHz);
+                if (modelChangeSmoother.isDelayedActionReady() && (targetEngineIndex != currentEngineIndex))
+                {
+                    // Silence the current engine before leaving.
+                    // Otherwise it leaves residual energy in the system when we come back.
+                    getCurrentEngine().initialize();
+
+                    // Switch to the new engine.
+                    currentEngineIndex = targetEngineIndex;
+                }
             }
 
             void updateChaos(float sampleRateHz, batch_t& batch)
@@ -385,7 +397,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                updateSelectedEngine();
+                updateSelectedEngine(args.sampleRate);
 
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
@@ -455,7 +467,9 @@ namespace Sapphire
 
                     PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
 
-                    const float antiClick = chaosSeedSmoother.getGain();
+                    const float antiClick =
+                        chaosSeedSmoother.getGain() *
+                        modelChangeSmoother.getGain();
 
                     env.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)

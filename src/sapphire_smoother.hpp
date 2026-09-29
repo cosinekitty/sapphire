@@ -45,6 +45,11 @@ namespace Sapphire
             return gain;
         }
 
+        bool isStable() const
+        {
+            return state == State::Stable;
+        }
+
         void begin()
         {
             state = State::Fading;
