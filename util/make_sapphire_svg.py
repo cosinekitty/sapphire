@@ -89,9 +89,9 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     dxControlGroup = 5.0
     dyControlGroup = 11.0
     dyControlText = -11.6
-    controls.append(Component(symbol + '_knob', x, y))
-    controls.append(Component(symbol + '_atten', x - dxControlGroup, y + dyControlGroup))
-    controls.append(Component(symbol + '_cv', x + dxControlGroup, y + dyControlGroup))
+    controls.add(symbol + '_knob', x, y)
+    controls.add(symbol + '_atten', x - dxControlGroup, y + dyControlGroup)
+    controls.add(symbol + '_cv', x + dxControlGroup, y + dyControlGroup)
     if dxText < 0.0:
         pl.append(CenteredControlTextPath(font, label, x, y + dyControlText + 2.4))
     else:
@@ -227,11 +227,11 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
         pl.append(CenteredControlTextPath(font, 'CRUISE',  xmid, yCruise - dyButtonText))
         pl.append(VerticalLine(xmid, yMemorySelect, yMemoryDisplay, 'memory_vline'))
         AddFlatControlGroup(pl, controls, xmid, yMemorySelect, 'memsel')
-        controls.append(Component('store_button',   xStore,  yMemoryButton))
-        controls.append(Component('recall_button',  xRecall, yMemoryButton))
-        controls.append(Component('store_trigger',  xStore,  yMemoryTriggerPorts))
-        controls.append(Component('recall_trigger', xRecall, yMemoryTriggerPorts))
-        controls.append(Component('memory_address_display', xmid, yMemoryDisplay))
+        controls.add('store_button',   xStore,  yMemoryButton)
+        controls.add('recall_button',  xRecall, yMemoryButton)
+        controls.add('store_trigger',  xStore,  yMemoryTriggerPorts)
+        controls.add('recall_trigger', xRecall, yMemoryTriggerPorts)
+        controls.add('memory_address_display', xmid, yMemoryDisplay)
         AddToggleGroup(pl, controls, font, 'FREEZE', 'freeze', xmid - dxFreezePortButton, xmid + dxFreezePortButton, yFreezeButton, dyButtonText, 'freeze_toggle_group')
         AddFlatControlGroup(pl, controls, xmid, yMorph, 'morph')
         AddFlatControlGroup(pl, controls, xmid, yCruise, 'cruise')
@@ -241,7 +241,7 @@ def GenerateChaosOperatorsPanel(cdict:ControlDict) -> int:
 def AddChaopsButton(controls:ControlLayer, panel:Panel) -> None:
     xButton = 4.0
     yButton = panel.mmHeight - 5.5
-    controls.append(Component('chaops_button', xButton, yButton))
+    controls.add('chaops_button', xButton, yButton)
 
 
 def AddTricorderButton(controls:ControlLayer, panel:Panel, xButton:float = -1.0, yButton:float = -1.0) -> None:
@@ -251,25 +251,25 @@ def AddTricorderButton(controls:ControlLayer, panel:Panel, xButton:float = -1.0,
     if yButton < 0.0:
         yButton = panel.mmHeight - 5.5
 
-    controls.append(Component('tricorder_button', xButton, yButton))
+    controls.add('tricorder_button', xButton, yButton)
 
 
 def AddTricorderLeftButton(controls:ControlLayer, panel:Panel) -> None:
     xButton = 4.0
     yButton = panel.mmHeight - 5.5
-    controls.append(Component('tricorder_button', xButton, yButton))
+    controls.add('tricorder_button', xButton, yButton)
 
 
 def AddTinButton(controls:ControlLayer) -> None:
     xButton = 4.0
     yButton = 4.0
-    controls.append(Component('tin_button', xButton, yButton))
+    controls.add('tin_button', xButton, yButton)
 
 
 def AddToutButton(controls:ControlLayer, panel:Panel) -> None:
     xButton = panel.mmWidth - 4.0
     yButton = 4.0
-    controls.append(Component('tout_button', xButton, yButton))
+    controls.add('tout_button', xButton, yButton)
 
 
 def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
@@ -289,10 +289,10 @@ def GenerateChaosPanel(cdict:ControlDict, name: str) -> int:
         outputPortY1 = 88.0
         outputPortDY =  9.0
         xmid = panel.mmWidth / 2
-        controls.append(Component('x_output', xmid, outputPortY1 + 0*outputPortDY))
-        controls.append(Component('y_output', xmid, outputPortY1 + 1*outputPortDY))
-        controls.append(Component('z_output', xmid, outputPortY1 + 2*outputPortDY))
-        controls.append(Component('p_output', xmid, outputPortY1 + 3*outputPortDY))
+        controls.add('x_output', xmid, outputPortY1 + 0*outputPortDY)
+        controls.add('y_output', xmid, outputPortY1 + 1*outputPortDY)
+        controls.add('z_output', xmid, outputPortY1 + 2*outputPortDY)
+        controls.add('p_output', xmid, outputPortY1 + 3*outputPortDY)
         ySpeedKnob = 26.0
         yChaosKnob = 57.0
         xOutLabel = xmid - 3.9
@@ -378,11 +378,11 @@ def GenerateTinToutPanel(cdict:ControlDict, name:str, dir:str, ioLabel:str, dxCo
         pl.append(ControlTextPath(font, 'Y',  xPortLabel, yInPortLabel + 1*inputPortDY, 'port_label_y'))
         pl.append(ControlTextPath(font, 'Z',  xPortLabel, yInPortLabel + 2*inputPortDY, 'port_label_z'))
         pl.append(ControlTextPath(font, 'P',  xPortLabel, yInPortLabel + 3*inputPortDY, 'port_label_p'))
-        controls.append(Component('x_' + dir, xmid, inputPortY1 + 0*inputPortDY))
-        controls.append(Component('y_' + dir, xmid, inputPortY1 + 1*inputPortDY))
-        controls.append(Component('z_' + dir, xmid, inputPortY1 + 2*inputPortDY))
-        controls.append(Component('p_' + dir, xmid, inputPortY1 + 3*inputPortDY))
-        controls.append(Component('clear_trigger_' + dir, xmid, inputPortY2))
+        controls.add('x_' + dir, xmid, inputPortY1 + 0*inputPortDY)
+        controls.add('y_' + dir, xmid, inputPortY1 + 1*inputPortDY)
+        controls.add('z_' + dir, xmid, inputPortY1 + 2*inputPortDY)
+        controls.add('p_' + dir, xmid, inputPortY1 + 3*inputPortDY)
+        controls.add('clear_trigger_' + dir, xmid, inputPortY2)
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xmid, 75.0, 5.5)
         pl.append(CenteredControlTextPath(font, ioLabel, xmid, yInLabel + 2.5, 'io_label'))
         pl.append(ControlTextPath(font, 'CLEAR', xTriggerPortLabel, yTriggerPortLabel, 'clear_label'))
@@ -508,12 +508,11 @@ def GenerateNucleusPanel(cdict:ControlDict) -> int:
             pl.append(CenteredControlTextPath(font, varname.upper(), xInPos , yInVarNames))
             pl.append(CenteredControlTextPath(font, varname.upper(), xOutPos, yOutVarNames))
             # Input row A
-            varlabel = Component(varname + '_input', xInPos, yIn)
-            controls.append(varlabel)
+            controls.add(varname + '_input', xInPos, yIn)
             ypos = yOutTop
             for i in range(1, 1+nOutputParticles):
                 # Output rows BCDE
-                controls.append(Component(varname + str(i) + '_output', xOutPos, ypos))
+                controls.add(varname + str(i) + '_output', xOutPos, ypos)
                 ypos += dyOut
             xInPos += dxPort
             xOutPos += dxPort
@@ -539,7 +538,7 @@ def GenerateNucleusPanel(cdict:ControlDict) -> int:
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
         xButton = xKnobLeft
         yButton = yOutLevel - 19.5
-        controls.append(Component('audio_mode_button', xButton, yButton))
+        controls.add('audio_mode_button', xButton, yButton)
         xText = xButton
         yText = yButton - 6.5
         SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/{}_label_audio.svg'.format(name),   xText, yText)
@@ -620,13 +619,13 @@ def GeneratePolynucleusPanel(cdict:ControlDict) -> int:
         pl.append(RectangularBubble(xBubbleLeft, 73.0, xBubbleRight, 45.0, bubbleRadius, GradientStyle('gradient_output',   0.8), 'output_bubble'))
 
         # Create label + input port for particle A.
-        controls.append(Component('a_input', xKnobLeft, yInPort))
+        controls.add('a_input', xKnobLeft, yInPort)
         pl.append(CenteredControlTextPath(font, 'A', xKnobLeft + dxLabel, yInPort))
 
         # Create labels + output ports for particles BCDE.
         ypos = yOutTop
         for label in 'BCDE':
-            controls.append(Component(label.lower() + '_output', xKnobRight, ypos))
+            controls.add(label.lower() + '_output', xKnobRight, ypos)
             pl.append(CenteredControlTextPath(font, label, xKnobRight - dxLabel, ypos))
             ypos += dyOut
 
@@ -641,7 +640,7 @@ def GeneratePolynucleusPanel(cdict:ControlDict) -> int:
 
         xButton = xKnobLeft
         yButton = yOutTop + 3*dyOut
-        controls.append(Component('clear_button', xButton, yButton))
+        controls.add('clear_button', xButton, yButton)
         pl.append(CenteredControlTextPath(font, 'CLEAR', xButton, yButton - 6.5))
 
         # Add toggle button with alternating text labels AUDIO and CONTROL.
@@ -649,7 +648,7 @@ def GeneratePolynucleusPanel(cdict:ControlDict) -> int:
         # Then we hide/show the layers as needed to show only AUDIO or CONTROL (not both).
         xButton = xKnobLeft
         yButton = yIn + 8.0
-        controls.append(Component('audio_mode_button', xButton, yButton))
+        controls.add('audio_mode_button', xButton, yButton)
         xText = xButton
         yText = yButton - 6.5
         SaveLabelLayer(PANEL_WIDTH, 'AUDIO',   '../res/{}_label_audio.svg'.format(name),   xText, yText)
@@ -684,9 +683,9 @@ def GenerateHissPanel(cdict:ControlDict) -> int:
         yout = ytop
         for i in range(numOutputs):
             name = 'random_output_{:d}'.format(i + 1)
-            controls.append(Component(name, xmid, yout))
+            controls.add(name, xmid, yout)
             yout += dyOut
-        controls.append(Component('channel_display', xmid, yChannelDisplay))
+        controls.add('channel_display', xmid, yChannelDisplay)
     return Save(panel, svgFileName)
 
 
@@ -766,7 +765,7 @@ def GenerateMootsPanel(cdict: ControlDict) -> int:
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     pl.append(LiteralXml.Parse(MootsPanelLayerXml))
-    controls.append(Component('gate_trigger_label', panel.mmWidth/2, MOOTS_LABEL_Y))
+    controls.add('gate_trigger_label', panel.mmWidth/2, MOOTS_LABEL_Y)
     return Save(panel, svgFileName)
 
 
@@ -885,12 +884,12 @@ def GenerateGalaxyPanel(cdict:ControlDict, name:str, target:Target) -> int:
         if target == Target.VcvRack:
             pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort - 6.5))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
-            controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
-            controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
-            controls.append(Component('stereo_split_button', xmid, yInPort))
-            controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
-            controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
-            controls.append(Component('stereo_merge_button', xmid, yOutPort))
+            controls.add('audio_left_input',   xmid - dxPortFromCenter, yInPort )
+            controls.add('audio_right_input',  xmid + dxPortFromCenter, yInPort )
+            controls.add('stereo_split_button', xmid, yInPort)
+            controls.add('audio_left_output',  xmid - dxPortFromCenter, yOutPort)
+            controls.add('audio_right_output', xmid + dxPortFromCenter, yOutPort)
+            controls.add('stereo_merge_button', xmid, yOutPort)
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yInPort))
             pl.append(HorizontalLinePath(xmid - dxPortFromCenter, xmid + dxPortFromCenter, yOutPort))
             AddLineToggleGroup(pl, controls, font, 'CLR', 'clear' , xmid - DX_FLAT_CONTROL_GROUP, xmid + DX_FLAT_CONTROL_GROUP, yClear, 3.5)
@@ -974,12 +973,12 @@ def GenerateGravyPanel(cdict:ControlDict, name:str, target:Target) -> int:
             pl.append(CenteredControlTextPath(font, 'IN',  xmid, yInPort  - dyText))
             pl.append(CenteredControlTextPath(font, 'OUT', xmid, yOutPort - dyText))
             # Stereo IN/OUT ports.
-            controls.append(Component('audio_left_input',   xmid - dxPortFromCenter, yInPort ))
-            controls.append(Component('audio_right_input',  xmid + dxPortFromCenter, yInPort ))
-            controls.append(Component('stereo_split_button', xmid, yInPort))
-            controls.append(Component('audio_left_output',  xmid - dxPortFromCenter, yOutPort))
-            controls.append(Component('audio_right_output', xmid + dxPortFromCenter, yOutPort))
-            controls.append(Component('stereo_merge_button', xmid, yOutPort))
+            controls.add('audio_left_input',   xmid - dxPortFromCenter, yInPort )
+            controls.add('audio_right_input',  xmid + dxPortFromCenter, yInPort )
+            controls.add('stereo_split_button', xmid, yInPort)
+            controls.add('audio_left_output',  xmid - dxPortFromCenter, yOutPort)
+            controls.add('audio_right_output', xmid + dxPortFromCenter, yOutPort)
+            controls.add('stereo_merge_button', xmid, yOutPort)
 
         # Text label for 3-way MODE switch (LP, BP, HP).
         pl.append(CenteredControlTextPath(font, 'MODE',  xmid, ySwitch - dyTextSwitch))
@@ -1068,15 +1067,15 @@ def GenerateSaucePanel(cdict:ControlDict, name:str) -> int:
         pl.append(ControlGroupArt(name, 'out_art', panel, y1, y2, 'gradient_out'))
 
         pl.append(CenteredControlTextPath(font, 'IN', xInputPort, yInputPort-dyText))
-        controls.append(Component('audio_input', xInputPort, yInputPort ))
+        controls.add('audio_input', xInputPort, yInputPort )
 
         pl.append(CenteredControlTextPath(font, 'CASC', xCascadeKnob, yCascadeKnob-dyText))
-        controls.append(Component('cascade_knob', xCascadeKnob, yCascadeKnob))
+        controls.add('cascade_knob', xCascadeKnob, yCascadeKnob)
 
-        controls.append(Component('audio_lp_output',    xOutLowPort,  yOutLowPort))
-        controls.append(Component('audio_bp_output',    xOutBandPort, yOutBandPort))
-        controls.append(Component('audio_hp_output',    xOutHighPort, yOutHighPort))
-        controls.append(Component('audio_notch_output', xOutNotchPort, yOutNotchPort))
+        controls.add('audio_lp_output',    xOutLowPort,  yOutLowPort)
+        controls.add('audio_bp_output',    xOutBandPort, yOutBandPort)
+        controls.add('audio_hp_output',    xOutHighPort, yOutHighPort)
+        controls.add('audio_notch_output', xOutNotchPort, yOutNotchPort)
 
         pl.append(CenteredControlTextPath(font, 'LP', xOutLowPort  , yOutLowPort  - dyText))
         pl.append(CenteredControlTextPath(font, 'BP', xOutBandPort , yOutBandPort - dyText))
@@ -1116,12 +1115,12 @@ def GenerateRotiniPanel(cdict:ControlDict) -> int:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('a_input',  xmid, yRow.value(0)))
-        controls.append(Component('b_input',  xmid, yRow.value(1)))
-        controls.append(Component('x_output', xmid, outPortY + 0*outputPortDY))
-        controls.append(Component('y_output', xmid, outPortY + 1*outputPortDY))
-        controls.append(Component('z_output', xmid, outPortY + 2*outputPortDY))
-        controls.append(Component('c_output', xmid, outPortY + 3*outputPortDY))
+        controls.add('a_input',  xmid, yRow.value(0))
+        controls.add('b_input',  xmid, yRow.value(1))
+        controls.add('x_output', xmid, outPortY + 0*outputPortDY)
+        controls.add('y_output', xmid, outPortY + 1*outputPortDY)
+        controls.add('z_output', xmid, outPortY + 2*outputPortDY)
+        controls.add('c_output', xmid, outPortY + 3*outputPortDY)
 
         y1 = yRow.value(0) - 9.5
         y2 = yRow.value(0) + dyGrad
@@ -1173,11 +1172,11 @@ def GeneratePivotPanel(cdict:ControlDict) -> int:
         pl.append(MakeBorder(target, PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(CenteredGemstone(panel))
-        controls.append(Component('a_input',  xmid, yRow))
-        controls.append(Component('x_output', xmid, outPortY + 0*outputPortDY))
-        controls.append(Component('y_output', xmid, outPortY + 1*outputPortDY))
-        controls.append(Component('z_output', xmid, outPortY + 2*outputPortDY))
-        controls.append(Component('c_output', xmid, outPortY + 3*outputPortDY))
+        controls.add('a_input',  xmid, yRow)
+        controls.add('x_output', xmid, outPortY + 0*outputPortDY)
+        controls.add('y_output', xmid, outPortY + 1*outputPortDY)
+        controls.add('z_output', xmid, outPortY + 2*outputPortDY)
+        controls.add('c_output', xmid, outPortY + 3*outputPortDY)
 
         y1 = yRow - 9.5
         y2 = yRow + dyGrad
@@ -1274,10 +1273,10 @@ def GenerateSamPanel(cdict:ControlDict) -> int:
         pl.append(ModelNamePath(panel, font, 's'))
         pl.append(CenteredGemstone(panel))
 
-        controls.append(Component('x_input' , xmid, yInput.value(0)))
-        controls.append(Component('y_input' , xmid, yInput.value(1)))
-        controls.append(Component('z_input' , xmid, yInput.value(2)))
-        controls.append(Component('p_input' , xmid, yInput.value(3)))
+        controls.add('x_input' , xmid, yInput.value(0))
+        controls.add('y_input' , xmid, yInput.value(1))
+        controls.add('z_input' , xmid, yInput.value(2))
+        controls.add('p_input' , xmid, yInput.value(3))
 
         pl.append(PolyPortHexagon(xmid, yInput.value(3)))
 
@@ -1285,12 +1284,12 @@ def GenerateSamPanel(cdict:ControlDict) -> int:
         y2Arrow = yOutput.value(0) - dyArrowMargin + dyArrowAdjust
         pl.append(VerticalArrow(xmid, y1Arrow, y2Arrow, dxArrow, dyArrow))
 
-        controls.append(Component('x_output', xmid, yOutput.value(0)))
-        controls.append(Component('y_output', xmid, yOutput.value(1)))
-        controls.append(Component('z_output', xmid, yOutput.value(2)))
-        controls.append(Component('p_output', xmid, yOutput.value(3)))
+        controls.add('x_output', xmid, yOutput.value(0))
+        controls.add('y_output', xmid, yOutput.value(1))
+        controls.add('z_output', xmid, yOutput.value(2))
+        controls.add('p_output', xmid, yOutput.value(3))
 
-        controls.append(Component('channel_display', xmid, yChannelDisplay))
+        controls.add('channel_display', xmid, yChannelDisplay)
 
         pl.append(PolyPortHexagon(xmid, yOutput.value(3)))
 
@@ -1352,24 +1351,24 @@ def GeneratePopPanel(cdict:ControlDict) -> int:
         lineGroup.append(LineElement(xmid, ySpeedKnob, xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
         lineGroup.append(LineElement(xmid, yChaosKnob, xmid - dxControlGroup, yChaosKnob + dyControlGroup))
         lineGroup.append(LineElement(xmid, yChaosKnob, xmid + dxControlGroup, yChaosKnob + dyControlGroup))
-        controls.append(Component('speed_knob', xmid, ySpeedKnob))
-        controls.append(Component('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup))
-        controls.append(Component('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup))
-        controls.append(Component('chaos_knob', xmid, yChaosKnob))
-        controls.append(Component('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup))
-        controls.append(Component('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup))
+        controls.add('speed_knob', xmid, ySpeedKnob)
+        controls.add('speed_atten', xmid - dxControlGroup, ySpeedKnob + dyControlGroup)
+        controls.add('speed_cv', xmid + dxControlGroup, ySpeedKnob + dyControlGroup)
+        controls.add('chaos_knob', xmid, yChaosKnob)
+        controls.add('chaos_atten', xmid - dxControlGroup, yChaosKnob + dyControlGroup)
+        controls.add('chaos_cv', xmid + dxControlGroup, yChaosKnob + dyControlGroup)
         pl.append(HorizontalLine(xmid, xSyncButton, ySyncPort))
-        controls.append(Component('sync_input', xmid, ySyncPort))
-        controls.append(Component('sync_button', xSyncButton, ySyncPort))
+        controls.add('sync_input', xmid, ySyncPort)
+        controls.add('sync_button', xSyncButton, ySyncPort)
         pl.append(HorizontalLine(xWaitButton, xPulseButton, yPulsePort))
-        controls.append(Component('pulse_output', xmid, yPulsePort))
-        controls.append(Component('pulse_mode_button', xPulseButton, yPulsePort))
-        controls.append(Component('wait_button', xWaitButton, yPulsePort))
+        controls.add('pulse_output', xmid, yPulsePort)
+        controls.add('pulse_mode_button', xPulseButton, yPulsePort)
+        controls.add('wait_button', xWaitButton, yPulsePort)
         pl.append(ControlTextPath(font, 'SPEED', xmid - 5.5, ySpeedKnob + dyControlText))
         pl.append(ControlTextPath(font, 'CHAOS', xmid - 6.0, yChaosKnob + dyControlText))
         pl.append(CenteredControlTextPath(font, 'PULSE', xmid, yOutLabel, 'pulse_label'))
         pl.append(CenteredControlTextPath(font, 'SYNC', xmid, ySyncLabel, 'sync_label'))
-        controls.append(Component('channel_display', xmid, yChannelDisplay))
+        controls.add('channel_display', xmid, yChannelDisplay)
     return Save(panel, svgFileName)
 
 
@@ -1485,7 +1484,7 @@ def ElastikaShape(font:Font, n:int, prefix:str, target: Target) -> Element:
 
 
 def AddSlider(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float) -> None:
-    controls.append(Component(name, xc, yc))
+    controls.add(name, xc, yc)
     if previewComponentPositions and (target == Target.Lite):
         pl.append(Rectangle(xc, yc, 2.4, 28.0))
 
@@ -1519,28 +1518,28 @@ def PlaceElastikaRackControls(controls: ControlLayer) -> None:
     xInRightAudio  = 20.50
     xOutLeftAudio  = 40.46
     xOutRightAudio = 53.46
-    controls.append(Component('fric_atten',          8.00,  72.00))
-    controls.append(Component('stif_atten',         19.24,  72.00))
-    controls.append(Component('span_atten',         30.48,  72.00))
-    controls.append(Component('curl_atten',         41.72,  72.00))
-    controls.append(Component('mass_atten',         52.96,  72.00))
-    controls.append(Component('input_tilt_atten',    8.00,  12.50))
-    controls.append(Component('output_tilt_atten',  53.00,  12.50))
-    controls.append(Component('fric_cv',             8.00,  81.74))
-    controls.append(Component('stif_cv',            19.24,  81.74))
-    controls.append(Component('span_cv',            30.48,  81.74))
-    controls.append(Component('curl_cv',            41.72,  81.74))
-    controls.append(Component('mass_cv',            52.96,  81.74))
-    controls.append(Component('input_tilt_cv',       8.00,  22.50))
-    controls.append(Component('output_tilt_cv',     53.00,  22.50))
-    controls.append(Component('audio_left_input',   xInLeftAudio,  115.00))
-    controls.append(Component('audio_right_input',  xInRightAudio, 115.00))
-    controls.append(Component('stereo_split_button', (xInLeftAudio + xInRightAudio)/2, 115.00))
-    controls.append(Component('power_gate_input',   30.48, 104.00))
-    controls.append(Component('audio_left_output',  xOutLeftAudio,  115.00))
-    controls.append(Component('audio_right_output', xOutRightAudio, 115.00))
-    controls.append(Component('stereo_merge_button', (xOutLeftAudio + xOutRightAudio)/2, 115.00))
-    controls.append(Component('power_toggle',       30.48,  95.00))
+    controls.add('fric_atten',          8.00,  72.00)
+    controls.add('stif_atten',         19.24,  72.00)
+    controls.add('span_atten',         30.48,  72.00)
+    controls.add('curl_atten',         41.72,  72.00)
+    controls.add('mass_atten',         52.96,  72.00)
+    controls.add('input_tilt_atten',    8.00,  12.50)
+    controls.add('output_tilt_atten',  53.00,  12.50)
+    controls.add('fric_cv',             8.00,  81.74)
+    controls.add('stif_cv',            19.24,  81.74)
+    controls.add('span_cv',            30.48,  81.74)
+    controls.add('curl_cv',            41.72,  81.74)
+    controls.add('mass_cv',            52.96,  81.74)
+    controls.add('input_tilt_cv',       8.00,  22.50)
+    controls.add('output_tilt_cv',     53.00,  22.50)
+    controls.add('audio_left_input',   xInLeftAudio,  115.00)
+    controls.add('audio_right_input',  xInRightAudio, 115.00)
+    controls.add('stereo_split_button', (xInLeftAudio + xInRightAudio)/2, 115.00)
+    controls.add('power_gate_input',   30.48, 104.00)
+    controls.add('audio_left_output',  xOutLeftAudio,  115.00)
+    controls.add('audio_right_output', xOutRightAudio, 115.00)
+    controls.add('stereo_merge_button', (xOutLeftAudio + xOutRightAudio)/2, 115.00)
+    controls.add('power_toggle',       30.48,  95.00)
 
 
 def ElastikaConnectorArt(pl:Element, font:Font, tx1:float, tx2:float, ty:float) -> None:
@@ -1689,7 +1688,7 @@ def TubeUnitPos(xGrid:int, yGrid:int, target:Target) -> Tuple[float, float]:
 
 
 def AddKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, radius:float) -> None:
-    controls.append(Component(name, xc, yc))
+    controls.add(name, xc, yc)
     if previewComponentPositions and (target == Target.Lite):
         pl.append(Circle(xc, yc, radius, 'black', 0.1, 'none'))
 
@@ -1699,7 +1698,7 @@ def AddLargeKnob(controls:ControlLayer, pl:Element, target:Target, name:str, xc:
 
 
 def AddSwitch(controls:ControlLayer, pl:Element, target:Target, name:str, xc:float, yc:float, width:float, height:float) -> None:
-    controls.append(Component(name, xc, yc))
+    controls.add(name, xc, yc)
     if previewComponentPositions and (target == Target.Lite):
         pl.append(Rectangle(xc, yc, width, height))
 
@@ -1731,9 +1730,9 @@ def PlaceTubeUnitControls(cdict:ControlDict, pl: Element, target:Target) -> int:
         AddTubeUnitControl(controls, target, pl, 'level_knob', 1, 4)
         AddTubeUnitControl(controls, target, pl, 'audio_output_left',  1, 4, +outJackDx, -outJackDy)
         AddTubeUnitControl(controls, target, pl, 'audio_output_right', 1, 4, +outJackDx, +outJackDy)
-        controls.append(Component('audio_input_left',   9.0, 114.5))
-        controls.append(Component('audio_input_right', 23.0, 114.5))
-        controls.append(Component('vent_seal_label', TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y))
+        controls.add('audio_input_left',   9.0, 114.5)
+        controls.add('audio_input_right', 23.0, 114.5)
+        controls.add('vent_seal_label', TUBE_UNIT_VENT_SEAL_X, TUBE_UNIT_VENT_SEAL_Y)
     elif target == Target.Lite:
         AddTubeUnitControl(controls, target, pl, 'mix_knob', 1, 4)
     else:
@@ -2009,18 +2008,18 @@ def GenerateEnvPitchPanel(cdict:ControlDict, target:Target) -> int:
         pl.append(CenteredGemstone(panel))
         pl.append(ModelNamePath(panel, font, name))
 
-        controls.append(Component('audio_input', xmid, yPolyAudioIn))
+        controls.add('audio_input', xmid, yPolyAudioIn)
         pl.append(CenteredControlTextPath(font, 'AUDIO', xmid, yPolyAudioIn - dyText))
 
-        controls.append(Component('envelope_output', xmid - dxEnvGate, yEnvelopeOut))
+        controls.add('envelope_output', xmid - dxEnvGate, yEnvelopeOut)
         pl.append(CenteredControlTextPath(font, 'ENV', xmid - dxEnvGate, yEnvelopeOut - dyText))
 
-        controls.append(Component('gate_output', xmid + dxEnvGate, yEnvelopeOut))
+        controls.add('gate_output', xmid + dxEnvGate, yEnvelopeOut)
         pl.append(CenteredControlTextPath(font, 'GATE', xmid + dxEnvGate, yEnvelopeOut - dyText))
 
         pl.append(HorizontalLine(xmid - dxEnvGate, xmid + dxEnvGate, yEnvelopeOut, 'env_gate_connector'))
 
-        controls.append(Component('pitch_output', xmid, yPitchOut))
+        controls.add('pitch_output', xmid, yPitchOut)
         pl.append(CenteredControlTextPath(font, 'V/OCT', xmid, yPitchOut - dyText))
 
         AddFlatControlGroup(pl, controls, xmid, yThresh, 'thresh')
@@ -2041,14 +2040,14 @@ def GenerateEnvPitchPanel(cdict:ControlDict, target:Target) -> int:
 
 
 def AddVerticalStereoLabels(controls:ControlLayer, idPrefix:str, xLabel:float, yLeftPort:float) -> None:
-    controls.append(Component(idPrefix + '_label_left',  xLabel, yLeftPort))
-    controls.append(Component(idPrefix + '_label_right', xLabel, yLeftPort + DY_STEREO_PORTS))
+    controls.add(idPrefix + '_label_left',  xLabel, yLeftPort)
+    controls.add(idPrefix + '_label_right', xLabel, yLeftPort + DY_STEREO_PORTS)
 
 
 def AddVerticalStereoPorts(font:Font, pl:Element, controls:ControlLayer, xPorts:float, yLeftPort:float, leftPortSymbol:str, rightPortSymbol:str, caption:str, dyCaption:float = 6.5) -> None:
     yRightPort = yLeftPort + DY_STEREO_PORTS
-    controls.append(Component(leftPortSymbol,  xPorts, yLeftPort))
-    controls.append(Component(rightPortSymbol, xPorts, yRightPort))
+    controls.add(leftPortSymbol,  xPorts, yLeftPort)
+    controls.add(rightPortSymbol, xPorts, yRightPort)
     pl.append(VerticalLine(xPorts, yLeftPort, yRightPort))
     if caption:
         pl.append(CenteredControlTextPath(font, caption, xPorts, yLeftPort - dyCaption))
@@ -2148,8 +2147,8 @@ def AddEnvDetectorGroup(controls:ControlLayer, xmid:float) -> None:
     xKnob = xmid - DX_FLAT_CONTROL_GROUP
     xPort = xmid + DX_FLAT_CONTROL_GROUP
     y = MULTIMAP_ENV_PORTS_Y1
-    controls.append(Component('env_gain_knob', xKnob, y))
-    controls.append(Component('env_output', xPort, y))
+    controls.add('env_gain_knob', xKnob, y)
+    controls.add('env_output', xPort, y)
 
 
 def SaveHexagonCaption(svgFileName:str, font:Font, caption:str, mmWidth:float, mmHeight:float, xCenter:float, yCenter:float, style:str = CONTROL_LABEL_STYLE) -> int:
@@ -2183,16 +2182,16 @@ def AddMuteSoloButtons(pl:Element, controls:ControlLayer, xKnob:float, yKnob:flo
     dy = 4.0
     pl.append(GeneralLine(xKnob, yKnob, xKnob - dx, yKnob + dy))
     pl.append(GeneralLine(xKnob, yKnob, xKnob + dx, yKnob + dy))
-    controls.append(Component('mute_button', xKnob - dx, yKnob + dy))
-    controls.append(Component('solo_button', xKnob + dx, yKnob + dy))
+    controls.add('mute_button', xKnob - dx, yKnob + dy)
+    controls.add('solo_button', xKnob + dx, yKnob + dy)
 
 
 def AddGraphCorners(controls:ControlLayer, xCenter:float) -> None:
     dx = (MULTITAP_ECHOTAP_HP_WIDTH * HP_WIDTH_MM) - 4.0
     dy = 17.0
     yCenter = 30.5
-    controls.append(Component('graph_upper_left',  xCenter - dx/2, yCenter - dy/2))
-    controls.append(Component('graph_lower_right', xCenter + dx/2, yCenter + dy/2))
+    controls.add('graph_upper_left',  xCenter - dx/2, yCenter - dy/2)
+    controls.add('graph_lower_right', xCenter + dx/2, yCenter + dy/2)
 
 
 def GenerateEchoPanel(cdict: ControlDict) -> int:
@@ -2260,16 +2259,16 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
 
         AddVerticalStereoLabels(controls, 'input', xInputLabels, MULTIMAP_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  MULTIMAP_AUDIO_PORTS_Y1, 'audio_left_input',  'audio_right_input', 'IN')
-        controls.append(Component('channel_mode_button', xInputLabels, ySendReturnButton))
+        controls.add('channel_mode_button', xInputLabels, ySendReturnButton)
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
-        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
-        controls.append(Component('init_chain_button', xInputPorts, yInitChainButton))
-        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
+        controls.add('sendreturn_button', xSendReturnButton, ySendReturnButton)
+        controls.add('init_chain_button', xInputPorts, yInitChainButton)
+        controls.add('init_tap_button', xControlCenter, yBottomButtons + 0.5)
 
         AddEnvDetectorGroup(controls, xControlCenter)
-        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        controls.add('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1)
         if (
             SaveRectangleCaption(SvgFileName('echo_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('echo_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
@@ -2277,11 +2276,11 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
             SaveRectangleCaption(SvgFileName('echo_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
 
-        controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        controls.append(Component('clock_input', xClockInput, yClockControls))
-        controls.append(Component('fader_button', xClockButtonsLeft, yFaderButton))
-        controls.append(Component('clock_button', xClockButtonsRight, yClockButton))
-        controls.append(Component('interval_button', xClockButtonsRight, yIntervalButton))
+        controls.add('insert_button', xInsertButton, yInsertButton)
+        controls.add('clock_input', xClockInput, yClockControls)
+        controls.add('fader_button', xClockButtonsLeft, yFaderButton)
+        controls.add('clock_button', xClockButtonsRight, yClockButton)
+        controls.add('interval_button', xClockButtonsRight, yIntervalButton)
 
         yClockLabel = yClockControls - 7.0
         if (
@@ -2290,7 +2289,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
             SaveTextCaption(SvgFileName('echo_voct',      Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_NORMAL_COLOR) or
             SaveTextCaption(SvgFileName('echo_voct_sel',  Target.VcvRack), font, 'RATE',  panel.mmWidth, panel.mmHeight, xGlobalCenter, yClockLabel, style = MULTITAP_HILITE_COLOR)
         ): return 1
-        controls.append(Component('clock_label', xGlobalCenter, yClockLabel))
+        controls.add('clock_label', xGlobalCenter, yClockLabel)
 
         AddGraphCorners(controls, xControlCenter)
 
@@ -2299,7 +2298,7 @@ def GenerateEchoPanel(cdict: ControlDict) -> int:
 
         AddShortToggleGroup(pl, controls, font, '', 'reverse', xControlCenter - DX_FLAT_CONTROL_GROUP, xControlCenter + DX_FLAT_CONTROL_GROUP, yReverseControl, drawHexagon=False)
 
-        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
+        controls.add('label_flp_rev', xControlCenter, yReverseControl)
         if (
             SaveHexagonCaption(SvgFileName('echo_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
             SaveHexagonCaption(SvgFileName('echo_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
@@ -2359,17 +2358,17 @@ def GenerateEchoTapPanel(cdict: ControlDict) -> int:
         AddMultiTapControlGradient(panel, defs, pl, xControlCenter, yLoopFence.value(0), MULTIMAP_AUDIO_PORTS_Y1)
         AddMultiTapSendReturnGradient(panel, defs, pl, xControlCenter, MULTIMAP_AUDIO_PORTS_Y1, MULTIMAP_AUDIO_PORTS_Y1 + DY_STEREO_PORTS + 7.0)
         AddEnvDetectGradient(panel, defs, pl, xControlCenter, 'multitap')
-        controls.append(Component('insert_button', xInsertButton, yInsertButton))
-        controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
+        controls.add('insert_button', xInsertButton, yInsertButton)
+        controls.add('remove_button', xRemoveButton, yBottomButtons)
 
         AddVerticalStereoPorts(font, pl, controls, xSendPorts,   MULTIMAP_AUDIO_PORTS_Y1, 'send_left_output',  'send_right_output', 'SEND')
         AddVerticalStereoPorts(font, pl, controls, xReturnPorts, MULTIMAP_AUDIO_PORTS_Y1, 'return_left_input', 'return_right_input', 'RTRN')
         AddVerticalStereoLabels(controls, 'sendreturn', (xSendPorts + xReturnPorts)/2, MULTIMAP_AUDIO_PORTS_Y1)
-        controls.append(Component('sendreturn_button', xSendReturnButton, ySendReturnButton))
-        controls.append(Component('init_tap_button', xControlCenter, yBottomButtons + 0.5))
+        controls.add('sendreturn_button', xSendReturnButton, ySendReturnButton)
+        controls.add('init_tap_button', xControlCenter, yBottomButtons + 0.5)
 
         AddEnvDetectorGroup(controls, xControlCenter)
-        controls.append(Component('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1))
+        controls.add('label_env_duck', xControlCenter, MULTIMAP_ENV_PORTS_Y1)
         if (
             SaveRectangleCaption(SvgFileName('echotap_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('echotap_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xControlCenter, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
@@ -2386,7 +2385,7 @@ def GenerateEchoTapPanel(cdict: ControlDict) -> int:
         x2 = xControlCenter + DX_FLAT_CONTROL_GROUP
         AddShortToggleGroup(pl, controls, font, '', 'reverse', x1, x2, yReverseControl, drawHexagon=False)
 
-        controls.append(Component('label_flp_rev', xControlCenter, yReverseControl))
+        controls.add('label_flp_rev', xControlCenter, yReverseControl)
         if (
             SaveHexagonCaption(SvgFileName('echotap_rev',     Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_NORMAL_COLOR) or
             SaveHexagonCaption(SvgFileName('echotap_rev_sel', Target.VcvRack), font, 'REV', panel.mmWidth, panel.mmHeight, xControlCenter, yReverseControl, style = MULTITAP_HILITE_COLOR) or
@@ -2577,10 +2576,10 @@ class ChaosBox:
         pl.append(CenteredControlTextPath(font, 'SPEED', self.xmid, self.yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
         AddFlatControlGroup(pl, controls, self.xmid, self.yChaosLevel, 'clevel')
         pl.append(CenteredControlTextPath(font, 'LEVEL', self.xmid, self.yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
-        controls.append(Component('chaos_stereo_button', self.xChaosStereoButton, self.yChaosStereoButton))
-        controls.append(Component('chaos_random_button', self.xChaosRandomizeButton, self.yChaosRandomizeButton))
-        controls.append(Component('chaos_freeze_button', self.xChaosFreezeButton, self.yChaosFreezeButton))
-        controls.append(Component('chaos_display_button', self.xChaosDisplayButton, self.yChaosDisplayButton))
+        controls.add('chaos_stereo_button', self.xChaosStereoButton, self.yChaosStereoButton)
+        controls.add('chaos_random_button', self.xChaosRandomizeButton, self.yChaosRandomizeButton)
+        controls.add('chaos_freeze_button', self.xChaosFreezeButton, self.yChaosFreezeButton)
+        controls.add('chaos_display_button', self.xChaosDisplayButton, self.yChaosDisplayButton)
 
 
 def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
@@ -2595,7 +2594,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
     xmid = panel.mmWidth / 2.0
     xInsertButton = panel.mmWidth - MULTITAP_INSERT_BUTTON_INSET
     yInsertButton = MULTITAP_INSERT_BUTTON_Y1
-    controls.append(Component('insert_button', xInsertButton, yInsertButton))
+    controls.add('insert_button', xInsertButton, yInsertButton)
     xInputPorts = xGlobalCenter - 4.0
     xInputLabels = xInputPorts - 6.5
     xSpectrumButton = xInsertButton
@@ -2610,13 +2609,13 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         pl.append(ModelNamePath(panel, font, 'empath'))
         AddVerticalControlGroup(pl, controls, xInputGainControl, yInputGainControl, 'input_gain')
         pl.append(CenteredControlTextPath(font, 'GAIN', xInputGainControl, MULTIMAP_AUDIO_PORTS_Y1 - 6.5))
-        controls.append(Component('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2))
+        controls.add('channel_mode_button', xInputLabels, EMPATH_AUDIO_PORTS_Y1 + DY_STEREO_PORTS/2)
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, yCascade)
         ChaosBox(xmid, 46.0).generate(pl, controls, font)
-        controls.append(Component('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y))
-        controls.append(Component('toggle_spectrum_button', xSpectrumButton, ySpectrumButton))
+        controls.add('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y)
+        controls.add('toggle_spectrum_button', xSpectrumButton, ySpectrumButton)
     return Save(panel, svgFileName)
 
 
@@ -2664,8 +2663,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     xSendPorts = xmid - EMPATH_DX_SEND_RETURN
     xReturnPorts = xmid + EMPATH_DX_SEND_RETURN
 
-    controls.append(Component('insert_button', xInsertButton, yInsertButton))
-    controls.append(Component('remove_button', xRemoveButton, yBottomButtons))
+    controls.add('insert_button', xInsertButton, yInsertButton)
+    controls.add('remove_button', xRemoveButton, yBottomButtons)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
 
@@ -2675,8 +2674,8 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         pl.append(MakeBorder(target, EMPATH_FILTER_HP_WIDTH))
 
-        controls.append(Component('spectrum_upper_left',  xSpectrumLeft,  EMPATH_SPECTRUM_BOX_Y1))
-        controls.append(Component('spectrum_lower_right', xSpectrumRight, EMPATH_SPECTRUM_BOX_Y2))
+        controls.add('spectrum_upper_left',  xSpectrumLeft,  EMPATH_SPECTRUM_BOX_Y1)
+        controls.add('spectrum_lower_right', xSpectrumRight, EMPATH_SPECTRUM_BOX_Y2)
 
         defs.append(Gradient(y1_controlGradient, y2_controlGradient, SAPPHIRE_AZURE_COLOR, SAPPHIRE_PANEL_COLOR, 'gradient_controls'))
         pl.append(ControlGroupArt(
@@ -2704,7 +2703,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddEnvDetectGradient(panel, defs, pl, xmid, 'empath')
 
-        controls.append(Component('mode_button', xMode, yMode))
+        controls.add('mode_button', xMode, yMode)
 
         AddFlatControlGroup(pl, controls, xmid, yFreq, 'freq')
         pl.append(CenteredControlTextPath(font, 'FREQ', xmid, yFreq - MULTITAP_DY_CONTROL_LOOP_LABEL))
@@ -2725,7 +2724,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
 
         AddEnvDetectorGroup(controls, xmid)
 
-        controls.append(Component('label_env_duck', xmid, MULTIMAP_ENV_PORTS_Y1))
+        controls.add('label_env_duck', xmid, MULTIMAP_ENV_PORTS_Y1)
         if (
             SaveRectangleCaption(SvgFileName('empath_filter_env',     Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_NORMAL_COLOR) or
             SaveRectangleCaption(SvgFileName('empath_filter_env_sel', Target.VcvRack), font, 'ENV', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR) or
@@ -2733,7 +2732,7 @@ def GenerateEmpathFilterPanel(cdict: ControlDict) -> int:
             SaveRectangleCaption(SvgFileName('empath_filter_dck_sel', Target.VcvRack), font, 'DCK', panel.mmWidth, panel.mmHeight, xmid, MULTIMAP_ENV_PORTS_Y1, style = MULTITAP_HILITE_COLOR)
         ): return 1
 
-        controls.append(Component('init_filter_button', xmid, yBottomButtons))
+        controls.add('init_filter_button', xmid, yBottomButtons)
 
     return Save(panel, svgFileName)
 
@@ -2770,8 +2769,8 @@ def GenerateEmpathOutputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'output', xmid + 6.5, EMPATH_AUDIO_PORTS_Y1)
         AddControlGroup(pl, controls, font, 'global_mix', 'MIX', xmid, yMix)
         AddControlGroup(pl, controls, font, 'global_level', 'LEVEL', xmid, yLevel)
-        controls.append(Component('spectrum_vertical_scale', xSpectrumVerScaleButton, ySpectrumVerScaleButton))
-        controls.append(Component('insert_empath_button', xAddEmpathButton, yAddEmpathButton))
+        controls.add('spectrum_vertical_scale', xSpectrumVerScaleButton, ySpectrumVerScaleButton)
+        controls.add('insert_empath_button', xAddEmpathButton, yAddEmpathButton)
         AddOmriLogo(pl, xmid)
     return Save(panel, svgFileName)
 
@@ -2858,7 +2857,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             addLabel(col, row, label)
 
         def addPort(col:float, row:float, symbol:str, label:str, dx:float = 0.0) -> None:
-            controls.append(Component(symbol, xBelleColumn(col) + dx, yBelleRow(row)))
+            controls.add(symbol, xBelleColumn(col) + dx, yBelleRow(row))
             addLabel(col, row, label, dx)
 
         def addPitchModeButton(col:int, row:int, label:str, dx:float) -> None:
@@ -2879,7 +2878,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, BELLE_PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        controls.append(Component('model_select', xBelleColumn(0), yBelleRow(0)))
+        controls.add('model_select', xBelleColumn(0), yBelleRow(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelleColumn(0), yBelleRow(0) - dyTextBigKnob))
         addPort(0, 4.25, 'gate_input', 'GATE')
         addPort(0, 5, 'pitch_input', 'PITCH')
