@@ -60,6 +60,11 @@ namespace Sapphire
             return trigger;
         }
 
+        bool isStable() const
+        {
+            return state == State::Stable;
+        }
+
         double process(double sampleRateHz)
         {
             if (state == State::Stable)

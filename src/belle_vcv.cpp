@@ -180,10 +180,10 @@ namespace Sapphire
         {
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
-            Smoother chaosAntiClickSmoother{0.025};
+            Smoother chaosSeedSmoother{0.025};
+            Smoother modelChangeSmoother{0.015};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
-            float antiClick{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -280,7 +280,8 @@ namespace Sapphire
             {
                 fountain.reset();
                 speedChaos = 0;
-                chaosAntiClickSmoother.initialize();
+                chaosSeedSmoother.initialize();
+                modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
             }
@@ -310,12 +311,24 @@ namespace Sapphire
                     fountain.reset(seed);
             }
 
-            void updateSelectedEngine()
+            void updateSelectedEngine(float sampleRateHz)
             {
-                const float value = params.at(MODEL_SELECT_PARAM).getValue();
-                currentEngineIndex = static_cast<unsigned>(round(value));
-                if (currentEngineIndex >= engineCount())
-                    currentEngineIndex = 0;
+                const unsigned targetEngineIndex = static_cast<unsigned>(params.at(MODEL_SELECT_PARAM).getValue());
+                const bool changing = (targetEngineIndex != currentEngineIndex);
+
+                if (modelChangeSmoother.isStable() && changing)
+                    modelChangeSmoother.begin();
+
+                modelChangeSmoother.process(sampleRateHz);
+                if (modelChangeSmoother.isDelayedActionReady() && changing)
+                {
+                    // Silence the current engine before leaving.
+                    // Otherwise it leaves residual energy in the system when we come back.
+                    getCurrentEngine().initialize();
+
+                    // Switch to the new engine.
+                    currentEngineIndex = targetEngineIndex;
+                }
             }
 
             void updateChaos(float sampleRateHz, batch_t& batch)
@@ -368,8 +381,8 @@ namespace Sapphire
                 reportChaosMono(LEVEL_ATTEN,        batch(12));
                 reportChaosMono(GLIDE_ATTEN,        batch(13));
 
-                antiClick = chaosAntiClickSmoother.process(sampleRateHz);
-                if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
+                chaosSeedSmoother.process(sampleRateHz);
+                if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
                 {
                     fountain.reset(seedToRestore);
                     seedToRestore = 0;
@@ -385,7 +398,7 @@ namespace Sapphire
 
             void process(const ProcessArgs& args) override
             {
-                updateSelectedEngine();
+                updateSelectedEngine(args.sampleRate);
 
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
@@ -454,6 +467,10 @@ namespace Sapphire
                     }
 
                     PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
+
+                    const float antiClick =
+                        chaosSeedSmoother.getGain() *
+                        modelChangeSmoother.getGain();
 
                     env.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
@@ -536,7 +553,7 @@ namespace Sapphire
             {
                 seedToRestore = seed;
                 requestSeedSplash = true;
-                chaosAntiClickSmoother.begin();
+                chaosSeedSmoother.begin();
             }
 
             void randomizeChaos()
