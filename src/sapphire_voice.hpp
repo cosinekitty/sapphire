@@ -54,7 +54,7 @@ namespace Sapphire
     {
         Follow,
         SampleHold,
-        Gliss,
+        Glide,
     };
 
 
@@ -72,7 +72,7 @@ namespace Sapphire
             counter = 0;
         }
 
-        void update(const GateTriggerReceiver& receiver, float voct, float glissOctavesPerSample)
+        void update(const GateTriggerReceiver& receiver, float voct, float glideOctavesPerSample)
         {
             switch (mode)
             {
@@ -104,13 +104,13 @@ namespace Sapphire
                 }
                 break;
 
-                case PitchMode::Gliss:
+                case PitchMode::Glide:
                 {
                     latched = false;
                     if (pitch < voct)
-                        pitch = std::min<float>(voct, pitch + glissOctavesPerSample);
+                        pitch = std::min<float>(voct, pitch + glideOctavesPerSample);
                     else if (pitch > voct)
-                        pitch = std::max<float>(voct, pitch - glissOctavesPerSample);
+                        pitch = std::max<float>(voct, pitch - glideOctavesPerSample);
                 }
                 break;
             }
@@ -144,12 +144,12 @@ namespace Sapphire
             trackerOct.initialize();
         }
 
-        void updateGatePitch(float gateVoltage, float pitch, float freq, float oct, float glissOctavesPerSample)
+        void updateGatePitch(float gateVoltage, float pitch, float freq, float oct, float glideOctavesPerSample)
         {
             gateTriggerReceiver.update(gateVoltage);
-            trackerPitch.update(gateTriggerReceiver, pitch, glissOctavesPerSample);
-            trackerFreq.update(gateTriggerReceiver, freq, glissOctavesPerSample);
-            trackerOct.update(gateTriggerReceiver, oct, glissOctavesPerSample);
+            trackerPitch.update(gateTriggerReceiver, pitch, glideOctavesPerSample);
+            trackerFreq.update(gateTriggerReceiver, freq, glideOctavesPerSample);
+            trackerOct.update(gateTriggerReceiver, oct, glideOctavesPerSample);
         }
 
         float getFrequency() const

@@ -2896,7 +2896,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
 
         addControlGroup(1, 0, 'freq',    'FREQ' )
         addControlGroup(1, 1, 'oct',     'OCT'  )
-        addControlGroup(1, 2, 'gliss',   'GLISS')
+        addControlGroup(1, 2, 'glide',   'GLIDE')
         addControlGroup(1, 3, 'pan',     'PAN'  )
         addControlGroup(2, 0, 'attack',  'ATT'  )
         addControlGroup(2, 1, 'decay',   'DEC'  )

@@ -49,8 +49,8 @@ namespace Sapphire
             PAN_PARAM,
             PAN_ATTEN,
             OUTPUT_MODE_BUTTON_PARAM,
-            GLISS_PARAM,
-            GLISS_ATTEN,
+            GLIDE_PARAM,
+            GLIDE_ATTEN,
             LEVEL_PARAM,
             LEVEL_ATTEN,
             FREQ_MODE_BUTTON_PARAM,
@@ -73,7 +73,7 @@ namespace Sapphire
             CHAOS_SPEED_CV_INPUT,
             CHAOS_LEVEL_CV_INPUT,
             PAN_CV_INPUT,
-            GLISS_CV_INPUT,
+            GLIDE_CV_INPUT,
             LEVEL_CV_INPUT,
 
             INPUTS_LEN
@@ -216,7 +216,7 @@ namespace Sapphire
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
 
-                configControlGroup("Glissando", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT, -2, +1, -1, " sec/oct", 10);
+                configControlGroup("Pitch glide (portamento)", GLIDE_PARAM, GLIDE_ATTEN, GLIDE_CV_INPUT, -2, +1, -1, " sec/oct", 10);
                 configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
                 configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
@@ -232,7 +232,7 @@ namespace Sapphire
 
                 attenuverterChaosOptIn(FREQ_ATTEN,      1);
                 attenuverterChaosOptIn(OCT_ATTEN,       1);
-                attenuverterChaosOptIn(GLISS_ATTEN,     mildSensitivityLevel);
+                attenuverterChaosOptIn(GLIDE_ATTEN,     mildSensitivityLevel);
                 attenuverterChaosOptIn(PAN_ATTEN,       mildSensitivityLevel);
                 attenuverterChaosOptIn(ATTACK_ATTEN,    mildSensitivityLevel);
                 attenuverterChaosOptIn(DECAY_ATTEN,     mildSensitivityLevel);
@@ -250,7 +250,7 @@ namespace Sapphire
 
             void configPitchModeButton(int buttonParamId, const std::string& name)
             {
-                configSwitch(buttonParamId, 0, 2, 0, name, {"FOLLOW", "SAMPLE & HOLD", "GLISSANDO"});
+                configSwitch(buttonParamId, 0, 2, 0, name, {"FOLLOW", "SAMPLE & HOLD", "GLIDE"});
             }
 
             void configChaosBox()
@@ -363,7 +363,7 @@ namespace Sapphire
                 reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
                 reportChaosMono(PAN_ATTEN,          batch(11));
                 reportChaosMono(LEVEL_ATTEN,        batch(12));
-                reportChaosMono(GLISS_ATTEN,        batch(13));
+                reportChaosMono(GLIDE_ATTEN,        batch(13));
 
                 antiClick = chaosAntiClickSmoother.process(sampleRateHz);
                 if (chaosAntiClickSmoother.isDelayedActionReady() && seedToRestore)
@@ -403,7 +403,7 @@ namespace Sapphire
                     float pitchVoltage = 0;
                     float freqVoltage = 0;
                     float octaveVoltage = 0;
-                    float glissVoltage = 0;
+                    float glideVoltage = 0;
                     float panVoltage = 0;
                     float attackVoltage = 0;
                     float decayVoltage = 0;
@@ -430,16 +430,16 @@ namespace Sapphire
                             nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
                         nextVoltageOrChaosSignal(panVoltage, PAN_CV_INPUT, c,         batch(11));
                         nextVoltageOrChaosSignal(levelVoltage, LEVEL_CV_INPUT, c,     batch(12));
-                        nextVoltageOrChaosSignal(glissVoltage, GLISS_CV_INPUT, c,     batch(13));
+                        nextVoltageOrChaosSignal(glideVoltage, GLIDE_CV_INPUT, c,     batch(13));
 
                         static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                         gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));
                         float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
                         float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
                         context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
-                        const float glissKnob = cvGetVoltPerOctave(GLISS_PARAM, GLISS_ATTEN, glissVoltage, -2, +1);
-                        const float glissSamples = TenToPower<float>(glissKnob) * args.sampleRate;
-                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct, 1/glissSamples);
+                        const float glideKnob = cvGetVoltPerOctave(GLIDE_PARAM, GLIDE_ATTEN, glideVoltage, -2, +1);
+                        const float glideSamples = TenToPower<float>(glideKnob) * args.sampleRate;
+                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
@@ -597,7 +597,7 @@ namespace Sapphire
                 addPitchModeButton(OCT_MODE_BUTTON_PARAM, "oct_mode_button");
                 addSnapVoctFlatControlGroup("freq", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT);
                 addSnapVoctFlatControlGroup("oct", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT);
-                addSapphireFlatControlGroup("gliss", GLISS_PARAM, GLISS_ATTEN, GLISS_CV_INPUT);
+                addSapphireFlatControlGroup("glide", GLIDE_PARAM, GLIDE_ATTEN, GLIDE_CV_INPUT);
                 addSapphireFlatControlGroup("pan", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT);
                 addSapphireFlatControlGroup("attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
                 addSapphireFlatControlGroup("decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
