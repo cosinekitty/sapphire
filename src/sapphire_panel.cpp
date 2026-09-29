@@ -29,6 +29,7 @@ namespace Sapphire
             {"decay_cv",               {  77.360,   38.800}},
             {"decay_knob",             {  95.360,   38.800}},
             {"envelope_lower_right",   {  98.360,  113.200}},
+            {"envelope_output",        { 147.320,   20.000}},
             {"envelope_upper_left",    {  74.360,   95.200}},
             {"freq_atten",             {  55.880,   20.000}},
             {"freq_cv",                {  46.880,   20.000}},

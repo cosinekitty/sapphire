@@ -83,6 +83,7 @@ namespace Sapphire
         {
             AUDIO_LEFT_OUTPUT,
             AUDIO_RIGHT_OUTPUT,
+            ENVELOPE_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -205,6 +206,7 @@ namespace Sapphire
                 configInput(GATE_INPUT, "Gate");
                 configInput(PITCH_INPUT, "Pitch (V/OCT)");
 
+                configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(OUTPUT_MODE_BUTTON_PARAM);
@@ -386,6 +388,8 @@ namespace Sapphire
 
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
+                auto& env   = outputs.at(ENVELOPE_OUTPUT);
+
                 if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
@@ -448,28 +452,32 @@ namespace Sapphire
                             context.mod[m] = cvGetVoltPerOctave(MOD_PARAM_0+m, MOD_ATTEN_0+m, modVoltage[m], -1, +1);
                     }
 
-                    PolyStereoFrame frame = polyEngine.process(args.sampleRate, nPolyChannels);
+                    PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
+
+                    env.setChannels(nPolyChannels);
+                    for (unsigned c = 0; c < nPolyChannels; ++c)
+                        env.setVoltage(10 * result.env.poly[c] * antiClick, c);
 
                     if (isOutputModePolyphonic())
                     {
-                        left .setChannels(nPolyChannels);
+                        left.setChannels(nPolyChannels);
                         right.setChannels(nPolyChannels);
                         for (unsigned c = 0; c < nPolyChannels; ++c)
                         {
-                            left .setVoltage(frame.poly[c].sample[0] * antiClick * gain[c], c);
-                            right.setVoltage(frame.poly[c].sample[1] * antiClick * gain[c], c);
+                            left .setVoltage(result.stereo.poly[c].sample[0] * antiClick * gain[c], c);
+                            right.setVoltage(result.stereo.poly[c].sample[1] * antiClick * gain[c], c);
                         }
                     }
                     else
                     {
-                        left .setChannels(1);
+                        left.setChannels(1);
                         right.setChannels(1);
                         float sumL = 0;
                         float sumR = 0;
                         for (unsigned c = 0; c < nPolyChannels; ++c)
                         {
-                            sumL += frame.poly[c].sample[0] * gain[c];
-                            sumR += frame.poly[c].sample[1] * gain[c];
+                            sumL += result.stereo.poly[c].sample[0] * gain[c];
+                            sumR += result.stereo.poly[c].sample[1] * gain[c];
                         }
                         left .setVoltage(sumL * antiClick, 0);
                         right.setVoltage(sumR * antiClick, 0);
@@ -477,10 +485,14 @@ namespace Sapphire
                 }
                 else
                 {
-                    left .setChannels(1);
+                    left.setChannels(1);
+                    left.setVoltage(0, 0);
+
                     right.setChannels(1);
-                    left .setVoltage(0, 0);
                     right.setVoltage(0, 0);
+
+                    env.setChannels(1);
+                    env.setVoltage(0, 0);
                 }
             }
 
@@ -591,6 +603,7 @@ namespace Sapphire
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
+                addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addOutputModeButton();
                 addPitchModeButton(PITCH_MODE_BUTTON_PARAM, "pitch_mode_button");
                 addPitchModeButton(FREQ_MODE_BUTTON_PARAM, "freq_mode_button");

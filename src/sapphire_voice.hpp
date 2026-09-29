@@ -267,6 +267,20 @@ namespace Sapphire
     };
 
 
+    struct EnvelopeFrame
+    {
+        unsigned nchannels{};
+        std::array<float, NPOLY> poly{};
+    };
+
+
+    struct PolyResult
+    {
+        PolyStereoFrame stereo;
+        EnvelopeFrame env;
+    };
+
+
     struct PolyStereoVoice
     {
         using string = std::string;
@@ -292,14 +306,14 @@ namespace Sapphire
                 context.initialize();
         }
 
-        virtual PolyStereoFrame process(float sampleRateHz, unsigned nchannels) = 0;
+        virtual PolyResult process(float sampleRateHz, unsigned nchannels) = 0;
     };
 
 
     template <typename mono_engine_t>
     struct AdsrVoiceEngine : PolyStereoVoice
     {
-        struct stereo_pair_t
+        struct stereo_source_t
         {
             mono_engine_t left;
             mono_engine_t right;
@@ -367,7 +381,7 @@ namespace Sapphire
             }
         };
 
-        std::array<stereo_pair_t, NPOLY> stereoPairArray;
+        std::array<stereo_source_t, NPOLY> stereoSourceArray;
 
         explicit AdsrVoiceEngine(const char *_name, const char *m0, const char *m1, const char *m2, const char *m3)
             : PolyStereoVoice(_name, m0, m1, m2, m3)
@@ -376,17 +390,20 @@ namespace Sapphire
         void initialize() override
         {
             PolyStereoVoice::initialize();
-            for (stereo_pair_t& pair : stereoPairArray)
-                pair.initialize();
+            for (stereo_source_t& source : stereoSourceArray)
+                source.initialize();
         }
 
-        PolyStereoFrame process(float sampleRateHz, unsigned nchannels) override
+        PolyResult process(float sampleRateHz, unsigned nchannels) override
         {
-            PolyStereoFrame poly;
-            poly.nchannels = std::clamp<unsigned>(nchannels, 0, NPOLY);
-            for (unsigned c = 0; c < poly.nchannels; ++c)
-                poly.poly[c] = stereoPairArray[c].process(sampleRateHz, contextArray[c]);
-            return poly;
+            PolyResult result;
+            result.stereo.nchannels = result.env.nchannels = std::min<unsigned>(nchannels, NPOLY);
+            for (unsigned c = 0; c < result.stereo.nchannels; ++c)
+            {
+                result.stereo.poly[c] = stereoSourceArray[c].process(sampleRateHz, contextArray[c]);
+                result.env.poly[c] = stereoSourceArray[c].envelope.fraction;
+            }
+            return result;
         }
     };
 }

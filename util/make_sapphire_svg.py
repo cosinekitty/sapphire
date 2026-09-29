@@ -2795,20 +2795,20 @@ BELLE_NCOLS = 5
 BELLE_PANEL_WIDTH = (BELLE_HP_COLUMN_WIDTH * BELLE_NCOLS) + BELLE_HP_LEFT_MARGIN + BELLE_HP_INSIDE_MARGIN
 BELLE_CONTROL_LABEL_DY = 5.8
 
-def xBelleColumn(n:float) -> float:
+def xBelle(n:float) -> float:
     hp = (n + 0.5)*BELLE_HP_COLUMN_WIDTH + BELLE_HP_LEFT_MARGIN
     if n >= 1:
         hp += BELLE_HP_INSIDE_MARGIN
     return hp * 5.08
 
 
-def yBelleRow(itemIndex:float) -> float:
+def yBelle(itemIndex:float) -> float:
     yFence = FencePost(20.0, 114.0, 6)
     return yFence.value(itemIndex)
 
 
 def yBelleControlLabel(itemIndex:float) -> float:
-    return yBelleRow(itemIndex) - BELLE_CONTROL_LABEL_DY
+    return yBelle(itemIndex) - BELLE_CONTROL_LABEL_DY
 
 
 def GenerateBellePanel(cdict: ControlDict) -> int:
@@ -2827,42 +2827,42 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
     dyGraphicsWindow = 18.0
 
     # Rectangle coordinates for displaying the name of the current model/engine.
-    x1_mod = xBelleColumn(0) - dxModelWindow
-    x2_mod = xBelleColumn(0) + dxModelWindow
-    y1_mod = yBelleRow(0) + 9.0
+    x1_mod = xBelle(0) - dxModelWindow
+    x2_mod = xBelle(0) + dxModelWindow
+    y1_mod = yBelle(0) + 9.0
     y2_mod = y1_mod + 8.0
 
     # Rectangle coordinates for envelope display graph.
-    x1_env = xBelleColumn(2) - dxGraphicsWindow
-    x2_env = xBelleColumn(2) + dxGraphicsWindow
-    y1_env = yBelleRow(4)
+    x1_env = xBelle(2) - dxGraphicsWindow
+    x2_env = xBelle(2) + dxGraphicsWindow
+    y1_env = yBelle(4)
     y2_env = y1_env + dyGraphicsWindow
 
     # Rectangle coordinates for waveform/oscilloscope display graph.
-    x1_wav = xBelleColumn(3) - dxGraphicsWindow
-    x2_wav = xBelleColumn(3) + dxGraphicsWindow
+    x1_wav = xBelle(3) - dxGraphicsWindow
+    x2_wav = xBelle(3) + dxGraphicsWindow
     y1_wav = y1_env
     y2_wav = y2_env
 
-    xmidChaosBox = xBelleColumn(0)
+    xmidChaosBox = xBelle(0)
     dyPortModeButton = 6.5
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         def addLabel(col:float, row:float, text:str, dx:float = 0.0) -> None:
             if text:
-                pl.append(CenteredControlTextPath(font, text, xBelleColumn(col) + dx, yBelleRow(row) - BELLE_CONTROL_LABEL_DY))
+                pl.append(CenteredControlTextPath(font, text, xBelle(col) + dx, yBelle(row) - BELLE_CONTROL_LABEL_DY))
 
         def addControlGroup(col:int, row:int, prefix:str, label:str) -> None:
-            AddFlatControlGroup(pl, controls, xBelleColumn(col), yBelleRow(row), prefix)
+            AddFlatControlGroup(pl, controls, xBelle(col), yBelle(row), prefix)
             addLabel(col, row, label)
 
         def addPort(col:float, row:float, symbol:str, label:str, dx:float = 0.0) -> None:
-            controls.add(symbol, xBelleColumn(col) + dx, yBelleRow(row))
+            controls.add(symbol, xBelle(col) + dx, yBelle(row))
             addLabel(col, row, label, dx)
 
         def addPitchModeButton(col:int, row:int, label:str, dx:float) -> None:
-            x = xBelleColumn(col) - dx
-            y1 = yBelleRow(row)
+            x = xBelle(col) - dx
+            y1 = yBelle(row)
             y2 = y1 + dyPortModeButton
             pl.append(VerticalLine(x, y1, y2))
             controls.add(label, x, y2)
@@ -2878,15 +2878,16 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, BELLE_PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
-        controls.add('model_select', xBelleColumn(0), yBelleRow(0))
-        pl.append(CenteredControlTextPath(font, 'MODEL', xBelleColumn(0), yBelleRow(0) - dyTextBigKnob))
+        controls.add('model_select', xBelle(0), yBelle(0))
+        pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))
         addPort(0, 4.25, 'gate_input', 'GATE')
         addPort(0, 5, 'pitch_input', 'PITCH')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
+        addPort(4, 0, 'envelope_output', 'ENV')
 
-        xPortCenter = xBelleColumn(4)
-        yPortCenter = yBelleRow(5)
+        xPortCenter = xBelle(4)
+        yPortCenter = yBelle(5)
         pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
         controls.add('output_mode_button', xPortCenter, yPortCenter)
 
@@ -2905,7 +2906,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         for m in range(4):
             addControlGroup(3, m, 'mod' + str(m), '')
 
-        AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelleColumn(4), yBelleRow(3))
+
+        AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
         ChaosBox(xmidChaosBox, 48.0).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
@@ -2917,7 +2919,7 @@ def GenerateBelleOverlay(engineName:str, m0:str, m1:str, m2:str, m3:str) -> int:
     panel.append(pl)
 
     with Font(SAPPHIRE_FONT_FILENAME) as font:
-        xCenter = xBelleColumn(3)
+        xCenter = xBelle(3)
         pl.append(CenteredControlTextPath(font, m0, xCenter, yBelleControlLabel(0)))
         pl.append(CenteredControlTextPath(font, m1, xCenter, yBelleControlLabel(1)))
         pl.append(CenteredControlTextPath(font, m2, xCenter, yBelleControlLabel(2)))
