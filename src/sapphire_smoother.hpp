@@ -45,11 +45,6 @@ namespace Sapphire
             return gain;
         }
 
-        bool isStable() const
-        {
-            return state == State::Stable;
-        }
-
         void begin()
         {
             state = State::Fading;
@@ -63,6 +58,11 @@ namespace Sapphire
         bool isDelayedActionReady() const
         {
             return trigger;
+        }
+
+        bool isStable() const
+        {
+            return state == State::Stable;
         }
 
         double process(double sampleRateHz)

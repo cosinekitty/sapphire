@@ -181,7 +181,7 @@ namespace Sapphire
             fountain_t fountain{rack::random::u64()};
             float speedChaos{};
             Smoother chaosSeedSmoother{0.025};
-            Smoother modelChangeSmoother{0.025};
+            Smoother modelChangeSmoother{0.015};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
 
@@ -314,12 +314,13 @@ namespace Sapphire
             void updateSelectedEngine(float sampleRateHz)
             {
                 const unsigned targetEngineIndex = static_cast<unsigned>(params.at(MODEL_SELECT_PARAM).getValue());
+                const bool changing = (targetEngineIndex != currentEngineIndex);
 
-                if (modelChangeSmoother.isStable() && (targetEngineIndex != currentEngineIndex))
+                if (modelChangeSmoother.isStable() && changing)
                     modelChangeSmoother.begin();
 
                 modelChangeSmoother.process(sampleRateHz);
-                if (modelChangeSmoother.isDelayedActionReady() && (targetEngineIndex != currentEngineIndex))
+                if (modelChangeSmoother.isDelayedActionReady() && changing)
                 {
                     // Silence the current engine before leaving.
                     // Otherwise it leaves residual energy in the system when we come back.
