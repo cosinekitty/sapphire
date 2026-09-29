@@ -2906,7 +2906,6 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         for m in range(4):
             addControlGroup(3, m, 'mod' + str(m), '')
 
-
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
         ChaosBox(xmidChaosBox, 48.0).generate(pl, controls, font)
     return Save(panel, svgFileName)

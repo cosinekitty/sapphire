@@ -244,6 +244,7 @@ namespace Sapphire
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 1, mildSensitivityLevel);
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 2, mildSensitivityLevel);
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 3, mildSensitivityLevel);
+                attenuverterChaosOptIn(LEVEL_ATTEN,     1);
 
                 configChaosBox();
 
@@ -337,7 +338,7 @@ namespace Sapphire
 
                 const bool isChaosFrozen = isChaosLevelZero || isChaosFreezeButtonPressed;
 
-                const float levelKnob = Cube(getControlValueVoltPerOctave(
+                const float chaosLevelKnob = Cube(getControlValueVoltPerOctave(
                     CHAOS_LEVEL_PARAM,
                     CHAOS_LEVEL_ATTEN,
                     CHAOS_LEVEL_CV_INPUT,
@@ -351,7 +352,7 @@ namespace Sapphire
                     fountain.update(dt);
                 }
 
-                batch = fountain.getBatch(levelKnob);
+                batch = fountain.getBatch(chaosLevelKnob);
                 reportChaosMono(FREQ_ATTEN,         batch( 0));
                 reportChaosMono(OCT_ATTEN,          batch( 1));
                 reportChaosMono(ATTACK_ATTEN,       batch( 2));
