@@ -17,9 +17,10 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 14;
-        using fountain_t = ChaosFountain<nChaoticSignals>;
-        using batch_t = ChaosBatch<nChaoticSignals>;
+        constexpr unsigned nChaoticSignals = 14;    // how many attenuverters need separate signals
+        constexpr unsigned nBatchSize = std::max<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
+        using fountain_t = ChaosFountain<nBatchSize>;
+        using batch_t = ChaosBatch<nBatchSize>;
 
         enum ParamId
         {
@@ -271,6 +272,11 @@ namespace Sapphire
                 return isButtonEnabled(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
             }
 
+            unsigned chaosVoltagesCount() override
+            {
+                return 16;
+            }
+
             unsigned engineCount() const
             {
                 return polyEngineList.size();
@@ -366,20 +372,23 @@ namespace Sapphire
                 }
 
                 batch = fountain.getBatch(chaosLevelKnob);
-                reportChaosMono(FREQ_ATTEN,         batch( 0));
-                reportChaosMono(OCT_ATTEN,          batch( 1));
-                reportChaosMono(ATTACK_ATTEN,       batch( 2));
-                reportChaosMono(DECAY_ATTEN,        batch( 3));
-                reportChaosMono(SUSTAIN_ATTEN,      batch( 4));
-                reportChaosMono(RELEASE_ATTEN,      batch( 5));
-                reportChaosMono(MOD_ATTEN_0+0,      batch( 6));
-                reportChaosMono(MOD_ATTEN_0+1,      batch( 7));
-                reportChaosMono(MOD_ATTEN_0+2,      batch( 8));
-                reportChaosMono(MOD_ATTEN_0+3,      batch( 9));
-                reportChaosMono(CHAOS_SPEED_ATTEN,  batch(10));
-                reportChaosMono(PAN_ATTEN,          batch(11));
-                reportChaosMono(LEVEL_ATTEN,        batch(12));
-                reportChaosMono(GLIDE_ATTEN,        batch(13));
+
+                const float spread = 1;     // FIXFIXFIX: add knob for this
+
+                reportChaosPoly(FREQ_ATTEN,         spread, batch,  0);
+                reportChaosPoly(OCT_ATTEN,          spread, batch,  1);
+                reportChaosPoly(ATTACK_ATTEN,       spread, batch,  2);
+                reportChaosPoly(DECAY_ATTEN,        spread, batch,  3);
+                reportChaosPoly(SUSTAIN_ATTEN,      spread, batch,  4);
+                reportChaosPoly(RELEASE_ATTEN,      spread, batch,  5);
+                reportChaosPoly(MOD_ATTEN_0+0,      spread, batch,  6);
+                reportChaosPoly(MOD_ATTEN_0+1,      spread, batch,  7);
+                reportChaosPoly(MOD_ATTEN_0+2,      spread, batch,  8);
+                reportChaosPoly(MOD_ATTEN_0+3,      spread, batch,  9);
+                reportChaosPoly(CHAOS_SPEED_ATTEN,  spread, batch, 10);
+                reportChaosPoly(PAN_ATTEN,          spread, batch, 11);
+                reportChaosPoly(LEVEL_ATTEN,        spread, batch, 12);
+                reportChaosPoly(GLIDE_ATTEN,        spread, batch, 13);
 
                 chaosSeedSmoother.process(sampleRateHz);
                 if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
@@ -387,6 +396,13 @@ namespace Sapphire
                     fountain.reset(seedToRestore);
                     seedToRestore = 0;
                 }
+            }
+
+            void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
+            {
+                SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+                for (unsigned c = 0; c < CHAOS_MAX_CHANNELS; ++c)
+                    context.chaosVoltage[c] = batch((c + offset) % nBatchSize);
             }
 
             PitchMode getPitchMode(int buttonParamId)

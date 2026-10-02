@@ -979,8 +979,8 @@ namespace Sapphire
         {
             if (context && context->supportsChaos && smod->shouldDisplayChaosVoltages())
             {
-                info.voltage[0] = context->chaosVoltage[0];
-                info.voltage[1] = context->chaosVoltage[1];
+                info.voltage = context->chaosVoltage;           // copy the whole std::array
+                info.nchannels = smod->chaosVoltagesCount();    // allow the module to limit how many array elements are used
 
                 if (context->inputPortId < smod->inputs.size())
                     if (!smod->inputs.at(context->inputPortId).isConnected())     // chaos works only when the CV input port has no cables
@@ -1029,24 +1029,16 @@ namespace Sapphire
                 nvgStroke(args.vg);
             }
 
-            const ChaosModulationInfo chaos = getChaosModulationInfo();
-            if (chaos.isActive)
+            if (const ChaosModulationInfo chaos = getChaosModulationInfo(); chaos.isActive)
             {
-                constexpr float radiusPx = 9.5;
+                static constexpr float radiusPx = 9.5;
 
                 nvgStrokeWidth(args.vg, 1.5);
                 nvgLineCap(args.vg, NVG_BUTT);
 
-                if (chaos.voltage[0] == chaos.voltage[1])
+                if (chaos.nchannels == 2)
                 {
-                    // Draw a luminous ring around the knob using a single red/green color.
-                    nvgBeginPath(args.vg);
-                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[0]));
-                    nvgCircle(args.vg, box.size.x/2, box.size.y/2, radiusPx);
-                    nvgStroke(args.vg);
-                }
-                else
-                {
+                    // Empath only understands mono/stereo chaos toggle.
                     // Split the luminous ring into a left semicircle and a right semicircle.
                     // Now each half of the ring has its own color.
                     // We use visible left/right to represent stereo left/right.
@@ -1062,6 +1054,11 @@ namespace Sapphire
                     nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[1]));
                     nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, M_PI/2, 3*M_PI/2, NVG_CCW);
                     nvgStroke(args.vg);
+                }
+                else
+                {
+                    // Sapphire Belle supports up to 16 channels of chaos per attenuverter.
+                    // FIXFIXFIX !!! PUT GENERIC ARC FORMULAS HERE !!!
                 }
             }
         }

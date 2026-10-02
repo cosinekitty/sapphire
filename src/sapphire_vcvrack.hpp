@@ -1889,6 +1889,11 @@ namespace Sapphire
         {
             return false;
         }
+
+        virtual unsigned chaosVoltagesCount()
+        {
+            return 2;   // default for backward compatbility with Empath (mono/stereo only)
+        }
     };
 
 

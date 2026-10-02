@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include <array>
 #include <type_traits>
 #include "plugin.hpp"
 #include "sapphire_panel.hpp"
@@ -141,11 +142,11 @@ namespace Sapphire
     constexpr float DX_SATELLITE_B = +4.75;
     constexpr float DY_SATELLITE_B = -3.0;
 
-
     struct ChaosModulationInfo
     {
-        bool isActive = false;
-        float voltage[2]{};
+        bool isActive{};
+        unsigned nchannels{};
+        chaos_signal_array_t voltage{};
     };
 
 
