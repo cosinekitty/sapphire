@@ -147,6 +147,11 @@ namespace Sapphire
         bool isActive{};
         unsigned nchannels{};
         chaos_signal_array_t voltage{};
+
+        bool shouldRender() const
+        {
+            return isActive && (nchannels > 0) && (nchannels <= CHAOS_MAX_CHANNELS);
+        }
     };
 
 

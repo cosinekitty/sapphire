@@ -1029,36 +1029,23 @@ namespace Sapphire
                 nvgStroke(args.vg);
             }
 
-            if (const ChaosModulationInfo chaos = getChaosModulationInfo(); chaos.isActive)
+            if (const ChaosModulationInfo chaos = getChaosModulationInfo(); chaos.shouldRender())
             {
                 static constexpr float radiusPx = 9.5;
 
                 nvgStrokeWidth(args.vg, 1.5);
                 nvgLineCap(args.vg, NVG_BUTT);
 
-                if (chaos.nchannels == 2)
+                float angle1 = M_PI / 2;
+                const float deltaAngle = (2 * M_PI) / chaos.nchannels;
+                for (unsigned c = 0; c < chaos.nchannels; ++c)
                 {
-                    // Empath only understands mono/stereo chaos toggle.
-                    // Split the luminous ring into a left semicircle and a right semicircle.
-                    // Now each half of the ring has its own color.
-                    // We use visible left/right to represent stereo left/right.
-
-                    // Left half-ring for the stereo left channel.
+                    float angle2 = angle1 + deltaAngle;
                     nvgBeginPath(args.vg);
-                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[0]));
-                    nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, M_PI/2, 3*M_PI/2, NVG_CW);
+                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[c]));
+                    nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, angle1, angle2, NVG_CW);
                     nvgStroke(args.vg);
-
-                    // Right half-ring for the stereo right channel.
-                    nvgBeginPath(args.vg);
-                    nvgStrokeColor(args.vg, VoltageColor(chaos.voltage[1]));
-                    nvgArc(args.vg, box.size.x/2, box.size.y/2, radiusPx, M_PI/2, 3*M_PI/2, NVG_CCW);
-                    nvgStroke(args.vg);
-                }
-                else
-                {
-                    // Sapphire Belle supports up to 16 channels of chaos per attenuverter.
-                    // FIXFIXFIX !!! PUT GENERIC ARC FORMULAS HERE !!!
+                    angle1 = angle2;
                 }
             }
         }
