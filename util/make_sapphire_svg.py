@@ -2515,13 +2515,18 @@ EMPATH_SPECTRUM_BOX_YC = (EMPATH_SPECTRUM_BOX_Y1 + EMPATH_SPECTRUM_BOX_Y2) / 2.0
 
 
 class ChaosBox:
-    def __init__(self, xmid:float, yTop:float) -> None:
+    def __init__(self, xmid:float, yTop:float, polyphonic:bool) -> None:
         self.xmid = xmid
+        self.isPolyphonic = polyphonic
         self.yChaosBoxTop = yTop
         self.yChaosSpeed = self.yChaosBoxTop + 12.0
         self.dyChaos = 14.0
         self.yChaosLevel = self.yChaosSpeed + self.dyChaos
-        self.yChaosBoxBottom = self.yChaosLevel + 9.0
+        if polyphonic:
+            self.yChaosSpread = self.yChaosLevel + self.dyChaos
+            self.yChaosBoxBottom = self.yChaosSpread + 9.0
+        else:
+            self.yChaosBoxBottom = self.yChaosLevel + 9.0
         self.dxChaosBox = 16.5
         self.xChaosBoxLeft  = xmid - self.dxChaosBox
         self.xChaosBoxRight = xmid + self.dxChaosBox
@@ -2576,6 +2581,10 @@ class ChaosBox:
         pl.append(CenteredControlTextPath(font, 'SPEED', self.xmid, self.yChaosSpeed - MULTITAP_DY_CONTROL_LOOP_LABEL))
         AddFlatControlGroup(pl, controls, self.xmid, self.yChaosLevel, 'clevel')
         pl.append(CenteredControlTextPath(font, 'LEVEL', self.xmid, self.yChaosLevel - MULTITAP_DY_CONTROL_LOOP_LABEL))
+        if self.isPolyphonic:
+            AddFlatControlGroup(pl, controls, self.xmid, self.yChaosSpread, 'cspread')
+            pl.append(CenteredControlTextPath(font, 'SPREAD', self.xmid, self.yChaosSpread - MULTITAP_DY_CONTROL_LOOP_LABEL))
+
         controls.add('chaos_stereo_button', self.xChaosStereoButton, self.yChaosStereoButton)
         controls.add('chaos_random_button', self.xChaosRandomizeButton, self.yChaosRandomizeButton)
         controls.add('chaos_freeze_button', self.xChaosFreezeButton, self.yChaosFreezeButton)
@@ -2613,7 +2622,7 @@ def GenerateEmpathInputPanel(cdict: ControlDict) -> int:
         AddVerticalStereoLabels(controls, 'input', xInputLabels, EMPATH_AUDIO_PORTS_Y1)
         AddVerticalStereoPorts(font, pl, controls, xInputPorts,  EMPATH_AUDIO_PORTS_Y1, 'audio_left_input', 'audio_right_input', 'IN')
         AddControlGroup(pl, controls, font, 'cascade', 'CASCADE', xmid, yCascade)
-        ChaosBox(xmid, 46.0).generate(pl, controls, font)
+        ChaosBox(xmid, 46.0, polyphonic=False).generate(pl, controls, font)
         controls.add('init_chain_button', 5.0, EMPATH_INIT_BUTTON_Y)
         controls.add('toggle_spectrum_button', xSpectrumButton, ySpectrumButton)
     return Save(panel, svgFileName)
@@ -2880,7 +2889,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(SapphireInsignia(panel, font))
         controls.add('model_select', xBelle(0), yBelle(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))
-        addPort(0, 4.25, 'gate_input', 'GATE')
+        addPort(0, 4.3, 'gate_input', 'GATE')
         addPort(0, 5, 'pitch_input', 'PITCH')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
@@ -2907,7 +2916,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             addControlGroup(3, m, 'mod' + str(m), '')
 
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
-        ChaosBox(xmidChaosBox, 48.0).generate(pl, controls, font)
+        ChaosBox(xmidChaosBox, yBelle(1.1), polyphonic=True).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
 

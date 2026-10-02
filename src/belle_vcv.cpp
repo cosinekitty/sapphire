@@ -56,6 +56,8 @@ namespace Sapphire
             LEVEL_ATTEN,
             FREQ_MODE_BUTTON_PARAM,
             OCT_MODE_BUTTON_PARAM,
+            CHAOS_SPREAD_PARAM,
+            CHAOS_SPREAD_ATTEN,
 
             PARAMS_LEN
         };
@@ -76,6 +78,7 @@ namespace Sapphire
             PAN_CV_INPUT,
             GLIDE_CV_INPUT,
             LEVEL_CV_INPUT,
+            CHAOS_SPREAD_CV_INPUT,
 
             INPUTS_LEN
         };
@@ -259,8 +262,9 @@ namespace Sapphire
 
             void configChaosBox()
             {
-                configControlGroup("Chaos speed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
-                configControlGroup("Chaos level", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
+                configControlGroup("Chaos speed",  CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT, -ChaosOctaveRange, +ChaosOctaveRange);
+                configControlGroup("Chaos level",  CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
+                configControlGroup("Chaos spread", CHAOS_SPREAD_PARAM, CHAOS_SPREAD_ATTEN, CHAOS_SPREAD_CV_INPUT, -1, +1, 0, "%", 0, 100);
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
@@ -365,6 +369,15 @@ namespace Sapphire
                     2
                 ));
 
+                const float spread = getControlValueVoltPerOctave(
+                    CHAOS_SPREAD_PARAM,
+                    CHAOS_SPREAD_ATTEN,
+                    CHAOS_SPREAD_CV_INPUT,
+                    -1,
+                    +1,
+                    0.2
+                );
+
                 if (!isChaosFrozen)
                 {
                     const float dt = SimulationTimeIncrement(sampleRateHz, speedKnob);
@@ -372,8 +385,6 @@ namespace Sapphire
                 }
 
                 batch = fountain.getBatch(chaosLevelKnob);
-
-                const float spread = 1;     // FIXFIXFIX: add knob for this
 
                 reportChaosPoly(FREQ_ATTEN,         spread, batch,  0);
                 reportChaosPoly(OCT_ATTEN,          spread, batch,  1);
@@ -714,8 +725,9 @@ namespace Sapphire
 
             void addChaosBox()
             {
-                addSnapVoctFlatControlGroup("cspeed", CHAOS_SPEED_PARAM, CHAOS_SPEED_ATTEN, CHAOS_SPEED_CV_INPUT);
-                addSapphireFlatControlGroup("clevel", CHAOS_LEVEL_PARAM, CHAOS_LEVEL_ATTEN, CHAOS_LEVEL_CV_INPUT);
+                addSnapVoctFlatControlGroup("cspeed",  CHAOS_SPEED_PARAM,  CHAOS_SPEED_ATTEN,  CHAOS_SPEED_CV_INPUT );
+                addSapphireFlatControlGroup("clevel",  CHAOS_LEVEL_PARAM,  CHAOS_LEVEL_ATTEN,  CHAOS_LEVEL_CV_INPUT );
+                addSapphireFlatControlGroup("cspread", CHAOS_SPREAD_PARAM, CHAOS_SPREAD_ATTEN, CHAOS_SPREAD_CV_INPUT);
                 addChaosRandomButton();
                 addChaosFreezeButton();
                 addChaosDisplayVoltagesButton();
