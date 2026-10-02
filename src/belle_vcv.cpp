@@ -398,9 +398,17 @@ namespace Sapphire
                 }
             }
 
+            float chaosSignal(batch_t& batch, int attenId, unsigned channel) const
+            {
+                const SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+                unsigned index = (context.chaosOffset + channel) % nBatchSize;
+                return batch(index);
+            }
+
             void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
             {
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
+                context.chaosOffset = offset;
                 for (unsigned c = 0; c < CHAOS_MAX_CHANNELS; ++c)
                     context.chaosVoltage[c] = batch((c + offset) % nBatchSize);
             }
@@ -410,6 +418,16 @@ namespace Sapphire
                 float v = params.at(buttonParamId).getValue();
                 int n = static_cast<int>(std::round(v));
                 return static_cast<PitchMode>(n);
+            }
+
+            float nextSignal(float& voltage, int attenId, int inputId, unsigned channel, batch_t& batch)
+            {
+                Input& input = inputs.at(inputId);
+                if (!input.isConnected())
+                    voltage = chaosSignal(batch, attenId, channel);
+                else if (channel < static_cast<unsigned>(input.getChannels()))
+                    voltage = input.getVoltage(channel);
+                return voltage;
             }
 
             void process(const ProcessArgs& args) override
@@ -454,17 +472,17 @@ namespace Sapphire
 
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
-                        nextVoltageOrChaosSignal(freqVoltage, FREQ_CV_INPUT, c,       batch(0));
-                        nextVoltageOrChaosSignal(octaveVoltage, OCT_CV_INPUT, c,      batch(1));
-                        nextVoltageOrChaosSignal(attackVoltage, ATTACK_CV_INPUT, c,   batch(2));
-                        nextVoltageOrChaosSignal(decayVoltage, DECAY_CV_INPUT, c,     batch(3));
-                        nextVoltageOrChaosSignal(sustainVoltage, SUSTAIN_CV_INPUT, c, batch(4));
-                        nextVoltageOrChaosSignal(releaseVoltage, RELEASE_CV_INPUT, c, batch(5));
+                        nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
+                        nextSignal(octaveVoltage, OCT_ATTEN, OCT_CV_INPUT, c, batch);
+                        nextSignal(attackVoltage, ATTACK_ATTEN, ATTACK_CV_INPUT, c, batch);
+                        nextSignal(decayVoltage, DECAY_ATTEN, DECAY_CV_INPUT, c, batch);
+                        nextSignal(sustainVoltage, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, c, batch);
+                        nextSignal(releaseVoltage, RELEASE_ATTEN, RELEASE_CV_INPUT, c, batch);
                         for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
-                            nextVoltageOrChaosSignal(modVoltage[m], MOD_CV_INPUT_0+m, c, batch(6+m));
-                        nextVoltageOrChaosSignal(panVoltage, PAN_CV_INPUT, c,         batch(11));
-                        nextVoltageOrChaosSignal(levelVoltage, LEVEL_CV_INPUT, c,     batch(12));
-                        nextVoltageOrChaosSignal(glideVoltage, GLIDE_CV_INPUT, c,     batch(13));
+                            nextSignal(modVoltage[m], MOD_ATTEN_0+m, MOD_CV_INPUT_0+m, c, batch);
+                        nextSignal(panVoltage, PAN_ATTEN, PAN_CV_INPUT, c, batch);
+                        nextSignal(levelVoltage, LEVEL_ATTEN, LEVEL_CV_INPUT, c, batch);
+                        nextSignal(glideVoltage, GLIDE_ATTEN, GLIDE_CV_INPUT, c, batch);
 
                         static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
                         gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));

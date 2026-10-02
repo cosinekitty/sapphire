@@ -19,6 +19,7 @@ namespace Sapphire
         bool supportsChaos = false;
         chaos_signal_array_t chaosVoltage{};
         float sensitivity = 1;
+        unsigned chaosOffset = -1;        // map attenuverter ID to offset in chaos batch
 
         void initialize()
         {
