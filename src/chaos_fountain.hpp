@@ -17,11 +17,13 @@ namespace Sapphire
     template <unsigned nsignals>
     struct ChaosBatch
     {
+        static_assert(nsignals > 0);
+
         std::array<float, nsignals> signal{};
 
         float operator() (unsigned index) const
         {
-            return signal.at(index);
+            return signal[index % nsignals];
         }
     };
 

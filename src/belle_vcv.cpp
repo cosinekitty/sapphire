@@ -398,19 +398,26 @@ namespace Sapphire
                 }
             }
 
-            float chaosSignal(batch_t& batch, int attenId, unsigned channel) const
+            float chaosSignal(const batch_t& batch, int attenId, unsigned channel) const
             {
                 const SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
-                unsigned index = (context.chaosOffset + channel) % nBatchSize;
-                return batch(index);
+                return batch(context.chaosOffset + channel);
             }
 
             void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
             {
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
                 context.chaosOffset = offset;
+                const float vneg = batch(offset+0);
+                const float vpos = batch(offset+1);
                 for (unsigned c = 0; c < CHAOS_MAX_CHANNELS; ++c)
-                    context.chaosVoltage[c] = batch((c + offset) % nBatchSize);
+                {
+                    const float vc = batch(offset+c);
+                    if (spread < 0)
+                        context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
+                    else
+                        context.chaosVoltage[c] = LinearMix(+spread, vc, vpos);
+                }
             }
 
             PitchMode getPitchMode(int buttonParamId)
