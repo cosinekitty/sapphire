@@ -152,11 +152,14 @@ namespace Sapphire
             trackerOct.update(gateTriggerReceiver, oct, glideOctavesPerSample);
         }
 
+        float getPitchVoct() const
+        {
+            return trackerPitch.pitch + trackerFreq.pitch + trackerOct.pitch;
+        }
+
         float getFrequency() const
         {
-            // add pitches, calculate frequency.
-            const float pitch = trackerPitch.pitch + trackerFreq.pitch + trackerOct.pitch;
-            return std::exp2(pitch) * C4_FREQUENCY_HZ;
+            return std::exp2(getPitchVoct()) * C4_FREQUENCY_HZ;
         }
     };
 

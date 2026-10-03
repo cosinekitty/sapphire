@@ -70,6 +70,7 @@ namespace Sapphire
             {"pan_knob",               {  64.880,   76.400}},
             {"pitch_input",            {  27.940,  114.000}},
             {"pitch_mode_button",      {  27.940,  120.500}},
+            {"pitch_output",           { 147.320,   38.800}},
             {"release_atten",          {  86.360,   76.400}},
             {"release_cv",             {  77.360,   76.400}},
             {"release_knob",           {  95.360,   76.400}},

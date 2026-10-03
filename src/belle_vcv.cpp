@@ -88,6 +88,7 @@ namespace Sapphire
             AUDIO_LEFT_OUTPUT,
             AUDIO_RIGHT_OUTPUT,
             ENVELOPE_OUTPUT,
+            PITCH_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -212,6 +213,7 @@ namespace Sapphire
                 configInput(PITCH_INPUT, "Pitch (V/OCT)");
 
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
+                configOutput(PITCH_OUTPUT, "Pitch");
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(OUTPUT_MODE_BUTTON_PARAM);
@@ -457,6 +459,7 @@ namespace Sapphire
                 auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 auto& env   = outputs.at(ENVELOPE_OUTPUT);
+                auto& pitch = outputs.at(PITCH_OUTPUT);
 
                 nPolyChannels = numOutputChannels(INPUTS_LEN, 0);
                 if (nPolyChannels > 0)
@@ -531,6 +534,10 @@ namespace Sapphire
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         env.setVoltage(10 * result.env.poly[c] * antiClick, c);
 
+                    pitch.setChannels(nPolyChannels);
+                    for (unsigned c = 0; c < nPolyChannels; ++c)
+                        pitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
+
                     if (isOutputModePolyphonic())
                     {
                         left.setChannels(nPolyChannels);
@@ -558,15 +565,18 @@ namespace Sapphire
                 }
                 else
                 {
-                    left.setChannels(1);
-                    left.setVoltage(0, 0);
+                    setNullOutput(left);
+                    setNullOutput(right);
+                    setNullOutput(env);
+                    setNullOutput(pitch);
 
-                    right.setChannels(1);
-                    right.setVoltage(0, 0);
-
-                    env.setChannels(1);
-                    env.setVoltage(0, 0);
                 }
+            }
+
+            void setNullOutput(Output& output)
+            {
+                output.setChannels(1);
+                output.setVoltage(0, 0);
             }
 
             bool isOutputModePolyphonic()
@@ -677,6 +687,7 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
+                addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addOutputModeButton();
                 addPitchModeButton(PITCH_MODE_BUTTON_PARAM, "pitch_mode_button");
                 addPitchModeButton(FREQ_MODE_BUTTON_PARAM, "freq_mode_button");

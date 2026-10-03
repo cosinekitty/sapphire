@@ -2896,6 +2896,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
         addPort(4, 0, 'envelope_output', 'ENV')
+        addPort(4, 1, 'pitch_output', 'PITCH')
 
         xPortCenter = xBelle(4)
         yPortCenter = yBelle(5)
