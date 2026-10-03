@@ -2869,7 +2869,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             controls.add(symbol, xBelle(col) + dx, yBelle(row))
             addLabel(col, row, label, dx)
 
-        def addPitchModeButton(col:int, row:int, label:str, dx:float) -> None:
+        def addHangingButton(col:float, row:float, label:str, dx:float) -> None:
             x = xBelle(col) - dx
             y1 = yBelle(row)
             y2 = y1 + dyPortModeButton
@@ -2889,8 +2889,10 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(SapphireInsignia(panel, font))
         controls.add('model_select', xBelle(0), yBelle(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))
-        addPort(0, 4.3, 'gate_input', 'GATE')
-        addPort(0, 5, 'pitch_input', 'PITCH')
+
+        portDeltaColumn = 0.25
+        addPort(-portDeltaColumn, 5, 'gate_input', 'GATE')
+        addPort(+portDeltaColumn, 5, 'pitch_input', 'PITCH')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
         addPort(4, 0, 'envelope_output', 'ENV')
@@ -2900,9 +2902,9 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
         controls.add('output_mode_button', xPortCenter, yPortCenter)
 
-        addPitchModeButton(0, 5, 'pitch_mode_button', 0.0)
-        addPitchModeButton(1, 0, 'freq_mode_button', DX_FLAT_CONTROL_GROUP)
-        addPitchModeButton(1, 1, 'oct_mode_button', DX_FLAT_CONTROL_GROUP)
+        addHangingButton(+portDeltaColumn, 5, 'pitch_mode_button', 0.0)
+        addHangingButton(1, 0, 'freq_mode_button', DX_FLAT_CONTROL_GROUP)
+        addHangingButton(1, 1, 'oct_mode_button', DX_FLAT_CONTROL_GROUP)
 
         addControlGroup(1, 0, 'freq',    'FREQ' )
         addControlGroup(1, 1, 'oct',     'OCT'  )
@@ -2916,7 +2918,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             addControlGroup(3, m, 'mod' + str(m), '')
 
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
-        ChaosBox(xmidChaosBox, yBelle(1.1), polyphonic=True).generate(pl, controls, font)
+        ChaosBox(xmidChaosBox, yBelle(1.5), polyphonic=True).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
 
