@@ -247,7 +247,7 @@ namespace Sapphire
                 attenuverterChaosOptIn(DECAY_ATTEN,     ChaoticModulation::Polyphonic, mildSensitivityLevel);
                 attenuverterChaosOptIn(SUSTAIN_ATTEN,   ChaoticModulation::Polyphonic, mildSensitivityLevel);
                 attenuverterChaosOptIn(RELEASE_ATTEN,   ChaoticModulation::Polyphonic, mildSensitivityLevel);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 0, ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 0, ChaoticModulation::Monophonic, mildSensitivityLevel);   // mono for DETUNE
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 1, ChaoticModulation::Polyphonic, mildSensitivityLevel);
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 2, ChaoticModulation::Polyphonic, mildSensitivityLevel);
                 attenuverterChaosOptIn(MOD_ATTEN_0 + 3, ChaoticModulation::Polyphonic, mildSensitivityLevel);
