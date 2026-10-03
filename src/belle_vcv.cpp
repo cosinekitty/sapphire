@@ -409,10 +409,10 @@ namespace Sapphire
                 }
             }
 
-            float chaosSignal(const batch_t& batch, int attenId, unsigned channel) const
+            float chaosSignal(int attenId, unsigned channel) const
             {
                 const SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
-                return batch(context.chaosOffset + channel);
+                return context.chaosVoltage[channel % CHAOS_MAX_CHANNELS];
             }
 
             void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
@@ -442,7 +442,7 @@ namespace Sapphire
             {
                 Input& input = inputs.at(inputId);
                 if (!input.isConnected())
-                    voltage = chaosSignal(batch, attenId, channel);
+                    voltage = chaosSignal(attenId, channel);
                 else if (channel < static_cast<unsigned>(input.getChannels()))
                     voltage = input.getVoltage(channel);
                 return voltage;

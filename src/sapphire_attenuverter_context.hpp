@@ -26,8 +26,8 @@ namespace Sapphire
             lowSensitivityMode = false;
             unipolar = false;
             adjust = UnipolarAdjustVoltsDefault;
-            for (unsigned c=0; c < CHAOS_MAX_CHANNELS; ++c)
-                chaosVoltage[c] = 0;
+            for (float& v : chaosVoltage)
+                v = 0;
         }
 
         float adjustVoltage(float v) const
