@@ -10,13 +10,21 @@ namespace Sapphire
     constexpr unsigned CHAOS_MAX_CHANNELS = 16;
     using chaos_signal_array_t = std::array<float, CHAOS_MAX_CHANNELS>;
 
+    enum class ChaoticModulation
+    {
+        None,
+        Monophonic,
+        Stereo,
+        Polyphonic,
+    };
+
     struct SapphireAttenuverterContext
     {
         bool lowSensitivityMode{};
         bool unipolar{};
         float adjust = UnipolarAdjustVoltsDefault;
         unsigned inputPortId = -1;    // port to check for cables, for chaos display color
-        bool supportsChaos = false;
+        ChaoticModulation chaosOption = ChaoticModulation::None;
         chaos_signal_array_t chaosVoltage{};
         float sensitivity = 1;
         unsigned chaosOffset = -1;        // map attenuverter ID to offset in chaos batch

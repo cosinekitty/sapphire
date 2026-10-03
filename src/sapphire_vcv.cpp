@@ -977,10 +977,12 @@ namespace Sapphire
         ChaosModulationInfo info;
         if (SapphireModule* smod = dynamic_cast<SapphireModule*>(module))
         {
-            if (context && context->supportsChaos && smod->shouldDisplayChaosVoltages())
+            if (context && (context->chaosOption != ChaoticModulation::None) && smod->shouldDisplayChaosVoltages())
             {
                 info.voltage = context->chaosVoltage;           // copy the whole std::array
                 info.nchannels = smod->chaosVoltagesCount();    // allow the module to limit how many array elements are used
+                if (context->chaosOption == ChaoticModulation::Monophonic)
+                    info.nchannels = std::min<unsigned>(info.nchannels, 1);
 
                 if (context->inputPortId < smod->inputs.size())
                     if (!smod->inputs.at(context->inputPortId).isConnected())     // chaos works only when the CV input port has no cables

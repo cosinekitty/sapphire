@@ -237,19 +237,19 @@ namespace Sapphire
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
-                attenuverterChaosOptIn(FREQ_ATTEN,      1);
-                attenuverterChaosOptIn(OCT_ATTEN,       1);
-                attenuverterChaosOptIn(GLIDE_ATTEN,     mildSensitivityLevel);
-                attenuverterChaosOptIn(PAN_ATTEN,       mildSensitivityLevel);
-                attenuverterChaosOptIn(ATTACK_ATTEN,    mildSensitivityLevel);
-                attenuverterChaosOptIn(DECAY_ATTEN,     mildSensitivityLevel);
-                attenuverterChaosOptIn(SUSTAIN_ATTEN,   mildSensitivityLevel);
-                attenuverterChaosOptIn(RELEASE_ATTEN,   mildSensitivityLevel);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 0, mildSensitivityLevel);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 1, mildSensitivityLevel);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 2, mildSensitivityLevel);
-                attenuverterChaosOptIn(MOD_ATTEN_0 + 3, mildSensitivityLevel);
-                attenuverterChaosOptIn(LEVEL_ATTEN,     1);
+                attenuverterChaosOptIn(FREQ_ATTEN,      ChaoticModulation::Polyphonic, 1);
+                attenuverterChaosOptIn(OCT_ATTEN,       ChaoticModulation::Polyphonic, 1);
+                attenuverterChaosOptIn(GLIDE_ATTEN,     ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(PAN_ATTEN,       ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(ATTACK_ATTEN,    ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(DECAY_ATTEN,     ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(SUSTAIN_ATTEN,   ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(RELEASE_ATTEN,   ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 0, ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 1, ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 2, ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(MOD_ATTEN_0 + 3, ChaoticModulation::Polyphonic, mildSensitivityLevel);
+                attenuverterChaosOptIn(LEVEL_ATTEN,     ChaoticModulation::Polyphonic, 1);
 
                 configChaosBox();
 
@@ -269,7 +269,7 @@ namespace Sapphire
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
-                attenuverterChaosOptIn(CHAOS_SPEED_ATTEN);
+                attenuverterChaosOptIn(CHAOS_SPEED_ATTEN, ChaoticModulation::Monophonic);
             }
 
             bool shouldDisplayChaosVoltages() override
