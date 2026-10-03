@@ -188,6 +188,7 @@ namespace Sapphire
             Smoother modelChangeSmoother{0.015};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
+            unsigned nPolyChannels = 0;
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -278,7 +279,7 @@ namespace Sapphire
 
             unsigned chaosVoltagesCount() override
             {
-                return 16;
+                return nPolyChannels;
             }
 
             unsigned engineCount() const
@@ -294,6 +295,7 @@ namespace Sapphire
                 modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
+                nPolyChannels = 0;
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -456,7 +458,8 @@ namespace Sapphire
                 auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
                 auto& env   = outputs.at(ENVELOPE_OUTPUT);
 
-                if (unsigned nPolyChannels = numOutputChannels(INPUTS_LEN, 0); nPolyChannels > 0)
+                nPolyChannels = numOutputChannels(INPUTS_LEN, 0);
+                if (nPolyChannels > 0)
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
 
