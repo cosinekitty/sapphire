@@ -18,7 +18,6 @@ namespace Sapphire
     struct ChaosBatch
     {
         static_assert(nsignals > 0);
-
         std::array<float, nsignals> signal{};
 
         float operator() (unsigned index) const
@@ -26,6 +25,19 @@ namespace Sapphire
             return signal[index % nsignals];
         }
     };
+
+
+    template <unsigned nsignals, typename rand_t = std::mt19937_64>
+    void MakePermutation(rand_t& gen, std::array<unsigned, nsignals>& permutation)
+    {
+        for (unsigned i = 0; i < nsignals; ++i)
+            permutation[i] = i;
+
+        for (unsigned i = 1; i < nsignals; ++i)
+            if (unsigned r = gen()%(i+1); r < i)
+                std::swap(permutation[r], permutation[i]);
+    }
+
 
     constexpr uint64_t ChaosFountainDefaultSeed = 0x5361707068697265;   // ASCII "Sapphire"
 
@@ -107,7 +119,7 @@ namespace Sapphire
         {
             rand_t gen(seed);
             randomizeChaoticOscillators(gen);
-            shuffleSignalMapping(gen);
+            MakePermutation<nsignals, rand_t>(gen, permutation);
             randomizeRates(gen);
         }
 
@@ -124,16 +136,6 @@ namespace Sapphire
             // Silently discard these for the convenience of the caller.
             if (n < nsignals)
                 batch.signal.at(permutation[n++]) = signal;
-        }
-
-        void shuffleSignalMapping(rand_t& gen)
-        {
-            for (unsigned i = 0; i < nsignals; ++i)
-                permutation[i] = i;
-
-            for (unsigned i = 1; i < nsignals; ++i)
-                if (unsigned r = gen()%(i+1); r < i)
-                    std::swap(permutation[r], permutation[i]);
         }
 
         void randomizeChaoticOscillators(rand_t& gen)
