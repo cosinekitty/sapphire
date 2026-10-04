@@ -19,6 +19,7 @@ namespace Sapphire
 
         constexpr unsigned nChaoticSignals = 14;    // how many attenuverters need separate signals
         constexpr unsigned nBatchSize = std::max<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
+        constexpr unsigned nChaosOutputChannels = std::min<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
         using fountain_t = ChaosFountain<nBatchSize>;
         using batch_t = ChaosBatch<nBatchSize>;
 
@@ -89,6 +90,7 @@ namespace Sapphire
             AUDIO_RIGHT_OUTPUT,
             ENVELOPE_OUTPUT,
             PITCH_OUTPUT,
+            CHAOS_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -214,6 +216,7 @@ namespace Sapphire
 
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch");
+                configOutput(CHAOS_OUTPUT, "Chaos");
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(OUTPUT_MODE_BUTTON_PARAM);
@@ -456,10 +459,11 @@ namespace Sapphire
             {
                 updateSelectedEngine(args.sampleRate);
 
-                auto& left  = outputs.at(AUDIO_LEFT_OUTPUT);
-                auto& right = outputs.at(AUDIO_RIGHT_OUTPUT);
-                auto& env   = outputs.at(ENVELOPE_OUTPUT);
-                auto& pitch = outputs.at(PITCH_OUTPUT);
+                auto& outLeft  = outputs.at(AUDIO_LEFT_OUTPUT);
+                auto& outRight = outputs.at(AUDIO_RIGHT_OUTPUT);
+                auto& outEnv   = outputs.at(ENVELOPE_OUTPUT);
+                auto& outPitch = outputs.at(PITCH_OUTPUT);
+                auto& outChaos = outputs.at(CHAOS_OUTPUT);
 
                 nPolyChannels = numOutputChannels(INPUTS_LEN, 0);
                 if (nPolyChannels > 0)
@@ -530,28 +534,32 @@ namespace Sapphire
                         chaosSeedSmoother.getGain() *
                         modelChangeSmoother.getGain();
 
-                    env.setChannels(nPolyChannels);
+                    outEnv.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
-                        env.setVoltage(10 * result.env.poly[c] * antiClick, c);
+                        outEnv.setVoltage(10 * result.env.poly[c] * antiClick, c);
 
-                    pitch.setChannels(nPolyChannels);
+                    outPitch.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
-                        pitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
+                        outPitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
+
+                    outChaos.setChannels(nChaosOutputChannels);
+                    for (unsigned c = 0; c < nChaosOutputChannels; ++c)
+                        outChaos.setVoltage(batch(c), c);
 
                     if (isOutputModePolyphonic())
                     {
-                        left.setChannels(nPolyChannels);
-                        right.setChannels(nPolyChannels);
+                        outLeft.setChannels(nPolyChannels);
+                        outRight.setChannels(nPolyChannels);
                         for (unsigned c = 0; c < nPolyChannels; ++c)
                         {
-                            left .setVoltage(result.stereo.poly[c].sample[0] * antiClick * gain[c], c);
-                            right.setVoltage(result.stereo.poly[c].sample[1] * antiClick * gain[c], c);
+                            outLeft .setVoltage(result.stereo.poly[c].sample[0] * antiClick * gain[c], c);
+                            outRight.setVoltage(result.stereo.poly[c].sample[1] * antiClick * gain[c], c);
                         }
                     }
                     else
                     {
-                        left.setChannels(1);
-                        right.setChannels(1);
+                        outLeft.setChannels(1);
+                        outRight.setChannels(1);
                         float sumL = 0;
                         float sumR = 0;
                         for (unsigned c = 0; c < nPolyChannels; ++c)
@@ -559,17 +567,17 @@ namespace Sapphire
                             sumL += result.stereo.poly[c].sample[0] * gain[c];
                             sumR += result.stereo.poly[c].sample[1] * gain[c];
                         }
-                        left .setVoltage(sumL * antiClick, 0);
-                        right.setVoltage(sumR * antiClick, 0);
+                        outLeft .setVoltage(sumL * antiClick, 0);
+                        outRight.setVoltage(sumR * antiClick, 0);
                     }
                 }
                 else
                 {
-                    setNullOutput(left);
-                    setNullOutput(right);
-                    setNullOutput(env);
-                    setNullOutput(pitch);
-
+                    setNullOutput(outLeft);
+                    setNullOutput(outRight);
+                    setNullOutput(outEnv);
+                    setNullOutput(outPitch);
+                    setNullOutput(outChaos);
                 }
             }
 
@@ -688,6 +696,7 @@ namespace Sapphire
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
+                addSapphireOutput(CHAOS_OUTPUT, "chaos_output");
                 addOutputModeButton();
                 addPitchModeButton(PITCH_MODE_BUTTON_PARAM, "pitch_mode_button");
                 addPitchModeButton(FREQ_MODE_BUTTON_PARAM, "freq_mode_button");
