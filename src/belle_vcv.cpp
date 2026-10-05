@@ -61,6 +61,16 @@ namespace Sapphire
             OCT_MODE_BUTTON_PARAM,
             CHAOS_SPREAD_PARAM,
             CHAOS_SPREAD_ATTEN,
+            FREQ_POLY_BUTTON,
+            OCT_POLY_BUTTON,
+            GLIDE_POLY_BUTTON,
+            PAN_POLY_BUTTON,
+            ATTACK_POLY_BUTTON,
+            DECAY_POLY_BUTTON,
+            SUSTAIN_POLY_BUTTON,
+            RELEASE_POLY_BUTTON,
+            ENUMS(MOD_POLY_BUTTON_0, 4),
+            LEVEL_POLY_BUTTON,
 
             PARAMS_LEN
         };
@@ -267,6 +277,7 @@ namespace Sapphire
                 attenuverterChaosOptIn(LEVEL_ATTEN,     ChaoticModulation::Polyphonic, 1);
 
                 configChaosBox();
+                configPolyButtons();
 
                 initialize();
             }
@@ -285,6 +296,28 @@ namespace Sapphire
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
                 attenuverterChaosOptIn(CHAOS_SPEED_ATTEN, ChaoticModulation::Monophonic);
+            }
+
+            void configPolyButton(int buttonId)
+            {
+                configSwitch(buttonId, 0, 1, 1, "Chaos", {"MONOPHONIC", "POLYPHONIC"});
+            }
+
+            void configPolyButtons()
+            {
+                configPolyButton(FREQ_POLY_BUTTON);
+                configPolyButton(OCT_POLY_BUTTON);
+                configPolyButton(GLIDE_POLY_BUTTON);
+                configPolyButton(PAN_POLY_BUTTON);
+                configPolyButton(ATTACK_POLY_BUTTON);
+                configPolyButton(DECAY_POLY_BUTTON);
+                configPolyButton(SUSTAIN_POLY_BUTTON);
+                configPolyButton(RELEASE_POLY_BUTTON);
+                configPolyButton(MOD_POLY_BUTTON_0 + 0);
+                configPolyButton(MOD_POLY_BUTTON_0 + 1);
+                configPolyButton(MOD_POLY_BUTTON_0 + 2);
+                configPolyButton(MOD_POLY_BUTTON_0 + 3);
+                configPolyButton(LEVEL_POLY_BUTTON);
             }
 
             bool shouldDisplayChaosVoltages() override
@@ -726,6 +759,15 @@ namespace Sapphire
         };
 
 
+        struct PolyButton : SapphireTinyToggleButton
+        {
+            explicit PolyButton()
+            {
+                addTinyButtonFrames(this, "green");
+            }
+        };
+
+
         struct OutputModeButton : SapphireTinyToggleButton
         {
             explicit OutputModeButton()
@@ -781,6 +823,7 @@ namespace Sapphire
                 addEnvelopeWidget();
                 addWaveformWidget();
                 addChaosBox();
+                addPolyButtons();
                 addOverlays();
             }
 
@@ -800,6 +843,29 @@ namespace Sapphire
             {
                 auto button = createParamCentered<PitchModeButton>(Vec{}, belleModule, buttonParamId);
                 addSapphireParam(button, label);
+            }
+
+            void addPolyButton(int buttonParamId, const std::string& label)
+            {
+                auto button = createParamCentered<PolyButton>(Vec{}, belleModule, buttonParamId);
+                addSapphireParam(button, label);
+            }
+
+            void addPolyButtons()
+            {
+                addPolyButton(FREQ_POLY_BUTTON,       "freq_poly_button");
+                addPolyButton(OCT_POLY_BUTTON,        "oct_poly_button");
+                addPolyButton(GLIDE_POLY_BUTTON,      "glide_poly_button");
+                addPolyButton(PAN_POLY_BUTTON,        "pan_poly_button");
+                addPolyButton(ATTACK_POLY_BUTTON,     "attack_poly_button");
+                addPolyButton(DECAY_POLY_BUTTON,      "decay_poly_button");
+                addPolyButton(SUSTAIN_POLY_BUTTON,    "sustain_poly_button");
+                addPolyButton(RELEASE_POLY_BUTTON,    "release_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_0 + 0,  "mod0_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_0 + 1,  "mod1_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_0 + 2,  "mod2_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_0 + 3,  "mod3_poly_button");
+                addPolyButton(LEVEL_POLY_BUTTON,      "level_poly_button");
             }
 
             void addChaosBox()

@@ -85,13 +85,14 @@ def ControlGroupArt(moduleName: str, id: str, panel: Panel, y1: float, y2: float
     return Path(path, style, id)
 
 
+DX_CONTROL_GROUP = 5.0
+DY_CONTROL_GROUP = 11.0
+
 def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str, label: str, x: float, y: float, dxText: float = -1.0) -> None:
-    dxControlGroup = 5.0
-    dyControlGroup = 11.0
     dyControlText = -11.6
     controls.add(symbol + '_knob', x, y)
-    controls.add(symbol + '_atten', x - dxControlGroup, y + dyControlGroup)
-    controls.add(symbol + '_cv', x + dxControlGroup, y + dyControlGroup)
+    controls.add(symbol + '_atten', x - DX_CONTROL_GROUP, y + DY_CONTROL_GROUP)
+    controls.add(symbol + '_cv', x + DX_CONTROL_GROUP, y + DY_CONTROL_GROUP)
     if dxText < 0.0:
         pl.append(CenteredControlTextPath(font, label, x, y + dyControlText + 2.4))
     else:
@@ -101,9 +102,9 @@ def AddControlGroup(pl: Element, controls: ControlLayer, font: Font, symbol: str
     # (2) from knob to CV input
     t = ''
     t += Move(x, y)
-    t += Line(x - dxControlGroup, y + dyControlGroup)
+    t += Line(x - DX_CONTROL_GROUP, y + DY_CONTROL_GROUP)
     t += ClosePath()
-    t += Line(x + dxControlGroup, y + dyControlGroup)
+    t += Line(x + DX_CONTROL_GROUP, y + DY_CONTROL_GROUP)
     t += ClosePath()
     pl.append(Path(t, CONNECTOR_LINE_STYLE))
 
@@ -2864,17 +2865,18 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         def addControlGroup(col:int, row:int, prefix:str, label:str) -> None:
             AddFlatControlGroup(pl, controls, xBelle(col), yBelle(row), prefix)
             addLabel(col, row, label)
+            addHangingButton(col, row, prefix + '_poly_button', 0.0)
 
         def addPort(col:float, row:float, symbol:str, label:str, dx:float = 0.0) -> None:
             controls.add(symbol, xBelle(col) + dx, yBelle(row))
             addLabel(col, row, label, dx)
 
-        def addHangingButton(col:float, row:float, label:str, dx:float) -> None:
+        def addHangingButton(col:float, row:float, symbol:str, dx:float, dy:float = 0.0) -> None:
             x = xBelle(col) - dx
-            y1 = yBelle(row)
+            y1 = yBelle(row) + dy
             y2 = y1 + dyPortModeButton
             pl.append(VerticalLine(x, y1, y2))
-            controls.add(label, x, y2)
+            controls.add(symbol, x, y2)
 
         controls.add('envelope_upper_left',  x1_env, y1_env)
         controls.add('envelope_lower_right', x2_env, y2_env)
@@ -2920,6 +2922,8 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             addControlGroup(3, m, 'mod' + str(m), '')
 
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
+        addHangingButton(4, 3, 'level_poly_button', DX_CONTROL_GROUP, DY_CONTROL_GROUP)
+
         ChaosBox(xmidChaosBox, yBelle(1.5), polyphonic=True).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
