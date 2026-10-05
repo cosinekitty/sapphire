@@ -88,7 +88,7 @@ namespace Sapphire
             batch_t batch;
             unsigned n = 0;     // how many signals have been generated
 
-            static constexpr double r = 1.0 / std::sqrt(3.0);
+            static constexpr double r = 0.5773502691896258;     // 1/sqrt(3)
             static constexpr double w = (r+1)/2;
             static constexpr double u = (r-1)/2;
             for (const auto& osc : oscillators)
