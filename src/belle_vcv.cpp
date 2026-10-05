@@ -300,7 +300,7 @@ namespace Sapphire
 
             void configPolyButton(int buttonId)
             {
-                configSwitch(buttonId, 0, 1, 1, "Chaos", {"MONOPHONIC", "POLYPHONIC"});
+                configSwitch(buttonId, 0, 1, 0, "Chaos", {"MONOPHONIC", "POLYPHONIC"});
             }
 
             void configPolyButtons()
@@ -479,20 +479,20 @@ namespace Sapphire
 
                 batch = fountain.getBatch(chaosLevelKnob);
 
-                reportChaosPoly(FREQ_ATTEN,         spread, batch,  0);
-                reportChaosPoly(OCT_ATTEN,          spread, batch,  1);
-                reportChaosPoly(ATTACK_ATTEN,       spread, batch,  2);
-                reportChaosPoly(DECAY_ATTEN,        spread, batch,  3);
-                reportChaosPoly(SUSTAIN_ATTEN,      spread, batch,  4);
-                reportChaosPoly(RELEASE_ATTEN,      spread, batch,  5);
-                reportChaosPoly(MOD_ATTEN_0+0,      spread, batch,  6);
-                reportChaosPoly(MOD_ATTEN_0+1,      spread, batch,  7);
-                reportChaosPoly(MOD_ATTEN_0+2,      spread, batch,  8);
-                reportChaosPoly(MOD_ATTEN_0+3,      spread, batch,  9);
-                reportChaosPoly(CHAOS_SPEED_ATTEN,  spread, batch, 10);
-                reportChaosPoly(PAN_ATTEN,          spread, batch, 11);
-                reportChaosPoly(LEVEL_ATTEN,        spread, batch, 12);
-                reportChaosPoly(GLIDE_ATTEN,        spread, batch, 13);
+                reportChaosPoly(FREQ_ATTEN,         FREQ_POLY_BUTTON,       spread, batch,  0);
+                reportChaosPoly(OCT_ATTEN,          OCT_POLY_BUTTON,        spread, batch,  1);
+                reportChaosPoly(ATTACK_ATTEN,       ATTACK_POLY_BUTTON,     spread, batch,  2);
+                reportChaosPoly(DECAY_ATTEN,        DECAY_POLY_BUTTON,      spread, batch,  3);
+                reportChaosPoly(SUSTAIN_ATTEN,      SUSTAIN_POLY_BUTTON,    spread, batch,  4);
+                reportChaosPoly(RELEASE_ATTEN,      RELEASE_POLY_BUTTON,    spread, batch,  5);
+                reportChaosPoly(MOD_ATTEN_0+0,      MOD_POLY_BUTTON_0 + 0,  spread, batch,  6);
+                reportChaosPoly(MOD_ATTEN_0+1,      MOD_POLY_BUTTON_0 + 1,  spread, batch,  7);
+                reportChaosPoly(MOD_ATTEN_0+2,      MOD_POLY_BUTTON_0 + 2,  spread, batch,  8);
+                reportChaosPoly(MOD_ATTEN_0+3,      MOD_POLY_BUTTON_0 + 3,  spread, batch,  9);
+                reportChaosPoly(CHAOS_SPEED_ATTEN,  -1,                     spread, batch, 10);
+                reportChaosPoly(PAN_ATTEN,          PAN_POLY_BUTTON,        spread, batch, 11);
+                reportChaosPoly(LEVEL_ATTEN,        LEVEL_POLY_BUTTON,      spread, batch, 12);
+                reportChaosPoly(GLIDE_ATTEN,        GLIDE_POLY_BUTTON,      spread, batch, 13);
 
                 chaosSeedSmoother.process(sampleRateHz);
                 if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
@@ -509,8 +509,14 @@ namespace Sapphire
                 return context.chaosVoltage[channel % PORT_MAX_CHANNELS];
             }
 
-            void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
+            bool isPolyEnabled(int toggleId)
             {
+                return isButtonEnabledSafe(toggleId);
+            }
+
+            void reportChaosPoly(int attenId, int toggleId, float spread, const batch_t& batch, unsigned offset)
+            {
+                const bool poly = isPolyEnabled(toggleId);
                 const shuffle_t& shuffle = chaosShuffleChannelForAtten.at(attenId);
                 const toggle_t& toggle = chaosToggleForAtten.at(attenId);
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
@@ -519,11 +525,19 @@ namespace Sapphire
                 const float vpos = batch(offset+1);
                 for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
-                    const float vc = batch(offset+shuffle[c]) * toggle[c];
-                    if (spread < 0)
-                        context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
+                    if (c==0 || poly)
+                    {
+                        const float vc = batch(offset+shuffle[c]) * toggle[c];
+
+                        if (spread < 0)
+                            context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
+                        else
+                            context.chaosVoltage[c] = LinearMix(+spread, vc, vpos);
+                    }
                     else
-                        context.chaosVoltage[c] = LinearMix(+spread, vc, vpos);
+                    {
+                        context.chaosVoltage[c] = context.chaosVoltage[0];
+                    }
                 }
             }
 

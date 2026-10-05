@@ -1139,6 +1139,13 @@ namespace Sapphire
             return params.at(buttonParamId).getValue() > 0.5f;
         }
 
+        bool isButtonEnabledSafe(int buttonParamId, bool fallback = false)
+        {
+            return IsSafeAccess(params, buttonParamId)
+                ? isButtonEnabled(buttonParamId)
+                : fallback;
+        }
+
         void defineAttenuverterId(int attenId, int cvInputId)
         {
             // We need to know which parameter IDs are actually for attenuverter knobs.
