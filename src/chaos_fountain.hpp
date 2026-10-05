@@ -209,4 +209,32 @@ namespace Sapphire
                 rate = std::clamp<double>(dist(gen), 0.5,  2.0);
         }
     };
+
+
+    template <typename rand_t = std::mt19937_64>
+    class RandomBitSource
+    {
+    private:
+        rand_t& gen;
+        unsigned nbits = 0;
+        uint64_t accum = 0;
+
+    public:
+        explicit RandomBitSource(rand_t& _gen)
+            : gen(_gen)
+            {}
+
+        unsigned nextRandomBit()
+        {
+            if (nbits == 0)
+            {
+                accum = gen();
+                nbits = 64;
+            }
+            unsigned r = accum & 1;
+            accum >>= 1;
+            --nbits;
+            return r;
+        }
+    };
 }

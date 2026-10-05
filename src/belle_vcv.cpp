@@ -23,6 +23,7 @@ namespace Sapphire
         using fountain_t = ChaosFountain<nBatchSize>;
         using rand_t = fountain_t::random_t;
         using batch_t = ChaosBatch<nBatchSize>;
+        using randbits_t = RandomBitSource<rand_t>;
 
         enum ParamId
         {
@@ -187,6 +188,9 @@ namespace Sapphire
         using shuffle_t = std::array<unsigned, PORT_MAX_CHANNELS>;
         using shuffle_pool_t = std::array<shuffle_t, PARAMS_LEN>;   // an overabundance of shuffles, allowing array[attenId]
 
+        using toggle_t = std::array<int, PORT_MAX_CHANNELS>;
+        using toggle_pool_t = std::array<toggle_t, PARAMS_LEN>;
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -197,6 +201,7 @@ namespace Sapphire
             uint64_t seedToRestore = 0;
             unsigned nPolyChannels = 0;
             shuffle_pool_t chaosShuffleChannelForAtten{};
+            toggle_pool_t chaosToggleForAtten{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -299,25 +304,45 @@ namespace Sapphire
 
             void initialize()
             {
-                fountain.reset([this](rand_t& gen)
-                {
-                    // We only need shuffle lists for attenuverters, but we generate
-                    // them for all parameter IDs. This overabundance happens only once.
-                    // It allows us to access the shuffle list as an array lookup for
-                    // any attenuverter ID, which is extremely efficient.
-                    for (unsigned attenId = 0; attenId < PARAMS_LEN; ++attenId)
-                    {
-                        shuffle_t& s = chaosShuffleChannelForAtten.at(attenId);
-                        MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, s);
-                        validateShuffle(s);     // a little unit testing at startup
-                    }
-                });
+                resetFountain();
                 speedChaos = 0;
                 chaosSeedSmoother.initialize();
                 modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 0;
+            }
+
+            void resetFountain()
+            {
+                auto callback = [this](rand_t& gen) -> void
+                {
+                    // We only need shuffle lists for attenuverters, but we generate
+                    // them for all parameter IDs. This overabundance happens only once.
+                    // It allows us to access the shuffle list as an array lookup for
+                    // any attenuverter ID, which is extremely efficient.
+
+                    randbits_t rbs(gen);
+                    for (unsigned attenId = 0; attenId < PARAMS_LEN; ++attenId)
+                    {
+                        // Generate a shuffle table for this attenuverter.
+                        shuffle_t& s = chaosShuffleChannelForAtten.at(attenId);
+                        MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, s);
+                        validateShuffle(s);     // a little unit testing at startup
+
+                        // Make a series of random [+1, -1] flip factors for this attenuverter.
+                        makeToggle(rbs, attenId);
+                    }
+                };
+
+                fountain.reset(callback);
+            }
+
+            void makeToggle(randbits_t& rbs, unsigned attenId)
+            {
+                toggle_t& toggle = chaosToggleForAtten.at(attenId);
+                for (int& t : toggle)
+                    t = rbs.nextRandomBit() ? -1 : +1;
             }
 
             static void validateShuffle(const shuffle_t& shuffle)
@@ -454,13 +479,14 @@ namespace Sapphire
             void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
             {
                 const shuffle_t& shuffle = chaosShuffleChannelForAtten.at(attenId);
+                const toggle_t& toggle = chaosToggleForAtten.at(attenId);
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
                 context.chaosOffset = offset;
                 const float vneg = batch(offset+0);
                 const float vpos = batch(offset+1);
                 for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
-                    const float vc = batch(offset+shuffle[c]);
+                    const float vc = batch(offset+shuffle[c]) * toggle[c];
                     if (spread < 0)
                         context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
                     else
