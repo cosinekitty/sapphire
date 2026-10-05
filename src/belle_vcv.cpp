@@ -71,6 +71,7 @@ namespace Sapphire
             RELEASE_POLY_BUTTON,
             ENUMS(MOD_POLY_BUTTON_0, 4),
             LEVEL_POLY_BUTTON,
+            CHAOS_TOGGLE_POLY_PARAM,
 
             PARAMS_LEN
         };
@@ -295,6 +296,7 @@ namespace Sapphire
                 configButton(CHAOS_RANDOMIZE_BUTTON_PARAM, "Randomize chaotic CV");
                 configButton(CHAOS_FREEZE_BUTTON_PARAM);
                 configButton(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM);
+                configButton(CHAOS_TOGGLE_POLY_PARAM, "Toggle all mono/poly");
                 attenuverterChaosOptIn(CHAOS_SPEED_ATTEN, ChaoticModulation::Monophonic);
             }
 
@@ -738,6 +740,38 @@ namespace Sapphire
                     ChaosFountainRestoreInfo(id, fountain.getSeed())
                 }));
             }
+
+            void beginToggleAllChoasPoly()
+            {
+                static const std::initializer_list<int> toggleButtonList
+                {
+                    FREQ_POLY_BUTTON,
+                    OCT_POLY_BUTTON,
+                    ATTACK_POLY_BUTTON,
+                    DECAY_POLY_BUTTON,
+                    SUSTAIN_POLY_BUTTON,
+                    RELEASE_POLY_BUTTON,
+                    MOD_POLY_BUTTON_0 + 0,
+                    MOD_POLY_BUTTON_0 + 1,
+                    MOD_POLY_BUTTON_0 + 2,
+                    MOD_POLY_BUTTON_0 + 3,
+                    PAN_POLY_BUTTON,
+                    LEVEL_POLY_BUTTON,
+                    GLIDE_POLY_BUTTON
+                };
+
+                // FIXFIXFIX #1: add crossover logic for anti-click.
+                // FIXFIXFIX #2: add undo/redo logic.
+
+                unsigned active = 0;
+                for (int buttonId : toggleButtonList)
+                    if (isButtonEnabled(buttonId))
+                        ++active;
+
+                const float opposite = (2*active < toggleButtonList.size()) ? 1 : 0;
+                for (int buttonId : toggleButtonList)
+                    params.at(buttonId).setValue(opposite);
+            }
         };
 
 
@@ -787,6 +821,23 @@ namespace Sapphire
             explicit OutputModeButton()
             {
                 addTinyButtonFrames(this, "green");
+            }
+        };
+
+
+        struct ChaosTogglePolyButton : SapphireTinyActionButton
+        {
+            BelleModule* belleModule{};
+
+            explicit ChaosTogglePolyButton()
+            {
+                addTinyButtonFrames(this, "green");
+            }
+
+            void action() override
+            {
+                if (belleModule)
+                    belleModule->beginToggleAllChoasPoly();
             }
         };
 
@@ -890,6 +941,14 @@ namespace Sapphire
                 addChaosRandomButton();
                 addChaosFreezeButton();
                 addChaosDisplayVoltagesButton();
+                addToggleAllChaosPolyButton();
+            }
+
+            void addToggleAllChaosPolyButton()
+            {
+                auto button = createParamCentered<ChaosTogglePolyButton>(Vec{}, belleModule, CHAOS_TOGGLE_POLY_PARAM);
+                button->belleModule = belleModule;
+                addSapphireParam(button, "chaos_stereo_button");
             }
 
             void addChaosRandomButton()
