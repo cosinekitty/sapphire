@@ -21,6 +21,7 @@ namespace Sapphire
         constexpr unsigned nBatchSize = std::max<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
         constexpr unsigned nChaosOutputChannels = std::min<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
         using fountain_t = ChaosFountain<nBatchSize>;
+        using rand_t = fountain_t::random_t;
         using batch_t = ChaosBatch<nBatchSize>;
 
         enum ParamId
@@ -183,6 +184,9 @@ namespace Sapphire
         };
 
 
+        using shuffle_t = std::array<unsigned, PORT_MAX_CHANNELS>;
+        using shuffle_pool_t = std::array<shuffle_t, PARAMS_LEN>;   // an overabundance of shuffles, allowing array[attenId]
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -192,6 +196,7 @@ namespace Sapphire
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
             unsigned nPolyChannels = 0;
+            shuffle_pool_t chaosShuffleChannelForAtten{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -294,13 +299,36 @@ namespace Sapphire
 
             void initialize()
             {
-                fountain.reset();
+                fountain.reset([this](rand_t& gen)
+                {
+                    // We only need shuffle lists for attenuverters, but we generate
+                    // them for all parameter IDs. This overabundance happens only once.
+                    // It allows us to access the shuffle list as an array lookup for
+                    // any attenuverter ID, which is extremely efficient.
+                    for (unsigned attenId = 0; attenId < PARAMS_LEN; ++attenId)
+                    {
+                        shuffle_t& s = chaosShuffleChannelForAtten.at(attenId);
+                        MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, s);
+                        validateShuffle(s);     // a little unit testing at startup
+                    }
+                });
                 speedChaos = 0;
                 chaosSeedSmoother.initialize();
                 modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 0;
+            }
+
+            static void validateShuffle(const shuffle_t& shuffle)
+            {
+                shuffle_t tally{};
+
+                for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    ++tally.at(shuffle.at(c));
+
+                for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
+                    assert(tally.at(c) == 1);
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -418,19 +446,21 @@ namespace Sapphire
 
             float chaosSignal(int attenId, unsigned channel) const
             {
+                static_assert(CHAOS_MAX_CHANNELS == PORT_MAX_CHANNELS);     // otherwise fix chaos_fountain.hpp
                 const SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
-                return context.chaosVoltage[channel % CHAOS_MAX_CHANNELS];
+                return context.chaosVoltage[channel % PORT_MAX_CHANNELS];
             }
 
             void reportChaosPoly(int attenId, float spread, const batch_t& batch, unsigned offset)
             {
+                const shuffle_t& shuffle = chaosShuffleChannelForAtten.at(attenId);
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
                 context.chaosOffset = offset;
                 const float vneg = batch(offset+0);
                 const float vpos = batch(offset+1);
-                for (unsigned c = 0; c < CHAOS_MAX_CHANNELS; ++c)
+                for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
                 {
-                    const float vc = batch(offset+c);
+                    const float vc = batch(offset+shuffle[c]);
                     if (spread < 0)
                         context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
                     else

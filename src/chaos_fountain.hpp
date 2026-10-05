@@ -58,6 +58,8 @@ namespace Sapphire
         std::array<unsigned, nsignals> permutation{};
 
     public:
+        using random_t = rand_t;    // expose to outside callers
+
         explicit ChaosFountain(uint64_t initSeed)
         {
             reset(initSeed);
@@ -118,9 +120,14 @@ namespace Sapphire
         void reset()
         {
             rand_t gen(seed);
-            randomizeChaoticOscillators(gen);
-            MakePermutation<nsignals, rand_t>(gen, permutation);
-            randomizeRates(gen);
+            reset(gen);
+        }
+
+        void reset(std::function<void(rand_t& gen)> callback)
+        {
+            rand_t gen(seed);
+            reset(gen);
+            callback(gen);
         }
 
         void reset(uint64_t newSeed)
@@ -130,6 +137,13 @@ namespace Sapphire
         }
 
     private:
+        void reset(rand_t& gen)
+        {
+            randomizeChaoticOscillators(gen);
+            MakePermutation<nsignals, rand_t>(gen, permutation);
+            randomizeRates(gen);
+        }
+
         void append(unsigned& n, batch_t& batch, float signal) const
         {
             // After we fill the batch, there will still be 0, 1, or 2 leftover values.
