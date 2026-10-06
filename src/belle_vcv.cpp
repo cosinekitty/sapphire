@@ -17,9 +17,7 @@ namespace Sapphire
 
         constexpr int OctaveRange = 4;            // +/- octave range around default frequency
 
-        constexpr unsigned nChaoticSignals = 14;    // how many attenuverters need separate signals
-        constexpr unsigned nBatchSize = std::max<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
-        constexpr unsigned nChaosOutputChannels = std::min<unsigned>(PORT_MAX_CHANNELS, nChaoticSignals);
+        constexpr unsigned nBatchSize = PORT_MAX_CHANNELS;
         using fountain_t = ChaosFountain<nBatchSize>;
         using rand_t = fountain_t::random_t;
         using batch_t = ChaosBatch<nBatchSize>;
@@ -542,7 +540,7 @@ namespace Sapphire
                 reportChaosPoly(LEVEL_ATTEN,        LEVEL_POLY_BUTTON,      spread, batch, 12);
                 reportChaosPoly(GLIDE_ATTEN,        GLIDE_POLY_BUTTON,      spread, batch, 13);
 
-                sendChaosOutput(spread, batch, 9);
+                sendChaosOutput(spread, batch, 14);
 
                 chaosSeedSmoother.process(sampleRateHz);
                 if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
@@ -582,14 +580,16 @@ namespace Sapphire
                 }
             }
 
-            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset)
+            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nOutputChannels = PORT_MAX_CHANNELS)
             {
+                nOutputChannels = std::clamp<unsigned>(nOutputChannels, 1, PORT_MAX_CHANNELS);
+
                 auto& outChaos = outputs.at(CHAOS_OUTPUT);
-                outChaos.setChannels(nChaosOutputChannels);
+                outChaos.channels = nOutputChannels;
 
                 const float vneg = batch(offset+0);
                 const float vpos = batch(offset+1);
-                for (unsigned c = 0; c < nChaosOutputChannels; ++c)
+                for (unsigned c = 0; c < nOutputChannels; ++c)
                 {
                     const float vc = batch(offset+chaosOutputShuffle[c]) * chaosOutputToggle[c];
                     const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
