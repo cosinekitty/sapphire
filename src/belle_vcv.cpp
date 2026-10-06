@@ -681,8 +681,9 @@ namespace Sapphire
                         outPitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
 
                     outChaos.setChannels(nChaosOutputChannels);
+                    SapphireAttenuverterContext& ac = paramInfo.at(MOD_ATTEN_0 + 3).context;
                     for (unsigned c = 0; c < nChaosOutputChannels; ++c)
-                        outChaos.setVoltage(batch(c), c);
+                        outChaos.setVoltage(ac.chaosVoltage[c], c);
 
                     if (isOutputModePolyphonic())
                     {
