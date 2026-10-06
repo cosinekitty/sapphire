@@ -116,6 +116,13 @@ namespace Sapphire
 
         constexpr unsigned DefaultEngineIndex = 2;
 
+        constexpr float SpreadMix(float spread, float vc, float vneg, float vpos)
+        {
+            return (spread < 0)
+                ? LinearMix(-spread, vc, vneg)
+                : LinearMix(+spread, vc, vpos);
+        }
+
 
         struct GraphWidget : OpaqueWidget
         {
@@ -246,6 +253,8 @@ namespace Sapphire
             unsigned nPolyChannels = 0;
             shuffle_pool_t chaosShuffleChannelForAtten{};
             toggle_pool_t chaosToggleForAtten{};
+            shuffle_t chaosOutputShuffle{};
+            toggle_t chaosOutputToggle{};
 
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
@@ -399,16 +408,20 @@ namespace Sapphire
                         validateShuffle(s);     // a little unit testing at startup
 
                         // Make a series of random [+1, -1] flip factors for this attenuverter.
-                        makeToggle(rbs, attenId);
+                        makeToggle(rbs, chaosToggleForAtten.at(attenId));
                     }
+
+                    // Create a final shuffle/toggle pair for the CHAOS output port.
+                    MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, chaosOutputShuffle);
+                    validateShuffle(chaosOutputShuffle);
+                    makeToggle(rbs, chaosOutputToggle);
                 };
 
                 fountain.reset(callback);
             }
 
-            void makeToggle(randbits_t& rbs, unsigned attenId)
+            void makeToggle(randbits_t& rbs, toggle_t& toggle)
             {
-                toggle_t& toggle = chaosToggleForAtten.at(attenId);
                 for (int& t : toggle)
                     t = rbs.nextRandomBit() ? -1 : +1;
             }
@@ -529,6 +542,8 @@ namespace Sapphire
                 reportChaosPoly(LEVEL_ATTEN,        LEVEL_POLY_BUTTON,      spread, batch, 12);
                 reportChaosPoly(GLIDE_ATTEN,        GLIDE_POLY_BUTTON,      spread, batch, 13);
 
+                sendChaosOutput(spread, batch, 9);
+
                 chaosSeedSmoother.process(sampleRateHz);
                 if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
                 {
@@ -544,14 +559,9 @@ namespace Sapphire
                 return context.chaosVoltage[channel % PORT_MAX_CHANNELS];
             }
 
-            bool isPolyEnabled(int toggleId)
+            void reportChaosPoly(int attenId, int buttonId, float spread, const batch_t& batch, unsigned offset)
             {
-                return isButtonEnabledSafe(toggleId);
-            }
-
-            void reportChaosPoly(int attenId, int toggleId, float spread, const batch_t& batch, unsigned offset)
-            {
-                const bool poly = isPolyEnabled(toggleId);
+                const bool poly = isButtonEnabledSafe(buttonId);
                 const shuffle_t& shuffle = chaosShuffleChannelForAtten.at(attenId);
                 const toggle_t& toggle = chaosToggleForAtten.at(attenId);
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
@@ -563,16 +573,27 @@ namespace Sapphire
                     if (c==0 || poly)
                     {
                         const float vc = batch(offset+shuffle[c]) * toggle[c];
-
-                        if (spread < 0)
-                            context.chaosVoltage[c] = LinearMix(-spread, vc, vneg);
-                        else
-                            context.chaosVoltage[c] = LinearMix(+spread, vc, vpos);
+                        context.chaosVoltage[c] = SpreadMix(spread, vc, vneg, vpos);
                     }
                     else
                     {
                         context.chaosVoltage[c] = context.chaosVoltage[0];
                     }
+                }
+            }
+
+            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset)
+            {
+                auto& outChaos = outputs.at(CHAOS_OUTPUT);
+                outChaos.setChannels(nChaosOutputChannels);
+
+                const float vneg = batch(offset+0);
+                const float vpos = batch(offset+1);
+                for (unsigned c = 0; c < nChaosOutputChannels; ++c)
+                {
+                    const float vc = batch(offset+chaosOutputShuffle[c]) * chaosOutputToggle[c];
+                    const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
+                    outChaos.setVoltage(outVoltage, c);
                 }
             }
 
@@ -679,11 +700,6 @@ namespace Sapphire
                     outPitch.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         outPitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
-
-                    outChaos.setChannels(nChaosOutputChannels);
-                    SapphireAttenuverterContext& ac = paramInfo.at(MOD_ATTEN_0 + 3).context;
-                    for (unsigned c = 0; c < nChaosOutputChannels; ++c)
-                        outChaos.setVoltage(ac.chaosVoltage[c], c);
 
                     if (isOutputModePolyphonic())
                     {
