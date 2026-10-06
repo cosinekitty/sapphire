@@ -2499,6 +2499,8 @@ def GenerateTinyButtonImages() -> int:
         GenerateTinyButton('xyellow', 1, '#585858', '#353535', '#434343', '#353535') or
         GenerateTinyButton('red',     0, '#5e2626', '#632222', '#8a3b3b', '#521b1b') or
         GenerateTinyButton('red',     1, '#f53838', '#ab2424', '#b54747', '#5e2626') or
+        GenerateTinyButton('grey',    0, "#141414", '#353535', "#181813", "#141414") or
+        GenerateTinyButton('grey',    1, "#c6c8da", "#546a8a", "#354362", "#353535") or
         GenerateMultiTapRemoveButton()
     )
 

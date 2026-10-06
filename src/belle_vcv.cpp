@@ -119,8 +119,8 @@ namespace Sapphire
         constexpr float SpreadMix(float spread, float vc, float vneg, float vpos)
         {
             return (spread < 0)
-                ? LinearMix(-spread, vc, vneg)
-                : LinearMix(+spread, vc, vpos);
+                ? LinearMix<float>(-spread, vc, vneg)
+                : LinearMix<float>(+spread, vc, vpos);
         }
 
 
@@ -864,7 +864,8 @@ namespace Sapphire
         {
             explicit PolyButton()
             {
-                addTinyButtonFrames(this, "green");
+                // HISTORICAL MARKER. The very first grey button was used here on 6 Oct 2026.
+                addTinyButtonFrames(this, "grey");
             }
         };
 
