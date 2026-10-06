@@ -196,6 +196,39 @@ namespace Sapphire
         };
 
 
+        struct ChaosPolyRestoreInfo
+        {
+            int64_t moduleId;
+            int buttonParamId;
+            bool oldState;
+            bool newState;
+
+            explicit ChaosPolyRestoreInfo(int64_t _moduleId, int _buttonParamId, bool _oldState, bool _newState)
+                : moduleId(_moduleId)
+                , buttonParamId(_buttonParamId)
+                , oldState(_oldState)
+                , newState(_newState)
+                {}
+        };
+
+
+        struct ToggleAllChaosPolyAction : history::Action
+        {
+            using list_t = std::vector<ChaosPolyRestoreInfo>;
+
+            list_t list;
+
+            explicit ToggleAllChaosPolyAction(const list_t& _list)
+                : list(_list)
+            {
+                name = "toggle all chaos mono/poly";
+            }
+
+            void undo() override;
+            void redo() override;
+        };
+
+
         using shuffle_t = std::array<unsigned, PORT_MAX_CHANNELS>;
         using shuffle_pool_t = std::array<shuffle_t, PARAMS_LEN>;   // an overabundance of shuffles, allowing array[attenId]
 
@@ -761,7 +794,8 @@ namespace Sapphire
                 };
 
                 // FIXFIXFIX #1: add crossover logic for anti-click.
-                // FIXFIXFIX #2: add undo/redo logic.
+
+                std::vector<ChaosPolyRestoreInfo> list;
 
                 unsigned active = 0;
                 for (int buttonId : toggleButtonList)
@@ -770,7 +804,9 @@ namespace Sapphire
 
                 const float opposite = (2*active < toggleButtonList.size()) ? 1 : 0;
                 for (int buttonId : toggleButtonList)
-                    params.at(buttonId).setValue(opposite);
+                    list.push_back(ChaosPolyRestoreInfo(id, buttonId, isButtonEnabled(buttonId), opposite));
+
+                InvokeAction(new ToggleAllChaosPolyAction(list));
             }
         };
 
@@ -1044,6 +1080,22 @@ namespace Sapphire
                     );
                 }
             }
+        }
+
+
+        void ToggleAllChaosPolyAction::redo()
+        {
+            for (const ChaosPolyRestoreInfo& node : list)
+                if (auto bmod = FindSapphireModule<BelleModule>(node.moduleId))
+                    bmod->params.at(node.buttonParamId).setValue(node.newState);
+        }
+
+
+        void ToggleAllChaosPolyAction::undo()
+        {
+            for (const ChaosPolyRestoreInfo& node : list)
+                if (auto bmod = FindSapphireModule<BelleModule>(node.moduleId))
+                    bmod->params.at(node.buttonParamId).setValue(node.oldState);
         }
     }
 }
