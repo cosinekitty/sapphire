@@ -70,6 +70,7 @@ namespace Sapphire
             ENUMS(MOD_POLY_BUTTON_0, 4),
             LEVEL_POLY_BUTTON,
             CHAOS_TOGGLE_POLY_PARAM,
+            CHAOS_OUTPUT_CHANNELS_PARAM,
 
             PARAMS_LEN
         };
@@ -303,6 +304,9 @@ namespace Sapphire
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
 
+                configParam(CHAOS_OUTPUT_CHANNELS_PARAM, 0, PORT_MAX_CHANNELS, 0, "Chaos output channels");
+                paramQuantities.at(CHAOS_OUTPUT_CHANNELS_PARAM)->snapEnabled = true;
+
                 attenuverterChaosOptIn(FREQ_ATTEN,      ChaoticModulation::Polyphonic, 1);
                 attenuverterChaosOptIn(OCT_ATTEN,       ChaoticModulation::Polyphonic, 1);
                 attenuverterChaosOptIn(GLIDE_ATTEN,     ChaoticModulation::Polyphonic, mildSensitivityLevel);
@@ -480,7 +484,7 @@ namespace Sapphire
                 }
             }
 
-            void updateChaos(float sampleRateHz, batch_t& batch)
+            float updateChaos(float sampleRateHz, batch_t& batch)
             {
                 const float speedKnob = getControlValueChaos(
                     CHAOS_SPEED_PARAM,
@@ -540,14 +544,14 @@ namespace Sapphire
                 reportChaosPoly(LEVEL_ATTEN,        LEVEL_POLY_BUTTON,      spread, batch, 12);
                 reportChaosPoly(GLIDE_ATTEN,        GLIDE_POLY_BUTTON,      spread, batch, 13);
 
-                sendChaosOutput(spread, batch, 14);
-
                 chaosSeedSmoother.process(sampleRateHz);
                 if (chaosSeedSmoother.isDelayedActionReady() && seedToRestore)
                 {
                     fountain.reset(seedToRestore);
                     seedToRestore = 0;
                 }
+
+                return spread;
             }
 
             float chaosSignal(int attenId, unsigned channel) const
@@ -580,9 +584,14 @@ namespace Sapphire
                 }
             }
 
-            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nOutputChannels = PORT_MAX_CHANNELS)
+            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nOutputChannels)
             {
-                nOutputChannels = std::clamp<unsigned>(nOutputChannels, 1, PORT_MAX_CHANNELS);
+                nOutputChannels = std::min<unsigned>(nOutputChannels, PORT_MAX_CHANNELS);
+
+                // Allow user to manually override the automatic channel count.
+                const unsigned knob = static_cast<unsigned>(params.at(CHAOS_OUTPUT_CHANNELS_PARAM).getValue());
+                if (knob > 0 && knob <= PORT_MAX_CHANNELS)
+                    nOutputChannels = knob;
 
                 auto& outChaos = outputs.at(CHAOS_OUTPUT);
                 outChaos.channels = nOutputChannels;
@@ -630,8 +639,9 @@ namespace Sapphire
                     PolyStereoVoice& polyEngine = getCurrentEngine();
 
                     batch_t batch;
-                    updateChaos(args.sampleRate, batch);
+                    const float spread = updateChaos(args.sampleRate, batch);
                     speedChaos = batch(10);
+                    sendChaosOutput(spread, batch, 14, nPolyChannels);
 
                     const PitchMode pitchMode = getPitchMode(PITCH_MODE_BUTTON_PARAM);
                     const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
@@ -907,6 +917,7 @@ namespace Sapphire
             {
                 setModule(module);
                 addKnob(MODEL_SELECT_PARAM, "model_select");
+                addKnob<Trimpot>(CHAOS_OUTPUT_CHANNELS_PARAM, "chaos_channels_knob");
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
