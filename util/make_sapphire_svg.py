@@ -2893,6 +2893,10 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(SapphireInsignia(panel, font))
         controls.add('model_select', xBelle(0), yBelle(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))
+        xModelInput = xBelle(0) - 12.0
+        yModelInput = yBelle(0)
+        controls.add('model_input', xModelInput, yModelInput)
+        pl.append(HorizontalLine(xModelInput, xBelle(0), yModelInput))
 
         portDeltaColumn = 0.25
         addPort(-portDeltaColumn, 5, 'gate_input', 'GATE')

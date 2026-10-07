@@ -68,6 +68,7 @@ namespace Sapphire
             {"mod3_cv",                { 107.840,   76.400}},
             {"mod3_knob",              { 125.840,   76.400}},
             {"mod3_poly_button",       { 116.840,   82.900}},
+            {"model_input",            {   8.320,   20.000}},
             {"model_lower_right",      {  30.320,   37.000}},
             {"model_select",           {  20.320,   20.000}},
             {"model_upper_left",       {  10.320,   29.000}},

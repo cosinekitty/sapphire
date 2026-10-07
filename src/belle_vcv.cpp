@@ -92,6 +92,7 @@ namespace Sapphire
             GLIDE_CV_INPUT,
             LEVEL_CV_INPUT,
             CHAOS_SPREAD_CV_INPUT,
+            MODEL_INPUT,
 
             INPUTS_LEN
         };
@@ -275,6 +276,7 @@ namespace Sapphire
 
                 configInput(GATE_INPUT, "Gate");
                 configInput(PITCH_INPUT, "Pitch (V/OCT)");
+                configInput(MODEL_INPUT, "Model CV");
 
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch");
@@ -466,7 +468,11 @@ namespace Sapphire
 
             void updateSelectedEngine(float sampleRateHz)
             {
-                const unsigned targetEngineIndex = static_cast<unsigned>(params.at(MODEL_SELECT_PARAM).getValue());
+                float z =
+                    params.at(MODEL_SELECT_PARAM).getValue() +
+                    5 * inputs.at(MODEL_INPUT).getVoltageSum();
+
+                const unsigned targetEngineIndex = MOD(std::round(z), engineCount());
                 const bool changing = (targetEngineIndex != currentEngineIndex);
 
                 if (modelChangeSmoother.isStable() && changing)
@@ -920,6 +926,7 @@ namespace Sapphire
                 addKnob<Trimpot>(CHAOS_OUTPUT_CHANNELS_PARAM, "chaos_channels_knob");
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(PITCH_INPUT, "pitch_input");
+                addSapphireInput(MODEL_INPUT, "model_input");
                 addSapphireOutput(AUDIO_LEFT_OUTPUT, "audio_left_output");
                 addSapphireOutput(AUDIO_RIGHT_OUTPUT, "audio_right_output");
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
