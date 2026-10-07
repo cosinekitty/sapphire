@@ -468,11 +468,9 @@ namespace Sapphire
 
             void updateSelectedEngine(float sampleRateHz)
             {
-                float z =
-                    params.at(MODEL_SELECT_PARAM).getValue() +
-                    5 * inputs.at(MODEL_INPUT).getVoltageSum();
-
-                const unsigned targetEngineIndex = MOD(std::round(z), engineCount());
+                const float knob = params.at(MODEL_SELECT_PARAM).getValue();
+                const float cv = inputs.at(MODEL_INPUT).getVoltageSum();
+                const unsigned targetEngineIndex = MOD(std::round(knob + cv), engineCount());
                 const bool changing = (targetEngineIndex != currentEngineIndex);
 
                 if (modelChangeSmoother.isStable() && changing)
