@@ -237,10 +237,15 @@ namespace Sapphire
 
 
         using shuffle_t = std::array<unsigned, PORT_MAX_CHANNELS>;
-        using shuffle_pool_t = std::array<shuffle_t, PARAMS_LEN>;   // an overabundance of shuffles, allowing array[attenId]
+        using toggle_t  = std::array<int, PORT_MAX_CHANNELS>;
 
-        using toggle_t = std::array<int, PORT_MAX_CHANNELS>;
-        using toggle_pool_t = std::array<toggle_t, PARAMS_LEN>;
+        struct ChaosTransform
+        {
+            shuffle_t   shuffle{};
+            toggle_t    toggle{};
+        };
+
+        using transform_pool_t = std::array<ChaosTransform, PARAMS_LEN>;
 
         struct BelleModule : SapphireModule
         {
@@ -251,11 +256,8 @@ namespace Sapphire
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
             unsigned nPolyChannels = 0;
-            shuffle_pool_t chaosShuffleChannelForAtten{};
-            toggle_pool_t chaosToggleForAtten{};
-            shuffle_t chaosOutputShuffle{};
-            toggle_t chaosOutputToggle{};
-
+            transform_pool_t transformForAtten{};
+            ChaosTransform chaosOutputTransform;
             AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
@@ -398,30 +400,22 @@ namespace Sapphire
             {
                 auto callback = [this](rand_t& gen) -> void
                 {
-                    // We only need shuffle lists for attenuverters, but we generate
-                    // them for all parameter IDs. This overabundance happens only once.
-                    // It allows us to access the shuffle list as an array lookup for
-                    // any attenuverter ID, which is extremely efficient.
-
                     randbits_t rbs(gen);
+
                     for (unsigned attenId = 0; attenId < PARAMS_LEN; ++attenId)
-                    {
-                        // Generate a shuffle table for this attenuverter.
-                        shuffle_t& s = chaosShuffleChannelForAtten.at(attenId);
-                        MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, s);
-                        validateShuffle(s);     // a little unit testing at startup
+                        resetTransform(gen, rbs, transformForAtten.at(attenId));
 
-                        // Make a series of random [+1, -1] flip factors for this attenuverter.
-                        makeToggle(rbs, chaosToggleForAtten.at(attenId));
-                    }
-
-                    // Create a final shuffle/toggle pair for the CHAOS output port.
-                    MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, chaosOutputShuffle);
-                    validateShuffle(chaosOutputShuffle);
-                    makeToggle(rbs, chaosOutputToggle);
+                    resetTransform(gen, rbs, chaosOutputTransform);
                 };
 
                 fountain.reset(callback);
+            }
+
+            void resetTransform(rand_t& gen, randbits_t& rbs, ChaosTransform& xform)
+            {
+                MakePermutation<PORT_MAX_CHANNELS, rand_t>(gen, xform.shuffle);
+                validateShuffle(xform.shuffle);     // a little unit testing at startup
+                makeToggle(rbs, xform.toggle);
             }
 
             void makeToggle(randbits_t& rbs, toggle_t& toggle)
@@ -568,8 +562,7 @@ namespace Sapphire
             void reportChaosPoly(int attenId, int buttonId, float spread, const batch_t& batch, unsigned offset)
             {
                 const bool poly = isButtonEnabledSafe(buttonId);
-                const shuffle_t& shuffle = chaosShuffleChannelForAtten.at(attenId);
-                const toggle_t& toggle = chaosToggleForAtten.at(attenId);
+                const ChaosTransform& xform = transformForAtten.at(attenId);
                 SapphireAttenuverterContext& context = paramInfo.at(attenId).context;
                 context.chaosOffset = offset;
                 const float vneg = batch(offset+0);
@@ -578,7 +571,7 @@ namespace Sapphire
                 {
                     if (c==0 || poly)
                     {
-                        const float vc = batch(offset+shuffle[c]) * toggle[c];
+                        const float vc = batch(offset+xform.shuffle[c]) * xform.toggle[c];
                         context.chaosVoltage[c] = SpreadMix(spread, vc, vneg, vpos);
                     }
                     else
@@ -604,7 +597,7 @@ namespace Sapphire
                 const float vpos = batch(offset+1);
                 for (unsigned c = 0; c < nOutputChannels; ++c)
                 {
-                    const float vc = batch(offset+chaosOutputShuffle[c]) * chaosOutputToggle[c];
+                    const float vc = batch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
                     const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
                     outChaos.setVoltage(outVoltage, c);
                 }
