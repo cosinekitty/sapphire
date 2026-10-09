@@ -262,6 +262,7 @@ namespace Sapphire
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
+            AdsrVoiceEngine<WindEngine> polyWind{"wind", "Detune", "Wnd2", "Wnd3", "Wnd4"};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
@@ -273,6 +274,7 @@ namespace Sapphire
                 polyEngineList.push_back(&polyTriangle);
                 polyEngineList.push_back(&polySaw);
                 polyEngineList.push_back(&polySquare);
+                polyEngineList.push_back(&polyWind);
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 

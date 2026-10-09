@@ -74,6 +74,12 @@ namespace Sapphire
         return (1-mix)*dry + mix*wet;
     }
 
+    template <typename value_t>
+    constexpr value_t Remap(value_t x, value_t x1, value_t x2, value_t y1, value_t y2)
+    {
+        return LinearMix<value_t>((x-x1)/(x2-x1), y1, y2);
+    }
+
     template <typename real_t>
     constexpr real_t BicubicLimiter(real_t x, real_t yLimit)
     {

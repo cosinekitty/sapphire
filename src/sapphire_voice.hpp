@@ -4,6 +4,7 @@
 #include <cmath>
 #include "sapphire_gate_trigger.hpp"
 #include "sapphire_engine.hpp"
+#include "sapphire_random.hpp"
 
 namespace Sapphire
 {
@@ -12,19 +13,10 @@ namespace Sapphire
     constexpr float VOICE_OCTAVE_SPAN = 4.5;       // +/- this many octaves from C4 center (match VCV VCO range)
     constexpr float PEAK_VOLTS = 5;
 
-
-    inline float MapParameter(float value, float oldMin, float oldMax, float newMin, float newMax)
+    constexpr float MapKnob(float x, float y1, float y2)
     {
-        const float u = std::clamp<float>((value - oldMin) / (oldMax - oldMin), 0, 1);
-        return newMin + u*(newMax - newMin);
+        return Remap<float>(x, -1, +1, y1, y2);
     }
-
-
-    inline float MapKnob(float knob, float newMin, float newMax)
-    {
-        return MapParameter(knob, -1, +1, newMin, newMax);
-    }
-
 
     struct StereoFrame
     {
@@ -130,6 +122,7 @@ namespace Sapphire
         PitchTracker trackerPitch;
         PitchTracker trackerFreq;
         PitchTracker trackerOct;
+        std::mt19937_64 rand{rack::random::u64()};
 
         explicit VoiceContext()
         {
@@ -189,7 +182,7 @@ namespace Sapphire
             return TenToPower(2*knob - 1);
         }
 
-        double process(float sampleRateHz, const VoiceContext &context);
+        double process(float sampleRateHz, VoiceContext &context);
     };
 
 
@@ -202,10 +195,16 @@ namespace Sapphire
     };
 
 
+    inline float InstantFrequency(const VoiceContext& context, const MonoSideInfo& side)
+    {
+        return context.getFrequency() * side.detuneFactor;
+    }
+
+
     inline float DeltaPhase(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
     {
         // Return change in 0 <= phase <= 1 over expressed in fractional periods/sample.
-        return (context.getFrequency() * side.detuneFactor) / sampleRateHz;
+        return InstantFrequency(context, side) / sampleRateHz;
     }
 
 
@@ -219,8 +218,8 @@ namespace Sapphire
         bool supportsDistortion = false;
 
         virtual void initialize() = 0;
-        virtual float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) = 0;
-        float blepSquare(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side);
+        virtual float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
+        float blepSquare(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
     };
 
 
@@ -231,7 +230,7 @@ namespace Sapphire
             supportsDistortion = true;
         }
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -245,21 +244,38 @@ namespace Sapphire
         }
 
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SquareEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side) override;
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+    };
+
+
+    struct WindEngine : MonoVoiceEngine
+    {
+        CascadeStateVariableFilter<float,3> filter;
+        std::normal_distribution<float> dist {0.0f, 1.0f};
+
+        explicit WindEngine()
+        {
+            filter.initialize();
+            filter.mask = NEED_BP;
+            filter.setCascade(3);
+        }
+
+        void initialize() override;
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -352,7 +368,7 @@ namespace Sapphire
                 return y * headroom;
             }
 
-            StereoFrame process(float sampleRateHz, const VoiceContext& context)
+            StereoFrame process(float sampleRateHz, VoiceContext& context)
             {
                 // Calculate detune.
                 const float m = context.mod[0];

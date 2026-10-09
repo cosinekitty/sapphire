@@ -2,7 +2,7 @@
 
 namespace Sapphire
 {
-    double AdsrEnvelope::process(float sampleRateHz, const VoiceContext &context)
+    double AdsrEnvelope::process(float sampleRateHz, VoiceContext &context)
     {
         const bool gate = context.gateTriggerReceiver.isGateActive();
 
@@ -83,7 +83,7 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    float MonoVoiceEngine::blepSquare(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
+    float MonoVoiceEngine::blepSquare(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         // IMPORTANT: This function is used directly for square waves,
         // and integrated with respect to time for triangle waves.
@@ -140,7 +140,7 @@ namespace Sapphire
     }
 
 
-    float SineEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
+    float SineEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         phase += DeltaPhase(sampleRateHz, context, side);
         if (phase >= 1)
@@ -158,7 +158,7 @@ namespace Sapphire
     }
 
 
-    float SawEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
+    float SawEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         const float delta = DeltaPhase(sampleRateHz, context, side);
         phase += delta;
@@ -182,7 +182,7 @@ namespace Sapphire
     }
 
 
-    float TriangleEngine::process(float sampleRateHz, const VoiceContext &context, const MonoSideInfo& side)
+    float TriangleEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         const float delta = blepSquare(sampleRateHz, context, side);
 
@@ -207,11 +207,30 @@ namespace Sapphire
     }
 
 
-    float SquareEngine::process(float sampleRateHz, const VoiceContext& context, const MonoSideInfo& side)
+    float SquareEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
     {
         blepSquare(sampleRateHz, context, side);
         static constexpr float amplitude = PEAK_VOLTS / 1.4;    // empirical DECREASE of volume to match sine p/p
         return amplitude * square;
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    void WindEngine::initialize()
+    {
+        filter.initialize();
+    }
+
+
+    float WindEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
+    {
+        const float resknob = context.mod[1];
+        const float frequency = InstantFrequency(context, side);
+        const float x = dist(context.rand);
+        const float resonance = MapKnob(resknob, 0.3, 0.7);
+        const float y = filter.process(sampleRateHz, frequency, resonance, x).bandpass;
+        const float gain = std::min<float>(8, TenToPower<float>(1.4*(1-resknob) - 1.75));
+        return y * gain;
     }
 
     //--------------------------------------------------------------------------------------------------
