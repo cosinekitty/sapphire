@@ -350,21 +350,23 @@ namespace Sapphire
                 static constexpr float margin = 0.001;
                 static constexpr float fade = 0.1;
                 static constexpr float headroom = PEAK_VOLTS * 1.05;
-                float x = v / headroom;
-                float y = x;
-                if (left.supportsDistortion)
-                {
-                    const float dabs = std::abs(d);
-                    const float dilate = 1 + 5*dabs;
-                    if (d < -margin)
-                        y = std::tanh(x*dilate);
-                    else if (d > +margin)
-                        y = BicubicLimiter<float>(x*dilate, 1);
 
-                    const float u = (dabs - margin) / (fade - margin);
-                    if (u >= 0 && u <= 1)
-                        y = LinearMix<float>(u, x, y);
-                }
+                const float dabs = std::abs(d);
+                if (!left.supportsDistortion || (dabs <= margin))
+                    return v;
+
+                const float x = v / headroom;
+                const float dilate = 1 + 5*dabs;
+
+                float y;
+                if (d < -margin)
+                    y = std::tanh(x*dilate);
+                else
+                    y = BicubicLimiter<float>(x*dilate, 1);
+
+                const float u = (dabs - margin) / (fade - margin);
+                if (u >= 0 && u <= 1)
+                    y = LinearMix<float>(u, x, y);
                 return y * headroom;
             }
 
