@@ -7,20 +7,22 @@
 ./verify_clean || exit 1
 ./prebuild || exit 1
 
-RETRY_SECONDS=5
-for attempt in $(seq 1 3); do
-    if python3 rack-manifest-validator.py ../.. -p sapphire; then
-        break
-    else
-        if [[ $attempt < 3 ]]; then
-            echo "Retrying in ${RETRY_SECONDS} seconds..."
-            sleep ${RETRY_SECONDS}
+if [[ "$1" != "skipjson" ]]; then
+    RETRY_SECONDS=5
+    for attempt in $(seq 1 3); do
+        if python3 rack-manifest-validator.py ../.. -p sapphire; then
+            break
         else
-            echo "Exhausted retries."
-            exit 1
+            if [[ $attempt < 3 ]]; then
+                echo "Retrying in ${RETRY_SECONDS} seconds..."
+                sleep ${RETRY_SECONDS}
+            else
+                echo "Exhausted retries."
+                exit 1
+            fi
         fi
-    fi
-done
+    done
+fi
 
 ./verify_clean || exit 1
 cd ..
