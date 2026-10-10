@@ -262,7 +262,7 @@ namespace Sapphire
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
-            AdsrVoiceEngine<WindEngine> polyWind{"wind", "Detune", "Wnd2", "Wnd3", "Wnd4"};
+            AdsrVoiceEngine<WindEngine> polyWind{"wind", "Detune", "Resonance", "Wnd3", "Wnd4"};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
@@ -435,6 +435,14 @@ namespace Sapphire
 
                 for (unsigned c = 0; c < PORT_MAX_CHANNELS; ++c)
                     assert(tally.at(c) == 1);
+            }
+
+            std::vector<std::string> getEngineNames() const
+            {
+                std::vector<std::string> list;
+                for (PolyStereoVoice* voice : polyEngineList)
+                    list.push_back(voice->name);
+                return list;
             }
 
             PolyStereoVoice& getCurrentEngine() const
@@ -1073,20 +1081,15 @@ namespace Sapphire
 
             void addOverlays()
             {
-                const std::vector<std::string> engineNameList
+                if (belleModule)
                 {
-                    "sine",
-                    "triangle",
-                    "saw",
-                    "square",
-                };
-
-                for (const std::string& engine : engineNameList)
-                {
-                    SvgOverlay* layer = SvgOverlay::Load("res/belle_overlay_" + engine + ".svg");
-                    addChild(layer);
-                    layer->hide();
-                    labelOverlayList.push_back(BelleOverlayInfo(engine, layer));
+                    for (const std::string& engine : belleModule->getEngineNames())
+                    {
+                        SvgOverlay* layer = SvgOverlay::Load("res/belle_overlay_" + engine + ".svg");
+                        addChild(layer);
+                        layer->hide();
+                        labelOverlayList.push_back(BelleOverlayInfo(engine, layer));
+                    }
                 }
             }
         };
