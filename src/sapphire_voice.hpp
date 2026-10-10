@@ -266,6 +266,7 @@ namespace Sapphire
     {
         CascadeStateVariableFilter<float,3> filter;
         std::normal_distribution<float> dist {0.0f, 1.0f};
+        float resknob = -1;
 
         explicit WindEngine()
         {

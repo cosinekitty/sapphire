@@ -798,6 +798,12 @@ namespace Sapphire
             bandpass = 0;
             lowpass = 0;
             v3 = 0;
+            a1 = 0;
+            a2 = 0;
+            a3 = 0;
+            prevFreqRatio = -1;
+            prevResonance = -1;
+            k = 0;
         }
 
         FilterResult<value_t> process(float sampleRateHz, float cornerFreqHz, float resonance, const value_t& input)
@@ -858,13 +864,11 @@ namespace Sapphire
 
         void initialize()
         {
-            cascade = 1;
             firstStage.initialize();
             for (filter_t& f : lpStage)  f.initialize();
             for (filter_t& f : bpStage)  f.initialize();
             for (filter_t& f : hpStage)  f.initialize();
             for (filter_t& f : nxStage)  f.initialize();
-            mask = NEED_ALL;
         }
 
         void setCascade(const value_t& newCascade)

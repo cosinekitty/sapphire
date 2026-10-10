@@ -219,15 +219,21 @@ namespace Sapphire
     void WindEngine::initialize()
     {
         filter.initialize();
+        resknob = -1;
     }
 
 
     float WindEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
     {
-        const float resknob = context.mod[1];
+        static constexpr float threshold = 0.1;
+        const float movement = std::abs(resknob - context.mod[1]);
+        resknob = context.mod[1];
+        if (context.gateTriggerReceiver.isTriggerActive() || (movement > threshold))
+            filter.initialize();
+
+        const float resonance = MapKnob(resknob, 0.3, 0.7);
         const float frequency = InstantFrequency(context, side);
         const float x = dist(context.rand);
-        const float resonance = MapKnob(resknob, 0.3, 0.7);
         const float y = filter.process(sampleRateHz, frequency, resonance, x).bandpass;
         const float gain = std::min<float>(8, TenToPower<float>(1.4*(1-resknob) - 1.75));
         return y * gain;
