@@ -306,10 +306,10 @@ namespace Sapphire
                 configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
                 configControlGroup("Output level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
 
-                configControlGroup("", MOD_PARAM_0 + 0, MOD_ATTEN_0 + 0, MOD_CV_INPUT_0 + 0, -1, +1,  0);
-                configControlGroup("", MOD_PARAM_0 + 1, MOD_ATTEN_0 + 1, MOD_CV_INPUT_0 + 1, -1, +1,  0);
-                configControlGroup("", MOD_PARAM_0 + 2, MOD_ATTEN_0 + 2, MOD_CV_INPUT_0 + 2, -1, +1,  0);
-                configControlGroup("", MOD_PARAM_0 + 3, MOD_ATTEN_0 + 3, MOD_CV_INPUT_0 + 3, -1, +1, +1);   // special case default for LP filter
+                configControlGroup("", MOD_PARAM_0 + 0, MOD_ATTEN_0 + 0, MOD_CV_INPUT_0 + 0,  0, +1,  0.5);     // ADSR: detune
+                configControlGroup("", MOD_PARAM_0 + 1, MOD_ATTEN_0 + 1, MOD_CV_INPUT_0 + 1, -1, +1,  0  );
+                configControlGroup("", MOD_PARAM_0 + 2, MOD_ATTEN_0 + 2, MOD_CV_INPUT_0 + 2, -1, +1,  0  );
+                configControlGroup("", MOD_PARAM_0 + 3, MOD_ATTEN_0 + 3, MOD_CV_INPUT_0 + 3, -1, +1, +1  );     // ADSR: lowpass filter cutoff freq
 
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
