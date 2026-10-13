@@ -338,12 +338,16 @@ namespace Sapphire
             mono_engine_t left;
             mono_engine_t right;
             AdsrEnvelope  envelope;
+            StateVariableFilter<float> lopass[2];
+            float lpResonance = 0.3;
 
             void initialize()
             {
                 left.initialize();
                 right.initialize();
                 envelope.initialize();
+                lopass[0].initialize();
+                lopass[1].initialize();
             }
 
             float distortion(float v, float d)
@@ -398,6 +402,10 @@ namespace Sapphire
                 float R = env * right.process(sampleRateHz, context, rightSide);
                 L = distortion(L, context.mod[1]);
                 R = distortion(R, context.mod[1]);
+                static constexpr float OctaveRange = 4;     // keep in sync with belle_vcv.cpp
+                const float lopassCornerFreqHz = std::exp2(context.mod[3] * OctaveRange) * C4_FREQUENCY_HZ;
+                L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, L).lowpass;
+                R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, R).lowpass;
                 const PanningFactors pf = Panning(context.pan);
                 return StereoFrame(pf.left*L, pf.right*R);
             }

@@ -258,11 +258,13 @@ namespace Sapphire
             unsigned nPolyChannels = 0;
             transform_pool_t transformForAtten{};
             ChaosTransform chaosOutputTransform;
-            AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Distortion", "Sin2", "Sin3"};
-            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "Tri1", "Tri2", "Tri3"};
-            AdsrVoiceEngine<SawEngine> polySaw{"saw", "Detune", "Saw1", "Saw2", "Saw3"};
-            AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Sqr2", "Sqr3"};
-            AdsrVoiceEngine<WindEngine> polyWind{"wind", "Detune", "Resonance", "Wnd3", "Wnd4"};
+            const char *detuneName = "Detune";
+            const char *lowpassName = "Lowpass cutoff";
+            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, "Distortion", "Sin2", lowpassName};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, "Tri1", "Tri2", lowpassName};
+            AdsrVoiceEngine<SawEngine> polySaw{"saw", detuneName, "Saw1", "Saw2", lowpassName};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, "PWM", "Sqr2", lowpassName};
+            AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, "Resonance", "Wnd3", lowpassName};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
@@ -304,8 +306,10 @@ namespace Sapphire
                 configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
                 configControlGroup("Output level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
 
-                for (int m = 0; m < 4; ++m)
-                    configControlGroup("", MOD_PARAM_0 + m, MOD_ATTEN_0 + m, MOD_CV_INPUT_0 + m);
+                configControlGroup("", MOD_PARAM_0 + 0, MOD_ATTEN_0 + 0, MOD_CV_INPUT_0 + 0, -1, +1,  0);
+                configControlGroup("", MOD_PARAM_0 + 1, MOD_ATTEN_0 + 1, MOD_CV_INPUT_0 + 1, -1, +1,  0);
+                configControlGroup("", MOD_PARAM_0 + 2, MOD_ATTEN_0 + 2, MOD_CV_INPUT_0 + 2, -1, +1,  0);
+                configControlGroup("", MOD_PARAM_0 + 3, MOD_ATTEN_0 + 3, MOD_CV_INPUT_0 + 3, -1, +1, +1);   // special case default for LP filter
 
                 configParam(MODEL_SELECT_PARAM, 0, engineCount()-1, DefaultEngineIndex, "Model");
                 paramQuantities.at(MODEL_SELECT_PARAM)->snapEnabled = true;
