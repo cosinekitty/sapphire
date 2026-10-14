@@ -260,7 +260,7 @@ namespace Sapphire
             ChaosTransform chaosOutputTransform;
             const char *detuneName = "Detune";
             const char *lowpassName = "Lowpass cutoff";
-            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, "Distortion", "Sin2", lowpassName};
+            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, "Saturation", "Sin2", lowpassName};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, "Tri1", "Tri2", lowpassName};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", detuneName, "Saw1", "Saw2", lowpassName};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, "PWM", "Sqr2", lowpassName};
