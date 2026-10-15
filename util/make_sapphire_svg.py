@@ -2959,7 +2959,7 @@ def GenerateBelleOverlay(engineName:str, m0:str, m1:str, m2:str, m3:str) -> int:
 def GenerateBelleEngineOverlays() -> int:
     return (
         #                     engine       mod[0]       mod[1]      mod[2]     mod[3]
-        GenerateBelleOverlay('sine'     , 'DETUNE'  ,  'SAT'    ,  ''      ,  'LP' ) or
+        GenerateBelleOverlay('sine'     , 'DETUNE'  ,  'SAT'    ,  'FDBK'  ,  'LP' ) or
         GenerateBelleOverlay('triangle' , 'DETUNE'  ,  ''       ,  ''      ,  'LP' ) or
         GenerateBelleOverlay('saw'      , 'DETUNE'  ,  ''       ,  ''      ,  'LP' ) or
         GenerateBelleOverlay('square'   , 'DETUNE'  ,  'PWM'    ,  ''      ,  'LP' ) or

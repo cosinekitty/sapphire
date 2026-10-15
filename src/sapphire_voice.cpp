@@ -137,17 +137,25 @@ namespace Sapphire
     void SineEngine::initialize()
     {
         phase = 0;
+        y1 = 0;
+        y2 = 0;
     }
 
 
     float SineEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
+        static constexpr float twopi = 2*M_PI;
+
         phase += DeltaPhase(sampleRateHz, context, side);
         if (phase >= 1)
             phase -= 1;
 
-        static constexpr float twopi = 2*M_PI;
-        return PEAK_VOLTS * std::sin(twopi * phase);
+        const float beta = 0.25f * context.mod[2];
+        const float angle = phase + beta*(y1+y2);
+        y2 = y1;
+        y1 = std::sin(twopi * angle);
+
+        return PEAK_VOLTS * y1;
     }
 
     //--------------------------------------------------------------------------------------------------

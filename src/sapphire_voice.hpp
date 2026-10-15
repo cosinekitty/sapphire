@@ -215,7 +215,7 @@ namespace Sapphire
         bool prevState = false;
         blep_t blep;                // for anti-aliasing discontinuities between samples
         bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
-        bool supportsDistortion = false;
+        bool supportsSaturation = false;
 
         virtual void initialize() = 0;
         virtual float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
@@ -225,9 +225,11 @@ namespace Sapphire
 
     struct SineEngine : MonoVoiceEngine
     {
+        float y1{};
+        float y2{};
         explicit SineEngine()
         {
-            supportsDistortion = true;
+            supportsSaturation = true;
         }
         void initialize() override;
         float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
@@ -350,14 +352,14 @@ namespace Sapphire
                 lopass[1].initialize();
             }
 
-            float distortion(float v, float d)
+            float saturation(float v, float d)
             {
                 static constexpr float margin = 0.001;
                 static constexpr float fade = 0.1;
                 static constexpr float headroom = PEAK_VOLTS * 1.05;
 
                 const float dabs = std::abs(d);
-                if (!left.supportsDistortion || (dabs <= margin))
+                if (!left.supportsSaturation || (dabs <= margin))
                     return v;
 
                 const float x = v / headroom;
@@ -400,8 +402,8 @@ namespace Sapphire
 
                 float L = env * left .process(sampleRateHz, context, leftSide);
                 float R = env * right.process(sampleRateHz, context, rightSide);
-                L = distortion(L, context.mod[1]);
-                R = distortion(R, context.mod[1]);
+                L = saturation(L, context.mod[1]);
+                R = saturation(R, context.mod[1]);
                 static constexpr float OctaveRange = 4;     // keep in sync with belle_vcv.cpp
                 const float lopassCornerFreqHz = std::exp2(context.mod[3] * OctaveRange) * C4_FREQUENCY_HZ;
                 L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, L).lowpass;
