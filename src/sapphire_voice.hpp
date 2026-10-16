@@ -374,13 +374,12 @@ namespace Sapphire
                     return v;
 
                 const float x = v / headroom;
-                const float dilate = 1 + 5*dabs;
-
+                const float k = 1 + 5*dabs;
                 float y;
-                if (d < -margin)
-                    y = std::tanh(x*dilate) / std::tanh(dilate);
+                if (d > +margin)
+                    y = std::tanh(k*x) / std::tanh(k);
                 else
-                    y = BicubicLimiter<float>(x*dilate, 1);
+                    y = std::sin(k*x);
 
                 const float u = (dabs - margin) / (fade - margin);
                 if (u >= 0 && u <= 1)
