@@ -378,7 +378,7 @@ namespace Sapphire
 
                 float y;
                 if (d < -margin)
-                    y = std::tanh(x*dilate);
+                    y = std::tanh(x*dilate) / std::tanh(dilate);
                 else
                     y = BicubicLimiter<float>(x*dilate, 1);
 
