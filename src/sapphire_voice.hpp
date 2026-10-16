@@ -2,6 +2,7 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include "rack.hpp"
 #include "sapphire_gate_trigger.hpp"
 #include "sapphire_engine.hpp"
 #include "sapphire_random.hpp"
@@ -208,6 +209,11 @@ namespace Sapphire
     }
 
 
+    constexpr unsigned VoiceOversample = 4;
+    constexpr unsigned VoiceQuality = 32;
+    using decimator_t = rack::dsp::Decimator<VoiceOversample, VoiceQuality, float>;
+
+
     struct MonoVoiceEngine
     {
         float phase = 0;            // 0 <= phase < 1
@@ -216,10 +222,14 @@ namespace Sapphire
         blep_t blep;                // for anti-aliasing discontinuities between samples
         bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
         bool supportsSaturation = false;
+        bool usesOversampling = false;
+        decimator_t decimator;
 
         virtual void initialize() = 0;
-        virtual float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
+        virtual float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
         float blepSquare(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
+
+        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
     };
 
 
@@ -230,9 +240,10 @@ namespace Sapphire
         explicit SineEngine()
         {
             supportsSaturation = true;
+            usesOversampling = true;
         }
         void initialize() override;
-        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+        float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -246,21 +257,21 @@ namespace Sapphire
         }
 
         void initialize() override;
-        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+        float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+        float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SquareEngine : MonoVoiceEngine
     {
         void initialize() override;
-        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+        float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
@@ -278,7 +289,7 @@ namespace Sapphire
         }
 
         void initialize() override;
-        float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
+        float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 

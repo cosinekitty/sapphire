@@ -132,6 +132,18 @@ namespace Sapphire
         return delta;   // for convenience of triangle caller
     }
 
+    float MonoVoiceEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
+    {
+        if (usesOversampling)
+        {
+            std::array<float, VoiceOversample> buffer;
+            for (float& y : buffer)
+                y = update(sampleRateHz * VoiceOversample, context, side);
+            return decimator.process(buffer.data());
+        }
+        return update(sampleRateHz, context, side);
+    }
+
     //--------------------------------------------------------------------------------------------------
 
     void SineEngine::initialize()
@@ -139,10 +151,11 @@ namespace Sapphire
         phase = 0;
         y1 = 0;
         y2 = 0;
+        decimator.reset();
     }
 
 
-    float SineEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
+    float SineEngine::update(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         static constexpr float twopi = 2*M_PI;
 
@@ -166,7 +179,7 @@ namespace Sapphire
     }
 
 
-    float SawEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
+    float SawEngine::update(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         const float delta = DeltaPhase(sampleRateHz, context, side);
         phase += delta;
@@ -190,7 +203,7 @@ namespace Sapphire
     }
 
 
-    float TriangleEngine::process(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
+    float TriangleEngine::update(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         const float delta = blepSquare(sampleRateHz, context, side);
 
@@ -215,7 +228,7 @@ namespace Sapphire
     }
 
 
-    float SquareEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
+    float SquareEngine::update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
     {
         blepSquare(sampleRateHz, context, side);
         static constexpr float amplitude = PEAK_VOLTS / 1.4;    // empirical DECREASE of volume to match sine p/p
@@ -231,7 +244,7 @@ namespace Sapphire
     }
 
 
-    float WindEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
+    float WindEngine::update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
     {
         static constexpr float threshold = 0.1;
         const float movement = std::abs(resknob - context.mod[1]);
