@@ -294,7 +294,7 @@ namespace Sapphire
                 configPitchModeButton(FREQ_MODE_BUTTON_PARAM,  "Frequency tracker");
                 configPitchModeButton(OCT_MODE_BUTTON_PARAM,   "Octave tracker");
 
-                configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0);
+                configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0, " Hz", 2, C4_FREQUENCY_HZ);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
                 paramQuantities.at(OCT_PARAM)->snapEnabled = true;
 
