@@ -300,10 +300,10 @@ namespace Sapphire
 
                 configControlGroup("Pitch glide (portamento)", GLIDE_PARAM, GLIDE_ATTEN, GLIDE_CV_INPUT, -2, +1, -1, " sec/oct", 10);
                 configControlGroup("Panning", PAN_PARAM, PAN_ATTEN, PAN_CV_INPUT, -1, +1, 0, "%", 0, 100);
-                configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT);
-                configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT);
+                configControlGroup("Attack", ATTACK_PARAM, ATTACK_ATTEN, ATTACK_CV_INPUT, -1, +1, 0, " ms", 100, 100);
+                configControlGroup("Decay", DECAY_PARAM, DECAY_ATTEN, DECAY_CV_INPUT, -1, +1, 0, " ms", 100, 100);
                 configControlGroup("Sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, 0, 1, 0.5, "%", 0, 100);
-                configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
+                configControlGroup("Release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT, -1, +1, 0, " ms", 100, 100);
                 configControlGroup("Output level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT, 0, 2, 1, " dB", -10, 20*3);
 
                 configControlGroup("", MOD_PARAM_0 + 0, MOD_ATTEN_0 + 0, MOD_CV_INPUT_0 + 0,  0, +1,  0.5);     // ADSR: detune
