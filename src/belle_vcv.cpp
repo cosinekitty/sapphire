@@ -644,7 +644,7 @@ namespace Sapphire
                 auto& outPitch = outputs.at(PITCH_OUTPUT);
                 auto& outChaos = outputs.at(CHAOS_OUTPUT);
 
-                nPolyChannels = numOutputChannels(INPUTS_LEN, 0);
+                nPolyChannels = numOutputChannels(0, {GATE_INPUT, PITCH_INPUT});
                 if (nPolyChannels > 0)
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
@@ -722,7 +722,7 @@ namespace Sapphire
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         outPitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
 
-                    if (isOutputModePolyphonic())
+                    if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
                     {
                         outLeft.setChannels(nPolyChannels);
                         outRight.setChannels(nPolyChannels);
@@ -761,11 +761,6 @@ namespace Sapphire
             {
                 output.setChannels(1);
                 output.setVoltage(0, 0);
-            }
-
-            bool isOutputModePolyphonic()
-            {
-                return isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM);
             }
 
             void updateControls()

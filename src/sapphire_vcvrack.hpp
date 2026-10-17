@@ -1,6 +1,7 @@
 // Sapphire for VCV Rack 2, by Don Cross <cosinekitty@gmail.com>
 // https://github.com/cosinekitty/sapphire
 #pragma once
+#include <initializer_list>
 #include "plugin.hpp"
 #include "sapphire_crossfader.hpp"
 #include "sapphire_engine.hpp"
@@ -1547,6 +1548,14 @@ namespace Sapphire
             int nc = minChannels;
             for (int i = 0; i < numInputs; ++i)
                 nc = std::max(nc, inputs.at(i).getChannels());
+            return std::clamp(nc, 0, PORT_MAX_CHANNELS);
+        }
+
+        int numOutputChannels(int minChannels, std::initializer_list<int> inputList)
+        {
+            int nc = minChannels;
+            for (int iid : inputList)
+                nc = std::max(nc, inputs.at(iid).getChannels());
             return std::clamp(nc, 0, PORT_MAX_CHANNELS);
         }
 
