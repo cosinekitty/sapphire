@@ -200,6 +200,8 @@ namespace Sapphire
             void initialize()
             {
             }
+
+            void drawLayer(const DrawArgs& args, int layer) override;
         };
 
 
@@ -247,6 +249,49 @@ namespace Sapphire
 
         using transform_pool_t = std::array<ChaosTransform, PARAMS_LEN>;
 
+
+        struct AudioSnapshot
+        {
+            std::vector<float> buffer;
+        };
+
+
+        constexpr float RecentAudioBufferTimeSeconds = 0.1;     // enough to capture 2 wavelengths at 20 Hz
+
+
+        struct RecentAudioBuffer
+        {
+            unsigned activeChannel{};
+            unsigned nextAudioOffset{};
+            std::vector<float> buffer;
+
+            void initialize()
+            {
+                buffer.clear();
+                activeChannel = 0;
+            }
+
+            void process(float sampleRateHz, PolyResult& result)
+            {
+                const int bufferSizeNeeded = std::ceil(RecentAudioBufferTimeSeconds * sampleRateHz);
+                if (bufferSizeNeeded <= 0)
+                    return;
+
+                const unsigned size = static_cast<unsigned>(bufferSizeNeeded);
+                if (size != buffer.size())
+                {
+                    nextAudioOffset = 0;
+                    buffer.resize(size);
+                    for (float &x : buffer)
+                        x = 0;
+                }
+
+                buffer.at(nextAudioOffset) = result.stereo.poly[0].sample.at(activeChannel);
+                nextAudioOffset = (nextAudioOffset + 1) % size;
+            }
+        };
+
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -268,6 +313,7 @@ namespace Sapphire
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
+            RecentAudioBuffer recentAudio;
 
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -678,6 +724,12 @@ namespace Sapphire
                         context.trackerFreq.mode = freqMode;
                         context.trackerOct.mode = octMode;
 
+                        // Maintain audio data snippet to be graphed on the oscilloscope display.
+                        // Any rising gate on a channel makes it become the actively graphed channel.
+                        // Break ties by whichever channel number is higher (arbitrary).
+                        if (context.gateTriggerReceiver.isTriggerActive())
+                            recentAudio.activeChannel = c;
+
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
                         nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
@@ -709,6 +761,7 @@ namespace Sapphire
                     }
 
                     PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
+                    recentAudio.process(args.sampleRate, result);
 
                     const float antiClick =
                         chaosSeedSmoother.getGain() *
@@ -784,6 +837,12 @@ namespace Sapphire
                     "Output format: (L monophonic, R monophonic)",
                     "Output format: (L polyphonic, R polyphonic)"
                 );
+            }
+
+            AudioSnapshot getAudioSnapshot()
+            {
+                AudioSnapshot s;
+                return s;
             }
 
             void updateDynamicControlGroup(int paramId, int attenId, int inputId, const std::string& name)
@@ -1109,6 +1168,22 @@ namespace Sapphire
                         box.size.y / 2,
                         belleModule->getCurrentEngine().name
                     );
+                }
+            }
+        }
+
+
+        void WaveformGraphWidget::drawLayer(const DrawArgs &args, int layer)
+        {
+            GraphWidget::drawLayer(args, layer);
+            if (belleModule)
+            {
+                if (layer == 1)
+                {
+                    // Ask for the most recent snippet of audio.
+                    // We are plotting audible frequencies, so we never need more
+                    // than 0.1 seconds.
+                    AudioSnapshot s = belleModule->getAudioSnapshot();
                 }
             }
         }
