@@ -153,6 +153,20 @@ namespace Sapphire
                 nvgFillColor(args.vg, SCHEME_BLACK);
                 nvgFill(args.vg);
             }
+
+            float sx(float i, float n) const
+            {
+                if (n < 2)
+                    return 0;
+                return box.size.x * (i/(n-1));
+            }
+
+            float sy(float voltage, float scale) const
+            {
+                if (scale < 1)
+                    scale = 1;
+                return (box.size.y/2) * (1 - voltage/scale);
+            }
         };
 
 
@@ -250,9 +264,58 @@ namespace Sapphire
         using transform_pool_t = std::array<ChaosTransform, PARAMS_LEN>;
 
 
+        struct AudioSection
+        {
+            unsigned front{};
+            unsigned back{};
+
+            explicit AudioSection(unsigned _front, unsigned _back)
+                : front(_front)
+                , back(_back)
+                {}
+        };
+
+
         struct AudioSnapshot
         {
+            unsigned channel = -1;
+            unsigned wavelengthSamples{};
             std::vector<float> buffer;
+
+            bool isValid() const
+            {
+                return
+                    (channel < PORT_MAX_CHANNELS) &&
+                    (buffer.size() > 0) &&
+                    (wavelengthSamples > 0) &&
+                    (wavelengthSamples < buffer.size());
+            }
+
+            AudioSection findWave() const
+            {
+                // Back up by exactly one wavelength from the end.
+                // Then keep searching backwards until we find the first ascending node,
+                // or we hit the front of the array.
+                unsigned front = buffer.size();
+                if (wavelengthSamples > front)
+                    return AudioSection(0, 0);
+
+                front -= wavelengthSamples;
+                while (front > 0)
+                {
+                    if ((buffer.at(front-1) < 0) && (buffer.at(front) >= 0))
+                        break;
+
+                    --front;
+                }
+
+                unsigned back = std::min<unsigned>(
+                    buffer.size(),
+                    front + (wavelengthSamples * 11)/10    // add an extra 10% at the end, if possible
+                );
+
+                return AudioSection(front, back);
+            }
         };
 
 
@@ -261,14 +324,17 @@ namespace Sapphire
 
         struct RecentAudioBuffer
         {
+            std::vector<float> buffer;
             unsigned activeChannel{};
             unsigned nextAudioOffset{};
-            std::vector<float> buffer;
+            unsigned wavelengthSamples{};
 
             void initialize()
             {
                 buffer.clear();
                 activeChannel = 0;
+                nextAudioOffset = 0;
+                wavelengthSamples = 0;
             }
 
             void process(float sampleRateHz, PolyResult& result)
@@ -282,11 +348,11 @@ namespace Sapphire
                 {
                     nextAudioOffset = 0;
                     buffer.resize(size);
-                    for (float &x : buffer)
+                    for (float& x : buffer)
                         x = 0;
                 }
 
-                buffer.at(nextAudioOffset) = result.stereo.poly[0].sample.at(activeChannel);
+                buffer.at(nextAudioOffset) = result.stereo.poly.at(activeChannel).sample[0];
                 nextAudioOffset = (nextAudioOffset + 1) % size;
             }
         };
@@ -446,6 +512,7 @@ namespace Sapphire
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 0;
+                recentAudio.initialize();
             }
 
             void resetFountain()
@@ -724,12 +791,6 @@ namespace Sapphire
                         context.trackerFreq.mode = freqMode;
                         context.trackerOct.mode = octMode;
 
-                        // Maintain audio data snippet to be graphed on the oscilloscope display.
-                        // Any rising gate on a channel makes it become the actively graphed channel.
-                        // Break ties by whichever channel number is higher (arbitrary).
-                        if (context.gateTriggerReceiver.isTriggerActive())
-                            recentAudio.activeChannel = c;
-
                         nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
                         nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
                         nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
@@ -763,9 +824,7 @@ namespace Sapphire
                     PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
                     recentAudio.process(args.sampleRate, result);
 
-                    const float antiClick =
-                        chaosSeedSmoother.getGain() *
-                        modelChangeSmoother.getGain();
+                    const float antiClick = chaosSeedSmoother.getGain() * modelChangeSmoother.getGain();
 
                     outEnv.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
@@ -773,7 +832,19 @@ namespace Sapphire
 
                     outPitch.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
-                        outPitch.setVoltage(polyEngine.contextArray[c].getPitchVoct(), c);
+                    {
+                        VoiceContext& context = polyEngine.contextArray[c];
+                        outPitch.setVoltage(context.getPitchVoct(), c);
+
+                        // Maintain audio data snippet to be graphed on the oscilloscope display.
+                        // Any rising gate on a channel makes it become the actively graphed channel.
+                        // Break ties by whichever channel number is higher (arbitrary).
+                        if (context.gateTriggerReceiver.isTriggerActive())
+                        {
+                            recentAudio.activeChannel = c;
+                            recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / context.getFrequency());
+                        }
+                    }
 
                     if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
                     {
@@ -842,6 +913,17 @@ namespace Sapphire
             AudioSnapshot getAudioSnapshot()
             {
                 AudioSnapshot s;
+
+                s.channel = recentAudio.activeChannel;
+                s.wavelengthSamples = recentAudio.wavelengthSamples;
+
+                const unsigned n = recentAudio.buffer.size();
+                s.buffer.resize(n);
+
+                // Return the samples in chronological order.
+                for (unsigned i = 0; i < n; ++i)
+                    s.buffer[i] = recentAudio.buffer[(i + recentAudio.nextAudioOffset) % n];
+
                 return s;
             }
 
@@ -1180,10 +1262,39 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
-                    // Ask for the most recent snippet of audio.
-                    // We are plotting audible frequencies, so we never need more
-                    // than 0.1 seconds.
-                    AudioSnapshot s = belleModule->getAudioSnapshot();
+                    if (AudioSnapshot s = belleModule->getAudioSnapshot(); s.isValid())
+                    {
+                        // Search the audio snippet for the most recent complete wavelength (plus a little).
+                        AudioSection w = s.findWave();
+                        if (w.front+1 < w.back)
+                        {
+                            const unsigned n = (w.back - w.front) - 1;
+                            float scale = 0.1;
+                            for (unsigned i = w.front; i < w.back; ++i)
+                                scale = std::max<float>(scale, std::abs(s.buffer.at(i)));
+
+
+                            nvgBeginPath(args.vg);
+
+                            unsigned k = 0;
+                            for (unsigned i = w.front+1; i < w.back; ++i, ++k)
+                            {
+                                if (k == 0)
+                                {
+                                    float x1 = sx(k+0, n);
+                                    float y1 = sy(s.buffer.at(i-1), scale);
+                                    nvgMoveTo(args.vg, x1, y1);
+                                }
+                                float x2 = sx(k+1, n);
+                                float y2 = sy(s.buffer.at(i-0), scale);
+                                nvgLineTo(args.vg, x2, y2);
+                            }
+
+                            nvgStrokeColor(args.vg, SCHEME_GREEN);
+                            nvgStrokeWidth(args.vg, 1.25);
+                            nvgStroke(args.vg);
+                        }
+                    }
                 }
             }
         }
