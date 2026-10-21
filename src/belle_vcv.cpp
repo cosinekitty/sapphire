@@ -311,7 +311,7 @@ namespace Sapphire
 
                 unsigned back = std::min<unsigned>(
                     buffer.size(),
-                    front + (wavelengthSamples * 11)/10    // add an extra 10% at the end, if possible
+                    front + wavelengthSamples
                 );
 
                 return AudioSection(front, back);
