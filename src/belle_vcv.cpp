@@ -915,7 +915,7 @@ namespace Sapphire
                 AudioSnapshot s;
 
                 s.channel = recentAudio.activeChannel;
-                s.requestedSamples = recentAudio.wavelengthSamples;
+                s.requestedSamples = 2 * recentAudio.wavelengthSamples;
 
                 const unsigned n = recentAudio.buffer.size();
                 s.buffer.resize(n);
