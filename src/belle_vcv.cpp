@@ -1264,30 +1264,24 @@ namespace Sapphire
                 {
                     if (AudioSnapshot s = belleModule->getAudioSnapshot(); s.isValid())
                     {
-                        // Search the audio snippet for the most recent complete wavelength (plus a little).
-                        AudioSection w = s.findWave();
-                        if (w.front+1 < w.back)
+                        static constexpr unsigned minLineSegmentCount = 10;
+                        if (AudioSection w = s.findWave(); w.front + minLineSegmentCount < w.back)
                         {
                             const unsigned n = (w.back - w.front) - 1;
-                            float scale = 0.1;
+                            float scale = 0.01;     // minimum 10 mV for half-vertical-scale
                             for (unsigned i = w.front; i < w.back; ++i)
                                 scale = std::max<float>(scale, std::abs(s.buffer.at(i)));
 
-
                             nvgBeginPath(args.vg);
-
-                            unsigned k = 0;
+                            float x = sx(0, n);
+                            float y = sy(s.buffer.at(w.front), scale);
+                            nvgMoveTo(args.vg, x, y);
+                            unsigned k = 1;
                             for (unsigned i = w.front+1; i < w.back; ++i, ++k)
                             {
-                                if (k == 0)
-                                {
-                                    float x1 = sx(k+0, n);
-                                    float y1 = sy(s.buffer.at(i-1), scale);
-                                    nvgMoveTo(args.vg, x1, y1);
-                                }
-                                float x2 = sx(k+1, n);
-                                float y2 = sy(s.buffer.at(i-0), scale);
-                                nvgLineTo(args.vg, x2, y2);
+                                x = sx(k, n);
+                                y = sy(s.buffer.at(i), scale);
+                                nvgLineTo(args.vg, x, y);
                             }
 
                             nvgStrokeColor(args.vg, SCHEME_GREEN);
