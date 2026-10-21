@@ -279,7 +279,7 @@ namespace Sapphire
         struct AudioSnapshot
         {
             unsigned channel = -1;
-            unsigned wavelengthSamples{};
+            unsigned requestedSamples{};
             std::vector<float> buffer;
 
             bool isValid() const
@@ -287,8 +287,8 @@ namespace Sapphire
                 return
                     (channel < PORT_MAX_CHANNELS) &&
                     (buffer.size() > 0) &&
-                    (wavelengthSamples > 0) &&
-                    (wavelengthSamples < buffer.size());
+                    (requestedSamples > 0) &&
+                    (requestedSamples < buffer.size());
             }
 
             AudioSection findWave() const
@@ -297,10 +297,10 @@ namespace Sapphire
                 // Then keep searching backwards until we find the first ascending node,
                 // or we hit the front of the array.
                 unsigned front = buffer.size();
-                if (wavelengthSamples > front)
+                if (requestedSamples > front)
                     return AudioSection(0, 0);
 
-                front -= wavelengthSamples;
+                front -= requestedSamples;
                 while (front > 0)
                 {
                     if ((buffer.at(front-1) < 0) && (buffer.at(front) >= 0))
@@ -311,7 +311,7 @@ namespace Sapphire
 
                 unsigned back = std::min<unsigned>(
                     buffer.size(),
-                    front + wavelengthSamples
+                    front + requestedSamples
                 );
 
                 return AudioSection(front, back);
@@ -915,7 +915,7 @@ namespace Sapphire
                 AudioSnapshot s;
 
                 s.channel = recentAudio.activeChannel;
-                s.wavelengthSamples = recentAudio.wavelengthSamples;
+                s.requestedSamples = recentAudio.wavelengthSamples;
 
                 const unsigned n = recentAudio.buffer.size();
                 s.buffer.resize(n);
