@@ -414,8 +414,10 @@ namespace Sapphire
                 float R = env * right.process(sampleRateHz, context, rightSide);
                 L = saturation(L, context.mod[1]);
                 R = saturation(R, context.mod[1]);
-                static constexpr float OctaveRange = 4;     // keep in sync with belle_vcv.cpp
-                const float lopassCornerFreqHz = std::exp2(context.mod[3] * OctaveRange) * C4_FREQUENCY_HZ;
+                const float lopassCornerFreqHz = std::min<float>(
+                    std::exp2(1.5 + 5.5*context.mod[3]) * C4_FREQUENCY_HZ,
+                    sampleRateHz/2
+                );
                 L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, L).lowpass;
                 R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, R).lowpass;
                 const PanningFactors pf = Panning(context.pan);
