@@ -163,7 +163,7 @@ namespace Sapphire
         if (phase >= 1)
             phase -= 1;
 
-        const float beta = 0.25f * context.mod[2];
+        const float beta = 0.11f * context.mod[2];
         const float angle = phase + beta*(y1+y2);
         y2 = y1;
         y1 = std::sin(twopi * angle);

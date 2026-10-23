@@ -384,7 +384,7 @@ namespace Sapphire
                 const float u = (dabs - margin) / (fade - margin);
                 if (u >= 0 && u <= 1)
                     y = LinearMix<float>(u, x, y);
-                return y * headroom;
+                return y * PEAK_VOLTS;
             }
 
             StereoFrame process(float sampleRateHz, VoiceContext& context)
