@@ -189,7 +189,8 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, -2);
         }
 
-        static constexpr float amplitude = PEAK_VOLTS / 1.18;    // empirical DECREASE of volume to match sine p/p
+        // Empirically correct amplitude for BLEP effects to achieve 10 volts peak-to-peak.
+        static constexpr float amplitude = PEAK_VOLTS * 1.2;
         return amplitude * ((2*phase - 1) + blep.process());
     }
 
