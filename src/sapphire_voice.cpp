@@ -206,16 +206,16 @@ namespace Sapphire
 
     float TriangleEngine::update(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
+        // Update the underlying square wave, which we integrate.
         const float delta = blepSquare(sampleRateHz, context, side);
 
-        // Now the square wave signal is up to date.
+        // Apply a super-simple DC blocker to prevent DC drift in the output.
+        triangle *= 0.998;
+
         // Integrate it to obtain the triangle wave signal.
         triangle += 4 * delta * square;     // need slope=4 for ±1 peak amplitudes.
 
-        // Apply a super-simple DC blocker to prevent DC drift in the output.
-        triangle *= 0.9999;
-
-        static constexpr float amplitude = PEAK_VOLTS / 0.992;    // empirical INCREASE of volume to match sine p/p
+        static constexpr float amplitude = 1.007 * PEAK_VOLTS;   // for 10 volts pp amplitude
         return amplitude * triangle;
     }
 
