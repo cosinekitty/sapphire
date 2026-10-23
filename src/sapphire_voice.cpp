@@ -190,7 +190,7 @@ namespace Sapphire
         }
 
         // Empirically correct amplitude for BLEP effects to achieve 10 volts peak-to-peak.
-        static constexpr float amplitude = PEAK_VOLTS * 1.2;
+        static constexpr float amplitude = PEAK_VOLTS * 0.839;
         return amplitude * ((2*phase - 1) + blep.process());
     }
 
