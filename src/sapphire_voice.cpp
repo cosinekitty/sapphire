@@ -23,7 +23,7 @@ namespace Sapphire
             case AdsrState::Attack:
             {
                 // Gradually rise from 0 to 1.
-                double rampSamples = sampleRateHz * rampTimeSeconds(context.attack);
+                double rampSamples = sampleRateHz * RampTimeSeconds(context.attack);
                 fraction = std::clamp<double>(fraction + 1/rampSamples, 0, 1);
 
                 if (gate)
@@ -50,7 +50,7 @@ namespace Sapphire
                     else
                     {
                         double descend = 1 - context.sustain;   // how far down we need to go
-                        double decaySamples = sampleRateHz * rampTimeSeconds(context.decay / descend);
+                        double decaySamples = sampleRateHz * RampTimeSeconds(context.decay / descend);
                         fraction = std::clamp<double>(fraction - 1/decaySamples, context.sustain, 1);
                     }
                 }
@@ -63,7 +63,7 @@ namespace Sapphire
 
             case AdsrState::Release:
             {
-                double rampSamples = sampleRateHz * rampTimeSeconds(context.release);
+                double rampSamples = sampleRateHz * RampTimeSeconds(context.release);
                 fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
                 if (gate)
                 {

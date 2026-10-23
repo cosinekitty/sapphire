@@ -178,7 +178,7 @@ namespace Sapphire
             fraction = 0;
         }
 
-        double rampTimeSeconds(double knob)
+        static double RampTimeSeconds(double knob)
         {
             return TenToPower(2*knob - 1);
         }
