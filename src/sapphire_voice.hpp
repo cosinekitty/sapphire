@@ -366,7 +366,6 @@ namespace Sapphire
             float saturation(float v, float d)
             {
                 static constexpr float margin = 0.001;
-                static constexpr float fade = 0.1;
                 static constexpr float headroom = PEAK_VOLTS * 1.05;
 
                 const float dabs = std::abs(d);
@@ -377,14 +376,24 @@ namespace Sapphire
                 const float k = 1 + 5*dabs;
                 float y;
                 if (d > +margin)
+                {
                     y = std::tanh(k*x) / std::tanh(k);
+                }
                 else
-                    y = std::sin(k*x);
+                {
+                    static constexpr float R = 0.36;
+                    static constexpr float Q = 2.5;
+                    y = std::sin(R*(k + Q)*x);
+                }
 
-                const float u = (dabs - margin) / (fade - margin);
+                y *= PEAK_VOLTS;
+
+                static constexpr float fade = 0.1;
+                const float u = (dabs - margin) / fade;
                 if (u >= 0 && u <= 1)
-                    y = LinearMix<float>(u, x, y);
-                return y * PEAK_VOLTS;
+                    y = LinearMix<float>(u, v, y);
+
+                return y;
             }
 
             StereoFrame process(float sampleRateHz, VoiceContext& context)
