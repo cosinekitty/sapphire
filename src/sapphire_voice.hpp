@@ -211,6 +211,7 @@ namespace Sapphire
 
     constexpr unsigned VoiceOversample = 4;
     constexpr unsigned VoiceQuality = 32;
+    constexpr float VoiceDecimatorCutoff = 0.17;    // mitigate aliasing while preserving high frequency response
     using decimator_t = rack::dsp::Decimator<VoiceOversample, VoiceQuality, float>;
 
 
@@ -223,7 +224,7 @@ namespace Sapphire
         bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
         bool supportsSaturation = false;
         bool usesOversampling = false;
-        decimator_t decimator;
+        decimator_t decimator{VoiceDecimatorCutoff};
 
         virtual void initialize() = 0;
         virtual float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
