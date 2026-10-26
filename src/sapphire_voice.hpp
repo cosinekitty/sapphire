@@ -427,16 +427,16 @@ namespace Sapphire
                 if (env == 0)
                     return StereoFrame(0, 0);   // don't burn CPU updating the voice models on silent samples
 
-                float L = env * left .process(sampleRateHz, context, leftSide);
-                float R = env * right.process(sampleRateHz, context, rightSide);
+                float L = left .process(sampleRateHz, context, leftSide);
+                float R = right.process(sampleRateHz, context, rightSide);
                 L = saturation(L, context.mod[1]);
                 R = saturation(R, context.mod[1]);
                 const float lopassCornerFreqHz = std::min<float>(
                     std::exp2(1.5 + 5.5*context.mod[3]) * C4_FREQUENCY_HZ,
                     sampleRateHz/2
                 );
-                L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, L).lowpass;
-                R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, R).lowpass;
+                L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*L).lowpass;
+                R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*R).lowpass;
                 const PanningFactors pf = Panning(context.pan);
                 return StereoFrame(pf.left*L, pf.right*R);
             }
