@@ -1271,6 +1271,7 @@ namespace Sapphire
                             float scale = 0.01;     // minimum 10 mV for half-vertical-scale
                             for (unsigned i = w.front; i < w.back; ++i)
                                 scale = std::max<float>(scale, std::abs(s.buffer.at(i)));
+                            scale *= 1.125;   // zoom out to leave a little vertical space
 
                             nvgBeginPath(args.vg);
                             float x = sx(0, n);
@@ -1283,7 +1284,6 @@ namespace Sapphire
                                 y = sy(s.buffer.at(i), scale);
                                 nvgLineTo(args.vg, x, y);
                             }
-
                             nvgStrokeColor(args.vg, SCHEME_GREEN);
                             nvgStrokeWidth(args.vg, 1.25);
                             nvgStroke(args.vg);
