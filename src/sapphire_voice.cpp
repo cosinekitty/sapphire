@@ -83,7 +83,7 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    float MonoVoiceEngine::blepSquare(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
+    BlepSquareResult MonoVoiceEngine::blepSquare(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         // IMPORTANT: This function is used directly for square waves,
         // and integrated with respect to time for triangle waves.
@@ -106,13 +106,8 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, +2);
         }
 
-        // I tried to make PWM work for triangle waves, but I kept having
-        // problems with DC accumulation. When I tried to fix those problems,
-        // I ran into issues with aliasing.
-        // I have many things to do, so I don't want to get bogged down on this right now.
-        // As a hack, when running as triangle, use fixed 50% duty cycle.
         static constexpr float pwmMargin = 0.05;
-        const float duty = pwmOverrideFiftyPercent ? 0.5f : MapKnob(context.mod[1], pwmMargin, 1-pwmMargin);
+        const float duty = MapKnob(context.mod[1], pwmMargin, 1-pwmMargin);
         if (phase < duty)
         {
             square = +1;
@@ -129,7 +124,7 @@ namespace Sapphire
 
         square += blep.process();
 
-        return delta;   // for convenience of triangle caller
+        return BlepSquareResult(delta, duty);
     }
 
     float MonoVoiceEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
@@ -207,13 +202,16 @@ namespace Sapphire
     float TriangleEngine::update(float sampleRateHz, VoiceContext &context, const MonoSideInfo& side)
     {
         // Update the underlying square wave, which we integrate.
-        const float delta = blepSquare(sampleRateHz, context, side);
+        const BlepSquareResult br = blepSquare(sampleRateHz, context, side);
 
         // Apply a super-simple DC blocker to prevent DC drift in the output.
         triangle *= 0.998;
 
-        // Integrate it to obtain the triangle wave signal.
-        triangle += 4 * delta * square;     // need slope=4 for ±1 peak amplitudes.
+        // Remove the bulk DC caused by PWM away from 50%.
+        const float area = 2*br.duty - 1;
+
+        // Integrate blepped square wave, minus correction, to obtain the AC triangle signal.
+        triangle += 4 * br.delta * (square - area);
 
         static constexpr float amplitude = 1.007 * PEAK_VOLTS;   // for 10 volts pp amplitude
         return amplitude * triangle;

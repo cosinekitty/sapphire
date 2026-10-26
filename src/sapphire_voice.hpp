@@ -215,20 +215,31 @@ namespace Sapphire
     using decimator_t = rack::dsp::Decimator<VoiceOversample, VoiceQuality, float>;
 
 
+    struct BlepSquareResult
+    {
+        float delta{};
+        float duty{};
+
+        explicit BlepSquareResult(float _delta, float _duty)
+            : delta(_delta)
+            , duty(_duty)
+            {}
+    };
+
+
     struct MonoVoiceEngine
     {
         float phase = 0;            // 0 <= phase < 1
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
         bool prevState = false;
         blep_t blep;                // for anti-aliasing discontinuities between samples
-        bool pwmOverrideFiftyPercent = false;  // triangle hack: always have 50% duty cycle for underlying square wave
         bool supportsSaturation = false;
         bool usesOversampling = false;
         decimator_t decimator{VoiceDecimatorCutoff};
 
         virtual void initialize() = 0;
         virtual float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
-        float blepSquare(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
+        BlepSquareResult blepSquare(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
 
         float process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
     };
@@ -238,6 +249,7 @@ namespace Sapphire
     {
         float y1{};
         float y2{};
+
         explicit SineEngine()
         {
             supportsSaturation = true;
@@ -251,11 +263,6 @@ namespace Sapphire
     struct TriangleEngine : MonoVoiceEngine
     {
         float triangle = 0;    // integral of BLEP-ed square
-
-        TriangleEngine()
-        {
-            pwmOverrideFiftyPercent = true;
-        }
 
         void initialize() override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
