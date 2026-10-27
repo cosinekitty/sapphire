@@ -830,6 +830,7 @@ namespace Sapphire
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                         outEnv.setVoltage(10 * result.env.poly[c] * antiClick, c);
 
+                    bool foundTrigger = false;
                     outPitch.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
@@ -841,8 +842,30 @@ namespace Sapphire
                         // Break ties by whichever channel number is higher (arbitrary).
                         if (context.gateTriggerReceiver.isTriggerActive())
                         {
+                            foundTrigger = true;
                             recentAudio.activeChannel = c;
                             recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / context.getFrequency());
+                        }
+                    }
+
+                    if (!foundTrigger &&
+                        (result.env.nchannels > 0) &&
+                        (recentAudio.activeChannel >= result.env.nchannels || result.env.poly.at(recentAudio.activeChannel) == 0))
+                    {
+                        // If the active channel has gone quiet, search for any other
+                        // channel that is still making sound.
+                        // Pick the "loudest", based on the envelope.
+                        unsigned lc = -1;
+                        for (unsigned c = 0; c < result.env.nchannels; ++c)
+                            if (lc >= result.env.nchannels || result.env.poly.at(c) > result.env.poly.at(lc))
+                                lc = c;
+
+                        if (lc < result.env.nchannels)
+                        {
+                            recentAudio.activeChannel = lc;
+                            const float freq = polyEngine.contextArray.at(lc).getFrequency();
+                            if (std::isfinite(freq) && freq > 10 && freq < args.sampleRate/2)
+                                recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / freq);
                         }
                     }
 
@@ -1270,8 +1293,7 @@ namespace Sapphire
                             const unsigned n = (w.back - w.front) - 1;
                             float scale = 0.01;     // minimum 10 mV for half-vertical-scale
                             for (unsigned i = w.front; i < w.back; ++i)
-                                scale = std::max<float>(scale, std::abs(s.buffer.at(i)));
-                            scale *= 1.125;   // zoom out to leave a little vertical space
+                                scale = std::max<float>(scale, 1.125f * std::abs(s.buffer.at(i)));
 
                             nvgBeginPath(args.vg);
                             float x = sx(0, n);
