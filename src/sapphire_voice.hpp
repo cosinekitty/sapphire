@@ -360,6 +360,7 @@ namespace Sapphire
             mono_engine_t right;
             AdsrEnvelope  envelope;
             StateVariableFilter<float> lopass[2];
+            bool needSnap = true;
             float lpResonance = 0.3;
 
             void initialize()
@@ -367,8 +368,7 @@ namespace Sapphire
                 left.initialize();
                 right.initialize();
                 envelope.initialize();
-                lopass[0].initialize();
-                lopass[1].initialize();
+                needSnap = true;
             }
 
             float saturation(float v, float d)
@@ -425,7 +425,10 @@ namespace Sapphire
 
                 const float env = envelope.process(sampleRateHz, context);
                 if (env == 0)
+                {
+                    needSnap = true;
                     return StereoFrame(0, 0);   // don't burn CPU updating the voice models on silent samples
+                }
 
                 float L = left .process(sampleRateHz, context, leftSide);
                 float R = right.process(sampleRateHz, context, rightSide);
@@ -435,6 +438,12 @@ namespace Sapphire
                     std::exp2(1.5 + 5.5*context.mod[3]) * C4_FREQUENCY_HZ,
                     sampleRateHz/2
                 );
+                if (needSnap)
+                {
+                    needSnap = false;
+                    lopass[0].initialize();
+                    lopass[1].initialize();
+                }
                 L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*L).lowpass;
                 R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*R).lowpass;
                 const PanningFactors pf = Panning(context.pan);
