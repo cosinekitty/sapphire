@@ -370,11 +370,13 @@ namespace Sapphire
             transform_pool_t transformForAtten{};
             ChaosTransform chaosOutputTransform;
             const char *detuneName = "Detune";
+            const char *pwmName = "PWM";
+            const char *splitName = "Split";
             const char *lowpassName = "Lowpass cutoff";
             AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, "Saturation", "Feedback", lowpassName};
-            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, "Tri1", "Tri2", lowpassName};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", detuneName, "Saw1", "Saw2", lowpassName};
-            AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, "PWM", "Sqr2", lowpassName};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, "Resonance", "Wnd3", lowpassName};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
