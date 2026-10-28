@@ -122,11 +122,21 @@ namespace Sapphire
             prevState = false;
         }
 
+        // Calculate the net positive DC signal of the square wave integrated over a full period.
+        float area = 2*duty - 1;
+
         const float split = context.mod[2];
         if (split > 0)
         {
             const float w = 0.1f + 0.8f*split;
             const float h = 1.9f*split;
+
+            // There are two split-pulses: one for the high portion (duty)
+            // and one for the low portion (1-duty).
+            // The high split-pulse subtracts from the area.
+            // The low split-pulse adds to the area.
+            // Include both adjustments, after careful algebra to simplify and reduce...
+            area -= w*h*area;
 
             const float a1 = duty*(1-w)/2;
             const float a2 = duty*(1+w)/2;
@@ -159,7 +169,7 @@ namespace Sapphire
 
         square += blep.process();
 
-        return BlepSquareResult(delta, duty);
+        return BlepSquareResult(delta, area);
     }
 
     float MonoVoiceEngine::process(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
@@ -239,14 +249,11 @@ namespace Sapphire
         // Update the underlying square wave, which we integrate.
         const BlepSquareResult br = blepSquare(sampleRateHz, context, side);
 
-        // Apply a super-simple DC blocker to prevent DC drift in the output.
+        // Apply a super-simple DC blocker to suppress DC drift in the output.
         triangle *= 0.998;
 
-        // Remove the bulk DC caused by PWM away from 50%.
-        const float area = 2*br.duty - 1;
-
-        // Integrate blepped square wave, minus correction, to obtain the AC triangle signal.
-        triangle += 4 * br.delta * (square - area);
+        // Integrate blepped square wave, minus DC correction, to obtain the AC triangle signal.
+        triangle += 4 * br.delta * (square - br.area);
 
         static constexpr float amplitude = 1.007 * PEAK_VOLTS;   // for 10 volts pp amplitude
         return amplitude * triangle;

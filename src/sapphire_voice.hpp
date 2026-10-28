@@ -218,11 +218,11 @@ namespace Sapphire
     struct BlepSquareResult
     {
         float delta{};
-        float duty{};
+        float area{};
 
-        explicit BlepSquareResult(float _delta, float _duty)
+        explicit BlepSquareResult(float _delta, float _area)
             : delta(_delta)
-            , duty(_duty)
+            , area(_area)
             {}
     };
 
