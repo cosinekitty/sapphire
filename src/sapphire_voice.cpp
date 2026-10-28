@@ -122,6 +122,41 @@ namespace Sapphire
             prevState = false;
         }
 
+        const float split = context.mod[2];
+        if (split > 0)
+        {
+            const float w = 0.1f + 0.8f*split;
+            const float h = 1.9f*split;
+
+            const float a1 = duty*(1-w)/2;
+            const float a2 = duty*(1+w)/2;
+
+            if (phase >= a1 && phase <= a2)
+                square -= h;
+
+            if (phase-delta < a1 && phase >= a1)
+                blep.insertDiscontinuity((a1-phase)/delta, -h);
+
+            if (phase-delta < a2 && phase >= a2)
+                blep.insertDiscontinuity((a2-phase)/delta, +h);
+
+            const float b1 = duty + (1-duty)*(1-w)/2;
+            const float b2 = duty + (1-duty)*(1+w)/2;
+
+            if (phase >= b1 && phase <= b2)
+                square += h;
+
+            if (phase-delta < b1 && phase >= b1)
+                blep.insertDiscontinuity((b1-phase)/delta, +h);
+
+            if (phase-delta < b2 && phase >= b2)
+                blep.insertDiscontinuity((b2-phase)/delta, -h);
+        }
+        else
+        {
+            // FIXFIXFIX: think of some fun effect for negative SPLIT values.
+        }
+
         square += blep.process();
 
         return BlepSquareResult(delta, duty);

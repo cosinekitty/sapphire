@@ -231,7 +231,7 @@ namespace Sapphire
     {
         float phase = 0;            // 0 <= phase < 1
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
-        bool prevState = false;
+        bool prevState = false;     // helps track phase wraparound from 1 back to 0.
         blep_t blep;                // for anti-aliasing discontinuities between samples
         bool supportsSaturation = false;
         bool usesOversampling = false;
