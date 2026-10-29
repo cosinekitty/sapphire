@@ -106,7 +106,20 @@ namespace Sapphire
             blep.insertDiscontinuity(-phase/delta, +2);
         }
 
-        static constexpr float pwmMargin = 0.05;
+        // At higher frequencies, it is possible for the PWM high or low to be
+        // less than one sample wide. This causes aliasing outside the Nyquist range.
+        // Prevent this from happening by dynamically clamping the PWM range.
+        // In fact, we go further by forcing at least 3 samples per pulse,
+        // so that the "split" can always divide the pulse into 3 equal sections.
+
+        float pwmMargin = 0.01;
+        if (pwmMargin < 3*delta)
+        {
+            pwmMargin = 3*delta;
+            if (pwmMargin > 0.5)
+                pwmMargin = 0.5;
+        }
+
         const float duty = MapKnob(context.mod[1], pwmMargin, 1-pwmMargin);
         if (phase < duty)
         {
