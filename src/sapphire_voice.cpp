@@ -109,13 +109,12 @@ namespace Sapphire
         // At higher frequencies, it is possible for the PWM high or low to be
         // less than one sample wide. This causes aliasing outside the Nyquist range.
         // Prevent this from happening by dynamically clamping the PWM range.
-        // In fact, we go further by forcing at least 3 samples per pulse,
-        // so that the "split" can always divide the pulse into 3 equal sections.
+        // We provide multiple wavelengths for the SPLIT effect below.
 
-        float pwmMargin = 0.01;
-        if (pwmMargin < 3*delta)
+        float pwmMargin = 0.05;
+        if (pwmMargin < 7*delta)
         {
-            pwmMargin = 3*delta;
+            pwmMargin = 7*delta;
             if (pwmMargin > 0.5)
                 pwmMargin = 0.5;
         }
@@ -138,46 +137,57 @@ namespace Sapphire
         // Calculate the net positive DC signal of the square wave integrated over a full period.
         float area = 2*duty - 1;
 
+        static constexpr float loFadeSplitDelta = 0.03;
+        static constexpr float hiFadeSplitDelta = 0.04;
         const float split = context.mod[2];
-        if (split > 0)
+        if (delta < hiFadeSplitDelta)
         {
-            const float w = 0.1f + 0.8f*split;
-            const float h = 1.9f*split;
+            // Fade out amplitude of SPLIT effect as we get too close to Nyquist.
+            const float fade =
+                (delta < loFadeSplitDelta)
+                ? 1.0f
+                : (hiFadeSplitDelta - delta) / (hiFadeSplitDelta - loFadeSplitDelta);
 
-            // There are two split-pulses: one for the high portion (duty)
-            // and one for the low portion (1-duty).
-            // The high split-pulse subtracts from the area.
-            // The low split-pulse adds to the area.
-            // Include both adjustments, after careful algebra to simplify and reduce...
-            area -= w*h*area;
+            if (split > 0)
+            {
+                const float w = std::max(2*delta, 0.15f + 0.75f*(1-split));
+                const float h = 1.9f * fade * split;
 
-            const float a1 = duty*(1-w)/2;
-            const float a2 = duty*(1+w)/2;
+                // There are two split-pulses: one for the high portion (duty)
+                // and one for the low portion (1-duty).
+                // The high split-pulse subtracts from the area.
+                // The low split-pulse adds to the area.
+                // Include both adjustments, after careful algebra to simplify and reduce...
+                area -= w*h*area;
 
-            if (phase >= a1 && phase <= a2)
-                square -= h;
+                const float a1 = duty*(1-w)/2;
+                const float a2 = duty*(1+w)/2;
 
-            if (phase-delta < a1 && phase >= a1)
-                blep.insertDiscontinuity((a1-phase)/delta, -h);
+                if (phase >= a1 && phase <= a2)
+                    square -= h;
 
-            if (phase-delta < a2 && phase >= a2)
-                blep.insertDiscontinuity((a2-phase)/delta, +h);
+                if (phase-delta < a1 && phase >= a1)
+                    blep.insertDiscontinuity((a1-phase)/delta, -h);
 
-            const float b1 = duty + (1-duty)*(1-w)/2;
-            const float b2 = duty + (1-duty)*(1+w)/2;
+                if (phase-delta < a2 && phase >= a2)
+                    blep.insertDiscontinuity((a2-phase)/delta, +h);
 
-            if (phase >= b1 && phase <= b2)
-                square += h;
+                const float b1 = duty + (1-duty)*(1-w)/2;
+                const float b2 = duty + (1-duty)*(1+w)/2;
 
-            if (phase-delta < b1 && phase >= b1)
-                blep.insertDiscontinuity((b1-phase)/delta, +h);
+                if (phase >= b1 && phase <= b2)
+                    square += h;
 
-            if (phase-delta < b2 && phase >= b2)
-                blep.insertDiscontinuity((b2-phase)/delta, -h);
-        }
-        else
-        {
-            // FIXFIXFIX: think of some fun effect for negative SPLIT values.
+                if (phase-delta < b1 && phase >= b1)
+                    blep.insertDiscontinuity((b1-phase)/delta, +h);
+
+                if (phase-delta < b2 && phase >= b2)
+                    blep.insertDiscontinuity((b2-phase)/delta, -h);
+            }
+            else
+            {
+                // FIXFIXFIX: think of some fun effect for negative SPLIT values.
+            }
         }
 
         square += blep.process();
