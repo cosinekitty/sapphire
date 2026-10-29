@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include "rack.hpp"
 #include "sapphire_gate_trigger.hpp"
@@ -22,13 +23,15 @@ namespace Sapphire
     struct StereoFrame
     {
         std::array<float, NSTEREO> sample{};
+        float phase{};
 
         explicit StereoFrame() {}
 
-        explicit StereoFrame(float left, float right)
+        explicit StereoFrame(float left, float right, float _phase)
         {
             sample[0] = left;
             sample[1] = right;
+            phase = _phase;
         }
     };
 
@@ -308,7 +311,7 @@ namespace Sapphire
     };
 
 
-    struct EnvelopeFrame
+    struct ScalarFrame
     {
         unsigned nchannels{};
         std::array<float, NPOLY> poly{};
@@ -318,7 +321,16 @@ namespace Sapphire
     struct PolyResult
     {
         PolyStereoFrame stereo;
-        EnvelopeFrame env;
+        ScalarFrame env;
+        ScalarFrame phase;
+
+        void setChannelCount(unsigned n)
+        {
+            assert(n <= NPOLY);
+            stereo.nchannels = n;
+            env.nchannels = n;
+            phase.nchannels = n;
+        }
     };
 
 
@@ -427,7 +439,7 @@ namespace Sapphire
                 if (env == 0)
                 {
                     needSnap = true;
-                    return StereoFrame(0, 0);   // don't burn CPU updating the voice models on silent samples
+                    return StereoFrame(0, 0, 0);   // don't burn CPU updating the voice models on silent samples
                 }
 
                 float L = left .process(sampleRateHz, context, leftSide);
@@ -447,7 +459,7 @@ namespace Sapphire
                 L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*L).lowpass;
                 R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*R).lowpass;
                 const PanningFactors pf = Panning(context.pan);
-                return StereoFrame(pf.left*L, pf.right*R);
+                return StereoFrame(pf.left*L, pf.right*R, left.phase);
             }
         };
 
@@ -467,11 +479,13 @@ namespace Sapphire
         PolyResult process(float sampleRateHz, unsigned nchannels) override
         {
             PolyResult result;
-            result.stereo.nchannels = result.env.nchannels = std::min<unsigned>(nchannels, NPOLY);
-            for (unsigned c = 0; c < result.stereo.nchannels; ++c)
+            result.setChannelCount(nchannels);
+            for (unsigned c = 0; c < nchannels; ++c)
             {
-                result.stereo.poly[c] = stereoSourceArray[c].process(sampleRateHz, contextArray[c]);
-                result.env.poly[c] = stereoSourceArray[c].envelope.fraction;
+                stereo_source_t& source = stereoSourceArray[c];
+                result.stereo.poly[c] = source.process(sampleRateHz, contextArray[c]);
+                result.phase.poly[c] = source.left.phase;
+                result.env.poly[c] = source.envelope.fraction;
             }
             return result;
         }

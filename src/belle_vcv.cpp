@@ -281,6 +281,7 @@ namespace Sapphire
             unsigned channel = -1;
             unsigned requestedSamples{};
             std::vector<float> buffer;
+            std::vector<float> phase;
 
             bool isValid() const
             {
@@ -297,17 +298,13 @@ namespace Sapphire
                 // Then keep searching backwards until we find the first ascending node,
                 // or we hit the front of the array.
                 unsigned front = buffer.size();
+
                 if (requestedSamples > front)
                     return AudioSection(0, 0);
 
                 front -= requestedSamples;
-                while (front > 0)
-                {
-                    if ((buffer.at(front-1) < 0) && (buffer.at(front) >= 0))
-                        break;
-
+                while (front > 0 && phase.at(front-1) < phase.at(front))
                     --front;
-                }
 
                 unsigned back = std::min<unsigned>(
                     buffer.size(),
@@ -325,6 +322,7 @@ namespace Sapphire
         struct RecentAudioBuffer
         {
             std::vector<float> buffer;
+            std::vector<float> phase;
             unsigned activeChannel{};
             unsigned nextAudioOffset{};
             unsigned wavelengthSamples{};
@@ -340,20 +338,26 @@ namespace Sapphire
             void process(float sampleRateHz, PolyResult& result)
             {
                 const int bufferSizeNeeded = std::ceil(RecentAudioBufferTimeSeconds * sampleRateHz);
-                if (bufferSizeNeeded <= 0)
-                    return;
-
-                const unsigned size = static_cast<unsigned>(bufferSizeNeeded);
-                if (size != buffer.size())
+                if (bufferSizeNeeded > 0)
                 {
-                    nextAudioOffset = 0;
-                    buffer.resize(size);
-                    for (float& x : buffer)
-                        x = 0;
+                    const unsigned size = static_cast<unsigned>(bufferSizeNeeded);
+                    if (size != buffer.size())
+                    {
+                        nextAudioOffset = 0;
+                        updateSize(buffer, size);
+                        updateSize(phase, size);
+                    }
+                    phase.at (nextAudioOffset) = result.phase.poly.at(activeChannel);
+                    buffer.at(nextAudioOffset) = result.stereo.poly.at(activeChannel).sample[0];
+                    nextAudioOffset = (nextAudioOffset + 1) % size;
                 }
+            }
 
-                buffer.at(nextAudioOffset) = result.stereo.poly.at(activeChannel).sample[0];
-                nextAudioOffset = (nextAudioOffset + 1) % size;
+            void updateSize(std::vector<float>& list, unsigned size)
+            {
+                list.resize(size);
+                for (float& x : list)
+                    x = 0;
             }
         };
 
@@ -944,10 +948,15 @@ namespace Sapphire
 
                 const unsigned n = recentAudio.buffer.size();
                 s.buffer.resize(n);
+                s.phase.resize(n);
 
                 // Return the samples in chronological order.
                 for (unsigned i = 0; i < n; ++i)
-                    s.buffer[i] = recentAudio.buffer[(i + recentAudio.nextAudioOffset) % n];
+                {
+                    unsigned k = (i + recentAudio.nextAudioOffset) % n;
+                    s.buffer[i] = recentAudio.buffer[k];
+                    s.phase[i]  = recentAudio.phase[k];
+                }
 
                 return s;
             }
