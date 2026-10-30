@@ -13,11 +13,26 @@ namespace Sapphire
     constexpr unsigned NSTEREO = 2;
     constexpr unsigned NPOLY = 16;
     constexpr float VOICE_OCTAVE_SPAN = 4.5;       // +/- this many octaves from C4 center (match VCV VCO range)
+    constexpr float VOICE_OCTAVE_FADE = 0.5;       // what portion of the upper VOICE_OCTAVE_SPAN fades amplitude to zero
     constexpr float PEAK_VOLTS = 5;
 
     constexpr float MapKnob(float x, float y1, float y2)
     {
         return Remap<float>(x, -1, +1, y1, y2);
+    }
+
+    constexpr float AmplitudeForPitch(float voct)
+    {
+        if (voct <= -VOICE_OCTAVE_SPAN || voct >= +VOICE_OCTAVE_SPAN)
+            return 0;
+
+        if (voct <= -VOICE_OCTAVE_SPAN + VOICE_OCTAVE_FADE)
+            return (voct + VOICE_OCTAVE_SPAN) / VOICE_OCTAVE_FADE;
+
+        if (voct >= VOICE_OCTAVE_SPAN - VOICE_OCTAVE_FADE)
+            return (VOICE_OCTAVE_SPAN - voct) / VOICE_OCTAVE_FADE;
+
+        return 1;
     }
 
     struct StereoFrame
@@ -157,6 +172,11 @@ namespace Sapphire
         float getFrequency() const
         {
             return std::exp2(getPitchVoct()) * C4_FREQUENCY_HZ;
+        }
+
+        float amplitudeForPitch() const
+        {
+            return AmplitudeForPitch(getPitchVoct());
         }
     };
 
@@ -435,7 +455,12 @@ namespace Sapphire
                     rightSide.detuneFactor = 1-a;
                 }
 
-                const float env = envelope.process(sampleRateHz, context);
+                float env = envelope.process(sampleRateHz, context);
+
+                // In addition to the ADSR envelope, we have a frequency attenuation envelope.
+                // Always track the center frequency pitch.
+                env *= context.amplitudeForPitch();
+
                 if (env == 0)
                 {
                     needSnap = true;
