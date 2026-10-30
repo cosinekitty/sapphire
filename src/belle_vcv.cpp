@@ -158,7 +158,7 @@ namespace Sapphire
             {
                 if (n < 2)
                     return 0;
-                return box.size.x * (i/(n-1));
+                return box.size.x * (i/n);
             }
 
             float sy(float voltage, float scale) const
