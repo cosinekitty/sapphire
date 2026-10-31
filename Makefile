@@ -4,7 +4,9 @@ RACK_DIR ?= ../..
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += -Wall
 ifeq ($(SAPPHIRE_ENABLE_WERROR), 1)
-	#FLAGS += -Werror -Wno-vla-cxx-extension
+	FLAGS += -Werror
+endif
+ifeq ($(SAPPHIRE_MAC), 1)
 	FLAGS += -Wno-vla-cxx-extension
 endif
 ifeq ($(SAPPHIRE_ASAN), 1)
