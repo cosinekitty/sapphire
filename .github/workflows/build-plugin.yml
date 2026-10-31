@@ -43,7 +43,7 @@ jobs:
 
   build-mac:
     name: mac
-    runs-on: macos-latest
+    runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
