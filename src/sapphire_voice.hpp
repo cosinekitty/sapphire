@@ -314,6 +314,7 @@ namespace Sapphire
 
         explicit WindEngine()
         {
+            supportsSaturation = true;
             filter.initialize();
             filter.mask = NEED_BP;
             filter.setCascade(3);

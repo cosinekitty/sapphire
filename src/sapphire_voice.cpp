@@ -311,8 +311,8 @@ namespace Sapphire
     float WindEngine::update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side)
     {
         static constexpr float threshold = 0.1;
-        const float movement = std::abs(resknob - context.mod[1]);
-        resknob = context.mod[1];
+        const float movement = std::abs(resknob - context.mod[2]);
+        resknob = context.mod[2];
         if (context.gateTriggerReceiver.isTriggerActive() || (movement > threshold))
             filter.initialize();
 

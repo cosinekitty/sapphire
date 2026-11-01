@@ -377,11 +377,12 @@ namespace Sapphire
             const char *pwmName = "PWM";
             const char *splitName = "Split";
             const char *lowpassName = "Lowpass cutoff";
-            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, "Saturation", "Feedback", lowpassName};
+            const char *satName = "Saturation";
+            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, satName, "Feedback", lowpassName};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<SawEngine> polySaw{"saw", detuneName, "Saw1", "Saw2", lowpassName};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
-            AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, "Resonance", "Wnd3", lowpassName};
+            AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, satName, "Resonance", lowpassName};
             std::vector<PolyStereoVoice*> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
