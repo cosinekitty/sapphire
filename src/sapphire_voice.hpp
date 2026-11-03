@@ -292,6 +292,9 @@ namespace Sapphire
     };
 
 
+    constexpr unsigned SawChorusCount = 7;
+
+
     struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
@@ -384,22 +387,21 @@ namespace Sapphire
     };
 
 
-    template <typename mono_engine_t>
+    template <typename mono_engine_t, unsigned MonoVoiceCount = 2>
     struct AdsrVoiceEngine : PolyStereoVoice
     {
         struct stereo_source_t
         {
-            mono_engine_t left;
-            mono_engine_t right;
+            std::array<mono_engine_t, MonoVoiceCount> voice;
             AdsrEnvelope  envelope;
-            StateVariableFilter<float> lopass[2];
+            std::array<StateVariableFilter<float>, MonoVoiceCount> lopass;
             bool needSnap = true;
             float lpResonance = 0.3;
 
             void initialize()
             {
-                left.initialize();
-                right.initialize();
+                for (mono_engine_t& v : voice)
+                    v.initialize();
                 envelope.initialize();
                 needSnap = true;
             }
@@ -410,7 +412,7 @@ namespace Sapphire
                 static constexpr float headroom = PEAK_VOLTS * 1.05;
 
                 const float dabs = std::abs(d);
-                if (!left.supportsSaturation || (dabs <= margin))
+                if (!voice[0].supportsSaturation || (dabs <= margin))
                     return v;
 
                 const float x = v / headroom;
@@ -443,17 +445,27 @@ namespace Sapphire
                 const float m = context.mod[0];
                 const float a = 0.014 * FourthPower(m);
 
-                MonoSideInfo leftSide, rightSide;
+                std::array<MonoSideInfo, MonoVoiceCount> sideArray;
+                static_assert(MonoVoiceCount >= 2);     // otherwise we can't have stereo detuning
 
+                // Calculate a spectrum of detuning factors to smear out the pitch frequency.
+
+                float loFactor, hiFactor;
                 if (m < 0)
                 {
-                    leftSide.detuneFactor  = 1-a;
-                    rightSide.detuneFactor = 1+a;
+                    loFactor = 1-a;
+                    hiFactor = 1+a;
                 }
                 else
                 {
-                    leftSide.detuneFactor  = 1+a;
-                    rightSide.detuneFactor = 1-a;
+                    loFactor = 1+a;
+                    hiFactor = 1-a;
+                }
+
+                for (unsigned k = 0; k < MonoVoiceCount; ++k)
+                {
+                    float u = static_cast<float>(k) / static_cast<float>(MonoVoiceCount-1);
+                    sideArray[k].detuneFactor = LinearMix<float>(u, loFactor, hiFactor);
                 }
 
                 float env = envelope.process(sampleRateHz, context);
@@ -468,24 +480,37 @@ namespace Sapphire
                     return StereoFrame(0, 0, 0);   // don't burn CPU updating the voice models on silent samples
                 }
 
-                float L = left .process(sampleRateHz, context, leftSide);
-                float R = right.process(sampleRateHz, context, rightSide);
-                L = saturation(L, context.mod[1]);
-                R = saturation(R, context.mod[1]);
                 const float lopassCornerFreqHz = std::min<float>(
                     std::exp2(1.5 + 5.5*context.mod[3]) * C4_FREQUENCY_HZ,
                     sampleRateHz/2
                 );
+
                 if (needSnap)
                 {
                     needSnap = false;
-                    lopass[0].initialize();
-                    lopass[1].initialize();
+                    for (auto& f : lopass)
+                        f.initialize();
                 }
-                L = lopass[0].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*L).lowpass;
-                R = lopass[1].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*R).lowpass;
-                const PanningFactors pf = Panning(context.pan);
-                return StereoFrame(pf.left*L, pf.right*R, left.phase);
+
+                std::array<float, MonoVoiceCount> audio;
+                for (unsigned k = 0; k < MonoVoiceCount; ++k)
+                {
+                    float& y = audio[k];
+                    y = voice[k].process(sampleRateHz, context, sideArray[k]);
+                    y = saturation(y, context.mod[1]);
+                    y = lopass[k].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*y).lowpass;
+                }
+
+                if constexpr (MonoVoiceCount == 2)
+                {
+                    const PanningFactors pf = Panning(context.pan);
+                    return StereoFrame(pf.left*audio[0], pf.right*audio[1], voice[0].phase);
+                }
+                else
+                {
+                    // FIXFIXFIX - implement for saw wave
+                    return StereoFrame(0, 0, 0);
+                }
             }
         };
 
@@ -510,7 +535,7 @@ namespace Sapphire
             {
                 stereo_source_t& source = stereoSourceArray[c];
                 result.stereo.poly[c] = source.process(sampleRateHz, contextArray[c]);
-                result.phase.poly[c] = source.left.phase;
+                result.phase.poly[c] = source.voice[0].phase;
                 result.env.poly[c] = source.envelope.fraction;
             }
             return result;

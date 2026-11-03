@@ -380,7 +380,7 @@ namespace Sapphire
             const char *satName = "Saturation";
             AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, satName, "Feedback", lowpassName};
             AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, pwmName, splitName, lowpassName};
-            AdsrVoiceEngine<SawEngine> polySaw{"saw", detuneName, "Saw1", "Saw2", lowpassName};
+            AdsrVoiceEngine<SawEngine, SawChorusCount> polySaw{"saw", detuneName, "Chorus", "Spread", lowpassName};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, satName, "Resonance", lowpassName};
             std::vector<PolyStereoVoice*> polyEngineList;
