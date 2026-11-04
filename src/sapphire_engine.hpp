@@ -977,7 +977,7 @@ namespace Sapphire
 
     inline PanningFactors Panning(float knob)
     {
-        float x = std::clamp<float>(knob, -1, +1);
+        const float x = std::clamp<float>(knob, -1, +1);
 
         // Use a power law to smoothly transition from either channel dominating,
         // but with consistent power sum across both channels.

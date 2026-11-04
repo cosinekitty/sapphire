@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <utility>
 #include "rack.hpp"
 #include "sapphire_gate_trigger.hpp"
 #include "sapphire_engine.hpp"
@@ -292,9 +293,6 @@ namespace Sapphire
     };
 
 
-    constexpr unsigned SawChorusCount = 7;
-
-
     struct SawEngine : MonoVoiceEngine
     {
         void initialize() override;
@@ -387,9 +385,13 @@ namespace Sapphire
     };
 
 
-    template <typename mono_engine_t, unsigned MonoVoiceCount = 2>
+    template <typename mono_engine_t, unsigned MonoVoiceLog = 1>
     struct AdsrVoiceEngine : PolyStereoVoice
     {
+        static_assert(MonoVoiceLog >= 1);   // min = 2 voices (required for stereo)
+        static_assert(MonoVoiceLog <= 8);   // max = 256 voices (absolute limit for CPU usage)
+        static constexpr unsigned MonoVoiceCount = (1 << MonoVoiceLog);
+
         struct stereo_source_t
         {
             std::array<mono_engine_t, MonoVoiceCount> voice;
@@ -439,45 +441,48 @@ namespace Sapphire
                 return y;
             }
 
+            float updateVoice(unsigned k, float sampleRateHz, VoiceContext& context, MonoSideInfo& side, float env, float lopassCornerFreqHz)
+            {
+                float audio = voice[k].process(sampleRateHz, context, side);
+                audio = saturation(audio, context.mod[1]);
+                audio = lopass[k].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*audio).lowpass;
+                return audio;
+            }
+
             StereoFrame process(float sampleRateHz, VoiceContext& context)
             {
-                // Calculate detune.
-                const float m = context.mod[0];
-                const float a = 0.014 * FourthPower(m);
-
-                std::array<MonoSideInfo, MonoVoiceCount> sideArray;
-                static_assert(MonoVoiceCount >= 2);     // otherwise we can't have stereo detuning
-
-                // Calculate a spectrum of detuning factors to smear out the pitch frequency.
-
-                float loFactor, hiFactor;
-                if (m < 0)
-                {
-                    loFactor = 1-a;
-                    hiFactor = 1+a;
-                }
-                else
-                {
-                    loFactor = 1+a;
-                    hiFactor = 1-a;
-                }
-
-                for (unsigned k = 0; k < MonoVoiceCount; ++k)
-                {
-                    float u = static_cast<float>(k) / static_cast<float>(MonoVoiceCount-1);
-                    sideArray[k].detuneFactor = LinearMix<float>(u, loFactor, hiFactor);
-                }
-
                 float env = envelope.process(sampleRateHz, context);
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
                 // Always track the center frequency pitch.
                 env *= context.amplitudeForPitch();
 
-                if (env == 0)
+                if (env == 0)   // Are we completely silent right now?
                 {
+                    // Anti-click: force lazy init of the lowpass filters as soon as we are no longer silent.
                     needSnap = true;
-                    return StereoFrame(0, 0, 0);   // don't burn CPU updating the voice models on silent samples
+
+                    // Don't burn CPU updating the voice models on silent samples.
+                    return StereoFrame(0, 0, 0);
+                }
+
+                // Calculate detune.
+                const float detune = context.mod[0];    // knob range = [-1, +1].
+
+                std::array<MonoSideInfo, MonoVoiceCount> sideArray;
+                static_assert(MonoVoiceCount >= 2);     // otherwise we can't have stereo detuning
+
+                // Calculate a spectrum of detuning factors to smear out the pitch frequency.
+                const float tuneShift = 0.014 * FourthPower(detune);
+                float loFactor = 1 + tuneShift;
+                float hiFactor = 1 - tuneShift;
+                if (detune < 0)
+                    std::swap(loFactor, hiFactor);
+
+                for (unsigned k = 0; k < MonoVoiceCount; ++k)
+                {
+                    float u = static_cast<float>(k) / static_cast<float>(MonoVoiceCount-1);
+                    sideArray[k].detuneFactor = LinearMix<float>(u, loFactor, hiFactor);
                 }
 
                 const float lopassCornerFreqHz = std::min<float>(
@@ -492,24 +497,47 @@ namespace Sapphire
                         f.initialize();
                 }
 
-                std::array<float, MonoVoiceCount> audio;
-                for (unsigned k = 0; k < MonoVoiceCount; ++k)
-                {
-                    float& y = audio[k];
-                    y = voice[k].process(sampleRateHz, context, sideArray[k]);
-                    y = saturation(y, context.mod[1]);
-                    y = lopass[k].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*y).lowpass;
-                }
-
                 if constexpr (MonoVoiceCount == 2)
                 {
+                    // Most stereo models are simply a pair of two voices: (left, right).
+                    const float L = updateVoice(0, sampleRateHz, context, sideArray[0], env, lopassCornerFreqHz);
+                    const float R = updateVoice(1, sampleRateHz, context, sideArray[1], env, lopassCornerFreqHz);
                     const PanningFactors pf = Panning(context.pan);
-                    return StereoFrame(pf.left*audio[0], pf.right*audio[1], voice[0].phase);
+                    return StereoFrame(pf.left*L, pf.right*R, voice[0].phase);
                 }
                 else
                 {
-                    // FIXFIXFIX - implement for saw wave
-                    return StereoFrame(0, 0, 0);
+                    // Models like 'saw' use a chorus effect with more than 2 voices running.
+                    // Use the PAN knob's raw range [-1, +1] for all intermediate angular calculations.
+                    // This allows us to do all the angle calculations first, then call Panning().
+                    // Center of monaural field is at 0 "knobs", my new unit of angular measure.
+                    // The left ear is at -1 knobs, the right ear is at +1 knobs.
+                    // Arrange the voices around a semicircular arc in the stereo knob range [-1, +1].
+
+                    // CHORUS: the number of saw engines we actually render (variable CPU load).
+                    static constexpr unsigned maxPow2 = 4;
+                    static_assert(1<<maxPow2 == MonoVoiceCount);    // adjust maxPow2 as needed to match
+                    const float chorusCountRaw = std::exp2(MapKnob(context.mod[1], 1, MonoVoiceLog));
+                    const unsigned chorusCount = std::clamp<unsigned>(std::ceil(chorusCountRaw), 2, MonoVoiceCount);
+
+                    // The center angle is defined by context.pan.
+                    // The total angular spread is defined by the SPREAD control.
+                    static constexpr float maxSpread = 0.8;
+                    const float spread = maxSpread * Cube(MapKnob(context.mod[2], 0, 1));
+                    float leftSum = 0;
+                    float rightSum = 0;
+                    for (unsigned k = 0; k < chorusCount; ++k)
+                    {
+                        float audio = updateVoice(k, sampleRateHz, context, sideArray[k], env, lopassCornerFreqHz);
+                        if (k+1 == chorusCount)
+                            audio *= (1 - (chorusCount-chorusCountRaw));   // final voice fader/attenuation
+                        // FIXFIXFIX - pos jumps in discrete units - make it smooth instead (anti-click)
+                        const float pos = Remap<float>(k, 0, chorusCount-1, context.pan-spread, context.pan+spread);
+                        const PanningFactors pf = Panning(pos);
+                        leftSum  += pf.left  * audio;
+                        rightSum += pf.right * audio;
+                    }
+                    return StereoFrame(leftSum, rightSum, voice[0].phase);
                 }
             }
         };
