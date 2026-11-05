@@ -515,14 +515,12 @@ namespace Sapphire
                     // Arrange the voices around a semicircular arc in the stereo knob range [-1, +1].
 
                     // CHORUS: the number of saw engines we actually render (variable CPU load).
-                    static constexpr unsigned maxPow2 = 4;
-                    static_assert(1<<maxPow2 == MonoVoiceCount);    // adjust maxPow2 as needed to match
                     const float chorusCountRaw = std::exp2(MapKnob(context.mod[1], 1, MonoVoiceLog));
                     const unsigned chorusCount = std::clamp<unsigned>(std::ceil(chorusCountRaw), 2, MonoVoiceCount);
 
                     // The center angle is defined by context.pan.
                     // The total angular spread is defined by the SPREAD control.
-                    static constexpr float maxSpread = 0.8;
+                    static constexpr float maxSpread = 10.0;
                     const float spread = maxSpread * Cube(MapKnob(context.mod[2], 0, 1));
                     float leftSum = 0;
                     float rightSum = 0;
@@ -531,13 +529,17 @@ namespace Sapphire
                         float audio = updateVoice(k, sampleRateHz, context, sideArray[k], env, lopassCornerFreqHz);
                         if (k+1 == chorusCount)
                             audio *= (1 - (chorusCount-chorusCountRaw));   // final voice fader/attenuation
-                        // FIXFIXFIX - pos jumps in discrete units - make it smooth instead (anti-click)
-                        const float pos = Remap<float>(k, 0, chorusCount-1, context.pan-spread, context.pan+spread);
+                        const float pos = Remap<float>(k, 0, chorusCountRaw, context.pan-spread, context.pan+spread);
                         const PanningFactors pf = Panning(pos);
                         leftSum  += pf.left  * audio;
                         rightSum += pf.right * audio;
                     }
-                    return StereoFrame(leftSum, rightSum, voice[0].phase);
+
+                    return StereoFrame(
+                        leftSum  / chorusCountRaw,
+                        rightSum / chorusCountRaw,
+                        voice[0].phase
+                    );
                 }
             }
         };
