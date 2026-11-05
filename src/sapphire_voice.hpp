@@ -253,6 +253,7 @@ namespace Sapphire
 
     struct MonoVoiceEngine
     {
+        float initPhase = 0;
         float phase = 0;            // 0 <= phase < 1
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
         bool prevState = false;     // helps track phase wraparound from 1 back to 0.

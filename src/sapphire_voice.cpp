@@ -211,7 +211,7 @@ namespace Sapphire
 
     void SineEngine::initialize()
     {
-        phase = 0;
+        phase = initPhase;
         y1 = 0;
         y2 = 0;
         decimator.reset();
@@ -238,7 +238,7 @@ namespace Sapphire
 
     void SawEngine::initialize()
     {
-        phase = 0;
+        phase = initPhase;
     }
 
 
@@ -261,7 +261,7 @@ namespace Sapphire
 
     void TriangleEngine::initialize()
     {
-        phase = 0;
+        phase = initPhase;
         square = triangle = 0;
         prevState = false;
     }
@@ -286,7 +286,7 @@ namespace Sapphire
 
     void SquareEngine::initialize()
     {
-        phase = 0;
+        phase = initPhase;
         square = 0;
         prevState = false;
     }
