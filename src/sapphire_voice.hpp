@@ -399,6 +399,7 @@ namespace Sapphire
             std::array<StateVariableFilter<float>, MonoVoiceCount> lopass;
             bool needSnap = true;
             float lpResonance = 0.3;
+            float detuneWeight = 1;
 
             void initialize()
             {
@@ -473,7 +474,7 @@ namespace Sapphire
                 static_assert(MonoVoiceCount >= 2);     // otherwise we can't have stereo detuning
 
                 // Calculate a spectrum of detuning factors to smear out the pitch frequency.
-                const float tuneShift = 0.014 * FourthPower(detune);
+                const float tuneShift = 0.014 * detuneWeight * FourthPower(detune);
                 float loFactor = 1 + tuneShift;
                 float hiFactor = 1 - tuneShift;
                 if (detune < 0)
@@ -481,7 +482,7 @@ namespace Sapphire
 
                 for (unsigned k = 0; k < MonoVoiceCount; ++k)
                 {
-                    float u = static_cast<float>(k) / static_cast<float>(MonoVoiceCount-1);
+                    float u = static_cast<float>(k) / (MonoVoiceCount-1);
                     sideArray[k].detuneFactor = LinearMix<float>(u, loFactor, hiFactor);
                 }
 
@@ -546,9 +547,12 @@ namespace Sapphire
 
         std::array<stereo_source_t, NPOLY> stereoSourceArray;
 
-        explicit AdsrVoiceEngine(const char *_name, const char *m0, const char *m1, const char *m2, const char *m3)
+        explicit AdsrVoiceEngine(const char *_name, const char *m0, const char *m1, const char *m2, const char *m3, float detuneWeight = 1.0)
             : PolyStereoVoice(_name, m0, m1, m2, m3)
-            {}
+        {
+            for (stereo_source_t& source : stereoSourceArray)
+                source.detuneWeight = detuneWeight;
+        }
 
         void initialize() override
         {
