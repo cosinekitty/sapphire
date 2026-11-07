@@ -2,12 +2,12 @@
 #include <cassert>
 #include <array>
 #include <cmath>
-#include <random>
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <utility>
 #include "chaos.hpp"
+#include "sapphire_random.hpp"
 
 namespace Sapphire
 {
@@ -27,7 +27,7 @@ namespace Sapphire
     };
 
 
-    template <unsigned nsignals, typename rand_t = std::mt19937_64>
+    template <unsigned nsignals, typename rand_t = SapphireRandom>
     void MakePermutation(rand_t& gen, std::array<unsigned, nsignals>& permutation)
     {
         for (unsigned i = 0; i < nsignals; ++i)
@@ -50,7 +50,7 @@ namespace Sapphire
     static_assert(FilterSeed(0) == ChaosFountainDefaultSeed);
     static_assert(FilterSeed(0xa8a78dac6de3725e) == 0xa8a78dac6de3725e);
 
-    template <unsigned nsignals, typename rand_t = std::mt19937_64>
+    template <unsigned nsignals, typename rand_t = SapphireRandom>
     struct ChaosFountain     // produces an arbitrary number of distinct smooth random curves
     {
     private:
@@ -211,7 +211,7 @@ namespace Sapphire
     };
 
 
-    template <typename rand_t = std::mt19937_64>
+    template <typename rand_t = SapphireRandom>
     class RandomBitSource
     {
     private:

@@ -142,7 +142,7 @@ namespace Sapphire
         PitchTracker trackerPitch;
         PitchTracker trackerFreq;
         PitchTracker trackerOct;
-        std::mt19937_64 rand{rack::random::u64()};
+        SapphireRandom rand{rack::random::u64()};
 
         explicit VoiceContext()
         {
@@ -253,7 +253,6 @@ namespace Sapphire
 
     struct MonoVoiceEngine
     {
-        float initPhase = 0;
         float phase = 0;            // 0 <= phase < 1
         float square = 0;           // pure signal at ±1, not scaled for 5 volts.
         bool prevState = false;     // helps track phase wraparound from 1 back to 0.
@@ -262,7 +261,7 @@ namespace Sapphire
         bool usesOversampling = false;
         decimator_t decimator{VoiceDecimatorCutoff};
 
-        virtual void initialize() = 0;
+        virtual void initialize(SapphireRandom& rand) = 0;
         virtual float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) = 0;
         BlepSquareResult blepSquare(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side);
 
@@ -280,7 +279,7 @@ namespace Sapphire
             supportsSaturation = true;
             usesOversampling = true;
         }
-        void initialize() override;
+        void initialize(SapphireRandom& rand) override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
@@ -289,21 +288,21 @@ namespace Sapphire
     {
         float triangle = 0;    // integral of BLEP-ed square
 
-        void initialize() override;
+        void initialize(SapphireRandom& rand) override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SawEngine : MonoVoiceEngine
     {
-        void initialize() override;
+        void initialize(SapphireRandom& rand) override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
 
     struct SquareEngine : MonoVoiceEngine
     {
-        void initialize() override;
+        void initialize(SapphireRandom& rand) override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
@@ -322,7 +321,7 @@ namespace Sapphire
             filter.setCascade(3);
         }
 
-        void initialize() override;
+        void initialize(SapphireRandom& rand) override;
         float update(float sampleRateHz, VoiceContext& context, const MonoSideInfo& side) override;
     };
 
@@ -374,12 +373,19 @@ namespace Sapphire
             , mod1(m1)
             , mod2(m2)
             , mod3(m3)
-            {}
+        {
+            PolyStereoVoice_initialize();
+        }
 
-        virtual void initialize()
+        void PolyStereoVoice_initialize()
         {
             for (VoiceContext& context : contextArray)
                 context.initialize();
+        }
+
+        virtual void initialize()
+        {
+            PolyStereoVoice_initialize();
         }
 
         virtual PolyResult process(float sampleRateHz, unsigned nchannels) = 0;
@@ -389,25 +395,29 @@ namespace Sapphire
     template <typename mono_engine_t, unsigned MonoVoiceLog = 1>
     struct AdsrVoiceEngine : PolyStereoVoice
     {
+        const uint64_t seed{rack::random::u64()};
         static_assert(MonoVoiceLog >= 1);   // min = 2 voices (required for stereo)
         static_assert(MonoVoiceLog <= 8);   // max = 256 voices (absolute limit for CPU usage)
         static constexpr unsigned MonoVoiceCount = (1 << MonoVoiceLog);
 
+        using lowpass_filter_t = StateVariableFilter<float>;
+
         struct stereo_source_t
         {
-            std::array<mono_engine_t, MonoVoiceCount> voice;
+            std::array<mono_engine_t, MonoVoiceCount> chorus;
+            std::array<lowpass_filter_t, MonoVoiceCount> lopass{};  // lazy-initialized via flag `needSnap`
             AdsrEnvelope  envelope;
-            std::array<StateVariableFilter<float>, MonoVoiceCount> lopass;
             bool needSnap = true;
             float lpResonance = 0.3;
             float detuneWeight = 1;
 
-            void initialize()
+            void initialize(SapphireRandom& rand)
             {
-                for (mono_engine_t& v : voice)
-                    v.initialize();
+                for (mono_engine_t& voice : this->chorus)
+                    voice.initialize(rand);
+
                 envelope.initialize();
-                needSnap = true;
+                needSnap = true;        // initialize lopass filters right before processing the next audio frame
             }
 
             float saturation(float v, float d)
@@ -416,7 +426,7 @@ namespace Sapphire
                 static constexpr float headroom = PEAK_VOLTS * 1.05;
 
                 const float dabs = std::abs(d);
-                if (!voice[0].supportsSaturation || (dabs <= margin))
+                if (!chorus[0].supportsSaturation || (dabs <= margin))
                     return v;
 
                 const float x = v / headroom;
@@ -445,7 +455,7 @@ namespace Sapphire
 
             float updateVoice(unsigned k, float sampleRateHz, VoiceContext& context, MonoSideInfo& side, float env, float lopassCornerFreqHz)
             {
-                float audio = voice[k].process(sampleRateHz, context, side);
+                float audio = chorus[k].process(sampleRateHz, context, side);
                 audio = saturation(audio, context.mod[1]);
                 audio = lopass[k].process(sampleRateHz, lopassCornerFreqHz, lpResonance, env*audio).lowpass;
                 return audio;
@@ -505,7 +515,7 @@ namespace Sapphire
                     const float L = updateVoice(0, sampleRateHz, context, sideArray[0], env, lopassCornerFreqHz);
                     const float R = updateVoice(1, sampleRateHz, context, sideArray[1], env, lopassCornerFreqHz);
                     const PanningFactors pf = Panning(context.pan);
-                    return StereoFrame(pf.left*L, pf.right*R, voice[0].phase);
+                    return StereoFrame(pf.left*L, pf.right*R, chorus[0].phase);
                 }
                 else
                 {
@@ -540,7 +550,7 @@ namespace Sapphire
                     return StereoFrame(
                         leftSum  / chorusCountRaw,
                         rightSum / chorusCountRaw,
-                        voice[0].phase
+                        chorus[0].phase
                     );
                 }
             }
@@ -553,13 +563,21 @@ namespace Sapphire
         {
             for (stereo_source_t& source : stereoSourceArray)
                 source.detuneWeight = detuneWeight;
+
+            AdsrVoiceEngine_initialize();
+        }
+
+        void AdsrVoiceEngine_initialize()
+        {
+            SapphireRandom rand{seed};
+            for (stereo_source_t& source : stereoSourceArray)
+                source.initialize(rand);
         }
 
         void initialize() override
         {
             PolyStereoVoice::initialize();
-            for (stereo_source_t& source : stereoSourceArray)
-                source.initialize();
+            AdsrVoiceEngine_initialize();
         }
 
         PolyResult process(float sampleRateHz, unsigned nchannels) override
@@ -570,7 +588,7 @@ namespace Sapphire
             {
                 stereo_source_t& source = stereoSourceArray[c];
                 result.stereo.poly[c] = source.process(sampleRateHz, contextArray[c]);
-                result.phase.poly[c] = source.voice[0].phase;
+                result.phase.poly[c] = source.chorus[0].phase;
                 result.env.poly[c] = source.envelope.fraction;
             }
             return result;

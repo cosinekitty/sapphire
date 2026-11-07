@@ -209,9 +209,9 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void SineEngine::initialize()
+    void SineEngine::initialize(SapphireRandom& rand)
     {
-        phase = initPhase;
+        phase = 0;
         y1 = 0;
         y2 = 0;
         decimator.reset();
@@ -236,9 +236,9 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void SawEngine::initialize()
+    void SawEngine::initialize(SapphireRandom& rand)
     {
-        phase = initPhase;
+        phase = RandomReal(rand);
     }
 
 
@@ -259,9 +259,9 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void TriangleEngine::initialize()
+    void TriangleEngine::initialize(SapphireRandom& rand)
     {
-        phase = initPhase;
+        phase = 0;
         square = triangle = 0;
         prevState = false;
     }
@@ -284,9 +284,9 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void SquareEngine::initialize()
+    void SquareEngine::initialize(SapphireRandom& rand)
     {
-        phase = initPhase;
+        phase = 0;
         square = 0;
         prevState = false;
     }
@@ -301,7 +301,7 @@ namespace Sapphire
 
     //--------------------------------------------------------------------------------------------------
 
-    void WindEngine::initialize()
+    void WindEngine::initialize(SapphireRandom& rand)
     {
         filter.initialize();
         resknob = -1;
