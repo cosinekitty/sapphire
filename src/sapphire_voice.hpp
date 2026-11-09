@@ -413,7 +413,7 @@ namespace Sapphire
 
             void initialize(SapphireRandom& rand)
             {
-                for (mono_engine_t& voice : this->chorus)
+                for (mono_engine_t& voice : chorus)
                     voice.initialize(rand);
 
                 envelope.initialize();
@@ -547,11 +547,8 @@ namespace Sapphire
                         rightSum += pf.right * audio;
                     }
 
-                    return StereoFrame(
-                        leftSum  / chorusCountRaw,
-                        rightSum / chorusCountRaw,
-                        chorus[0].phase
-                    );
+                    const float denom = std::sqrt(2 * chorusCountRaw);
+                    return StereoFrame(leftSum/denom, rightSum/denom, chorus[0].phase);
                 }
             }
         };
