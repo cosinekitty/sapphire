@@ -178,11 +178,6 @@ namespace Sapphire
                 : GraphWidget(bmod, "model")
                 , fontPath(asset::system("res/fonts/ShareTechMono-Regular.ttf"))
             {
-                initialize();
-            }
-
-            void initialize()
-            {
             }
 
             void drawLayer(const DrawArgs& args, int layer) override;
@@ -194,24 +189,16 @@ namespace Sapphire
             explicit EnvelopeGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "envelope")
             {
-                initialize();
-            }
-
-            void initialize()
-            {
             }
         };
 
 
         struct WaveformGraphWidget : GraphWidget
         {
+            float verticalScale = 0;
+
             explicit WaveformGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "waveform")
-            {
-                initialize();
-            }
-
-            void initialize()
             {
             }
 
@@ -1306,6 +1293,20 @@ namespace Sapphire
                             float scale = 0.01;     // minimum 10 mV for half-vertical-scale
                             for (unsigned i = w.front; i < w.back; ++i)
                                 scale = std::max<float>(scale, 1.125f * std::abs(s.buffer.at(i)));
+
+                            if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
+                                verticalScale = 0;
+
+                            // Simple envelope detector logic: increase instantly, fall slowly.
+                            if (scale >= verticalScale)
+                            {
+                                verticalScale = scale;
+                            }
+                            else
+                            {
+                                scale = verticalScale;
+                                verticalScale *= 0.98;
+                            }
 
                             nvgBeginPath(args.vg);
                             float x = sx(0, n);
