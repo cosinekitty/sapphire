@@ -140,7 +140,7 @@ namespace Sapphire
         static constexpr float loFadeSplitDelta = 0.03;
         static constexpr float hiFadeSplitDelta = 0.04;
         const float split = context.mod[2];
-        if (delta < hiFadeSplitDelta)
+        if (split && (delta < hiFadeSplitDelta))
         {
             // Fade out amplitude of SPLIT effect as we get too close to Nyquist.
             const float fade =
@@ -148,46 +148,49 @@ namespace Sapphire
                 ? 1.0f
                 : (hiFadeSplitDelta - delta) / (hiFadeSplitDelta - loFadeSplitDelta);
 
+            float w, h;
             if (split > 0)
             {
-                const float w = std::max(2*delta, 0.15f + 0.75f*(1-split));
-                const float h = 1.9f * fade * split;
-
-                // There are two split-pulses: one for the high portion (duty)
-                // and one for the low portion (1-duty).
-                // The high split-pulse subtracts from the area.
-                // The low split-pulse adds to the area.
-                // Include both adjustments, after careful algebra to simplify and reduce...
-                area -= w*h*area;
-
-                const float a1 = duty*(1-w)/2;
-                const float a2 = duty*(1+w)/2;
-
-                if (phase >= a1 && phase <= a2)
-                    square -= h;
-
-                if (phase-delta < a1 && phase >= a1)
-                    blep.insertDiscontinuity((a1-phase)/delta, -h);
-
-                if (phase-delta < a2 && phase >= a2)
-                    blep.insertDiscontinuity((a2-phase)/delta, +h);
-
-                const float b1 = duty + (1-duty)*(1-w)/2;
-                const float b2 = duty + (1-duty)*(1+w)/2;
-
-                if (phase >= b1 && phase <= b2)
-                    square += h;
-
-                if (phase-delta < b1 && phase >= b1)
-                    blep.insertDiscontinuity((b1-phase)/delta, +h);
-
-                if (phase-delta < b2 && phase >= b2)
-                    blep.insertDiscontinuity((b2-phase)/delta, -h);
+                w = 0.15f + 0.75f*(1-split);
+                h = 2 * fade * split;
             }
             else
             {
-                // FIXFIXFIX: think of some fun effect for negative SPLIT values.
+                w = (1 + duty/2)/3;
+                h = -2 * fade * split;
             }
+            w = std::max(w, 2*delta);
+
+            // There are two split-pulses: one for the high portion (duty)
+            // and one for the low portion (1-duty).
+            // The high split-pulse subtracts from the area.
+            // The low split-pulse adds to the area.
+            // Include both adjustments, after careful algebra to simplify and reduce...
+            area -= w*h*area;
+
+            const float a1 = duty*(1-w)/2;
+            const float a2 = duty*(1+w)/2;
+
+            if (phase >= a1 && phase <= a2)
+                square -= h;
+
+            if (phase-delta < a1 && phase >= a1)
+                blep.insertDiscontinuity((a1-phase)/delta, -h);
+
+            if (phase-delta < a2 && phase >= a2)
+                blep.insertDiscontinuity((a2-phase)/delta, +h);
+
+            const float b1 = duty + (1-duty)*(1-w)/2;
+            const float b2 = duty + (1-duty)*(1+w)/2;
+
+            if (phase >= b1 && phase <= b2)
+                square += h;
+
+            if (phase-delta < b1 && phase >= b1)
+                blep.insertDiscontinuity((b1-phase)/delta, +h);
+
+            if (phase-delta < b2 && phase >= b2)
+                blep.insertDiscontinuity((b2-phase)/delta, -h);
         }
 
         square += blep.process();
