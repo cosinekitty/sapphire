@@ -71,6 +71,7 @@ namespace Sapphire
             LEVEL_POLY_BUTTON,
             CHAOS_TOGGLE_POLY_PARAM,
             CHAOS_OUTPUT_CHANNELS_PARAM,
+            CHAOS_OUTPUT_LEVEL_PARAM,
 
             PARAMS_LEN
         };
@@ -423,6 +424,8 @@ namespace Sapphire
                 configParam(CHAOS_OUTPUT_CHANNELS_PARAM, 0, PORT_MAX_CHANNELS, 0, "Chaos output channels");
                 paramQuantities.at(CHAOS_OUTPUT_CHANNELS_PARAM)->snapEnabled = true;
 
+                configParam(CHAOS_OUTPUT_LEVEL_PARAM, 0, 2, 1, "Chaos level", " dB", -10, 20*3);
+
                 attenuverterChaosOptIn(FREQ_ATTEN,      ChaoticModulation::Polyphonic, 1);
                 attenuverterChaosOptIn(OCT_ATTEN,       ChaoticModulation::Polyphonic, 1);
                 attenuverterChaosOptIn(GLIDE_ATTEN,     ChaoticModulation::Polyphonic, mildSensitivityLevel);
@@ -702,25 +705,34 @@ namespace Sapphire
                 }
             }
 
-            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nOutputChannels)
+            unsigned numChaosOutputChannels(unsigned nAudioOutputChannels) const
             {
-                nOutputChannels = std::min<unsigned>(nOutputChannels, PORT_MAX_CHANNELS);
-
-                // Allow user to manually override the automatic channel count.
-                const unsigned knob = static_cast<unsigned>(params.at(CHAOS_OUTPUT_CHANNELS_PARAM).getValue());
+                // Allow user to manually override the automatic channel count by setting
+                // the knob to a value 1..16.
+                const unsigned knob = static_cast<unsigned>(params.at(CHAOS_OUTPUT_CHANNELS_PARAM).value);
                 if (knob > 0 && knob <= PORT_MAX_CHANNELS)
-                    nOutputChannels = knob;
+                    return knob;
 
+                // When the chaos output channel count knob is at zero (the default),
+                // we make the output chaos signal have the same number of channels as
+                // the output audio.
+                return std::min<unsigned>(nAudioOutputChannels, PORT_MAX_CHANNELS);
+            }
+
+            void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nAudioOutputChannels)
+            {
+                const unsigned nOutputChannels = numChaosOutputChannels(nAudioOutputChannels);
                 auto& outChaos = outputs.at(CHAOS_OUTPUT);
                 outChaos.channels = nOutputChannels;
 
+                const float gain = Cube(params.at(CHAOS_OUTPUT_LEVEL_PARAM).value);
                 const float vneg = batch(offset+0);
                 const float vpos = batch(offset+1);
                 for (unsigned c = 0; c < nOutputChannels; ++c)
                 {
                     const float vc = batch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
                     const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
-                    outChaos.setVoltage(outVoltage, c);
+                    outChaos.setVoltage(gain*outVoltage, c);
                 }
             }
 
@@ -1087,6 +1099,7 @@ namespace Sapphire
                 setModule(module);
                 addKnob(MODEL_SELECT_PARAM, "model_select");
                 addKnob<Trimpot>(CHAOS_OUTPUT_CHANNELS_PARAM, "chaos_channels_knob");
+                addKnob<Trimpot>(CHAOS_OUTPUT_LEVEL_PARAM, "chaos_output_level");
                 addSapphireInput(GATE_INPUT, "gate_input");
                 addSapphireInput(PITCH_INPUT, "pitch_input");
                 addSapphireInput(MODEL_INPUT, "model_input");

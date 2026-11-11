@@ -20,6 +20,7 @@ namespace Sapphire
             {"chaos_display_button",   {   6.820,   94.200}},
             {"chaos_freeze_button",    {  33.820,   94.200}},
             {"chaos_output",           { 147.320,   48.200}},
+            {"chaos_output_level",     { 139.320,   48.200}},
             {"chaos_random_button",    {   6.820,   51.200}},
             {"chaos_stereo_button",    {  33.820,   51.200}},
             {"clevel_atten",           {  20.320,   74.200}},

@@ -2907,12 +2907,14 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
 
-        xChaosOutput = xBelle(4)
+        #   (level_knob)----(chaos_port)----(channel_count_knob)
         yChaosOutput = yBelle(1.5)
+        xChaosOutput = xBelle(4)
+        xChaosLevelKnob = xChaosOutput - 8.0
         xChannelsKnob = xChaosOutput + 8.0
-        yChannelsKnob = yChaosOutput
-        pl.append(GeneralLine(xChaosOutput, yChaosOutput, xChannelsKnob, yChannelsKnob))
-        controls.add('chaos_channels_knob', xChannelsKnob, yChannelsKnob)
+        pl.append(GeneralLine(xChaosLevelKnob, yChaosOutput, xChannelsKnob, yChaosOutput))
+        controls.add('chaos_channels_knob', xChannelsKnob, yChaosOutput)
+        controls.add('chaos_output_level', xChaosLevelKnob, yChaosOutput)
 
         xPortCenter = xBelle(4)
         yPortCenter = yBelle(5)
