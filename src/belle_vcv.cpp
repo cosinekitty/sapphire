@@ -721,18 +721,20 @@ namespace Sapphire
 
             void sendChaosOutput(float spread, const batch_t& batch, unsigned offset, unsigned nAudioOutputChannels)
             {
-                const unsigned nOutputChannels = numChaosOutputChannels(nAudioOutputChannels);
-                auto& outChaos = outputs.at(CHAOS_OUTPUT);
-                outChaos.channels = nOutputChannels;
-
-                const float gain = Cube(params.at(CHAOS_OUTPUT_LEVEL_PARAM).value);
-                const float vneg = batch(offset+0);
-                const float vpos = batch(offset+1);
-                for (unsigned c = 0; c < nOutputChannels; ++c)
+                if (auto& outChaos = outputs.at(CHAOS_OUTPUT); outChaos.isConnected())
                 {
-                    const float vc = batch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
-                    const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
-                    outChaos.setVoltage(gain*outVoltage, c);
+                    const unsigned nOutputChannels = numChaosOutputChannels(nAudioOutputChannels);
+                    outChaos.setChannels(nOutputChannels);
+
+                    const float gain = Cube(params.at(CHAOS_OUTPUT_LEVEL_PARAM).value);
+                    const float vneg = batch(offset+0);
+                    const float vpos = batch(offset+1);
+                    for (unsigned c = 0; c < nOutputChannels; ++c)
+                    {
+                        const float vc = batch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
+                        const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
+                        outChaos.setVoltage(gain*outVoltage, c);
+                    }
                 }
             }
 
