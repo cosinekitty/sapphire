@@ -194,6 +194,81 @@ namespace Sapphire
         };
 
 
+        struct AudioSection
+        {
+            unsigned front{};
+            unsigned back{};
+
+            explicit AudioSection(unsigned _front, unsigned _back)
+                : front(_front)
+                , back(_back)
+                {}
+        };
+
+
+        struct AudioSnapshot
+        {
+            unsigned channel = -1;
+            unsigned requestedSamples{};
+            std::vector<float> left;
+            std::vector<float> right;
+            std::vector<float> phase;
+
+            float mono(unsigned index, unsigned side) const
+            {
+                return side ? right.at(index) : left.at(index);
+            }
+
+            void resize(unsigned n)
+            {
+                left.resize(n);
+                right.resize(n);
+                phase.resize(n);
+            }
+
+            unsigned size() const
+            {
+                assert(left.size() == right.size());
+                assert(left.size() == phase.size());
+                return left.size();
+            }
+
+            bool isValid() const
+            {
+                const unsigned n = left.size();
+                if (n == 0)
+                    return false;
+
+                if (n != right.size() || n != phase.size())
+                    return false;
+
+                return
+                    (channel < PORT_MAX_CHANNELS) &&
+                    (requestedSamples > 0) &&
+                    (requestedSamples < n);
+            }
+
+            AudioSection findWave() const
+            {
+                // Back up by exactly one wavelength from the end.
+                // Then keep searching backwards until we find the first ascending node,
+                // or we hit the front of the array.
+                const unsigned n = size();
+                unsigned front = n;
+
+                if (requestedSamples > front)
+                    return AudioSection(0, 0);
+
+                front -= requestedSamples;
+                while (front > 0 && phase.at(front-1) < phase.at(front))
+                    --front;
+
+                unsigned back = std::min<unsigned>(n, front + requestedSamples);
+                return AudioSection(front, back);
+            }
+        };
+
+
         struct WaveformGraphWidget : GraphWidget
         {
             float verticalScale = 0;
@@ -204,6 +279,15 @@ namespace Sapphire
             }
 
             void drawLayer(const DrawArgs& args, int layer) override;
+
+            void drawSignalTrace(
+                const DrawArgs &args,
+                float vscale,
+                const AudioSnapshot& s,
+                const AudioSection& w,
+                unsigned stereoSide,
+                unsigned n
+            );
         };
 
 
@@ -252,72 +336,32 @@ namespace Sapphire
         using transform_pool_t = std::array<ChaosTransform, PARAMS_LEN>;
 
 
-        struct AudioSection
-        {
-            unsigned front{};
-            unsigned back{};
-
-            explicit AudioSection(unsigned _front, unsigned _back)
-                : front(_front)
-                , back(_back)
-                {}
-        };
-
-
-        struct AudioSnapshot
-        {
-            unsigned channel = -1;
-            unsigned requestedSamples{};
-            std::vector<float> buffer;
-            std::vector<float> phase;
-
-            bool isValid() const
-            {
-                return
-                    (channel < PORT_MAX_CHANNELS) &&
-                    (buffer.size() > 0) &&
-                    (requestedSamples > 0) &&
-                    (requestedSamples < buffer.size());
-            }
-
-            AudioSection findWave() const
-            {
-                // Back up by exactly one wavelength from the end.
-                // Then keep searching backwards until we find the first ascending node,
-                // or we hit the front of the array.
-                unsigned front = buffer.size();
-
-                if (requestedSamples > front)
-                    return AudioSection(0, 0);
-
-                front -= requestedSamples;
-                while (front > 0 && phase.at(front-1) < phase.at(front))
-                    --front;
-
-                unsigned back = std::min<unsigned>(
-                    buffer.size(),
-                    front + requestedSamples
-                );
-
-                return AudioSection(front, back);
-            }
-        };
-
-
         constexpr float RecentAudioBufferTimeSeconds = 0.1;     // enough to capture 2 wavelengths at 20 Hz
+
+
+        struct RecentAudioFrame
+        {
+            float   left{};
+            float   right{};
+            float   phase{};
+
+            void clear()
+            {
+                left = right = phase = 0;
+            }
+        };
 
 
         struct RecentAudioBuffer
         {
-            std::vector<float> buffer;
-            std::vector<float> phase;
+            std::vector<RecentAudioFrame> frames;
             unsigned activeChannel{};
             unsigned nextAudioOffset{};
             unsigned wavelengthSamples{};
 
             void initialize()
             {
-                buffer.clear();
+                frames.clear();
                 activeChannel = 0;
                 nextAudioOffset = 0;
                 wavelengthSamples = 0;
@@ -329,23 +373,19 @@ namespace Sapphire
                 if (bufferSizeNeeded > 0)
                 {
                     const unsigned size = static_cast<unsigned>(bufferSizeNeeded);
-                    if (size != buffer.size())
+                    if (size != frames.size())
                     {
                         nextAudioOffset = 0;
-                        updateSize(buffer, size);
-                        updateSize(phase, size);
+                        frames.resize(size);
+                        for (RecentAudioFrame& f : frames)
+                            f.clear();
                     }
-                    phase.at (nextAudioOffset) = result.phase.poly.at(activeChannel);
-                    buffer.at(nextAudioOffset) = result.stereo.poly.at(activeChannel).sample[0];
+                    RecentAudioFrame& rec = frames.at(nextAudioOffset);
+                    rec.phase = result.phase.poly.at(activeChannel);
+                    rec.left  = result.stereo.poly.at(activeChannel).sample[0];
+                    rec.right = result.stereo.poly.at(activeChannel).sample[1];
                     nextAudioOffset = (nextAudioOffset + 1) % size;
                 }
-            }
-
-            void updateSize(std::vector<float>& list, unsigned size)
-            {
-                list.resize(size);
-                for (float& x : list)
-                    x = 0;
             }
         };
 
@@ -948,16 +988,17 @@ namespace Sapphire
                 s.channel = recentAudio.activeChannel;
                 s.requestedSamples = 2 * recentAudio.wavelengthSamples;
 
-                const unsigned n = recentAudio.buffer.size();
-                s.buffer.resize(n);
-                s.phase.resize(n);
+                const unsigned n = recentAudio.frames.size();
+                s.resize(n);
 
                 // Return the samples in chronological order.
                 for (unsigned i = 0; i < n; ++i)
                 {
                     unsigned k = (i + recentAudio.nextAudioOffset) % n;
-                    s.buffer[i] = recentAudio.buffer[k];
-                    s.phase[i]  = recentAudio.phase[k];
+                    const auto& ra = recentAudio.frames[k];
+                    s.left[i]  = ra.left;
+                    s.right[i] = ra.right;
+                    s.phase[i] = ra.phase;
                 }
 
                 return s;
@@ -1292,6 +1333,32 @@ namespace Sapphire
         }
 
 
+        void WaveformGraphWidget::drawSignalTrace(
+            const DrawArgs &args,
+            float vscale,
+            const AudioSnapshot& s,
+            const AudioSection& w,
+            unsigned stereoSide,
+            unsigned n)
+        {
+            auto audio = [&s, stereoSide](unsigned index) -> float { return s.mono(index, stereoSide); };
+            nvgBeginPath(args.vg);
+            float x = sx(0, n);
+            float y = sy(audio(w.front), vscale);
+            nvgMoveTo(args.vg, x, y);
+            unsigned k = 1;
+            for (unsigned i = w.front+1; i < w.back; ++i, ++k)
+            {
+                x = sx(k, n);
+                y = sy(audio(i), vscale);
+                nvgLineTo(args.vg, x, y);
+            }
+            nvgStrokeColor(args.vg, SCHEME_GREEN);
+            nvgStrokeWidth(args.vg, 1.25);
+            nvgStroke(args.vg);
+        }
+
+
         void WaveformGraphWidget::drawLayer(const DrawArgs &args, int layer)
         {
             GraphWidget::drawLayer(args, layer);
@@ -1302,41 +1369,55 @@ namespace Sapphire
                     if (AudioSnapshot s = belleModule->getAudioSnapshot(); s.isValid())
                     {
                         static constexpr unsigned minLineSegmentCount = 10;
+
+                        //!!!!!!!!!!!! FIXFIXFIX : we need 2 audio sections: one for the left, one for the right.
+                        // So replace `AudioSection w` with `AudioSection wL, wR`.
+                        // Call findWave for both, then independently scan phase for each.
+
                         if (AudioSection w = s.findWave(); w.front + minLineSegmentCount < w.back)
                         {
                             const unsigned n = (w.back - w.front) - 1;
-                            float scale = 0.01;     // minimum 10 mV for half-vertical-scale
+                            float scaleL = 0.01;     // minimum 10 mV for half-vertical-scale
+                            float scaleR = 0.01;
                             for (unsigned i = w.front; i < w.back; ++i)
-                                scale = std::max<float>(scale, 1.125f * std::abs(s.buffer.at(i)));
+                            {
+                                scaleL = std::max<float>(scaleL, std::abs(s.left.at(i)));
+                                scaleR = std::max<float>(scaleR, std::abs(s.right.at(i)));
+                            }
+                            constexpr float vzoom = 1.125;  // Show a little more range than the exact min/max amplitude.
+                            scaleL *= vzoom;
+                            scaleR *= vzoom;
+
+                            float vscale;
+                            unsigned stereoSide;
+                            if (scaleR > 4*scaleL)
+                            {
+                                // Graph the right channel.
+                                vscale = scaleR;
+                                stereoSide = 1;
+                            }
+                            else
+                            {
+                                // Graph the left channel.
+                                vscale = scaleL;
+                                stereoSide = 0;
+                            }
 
                             if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
                                 verticalScale = 0;
 
                             // Simple envelope detector logic: increase instantly, fall slowly.
-                            if (scale >= verticalScale)
+                            if (vscale >= verticalScale)
                             {
-                                verticalScale = scale;
+                                verticalScale = vscale;
                             }
                             else
                             {
-                                scale = verticalScale;
-                                verticalScale *= 0.98;
+                                vscale = verticalScale;
+                                verticalScale *= 0.98;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
                             }
 
-                            nvgBeginPath(args.vg);
-                            float x = sx(0, n);
-                            float y = sy(s.buffer.at(w.front), scale);
-                            nvgMoveTo(args.vg, x, y);
-                            unsigned k = 1;
-                            for (unsigned i = w.front+1; i < w.back; ++i, ++k)
-                            {
-                                x = sx(k, n);
-                                y = sy(s.buffer.at(i), scale);
-                                nvgLineTo(args.vg, x, y);
-                            }
-                            nvgStrokeColor(args.vg, SCHEME_GREEN);
-                            nvgStrokeWidth(args.vg, 1.25);
-                            nvgStroke(args.vg);
+                            drawSignalTrace(args, vscale, s, w, stereoSide, n);
                         }
                     }
                 }
