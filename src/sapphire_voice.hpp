@@ -343,8 +343,8 @@ namespace Sapphire
     struct PolyResult
     {
         PolyStereoFrame stereo;
+        PolyStereoFrame phase;
         ScalarFrame env;
-        ScalarFrame phase;
 
         void setChannelCount(unsigned n)
         {
@@ -585,7 +585,8 @@ namespace Sapphire
             {
                 stereo_source_t& source = stereoSourceArray[c];
                 result.stereo.poly[c] = source.process(sampleRateHz, contextArray[c]);
-                result.phase.poly[c] = source.chorus[0].phase;
+                result.phase.poly[c].sample[0] = source.chorus[0].phase;
+                result.phase.poly[c].sample[1] = source.chorus[1].phase;
                 result.env.poly[c] = source.envelope.fraction;
             }
             return result;

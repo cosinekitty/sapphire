@@ -203,6 +203,11 @@ namespace Sapphire
                 : front(_front)
                 , back(_back)
                 {}
+
+            bool isLongEnoughToGraph() const
+            {
+                return front + 10 < back;
+            }
         };
 
 
@@ -210,42 +215,37 @@ namespace Sapphire
         {
             unsigned channel = -1;
             unsigned requestedSamples{};
-            std::vector<float> left;
-            std::vector<float> right;
+            std::vector<float> signal;
             std::vector<float> phase;
 
-            float mono(unsigned index, unsigned side) const
+            unsigned size() const
             {
-                return side ? right.at(index) : left.at(index);
+                return std::min<unsigned>(signal.size(), phase.size());
             }
 
             void resize(unsigned n)
             {
-                left.resize(n);
-                right.resize(n);
+                signal.resize(n);
                 phase.resize(n);
-            }
-
-            unsigned size() const
-            {
-                assert(left.size() == right.size());
-                assert(left.size() == phase.size());
-                return left.size();
             }
 
             bool isValid() const
             {
-                const unsigned n = left.size();
-                if (n == 0)
-                    return false;
-
-                if (n != right.size() || n != phase.size())
-                    return false;
-
+                const unsigned n = signal.size();
                 return
+                    (n > 0) &&
+                    (n == phase.size()) &&
                     (channel < PORT_MAX_CHANNELS) &&
                     (requestedSamples > 0) &&
                     (requestedSamples < n);
+            }
+
+            float peakAmplitude() const
+            {
+                float peak = 0;
+                for (float x : signal)
+                    peak = std::max<float>(peak, std::abs(x));
+                return peak;
             }
 
             AudioSection findWave() const
@@ -285,7 +285,6 @@ namespace Sapphire
                 float vscale,
                 const AudioSnapshot& s,
                 const AudioSection& w,
-                unsigned stereoSide,
                 unsigned n
             );
         };
@@ -339,15 +338,27 @@ namespace Sapphire
         constexpr float RecentAudioBufferTimeSeconds = 0.1;     // enough to capture 2 wavelengths at 20 Hz
 
 
-        struct RecentAudioFrame
+        struct RecentAudioSample
         {
-            float   left{};
-            float   right{};
-            float   phase{};
+            float signal{};
+            float phase{};
 
             void clear()
             {
-                left = right = phase = 0;
+                signal = phase = 0;
+            }
+        };
+
+
+        struct RecentAudioFrame
+        {
+            RecentAudioSample left;
+            RecentAudioSample right;
+
+            void clear()
+            {
+                left.clear();
+                right.clear();
             }
         };
 
@@ -380,10 +391,17 @@ namespace Sapphire
                         for (RecentAudioFrame& f : frames)
                             f.clear();
                     }
+
                     RecentAudioFrame& rec = frames.at(nextAudioOffset);
-                    rec.phase = result.phase.poly.at(activeChannel);
-                    rec.left  = result.stereo.poly.at(activeChannel).sample[0];
-                    rec.right = result.stereo.poly.at(activeChannel).sample[1];
+
+                    const auto& signal = result.stereo.poly.at(activeChannel);
+                    rec.left.signal  = signal.sample[0];
+                    rec.right.signal = signal.sample[1];
+
+                    const auto& phase = result.phase.poly.at(activeChannel);
+                    rec.left.phase   = phase.sample[0];
+                    rec.right.phase  = phase.sample[1];
+
                     nextAudioOffset = (nextAudioOffset + 1) % size;
                 }
             }
@@ -981,7 +999,7 @@ namespace Sapphire
                 );
             }
 
-            AudioSnapshot getAudioSnapshot()
+            AudioSnapshot getAudioSnapshot(unsigned side)
             {
                 AudioSnapshot s;
 
@@ -992,13 +1010,25 @@ namespace Sapphire
                 s.resize(n);
 
                 // Return the samples in chronological order.
-                for (unsigned i = 0; i < n; ++i)
+                if (side)
                 {
-                    unsigned k = (i + recentAudio.nextAudioOffset) % n;
-                    const auto& ra = recentAudio.frames[k];
-                    s.left[i]  = ra.left;
-                    s.right[i] = ra.right;
-                    s.phase[i] = ra.phase;
+                    for (unsigned i = 0; i < n; ++i)
+                    {
+                        unsigned k = (i + recentAudio.nextAudioOffset) % n;
+                        const RecentAudioFrame& ra = recentAudio.frames[k];
+                        s.signal[i] = ra.right.signal;
+                        s.phase[i]  = ra.right.phase;
+                    }
+                }
+                else
+                {
+                    for (unsigned i = 0; i < n; ++i)
+                    {
+                        unsigned k = (i + recentAudio.nextAudioOffset) % n;
+                        const RecentAudioFrame& ra = recentAudio.frames[k];
+                        s.signal[i] = ra.left.signal;
+                        s.phase[i]  = ra.left.phase;
+                    }
                 }
 
                 return s;
@@ -1338,19 +1368,17 @@ namespace Sapphire
             float vscale,
             const AudioSnapshot& s,
             const AudioSection& w,
-            unsigned stereoSide,
             unsigned n)
         {
-            auto audio = [&s, stereoSide](unsigned index) -> float { return s.mono(index, stereoSide); };
             nvgBeginPath(args.vg);
             float x = sx(0, n);
-            float y = sy(audio(w.front), vscale);
+            float y = sy(s.signal.at(w.front), vscale);
             nvgMoveTo(args.vg, x, y);
             unsigned k = 1;
             for (unsigned i = w.front+1; i < w.back; ++i, ++k)
             {
                 x = sx(k, n);
-                y = sy(audio(i), vscale);
+                y = sy(s.signal.at(i), vscale);
                 nvgLineTo(args.vg, x, y);
             }
             nvgStrokeColor(args.vg, SCHEME_GREEN);
@@ -1366,43 +1394,38 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
-                    if (AudioSnapshot s = belleModule->getAudioSnapshot(); s.isValid())
+                    AudioSnapshot sL = belleModule->getAudioSnapshot(0);
+                    AudioSnapshot sR = belleModule->getAudioSnapshot(1);
+                    AudioSnapshot* best{};
+                    if (sL.isValid())
                     {
-                        static constexpr unsigned minLineSegmentCount = 10;
+                        best = &sL;
+                        if (sR.isValid())
+                        {
+                            // tiebreaker, but biased toward left for minimum flickering
+                            float aL = sL.peakAmplitude();
+                            float aR = sR.peakAmplitude();
+                            if (aR > 2*aL)
+                                best = &sR;
+                        }
+                    }
+                    else if (sR.isValid())
+                    {
+                        best = &sR;
+                    }
 
-                        //!!!!!!!!!!!! FIXFIXFIX : we need 2 audio sections: one for the left, one for the right.
-                        // So replace `AudioSection w` with `AudioSection wL, wR`.
-                        // Call findWave for both, then independently scan phase for each.
-
-                        if (AudioSection w = s.findWave(); w.front + minLineSegmentCount < w.back)
+                    if (best)
+                    {
+                        const AudioSnapshot& s = *best;
+                        if (AudioSection w = s.findWave(); w.isLongEnoughToGraph())
                         {
                             const unsigned n = (w.back - w.front) - 1;
-                            float scaleL = 0.01;     // minimum 10 mV for half-vertical-scale
-                            float scaleR = 0.01;
-                            for (unsigned i = w.front; i < w.back; ++i)
-                            {
-                                scaleL = std::max<float>(scaleL, std::abs(s.left.at(i)));
-                                scaleR = std::max<float>(scaleR, std::abs(s.right.at(i)));
-                            }
-                            constexpr float vzoom = 1.125;  // Show a little more range than the exact min/max amplitude.
-                            scaleL *= vzoom;
-                            scaleR *= vzoom;
 
-                            float vscale;
-                            unsigned stereoSide;
-                            if (scaleR > 4*scaleL)
-                            {
-                                // Graph the right channel.
-                                vscale = scaleR;
-                                stereoSide = 1;
-                            }
-                            else
-                            {
-                                // Graph the left channel.
-                                vscale = scaleL;
-                                stereoSide = 0;
-                            }
+                            // We want a little bit of margin at the top and bottom.
+                            // Show a little more range than the exact min/max amplitude.
+                            float vscale = 1.125 * s.peakAmplitude();
 
+                            // Reset the slow-morph verticalScale if it has gone insane.
                             if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
                                 verticalScale = 0;
 
@@ -1417,7 +1440,7 @@ namespace Sapphire
                                 verticalScale *= 0.98;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
                             }
 
-                            drawSignalTrace(args, vscale, s, w, stereoSide, n);
+                            drawSignalTrace(args, vscale, s, w, n);
                         }
                     }
                 }
