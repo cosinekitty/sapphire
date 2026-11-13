@@ -37,8 +37,14 @@ namespace Sapphire
             SUSTAIN_ATTEN,
             RELEASE_PARAM,
             RELEASE_ATTEN,
-            ENUMS(MOD_PARAM_0, 4),
-            ENUMS(MOD_ATTEN_0, 4),
+            MOD_PARAM_0,
+            MOD_PARAM_1,
+            MOD_PARAM_2,
+            MOD_PARAM_3,
+            MOD_ATTEN_0,
+            MOD_ATTEN_1,
+            MOD_ATTEN_2,
+            MOD_ATTEN_3,
             MODEL_SELECT_PARAM,
             CHAOS_SPEED_PARAM,
             CHAOS_SPEED_ATTEN,
@@ -67,7 +73,10 @@ namespace Sapphire
             DECAY_POLY_BUTTON,
             SUSTAIN_POLY_BUTTON,
             RELEASE_POLY_BUTTON,
-            ENUMS(MOD_POLY_BUTTON_0, 4),
+            MOD_POLY_BUTTON_0,
+            MOD_POLY_BUTTON_1,
+            MOD_POLY_BUTTON_2,
+            MOD_POLY_BUTTON_3,
             LEVEL_POLY_BUTTON,
             CHAOS_TOGGLE_POLY_PARAM,
             CHAOS_OUTPUT_CHANNELS_PARAM,
@@ -408,6 +417,17 @@ namespace Sapphire
         };
 
 
+        struct PolyEngineInfo
+        {
+            PolyStereoVoice* engine{};
+            std::array<float, PARAMS_LEN> params{};
+
+            explicit PolyEngineInfo(PolyStereoVoice* _engine)
+                : engine(_engine)
+                {}
+        };
+
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -429,7 +449,7 @@ namespace Sapphire
             AdsrVoiceEngine<SawEngine, 4> polySaw{"saw", detuneName, "Chorus", "Spread", lowpassName, 8.0};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, satName, "Resonance", lowpassName};
-            std::vector<PolyStereoVoice*> polyEngineList;
+            std::vector<PolyEngineInfo> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
             RecentAudioBuffer recentAudio;
@@ -437,11 +457,11 @@ namespace Sapphire
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
-                polyEngineList.push_back(&polySine);
-                polyEngineList.push_back(&polyTriangle);
-                polyEngineList.push_back(&polySaw);
-                polyEngineList.push_back(&polySquare);
-                polyEngineList.push_back(&polyWind);
+                polyEngineList.push_back(PolyEngineInfo(&polySine));
+                polyEngineList.push_back(PolyEngineInfo(&polyTriangle));
+                polyEngineList.push_back(PolyEngineInfo(&polySaw));
+                polyEngineList.push_back(PolyEngineInfo(&polySquare));
+                polyEngineList.push_back(PolyEngineInfo(&polyWind));
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -568,6 +588,7 @@ namespace Sapphire
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 0;
                 recentAudio.initialize();
+                resetEngineSettings();
             }
 
             void resetFountain()
@@ -612,14 +633,14 @@ namespace Sapphire
             std::vector<std::string> getEngineNames() const
             {
                 std::vector<std::string> list;
-                for (PolyStereoVoice* voice : polyEngineList)
-                    list.push_back(voice->name);
+                for (const PolyEngineInfo& e : polyEngineList)
+                    list.push_back(e.engine->name);
                 return list;
             }
 
             PolyStereoVoice& getCurrentEngine() const
             {
-                return *polyEngineList.at(currentEngineIndex);
+                return *polyEngineList.at(currentEngineIndex).engine;
             }
 
             void onReset(const ResetEvent& e) override
@@ -632,6 +653,7 @@ namespace Sapphire
             {
                 json_t* root = SapphireModule::dataToJson();
                 jsonSaveSeed(root, "chaosFountainSeed", fountain.getSeed());
+                jsonSavePerEngineSettings(root);
                 return root;
             }
 
@@ -640,6 +662,39 @@ namespace Sapphire
                 SapphireModule::dataFromJson(root);
                 if (uint64_t seed = jsonLoadOrGenerateSeed(root, "chaosFountainSeed"))
                     fountain.reset(seed);
+                jsonLoadPerEngineSettings(root);
+            }
+
+            void jsonSavePerEngineSettings(json_t* root)
+            {
+                json_t* engineList = json_array();
+                for (const PolyEngineInfo& info : polyEngineList)
+                {
+                    json_t* paramList = json_array();
+                    for (float value : info.params)
+                        json_array_append_new(paramList, json_real(value));
+                    json_array_append_new(engineList, paramList);
+                }
+                json_object_set_new(root, "engineSettings", engineList);
+            }
+
+            void jsonLoadPerEngineSettings(json_t* root)
+            {
+                if (json_t* engineList = json_object_get(root, "engineSettings"); json_is_array(engineList))
+                {
+                    const unsigned nEngines = std::min<unsigned>(engineCount(), json_array_size(engineList));
+                    for (unsigned e = 0; e < nEngines; ++e)
+                    {
+                        PolyEngineInfo& info = polyEngineList.at(e);
+                        if (json_t* paramList = json_array_get(engineList, e); json_is_array(paramList))
+                        {
+                            const unsigned nParams = std::min<unsigned>(PARAMS_LEN, json_array_size(paramList));
+                            for (unsigned paramId = 0; paramId < nParams; ++paramId)
+                                if (json_t* jvalue = json_array_get(paramList, paramId); json_is_number(jvalue))
+                                    info.params.at(paramId) = json_real_value(jvalue);
+                        }
+                    }
+                }
             }
 
             void updateSelectedEngine(float sampleRateHz)
@@ -653,16 +708,77 @@ namespace Sapphire
                     modelChangeSmoother.begin();
 
                 modelChangeSmoother.process(sampleRateHz);
+
                 if (modelChangeSmoother.isDelayedActionReady() && changing)
                 {
+                    saveSettingsForEngine(currentEngineIndex);
+
                     // Silence the current engine before leaving.
                     // Otherwise it leaves residual energy in the system when we come back.
                     getCurrentEngine().initialize();
+
+                    restoreSettingsForEngine(targetEngineIndex);
 
                     // Switch to the new engine.
                     currentEngineIndex = targetEngineIndex;
                 }
             }
+
+
+            void saveSettingsForEngine(unsigned engineIndex)
+            {
+                PolyEngineInfo& info = polyEngineList.at(engineIndex);
+                for (unsigned paramId = 0; paramId < PARAMS_LEN; ++paramId)
+                    info.params.at(paramId) = params.at(paramId).getValue();
+            }
+
+
+            static bool shouldRestoreParameter(unsigned paramId)
+            {
+                switch (paramId)
+                {
+                case MODEL_SELECT_PARAM:
+                case CHAOS_SPEED_PARAM:
+                case CHAOS_SPEED_ATTEN:
+                case CHAOS_LEVEL_PARAM:
+                case CHAOS_LEVEL_ATTEN:
+                case PITCH_MODE_BUTTON_PARAM:
+                case CHAOS_FREEZE_BUTTON_PARAM:
+                case CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM:
+                case OUTPUT_MODE_BUTTON_PARAM:
+                case CHAOS_SPREAD_PARAM:
+                case CHAOS_SPREAD_ATTEN:
+                case CHAOS_TOGGLE_POLY_PARAM:
+                case CHAOS_OUTPUT_CHANNELS_PARAM:
+                case CHAOS_OUTPUT_LEVEL_PARAM:
+                case LEVEL_PARAM:
+                case LEVEL_ATTEN:
+                case LEVEL_POLY_BUTTON:
+                    return false;
+
+                default:
+                    return paramId < PARAMS_LEN;
+                }
+            }
+
+
+            void restoreSettingsForEngine(unsigned engineIndex)
+            {
+                PolyEngineInfo& info = polyEngineList.at(engineIndex);
+                for (unsigned paramId = 0; paramId < PARAMS_LEN; ++paramId)
+                    if (shouldRestoreParameter(paramId))
+                        params.at(paramId).setValue(info.params.at(paramId));
+            }
+
+
+            void resetEngineSettings()
+            {
+                const unsigned n = engineCount();
+                for (unsigned i = 0; i < n; ++i)
+                    saveSettingsForEngine(i);
+            }
+
+
 
             float updateChaos(float sampleRateHz, batch_t& batch)
             {
