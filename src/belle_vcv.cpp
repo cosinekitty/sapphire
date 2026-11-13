@@ -240,11 +240,11 @@ namespace Sapphire
                     (requestedSamples < n);
             }
 
-            float peakAmplitude() const
+            float peakAmplitude(const AudioSection& w) const
             {
                 float peak = 0;
-                for (float x : signal)
-                    peak = std::max<float>(peak, std::abs(x));
+                for (unsigned i = w.front; i < w.back; ++i)
+                    peak = std::max<float>(peak, std::abs(signal.at(i)));
                 return peak;
             }
 
@@ -284,8 +284,7 @@ namespace Sapphire
                 const DrawArgs &args,
                 float vscale,
                 const AudioSnapshot& s,
-                const AudioSection& w,
-                unsigned n
+                const AudioSection& w
             );
         };
 
@@ -1367,9 +1366,9 @@ namespace Sapphire
             const DrawArgs &args,
             float vscale,
             const AudioSnapshot& s,
-            const AudioSection& w,
-            unsigned n)
+            const AudioSection& w)
         {
+            const unsigned n = (w.back - w.front) - 1;
             nvgBeginPath(args.vg);
             float x = sx(0, n);
             float y = sy(s.signal.at(w.front), vscale);
@@ -1394,36 +1393,36 @@ namespace Sapphire
             {
                 if (layer == 1)
                 {
+                    // Try to take a snapshot for both sides.
                     AudioSnapshot sL = belleModule->getAudioSnapshot(0);
                     AudioSnapshot sR = belleModule->getAudioSnapshot(1);
-                    AudioSnapshot* best{};
-                    if (sL.isValid())
+
+                    // Both most be valid. (Why would one succeed but the other fail?)
+                    if (sL.isValid() && sR.isValid())
                     {
-                        best = &sL;
-                        if (sR.isValid())
+                        // Both must have graphable sections.
+                        AudioSection wL = sL.findWave();
+                        AudioSection wR = sR.findWave();
+                        if (wL.isLongEnoughToGraph() && wR.isLongEnoughToGraph())
                         {
-                            // tiebreaker, but biased toward left for minimum flickering
-                            float aL = sL.peakAmplitude();
-                            float aR = sR.peakAmplitude();
+                            float aL = sL.peakAmplitude(wL);
+                            float aR = sR.peakAmplitude(wR);
+                            float vscale;
+                            AudioSection *w;
+                            AudioSnapshot *s;
                             if (aR > 2*aL)
-                                best = &sR;
-                        }
-                    }
-                    else if (sR.isValid())
-                    {
-                        best = &sR;
-                    }
-
-                    if (best)
-                    {
-                        const AudioSnapshot& s = *best;
-                        if (AudioSection w = s.findWave(); w.isLongEnoughToGraph())
-                        {
-                            const unsigned n = (w.back - w.front) - 1;
-
-                            // We want a little bit of margin at the top and bottom.
-                            // Show a little more range than the exact min/max amplitude.
-                            float vscale = 1.125 * s.peakAmplitude();
+                            {
+                                s = &sR;
+                                w = &wR;
+                                vscale = aR;
+                            }
+                            else
+                            {
+                                s = &sL;
+                                w = &wL;
+                                vscale = aL;
+                            }
+                            vscale *= 1.125;
 
                             // Reset the slow-morph verticalScale if it has gone insane.
                             if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
@@ -1437,10 +1436,10 @@ namespace Sapphire
                             else
                             {
                                 vscale = verticalScale;
-                                verticalScale *= 0.98;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
+                                verticalScale *= 0.97;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
                             }
 
-                            drawSignalTrace(args, vscale, s, w, n);
+                            drawSignalTrace(args, vscale, *s, *w);
                         }
                     }
                 }
