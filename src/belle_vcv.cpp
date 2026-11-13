@@ -272,6 +272,7 @@ namespace Sapphire
         struct WaveformGraphWidget : GraphWidget
         {
             float verticalScale = 0;
+            bool graphRight = false;
 
             explicit WaveformGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "waveform")
@@ -1410,7 +1411,20 @@ namespace Sapphire
                             float vscale;
                             AudioSection *w;
                             AudioSnapshot *s;
-                            if (aR > 2*aL)
+
+                            // Toggle with hysteresis
+                            if (graphRight)
+                            {
+                                if (aL > 2*aR)
+                                    graphRight = false;
+                            }
+                            else
+                            {
+                                if (aR > 2*aL)
+                                    graphRight = true;
+                            }
+
+                            if (graphRight)
                             {
                                 s = &sR;
                                 w = &wR;
