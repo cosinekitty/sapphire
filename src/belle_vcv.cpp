@@ -719,28 +719,75 @@ namespace Sapphire
                 json_t* engineList = json_array();
                 for (const EngineInfo& info : polyEngineList)
                 {
+                    json_t* jEngine = json_object();
+
                     json_t* paramList = json_array();
                     for (float value : info.params)
                         json_array_append_new(paramList, json_real(value));
-                    json_array_append_new(engineList, paramList);
+                    json_object_set_new(jEngine, "paramList", paramList);
+
+                    json_t* attenList = json_array();
+                    for (const SapphireAttenuverterRecord& rec : info.attenRecords)
+                    {
+                        json_t* jrec = json_object();
+                        json_object_set_new(jrec, "attenId", json_integer(rec.attenId));
+                        json_object_set_new(jrec, "lowSensitivity", json_boolean(rec.persist.lowSensitivityMode));
+                        json_object_set_new(jrec, "unipolar", json_boolean(rec.persist.unipolar));
+                        json_object_set_new(jrec, "adjust", json_real(rec.persist.adjust));
+                        json_array_append_new(attenList, jrec);
+                    }
+                    json_object_set_new(jEngine, "attenList", attenList);
+
+                    json_array_append_new(engineList, jEngine);
                 }
                 json_object_set_new(root, "engineSettings", engineList);
             }
 
+            SapphireAttenuverterRecord jsonLoadAttenuverter(json_t* ja)
+            {
+                SapphireAttenuverterRecord rec;
+
+                if (json_t* jAttenId = json_object_get(ja, "attenId"); json_is_integer(jAttenId))
+                    rec.attenId = json_integer_value(jAttenId);
+
+                if (json_t* jLowSens = json_object_get(ja, "lowSensitivity"); json_is_boolean(jLowSens))
+                    rec.persist.lowSensitivityMode = json_boolean_value(jLowSens);
+
+                if (json_t* jUnipolar = json_object_get(ja, "unipolar"); json_is_boolean(jUnipolar))
+                    rec.persist.unipolar = json_boolean_value(jUnipolar);
+
+                if (json_t* jAdjust = json_object_get(ja, "adjust"); json_is_real(jAdjust))
+                    rec.persist.adjust = json_real_value(jAdjust);
+
+                return rec;
+            }
+
             void jsonLoadPerEngineSettings(json_t* root)
             {
-                if (json_t* engineList = json_object_get(root, "engineSettings"); json_is_array(engineList))
+                if (json_t* jEngineList = json_object_get(root, "engineSettings"); json_is_array(jEngineList))
                 {
-                    const unsigned nEngines = std::min<unsigned>(engineCount(), json_array_size(engineList));
+                    const unsigned nEngines = std::min<unsigned>(engineCount(), json_array_size(jEngineList));
                     for (unsigned e = 0; e < nEngines; ++e)
                     {
                         EngineInfo& info = polyEngineList.at(e);
-                        if (json_t* paramList = json_array_get(engineList, e); json_is_array(paramList))
+                        if (json_t* jEngine = json_array_get(jEngineList, e); json_is_object(jEngine))
                         {
-                            const unsigned nParams = std::min<unsigned>(PARAMS_LEN, json_array_size(paramList));
-                            for (unsigned paramId = 0; paramId < nParams; ++paramId)
-                                if (json_t* jvalue = json_array_get(paramList, paramId); json_is_number(jvalue))
-                                    info.params.at(paramId) = json_real_value(jvalue);
+                            if (json_t* paramList = json_object_get(jEngine, "paramList"); json_is_array(paramList))
+                            {
+                                const unsigned nParams = std::min<unsigned>(PARAMS_LEN, json_array_size(paramList));
+                                for (unsigned paramId = 0; paramId < nParams; ++paramId)
+                                    if (json_t* jvalue = json_array_get(paramList, paramId); json_is_number(jvalue))
+                                        info.params.at(paramId) = json_real_value(jvalue);
+                            }
+
+                            if (json_t* attenList = json_object_get(jEngine, "attenList"); json_is_array(attenList))
+                            {
+                                const unsigned nAtten = json_array_size(attenList);
+                                info.attenRecords.clear();
+                                for (unsigned a = 0; a < nAtten; ++a)
+                                    if (json_t* ja = json_array_get(attenList, a); json_is_object(ja))
+                                        info.attenRecords.push_back(jsonLoadAttenuverter(ja));
+                            }
                         }
                     }
                 }
@@ -785,7 +832,7 @@ namespace Sapphire
                     if (const SapphireParamInfo& p = paramInfo.at(paramId); p.isAttenuverter && ShouldRestoreParameter(paramId))
                     {
                         SapphireAttenuverterRecord rec;
-                        rec.paramId = paramId;
+                        rec.attenId = paramId;
                         rec.persist = p.context.persist;
                         info.attenRecords.push_back(rec);
                     }
@@ -802,8 +849,8 @@ namespace Sapphire
                         params.at(paramId).value = info.params.at(paramId);
 
                 for (const SapphireAttenuverterRecord& rec : info.attenRecords)
-                    if (ShouldRestoreParameter(rec.paramId))
-                        paramInfo.at(rec.paramId).context.persist = rec.persist;
+                    if (ShouldRestoreParameter(rec.attenId))
+                        paramInfo.at(rec.attenId).context.persist = rec.persist;
             }
 
 

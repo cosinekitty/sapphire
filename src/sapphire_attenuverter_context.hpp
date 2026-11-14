@@ -58,7 +58,7 @@ namespace Sapphire
 
     struct SapphireAttenuverterRecord
     {
-        unsigned paramId = -1;
+        unsigned attenId = -1;
         SapphireAttenuverterPersist persist;
     };
 }
