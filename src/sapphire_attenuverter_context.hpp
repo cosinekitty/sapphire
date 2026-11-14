@@ -18,11 +18,24 @@ namespace Sapphire
         Polyphonic,
     };
 
+    struct SapphireAttenuverterPersist
+    {
+        bool lowSensitivityMode = false;
+        bool unipolar = false;
+        float adjust = UnipolarAdjustVoltsDefault;
+
+        void initialize()
+        {
+            lowSensitivityMode = false;
+            unipolar = false;
+            adjust = UnipolarAdjustVoltsDefault;
+        }
+    };
+
+
     struct SapphireAttenuverterContext
     {
-        bool lowSensitivityMode{};
-        bool unipolar{};
-        float adjust = UnipolarAdjustVoltsDefault;
+        SapphireAttenuverterPersist persist;
         unsigned inputPortId = -1;    // port to check for cables, for chaos display color
         ChaoticModulation chaosOption = ChaoticModulation::None;
         chaos_signal_array_t chaosVoltage{};
@@ -31,16 +44,21 @@ namespace Sapphire
 
         void initialize()
         {
-            lowSensitivityMode = false;
-            unipolar = false;
-            adjust = UnipolarAdjustVoltsDefault;
+            persist.initialize();
             for (float& v : chaosVoltage)
                 v = 0;
         }
 
         float adjustVoltage(float v) const
         {
-            return unipolar ? std::max<float>(0, (v*sensitivity) + adjust) : (v*sensitivity);
+            return persist.unipolar ? std::max<float>(0, (v*sensitivity) + persist.adjust) : (v*sensitivity);
         }
+    };
+
+
+    struct SapphireAttenuverterRecord
+    {
+        unsigned paramId = -1;
+        SapphireAttenuverterPersist persist;
     };
 }

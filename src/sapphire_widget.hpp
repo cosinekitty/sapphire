@@ -164,24 +164,24 @@ namespace Sapphire
 
         bool isLowSensitive() const
         {
-            return context && context->lowSensitivityMode;
+            return context && context->persist.lowSensitivityMode;
         }
 
         void setLowSensitive(bool lowSensitivityMode)
         {
             if (context)
-                context->lowSensitivityMode = lowSensitivityMode;
+                context->persist.lowSensitivityMode = lowSensitivityMode;
         }
 
         bool isUnipolarMode() const
         {
-            return context && context->unipolar;
+            return context && context->persist.unipolar;
         }
 
         void setUnipolarMode(bool unipolar)
         {
             if (context)
-                context->unipolar = unipolar;
+                context->persist.unipolar = unipolar;
         }
 
         ChaosModulationInfo getChaosModulationInfo();
@@ -272,8 +272,8 @@ namespace Sapphire
         {
             return
                 context &&
-                !context->unipolar &&
-                !context->lowSensitivityMode &&
+                !context->persist.unipolar &&
+                !context->persist.lowSensitivityMode &&
                 atten &&
                 atten->value == voctSetting;
         }

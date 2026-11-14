@@ -419,12 +419,13 @@ namespace Sapphire
         };
 
 
-        struct PolyEngineInfo
+        struct EngineInfo
         {
             PolyStereoVoice* engine{};
             std::array<float, PARAMS_LEN> params{};
+            std::vector<SapphireAttenuverterRecord> attenRecords;
 
-            explicit PolyEngineInfo(PolyStereoVoice* _engine)
+            explicit EngineInfo(PolyStereoVoice* _engine)
                 : engine(_engine)
                 {}
         };
@@ -495,7 +496,7 @@ namespace Sapphire
             AdsrVoiceEngine<SawEngine, 4> polySaw{"saw", detuneName, "Chorus", "Spread", lowpassName, 8.0};
             AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
             AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, satName, "Resonance", lowpassName};
-            std::vector<PolyEngineInfo> polyEngineList;
+            std::vector<EngineInfo> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
             RecentAudioBuffer recentAudio;
@@ -503,11 +504,11 @@ namespace Sapphire
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
             {
-                polyEngineList.push_back(PolyEngineInfo(&polySine));
-                polyEngineList.push_back(PolyEngineInfo(&polyTriangle));
-                polyEngineList.push_back(PolyEngineInfo(&polySaw));
-                polyEngineList.push_back(PolyEngineInfo(&polySquare));
-                polyEngineList.push_back(PolyEngineInfo(&polyWind));
+                polyEngineList.push_back(EngineInfo(&polySine));
+                polyEngineList.push_back(EngineInfo(&polyTriangle));
+                polyEngineList.push_back(EngineInfo(&polySaw));
+                polyEngineList.push_back(EngineInfo(&polySquare));
+                polyEngineList.push_back(EngineInfo(&polyWind));
 
                 config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
@@ -681,7 +682,7 @@ namespace Sapphire
             std::vector<std::string> getEngineNames() const
             {
                 std::vector<std::string> list;
-                for (const PolyEngineInfo& e : polyEngineList)
+                for (const EngineInfo& e : polyEngineList)
                     list.push_back(e.engine->name);
                 return list;
             }
@@ -716,7 +717,7 @@ namespace Sapphire
             void jsonSavePerEngineSettings(json_t* root)
             {
                 json_t* engineList = json_array();
-                for (const PolyEngineInfo& info : polyEngineList)
+                for (const EngineInfo& info : polyEngineList)
                 {
                     json_t* paramList = json_array();
                     for (float value : info.params)
@@ -733,7 +734,7 @@ namespace Sapphire
                     const unsigned nEngines = std::min<unsigned>(engineCount(), json_array_size(engineList));
                     for (unsigned e = 0; e < nEngines; ++e)
                     {
-                        PolyEngineInfo& info = polyEngineList.at(e);
+                        EngineInfo& info = polyEngineList.at(e);
                         if (json_t* paramList = json_array_get(engineList, e); json_is_array(paramList))
                         {
                             const unsigned nParams = std::min<unsigned>(PARAMS_LEN, json_array_size(paramList));
@@ -775,18 +776,34 @@ namespace Sapphire
 
             void saveSettingsForEngine(unsigned engineIndex)
             {
-                PolyEngineInfo& info = polyEngineList.at(engineIndex);
+                EngineInfo& info = polyEngineList.at(engineIndex);
+                info.attenRecords.clear();
+
                 for (unsigned paramId = 0; paramId < PARAMS_LEN; ++paramId)
-                    info.params.at(paramId) = params.at(paramId).getValue();
+                {
+                    info.params.at(paramId) = params.at(paramId).value;
+                    if (const SapphireParamInfo& p = paramInfo.at(paramId); p.isAttenuverter && ShouldRestoreParameter(paramId))
+                    {
+                        SapphireAttenuverterRecord rec;
+                        rec.paramId = paramId;
+                        rec.persist = p.context.persist;
+                        info.attenRecords.push_back(rec);
+                    }
+                }
             }
 
 
             void restoreSettingsForEngine(unsigned engineIndex)
             {
-                PolyEngineInfo& info = polyEngineList.at(engineIndex);
+                EngineInfo& info = polyEngineList.at(engineIndex);
+
                 for (unsigned paramId = 0; paramId < PARAMS_LEN; ++paramId)
                     if (ShouldRestoreParameter(paramId))
-                        params.at(paramId).setValue(info.params.at(paramId));
+                        params.at(paramId).value = info.params.at(paramId);
+
+                for (const SapphireAttenuverterRecord& rec : info.attenRecords)
+                    if (ShouldRestoreParameter(rec.paramId))
+                        paramInfo.at(rec.paramId).context.persist = rec.persist;
             }
 
 

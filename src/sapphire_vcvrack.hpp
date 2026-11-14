@@ -1175,12 +1175,12 @@ namespace Sapphire
 
         bool isLowSensitive(int attenId) const
         {
-            return paramInfo.at(attenId).context.lowSensitivityMode;
+            return paramInfo.at(attenId).context.persist.lowSensitivityMode;
         }
 
         void setLowSensitive(int attenId, bool state)
         {
-            paramInfo.at(attenId).context.lowSensitivityMode = state;
+            paramInfo.at(attenId).context.persist.lowSensitivityMode = state;
         }
 
         void resetAttenuverter(int attenId)
@@ -1190,7 +1190,7 @@ namespace Sapphire
 
         bool isUnipolar(int attenId) const
         {
-            return paramInfo.at(attenId).context.unipolar;
+            return paramInfo.at(attenId).context.persist.unipolar;
         }
 
         MenuItem* createToggleAllSensitivityMenuItem()
@@ -1320,7 +1320,7 @@ namespace Sapphire
             // List all attenuverter offsets.
             json_t* adjustList = json_array();
             for (int attenId = 0; attenId < nparams; ++attenId)
-                json_array_append(adjustList, json_real(paramInfo.at(attenId).context.adjust));
+                json_array_append(adjustList, json_real(paramInfo.at(attenId).context.persist.adjust));
             json_object_set_new(root, "unipolarOffsetVolts", adjustList);
 
             json_t* oList = json_array();
@@ -1377,7 +1377,7 @@ namespace Sapphire
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
                         if (attenId >= 0 && attenId < nparams)
-                            paramInfo.at(attenId).context.lowSensitivityMode = true;
+                            paramInfo.at(attenId).context.persist.lowSensitivityMode = true;
                     }
                 }
             }
@@ -1392,7 +1392,7 @@ namespace Sapphire
                     {
                         int attenId = static_cast<int>(json_integer_value(item));
                         if (attenId >= 0 && attenId < nparams)
-                            paramInfo.at(attenId).context.unipolar = true;
+                            paramInfo.at(attenId).context.persist.unipolar = true;
                     }
                 }
             }
@@ -1418,7 +1418,7 @@ namespace Sapphire
                 std::size_t listLength = json_array_size(adjustList);
                 for (std::size_t listIndex = 0; listIndex < listLength && (int)listIndex < nparams; ++listIndex)
                     if (json_t* item = json_array_get(adjustList, listIndex); json_is_real(item))
-                        paramInfo.at(listIndex).context.adjust = json_real_value(item);
+                        paramInfo.at(listIndex).context.persist.adjust = json_real_value(item);
             }
 
             if (provideStereoSplitter)

@@ -947,12 +947,12 @@ namespace Sapphire
                 "",
                 [=]() -> bool       // getter
                 {
-                    return context->lowSensitivityMode;
+                    return context->persist.lowSensitivityMode;
                 },
                 [=](bool state)     // setter
                 {
-                    if (state != context->lowSensitivityMode)
-                        InvokeAction(new BoolToggleAction(context->lowSensitivityMode, "attenuverter sensitivity"));
+                    if (state != context->persist.lowSensitivityMode)
+                        InvokeAction(new BoolToggleAction(context->persist.lowSensitivityMode, "attenuverter sensitivity"));
                 }
             ));
 
@@ -961,12 +961,12 @@ namespace Sapphire
                 "",
                 [=]() -> bool       // getter
                 {
-                    return context->unipolar;
+                    return context->persist.unipolar;
                 },
                 [=](bool state)     // setter
                 {
-                    if (state != context->unipolar)
-                        InvokeAction(new BoolToggleAction(context->unipolar, "unipolar mode"));
+                    if (state != context->persist.unipolar)
+                        InvokeAction(new BoolToggleAction(context->persist.unipolar, "unipolar mode"));
                 }
             ));
         }
