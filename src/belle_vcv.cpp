@@ -81,6 +81,8 @@ namespace Sapphire
             CHAOS_TOGGLE_POLY_PARAM,
             CHAOS_OUTPUT_CHANNELS_PARAM,
             CHAOS_OUTPUT_LEVEL_PARAM,
+            DRONE_BUTTON_PARAM,
+            LOOP_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -478,6 +480,8 @@ namespace Sapphire
                 configPitchModeButton(PITCH_MODE_BUTTON_PARAM, "Pitch tracker");
                 configPitchModeButton(FREQ_MODE_BUTTON_PARAM,  "Frequency tracker");
                 configPitchModeButton(OCT_MODE_BUTTON_PARAM,   "Octave tracker");
+                configSwitch(DRONE_BUTTON_PARAM, 0, 1, 0, "Drone", {"OFF", "ON"});
+                configSwitch(LOOP_BUTTON_PARAM, 0, 1, 0, "Loop", {"OFF", "ON"});
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0, " Hz", 2, C4_FREQUENCY_HZ);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -1259,6 +1263,24 @@ namespace Sapphire
         };
 
 
+        struct DroneButton : SapphireTinyToggleButton
+        {
+            explicit DroneButton()
+            {
+                addTinyButtonFrames(this, "yellow");
+            }
+        };
+
+
+        struct LoopButton : SapphireTinyToggleButton
+        {
+            explicit LoopButton()
+            {
+                addTinyButtonFrames(this, "red");
+            }
+        };
+
+
         struct ChaosTogglePolyButton : SapphireTinyActionButton
         {
             BelleModule* belleModule{};
@@ -1326,6 +1348,8 @@ namespace Sapphire
                 addWaveformWidget();
                 addChaosBox();
                 addPolyButtons();
+                addDroneButton();
+                addLoopButton();
                 addOverlays();
             }
 
@@ -1333,6 +1357,18 @@ namespace Sapphire
             {
                 auto button = createParamCentered<OutputModeButton>(Vec{}, belleModule, OUTPUT_MODE_BUTTON_PARAM);
                 addSapphireParam(button, "output_mode_button");
+            }
+
+            void addDroneButton()
+            {
+                auto button = createParamCentered<DroneButton>(Vec{}, belleModule, DRONE_BUTTON_PARAM);
+                addSapphireParam(button, "drone_button");
+            }
+
+            void addLoopButton()
+            {
+                auto button = createParamCentered<LoopButton>(Vec{}, belleModule, LOOP_BUTTON_PARAM);
+                addSapphireParam(button, "loop_button");
             }
 
             void randomizeChaos() override
@@ -1363,10 +1399,10 @@ namespace Sapphire
                 addPolyButton(DECAY_POLY_BUTTON,      "decay_poly_button");
                 addPolyButton(SUSTAIN_POLY_BUTTON,    "sustain_poly_button");
                 addPolyButton(RELEASE_POLY_BUTTON,    "release_poly_button");
-                addPolyButton(MOD_POLY_BUTTON_0 + 0,  "mod0_poly_button");
-                addPolyButton(MOD_POLY_BUTTON_0 + 1,  "mod1_poly_button");
-                addPolyButton(MOD_POLY_BUTTON_0 + 2,  "mod2_poly_button");
-                addPolyButton(MOD_POLY_BUTTON_0 + 3,  "mod3_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_0,      "mod0_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_1,      "mod1_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_2,      "mod2_poly_button");
+                addPolyButton(MOD_POLY_BUTTON_3,      "mod3_poly_button");
                 addPolyButton(LEVEL_POLY_BUTTON,      "level_poly_button");
             }
 

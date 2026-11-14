@@ -2880,6 +2880,14 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
             pl.append(VerticalLine(x, y1, y2))
             controls.add(symbol, x, y2)
 
+        def addDiagButton(col:float, row:float, symbol:str, dx:float) -> None:
+            x1 = xBelle(col)
+            x2 = x1 + dx
+            y1 = yBelle(row)
+            y2 = y1 + dyPortModeButton
+            pl.append(GeneralLine(x1, y1, x2, y2))
+            controls.add(symbol, x2, y2)
+
         controls.add('envelope_upper_left',  x1_env, y1_env)
         controls.add('envelope_lower_right', x2_env, y2_env)
         controls.add('waveform_upper_left',  x1_wav, y1_wav)
@@ -2899,7 +2907,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(HorizontalLine(xModelInput, xBelle(0), yModelInput))
 
         portDeltaColumn = 0.25
-        addPort(-portDeltaColumn, 5, 'gate_input', 'GATE')
+        addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.0, 'gate_input', 'GATE')
         addPort(+portDeltaColumn, 5, 'pitch_input', 'PITCH')
         addPort(4, 0.00, 'envelope_output', 'ENV')
         addPort(4, 0.75, 'pitch_output', 'PITCH')
@@ -2916,10 +2924,14 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.add('chaos_channels_knob', xChannelsKnob, yChaosOutput)
         controls.add('chaos_output_level', xChaosLevelKnob, yChaosOutput)
 
-        xPortCenter = xBelle(4)
-        yPortCenter = yBelle(5)
-        pl.append(HorizontalLine(xPortCenter - dxPortFromCenter, xPortCenter + dxPortFromCenter, yPortCenter))
-        controls.add('output_mode_button', xPortCenter, yPortCenter)
+        xOutputModeButton = xBelle(4)
+        yOutputModeButton = yBelle(5)
+        pl.append(HorizontalLine(xOutputModeButton - dxPortFromCenter, xOutputModeButton + dxPortFromCenter, yOutputModeButton))
+        controls.add('output_mode_button', xOutputModeButton, yOutputModeButton)
+
+        dxDiagonal = 3.0
+        addDiagButton(colGateInput, rowGateInput, 'drone_button', -dxDiagonal)
+        addDiagButton(colGateInput, rowGateInput, 'loop_button',  +dxDiagonal)
 
         addHangingButton(+portDeltaColumn, 5, 'pitch_mode_button', 0.0)
         addHangingButton(1, 0, 'freq_mode_button', DX_FLAT_CONTROL_GROUP)
