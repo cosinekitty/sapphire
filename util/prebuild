@@ -4,7 +4,7 @@
 ./clean_presets || exit 1
 
 # Find a random local-minimum-energy state for the Nucleus module's particle gas simulation.
-./nucleus_solver || exit 1
+# ./nucleus_solver || exit 1
 
 # Generate a custom force calculator for Elastika with unrolled loops.
 ./elastika_mesh_gen || exit 1
