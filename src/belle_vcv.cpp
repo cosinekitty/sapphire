@@ -430,6 +430,50 @@ namespace Sapphire
         };
 
 
+        static bool ShouldRestoreParameter(unsigned paramId)
+        {
+            return
+                paramId == FREQ_PARAM ||
+                paramId == FREQ_ATTEN ||
+                paramId == OCT_PARAM ||
+                paramId == OCT_ATTEN ||
+                paramId == ATTACK_PARAM ||
+                paramId == ATTACK_ATTEN ||
+                paramId == DECAY_PARAM ||
+                paramId == DECAY_ATTEN ||
+                paramId == SUSTAIN_PARAM ||
+                paramId == SUSTAIN_ATTEN ||
+                paramId == RELEASE_PARAM ||
+                paramId == RELEASE_ATTEN ||
+                paramId == MOD_PARAM_0 ||
+                paramId == MOD_PARAM_1 ||
+                paramId == MOD_PARAM_2 ||
+                paramId == MOD_PARAM_3 ||
+                paramId == MOD_ATTEN_0 ||
+                paramId == MOD_ATTEN_1 ||
+                paramId == MOD_ATTEN_2 ||
+                paramId == MOD_ATTEN_3 ||
+                paramId == PAN_PARAM ||
+                paramId == PAN_ATTEN ||
+                paramId == GLIDE_PARAM ||
+                paramId == GLIDE_ATTEN ||
+                paramId == FREQ_MODE_BUTTON_PARAM ||
+                paramId == OCT_MODE_BUTTON_PARAM ||
+                paramId == FREQ_POLY_BUTTON ||
+                paramId == OCT_POLY_BUTTON ||
+                paramId == GLIDE_POLY_BUTTON ||
+                paramId == PAN_POLY_BUTTON ||
+                paramId == ATTACK_POLY_BUTTON ||
+                paramId == DECAY_POLY_BUTTON ||
+                paramId == SUSTAIN_POLY_BUTTON ||
+                paramId == RELEASE_POLY_BUTTON ||
+                paramId == MOD_POLY_BUTTON_0 ||
+                paramId == MOD_POLY_BUTTON_1 ||
+                paramId == MOD_POLY_BUTTON_2 ||
+                paramId == MOD_POLY_BUTTON_3;
+        }
+
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -737,40 +781,11 @@ namespace Sapphire
             }
 
 
-            static bool shouldRestoreParameter(unsigned paramId)
-            {
-                switch (paramId)
-                {
-                case MODEL_SELECT_PARAM:
-                case CHAOS_SPEED_PARAM:
-                case CHAOS_SPEED_ATTEN:
-                case CHAOS_LEVEL_PARAM:
-                case CHAOS_LEVEL_ATTEN:
-                case PITCH_MODE_BUTTON_PARAM:
-                case CHAOS_FREEZE_BUTTON_PARAM:
-                case CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM:
-                case OUTPUT_MODE_BUTTON_PARAM:
-                case CHAOS_SPREAD_PARAM:
-                case CHAOS_SPREAD_ATTEN:
-                case CHAOS_TOGGLE_POLY_PARAM:
-                case CHAOS_OUTPUT_CHANNELS_PARAM:
-                case CHAOS_OUTPUT_LEVEL_PARAM:
-                case LEVEL_PARAM:
-                case LEVEL_ATTEN:
-                case LEVEL_POLY_BUTTON:
-                    return false;
-
-                default:
-                    return paramId < PARAMS_LEN;
-                }
-            }
-
-
             void restoreSettingsForEngine(unsigned engineIndex)
             {
                 PolyEngineInfo& info = polyEngineList.at(engineIndex);
                 for (unsigned paramId = 0; paramId < PARAMS_LEN; ++paramId)
-                    if (shouldRestoreParameter(paramId))
+                    if (ShouldRestoreParameter(paramId))
                         params.at(paramId).setValue(info.params.at(paramId));
             }
 
@@ -933,6 +948,16 @@ namespace Sapphire
                 return voltage;
             }
 
+            bool isDroneMode() const
+            {
+                return isButtonEnabled(DRONE_BUTTON_PARAM);
+            }
+
+            bool isLoopMode() const
+            {
+                return isButtonEnabled(LOOP_BUTTON_PARAM);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 updateSelectedEngine(args.sampleRate);
@@ -944,6 +969,9 @@ namespace Sapphire
                 auto& outChaos = outputs.at(CHAOS_OUTPUT);
 
                 nPolyChannels = numOutputChannels(0, {GATE_INPUT, PITCH_INPUT});
+                if (nPolyChannels==0 && isDroneMode())
+                    nPolyChannels = 1;
+
                 if (nPolyChannels > 0)
                 {
                     PolyStereoVoice& polyEngine = getCurrentEngine();
@@ -956,6 +984,7 @@ namespace Sapphire
                     const PitchMode pitchMode = getPitchMode(PITCH_MODE_BUTTON_PARAM);
                     const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
                     const PitchMode octMode   = getPitchMode(OCT_MODE_BUTTON_PARAM);
+                    const bool drone = isDroneMode();
 
                     float levelVoltage = 0;
                     float gateVoltage = 0;
@@ -998,7 +1027,7 @@ namespace Sapphire
                         context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
                         const float glideKnob = cvGetVoltPerOctave(GLIDE_PARAM, GLIDE_ATTEN, glideVoltage, -2, +1);
                         const float glideSamples = TenToPower<float>(glideKnob) * args.sampleRate;
-                        context.updateGatePitch(gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
+                        context.updateGatePitch(drone ? 10.f : gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
                         context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                         context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                         context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);

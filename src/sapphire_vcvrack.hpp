@@ -1135,12 +1135,12 @@ namespace Sapphire
             return cvGetVoltPerOctave(paramId, attenId, cvScalar * cv, minValue, maxValue);
         }
 
-        bool isButtonEnabled(int buttonParamId)
+        bool isButtonEnabled(int buttonParamId) const
         {
-            return params.at(buttonParamId).getValue() > 0.5f;
+            return params.at(buttonParamId).value > 0.5f;
         }
 
-        bool isButtonEnabledSafe(int buttonParamId, bool fallback = false)
+        bool isButtonEnabledSafe(int buttonParamId, bool fallback = false) const
         {
             return IsSafeAccess(params, buttonParamId)
                 ? isButtonEnabled(buttonParamId)
