@@ -483,7 +483,7 @@ namespace Sapphire
             Smoother modelChangeSmoother{0.015};
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
-            unsigned nPolyChannels = 0;
+            unsigned nPolyChannels = 1;
             transform_pool_t transformForAtten{};
             ChaosTransform chaosOutputTransform;
             const char *detuneName = "Detune";
@@ -635,7 +635,7 @@ namespace Sapphire
                 modelChangeSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
-                nPolyChannels = 0;
+                nPolyChannels = 1;
                 recentAudio.initialize();
                 resetEngineSettings();
             }
@@ -1030,163 +1030,142 @@ namespace Sapphire
                 auto& outRight = outputs.at(AUDIO_RIGHT_OUTPUT);
                 auto& outEnv   = outputs.at(ENVELOPE_OUTPUT);
                 auto& outPitch = outputs.at(PITCH_OUTPUT);
-                auto& outChaos = outputs.at(CHAOS_OUTPUT);
 
-                nPolyChannels = numOutputChannels(0, {GATE_INPUT, PITCH_INPUT});
-                if (nPolyChannels==0 && isDroneMode())
-                    nPolyChannels = 1;
+                nPolyChannels = numOutputChannels(1, {GATE_INPUT, PITCH_INPUT});
+                PolyStereoVoice& polyEngine = getCurrentEngine();
 
-                if (nPolyChannels > 0)
+                batch_t batch;
+                const float spread = updateChaos(args.sampleRate, batch);
+                speedChaos = batch(10);
+                sendChaosOutput(spread, batch, 14, nPolyChannels);
+
+                const PitchMode pitchMode = getPitchMode(PITCH_MODE_BUTTON_PARAM);
+                const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
+                const PitchMode octMode   = getPitchMode(OCT_MODE_BUTTON_PARAM);
+                const bool drone = isDroneMode();
+
+                float levelVoltage = 0;
+                float gateVoltage = 0;
+                float pitchVoltage = 0;
+                float freqVoltage = 0;
+                float octaveVoltage = 0;
+                float glideVoltage = 0;
+                float panVoltage = 0;
+                float attackVoltage = 0;
+                float decayVoltage = 0;
+                float sustainVoltage = 0;
+                float releaseVoltage = 0;
+                float modVoltage[NUM_DYNAMIC_PARAMS]{};
+                float gain[PORT_MAX_CHANNELS]{};
+                for (unsigned c = 0; c < nPolyChannels; ++c)
                 {
-                    PolyStereoVoice& polyEngine = getCurrentEngine();
+                    VoiceContext& context = polyEngine.contextArray[c];
+                    context.trackerPitch.mode = pitchMode;
+                    context.trackerFreq.mode = freqMode;
+                    context.trackerOct.mode = octMode;
 
-                    batch_t batch;
-                    const float spread = updateChaos(args.sampleRate, batch);
-                    speedChaos = batch(10);
-                    sendChaosOutput(spread, batch, 14, nPolyChannels);
+                    nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
+                    nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
+                    nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
+                    nextSignal(octaveVoltage, OCT_ATTEN, OCT_CV_INPUT, c, batch);
+                    nextSignal(attackVoltage, ATTACK_ATTEN, ATTACK_CV_INPUT, c, batch);
+                    nextSignal(decayVoltage, DECAY_ATTEN, DECAY_CV_INPUT, c, batch);
+                    nextSignal(sustainVoltage, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, c, batch);
+                    nextSignal(releaseVoltage, RELEASE_ATTEN, RELEASE_CV_INPUT, c, batch);
+                    for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
+                        nextSignal(modVoltage[m], MOD_ATTEN_0+m, MOD_CV_INPUT_0+m, c, batch);
+                    nextSignal(panVoltage, PAN_ATTEN, PAN_CV_INPUT, c, batch);
+                    nextSignal(levelVoltage, LEVEL_ATTEN, LEVEL_CV_INPUT, c, batch);
+                    nextSignal(glideVoltage, GLIDE_ATTEN, GLIDE_CV_INPUT, c, batch);
 
-                    const PitchMode pitchMode = getPitchMode(PITCH_MODE_BUTTON_PARAM);
-                    const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
-                    const PitchMode octMode   = getPitchMode(OCT_MODE_BUTTON_PARAM);
-                    const bool drone = isDroneMode();
+                    static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
+                    gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));
+                    float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
+                    float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
+                    context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
+                    const float glideKnob = cvGetVoltPerOctave(GLIDE_PARAM, GLIDE_ATTEN, glideVoltage, -2, +1);
+                    const float glideSamples = TenToPower<float>(glideKnob) * args.sampleRate;
+                    context.updateGatePitch(drone ? 10.f : gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
+                    context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
+                    context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
+                    context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
+                    context.release = cvGetVoltPerOctave(RELEASE_PARAM, RELEASE_ATTEN, releaseVoltage, -1, +1);
+                    for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
+                        context.mod[m] = cvGetVoltPerOctave(MOD_PARAM_0+m, MOD_ATTEN_0+m, modVoltage[m], -1, +1);
+                }
 
-                    float levelVoltage = 0;
-                    float gateVoltage = 0;
-                    float pitchVoltage = 0;
-                    float freqVoltage = 0;
-                    float octaveVoltage = 0;
-                    float glideVoltage = 0;
-                    float panVoltage = 0;
-                    float attackVoltage = 0;
-                    float decayVoltage = 0;
-                    float sustainVoltage = 0;
-                    float releaseVoltage = 0;
-                    float modVoltage[NUM_DYNAMIC_PARAMS]{};
-                    float gain[PORT_MAX_CHANNELS]{};
+                PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
+                recentAudio.process(args.sampleRate, result);
+
+                const float antiClick = chaosSeedSmoother.getGain() * modelChangeSmoother.getGain();
+
+                outEnv.setChannels(nPolyChannels);
+                for (unsigned c = 0; c < nPolyChannels; ++c)
+                    outEnv.setVoltage(10 * result.env.poly[c] * antiClick, c);
+
+                bool foundTrigger = false;
+                outPitch.setChannels(nPolyChannels);
+                for (unsigned c = 0; c < nPolyChannels; ++c)
+                {
+                    VoiceContext& context = polyEngine.contextArray[c];
+                    outPitch.setVoltage(context.getPitchVoct(), c);
+
+                    // Maintain audio data snippet to be graphed on the oscilloscope display.
+                    // Any rising gate on a channel makes it become the actively graphed channel.
+                    // Break ties by whichever channel number is higher (arbitrary).
+                    if (context.gateTriggerReceiver.isTriggerActive())
+                    {
+                        foundTrigger = true;
+                        recentAudio.activeChannel = c;
+                        recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / context.getFrequency());
+                    }
+                }
+
+                if (!foundTrigger &&
+                    (result.env.nchannels > 0) &&
+                    (recentAudio.activeChannel >= result.env.nchannels || result.env.poly.at(recentAudio.activeChannel) == 0))
+                {
+                    // If the active channel has gone quiet, search for any other
+                    // channel that is still making sound.
+                    // Pick the "loudest", based on the envelope.
+                    unsigned lc = -1;
+                    for (unsigned c = 0; c < result.env.nchannels; ++c)
+                        if (lc >= result.env.nchannels || result.env.poly.at(c) > result.env.poly.at(lc))
+                            lc = c;
+
+                    if (lc < result.env.nchannels)
+                    {
+                        recentAudio.activeChannel = lc;
+                        const float freq = polyEngine.contextArray.at(lc).getFrequency();
+                        if (std::isfinite(freq) && freq > 10 && freq < args.sampleRate/2)
+                            recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / freq);
+                    }
+                }
+
+                if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
+                {
+                    outLeft.setChannels(nPolyChannels);
+                    outRight.setChannels(nPolyChannels);
                     for (unsigned c = 0; c < nPolyChannels; ++c)
                     {
-                        VoiceContext& context = polyEngine.contextArray[c];
-                        context.trackerPitch.mode = pitchMode;
-                        context.trackerFreq.mode = freqMode;
-                        context.trackerOct.mode = octMode;
-
-                        nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
-                        nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
-                        nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
-                        nextSignal(octaveVoltage, OCT_ATTEN, OCT_CV_INPUT, c, batch);
-                        nextSignal(attackVoltage, ATTACK_ATTEN, ATTACK_CV_INPUT, c, batch);
-                        nextSignal(decayVoltage, DECAY_ATTEN, DECAY_CV_INPUT, c, batch);
-                        nextSignal(sustainVoltage, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT, c, batch);
-                        nextSignal(releaseVoltage, RELEASE_ATTEN, RELEASE_CV_INPUT, c, batch);
-                        for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
-                            nextSignal(modVoltage[m], MOD_ATTEN_0+m, MOD_CV_INPUT_0+m, c, batch);
-                        nextSignal(panVoltage, PAN_ATTEN, PAN_CV_INPUT, c, batch);
-                        nextSignal(levelVoltage, LEVEL_ATTEN, LEVEL_CV_INPUT, c, batch);
-                        nextSignal(glideVoltage, GLIDE_ATTEN, GLIDE_CV_INPUT, c, batch);
-
-                        static constexpr float gainSensitivity = 1.0 / 5.0;    // one knob unit per 5V change in CV
-                        gain[c] = Cube(cvGetVoltPerOctave(LEVEL_PARAM, LEVEL_ATTEN, levelVoltage * gainSensitivity, 0, 2));
-                        float freq = cvGetVoltPerOctave(FREQ_PARAM, FREQ_ATTEN, freqVoltage, -OctaveRange, +OctaveRange);
-                        float oct = std::round(cvGetVoltPerOctave(OCT_PARAM, OCT_ATTEN, octaveVoltage, -OctaveRange, +OctaveRange));
-                        context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
-                        const float glideKnob = cvGetVoltPerOctave(GLIDE_PARAM, GLIDE_ATTEN, glideVoltage, -2, +1);
-                        const float glideSamples = TenToPower<float>(glideKnob) * args.sampleRate;
-                        context.updateGatePitch(drone ? 10.f : gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
-                        context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
-                        context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
-                        context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
-                        context.release = cvGetVoltPerOctave(RELEASE_PARAM, RELEASE_ATTEN, releaseVoltage, -1, +1);
-                        for (unsigned m = 0; m < NUM_DYNAMIC_PARAMS; ++m)
-                            context.mod[m] = cvGetVoltPerOctave(MOD_PARAM_0+m, MOD_ATTEN_0+m, modVoltage[m], -1, +1);
-                    }
-
-                    PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
-                    recentAudio.process(args.sampleRate, result);
-
-                    const float antiClick = chaosSeedSmoother.getGain() * modelChangeSmoother.getGain();
-
-                    outEnv.setChannels(nPolyChannels);
-                    for (unsigned c = 0; c < nPolyChannels; ++c)
-                        outEnv.setVoltage(10 * result.env.poly[c] * antiClick, c);
-
-                    bool foundTrigger = false;
-                    outPitch.setChannels(nPolyChannels);
-                    for (unsigned c = 0; c < nPolyChannels; ++c)
-                    {
-                        VoiceContext& context = polyEngine.contextArray[c];
-                        outPitch.setVoltage(context.getPitchVoct(), c);
-
-                        // Maintain audio data snippet to be graphed on the oscilloscope display.
-                        // Any rising gate on a channel makes it become the actively graphed channel.
-                        // Break ties by whichever channel number is higher (arbitrary).
-                        if (context.gateTriggerReceiver.isTriggerActive())
-                        {
-                            foundTrigger = true;
-                            recentAudio.activeChannel = c;
-                            recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / context.getFrequency());
-                        }
-                    }
-
-                    if (!foundTrigger &&
-                        (result.env.nchannels > 0) &&
-                        (recentAudio.activeChannel >= result.env.nchannels || result.env.poly.at(recentAudio.activeChannel) == 0))
-                    {
-                        // If the active channel has gone quiet, search for any other
-                        // channel that is still making sound.
-                        // Pick the "loudest", based on the envelope.
-                        unsigned lc = -1;
-                        for (unsigned c = 0; c < result.env.nchannels; ++c)
-                            if (lc >= result.env.nchannels || result.env.poly.at(c) > result.env.poly.at(lc))
-                                lc = c;
-
-                        if (lc < result.env.nchannels)
-                        {
-                            recentAudio.activeChannel = lc;
-                            const float freq = polyEngine.contextArray.at(lc).getFrequency();
-                            if (std::isfinite(freq) && freq > 10 && freq < args.sampleRate/2)
-                                recentAudio.wavelengthSamples = static_cast<int>(args.sampleRate / freq);
-                        }
-                    }
-
-                    if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
-                    {
-                        outLeft.setChannels(nPolyChannels);
-                        outRight.setChannels(nPolyChannels);
-                        for (unsigned c = 0; c < nPolyChannels; ++c)
-                        {
-                            outLeft .setVoltage(result.stereo.poly[c].sample[0] * antiClick * gain[c], c);
-                            outRight.setVoltage(result.stereo.poly[c].sample[1] * antiClick * gain[c], c);
-                        }
-                    }
-                    else
-                    {
-                        outLeft.setChannels(1);
-                        outRight.setChannels(1);
-                        float sumL = 0;
-                        float sumR = 0;
-                        for (unsigned c = 0; c < nPolyChannels; ++c)
-                        {
-                            sumL += result.stereo.poly[c].sample[0] * gain[c];
-                            sumR += result.stereo.poly[c].sample[1] * gain[c];
-                        }
-                        outLeft .setVoltage(sumL * antiClick, 0);
-                        outRight.setVoltage(sumR * antiClick, 0);
+                        outLeft .setVoltage(result.stereo.poly[c].sample[0] * antiClick * gain[c], c);
+                        outRight.setVoltage(result.stereo.poly[c].sample[1] * antiClick * gain[c], c);
                     }
                 }
                 else
                 {
-                    setNullOutput(outLeft);
-                    setNullOutput(outRight);
-                    setNullOutput(outEnv);
-                    setNullOutput(outPitch);
-                    setNullOutput(outChaos);
+                    outLeft.setChannels(1);
+                    outRight.setChannels(1);
+                    float sumL = 0;
+                    float sumR = 0;
+                    for (unsigned c = 0; c < nPolyChannels; ++c)
+                    {
+                        sumL += result.stereo.poly[c].sample[0] * gain[c];
+                        sumR += result.stereo.poly[c].sample[1] * gain[c];
+                    }
+                    outLeft .setVoltage(sumL * antiClick, 0);
+                    outRight.setVoltage(sumR * antiClick, 0);
                 }
-            }
-
-            void setNullOutput(Output& output)
-            {
-                output.setChannels(1);
-                output.setVoltage(0, 0);
             }
 
             void updateControls()
