@@ -20,8 +20,13 @@ const int IntSampleScale = 32700;
 
 inline int16_t IntSampleFromFloat(float x)
 {
-    if (x < -1.0f || x > +1.0f)
+    if (x < -1.001f || x > +1.001f)
         throw std::range_error(std::string("Floating-point audio output went out of range: " + std::to_string(x)));
+
+    if (x < -1)
+        x = -1;
+    else if (x > +1)
+        x = +1;
 
     return static_cast<int16_t>(IntSampleScale * x);
 }
