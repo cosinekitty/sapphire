@@ -347,17 +347,10 @@ namespace Sapphire
 
                 leftExpander.producerMessage = &backwardMessageBuffer[0];
                 leftExpander.consumerMessage = &backwardMessageBuffer[1];
-
-                MultiTapModule_initialize();
-            }
-
-            void MultiTapModule_initialize()
-            {
             }
 
             virtual void initialize()
             {
-                MultiTapModule_initialize();
             }
 
             void onReset(const ResetEvent& e) override
