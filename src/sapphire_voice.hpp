@@ -133,6 +133,7 @@ namespace Sapphire
     struct VoiceContext
     {
         GateTriggerReceiver gateTriggerReceiver;
+        bool isLoopModeEnabled{};
         float attack{};
         float decay{};
         float sustain{};

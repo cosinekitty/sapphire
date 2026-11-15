@@ -1043,6 +1043,7 @@ namespace Sapphire
                 const PitchMode freqMode  = getPitchMode(FREQ_MODE_BUTTON_PARAM);
                 const PitchMode octMode   = getPitchMode(OCT_MODE_BUTTON_PARAM);
                 const bool drone = isDroneMode();
+                const bool loop = isLoopMode();
 
                 float levelVoltage = 0;
                 float gateVoltage = 0;
@@ -1060,6 +1061,7 @@ namespace Sapphire
                 for (unsigned c = 0; c < nPolyChannels; ++c)
                 {
                     VoiceContext& context = polyEngine.contextArray[c];
+                    context.isLoopModeEnabled = loop;
                     context.trackerPitch.mode = pitchMode;
                     context.trackerFreq.mode = freqMode;
                     context.trackerOct.mode = octMode;

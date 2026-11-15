@@ -43,16 +43,15 @@ namespace Sapphire
                 if (gate)
                 {
                     // While the note is held, we want it to fade from fraction=1 to fraction=sustain.
-                    if (context.sustain >= 1)
-                    {
-                        // hold at current power forever - leave fraction alone
-                    }
-                    else
+                    if (context.sustain < 1)
                     {
                         double descend = 1 - context.sustain;   // how far down we need to go
                         double decaySamples = sampleRateHz * RampTimeSeconds(context.decay / descend);
                         fraction = std::clamp<double>(fraction - 1/decaySamples, context.sustain, 1);
                     }
+
+                    if (context.isLoopModeEnabled && (fraction == context.sustain))
+                        state = AdsrState::Release;
                 }
                 else
                 {
@@ -65,13 +64,15 @@ namespace Sapphire
             {
                 double rampSamples = sampleRateHz * RampTimeSeconds(context.release);
                 fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
-                if (gate)
+                if (gate && !context.isLoopModeEnabled)
                 {
                     state = AdsrState::Attack;
                 }
-                else
+                else if (fraction == 0)
                 {
-                    if (fraction == 0)
+                    if (gate && context.isLoopModeEnabled)
+                        state = AdsrState::Attack;
+                    else
                         state = AdsrState::Quiet;
                 }
             }
