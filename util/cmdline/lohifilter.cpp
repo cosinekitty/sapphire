@@ -23,7 +23,7 @@ static int TestLoHi()
         filter.Update(x, SAMPLE_RATE);
         double lo = filter.LoPass();
         double hi = filter.HiPass();
-        printf("i = %3d, x = %4.1lf, lo = %17.14lf, hi = %17.14lf\n", i, x, lo, hi);
+        printf("i = %3d, x = %4.1lf, lo = %19.16lf, hi = %19.16lf\n", i, x, lo, hi);
     }
 
     return 0;
