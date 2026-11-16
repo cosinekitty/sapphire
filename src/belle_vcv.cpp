@@ -116,6 +116,7 @@ namespace Sapphire
             ENVELOPE_OUTPUT,
             PITCH_OUTPUT,
             CHAOS_OUTPUT,
+            EOC_OUTPUT,
 
             OUTPUTS_LEN
         };
@@ -519,6 +520,7 @@ namespace Sapphire
                 configOutput(ENVELOPE_OUTPUT, "Envelope");
                 configOutput(PITCH_OUTPUT, "Pitch");
                 configOutput(CHAOS_OUTPUT, "Chaos");
+                configOutput(EOC_OUTPUT, "Envelope end-of-cycle trigger");
                 configOutput(AUDIO_LEFT_OUTPUT,  "Left audio");
                 configOutput(AUDIO_RIGHT_OUTPUT, "Right audio");
                 configButton(OUTPUT_MODE_BUTTON_PARAM);
@@ -1029,6 +1031,7 @@ namespace Sapphire
                 auto& outLeft  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& outRight = outputs.at(AUDIO_RIGHT_OUTPUT);
                 auto& outEnv   = outputs.at(ENVELOPE_OUTPUT);
+                auto& outEoc   = outputs.at(EOC_OUTPUT);
                 auto& outPitch = outputs.at(PITCH_OUTPUT);
 
                 nPolyChannels = numOutputChannels(1, {GATE_INPUT, PITCH_INPUT});
@@ -1104,6 +1107,10 @@ namespace Sapphire
                 outEnv.setChannels(nPolyChannels);
                 for (unsigned c = 0; c < nPolyChannels; ++c)
                     outEnv.setVoltage(10 * result.env.poly[c] * antiClick, c);
+
+                outEoc.setChannels(nPolyChannels);
+                for (unsigned c = 0; c < nPolyChannels; ++c)
+                    outEoc.setVoltage(polyEngine.contextArray[c].eoc.getOutputVoltage(), c);
 
                 bool foundTrigger = false;
                 outPitch.setChannels(nPolyChannels);
@@ -1393,6 +1400,7 @@ namespace Sapphire
                 addSapphireOutput(ENVELOPE_OUTPUT, "envelope_output");
                 addSapphireOutput(PITCH_OUTPUT, "pitch_output");
                 addSapphireOutput(CHAOS_OUTPUT, "chaos_output");
+                addSapphireOutput(EOC_OUTPUT, "eoc_output");
                 addOutputModeButton();
                 addPitchModeButton(PITCH_MODE_BUTTON_PARAM, "pitch_mode_button");
                 addPitchModeButton(FREQ_MODE_BUTTON_PARAM, "freq_mode_button");

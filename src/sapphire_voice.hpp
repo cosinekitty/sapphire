@@ -5,8 +5,7 @@
 #include <cmath>
 #include <utility>
 #include "rack.hpp"
-#include "sapphire_gate_trigger.hpp"
-#include "sapphire_engine.hpp"
+#include "sapphire_vcvrack.hpp"
 #include "sapphire_random.hpp"
 
 namespace Sapphire
@@ -140,6 +139,7 @@ namespace Sapphire
         float release{};
         float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
         float pan{};        // -1 .. +1
+        TriggerSender eoc;          // envelope end-of-cycle trigger when envelope becomes zero after release
         PitchTracker trackerPitch;
         PitchTracker trackerFreq;
         PitchTracker trackerOct;
@@ -156,6 +156,7 @@ namespace Sapphire
             trackerPitch.initialize();
             trackerFreq.initialize();
             trackerOct.initialize();
+            eoc.initialize();
         }
 
         void updateGatePitch(float gateVoltage, float pitch, float freq, float oct, float glideOctavesPerSample)
@@ -196,11 +197,13 @@ namespace Sapphire
     {
         AdsrState state{};
         double fraction{};      // 0 = silence, 1 = full power envelope; linear scale
+        bool eoc{};             // end of cycle flag : true only on the sample AFTER release hits zero
 
         void initialize()
         {
             state = AdsrState::Quiet;
             fraction = 0;
+            eoc = false;
         }
 
         static double RampTimeSeconds(double knob)
@@ -465,6 +468,7 @@ namespace Sapphire
             StereoFrame process(float sampleRateHz, VoiceContext& context)
             {
                 float env = envelope.process(sampleRateHz, context);
+                context.eoc.process(sampleRateHz, envelope.eoc);        // convert EOC sample pulse into a 1-millisecond pulse
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
                 // Always track the center frequency pitch.

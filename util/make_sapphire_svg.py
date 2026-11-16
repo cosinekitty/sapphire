@@ -2909,14 +2909,15 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         portDeltaColumn = 0.25
         addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.0, 'gate_input', 'GATE')
         addPort(+portDeltaColumn, 5, 'pitch_input', 'PITCH')
-        addPort(4, 0.00, 'envelope_output', 'ENV')
-        addPort(4, 0.75, 'pitch_output', 'PITCH')
-        addPort(4, 1.50, 'chaos_output', 'CHAOS')
+        addPort(4, 0*0.75, 'envelope_output', 'ENV')
+        addPort(4, 1*0.75, 'pitch_output', 'PITCH')
+        addPort(4, 2*0.75, 'eoc_output', 'EOC')
+        addPort(4, rowChaosOutput := 3*0.75, 'chaos_output', 'CHAOS')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
 
         #   (level_knob)----(chaos_port)----(channel_count_knob)
-        yChaosOutput = yBelle(1.5)
+        yChaosOutput = yBelle(rowChaosOutput)
         xChaosOutput = xBelle(4)
         xChaosLevelKnob = xChaosOutput - 8.0
         xChannelsKnob = xChaosOutput + 8.0
@@ -2948,8 +2949,9 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         for m in range(4):
             addControlGroup(3, m, 'mod' + str(m), '')
 
-        AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(3))
-        addHangingButton(4, 3, 'level_poly_button', DX_CONTROL_GROUP, DY_CONTROL_GROUP)
+        rowLevel = 3.25
+        AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(rowLevel))
+        addHangingButton(4, rowLevel, 'level_poly_button', DX_CONTROL_GROUP, DY_CONTROL_GROUP)
 
         ChaosBox(xmidChaosBox, yBelle(1.5), polyphonic=True).generate(pl, controls, font)
     return Save(panel, svgFileName)

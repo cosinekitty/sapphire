@@ -6,6 +6,8 @@ namespace Sapphire
     {
         const bool gate = context.gateTriggerReceiver.isGateActive();
 
+        eoc = false;
+
         switch (state)
         {
             default:
@@ -78,7 +80,10 @@ namespace Sapphire
                     if (gate && context.isLoopModeEnabled)
                         state = AdsrState::Attack;
                     else
+                    {
                         state = AdsrState::Quiet;
+                        eoc = true;
+                    }
                 }
             }
             break;

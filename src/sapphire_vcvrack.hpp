@@ -766,6 +766,11 @@ namespace Sapphire
             isFiring = false;
         }
 
+        float getOutputVoltage() const
+        {
+            return isFiring ? 10 : 0;
+        }
+
         float process(double sampleRateHz, bool fire)
         {
             if (fire)
