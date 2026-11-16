@@ -8,8 +8,13 @@ namespace Sapphire
 
         switch (state)
         {
+            default:
+                // Automatically heal any invalid state: convert to Quiet.
+                state = AdsrState::Quiet;
+                // Now that we are in Quiet mode, drop directly into the correct code...
+                [[fallthrough]];
+
             case AdsrState::Quiet:
-            default:    // treat any invalid states as identical to Quiet
             {
                 // On the rising edge of a gate, begin the attack phase.
                 if (gate)
