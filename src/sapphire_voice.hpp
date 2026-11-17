@@ -87,8 +87,12 @@ namespace Sapphire
         {
             switch (mode)
             {
-                case PitchMode::Follow:
                 default:
+                    // Automatically convert invalid modes to FOLLOW.
+                    mode = PitchMode::Follow;
+                    [[fallthrough]];
+
+                case PitchMode::Follow:
                 {
                     pitch = voct;
                     latched = false;
