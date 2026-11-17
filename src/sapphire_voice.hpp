@@ -83,7 +83,7 @@ namespace Sapphire
             counter = 0;
         }
 
-        void update(const GateTriggerReceiver& receiver, float voct, float glideOctavesPerSample)
+        void update(const GateTriggerReceiver& receiver, float voct, float glideOctavesPerSample, bool eocTrigger)
         {
             switch (mode)
             {
@@ -97,7 +97,7 @@ namespace Sapphire
 
                 case PitchMode::SampleHold:
                 {
-                    if (receiver.isTriggerActive())
+                    if (eocTrigger || receiver.isTriggerActive())
                     {
                         latched = false;
                         counter = 0;
@@ -139,7 +139,8 @@ namespace Sapphire
         float release{};
         float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
         float pan{};        // -1 .. +1
-        TriggerSender eoc;          // envelope end-of-cycle trigger when envelope becomes zero after release
+        TriggerSender eocTriggerSender;   // envelope end-of-cycle trigger when envelope becomes zero after release
+        bool eocTrigger{};      // one-shot trigger on the exact end-of-cycle sample, for v/oct sample-and-hold timing
         PitchTracker trackerPitch;
         PitchTracker trackerFreq;
         PitchTracker trackerOct;
@@ -156,15 +157,22 @@ namespace Sapphire
             trackerPitch.initialize();
             trackerFreq.initialize();
             trackerOct.initialize();
-            eoc.initialize();
+            eocTriggerSender.initialize();
+            eocTrigger = false;
+        }
+
+        void updateEnvelopeEndOfCycle(float sampleRateHz, bool oneShotTrigger)
+        {
+            eocTrigger = oneShotTrigger;
+            eocTriggerSender.process(sampleRateHz, oneShotTrigger);
         }
 
         void updateGatePitch(float gateVoltage, float pitch, float freq, float oct, float glideOctavesPerSample)
         {
             gateTriggerReceiver.update(gateVoltage);
-            trackerPitch.update(gateTriggerReceiver, pitch, glideOctavesPerSample);
-            trackerFreq.update(gateTriggerReceiver, freq, glideOctavesPerSample);
-            trackerOct.update(gateTriggerReceiver, oct, glideOctavesPerSample);
+            trackerPitch.update(gateTriggerReceiver, pitch, glideOctavesPerSample, eocTrigger);
+            trackerFreq.update(gateTriggerReceiver, freq, glideOctavesPerSample, eocTrigger);
+            trackerOct.update(gateTriggerReceiver, oct, glideOctavesPerSample, eocTrigger);
         }
 
         float getPitchVoct() const
@@ -470,7 +478,7 @@ namespace Sapphire
             StereoFrame process(float sampleRateHz, VoiceContext& context)
             {
                 float env = envelope.process(sampleRateHz, context);
-                context.eoc.process(sampleRateHz, envelope.eoc);        // convert EOC sample pulse into a 1-millisecond pulse
+                context.updateEnvelopeEndOfCycle(sampleRateHz, envelope.eoc);
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
                 // Always track the center frequency pitch.

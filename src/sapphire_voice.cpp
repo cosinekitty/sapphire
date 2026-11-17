@@ -38,7 +38,7 @@ namespace Sapphire
                     if (fraction == 1)
                     {
                         state = AdsrState::Decay;
-                        decaySeconds = 0;
+                        decaySeconds = 0;       // start a chrono to measure how much decay time has elapsed
                     }
                 }
                 else

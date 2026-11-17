@@ -1110,7 +1110,7 @@ namespace Sapphire
 
                 outEoc.setChannels(nPolyChannels);
                 for (unsigned c = 0; c < nPolyChannels; ++c)
-                    outEoc.setVoltage(polyEngine.contextArray[c].eoc.getOutputVoltage(), c);
+                    outEoc.setVoltage(polyEngine.contextArray[c].eocTriggerSender.getOutputVoltage(), c);
 
                 bool foundTrigger = false;
                 outPitch.setChannels(nPolyChannels);
