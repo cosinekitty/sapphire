@@ -198,12 +198,14 @@ namespace Sapphire
         AdsrState state{};
         double fraction{};      // 0 = silence, 1 = full power envelope; linear scale
         bool eoc{};             // end of cycle flag : true only on the sample AFTER release hits zero
+        double decaySeconds{};
 
         void initialize()
         {
             state = AdsrState::Quiet;
             fraction = 0;
             eoc = false;
+            decaySeconds = 0;
         }
 
         static double RampTimeSeconds(double knob)
