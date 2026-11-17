@@ -77,13 +77,11 @@ namespace Sapphire
                 }
                 else if (fraction == 0)
                 {
+                    eoc = true;
                     if (gate && context.isLoopModeEnabled)
                         state = AdsrState::Attack;
                     else
-                    {
                         state = AdsrState::Quiet;
-                        eoc = true;
-                    }
                 }
             }
             break;
