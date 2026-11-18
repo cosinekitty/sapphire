@@ -64,7 +64,8 @@ namespace Sapphire
     enum class PitchMode
     {
         Follow,
-        SampleHold,
+        SampleHoldGate,
+        SampleHoldLoop,
         Glide,
     };
 
@@ -99,9 +100,10 @@ namespace Sapphire
                 }
                 break;
 
-                case PitchMode::SampleHold:
+                case PitchMode::SampleHoldGate:
+                case PitchMode::SampleHoldLoop:
                 {
-                    if (eocTrigger || receiver.isTriggerActive())
+                    if (receiver.isTriggerActive() || ((mode == PitchMode::SampleHoldLoop) && eocTrigger))
                     {
                         latched = false;
                         counter = 0;

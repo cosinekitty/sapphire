@@ -577,7 +577,19 @@ namespace Sapphire
 
             void configPitchModeButton(int buttonParamId, const std::string& name)
             {
-                configSwitch(buttonParamId, 0, 2, 0, name, {"FOLLOW", "SAMPLE & HOLD", "GLIDE"});
+                configSwitch(
+                    buttonParamId,
+                    static_cast<float>(PitchMode::Follow),
+                    static_cast<float>(PitchMode::Glide),
+                    static_cast<float>(PitchMode::Follow),
+                    name,
+                    {
+                        "FOLLOW",                   // PitchMode::Follow
+                        "SAMPLE & HOLD / GATE",     // PitchMode::SampleHoldGate
+                        "SAMPLE & HOLD / LOOP",     // PitchMode::SampleHoldLoop
+                        "GLIDE"                     // PitchMode::Glide
+                    }
+                );
             }
 
             void configChaosBox()
@@ -1318,9 +1330,10 @@ namespace Sapphire
         {
             explicit PitchModeButton()
             {
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/yellow_button_0.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/red_button_1.svg")));
-                addFrame(Svg::load(asset::plugin(pluginInstance, "res/green_button_1.svg")));
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/yellow_button_0.svg")));  // PitchMode::Follow
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/yellow_button_1.svg")));  // PitchMode::SampleHoldGate
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/red_button_1.svg")));     // PitchMode::SampleHoldLoop
+                addFrame(Svg::load(asset::plugin(pluginInstance, "res/green_button_1.svg")));   // PitchMode::Glide
             }
         };
 
