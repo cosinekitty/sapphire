@@ -652,6 +652,7 @@ namespace Sapphire
                 nPolyChannels = 1;
                 recentAudio.initialize();
                 resetEngineSettings();
+                currentChannelCount = 0;
             }
 
             void resetFountain()
@@ -1049,6 +1050,7 @@ namespace Sapphire
                 auto& outPitch = outputs.at(PITCH_OUTPUT);
 
                 nPolyChannels = numOutputChannels(1, {GATE_INPUT, PITCH_INPUT});
+                currentChannelCount = nPolyChannels;    // keep channel count display up to date
                 PolyStereoVoice& polyEngine = getCurrentEngine();
 
                 batch_t batch;
@@ -1447,6 +1449,7 @@ namespace Sapphire
                 addPolyButtons();
                 addDroneButton();
                 addLoopButton();
+                addSapphireChannelDisplay("channel_display");
                 addOverlays();
             }
 

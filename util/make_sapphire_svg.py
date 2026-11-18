@@ -2908,13 +2908,16 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
 
         portDeltaColumn = 0.25
         addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.0, 'gate_input', 'GATE')
-        addPort(+portDeltaColumn, 5, 'pitch_input', 'PITCH')
+        addPort(+portDeltaColumn, rowGateInput, 'pitch_input', 'PITCH')
+        controls.add('channel_display', xBelle(0.75), yBelle(rowGateInput))
+
         addPort(4, 0*0.75, 'envelope_output', 'ENV')
         addPort(4, 1*0.75, 'pitch_output', 'PITCH')
         addPort(4, 2*0.75, 'eoc_output', 'EOC')
         addPort(4, rowChaosOutput := 3*0.75, 'chaos_output', 'CHAOS')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
+
 
         #   (level_knob)----(chaos_port)----(channel_count_knob)
         yChaosOutput = yBelle(rowChaosOutput)

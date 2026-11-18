@@ -16,6 +16,7 @@ namespace Sapphire
             {"attack_poly_button",     {  86.360,   26.500}},
             {"audio_left_output",      { 141.320,  114.000}},
             {"audio_right_output",     { 153.320,  114.000}},
+            {"channel_display",        {  43.180,  114.000}},
             {"chaos_channels_knob",    { 155.320,   62.300}},
             {"chaos_display_button",   {   6.820,   94.200}},
             {"chaos_freeze_button",    {  33.820,   94.200}},
