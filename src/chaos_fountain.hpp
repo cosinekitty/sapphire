@@ -83,7 +83,7 @@ namespace Sapphire
                 oscillators[i].step(dt * rateFactor[i]);
         }
 
-        batch_t getBatch(float levelKnob) const
+        batch_t getBatch(float gain) const
         {
             batch_t batch;
             unsigned n = 0;     // how many signals have been generated
@@ -112,7 +112,7 @@ namespace Sapphire
             assert(n == nsignals);
 
             for (float& x : batch.signal)
-                x *= levelKnob;
+                x *= gain;
 
             return batch;
         }

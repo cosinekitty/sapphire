@@ -897,7 +897,7 @@ namespace Sapphire
 
                 const bool isChaosFrozen = isChaosLevelZero || isChaosFreezeButtonPressed;
 
-                const float chaosLevelKnob = Cube(getControlValueVoltPerOctave(
+                const float chaosGain = Cube(getControlValueVoltPerOctave(
                     CHAOS_LEVEL_PARAM,
                     CHAOS_LEVEL_ATTEN,
                     CHAOS_LEVEL_CV_INPUT,
@@ -920,7 +920,7 @@ namespace Sapphire
                     fountain.update(dt);
                 }
 
-                batch = fountain.getBatch(chaosLevelKnob);
+                batch = fountain.getBatch(chaosGain);
 
                 reportChaosPoly(FREQ_ATTEN,         FREQ_POLY_BUTTON,       spread, batch,  0);
                 reportChaosPoly(OCT_ATTEN,          OCT_POLY_BUTTON,        spread, batch,  1);
@@ -997,14 +997,16 @@ namespace Sapphire
                     const unsigned nOutputChannels = numChaosOutputChannels(nAudioOutputChannels);
                     outChaos.setChannels(nOutputChannels);
 
-                    const float gain = Cube(params.at(CHAOS_OUTPUT_LEVEL_PARAM).value);
-                    const float vneg = batch(offset+0);
-                    const float vpos = batch(offset+1);
+                    const float chaosGain = Cube(params.at(CHAOS_OUTPUT_LEVEL_PARAM).value);
+                    const batch_t outbatch = fountain.getBatch(chaosGain);
+                    const float vneg = outbatch(offset+0);
+                    const float vpos = outbatch(offset+1);
+
                     for (unsigned c = 0; c < nOutputChannels; ++c)
                     {
-                        const float vc = batch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
+                        const float vc = outbatch(offset+chaosOutputTransform.shuffle[c]) * chaosOutputTransform.toggle[c];
                         const float outVoltage = SpreadMix(spread, vc, vneg, vpos);
-                        outChaos.setVoltage(gain*outVoltage, c);
+                        outChaos.setVoltage(outVoltage, c);
                     }
                 }
             }
