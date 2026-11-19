@@ -207,6 +207,12 @@ namespace Sapphire
     };
 
 
+    inline double RampTimeSeconds(double knob)      // knob in range [-1, +1]
+    {
+        return TenToPower(2*knob - 1);
+    }
+
+
     struct AdsrEnvelope
     {
         AdsrState state{};
@@ -220,11 +226,6 @@ namespace Sapphire
             fraction = 0;
             eoc = false;
             decaySeconds = 0;
-        }
-
-        static double RampTimeSeconds(double knob)
-        {
-            return TenToPower(2*knob - 1);
         }
 
         double process(float sampleRateHz, VoiceContext &context);

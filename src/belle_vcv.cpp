@@ -199,10 +199,24 @@ namespace Sapphire
 
         struct EnvelopeGraphWidget : GraphWidget
         {
+            float margin = mm2px(2.0);
+
             explicit EnvelopeGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "envelope")
             {
             }
+
+            float xenv(float t) const
+            {
+                return margin + t*(box.size.x - 2*margin);
+            }
+
+            float yenv(float e) const
+            {
+                return margin + (1-e)*(box.size.y - 2*margin);
+            }
+
+            void drawLayer(const DrawArgs& args, int layer) override;
         };
 
 
@@ -476,6 +490,17 @@ namespace Sapphire
         }
 
 
+        struct EnvelopeState
+        {
+            float attack{};     // knob position [-1, +1]
+            float decay{};      // knob position [-1, +1]
+            float sustain{};    // fraction [0, +1]
+            float release{};    // knob position [-1, +1]
+            float positionSeconds{};
+            float envelopeFraction{};
+        };
+
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -501,6 +526,7 @@ namespace Sapphire
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
             RecentAudioBuffer recentAudio;
+            EnvelopeState envelopeState;        // for graphing purposes: use the active channel in recentAudio
 
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -1167,6 +1193,20 @@ namespace Sapphire
                     }
                 }
 
+                if (recentAudio.activeChannel < nPolyChannels)
+                {
+                    const VoiceContext& context = polyEngine.contextArray.at(recentAudio.activeChannel);
+                    // Keep the envelope graphics up to date.
+                    // Just save knob values. Converting to time values is expensive, so only do that in graphics updates.
+                    envelopeState.attack  = context.attack;
+                    envelopeState.decay   = context.decay;
+                    envelopeState.sustain = context.sustain;
+                    envelopeState.release = context.release;
+
+                    envelopeState.envelopeFraction = result.env.poly.at(recentAudio.activeChannel);
+                    envelopeState.positionSeconds = 0;      // FIXFIXFIX: how do we calculate this?
+                }
+
                 if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
                 {
                     outLeft.setChannels(nPolyChannels);
@@ -1642,71 +1682,68 @@ namespace Sapphire
         void WaveformGraphWidget::drawLayer(const DrawArgs &args, int layer)
         {
             GraphWidget::drawLayer(args, layer);
-            if (belleModule)
+            if (belleModule && layer==1)
             {
-                if (layer == 1)
+                // Try to take a snapshot for both sides.
+                AudioSnapshot sL = belleModule->getAudioSnapshot(0);
+                AudioSnapshot sR = belleModule->getAudioSnapshot(1);
+
+                // Both most be valid. (Why would one succeed but the other fail?)
+                if (sL.isValid() && sR.isValid())
                 {
-                    // Try to take a snapshot for both sides.
-                    AudioSnapshot sL = belleModule->getAudioSnapshot(0);
-                    AudioSnapshot sR = belleModule->getAudioSnapshot(1);
-
-                    // Both most be valid. (Why would one succeed but the other fail?)
-                    if (sL.isValid() && sR.isValid())
+                    // Both must have graphable sections.
+                    AudioSection wL = sL.findWave();
+                    AudioSection wR = sR.findWave();
+                    if (wL.isLongEnoughToGraph() && wR.isLongEnoughToGraph())
                     {
-                        // Both must have graphable sections.
-                        AudioSection wL = sL.findWave();
-                        AudioSection wR = sR.findWave();
-                        if (wL.isLongEnoughToGraph() && wR.isLongEnoughToGraph())
+                        float aL = sL.peakAmplitude(wL);
+                        float aR = sR.peakAmplitude(wR);
+                        float vscale;
+                        AudioSection *w;
+                        AudioSnapshot *s;
+
+                        // Toggle with hysteresis
+                        if (graphRight)
                         {
-                            float aL = sL.peakAmplitude(wL);
-                            float aR = sR.peakAmplitude(wR);
-                            float vscale;
-                            AudioSection *w;
-                            AudioSnapshot *s;
-
-                            // Toggle with hysteresis
-                            if (graphRight)
-                            {
-                                if (aL > 2*aR)
-                                    graphRight = false;
-                            }
-                            else
-                            {
-                                if (aR > 2*aL)
-                                    graphRight = true;
-                            }
-
-                            if (graphRight)
-                            {
-                                s = &sR;
-                                w = &wR;
-                                vscale = aR;
-                            }
-                            else
-                            {
-                                s = &sL;
-                                w = &wL;
-                                vscale = aL;
-                            }
-                            vscale *= 1.125;
-
-                            // Reset the slow-morph verticalScale if it has gone insane.
-                            if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
-                                verticalScale = 0;
-
-                            // Simple envelope detector logic: increase instantly, fall slowly.
-                            if (vscale >= verticalScale)
-                            {
-                                verticalScale = vscale;
-                            }
-                            else
-                            {
-                                vscale = verticalScale;
-                                verticalScale *= 0.97;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
-                            }
-
-                            drawSignalTrace(args, vscale, *s, *w);
+                            if (aL > 2*aR)
+                                graphRight = false;
                         }
+                        else
+                        {
+                            if (aR > 2*aL)
+                                graphRight = true;
+                        }
+
+                        if (graphRight)
+                        {
+                            s = &sR;
+                            w = &wR;
+                            vscale = aR;
+                        }
+                        else
+                        {
+                            s = &sL;
+                            w = &wL;
+                            vscale = aL;
+                        }
+                        vscale *= 1.125;
+
+                        // Reset the slow-morph verticalScale if it has gone insane.
+                        if (!std::isfinite(verticalScale) || verticalScale > 1.0e+6f)
+                            verticalScale = 0;
+
+                        // Simple envelope detector logic: increase instantly, fall slowly.
+                        if (vscale >= verticalScale)
+                        {
+                            verticalScale = vscale;
+                        }
+                        else
+                        {
+                            vscale = verticalScale;
+                            verticalScale *= 0.97;      // FIXFIXFIX(animation smoothness): consider using realtime clock to measure fade rate exponentially
+                        }
+
+                        drawSignalTrace(args, vscale, *s, *w);
                     }
                 }
             }
@@ -1726,6 +1763,31 @@ namespace Sapphire
             for (const ChaosPolyRestoreInfo& node : list)
                 if (auto bmod = FindSapphireModule<BelleModule>(node.moduleId))
                     bmod->params.at(node.buttonParamId).setValue(node.oldState);
+        }
+
+        void EnvelopeGraphWidget::drawLayer(const DrawArgs &args, int layer)
+        {
+            GraphWidget::drawLayer(args, layer);
+            if (belleModule && layer==1)
+            {
+                const EnvelopeState& es = belleModule->envelopeState;
+                const float attackSeconds  = RampTimeSeconds(es.attack);
+                const float decaySeconds   = RampTimeSeconds(es.decay);
+                const float releaseSeconds = RampTimeSeconds(es.release);
+                const float tsec = attackSeconds + decaySeconds + releaseSeconds;
+
+                nvgBeginPath(args.vg);
+                nvgMoveTo(args.vg, xenv(0), yenv(0));
+                nvgLineTo(args.vg, xenv(attackSeconds/tsec), yenv(1));
+                nvgLineTo(args.vg, xenv((attackSeconds + decaySeconds)/tsec), yenv(es.sustain));
+                nvgLineTo(args.vg, xenv(1), yenv(0));
+                nvgStrokeColor(args.vg, SCHEME_ORANGE);
+                nvgStrokeWidth(args.vg, 1.25);
+                nvgStroke(args.vg);
+
+                // Draw a bright dot at the current position:
+                // (positionSeconds, envelopeFraction)
+            }
         }
     }
 }
