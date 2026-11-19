@@ -199,7 +199,7 @@ namespace Sapphire
 
         struct EnvelopeGraphWidget : GraphWidget
         {
-            float margin = mm2px(2.0);
+            float margin = mm2px(1.5);
 
             explicit EnvelopeGraphWidget(BelleModule* bmod)
                 : GraphWidget(bmod, "envelope")
