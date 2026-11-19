@@ -757,6 +757,10 @@ namespace Sapphire
 
             void jsonSavePerEngineSettings(json_t* root)
             {
+                // Copy knob parameter values into the per-model persistent record.
+                saveSettingsForEngine(currentEngineIndex);
+                json_object_set_new(root, "currentEngineIndex", json_integer(currentEngineIndex));
+
                 json_t* engineList = json_array();
                 for (const EngineInfo& info : polyEngineList)
                 {
@@ -805,6 +809,10 @@ namespace Sapphire
 
             void jsonLoadPerEngineSettings(json_t* root)
             {
+                if (json_t* jEngineIndex = json_object_get(root, "currentEngineIndex"); json_is_integer(jEngineIndex))
+                    if (unsigned ei = json_integer_value(jEngineIndex); ei < engineCount())
+                        currentEngineIndex = ei;
+
                 if (json_t* jEngineList = json_object_get(root, "engineSettings"); json_is_array(jEngineList))
                 {
                     const unsigned nEngines = std::min<unsigned>(engineCount(), json_array_size(jEngineList));
