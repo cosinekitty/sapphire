@@ -135,18 +135,29 @@ namespace Sapphire
     };
 
 
+    enum class AdsrState
+    {
+        Quiet,
+        Attack,
+        Decay,
+        Release,
+    };
+
+
     struct VoiceContext
     {
         GateTriggerReceiver gateTriggerReceiver;
         bool isLoopModeEnabled{};
+        AdsrState envelopeState{};
         float attack{};
         float decay{};
         float sustain{};
         float release{};
-        float mod[NUM_DYNAMIC_PARAMS]{};     // Dynamic parameters. Their meaning depends on the selected engine.
+        double offsetSeconds{};             // time offset in the current active phase (Attack, Decay, Release).
+        float mod[NUM_DYNAMIC_PARAMS]{};    // Dynamic parameters. Their meaning depends on the selected engine.
         float pan{};        // -1 .. +1
-        TriggerSender eocTriggerSender;   // envelope end-of-cycle trigger when envelope becomes zero after release
-        bool eocTrigger{};      // one-shot trigger on the exact end-of-cycle sample, for v/oct sample-and-hold timing
+        TriggerSender eocTriggerSender;     // envelope end-of-cycle trigger when envelope becomes zero after release
+        bool eocTrigger{};                  // one-shot trigger on the exact end-of-cycle sample, for v/oct sample-and-hold timing
         PitchTracker trackerPitch;
         PitchTracker trackerFreq;
         PitchTracker trackerOct;
@@ -165,6 +176,8 @@ namespace Sapphire
             trackerOct.initialize();
             eocTriggerSender.initialize();
             eocTrigger = false;
+            offsetSeconds = 0;
+            envelopeState = AdsrState::Quiet;
         }
 
         void updateEnvelopeEndOfCycle(float sampleRateHz, bool oneShotTrigger)
@@ -198,15 +211,6 @@ namespace Sapphire
     };
 
 
-    enum class AdsrState
-    {
-        Quiet,
-        Attack,
-        Decay,
-        Release,
-    };
-
-
     inline double RampTimeSeconds(double knob)      // knob in range [-1, +1]
     {
         return TenToPower(2*knob - 1);
@@ -216,16 +220,16 @@ namespace Sapphire
     struct AdsrEnvelope
     {
         AdsrState state{};
-        double fraction{};      // 0 = silence, 1 = full power envelope; linear scale
-        bool eoc{};             // end of cycle flag : true only on the sample AFTER release hits zero
-        double decaySeconds{};
+        double fraction{};          // 0 = silence, 1 = full power envelope; linear scale
+        bool eoc{};                 // end of cycle flag : true only on the sample AFTER release hits zero
+        double offsetSeconds{};     // time offset into current phase (attack, decay, release)
 
         void initialize()
         {
             state = AdsrState::Quiet;
             fraction = 0;
             eoc = false;
-            decaySeconds = 0;
+            offsetSeconds = 0;
         }
 
         double process(float sampleRateHz, VoiceContext &context);
@@ -486,6 +490,8 @@ namespace Sapphire
             {
                 float env = envelope.process(sampleRateHz, context);
                 context.updateEnvelopeEndOfCycle(sampleRateHz, envelope.eoc);
+                context.offsetSeconds = envelope.offsetSeconds;
+                context.envelopeState = envelope.state;
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
                 // Always track the center frequency pitch.

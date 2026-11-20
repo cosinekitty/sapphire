@@ -23,6 +23,7 @@ namespace Sapphire
                 {
                     state = AdsrState::Attack;
                     fraction = 0;
+                    offsetSeconds = 0;
                 }
             }
             break;
@@ -30,6 +31,7 @@ namespace Sapphire
             case AdsrState::Attack:
             {
                 // Gradually rise from 0 to 1.
+                offsetSeconds += 1.0/sampleRateHz;
                 double rampSamples = sampleRateHz * RampTimeSeconds(context.attack);
                 fraction = std::clamp<double>(fraction + 1/rampSamples, 0, 1);
 
@@ -38,7 +40,7 @@ namespace Sapphire
                     if (fraction == 1)
                     {
                         state = AdsrState::Decay;
-                        decaySeconds = 0;       // start a chrono to measure how much decay time has elapsed
+                        offsetSeconds = 0;       // start a chrono to measure how much decay time has elapsed
                     }
                 }
                 else
@@ -52,37 +54,44 @@ namespace Sapphire
             {
                 if (gate)
                 {
-                    decaySeconds += 1.0/sampleRateHz;
+                    offsetSeconds += 1.0/sampleRateHz;
                     double rampTime = RampTimeSeconds(context.decay);
-                    if (decaySeconds >= rampTime)
+                    if (offsetSeconds >= rampTime)
                     {
                         fraction = context.sustain;
                         if (context.isLoopModeEnabled)
+                        {
                             state = AdsrState::Release;
+                            offsetSeconds = 0;
+                        }
                     }
                     else
                     {
-                        fraction = LinearMix<double>(decaySeconds/rampTime, 1, context.sustain);
+                        fraction = LinearMix<double>(offsetSeconds/rampTime, 1, context.sustain);
                     }
                 }
                 else
                 {
                     state = AdsrState::Release;
+                    offsetSeconds = 0;
                 }
             }
             break;
 
             case AdsrState::Release:
             {
+                offsetSeconds += 1.0/sampleRateHz;
                 double rampSamples = sampleRateHz * RampTimeSeconds(context.release);
                 fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
                 if (gate && !context.isLoopModeEnabled)
                 {
                     state = AdsrState::Attack;
+                    offsetSeconds = 0;
                 }
                 else if (fraction == 0)
                 {
                     eoc = true;
+                    offsetSeconds = 0;
                     if (gate && context.isLoopModeEnabled)
                         state = AdsrState::Attack;
                     else

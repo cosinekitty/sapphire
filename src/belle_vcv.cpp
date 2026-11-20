@@ -495,6 +495,7 @@ namespace Sapphire
 
         struct EnvelopeState
         {
+            AdsrState state{};
             float attack{};     // knob position [-1, +1]
             float decay{};      // knob position [-1, +1]
             float sustain{};    // fraction [0, +1]
@@ -1215,7 +1216,8 @@ namespace Sapphire
                     envelopeState.release = context.release;
 
                     envelopeState.envelopeFraction = result.env.poly.at(recentAudio.activeChannel);
-                    envelopeState.positionSeconds = 0;      // FIXFIXFIX: how do we calculate this?
+                    envelopeState.positionSeconds = context.offsetSeconds;
+                    envelopeState.state = context.envelopeState;
                 }
 
                 if (isButtonEnabled(OUTPUT_MODE_BUTTON_PARAM))
@@ -1780,6 +1782,12 @@ namespace Sapphire
                 const float releaseSeconds = RampTimeSeconds(es.release);
                 const float tsec = attackSeconds + decaySeconds + releaseSeconds;
 
+                double timeElapsed = es.positionSeconds;
+                if (es.state == AdsrState::Decay)
+                    timeElapsed += attackSeconds;
+                else if (es.state == AdsrState::Release)
+                    timeElapsed += attackSeconds + decaySeconds;
+
                 nvgBeginPath(args.vg);
                 nvgMoveTo(args.vg, xenv(0), yenv(0));
                 nvgLineTo(args.vg, xenv(attackSeconds/tsec), yenv(1));
@@ -1789,8 +1797,11 @@ namespace Sapphire
                 nvgStrokeWidth(args.vg, 1.25);
                 nvgStroke(args.vg);
 
-                // Draw a bright dot at the current position:
-                // (positionSeconds, envelopeFraction)
+                nvgBeginPath(args.vg);
+                nvgCircle(args.vg, xenv(timeElapsed/tsec), yenv(es.envelopeFraction), 1.5);
+                nvgStrokeColor(args.vg, SCHEME_WHITE);
+                nvgStrokeWidth(args.vg, 1.0);
+                nvgStroke(args.vg);
             }
         }
     }
