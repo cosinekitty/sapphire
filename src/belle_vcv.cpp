@@ -97,7 +97,10 @@ namespace Sapphire
             DECAY_CV_INPUT,
             SUSTAIN_CV_INPUT,
             RELEASE_CV_INPUT,
-            ENUMS(MOD_CV_INPUT_0, 4),
+            MOD_CV_INPUT_0,
+            MOD_CV_INPUT_1,
+            MOD_CV_INPUT_2,
+            MOD_CV_INPUT_3,
             CHAOS_SPEED_CV_INPUT,
             CHAOS_LEVEL_CV_INPUT,
             PAN_CV_INPUT,
@@ -1479,17 +1482,10 @@ namespace Sapphire
                 addSapphireFlatControlGroup("sustain", SUSTAIN_PARAM, SUSTAIN_ATTEN, SUSTAIN_CV_INPUT);
                 addSapphireFlatControlGroup("release", RELEASE_PARAM, RELEASE_ATTEN, RELEASE_CV_INPUT);
                 addSapphireControlGroup("level", LEVEL_PARAM, LEVEL_ATTEN, LEVEL_CV_INPUT);
-
-                for (int m = 0; m < 4; ++m)
-                {
-                    addSapphireFlatControlGroup(
-                        "mod" + std::to_string(m),
-                        MOD_PARAM_0 + m,
-                        MOD_ATTEN_0 + m,
-                        MOD_CV_INPUT_0 + m
-                    );
-                }
-
+                addSapphireFlatControlGroup("mod0", MOD_PARAM_0, MOD_ATTEN_0, MOD_CV_INPUT_0);
+                addSapphireFlatControlGroup("mod1", MOD_PARAM_1, MOD_ATTEN_1, MOD_CV_INPUT_1);
+                addSapphireFlatControlGroup("mod2", MOD_PARAM_2, MOD_ATTEN_2, MOD_CV_INPUT_2);
+                addSapphireFlatControlGroup("mod3", MOD_PARAM_3, MOD_ATTEN_3, MOD_CV_INPUT_3);
                 addModelDisplayWidget();
                 addEnvelopeWidget();
                 addWaveformWidget();
