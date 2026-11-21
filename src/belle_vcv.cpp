@@ -1828,15 +1828,20 @@ namespace Sapphire
                 const double T = A + D + R;
                 const double f = es.envelopeFraction;
 
+                const float xLeft   = xenv(0);
+                const float xRight  = xenv(1);
                 const float yBottom = yenv(0);
                 const float yTop    = yenv(1);
+                const float xAtt    = xenv(A/T);
+                const float xSus    = xenv((A+D)/T);
+                const float ySus    = yenv(S);
 
                 // Build the ADSR curve's path.
                 nvgBeginPath(args.vg);
-                nvgMoveTo(args.vg, xenv(0), yenv(0));
-                nvgLineTo(args.vg, xenv(A/T), yenv(1));
-                nvgLineTo(args.vg, xenv((A+D)/T), yenv(S));
-                nvgLineTo(args.vg, xenv(1), yenv(0));
+                nvgMoveTo(args.vg, xLeft, yBottom);
+                nvgLineTo(args.vg, xAtt, yTop);
+                nvgLineTo(args.vg, xSus, ySus);
+                nvgLineTo(args.vg, xRight, yBottom);
 
                 // Fill the area under the curve with a gradient.
                 NVGcolor bottomColor = nvgRGBA(0, 0, 0, 0);
@@ -1890,8 +1895,21 @@ namespace Sapphire
 
                     if (const double u = t/T; (0.0 <= u) && (u <= 1.0))
                     {
+                        // Calculate screen coordinates of the cursor dot.
+                        float xCursor = xenv(u);
+                        float yCursor = yenv(f);
+
+                        // Draw a line from the floor up to the cursor dot.
                         nvgBeginPath(args.vg);
-                        nvgCircle(args.vg, xenv(u), yenv(f), 1.5);
+                        nvgMoveTo(args.vg, xCursor, yBottom);
+                        nvgLineTo(args.vg, xCursor, yCursor);
+                        nvgStrokeColor(args.vg, SCHEME_BLUE);
+                        nvgStrokeWidth(args.vg, 1.0);
+                        nvgStroke(args.vg);
+
+                        // Draw the cursor dot itself.
+                        nvgBeginPath(args.vg);
+                        nvgCircle(args.vg, xCursor, yCursor, 1.5);
                         nvgFillColor(args.vg, SCHEME_CYAN);
                         nvgFill(args.vg);
                         nvgStrokeColor(args.vg, SCHEME_WHITE);
