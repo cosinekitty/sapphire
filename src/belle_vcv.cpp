@@ -1793,7 +1793,7 @@ namespace Sapphire
                 nvgStrokeWidth(args.vg, 1.25);
                 nvgStroke(args.vg);
 
-                if ((f >= 0) && (f <= 1))
+                if ((f >= 0) && (f <= 1) && (es.state != AdsrState::Quiet))
                 {
                     double t = -1;      // intentionally outside the valid range [0, A+D+R].
                     // Draw a white dot at the current location.
@@ -1814,15 +1814,18 @@ namespace Sapphire
                     {
                         t = A*f;
                     }
-                    else if (es.state == AdsrState::Decay)
+                    else if (f >= S)
                     {
+                        // Attribute to the Decay phase, even if we are in Release.
+                        // This can happen when the gate goes low during Decay before descending all the way to S.
                         if (S > 0.999)
                             t = A + D;      // consider this an expired decay
                         else
                             t = A + D*(1-f)/(1-S);
                     }
-                    else if (es.state == AdsrState::Release)
+                    else
                     {
+                        // Attribute anything after Attack to the Release phase if fraction is below S.
                         if (S < 0.001)
                             t = A + D + R;
                         else
