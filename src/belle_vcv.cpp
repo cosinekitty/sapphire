@@ -1775,12 +1775,12 @@ namespace Sapphire
             if (belleModule && layer==1)
             {
                 const EnvelopeState& es = belleModule->envelopeState;
-                const float A = RampTimeSeconds(es.attack);
-                const float D = RampTimeSeconds(es.decay);
-                const float R = RampTimeSeconds(es.release);
-                const float S = es.sustain;
-                const float T = A + D + R;
-                const float f = es.envelopeFraction;
+                const double A = RampTimeSeconds(es.attack);
+                const double D = RampTimeSeconds(es.decay);
+                const double R = RampTimeSeconds(es.release);
+                const double S = es.sustain;
+                const double T = A + D + R;
+                const double f = es.envelopeFraction;
 
                 // Draw orange line segments for attack, decay, and release.
 
@@ -1816,20 +1816,20 @@ namespace Sapphire
                     }
                     else if (es.state == AdsrState::Decay)
                     {
-                        if (S > 0.999f)
+                        if (S > 0.999)
                             t = A + D;      // consider this an expired decay
                         else
                             t = A + D*(1-f)/(1-S);
                     }
                     else if (es.state == AdsrState::Release)
                     {
-                        if (S < 0.001f)
+                        if (S < 0.001)
                             t = A + D + R;
                         else
                             t = A + D + R*(1-(f/S));
                     }
 
-                    if (const float u = t/T; (0.0 <= u) && (u <= 1.0))
+                    if (const double u = t/T; (0.0 <= u) && (u <= 1.0))
                     {
                         nvgBeginPath(args.vg);
                         nvgCircle(args.vg, xenv(u), yenv(f), 1.5);
