@@ -1892,7 +1892,7 @@ namespace Sapphire
                     {
                         nvgBeginPath(args.vg);
                         nvgCircle(args.vg, xenv(u), yenv(f), 1.5);
-                        nvgFillColor(args.vg, SCHEME_RED);
+                        nvgFillColor(args.vg, SCHEME_CYAN);
                         nvgFill(args.vg);
                         nvgStrokeColor(args.vg, SCHEME_WHITE);
                         nvgStrokeWidth(args.vg, 1.0);
