@@ -1666,15 +1666,53 @@ namespace Sapphire
             const AudioSection& w)
         {
             const unsigned n = (w.back - w.front) - 1;
+            const float xLeft   = sx(0, n);
+            const float xRight  = sx(n, n);
+            const float yMiddle = sy( 0, vscale);
+            const float yTop    = sy(+5, vscale);
+            const float yBottom = sy(-5, vscale);
+
+            NVGcolor bgCurve = nvgRGBA(0, 0, 0, 0);
+
+            // Positive regions (green gradient).
             nvgBeginPath(args.vg);
-            float x = sx(0, n);
-            float y = sy(s.signal.at(w.front), vscale);
-            nvgMoveTo(args.vg, x, y);
-            unsigned k = 1;
-            for (unsigned i = w.front+1; i < w.back; ++i, ++k)
+            nvgMoveTo(args.vg, xLeft, yMiddle);
+            for (unsigned i = w.front; i < w.back; ++i)
             {
-                x = sx(k, n);
-                y = sy(s.signal.at(i), vscale);
+                float x = sx(i-w.front, n);
+                float y = std::min(sy(s.signal.at(i), vscale), yMiddle);
+                nvgLineTo(args.vg, x, y);
+            }
+            nvgLineTo(args.vg, xRight, yMiddle);
+            nvgClosePath(args.vg);
+
+            NVGpaint posPaint = nvgLinearGradient(args.vg, 0, yMiddle, 0, yTop, bgCurve, SCHEME_GREEN);
+            nvgFillPaint(args.vg, posPaint);
+            nvgFill(args.vg);
+
+            // Negative regions (red gradient).
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, xLeft, yMiddle);
+            for (unsigned i = w.front; i < w.back; ++i)
+            {
+                float x = sx(i-w.front, n);
+                float y = std::max(sy(s.signal.at(i), vscale), yMiddle);
+                nvgLineTo(args.vg, x, y);
+            }
+            nvgLineTo(args.vg, xRight, yMiddle);
+            nvgClosePath(args.vg);
+
+            NVGpaint negPaint = nvgLinearGradient(args.vg, 0.0f, yMiddle, 0.0f, yBottom, bgCurve, SCHEME_RED);
+            nvgFillPaint(args.vg, negPaint);
+            nvgFill(args.vg);
+
+            // Draw the crisp outline last (on top of everything else).
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, xLeft, sy(s.signal.at(w.front), vscale));
+            for (unsigned i = w.front + 1; i < w.back; ++i)
+            {
+                float x = sx(i-w.front, n);
+                float y = sy(s.signal.at(i), vscale);
                 nvgLineTo(args.vg, x, y);
             }
             nvgStrokeColor(args.vg, SCHEME_GREEN);
