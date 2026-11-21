@@ -1740,7 +1740,6 @@ namespace Sapphire
                     {
                         float aL = sL.peakAmplitude(wL);
                         float aR = sR.peakAmplitude(wR);
-                        float vscale;
                         AudioSection *w;
                         AudioSnapshot *s;
 
@@ -1756,6 +1755,7 @@ namespace Sapphire
                                 graphRight = true;
                         }
 
+                        float vscale;
                         if (graphRight)
                         {
                             s = &sR;
@@ -1768,6 +1768,14 @@ namespace Sapphire
                             w = &wL;
                             vscale = aL;
                         }
+
+                        // Now that we have color gradients for voltage level,
+                        // it makes more sense to try to keep the vertical scale as stable as possible.
+                        // Let's enforce a minimum of 5V half-peak, or 10V pp.
+                        if (vscale < 5)
+                            vscale = 5;
+
+                        // Zoom out a little bit to preserve margins.
                         vscale *= 1.125;
 
                         // Reset the slow-morph verticalScale if it has gone insane.
