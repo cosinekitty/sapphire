@@ -85,8 +85,8 @@ namespace Sapphire
                 fraction = std::clamp<double>(fraction - 1/rampSamples, 0, 1);
                 if (gate && !context.isLoopModeEnabled)
                 {
-                    state = AdsrState::Attack;
                     offsetSeconds = 0;
+                    state = AdsrState::Attack;
                 }
                 else if (fraction == 0)
                 {

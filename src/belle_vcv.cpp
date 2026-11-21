@@ -500,7 +500,6 @@ namespace Sapphire
             float decay{};      // knob position [-1, +1]
             float sustain{};    // fraction [0, +1]
             float release{};    // knob position [-1, +1]
-            float positionSeconds{};
             float envelopeFraction{};
         };
 
@@ -1216,7 +1215,6 @@ namespace Sapphire
                     envelopeState.release = context.release;
 
                     envelopeState.envelopeFraction = result.env.poly.at(recentAudio.activeChannel);
-                    envelopeState.positionSeconds = context.offsetSeconds;
                     envelopeState.state = context.envelopeState;
                 }
 
@@ -1777,31 +1775,71 @@ namespace Sapphire
             if (belleModule && layer==1)
             {
                 const EnvelopeState& es = belleModule->envelopeState;
-                const float attackSeconds  = RampTimeSeconds(es.attack);
-                const float decaySeconds   = RampTimeSeconds(es.decay);
-                const float releaseSeconds = RampTimeSeconds(es.release);
-                const float tsec = attackSeconds + decaySeconds + releaseSeconds;
+                const float A = RampTimeSeconds(es.attack);
+                const float D = RampTimeSeconds(es.decay);
+                const float R = RampTimeSeconds(es.release);
+                const float S = es.sustain;
+                const float T = A + D + R;
+                const float f = es.envelopeFraction;
 
-                double timeElapsed = es.positionSeconds;
-                if (es.state == AdsrState::Decay)
-                    timeElapsed += attackSeconds;
-                else if (es.state == AdsrState::Release)
-                    timeElapsed += attackSeconds + decaySeconds;
+                // Draw orange line segments for attack, decay, and release.
 
                 nvgBeginPath(args.vg);
                 nvgMoveTo(args.vg, xenv(0), yenv(0));
-                nvgLineTo(args.vg, xenv(attackSeconds/tsec), yenv(1));
-                nvgLineTo(args.vg, xenv((attackSeconds + decaySeconds)/tsec), yenv(es.sustain));
+                nvgLineTo(args.vg, xenv(A/T), yenv(1));
+                nvgLineTo(args.vg, xenv((A+D)/T), yenv(S));
                 nvgLineTo(args.vg, xenv(1), yenv(0));
                 nvgStrokeColor(args.vg, SCHEME_ORANGE);
                 nvgStrokeWidth(args.vg, 1.25);
                 nvgStroke(args.vg);
 
-                nvgBeginPath(args.vg);
-                nvgCircle(args.vg, xenv(timeElapsed/tsec), yenv(es.envelopeFraction), 1.5);
-                nvgStrokeColor(args.vg, SCHEME_WHITE);
-                nvgStrokeWidth(args.vg, 1.0);
-                nvgStroke(args.vg);
+                if ((f >= 0) && (f <= 1))
+                {
+                    double t = -1;      // intentionally outside the valid range [0, A+D+R].
+                    // Draw a white dot at the current location.
+                    // We know the envelope fraction, which is the vertical
+                    // amplitude coordinate in the range [0, 1].
+                    // I tried also recording the horizontal time offset, but
+                    // the problem is that modulating the ADSR envelope causes
+                    // the line segments to wiggle around. Whatever time offset
+                    // I freeze for the dot location, it can become obsolete
+                    // by the time I draw the graph. The result is a white dot
+                    // that comes free of the envelope line segments.
+                    // So now my solution is to track only the vertical position
+                    // and the enumerated phase we are in (Attack, Decay, Release).
+                    // Use algebra after the fact to solve for the time coordinate
+                    // that puts the dot on the appropriate line segment.
+
+                    if (es.state == AdsrState::Attack)
+                    {
+                        t = A*f;
+                    }
+                    else if (es.state == AdsrState::Decay)
+                    {
+                        if (S > 0.999f)
+                            t = A + D;      // consider this an expired decay
+                        else
+                            t = A + D*(1-f)/(1-S);
+                    }
+                    else if (es.state == AdsrState::Release)
+                    {
+                        if (S < 0.001f)
+                            t = A + D + R;
+                        else
+                            t = A + D + R*(1-(f/S));
+                    }
+
+                    if (const float u = t/T; (0.0 <= u) && (u <= 1.0))
+                    {
+                        nvgBeginPath(args.vg);
+                        nvgCircle(args.vg, xenv(u), yenv(f), 1.5);
+                        nvgFillColor(args.vg, SCHEME_RED);
+                        nvgFill(args.vg);
+                        nvgStrokeColor(args.vg, SCHEME_WHITE);
+                        nvgStrokeWidth(args.vg, 1.0);
+                        nvgStroke(args.vg);
+                    }
+                }
             }
         }
     }

@@ -149,11 +149,11 @@ namespace Sapphire
         GateTriggerReceiver gateTriggerReceiver;
         bool isLoopModeEnabled{};
         AdsrState envelopeState{};
+        double envelopeFraction{};
         float attack{};
         float decay{};
         float sustain{};
         float release{};
-        double offsetSeconds{};             // time offset in the current active phase (Attack, Decay, Release).
         float mod[NUM_DYNAMIC_PARAMS]{};    // Dynamic parameters. Their meaning depends on the selected engine.
         float pan{};        // -1 .. +1
         TriggerSender eocTriggerSender;     // envelope end-of-cycle trigger when envelope becomes zero after release
@@ -176,8 +176,8 @@ namespace Sapphire
             trackerOct.initialize();
             eocTriggerSender.initialize();
             eocTrigger = false;
-            offsetSeconds = 0;
             envelopeState = AdsrState::Quiet;
+            envelopeFraction = 0;
         }
 
         void updateEnvelopeEndOfCycle(float sampleRateHz, bool oneShotTrigger)
@@ -490,7 +490,7 @@ namespace Sapphire
             {
                 float env = envelope.process(sampleRateHz, context);
                 context.updateEnvelopeEndOfCycle(sampleRateHz, envelope.eoc);
-                context.offsetSeconds = envelope.offsetSeconds;
+                context.envelopeFraction = envelope.fraction;
                 context.envelopeState = envelope.state;
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
