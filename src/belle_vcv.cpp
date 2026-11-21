@@ -1828,21 +1828,31 @@ namespace Sapphire
                 const double T = A + D + R;
                 const double f = es.envelopeFraction;
 
-                // Draw orange line segments for attack, decay, and release.
+                const float yBottom = yenv(0);
+                const float yTop    = yenv(1);
 
+                // Build the ADSR curve's path.
                 nvgBeginPath(args.vg);
                 nvgMoveTo(args.vg, xenv(0), yenv(0));
                 nvgLineTo(args.vg, xenv(A/T), yenv(1));
                 nvgLineTo(args.vg, xenv((A+D)/T), yenv(S));
                 nvgLineTo(args.vg, xenv(1), yenv(0));
+
+                // Fill the area under the curve with a gradient.
+                NVGcolor bottomColor = nvgRGBA(0, 0, 0, 0);
+                NVGpaint fillPaint = nvgLinearGradient(args.vg, 0, yBottom, 0, yTop, bottomColor, SCHEME_ORANGE);
+                nvgFillPaint(args.vg, fillPaint);
+                nvgFill(args.vg);
+
+                // Stroke the top of the curve.
                 nvgStrokeColor(args.vg, SCHEME_ORANGE);
                 nvgStrokeWidth(args.vg, 1.25);
                 nvgStroke(args.vg);
 
+                // Draw a white dot at the current location.
                 if ((f >= 0) && (f <= 1) && (es.state != AdsrState::Quiet))
                 {
                     double t = -1;      // intentionally outside the valid range [0, A+D+R].
-                    // Draw a white dot at the current location.
                     // We know the envelope fraction, which is the vertical
                     // amplitude coordinate in the range [0, 1].
                     // I tried also recording the horizontal time offset, but
