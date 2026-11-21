@@ -1836,6 +1836,19 @@ namespace Sapphire
                 const float xSus    = xenv((A+D)/T);
                 const float ySus    = yenv(S);
 
+                // Draw faint blue guide lines beneath the graph.
+                // That means we draw them before anything else.
+                nvgBeginPath(args.vg);
+                nvgMoveTo(args.vg, xLeft, ySus);
+                nvgLineTo(args.vg, xRight, ySus);
+                nvgMoveTo(args.vg, xSus, yBottom);
+                nvgLineTo(args.vg, xSus, yTop);
+                nvgMoveTo(args.vg, xAtt, yTop);
+                nvgLineTo(args.vg, xAtt, yBottom);
+                nvgStrokeColor(args.vg, nvgRGB(0x10, 0x80, 0xef));
+                nvgStrokeWidth(args.vg, 0.75);
+                nvgStroke(args.vg);
+
                 // Build the ADSR curve's path.
                 nvgBeginPath(args.vg);
                 nvgMoveTo(args.vg, xLeft, yBottom);
