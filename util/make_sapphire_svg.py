@@ -2811,7 +2811,7 @@ def xBelle(n:float) -> float:
     hp = (n + 0.5)*BELLE_HP_COLUMN_WIDTH + BELLE_HP_LEFT_MARGIN
     if n >= 1:
         hp += BELLE_HP_INSIDE_MARGIN
-    return hp * 5.08
+    return hp * HP_WIDTH_MM
 
 
 def yBelle(itemIndex:float) -> float:
@@ -2825,15 +2825,15 @@ def yBelleControlLabel(itemIndex:float) -> float:
 
 def BelleEngineArtwork(defs:Element, pl:Element) -> int:
     art = Element('g', 'artwork')
-    x1 = 40.0
-    x2 = 71.0
-    y1 = 11.0
-    y2 = 88.0
-    radius = 6.0
-    dx = x2 - x1
-    dy = y2 - y1
+    dx = BELLE_HP_COLUMN_WIDTH * HP_WIDTH_MM
+    x1 = xBelle(1) - dx/2
+    x2 = x1 + dx
     x3 = x2 + dx
     x4 = x3 + dx
+    y1 = 11.0
+    y2 = 87.0
+    dy = y2 - y1
+    radius = 6.0
 
     defs.append(LinearGradient('gradient_col1', 0.0, y1, 0.0, y2, SAPPHIRE_PANEL_COLOR, SAPPHIRE_PURPLE_COLOR))
     art.append(RectangularBubble(x1, y1, dx, dy, radius, GradientStyle('gradient_col1', 0.7), 'bubble_col1'))
