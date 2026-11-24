@@ -633,15 +633,15 @@ class BorderRect(Element):
 
 class LinearGradient(Element):
     """Defines a linear gradient SVG element to be used for filled patterns later in your panel."""
-    def __init__(self, id:str, x1:float, y1:float, x2:float, y2:float, color1:str, color2:str) -> None:
+    def __init__(self, id:str, x1:float, y1:float, x2:float, y2:float, color1:str, color2:str, opaq1:float = 1.0, opaq2:float = 1.0) -> None:
         super().__init__('linearGradient', id)
         self.setAttribFloat('x1', x1)
         self.setAttribFloat('y1', y1)
         self.setAttribFloat('x2', x2)
         self.setAttribFloat('y2', y2)
         self.setAttrib('gradientUnits', 'userSpaceOnUse')
-        self.append(Element('stop').setAttrib('offset', '0').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color1)))
-        self.append(Element('stop').setAttrib('offset', '1').setAttrib('style', 'stop-color:{};stop-opacity:1;'.format(color2)))
+        self.append(Element('stop').setAttrib('offset', '0').setAttrib('style', 'stop-color:{};stop-opacity:{:g};'.format(color1, opaq1)))
+        self.append(Element('stop').setAttrib('offset', '1').setAttrib('style', 'stop-color:{};stop-opacity:{:g};'.format(color2, opaq2)))
 
 
 class Component:

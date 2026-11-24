@@ -2823,12 +2823,43 @@ def yBelleControlLabel(itemIndex:float) -> float:
     return yBelle(itemIndex) - BELLE_CONTROL_LABEL_DY
 
 
+def BelleEngineArtwork(defs:Element, pl:Element) -> int:
+    art = Element('g', 'artwork')
+    x1 = 40.0
+    x2 = 71.0
+    y1 = 11.0
+    y2 = 90.0
+    radius = 6.0
+    dx = x2 - x1
+    dy = y2 - y1
+    x3 = x2 + dx
+    x4 = x3 + dx
+    x5 = x4 + dx
+
+    defs.append(LinearGradient('gradient_col1', 0.0, y1, 0.0, y2, SAPPHIRE_PANEL_COLOR, SAPPHIRE_PURPLE_COLOR))
+    art.append(RectangularBubble(x1, y1, dx, dy, radius, GradientStyle('gradient_col1', 0.7), 'bubble_col1'))
+
+    defs.append(LinearGradient('gradient_col2', 0.0, y1, 0.0, y2, SAPPHIRE_SALMON_COLOR, SAPPHIRE_PANEL_COLOR))
+    art.append(RectangularBubble(x2, y1, dx, dy, radius, GradientStyle('gradient_col2', 0.7), 'bubble_col2'))
+
+    defs.append(LinearGradient('gradient_col3', 0.0, y1, 0.0, y2, SAPPHIRE_PANEL_COLOR, SAPPHIRE_AZURE_COLOR))
+    art.append(RectangularBubble(x3, y1, dx, dy, radius, GradientStyle('gradient_col3', 0.7), 'bubble_col3'))
+
+    defs.append(LinearGradient('gradient_col4', 0.0, y1, x5, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR))
+    art.append(RectangularBubble(x4, y1, dx, dy, radius, GradientStyle('gradient_col4', 1.0), 'bubble_col4'))
+
+    pl.append(art)
+    return 0
+
+
 def GenerateBellePanel(cdict: ControlDict) -> int:
     name = 'belle'
     target = Target.VcvRack
     svgFileName = SvgFileName(name, target)
     panel = Panel(BELLE_PANEL_WIDTH)
     controls = cdict[name] = ControlLayer(panel)
+    defs = Element('defs')
+    panel.append(defs)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
     dxPortFromCenter = 6.0
@@ -2899,6 +2930,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(MakeBorder(target, BELLE_PANEL_WIDTH))
         pl.append(ModelNamePath(panel, font, name))
         pl.append(SapphireInsignia(panel, font))
+        if rc := BelleEngineArtwork(defs, pl): return rc
         controls.add('model_select', xBelle(0), yBelle(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))
         xModelInput = xBelle(0) - 12.0
@@ -2917,7 +2949,6 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addPort(4, rowChaosOutput := 3*0.75, 'chaos_output', 'CHAOS')
         addPort(4, 5, 'audio_left_output',  'L', -dxPortFromCenter)
         addPort(4, 5, 'audio_right_output', 'R', +dxPortFromCenter)
-
 
         #   (level_knob)----(chaos_port)----(channel_count_knob)
         yChaosOutput = yBelle(rowChaosOutput)
@@ -2965,7 +2996,6 @@ def GenerateBelleOverlay(engineName:str, m0:str, m1:str, m2:str, m3:str) -> int:
     panel = Panel(BELLE_PANEL_WIDTH)
     pl = Element('g', 'PanelLayer')
     panel.append(pl)
-
     with Font(SAPPHIRE_FONT_FILENAME) as font:
         xCenter = xBelle(3)
         pl.append(CenteredControlTextPath(font, m0, xCenter, yBelleControlLabel(0)))
