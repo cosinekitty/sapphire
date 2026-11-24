@@ -1247,10 +1247,10 @@ namespace Sapphire
             void updateControls()
             {
                 const PolyStereoVoice& engine = getCurrentEngine();
-                updateDynamicControlGroup(MOD_PARAM_0+0, MOD_ATTEN_0+0, MOD_CV_INPUT_0+0, engine.mod0);
-                updateDynamicControlGroup(MOD_PARAM_0+1, MOD_ATTEN_0+1, MOD_CV_INPUT_0+1, engine.mod1);
-                updateDynamicControlGroup(MOD_PARAM_0+2, MOD_ATTEN_0+2, MOD_CV_INPUT_0+2, engine.mod2);
-                updateDynamicControlGroup(MOD_PARAM_0+3, MOD_ATTEN_0+3, MOD_CV_INPUT_0+3, engine.mod3);
+                updateDynamicControlGroup(MOD_PARAM_0, MOD_ATTEN_0, MOD_CV_INPUT_0, engine.mod0);
+                updateDynamicControlGroup(MOD_PARAM_1, MOD_ATTEN_1, MOD_CV_INPUT_1, engine.mod1);
+                updateDynamicControlGroup(MOD_PARAM_2, MOD_ATTEN_2, MOD_CV_INPUT_2, engine.mod2);
+                updateDynamicControlGroup(MOD_PARAM_3, MOD_ATTEN_3, MOD_CV_INPUT_3, engine.mod3);
 
                 updateToggleButtonTooltip(CHAOS_FREEZE_BUTTON_PARAM, "Chaos engine: RUNNING", "Chaos engine: STOPPED");
                 updateToggleButtonTooltip(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM, "Display chaos voltages: NO", "Display chaos voltages: YES");
