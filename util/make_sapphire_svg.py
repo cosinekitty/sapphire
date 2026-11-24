@@ -2828,13 +2828,12 @@ def BelleEngineArtwork(defs:Element, pl:Element) -> int:
     x1 = 40.0
     x2 = 71.0
     y1 = 11.0
-    y2 = 90.0
+    y2 = 88.0
     radius = 6.0
     dx = x2 - x1
     dy = y2 - y1
     x3 = x2 + dx
     x4 = x3 + dx
-    x5 = x4 + dx
 
     defs.append(LinearGradient('gradient_col1', 0.0, y1, 0.0, y2, SAPPHIRE_PANEL_COLOR, SAPPHIRE_PURPLE_COLOR))
     art.append(RectangularBubble(x1, y1, dx, dy, radius, GradientStyle('gradient_col1', 0.7), 'bubble_col1'))
@@ -2845,8 +2844,8 @@ def BelleEngineArtwork(defs:Element, pl:Element) -> int:
     defs.append(LinearGradient('gradient_col3', 0.0, y1, 0.0, y2, SAPPHIRE_PANEL_COLOR, SAPPHIRE_AZURE_COLOR))
     art.append(RectangularBubble(x3, y1, dx, dy, radius, GradientStyle('gradient_col3', 0.7), 'bubble_col3'))
 
-    defs.append(LinearGradient('gradient_col4', 0.0, y1, x5, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR))
-    art.append(RectangularBubble(x4, y1, dx, dy, radius, GradientStyle('gradient_col4', 1.0), 'bubble_col4'))
+    defs.append(LinearGradient('gradient_col4', 0.0, y1, 0.0, y2, SAPPHIRE_TEAL_COLOR, SAPPHIRE_PANEL_COLOR))
+    art.append(RectangularBubble(x4, y1, dx+radius, dy, radius, GradientStyle('gradient_col4', 0.7), 'bubble_col4'))
 
     pl.append(art)
     return 0
