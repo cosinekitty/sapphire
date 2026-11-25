@@ -51,13 +51,6 @@ namespace Sapphire
     };
 
 
-    template <typename real_t>
-    real_t HealNumber(real_t value, real_t fallback)
-    {
-        return std::isfinite(value) ? value : fallback;
-    }
-
-
     constexpr unsigned NUM_DYNAMIC_PARAMS = 4;
 
 
