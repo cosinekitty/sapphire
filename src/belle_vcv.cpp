@@ -83,6 +83,7 @@ namespace Sapphire
             CHAOS_OUTPUT_LEVEL_PARAM,
             DRONE_BUTTON_PARAM,
             LOOP_BUTTON_PARAM,
+            NOTE_OVERLAP_BUTTON_PARAM,
 
             PARAMS_LEN
         };
@@ -558,6 +559,7 @@ namespace Sapphire
                 configPitchModeButton(OCT_MODE_BUTTON_PARAM,   "Octave tracker");
                 configSwitch(DRONE_BUTTON_PARAM, 0, 1, 0, "Drone", {"OFF", "ON"});
                 configSwitch(LOOP_BUTTON_PARAM, 0, 1, 0, "Loop", {"OFF", "ON"});
+                configSwitch(NOTE_OVERLAP_BUTTON_PARAM, 0, 1, 0, "Overlapping notes", {"OFF", "ON"});
 
                 configControlGroup("Frequency", FREQ_PARAM, FREQ_ATTEN, FREQ_CV_INPUT, -OctaveRange, +OctaveRange, 0, " Hz", 2, C4_FREQUENCY_HZ);
                 configControlGroup("Octave", OCT_PARAM, OCT_ATTEN, OCT_CV_INPUT, -OctaveRange, +OctaveRange, 0);
@@ -1076,6 +1078,11 @@ namespace Sapphire
                 return isButtonEnabled(LOOP_BUTTON_PARAM);
             }
 
+            bool isOverlappingNoteMode() const
+            {
+                return isButtonEnabled(NOTE_OVERLAP_BUTTON_PARAM);
+            }
+
             void process(const ProcessArgs& args) override
             {
                 updateSelectedEngine(args.sampleRate);
@@ -1430,6 +1437,15 @@ namespace Sapphire
         };
 
 
+        struct OverlapNoteButton : SapphireTinyToggleButton
+        {
+            explicit OverlapNoteButton()
+            {
+                addTinyButtonFrames(this, "green");
+            }
+        };
+
+
         struct ChaosTogglePolyButton : SapphireTinyActionButton
         {
             BelleModule* belleModule{};
@@ -1495,6 +1511,7 @@ namespace Sapphire
                 addLoopButton();
                 addSapphireChannelDisplay("channel_display");
                 addOverlays();
+                addOverlappingNoteButton();
             }
 
             void addOutputModeButton()
@@ -1513,6 +1530,12 @@ namespace Sapphire
             {
                 auto button = createParamCentered<LoopButton>(Vec{}, belleModule, LOOP_BUTTON_PARAM);
                 addSapphireParam(button, "loop_button");
+            }
+
+            void addOverlappingNoteButton()
+            {
+                auto button = createParamCentered<OverlapNoteButton>(Vec{}, belleModule, NOTE_OVERLAP_BUTTON_PARAM);
+                addSapphireParam(button, "note_overlap_button");
             }
 
             void randomizeChaos() override
