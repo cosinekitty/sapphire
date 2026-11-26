@@ -2939,9 +2939,9 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         pl.append(HorizontalLine(xModelInput, xBelle(0), yModelInput))
 
         portDeltaColumn = 0.25
-        addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.0, 'gate_input', 'GATE')
+        addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.15, 'gate_input', 'GATE')
         addPort(+portDeltaColumn, rowGateInput, 'pitch_input', 'PITCH')
-        controls.add('channel_display', xBelle(0.75), yBelle(rowGateInput))
+        controls.add('channel_display', xBelle(0.0), yBelle(rowGateInput - 0.8))
 
         addPort(4, 0*0.75, 'envelope_output', 'ENV')
         addPort(4, 1*0.75, 'pitch_output', 'PITCH')
@@ -2968,7 +2968,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         addDiagButton(colGateInput, rowGateInput, 'drone_button', -dxDiagonal)
         addDiagButton(colGateInput, rowGateInput, 'loop_button',  +dxDiagonal)
 
-        addHangingButton(+portDeltaColumn, 5, 'pitch_mode_button', 0.0)
+        addHangingButton(+portDeltaColumn, rowGateInput, 'pitch_mode_button', 0.0)
         addHangingButton(1, 0, 'freq_mode_button', DX_FLAT_CONTROL_GROUP)
         addHangingButton(1, 1, 'oct_mode_button', DX_FLAT_CONTROL_GROUP)
 
@@ -2987,7 +2987,7 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         AddControlGroup(pl, controls, font, 'level', 'LEVEL', xBelle(4), yBelle(rowLevel))
         addHangingButton(4, rowLevel, 'level_poly_button', DX_CONTROL_GROUP, DY_CONTROL_GROUP)
 
-        ChaosBox(xmidChaosBox, yBelle(1.5), polyphonic=True).generate(pl, controls, font)
+        ChaosBox(xmidChaosBox, yBelle(1.25), polyphonic=True).generate(pl, controls, font)
     return Save(panel, svgFileName)
 
 
