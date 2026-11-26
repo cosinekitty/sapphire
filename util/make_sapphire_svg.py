@@ -2927,8 +2927,9 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         controls.add('model_lower_right', x2_mod, y2_mod)
 
         pl.append(MakeBorder(target, BELLE_PANEL_WIDTH))
-        pl.append(ModelNamePath(panel, font, name))
-        pl.append(SapphireInsignia(panel, font))
+        dxCenter = xBelle(2) - panel.mmWidth/2
+        pl.append(ModelNamePath(panel, font, name, dxCenter))
+        pl.append(SapphireInsignia(panel, font, dxCenter))
         if rc := BelleEngineArtwork(defs, pl): return rc
         controls.add('model_select', xBelle(0), yBelle(0))
         pl.append(CenteredControlTextPath(font, 'MODEL', xBelle(0), yBelle(0) - dyTextBigKnob))

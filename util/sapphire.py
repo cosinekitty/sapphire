@@ -68,7 +68,7 @@ def ModelNamePath(panel:Panel, font:Font, name:str, xAdjust:float = 0.0) -> Text
     return tp
 
 
-def SapphireInsignia(panel:Panel, font:Font) -> Element:
+def SapphireInsignia(panel:Panel, font:Font, xAdjust:float = 0.0) -> Element:
     '''Creates a bottom-centered Sapphire insignia with gemstones on either side.'''
     shrink = PANEL_HEIGHT_MM - panel.mmHeight
     insignia = Element('g', 'sapphire_insignia')
@@ -76,7 +76,7 @@ def SapphireInsignia(panel:Panel, font:Font) -> Element:
     gemY = 121.0 - shrink
     ti = TextItem('sapphire', font, BRAND_NAME_POINTS)
     (dx, dy) = ti.measure()
-    x1 = (panel.mmWidth - dx)/2
+    x1 = xAdjust + (panel.mmWidth - dx)/2
     y1 = panel.mmHeight - (dy + 0.5)
     brandTextPath = TextPath(ti, x1, y1, 'brand_name')
     brandTextPath.setAttrib('style', BRAND_NAME_STYLE)
