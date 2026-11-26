@@ -77,6 +77,7 @@ namespace Sapphire
             {"model_lower_right",      {  30.320,   37.000}},
             {"model_select",           {  20.320,   20.000}},
             {"model_upper_left",       {  10.320,   29.000}},
+            {"note_overlap_button",    {  12.700,  101.780}},
             {"oct_atten",              {  55.880,   38.800}},
             {"oct_cv",                 {  46.880,   38.800}},
             {"oct_knob",               {  64.880,   38.800}},

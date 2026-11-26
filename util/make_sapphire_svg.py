@@ -2941,8 +2941,12 @@ def GenerateBellePanel(cdict: ControlDict) -> int:
         portDeltaColumn = 0.25
         addPort(colGateInput := -portDeltaColumn, rowGateInput := 5.15, 'gate_input', 'GATE')
         addPort(+portDeltaColumn, rowGateInput, 'pitch_input', 'PITCH')
-        controls.add('channel_display', xBelle(0.0), yBelle(rowGateInput - 0.8))
-
+        xChannelDisplay = xBelle(0.0)
+        xOverlapNotesButton = xBelle(colGateInput)
+        yChannelDisplay = yBelle(rowGateInput - 0.8)
+        controls.add('channel_display', xChannelDisplay, yChannelDisplay)
+        pl.append(HorizontalLine(xOverlapNotesButton, xChannelDisplay, yChannelDisplay))
+        controls.add('note_overlap_button', xOverlapNotesButton, yChannelDisplay)
         addPort(4, 0*0.75, 'envelope_output', 'ENV')
         addPort(4, 1*0.75, 'pitch_output', 'PITCH')
         addPort(4, 2*0.75, 'eoc_output', 'EOC')
