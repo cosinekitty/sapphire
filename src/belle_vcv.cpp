@@ -511,6 +511,8 @@ namespace Sapphire
             float speedChaos{};
             Smoother chaosSeedSmoother{0.025};
             Smoother modelChangeSmoother{0.015};
+            Smoother noteOverlapSmoother{0.015};
+            bool noteOverlapEnabled = false;
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
             unsigned nPolyChannels = 1;
@@ -678,12 +680,14 @@ namespace Sapphire
                 speedChaos = 0;
                 chaosSeedSmoother.initialize();
                 modelChangeSmoother.initialize();
+                noteOverlapSmoother.initialize();
                 params.at(OUTPUT_MODE_BUTTON_PARAM).setValue(1);    // polyphonic output by default
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 1;
                 recentAudio.initialize();
                 resetEngineSettings();
                 currentChannelCount = 0;
+                noteOverlapEnabled = false;
             }
 
             void resetFountain()
@@ -846,6 +850,25 @@ namespace Sapphire
                     }
                 }
             }
+
+
+            void updateNoteOverlap(float sampleRateHz)
+            {
+                const bool target = isButtonEnabled(NOTE_OVERLAP_BUTTON_PARAM);
+                const bool changing = (target != noteOverlapEnabled);
+
+                if (noteOverlapSmoother.isStable() && changing)
+                    noteOverlapSmoother.begin();
+
+                noteOverlapSmoother.process(sampleRateHz);
+
+                if (noteOverlapSmoother.isDelayedActionReady() && changing)
+                {
+                    getCurrentEngine().initialize();
+                    noteOverlapEnabled = target;
+                }
+            }
+
 
             void updateSelectedEngine(float sampleRateHz)
             {
@@ -1078,13 +1101,9 @@ namespace Sapphire
                 return isButtonEnabled(LOOP_BUTTON_PARAM);
             }
 
-            bool isOverlappingNoteMode() const
-            {
-                return isButtonEnabled(NOTE_OVERLAP_BUTTON_PARAM);
-            }
-
             void process(const ProcessArgs& args) override
             {
+                updateNoteOverlap(args.sampleRate);
                 updateSelectedEngine(args.sampleRate);
 
                 auto& outLeft  = outputs.at(AUDIO_LEFT_OUTPUT);
@@ -1093,9 +1112,18 @@ namespace Sapphire
                 auto& outEoc   = outputs.at(EOC_OUTPUT);
                 auto& outPitch = outputs.at(PITCH_OUTPUT);
 
-                nPolyChannels = numOutputChannels(1, {GATE_INPUT, PITCH_INPUT});
-                currentChannelCount = nPolyChannels;    // keep channel count display up to date
+                // By default, Belle's output channel count matches the input channel count
+                // defined by the max channel count on GATE or PITCH input ports.
+                const unsigned nInputChannels = numOutputChannels(1, {GATE_INPUT, PITCH_INPUT});
+
+                // But the user can enable "overlapping note" mode.
+                // Then we internally use 16 channel polyphony, and dynamically
+                // allocate channels round robin.
+                currentChannelCount = nPolyChannels = noteOverlapEnabled ? NPOLY : nInputChannels;
                 PolyStereoVoice& polyEngine = getCurrentEngine();
+
+                // Now nInputChannels may or may not be the same as nPolyChannels.
+                // For example, nInputChannels=3, overlap=true, nPolyChannels=16.
 
                 batch_t batch;
                 const float spread = updateChaos(args.sampleRate, batch);
@@ -1162,7 +1190,10 @@ namespace Sapphire
                 PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
                 recentAudio.process(args.sampleRate, result);
 
-                const float antiClick = chaosSeedSmoother.getGain() * modelChangeSmoother.getGain();
+                const float antiClick =
+                    chaosSeedSmoother.getGain() *
+                    modelChangeSmoother.getGain() *
+                    noteOverlapSmoother.getGain();
 
                 outEnv.setChannels(nPolyChannels);
                 for (unsigned c = 0; c < nPolyChannels; ++c)
