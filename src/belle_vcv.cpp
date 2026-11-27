@@ -507,8 +507,8 @@ namespace Sapphire
 
         struct NoteChannelInput
         {
-            float   gate{};
-            float   pitch{};
+            float gate{};
+            float pitch{};
 
             explicit NoteChannelInput() {}
 
@@ -530,6 +530,7 @@ namespace Sapphire
             bool overlapEnabled{};
             std::array<NoteChannelInput, NPOLY> inputNotes;
             std::array<unsigned, NPOLY> inputChannelIndex;
+            std::array<GateTriggerReceiver, NPOLY> gtrArray;
 
             explicit NoteMapper()
             {
@@ -545,6 +546,9 @@ namespace Sapphire
 
                 for (unsigned& index : inputChannelIndex)
                     index = -1;
+
+                for (GateTriggerReceiver& gtr : gtrArray)
+                    gtr.initialize();
             }
 
             unsigned numOutputChannels(unsigned nInputChannels) const
@@ -552,20 +556,36 @@ namespace Sapphire
                 return overlapEnabled ? NPOLY : nInputChannels;
             }
 
+            void updateInputVoltages(unsigned k, float gateVoltage, float pitchVoltage)
+            {
+                NoteChannelInput& note = inputNotes.at(k);
+                note.gate = gateVoltage;
+                note.pitch = pitchVoltage;
+
+                GateTriggerReceiver& gtr = gtrArray.at(k);
+                gtr.update(gateVoltage);
+                if (gtr.isTriggerActive() && overlapEnabled)
+                {
+                    // In overlap/dynamic mode, every rising edge of the GATE
+                    // allocates whichever channel is currently idle, or if
+                    // all are busy, we pick the quietest channel.
+                }
+            }
+
             NoteChannelInput map(unsigned c, unsigned nInputChannels) const
             {
+                static const NoteChannelInput Silence;  // null note: gate is low, v/oct = 0
+
                 if (c < NPOLY)
                 {
                     if (overlapEnabled)
                     {
                         const unsigned k = inputChannelIndex[c];
-                        if (k < nInputChannels)
-                            return inputNotes[k];
-                        return NoteChannelInput();      // not allocated to a playing note, so return null note
+                        return (k < nInputChannels) ? inputNotes[k] : Silence;
                     }
                     return inputNotes[c];
                 }
-                return NoteChannelInput();
+                return Silence;
             }
         };
 
@@ -1179,18 +1199,16 @@ namespace Sapphire
                 float pitchVoltage = 0;
                 for (unsigned k = 0; k < nInputChannels; ++k)
                 {
-                    NoteChannelInput& note = noteMapper.inputNotes[k];
                     nextChannelInputVoltage(gateVoltage, GATE_INPUT, k);
                     nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, k);
-                    note.gate = gateVoltage;
-                    note.pitch = pitchVoltage;
+                    noteMapper.updateInputVoltages(k, gateVoltage, pitchVoltage);
                 }
             }
 
             void process(const ProcessArgs& args) override
             {
-                updateNoteOverlap(args.sampleRate);
                 updateSelectedEngine(args.sampleRate);
+                updateNoteOverlap(args.sampleRate);
 
                 auto& outLeft  = outputs.at(AUDIO_LEFT_OUTPUT);
                 auto& outRight = outputs.at(AUDIO_RIGHT_OUTPUT);
@@ -1209,7 +1227,7 @@ namespace Sapphire
                 currentChannelCount = static_cast<int>(nPolyChannels);      // update the channel count display widget
                 PolyStereoVoice& polyEngine = getCurrentEngine();
 
-                // Now nInputChannels may or may not be the same as nPolyChannels.
+                // nInputChannels may or may not be the same as nPolyChannels.
                 // For example, nInputChannels=3, overlap=true, nPolyChannels=16.
                 // Pre-load the note=(gate,pitch) pairs from the input's concept
                 // of channel allocation. We may or may not translate mappings below,
