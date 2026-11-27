@@ -505,6 +505,51 @@ namespace Sapphire
         };
 
 
+        struct NoteChannelInput
+        {
+            float   gate{};
+            float   pitch{};
+
+            explicit NoteChannelInput() {}
+
+            explicit NoteChannelInput(float _gate, float _pitch)
+                : gate(_gate)
+                , pitch(_pitch)
+                {}
+
+            void initialize()
+            {
+                gate = 0;
+                pitch = 0;
+            }
+        };
+
+
+        struct NoteMapper
+        {
+            bool overlapEnabled = false;
+            std::array<NoteChannelInput, NPOLY> inputNotes;
+
+            void initialize()
+            {
+                overlapEnabled = false;
+                for (NoteChannelInput& note : inputNotes)
+                    note.initialize();
+            }
+
+            unsigned numOutputChannels(unsigned nInputChannels) const
+            {
+                return overlapEnabled ? NPOLY : nInputChannels;
+            }
+
+            NoteChannelInput map(unsigned c) const
+            {
+                // FIXFIXFIX: check overlapEnabled, redirect the channel when true.
+                return inputNotes.at(c);
+            }
+        };
+
+
         struct BelleModule : SapphireModule
         {
             fountain_t fountain{rack::random::u64()};
@@ -512,7 +557,6 @@ namespace Sapphire
             Smoother chaosSeedSmoother{0.025};
             Smoother modelChangeSmoother{0.015};
             Smoother noteOverlapSmoother{0.015};
-            bool noteOverlapEnabled = false;
             bool requestSeedSplash = false;
             uint64_t seedToRestore = 0;
             unsigned nPolyChannels = 1;
@@ -533,6 +577,7 @@ namespace Sapphire
             float mildSensitivityLevel = 0.2;
             RecentAudioBuffer recentAudio;
             EnvelopeState envelopeState;        // for graphing purposes: use the active channel in recentAudio
+            NoteMapper noteMapper;
 
             BelleModule()
                 : SapphireModule(PARAMS_LEN, OUTPUTS_LEN)
@@ -688,7 +733,7 @@ namespace Sapphire
                 initializeEngines();
                 snapshotAllEngineSettings();
                 currentChannelCount = 0;
-                noteOverlapEnabled = false;
+                noteMapper.initialize();
             }
 
             void initializeEngines()
@@ -863,7 +908,7 @@ namespace Sapphire
             void updateNoteOverlap(float sampleRateHz)
             {
                 const bool target = isButtonEnabled(NOTE_OVERLAP_BUTTON_PARAM);
-                const bool changing = (target != noteOverlapEnabled);
+                const bool changing = (target != noteMapper.overlapEnabled);
 
                 if (noteOverlapSmoother.isStable() && changing)
                     noteOverlapSmoother.begin();
@@ -873,7 +918,7 @@ namespace Sapphire
                 if (noteOverlapSmoother.isDelayedActionReady() && changing)
                 {
                     initializeEngines();    // silence all engines immediately, now that we have ramped to 0
-                    noteOverlapEnabled = target;
+                    noteMapper.overlapEnabled = target;
                 }
             }
 
@@ -1108,6 +1153,20 @@ namespace Sapphire
                 return isButtonEnabled(LOOP_BUTTON_PARAM);
             }
 
+            void loadNoteInputs(unsigned nInputChannels)
+            {
+                float gateVoltage = 0;
+                float pitchVoltage = 0;
+                for (unsigned k = 0; k < nInputChannels; ++k)
+                {
+                    NoteChannelInput& note = noteMapper.inputNotes[k];
+                    nextChannelInputVoltage(gateVoltage, GATE_INPUT, k);
+                    nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, k);
+                    note.gate = gateVoltage;
+                    note.pitch = pitchVoltage;
+                }
+            }
+
             void process(const ProcessArgs& args) override
             {
                 updateNoteOverlap(args.sampleRate);
@@ -1126,12 +1185,16 @@ namespace Sapphire
                 // But the user can enable "overlapping note" mode.
                 // Then we internally use 16 channel polyphony, and dynamically
                 // allocate channels round robin.
-                nPolyChannels = noteOverlapEnabled ? NPOLY : nInputChannels;
+                nPolyChannels = noteMapper.numOutputChannels(nInputChannels);
                 currentChannelCount = static_cast<int>(nPolyChannels);      // update the channel count display widget
                 PolyStereoVoice& polyEngine = getCurrentEngine();
 
                 // Now nInputChannels may or may not be the same as nPolyChannels.
                 // For example, nInputChannels=3, overlap=true, nPolyChannels=16.
+                // Pre-load the note=(gate,pitch) pairs from the input's concept
+                // of channel allocation. We may or may not translate mappings below,
+                // depending on the static/dynamic note option.
+                loadNoteInputs(nInputChannels);
 
                 batch_t batch;
                 const float spread = updateChaos(args.sampleRate, batch);
@@ -1145,8 +1208,6 @@ namespace Sapphire
                 const bool loop = isLoopMode();
 
                 float levelVoltage = 0;
-                float gateVoltage = 0;
-                float pitchVoltage = 0;
                 float freqVoltage = 0;
                 float octaveVoltage = 0;
                 float glideVoltage = 0;
@@ -1159,14 +1220,12 @@ namespace Sapphire
                 float gain[PORT_MAX_CHANNELS]{};
                 for (unsigned c = 0; c < nPolyChannels; ++c)
                 {
+                    NoteChannelInput note = noteMapper.map(c);
                     VoiceContext& context = polyEngine.contextArray[c];
                     context.isLoopModeEnabled = loop;
                     context.trackerPitch.mode = pitchMode;
                     context.trackerFreq.mode = freqMode;
                     context.trackerOct.mode = octMode;
-
-                    nextChannelInputVoltage(gateVoltage, GATE_INPUT, c);
-                    nextChannelInputVoltage(pitchVoltage, PITCH_INPUT, c);
                     nextSignal(freqVoltage, FREQ_ATTEN, FREQ_CV_INPUT, c, batch);
                     nextSignal(octaveVoltage, OCT_ATTEN, OCT_CV_INPUT, c, batch);
                     nextSignal(attackVoltage, ATTACK_ATTEN, ATTACK_CV_INPUT, c, batch);
@@ -1186,7 +1245,7 @@ namespace Sapphire
                     context.pan = cvGetVoltPerOctave(PAN_PARAM, PAN_ATTEN, panVoltage, -1, +1);
                     const float glideKnob = cvGetVoltPerOctave(GLIDE_PARAM, GLIDE_ATTEN, glideVoltage, -2, +1);
                     const float glideSamples = TenToPower<float>(glideKnob) * args.sampleRate;
-                    context.updateGatePitch(drone ? 10.f : gateVoltage, pitchVoltage, freq, oct, 1/glideSamples);
+                    context.updateGatePitch(drone ? 10.f : note.gate, note.pitch, freq, oct, 1/glideSamples);
                     context.attack  = cvGetVoltPerOctave(ATTACK_PARAM,  ATTACK_ATTEN,  attackVoltage,  -1, +1);
                     context.decay   = cvGetVoltPerOctave(DECAY_PARAM,   DECAY_ATTEN,   decayVoltage,   -1, +1);
                     context.sustain = cvGetVoltPerOctave(SUSTAIN_PARAM, SUSTAIN_ATTEN, sustainVoltage,  0, +1);
