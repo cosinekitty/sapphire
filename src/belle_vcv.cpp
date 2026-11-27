@@ -685,9 +685,17 @@ namespace Sapphire
                 params.at(CHAOS_DISPLAY_VOLTAGES_BUTTON_PARAM).setValue(1);     // display voltage colors on attenuverters by default
                 nPolyChannels = 1;
                 recentAudio.initialize();
-                resetEngineSettings();
+                initializeEngines();
+                snapshotAllEngineSettings();
                 currentChannelCount = 0;
                 noteOverlapEnabled = false;
+            }
+
+            void initializeEngines()
+            {
+                for (EngineInfo& info : polyEngineList)
+                    if (info.engine)
+                        info.engine->initialize();
             }
 
             void resetFountain()
@@ -767,7 +775,7 @@ namespace Sapphire
             void jsonSavePerEngineSettings(json_t* root)
             {
                 // Copy knob parameter values into the per-model persistent record.
-                saveSettingsForEngine(currentEngineIndex);
+                snapshotEngineSettings(currentEngineIndex);
                 json_object_set_new(root, "currentEngineIndex", json_integer(currentEngineIndex));
 
                 json_t* engineList = json_array();
@@ -884,7 +892,7 @@ namespace Sapphire
 
                 if (modelChangeSmoother.isDelayedActionReady() && changing)
                 {
-                    saveSettingsForEngine(currentEngineIndex);
+                    snapshotEngineSettings(currentEngineIndex);
 
                     // Silence the current engine before leaving.
                     // Otherwise it leaves residual energy in the system when we come back.
@@ -898,7 +906,7 @@ namespace Sapphire
             }
 
 
-            void saveSettingsForEngine(unsigned engineIndex)
+            void snapshotEngineSettings(unsigned engineIndex)
             {
                 EngineInfo& info = polyEngineList.at(engineIndex);
                 info.attenRecords.clear();
@@ -917,6 +925,14 @@ namespace Sapphire
             }
 
 
+            void snapshotAllEngineSettings()
+            {
+                const unsigned n = engineCount();
+                for (unsigned i = 0; i < n; ++i)
+                    snapshotEngineSettings(i);
+            }
+
+
             void restoreSettingsForEngine(unsigned engineIndex)
             {
                 EngineInfo& info = polyEngineList.at(engineIndex);
@@ -929,15 +945,6 @@ namespace Sapphire
                     if (ShouldRestoreParameter(rec.attenId))
                         paramInfo.at(rec.attenId).context.persist = rec.persist;
             }
-
-
-            void resetEngineSettings()
-            {
-                const unsigned n = engineCount();
-                for (unsigned i = 0; i < n; ++i)
-                    saveSettingsForEngine(i);
-            }
-
 
 
             float updateChaos(float sampleRateHz, batch_t& batch)
