@@ -872,7 +872,7 @@ namespace Sapphire
 
                 if (noteOverlapSmoother.isDelayedActionReady() && changing)
                 {
-                    getCurrentEngine().initialize();
+                    initializeEngines();    // silence all engines immediately, now that we have ramped to 0
                     noteOverlapEnabled = target;
                 }
             }
@@ -1126,7 +1126,8 @@ namespace Sapphire
                 // But the user can enable "overlapping note" mode.
                 // Then we internally use 16 channel polyphony, and dynamically
                 // allocate channels round robin.
-                currentChannelCount = nPolyChannels = noteOverlapEnabled ? NPOLY : nInputChannels;
+                nPolyChannels = noteOverlapEnabled ? NPOLY : nInputChannels;
+                currentChannelCount = static_cast<int>(nPolyChannels);      // update the channel count display widget
                 PolyStereoVoice& polyEngine = getCurrentEngine();
 
                 // Now nInputChannels may or may not be the same as nPolyChannels.
