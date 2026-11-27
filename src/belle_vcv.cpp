@@ -527,14 +527,24 @@ namespace Sapphire
 
         struct NoteMapper
         {
-            bool overlapEnabled = false;
+            bool overlapEnabled{};
             std::array<NoteChannelInput, NPOLY> inputNotes;
+            std::array<unsigned, NPOLY> inputChannelIndex;
+
+            explicit NoteMapper()
+            {
+                initialize();
+            }
 
             void initialize()
             {
                 overlapEnabled = false;
+
                 for (NoteChannelInput& note : inputNotes)
                     note.initialize();
+
+                for (unsigned& index : inputChannelIndex)
+                    index = -1;
             }
 
             unsigned numOutputChannels(unsigned nInputChannels) const
@@ -542,10 +552,20 @@ namespace Sapphire
                 return overlapEnabled ? NPOLY : nInputChannels;
             }
 
-            NoteChannelInput map(unsigned c) const
+            NoteChannelInput map(unsigned c, unsigned nInputChannels) const
             {
-                // FIXFIXFIX: check overlapEnabled, redirect the channel when true.
-                return inputNotes.at(c);
+                if (c < NPOLY)
+                {
+                    if (overlapEnabled)
+                    {
+                        const unsigned k = inputChannelIndex[c];
+                        if (k < nInputChannels)
+                            return inputNotes[k];
+                        return NoteChannelInput();      // not allocated to a playing note, so return null note
+                    }
+                    return inputNotes[c];
+                }
+                return NoteChannelInput();
             }
         };
 
@@ -1220,7 +1240,7 @@ namespace Sapphire
                 float gain[PORT_MAX_CHANNELS]{};
                 for (unsigned c = 0; c < nPolyChannels; ++c)
                 {
-                    NoteChannelInput note = noteMapper.map(c);
+                    NoteChannelInput note = noteMapper.map(c, nInputChannels);
                     VoiceContext& context = polyEngine.contextArray[c];
                     context.isLoopModeEnabled = loop;
                     context.trackerPitch.mode = pitchMode;
