@@ -363,6 +363,7 @@ namespace Sapphire
         PolyStereoFrame stereo;
         PolyStereoFrame phase;
         ScalarFrame env;
+        unsigned freeChannelMask{};
 
         void setChannelCount(unsigned n)
         {
@@ -428,6 +429,7 @@ namespace Sapphire
             bool needSnap = true;
             float lpResonance = 0.3;
             float detuneWeight = 1;
+            bool freeChannel = false;
 
             void initialize(SapphireRandom& rand)
             {
@@ -436,6 +438,7 @@ namespace Sapphire
 
                 envelope.initialize();
                 needSnap = true;        // initialize lopass filters right before processing the next audio frame
+                freeChannel = false;
             }
 
             float saturation(float v, float d)
@@ -481,10 +484,14 @@ namespace Sapphire
 
             StereoFrame process(float sampleRateHz, VoiceContext& context)
             {
+                // Update the ADSR envelope.
+                AdsrState before = envelope.state;
                 float env = envelope.process(sampleRateHz, context);
                 context.updateEnvelopeEndOfCycle(sampleRateHz, envelope.eoc);
                 context.envelopeFraction = envelope.fraction;
                 context.envelopeState = envelope.state;
+                if (before == AdsrState::Release && envelope.state == AdsrState::Quiet)
+                    freeChannel = true;
 
                 // In addition to the ADSR envelope, we have a frequency attenuation envelope.
                 // Always track the center frequency pitch.
@@ -602,6 +609,7 @@ namespace Sapphire
         {
             PolyResult result;
             result.setChannelCount(nchannels);
+            result.freeChannelMask = 0;
             for (unsigned c = 0; c < nchannels; ++c)
             {
                 stereo_source_t& source = stereoSourceArray[c];
@@ -609,6 +617,11 @@ namespace Sapphire
                 result.phase.poly[c].sample[0] = source.chorus[0].phase;
                 result.phase.poly[c].sample[1] = source.chorus[1].phase;
                 result.env.poly[c] = source.envelope.fraction;
+                if (source.freeChannel)
+                {
+                    source.freeChannel = false;
+                    result.freeChannelMask |= (1 << c);     // pass along the request to free this channel mapping
+                }
             }
             return result;
         }

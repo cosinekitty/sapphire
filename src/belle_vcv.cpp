@@ -570,22 +570,40 @@ namespace Sapphire
 
                 GateTriggerReceiver& gtr = gtrArray.at(k);
                 gtr.update(gateVoltage);
-                if (gtr.isTriggerActive() && overlapEnabled)
+                if (overlapEnabled)
                 {
-                    // In overlap/dynamic mode, every rising edge of the GATE
-                    // allocates whichever channel is currently idle, or if
-                    // all are busy, we pick the quietest channel.
-
-                    // Try to find an idle output channel c.
-                    for (unsigned c = 0; c < NPOLY; ++c)
+                    if (gtr.isTriggerActive())
                     {
-                        if (inputChannelIndex[c] == FREE)
+                        // In overlap/dynamic mode, every rising edge of the GATE
+                        // allocates whichever channel is currently idle, or if
+                        // all are busy, we pick the quietest channel.
+
+                        // Try to find an idle output channel c.
+                        for (unsigned c = 0; c < NPOLY; ++c)
                         {
-                            inputChannelIndex[c] = k;
-                            return;
+                            if (inputChannelIndex[c] == FREE)
+                            {
+                                inputChannelIndex[c] = k;   // allocate output channel c to input channel k
+                                return;
+                            }
                         }
+
+                        // FIXFIXFIX - pick quietest channel and steal it.
                     }
                 }
+            }
+
+            void freeAllChannels()
+            {
+                for (unsigned c = 0; c < NPOLY; ++c)
+                    inputChannelIndex[c] = FREE;
+            }
+
+            void freeChannels(unsigned mask)
+            {
+                for (unsigned c = 0; c < NPOLY; ++c)
+                    if (mask & (1 << c))
+                        inputChannelIndex[c] = FREE;
             }
 
             NoteChannelInput map(unsigned c, unsigned nInputChannels) const
@@ -618,16 +636,11 @@ namespace Sapphire
             unsigned nPolyChannels = 1;
             transform_pool_t transformForAtten{};
             ChaosTransform chaosOutputTransform;
-            const char *detuneName = "Detune";
-            const char *pwmName = "PWM";
-            const char *splitName = "Split";
-            const char *lowpassName = "Lowpass cutoff";
-            const char *satName = "Saturation";
-            AdsrVoiceEngine<SineEngine> polySine{"sine", detuneName, satName, "Feedback", lowpassName};
-            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", detuneName, pwmName, splitName, lowpassName};
-            AdsrVoiceEngine<SawEngine, 4> polySaw{"saw", detuneName, "Chorus", "Spread", lowpassName, 8.0};
-            AdsrVoiceEngine<SquareEngine> polySquare{"square", detuneName, pwmName, splitName, lowpassName};
-            AdsrVoiceEngine<WindEngine> polyWind{"wind", detuneName, satName, "Resonance", lowpassName};
+            AdsrVoiceEngine<SineEngine> polySine{"sine", "Detune", "Saturation", "Feedback", "Lowpass cutoff"};
+            AdsrVoiceEngine<TriangleEngine> polyTriangle{"triangle", "Detune", "PWM", "Split", "Lowpass cutoff"};
+            AdsrVoiceEngine<SawEngine, 4> polySaw{"saw", "Detune", "Chorus", "Spread", "Lowpass cutoff", 8.0};
+            AdsrVoiceEngine<SquareEngine> polySquare{"square", "Detune", "PWM", "Split", "Lowpass cutoff"};
+            AdsrVoiceEngine<WindEngine> polyWind{"wind", "Detune", "Saturation", "Resonance", "Lowpass cutoff"};
             std::vector<EngineInfo> polyEngineList;
             unsigned currentEngineIndex{};
             float mildSensitivityLevel = 0.2;
@@ -974,6 +987,7 @@ namespace Sapphire
                 if (noteOverlapSmoother.isDelayedActionReady() && changing)
                 {
                     initializeEngines();    // silence all engines immediately, now that we have ramped to 0
+                    noteMapper.freeAllChannels();
                     noteMapper.overlapEnabled = target;
                 }
             }
@@ -1309,6 +1323,7 @@ namespace Sapphire
                 }
 
                 PolyResult result = polyEngine.process(args.sampleRate, nPolyChannels);
+                noteMapper.freeChannels(result.freeChannelMask);
                 recentAudio.process(args.sampleRate, result);
 
                 const float antiClick =
