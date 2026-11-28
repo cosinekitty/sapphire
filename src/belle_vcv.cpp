@@ -527,10 +527,16 @@ namespace Sapphire
 
         struct NoteMapper
         {
+            static constexpr unsigned FREE = -1;
+
             bool overlapEnabled{};
+
+            // Arrays that are indexed by input channel `k`...
             std::array<NoteChannelInput, NPOLY> inputNotes;
-            std::array<unsigned, NPOLY> inputChannelIndex;
             std::array<GateTriggerReceiver, NPOLY> gtrArray;
+
+            // Arrays that are indexed by output channel `c`...
+            std::array<unsigned, NPOLY> inputChannelIndex;      // inputChannelIndex[c] ==> k
 
             explicit NoteMapper()
             {
@@ -544,11 +550,11 @@ namespace Sapphire
                 for (NoteChannelInput& note : inputNotes)
                     note.initialize();
 
-                for (unsigned& index : inputChannelIndex)
-                    index = -1;
-
                 for (GateTriggerReceiver& gtr : gtrArray)
                     gtr.initialize();
+
+                for (unsigned& index : inputChannelIndex)
+                    index = FREE;
             }
 
             unsigned numOutputChannels(unsigned nInputChannels) const
@@ -569,6 +575,16 @@ namespace Sapphire
                     // In overlap/dynamic mode, every rising edge of the GATE
                     // allocates whichever channel is currently idle, or if
                     // all are busy, we pick the quietest channel.
+
+                    // Try to find an idle output channel c.
+                    for (unsigned c = 0; c < NPOLY; ++c)
+                    {
+                        if (inputChannelIndex[c] == FREE)
+                        {
+                            inputChannelIndex[c] = k;
+                            return;
+                        }
+                    }
                 }
             }
 
