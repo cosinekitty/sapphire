@@ -527,7 +527,7 @@ namespace Sapphire
 
         struct NoteMapper
         {
-            static constexpr unsigned FREE = -1;
+            static constexpr unsigned FREE = static_cast<unsigned>(-1);
 
             bool overlapEnabled{};
 
